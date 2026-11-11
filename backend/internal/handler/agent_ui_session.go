@@ -90,18 +90,18 @@ func resolveAgentCapability(c *gin.Context, svc ownerCredentialDirs, clients *ag
 	if _, found := ui.verify(strings.TrimSpace(c.GetHeader("X-Beeftv-Ui-Session")), userID); found {
 		return false, "ui-session", true, ""
 	}
-	return true, "", false, "缺少内置 UI 会话凭据或已登记客户端凭据"
+	return true, "", false, "Missing built-in UI session credentials or enrolled client credentials"
 }
 
 // RegisterAgentUISessionRoutes 只在本机同源且能出示 owner 凭据（或显式开发引导）时签发 UI 会话。
 func RegisterAgentUISessionRoutes(r gin.IRouter, svc agentUISessionService, ui *uiSessionStore, desktopTrust func(*http.Request) bool) {
 	r.POST("/assistant/ui-session", func(c *gin.Context) {
 		if strings.TrimSpace(c.GetHeader("X-Beeftv-Client")) != "" {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("外部客户端不能签发界面会话"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("External clients cannot sign interface sessions"))
 			return
 		}
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("只接受本机同源请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("Only accept local origin requests"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -114,12 +114,12 @@ func RegisterAgentUISessionRoutes(r gin.IRouter, svc agentUISessionService, ui *
 		// The UI bootstrap secret comes through the Wails binding, separately from entry credentials.
 		desktopShell := desktopTrust != nil && desktopTrust(c.Request)
 		if !ownerOK && !devBootstrap && !desktopShell {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("签发内置 UI 会话需要 owner 凭据或显式本地引导"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("Issuing a built-in UI session requires owner credentials or explicit local boot"))
 			return
 		}
 		session := ui.issue(user.ID)
 		if session.Token == "" {
-			fail(c, http.StatusInternalServerError, app.BadAuthRequest("无法签发 UI 会话"))
+			fail(c, http.StatusInternalServerError, app.BadAuthRequest("Unable to sign UI session"))
 			return
 		}
 		ok(c, gin.H{"token": session.Token, "expiresAt": session.ExpiresAt, "scope": "workspace:read-write",

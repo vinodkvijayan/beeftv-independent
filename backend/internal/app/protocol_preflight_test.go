@@ -82,11 +82,11 @@ func TestMissingProtocolFailsBeforeGenerationDispatch(t *testing.T) {
 }
 
 func TestProtocolPreflightDoesNotUnsealPriorSubmission(t *testing.T) {
-	local := generation.ProtocolPreparationError{Cause: errors.New("接口类型 fixture 未安装")}
+	local := generation.ProtocolPreparationError{Cause: errors.New("Interface type fixture is not installed")}
 	for _, cause := range []error{
 		imageRecoveryError{local},
 		generation.SubmissionUnknownError{Cause: local},
-		errors.New("接口类型 fixture 未安装"), // Text from an unknown execution is not dispatch evidence.
+		errors.New("Interface type fixture is not installed"), // Text from an unknown execution is not dispatch evidence.
 	} {
 		if safeRouteRejection(cause) || routeFailureCode(cause) != "submission_unknown" {
 			t.Fatalf("unproven rejection became safe: %T %v", cause, cause)

@@ -40,46 +40,46 @@ func renderBuiltinDocumentation(info Metadata, document string) string {
 
 func renderOperations(info Metadata) string {
 	var b strings.Builder
-	b.WriteString("| 阶段 | 方法与相对路径 | 请求类型 | 宿主行为 |\n| --- | --- | --- | --- |\n")
-	writeOperation(&b, "创建", info.Create, firstNonEmpty(info.ContentType, "application/json"), "提交请求；同步协议直接解析结果，异步协议读取任务 ID")
+	b.WriteString("| Phases | Methods and Relative Paths | Request Types | Host Behavior |\n| --- | --- | --- | --- |")
+	writeOperation(&b, "Create", info.Create, firstNonEmpty(info.ContentType, "application/json"), "Submit the request; the synchronous protocol directly parses the result, and the asynchronous protocol reads the task ID.")
 	if strings.TrimSpace(info.Poll) != "" {
-		writeOperation(&b, "轮询", info.Poll, "application/json", "查询状态，成功后提取媒体地址")
+		writeOperation(&b, "polling", info.Poll, "application/json", "Query the status and extract the media address after success.")
 	}
 	if strings.TrimSpace(info.Cancel) != "" {
-		writeOperation(&b, "取消", info.Cancel, "application/json", "取消仍在运行的任务")
+		writeOperation(&b, "Cancel", info.Cancel, "application/json", "Cancel a task that is still running")
 	}
 	return strings.TrimSpace(b.String())
 }
 
 func renderParameters(parameters []Parameter) string {
 	if len(parameters) == 0 {
-		return "> 当前适配器没有声明可配置参数；这不表示上游没有参数，只表示宿主尚未建立稳定映射。"
+		return "> The current adapter does not declare configurable parameters; this does not mean that the upstream has no parameters, it just means that the host has not established a stable mapping."
 	}
 	var b strings.Builder
-	b.WriteString("| 宿主字段 | 类型 | 必填 | 实际上游映射 | 说明 |\n| --- | --- | --- | --- | --- |\n")
+	b.WriteString("| Host Fields | Type | Required | Actual Upstream Mapping | Description |\n| --- | --- | --- | --- | --- |")
 	for _, parameter := range parameters {
 		description := strings.TrimSpace(parameter.Description)
 		if len(parameter.Values) > 0 {
-			description = strings.TrimSpace(description + " 可选值：" + strings.Join(parameter.Values, "、") + "。")
+			description = strings.TrimSpace(description + " Optional values:" + strings.Join(parameter.Values, "、") + "。")
 		}
-		fmt.Fprintf(&b, "| `%s` | `%s` | %s | `%s` | %s |\n", markdownCell(parameter.Name), markdownCell(parameter.Type), yesNo(parameter.Required), markdownCell(firstNonEmpty(parameter.Mapping, "未映射")), markdownCell(firstNonEmpty(description, "由当前协议适配器按请求类型转换。")))
+		fmt.Fprintf(&b, "| `%s` | `%s` | %s | `%s` | %s |\n", markdownCell(parameter.Name), markdownCell(parameter.Type), yesNo(parameter.Required), markdownCell(firstNonEmpty(parameter.Mapping, "Not mapped")), markdownCell(firstNonEmpty(description, "Converted by the current protocol adapter on request type.")))
 	}
 	return strings.TrimSpace(b.String())
 }
 
 func renderRuntimeContract(info Metadata) string {
 	var b strings.Builder
-	b.WriteString("## 宿主运行时合同\n\n")
-	b.WriteString("- Base URL 只填写协议服务根地址，表中的相对路径由适配器拼接；不要把同一路径重复写进 Base URL。\n")
-	b.WriteString("- 密钥由后端渠道中转读取，插件详情和浏览器请求不保存密钥。Bearer、供应商签名或专用版本头以本文鉴权章节为准。\n")
-	b.WriteString("- 模型名来自渠道模型配置并原样发送。此插件不暗改模型名，也不根据名称猜测价格、额度或能力。\n")
-	b.WriteString("- HTTP 非 2xx、非 JSON 响应、缺少任务 ID、成功状态却没有可识别结果都会作为真实错误向上返回。\n")
+	b.WriteString("## Host runtime contract")
+	b.WriteString("- The Base URL only fills in the protocol service root address, and the relative paths in the table are spliced by the adapter; do not write the same path into the Base URL repeatedly.")
+	b.WriteString("- The key is read by the backend channel, and the plug-in details and browser requests do not save the key. Bearer, supplier signature or special version header shall be subject to the authentication section of this article.")
+	b.WriteString("- The model name comes from the channel model configuration and is sent as is. This plug-in does not secretly change the model name, nor does it guess the price, quota or capabilities based on the name.")
+	b.WriteString("- HTTP non-2xx, non-JSON responses, missing task IDs, success status without identifiable results are all returned as true errors.")
 	if strings.TrimSpace(info.Poll) != "" {
-		b.WriteString("- 异步状态统一为：`queued/pending/created/submitted` -> 等待，`running/processing/in_progress` -> 处理中，`succeeded/completed/done` -> 成功，`failed/error/expired/cancelled` -> 失败。\n")
-		b.WriteString("- 轮询频率应遵守上游速率限制；媒体 URL 通常有有效期，成功后应立即进入宿主资源保存流程。\n")
+		b.WriteString("- The asynchronous status is unified as: `queued/pending/created/submitted` -> waiting, `running/processing/in_progress` -> processing, `succeeded/completed/done` -> successful, `failed/error/expired/cancelled` -> failed.")
+		b.WriteString("- The polling frequency should comply with the upstream rate limit; media URLs usually have a validity period and should immediately enter the host resource saving process upon success.")
 	}
-	b.WriteString("- 参考素材只接受上游可访问的 HTTP(S) URL 或带 MIME 前缀的 data URL；裸 Base64、登录后才能访问的链接和 Cookie 保护地址不可用。\n")
-	b.WriteString("- 插件只保证下方“当前实现”明确列出的字段。上游新增能力不会自动获得宿主支持，必须补适配、解析和测试。\n")
+	b.WriteString("- Reference material only accepts upstream-reachable HTTP(S) URLs or MIME-prefixed data URLs; bare Base64, login-only links, and cookie-protected addresses are not available.")
+	b.WriteString("- Plugins only guarantee fields explicitly listed in \"Current Implementation\" below. New capabilities added upstream will not automatically receive host support and must be adapted, parsed, and tested.")
 	return strings.TrimSpace(b.String())
 }
 
@@ -98,9 +98,9 @@ func markdownCell(value string) string {
 
 func yesNo(value bool) string {
 	if value {
-		return "是"
+		return "Yes"
 	}
-	return "否"
+	return "No"
 }
 
 func firstNonEmpty(values ...string) string {

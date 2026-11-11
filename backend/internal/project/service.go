@@ -64,25 +64,25 @@ func mapProjectWriteError(err error) error {
 		return nil
 	}
 	if errors.Is(err, repository.ErrProjectRevisionConflict) {
-		return kernel.WrapAppError(kernel.CodeConflict, "项目已被其他操作更新，请重新加载后再保存", err)
+		return kernel.WrapAppError(kernel.CodeConflict, "The project has been updated by other operations, please reload before saving.", err)
 	}
 	if errors.Is(err, repository.ErrExpectedRevisionRequired) {
-		return kernel.BadAuthRequest("请刷新后再保存分镜")
+		return kernel.BadAuthRequest("Please refresh and then save the storyboard")
 	}
 	if errors.Is(err, repository.ErrCanvasRevisionConflict) {
-		return kernel.WrapAppError(kernel.CodeConflict, "画布已被其他操作更新，无法完成项目关联", err)
+		return kernel.WrapAppError(kernel.CodeConflict, "The canvas has been updated by other operations and the project association cannot be completed", err)
 	}
 	if errors.Is(err, repository.ErrProjectArchived) {
-		return kernel.BadAuthRequest("项目已归档，不能修改短剧生产数据")
+		return kernel.BadAuthRequest("The project has been archived and the skit production data cannot be modified.")
 	}
 	if errors.Is(err, repository.ErrProjectUnitShotsChanged) {
-		return kernel.BadAuthRequest("本章分镜已发生变化，请刷新后重新确认")
+		return kernel.BadAuthRequest("The storyboard of this chapter has changed, please refresh and confirm again.")
 	}
 	if errors.Is(err, repository.ErrProjectAssetStillReferenced) {
-		return kernel.BadAuthRequest("素材仍被项目镜头引用，请先解除镜头用途")
+		return kernel.BadAuthRequest("The material is still referenced by the project lens. Please un-use the lens first.")
 	}
 	if errors.Is(err, repository.ErrProjectAssetFolderNotEmpty) {
-		return kernel.BadAuthRequest("文件夹非空，请先移动其中的素材和子文件夹")
+		return kernel.BadAuthRequest("The folder is not empty, please move the materials and subfolders in it first")
 	}
 	return err
 }
@@ -97,7 +97,7 @@ func (s *Service) Active(userID, projectID string) (*model.Project, error) {
 		return nil, err
 	}
 	if project.Status == model.ProjectStatusArchived {
-		return nil, kernel.BadAuthRequest("项目已归档，不能修改短剧生产数据")
+		return nil, kernel.BadAuthRequest("The project has been archived and the skit production data cannot be modified.")
 	}
 	return project, nil
 }
@@ -108,10 +108,10 @@ func (s *Service) Active(userID, projectID string) (*model.Project, error) {
 func (s *Service) EnsureTaskScopeActive(userID, canvasOrProjectID string) error {
 	if err := s.repo.RequireTaskScopeActive(userID, canvasOrProjectID); err != nil {
 		if errors.Is(err, repository.ErrTaskScopeArchived) {
-			return kernel.BadAuthRequest("项目已归档，无法创建生成任务")
+			return kernel.BadAuthRequest("The project is archived and the build task cannot be created")
 		}
 		if errors.Is(err, repository.ErrTaskScopeNotActive) {
-			return kernel.BadAuthRequest("当前画布或项目不可用，无法创建生成任务")
+			return kernel.BadAuthRequest("The current canvas or project is unavailable and the build task cannot be created")
 		}
 		return err
 	}
@@ -174,7 +174,7 @@ func (s *Service) summarizeProjects(userID string, projects []model.Project) ([]
 
 func requireDurableRevision(item Summary) error {
 	if item.Project.ID == "" || item.Project.Revision < 1 {
-		return fmt.Errorf("项目缺少有效的本地修订版本")
+		return fmt.Errorf("Project is missing a valid local revision")
 	}
 	return nil
 }
@@ -186,7 +186,7 @@ func (s *Service) ListProjectFolders(userID string) ([]model.ProjectFolder, erro
 func (s *Service) CreateProjectFolder(userID string, req CreateProjectFolderRequest) (model.ProjectFolder, error) {
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return model.ProjectFolder{}, kernel.BadAuthRequest("文件夹名称不能为空")
+		return model.ProjectFolder{}, kernel.BadAuthRequest("Folder name cannot be empty")
 	}
 	parentID := strings.TrimSpace(req.ParentID)
 	if parentID != "" {
@@ -217,7 +217,7 @@ func (s *Service) DuplicateProject(userID, projectID string) (model.Project, err
 	now := time.Now()
 	clone := *source
 	clone.ID = kernel.NewID()
-	clone.Name = strings.TrimSpace(source.Name) + " 副本"
+	clone.Name = strings.TrimSpace(source.Name) + " copy"
 	clone.FolderID = source.FolderID
 	clone.Status = model.ProjectStatusActive
 	clone.Revision = 1
@@ -236,7 +236,7 @@ func (s *Service) CreateProject(userID string, req CreateProjectRequest) (model.
 	}
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return model.Project{}, kernel.BadAuthRequest("项目名称不能为空")
+		return model.Project{}, kernel.BadAuthRequest("Project name cannot be empty")
 	}
 	projectType := strings.TrimSpace(req.Type)
 	if projectType == "" {
@@ -315,12 +315,12 @@ func (s *Service) UpdateProject(userID string, id string, req UpdateProjectReque
 			resource, resourceErr := s.repo.ResourceForUser(userID, coverResourceID)
 			if resourceErr != nil {
 				if errors.Is(resourceErr, gorm.ErrRecordNotFound) {
-					return model.Project{}, kernel.BadAuthRequest("项目主图不存在或不属于当前用户")
+					return model.Project{}, kernel.BadAuthRequest("The main project image does not exist or does not belong to the current user")
 				}
 				return model.Project{}, resourceErr
 			}
 			if resource.Status != model.ResourceStatusReady || resource.Kind != "image" {
-				return model.Project{}, kernel.BadAuthRequest("项目主图必须是已就绪的图片资源")
+				return model.Project{}, kernel.BadAuthRequest("The main image of the project must be a ready image resource")
 			}
 		}
 		item.CoverResourceID = coverResourceID
@@ -354,7 +354,7 @@ func (s *Service) UpdateProject(userID string, id string, req UpdateProjectReque
 	}
 	if status := model.ProjectStatus(strings.TrimSpace(req.Status)); status != "" {
 		if status != model.ProjectStatusActive && status != model.ProjectStatusArchived {
-			return model.Project{}, kernel.BadAuthRequest("不支持的项目状态")
+			return model.Project{}, kernel.BadAuthRequest("Unsupported project status")
 		}
 		item.Status = status
 	}
@@ -370,7 +370,7 @@ func (s *Service) UpdateProject(userID string, id string, req UpdateProjectReque
 func normalizeProjectDefaultModel(value string) (string, error) {
 	modelRef := strings.TrimSpace(value)
 	if len(modelRef) > 500 {
-		return "", kernel.BadAuthRequest("项目默认模型标识过长")
+		return "", kernel.BadAuthRequest("The project default model identifier is too long")
 	}
 	return modelRef, nil
 }
@@ -402,11 +402,11 @@ func (s *Service) DeleteProject(userID string, id string) error {
 		return err
 	}
 	if activeTaskCount > 0 {
-		return kernel.BadAuthRequest("项目仍有进行中的生成任务，请等待任务完成或取消后再删除")
+		return kernel.BadAuthRequest("The project still has ongoing build tasks, please wait for the tasks to be completed or canceled before deleting them.")
 	}
 	if err := s.repo.DeleteProject(userID, id, canvasUpdates); err != nil {
 		if errors.Is(err, repository.ErrProjectHasActiveTasks) {
-			return kernel.BadAuthRequest("项目仍有进行中的生成任务，请等待任务完成或取消后再删除")
+			return kernel.BadAuthRequest("The project still has ongoing build tasks, please wait for the tasks to be completed or canceled before deleting them.")
 		}
 		return err
 	}

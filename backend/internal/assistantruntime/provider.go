@@ -30,7 +30,7 @@ func ResolveProvider(resolve func() (assistant.Provider, error)) (assistant.Prov
 			override.Protocol = "chat-completion"
 		}
 		override.ChannelID = "env"
-		override.ChannelName = "环境变量"
+		override.ChannelName = "environment variables"
 		override.ModelKey = override.Model
 		return override, ""
 	}

@@ -137,13 +137,13 @@ func validatePayload(payload Payload) error {
 		return ErrInvalidSignature
 	}
 	if _, err := parseStableVersion(payload.Version); err != nil {
-		return fmt.Errorf("更新版本号无效")
+		return fmt.Errorf("The update version number is invalid")
 	}
 	if !gitSHA.MatchString(strings.TrimSpace(payload.Commit)) {
-		return fmt.Errorf("更新提交信息不完整")
+		return fmt.Errorf("Update submission information is incomplete")
 	}
 	if len(payload.Platforms) == 0 {
-		return fmt.Errorf("更新未包含安装包")
+		return fmt.Errorf("Update does not contain installation package")
 	}
 	for platform, artifact := range payload.Platforms {
 		if !knownPlatform(platform) {
@@ -169,14 +169,14 @@ func validateArtifactForSchema(artifact PlatformArtifact, schema int, targetVers
 	switch schema {
 	case payloadSchema:
 		if len(artifact.URLs) > 0 || len(artifact.Deltas) > 0 || strings.TrimSpace(artifact.URL) == "" {
-			return fmt.Errorf("更新包地址无效")
+			return fmt.Errorf("The update package address is invalid")
 		}
 		if err := validateArtifactURL(artifact.URL, false); err != nil {
 			return err
 		}
 	case payloadSchemaV2:
 		if strings.TrimSpace(artifact.URL) != "" || len(artifact.URLs) == 0 {
-			return fmt.Errorf("更新包地址无效")
+			return fmt.Errorf("The update package address is invalid")
 		}
 		if err := validateURLList(artifact.URLs, true); err != nil {
 			return err
@@ -184,10 +184,10 @@ func validateArtifactForSchema(artifact PlatformArtifact, schema int, targetVers
 		for fromVer, delta := range artifact.Deltas {
 			cmp, err := compareStable(fromVer, targetVersion)
 			if err != nil || cmp >= 0 {
-				return fmt.Errorf("更新版本号无效")
+				return fmt.Errorf("The update version number is invalid")
 			}
 			if len(delta.URLs) == 0 {
-				return fmt.Errorf("更新包地址无效")
+				return fmt.Errorf("The update package address is invalid")
 			}
 			if err := validateURLList(delta.URLs, true); err != nil {
 				return err
@@ -207,7 +207,7 @@ func validateURLList(urls []string, requireKnownDomain bool) error {
 	for _, rawURL := range urls {
 		trimmed := strings.TrimSpace(rawURL)
 		if _, dup := seen[trimmed]; dup {
-			return fmt.Errorf("更新包地址重复")
+			return fmt.Errorf("Duplicate update package address")
 		}
 		seen[trimmed] = struct{}{}
 		if err := validateArtifactURL(trimmed, requireKnownDomain); err != nil {
@@ -220,7 +220,7 @@ func validateURLList(urls []string, requireKnownDomain bool) error {
 func validateArtifact(artifact PlatformArtifact) error {
 	urls := artifact.CandidateURLs()
 	if len(urls) == 0 {
-		return fmt.Errorf("更新包地址无效")
+		return fmt.Errorf("The update package address is invalid")
 	}
 	for _, rawURL := range urls {
 		if err := validateArtifactURL(rawURL, false); err != nil {
@@ -243,13 +243,13 @@ func validateArtifactDigestAndSize(artifact PlatformArtifact) error {
 func validateArtifactURL(raw string, requireKnownDomain bool) error {
 	parsed, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil {
-		return fmt.Errorf("更新包地址无效")
+		return fmt.Errorf("The update package address is invalid")
 	}
 	if parsed.RawQuery != "" || parsed.Fragment != "" {
-		return fmt.Errorf("更新包地址无效")
+		return fmt.Errorf("The update package address is invalid")
 	}
 	if requireKnownDomain && !isKnownArtifactURL(parsed) {
-		return fmt.Errorf("更新包域名不受信任")
+		return fmt.Errorf("The update package domain name is not trusted")
 	}
 	return nil
 }

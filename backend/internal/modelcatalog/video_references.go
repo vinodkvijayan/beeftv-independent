@@ -38,16 +38,16 @@ func videoReferencesForOperation(profile *VideoCapabilityConfig, operation strin
 
 func validateVideoReferenceCounts(refs VideoReferenceConfig, input TaskInput) error {
 	if len(input.ReferenceImages) > refs.MaxImages {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前生成模式最多支持 %d 张参考图", refs.MaxImages))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current generation mode supports up to %d reference images.", refs.MaxImages))
 	}
 	if len(input.ReferenceVideos) > refs.MaxVideos {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前生成模式最多支持 %d 个参考视频", refs.MaxVideos))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current generation mode supports up to %d reference videos", refs.MaxVideos))
 	}
 	if len(input.ReferenceAudios) > refs.MaxAudios {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前生成模式最多支持 %d 段参考音频", refs.MaxAudios))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current generation mode supports at most %d segments of reference audio.", refs.MaxAudios))
 	}
 	if len(input.ReferenceImages) < refs.MinImages {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前生成模式至少需要 %d 张参考图", refs.MinImages))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current generation mode requires at least %d reference images", refs.MinImages))
 	}
 	return nil
 }

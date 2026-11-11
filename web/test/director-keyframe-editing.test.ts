@@ -26,8 +26,8 @@ function seededKeyframes(): DirectorKeyframe[] {
     return keys;
 }
 
-describe("删除 transform 关键帧", () => {
-    test("按 id 删除只移除目标帧，其余保持有序", () => {
+describe("Remove transform keyframe", () => {
+    test("Delete by id only removes the target frame, keeping the rest in order", () => {
         const keys = seededKeyframes();
         const next = removeDirectorKeyframe(keys, keys[1].id);
 
@@ -37,19 +37,19 @@ describe("删除 transform 关键帧", () => {
         expect(keys).toHaveLength(3);
     });
 
-    test("id 不存在时返回原引用，避免无意义重渲染", () => {
+    test("If the id does not exist, return the original reference to avoid meaningless re-rendering.", () => {
         const keys = seededKeyframes();
         expect(removeDirectorKeyframe(keys, "missing")).toBe(keys);
     });
 
-    test("删空后得到空数组，插值回落到 base", () => {
+    test("After deleting the empty array, an empty array is obtained, and the interpolation falls back to base.", () => {
         let keys = upsertDirectorKeyframe([], 1, transformAt(5));
         keys = removeDirectorKeyframe(keys, keys[0].id);
         expect(keys).toEqual([]);
         expect(interpolateDirectorTransform(transformAt(99), keys, 1).position[0]).toBe(99);
     });
 
-    test("upsert 使用同一容差，记录下的帧一定能按 id 删除", () => {
+    test("upsert uses the same tolerance, and the recorded frames must be deleted by id", () => {
         // 非整帧时间点最容易出现「记录能覆盖但删不掉」，这里锁住判据一致。
         let keys = upsertDirectorKeyframe([], 0.75, transformAt(3));
         keys = upsertDirectorKeyframe(keys, 0.75 + DIRECTOR_KEYFRAME_EPSILON / 2, transformAt(4));
@@ -58,8 +58,8 @@ describe("删除 transform 关键帧", () => {
     });
 });
 
-describe("关键帧缓动", () => {
-    test("linear / step / smooth 产生不同且确定的区间进度", () => {
+describe("keyframe easing", () => {
+    test("linear / step / smooth produce different and definite interval progress", () => {
         expect(resolveDirectorKeyframeProgress(0.25, "linear")).toBe(0.25);
         expect(resolveDirectorKeyframeProgress(0.25, "step")).toBe(0);
         expect(resolveDirectorKeyframeProgress(0.25, "smooth")).toBeCloseTo(0.15625, 8);
@@ -67,7 +67,7 @@ describe("关键帧缓动", () => {
         expect(resolveDirectorKeyframeProgress(2, "linear")).toBe(1);
     });
 
-    test("插值读取前一枚关键帧的 easing，旧数据默认线性", () => {
+    test("Interpolation reads the easing of the previous keyframe, and the old data defaults to linear", () => {
         const base = seededKeyframes().slice(0, 2);
         expect(interpolateDirectorTransform(transformAt(0), base, 0.25).position[0]).toBeCloseTo(2.5, 8);
         expect(interpolateDirectorTransform(transformAt(0), [{ ...base[0], easing: "step" }, base[1]], 0.25).position[0]).toBe(0);
@@ -76,8 +76,8 @@ describe("关键帧缓动", () => {
     });
 });
 
-describe("对象属性组关键帧", () => {
-    test("只记录位置时，播放插值不改变未记录的旋转和缩放", () => {
+describe("Object property group keyframes", () => {
+    test("Playback interpolation does not change unrecorded rotation and scale when only position is recorded", () => {
         const base: DirectorTransform = { position: [1, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] };
         const keys: DirectorKeyframe[] = [
             { id: "start", time: 0, transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [2, 2, 2] }, positionKeyed: true, rotationKeyed: false, scaleKeyed: false },
@@ -89,9 +89,9 @@ describe("对象属性组关键帧", () => {
         expect(rendered.scale).toEqual([1, 1, 1]);
     });
 
-    test("取消位置帧仅移除位置属性，保留同一时刻的旋转帧", () => {
-        const scene = createDirectorScene("属性组轨道");
-        const actor = createDirectorActor("角色A");
+    test("Canceling the position frame only removes the position attribute and retains the rotation frame at the same time.", () => {
+        const scene = createDirectorScene("Property group track");
+        const actor = createDirectorActor("Role A");
         const key: DirectorKeyframe = { id: "at-1", time: 1, transform: transformAt(4), positionKeyed: true, rotationKeyed: true, scaleKeyed: false };
         const seeded: DirectorScene = { ...scene, objects: [{ ...actor, keyframes: [key] }] };
         const next = removeDirectorSceneKeyframe(seeded, { track: "object-transform", objectId: actor.id, keyframeId: key.id, channel: "position" });
@@ -101,10 +101,10 @@ describe("对象属性组关键帧", () => {
     });
 });
 
-describe("删除骨骼关键帧", () => {
+describe("Delete bone keyframes", () => {
     const rotation: DirectorQuat = [0, 0, 0, 1];
 
-    test("删除后轨道保留其余帧", () => {
+    test("Track retains remaining frames after deletion", () => {
         let tracks = upsertDirectorBoneKeyframe([], "hips", 0, rotation);
         tracks = upsertDirectorBoneKeyframe(tracks, "hips", 1, rotation);
         const target = tracks[0].keyframes[0].id;
@@ -115,19 +115,19 @@ describe("删除骨骼关键帧", () => {
         expect(next[0].keyframes[0].time).toBe(1);
     });
 
-    test("轨道被删空后整条移除，不留空子轨道", () => {
+    test("After the track is deleted, the entire track is removed, leaving no empty sub-tracks.", () => {
         const tracks = upsertDirectorBoneKeyframe([], "head", 0, rotation);
         const next = removeDirectorBoneKeyframe(tracks, "head", tracks[0].keyframes[0].id);
         expect(next).toEqual([]);
     });
 
-    test("骨骼或 id 不存在时返回原引用", () => {
+    test("Returns the original reference when the bone or id does not exist", () => {
         const tracks = upsertDirectorBoneKeyframe([], "head", 0, rotation);
         expect(removeDirectorBoneKeyframe(tracks, "hips", tracks[0].keyframes[0].id)).toBe(tracks);
         expect(removeDirectorBoneKeyframe(tracks, "head", "missing")).toBe(tracks);
     });
 
-    test("只影响目标骨骼，其他轨道不动", () => {
+    test("Only affects the target bone, leaving other tracks unchanged.", () => {
         let tracks = upsertDirectorBoneKeyframe([], "hips", 0, rotation);
         tracks = upsertDirectorBoneKeyframe(tracks, "head", 0, rotation);
         const next = removeDirectorBoneKeyframe(tracks, "hips", tracks[0].keyframes[0].id);
@@ -135,23 +135,23 @@ describe("删除骨骼关键帧", () => {
     });
 });
 
-describe("removeDirectorSceneKeyframe：时间轴删除的唯一分派入口", () => {
+describe("removeDirectorSceneKeyframe: the only dispatch entry for timeline deletion", () => {
     const rotation: DirectorQuat = [0, 0, 0, 1];
 
     /** 一个带对象 transform 帧、骨骼帧和摄影机帧的完整场景。 */
     function seededScene() {
-        const base = createDirectorScene("删除测试");
+        const base = createDirectorScene("Delete test");
         const actor = {
-            ...createDirectorActor("演员 A"),
+            ...createDirectorActor("Actor A"),
             keyframes: upsertDirectorKeyframe(upsertDirectorKeyframe([], 0, transformAt(0)), 1, transformAt(10)),
             boneTracks: upsertDirectorBoneKeyframe(upsertDirectorBoneKeyframe([], "hips", 0, rotation), "head", 0.5, rotation),
         };
-        const camera = { ...createDirectorCamera("摄影机 A"), keyframes: upsertDirectorKeyframe([], 2, transformAt(5)) };
+        const camera = { ...createDirectorCamera("Camera A"), keyframes: upsertDirectorKeyframe([], 2, transformAt(5)) };
         const scene: DirectorScene = { ...base, objects: [actor], cameras: [camera] };
         return { scene, actor, camera };
     }
 
-    test("删除对象 transform 帧，只动目标对象", () => {
+    test("Delete the object transform frame and only move the target object", () => {
         const { scene, actor } = seededScene();
         const next = removeDirectorSceneKeyframe(scene, { track: "object-transform", objectId: actor.id, keyframeId: actor.keyframes[0].id });
 
@@ -162,7 +162,7 @@ describe("removeDirectorSceneKeyframe：时间轴删除的唯一分派入口", (
         expect(next.cameras).toBe(scene.cameras);
     });
 
-    test("删除骨骼帧，删空的子轨道整条移除", () => {
+    test("Delete the skeleton frame and remove all empty sub-tracks.", () => {
         const { scene, actor } = seededScene();
         const hips = actor.boneTracks.find((track) => track.bone === "hips");
         const next = removeDirectorSceneKeyframe(scene, { track: "object-bone", objectId: actor.id, bone: "hips", keyframeId: hips!.keyframes[0].id });
@@ -171,7 +171,7 @@ describe("removeDirectorSceneKeyframe：时间轴删除的唯一分派入口", (
         expect(next.objects[0].keyframes).toBe(actor.keyframes);
     });
 
-    test("删除摄影机帧，只动目标摄影机", () => {
+    test("Delete the camera frame and only move the target camera", () => {
         const { scene, camera } = seededScene();
         const next = removeDirectorSceneKeyframe(scene, { track: "camera", cameraId: camera.id, keyframeId: camera.keyframes[0].id });
 
@@ -179,7 +179,7 @@ describe("removeDirectorSceneKeyframe：时间轴删除的唯一分派入口", (
         expect(next.objects).toBe(scene.objects);
     });
 
-    test("删除焦点或视角子轨不会删除同一时刻的位置及另一条光学轨", () => {
+    test("Deleting the focus or angle sub-track will not delete the position and another optical track at the same time", () => {
         const { scene, camera } = seededScene();
         const key = { ...camera.keyframes[0], rotationKeyed: false, target: [1, 1.2, 0] as [number, number, number], fov: 35 };
         const withOptics: DirectorScene = { ...scene, cameras: [{ ...camera, keyframes: [key] }] };
@@ -209,7 +209,7 @@ describe("removeDirectorSceneKeyframe：时间轴删除的唯一分派入口", (
         expect(removeDirectorSceneKeyframe(noFocus, { track: "camera", cameraId: camera.id, keyframeId: key.id, channel: "focus" })).toBe(noFocus);
     });
 
-    test("未命中一律返回同一 scene 引用：调用方据此跳过历史与保存", () => {
+    test("Misses always return the same scene reference: the caller skips history and saving accordingly.", () => {
         const { scene, actor, camera } = seededScene();
         // 对象存在但帧 id 不存在。
         expect(removeDirectorSceneKeyframe(scene, { track: "object-transform", objectId: actor.id, keyframeId: "missing" })).toBe(scene);
@@ -221,29 +221,29 @@ describe("removeDirectorSceneKeyframe：时间轴删除的唯一分派入口", (
         expect(removeDirectorSceneKeyframe(scene, { track: "camera", cameraId: "missing", keyframeId: camera.keyframes[0].id })).toBe(scene);
     });
 
-    test("对象没有 boneTracks 时删除骨骼帧不虚构空数组", () => {
-        const base = createDirectorScene("无骨骼");
-        const object = { ...createDirectorActor("演员 B"), boneTracks: undefined };
+    test("When the object does not have boneTracks, deleting the bone frame does not create an empty array.", () => {
+        const base = createDirectorScene("no bones");
+        const object = { ...createDirectorActor("Actor B"), boneTracks: undefined };
         const scene: DirectorScene = { ...base, objects: [object] };
         expect(removeDirectorSceneKeyframe(scene, { track: "object-bone", objectId: object.id, bone: "hips", keyframeId: "any" })).toBe(scene);
     });
 
-    test("不改写入参：原 scene 与原数组保持完整", () => {
+    test("Do not change the written parameters: the original scene and the original array remain intact", () => {
         const { scene, actor } = seededScene();
         removeDirectorSceneKeyframe(scene, { track: "object-transform", objectId: actor.id, keyframeId: actor.keyframes[0].id });
         expect(scene.objects[0].keyframes).toHaveLength(2);
     });
 });
 
-describe("setDirectorSceneKeyframeEasing：按轨道更新且保持纯函数", () => {
-    test("对象、骨骼和摄影机三类目标都能独立更新", () => {
-        const base = createDirectorScene("缓动测试");
+describe("setDirectorSceneKeyframeEasing: Update by track and remain pure function", () => {
+    test("Objects, bones and cameras can all be updated independently", () => {
+        const base = createDirectorScene("Easing test");
         const actor = {
-            ...createDirectorActor("演员"),
+            ...createDirectorActor("actor"),
             keyframes: upsertDirectorKeyframe([], 0, transformAt(0)),
             boneTracks: upsertDirectorBoneKeyframe([], "hips", 0, [0, 0, 0, 1]),
         };
-        const camera = { ...createDirectorCamera("摄影机"), keyframes: upsertDirectorKeyframe([], 0, transformAt(1)) };
+        const camera = { ...createDirectorCamera("camera"), keyframes: upsertDirectorKeyframe([], 0, transformAt(1)) };
         const scene: DirectorScene = { ...base, objects: [actor], cameras: [camera] };
 
         const objectNext = setDirectorSceneKeyframeEasing(scene, { track: "object-transform", objectId: actor.id, keyframeId: actor.keyframes[0].id }, "smooth");
@@ -258,7 +258,7 @@ describe("setDirectorSceneKeyframeEasing：按轨道更新且保持纯函数", (
         expect(scene.objects[0].keyframes[0].easing).toBeUndefined();
     });
 
-    test("目标不存在时返回原 scene 引用", () => {
+    test("Returns the original scene reference when the target does not exist", () => {
         const scene = createDirectorScene("missing");
         expect(setDirectorSceneKeyframeEasing(scene, { track: "camera", cameraId: "missing", keyframeId: "missing" }, "smooth")).toBe(scene);
     });

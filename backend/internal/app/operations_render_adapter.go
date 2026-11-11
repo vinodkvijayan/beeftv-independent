@@ -31,7 +31,7 @@ func (a operationRenderDependencies) ActiveTaskLimit() (int, error) {
 }
 func (a operationRenderDependencies) EnsureActive(userID, scopeID string) error {
 	if a.s.tx == nil {
-		return operations.PreconditionFailed("render_transaction_required", "本地渲染需要业务事务", nil)
+		return operations.PreconditionFailed("render_transaction_required", "Local rendering requires business transactions", nil)
 	}
 	return repository.RequireTaskScopeActiveTx(a.s.tx, userID, scopeID)
 }

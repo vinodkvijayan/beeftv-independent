@@ -26,9 +26,9 @@ func TestSelectedSkillsActualHostBusinessFlows(t *testing.T) {
 		titles                             []string
 		script                             bool
 	}{
-		{"coffee", "读取 references/shots.md，为三个段落创建草稿，不生成。", "references/shots.md", "磨豆；手冲；甜点", []string{"磨豆", "手冲", "甜点"}, false},
-		{"interview", "读取 references/interview.md，使用原话创建保留区间草稿。", "references/interview.md", "00:02-00:06 主人公说：每天练习。", []string{"00:02-00:06 每天练习"}, false},
-		{"audio", "读取 scripts/listen.js，并提交 skill_script_run 等待用户确认运行。", "scripts/listen.js", "console.log('audio check ok')", nil, true},
+		{"coffee", "Read references/shots.md, create drafts for three paragraphs, do not generate.", "references/shots.md", "Grinding beans; hand brewing; dessert", []string{"grind beans", "hand flush", "Dessert"}, false},
+		{"interview", "Read references/interview.md and create a draft of the retention interval using the original words.", "references/interview.md", "00:02-00:06 The protagonist said: Practice every day.", []string{"00:02-00:06 Practice every day"}, false},
+		{"audio", "Read scripts/listen.js and submit skill_script_run to wait for user confirmation to run.", "scripts/listen.js", "console.log('audio check ok')", nil, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -40,7 +40,7 @@ func TestSelectedSkillsActualHostBusinessFlows(t *testing.T) {
 			}
 			var archive bytes.Buffer
 			zw := zip.NewWriter(&archive)
-			for name, content := range map[string]string{"SKILL.md": "---\nname: " + tc.name + "\ndescription: 上传创作流程\n---\n" + tc.instruction, tc.path: tc.reference} {
+			for name, content := range map[string]string{"SKILL.md": "---\nname: " + tc.name + "description: Upload creative process\n---" + tc.instruction, tc.path: tc.reference} {
 				f, e := zw.Create(name)
 				if e != nil {
 					t.Fatal(e)
@@ -137,7 +137,7 @@ func TestConfirmSkillScriptProposalRouteAndTokenBoundary(t *testing.T) {
 	var archive bytes.Buffer
 	zw := zip.NewWriter(&archive)
 	for name, content := range map[string]string{
-		"SKILL.md":        "---\nname: 脚本确认路由\ndescription: 验证 UI 确认执行脚本\n---\n运行 scripts/check.js",
+		"SKILL.md":        "---\nname: Script confirmation route\ndescription: Verify UI to confirm execution script\n---\nRun scripts/check.js",
 		"scripts/check.js": "console.log('CHECK_OK:' + process.argv.slice(2).join('|'));",
 	} {
 		f, err := zw.Create(name)
@@ -218,7 +218,7 @@ func TestConfirmSkillScriptProposalRouteAndTokenBoundary(t *testing.T) {
 	var slowArchive bytes.Buffer
 	slowZw := zip.NewWriter(&slowArchive)
 	for name, content := range map[string]string{
-		"SKILL.md":        "---\nname: 慢脚本取消测试\ndescription: 验证取消脚本不唤醒宿主\n---\n运行 scripts/slow.js",
+		"SKILL.md":        "---\nname: slow script cancel test\ndescription: Verify that the cancellation script does not wake up the host\n---\nRun scripts/slow.js",
 		"scripts/slow.js": "setTimeout(() => console.log('DONE'), 30000);",
 	} {
 		f, err := slowZw.Create(name)

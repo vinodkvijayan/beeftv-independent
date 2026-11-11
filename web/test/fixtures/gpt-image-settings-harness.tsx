@@ -18,11 +18,11 @@ function Harness() {
     const [status, setStatus] = useState("");
     const theme = new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light";
     return <main className="p-4" style={{ width: 360, maxWidth: "100%", color: canvasThemes[theme].node.text, background: canvasThemes[theme].canvas.background }}>
-        <label>模型<select aria-label="模型" value={config.model} onChange={(event) => setConfig((old) => ({ ...old, model: event.target.value, quality: "low" }))}>
+        <label>model<select aria-label="model" value={config.model} onChange={(event) => setConfig((old) => ({ ...old, model: event.target.value, quality: "low" }))}>
             {models.map((model) => <option key={model} value={`beeftv::${model}`}>{model}</option>)}
         </select></label>
         <ImageSettingsPanel config={config} theme={canvasThemes[theme]} onConfigChange={(key, value) => setConfig((old) => ({ ...old, [key]: value }))} />
-        <button onClick={async () => { setStatus(""); try { await submitBackendGenerationTask({ config, mode: "image", prompt: "fixture cat", projectId: "fixture-project" }); setStatus("已校验"); } catch (error) { setStatus(String(error)); } }}>校验请求</button>
+        <button onClick={async () => { setStatus(""); try { await submitBackendGenerationTask({ config, mode: "image", prompt: "fixture cat", projectId: "fixture-project" }); setStatus("Verified"); } catch (error) { setStatus(String(error)); } }}>Verification request</button>
         <output data-testid="creation-labels">{qualityOptions.filter((item) => ["xhigh", "max"].includes(item.value)).map((item) => item.label).join("、")}</output>
         <output data-testid="selection">{JSON.stringify({ quality: config.quality, size: config.size })}</output>
         <output role="status">{status}</output>

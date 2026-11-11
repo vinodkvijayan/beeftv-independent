@@ -31,8 +31,8 @@ function expectSkeletonAligned(helper: DirectorSkeletonHelper) {
     }
 }
 
-describe("导演台编辑辅助层", () => {
-    test("骨骼线随角色路径、旋转、非等比缩放及行走动画在同一帧对齐", () => {
+describe("Director's desk editing auxiliary layer", () => {
+    test("Bone lines are aligned in the same frame along with character path, rotation, non-proportional scaling and walking animation", () => {
         const { scene, actor, model, helper } = skeletonFixture();
         const mixer = new AnimationMixer(model);
         mixer.clipAction(new AnimationClip("walk", 1, [new QuaternionKeyframeTrack("knee.quaternion", [0, 1], [0, 0, 0, 1, Math.sin(0.4), 0, 0, Math.cos(0.4)])])).play();
@@ -48,7 +48,7 @@ describe("导演台编辑辅助层", () => {
         mixer.stopAllAction(); mixer.uncacheRoot(model);
     });
 
-    test("在场景遍历前刷新辅助线，也读取本帧角色及骨骼变换", () => {
+    test("Refresh the auxiliary lines before traversing the scene, and also read the character and bone transformation of this frame.", () => {
         const { scene, actor, knee, helper } = skeletonFixture();
         scene.updateMatrixWorld(true);
         actor.position.set(3, 0, -2);
@@ -60,7 +60,7 @@ describe("导演台编辑辅助层", () => {
         helper.dispose();
     });
 
-    test("截帧期间仅隐藏 editor-only 图形，恢复原始可见性", () => {
+    test("Hide editor-only graphics during frame capture, restoring original visibility", () => {
         const scene = new Group();
         const content = new Group();
         const visibleAid = new Group();

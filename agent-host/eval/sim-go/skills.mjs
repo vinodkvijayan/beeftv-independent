@@ -6,44 +6,44 @@ import { ensureCanvas } from './canvas-store.mjs';
 // 评测专用的短剧技能，产品里没有发布这个技能，评测只用这一份。不从仓库外读文件，
 // 否则评测输入会随检出位置变化。改正文会改变 S6、S8 的请求体，要附改动前后对照。
 const SHORT_DRAMA_SKILL_MD = `---
-name: 短剧分镜到首帧
+name: Short play storyboarded to the first frame
 version: "2"
-description: 把一段短剧剧本或梗概，按「角色设定 → 分镜脚本 → 首帧图 → 视频」四步落到画布上。每一步做完都停下等确认，再进入下一步。适合竖屏短剧、漫剧的单集制作。
+description: Place a short play script or synopsis on the canvas in four steps: "Character Settings → Storyboard → First Frame → Video". After each step, stop and wait for confirmation before moving on to the next step. Suitable for single-episode production of vertical screen short plays and comics.
 ---
 
-# 短剧分镜到首帧
+# Storyboard the short play to the first frame
 
-适用于用户选择本技能或明确要求制作一集短剧。用户只要单张图片、单个视频，或中途明确缩小范围时，按最新要求完成，不添加整集剧本或角色确认等前置步骤。
+It is suitable for users to choose this skill or explicitly request to produce a short drama. Users only need a single picture, a single video, or when the scope is narrowed down midway, it will be completed according to the latest requirements, without adding pre-steps such as the entire episode script or character confirmation.
 
-完整制作一共四步，按顺序走。每一步只做这一步的事，做完用一两句话告诉用户画布上多了什么、需要确认什么，然后停下。用户确认或提出修改后，才进入下一步。继续时先读取当前画布，沿用已有的节点、分镜行和生成结果，避免重复创建或重复收费。
+There are four steps in total for complete production, follow them in order. Only do this step at each step. After finishing it, tell the user in one or two sentences what is added to the canvas and what needs to be confirmed, and then stop. Only after the user confirms or proposes modifications will they proceed to the next step. When continuing, first read the current canvas and use the existing nodes, storyboard lines and generated results to avoid repeated creation or repeated charges.
 
-## 第 0 步：确认基本信息
-1. 剧本或梗概（必须有）
-2. 画幅：竖屏 9:16 还是横屏 16:9（默认竖屏 9:16）
-3. 画面风格：例如写实电影感、日系动漫、国风水墨（默认写实电影感）
-4. 本集目标时长（默认 60 秒）
+## Step 0: Confirm basic information
+1. Script or synopsis (required)
+2. Frame: portrait 9:16 or landscape 16:9 (default portrait 9:16)
+3. Picture style: such as realistic movie feel, Japanese animation, Chinese style ink (default is realistic movie feel)
+4. Target duration of this episode (default 60 seconds)
 
-## 第 1 步：角色设定
-- 在画布上建一个 Markdown 节点，标题「角色设定」。
-- 这一步不建图片节点，不提生成。
+## Step 1: Character Settings
+- Create a Markdown node on the canvas with the title "Character Settings".
+- This step does not create image nodes and does not mention generation.
 
-## 第 2 步：分镜脚本
-- 建一个分镜脚本节点（script 类型），标题「分镜脚本」，再往里追加分镜行。
-- 每一镜只填核心字段：剧情描述（plotDescription）、首帧图片提示词（imageGenerationPrompt）、视频提示词（videoMotionPrompt），有对白时填台词（dialogue），有明确镜长需求时填时长（durationSeconds，默认 6 秒可省）；不要填写景别、机位、情绪等未在工具参数中列出的冗余字段。
-- 这一步不建图片节点，不提生成。
+## Step 2: Storyboard
+- Create a storyboard script node (script type) with the title "Storyboard Script" and add storyboard lines to it.
+- Only fill in the core fields for each shot: plot description (plotDescription), first frame picture prompt word (imageGenerationPrompt), video prompt word (videoMotionPrompt), fill in the lines when there is dialogue (dialogue), fill in the duration when there is a clear shot length requirement (durationSeconds, the default is 6 seconds); do not fill in redundant fields such as scene, camera position, emotion, etc. that are not listed in the tool parameters.
+- This step does not create image nodes and does not mention generation.
 
-## 第 3 步：首帧图
-- 只为用户确认过的镜头建图片节点，标题「镜 N 首帧」，内容用该镜的首帧图片提示词。
-- 每个图片节点的画幅设成第 0 步确定的画幅，生成数量为 1。
-- 创建节点后，用 canvas_script_row_update 将图片节点 ID 写入对应行的 imageNodeId；使用创建和追加操作返回的真实节点、行 ID。绑定成功后才能提出生成方案。
-- 一批最多 4 张。镜头超过 4 个时，先做前 4 个，告诉用户剩下的下一批再做。
-- 建完后为这一批提出生成提议，并告诉用户：在面板里确认后才会开始生成、才会计费。
+## Step 3: First frame
+- Only create picture nodes for the shots that have been confirmed by the user, with the title "shot N first frame" and the content using the first frame picture prompt of the shot.
+- The frame of each image node is set to the frame determined in step 0, and the generated quantity is 1.
+- After creating the node, use canvas_script_row_update to write the image node ID to the imageNodeId of the corresponding row; use the real node and row ID returned by the create and append operations. The generation plan can only be proposed after the binding is successful.
+- Maximum of 4 sheets in one batch. When there are more than 4 shots, do the first 4 first and tell the user to do the rest in the next batch.
+- After the construction is completed, a generation proposal will be made for this batch, and the user will be informed that generation and billing will only start after confirmation in the panel.
 
-## 第 4 步：视频
-- 只在对应首帧图已经生成并被用户确认后才做。
-- 每个确认过的镜头建一个视频节点，标题「镜 N 视频」，内容使用该行 videoMotionPrompt，把该镜首帧图节点连到视频节点作为参考。
-- 用 canvas_script_row_update 将视频节点 ID 写入对应行的 videoNodeId；确认首帧和视频都绑定到同一分镜行。
-- 一批最多 4 个，提出生成提议后停下，等用户确认。
+## Step 4: Video
+- Only do this after the corresponding first frame image has been generated and confirmed by the user.
+- Create a video node for each confirmed shot, with the title "Screen N Video", use this line of videoMotionPrompt as the content, and connect the first frame graph node of the shot to the video node as a reference.
+- Use canvas_script_row_update to write the video node ID to the videoNodeId of the corresponding row; confirm that the first frame and video are bound to the same storyboard row.
+- The maximum number of batches is 4. Stop after making a proposal and wait for user confirmation.
 `;
 
 function parseSkillMarkdown(raw, skillId = 'short-drama-storyboard', versionId = 'v2') {
@@ -105,22 +105,22 @@ export const SKILL_OPS = {
     };
   },
   'skill.get': (state, rawParams) => {
-    if (rawParams.path) throw invalidArg('unexpected_path', '正文读取不接收文件路径');
+    if (rawParams.path) throw invalidArg('unexpected_path', 'Text read does not accept file path');
     const skill = state.skills.get(String(rawParams.skillId || ''));
     if (!skill || skill.pin.versionId !== rawParams.versionId || skill.pin.contentHash !== rawParams.contentHash) {
-      throw notFound('skill_version_unavailable', '技能版本不存在或已失效');
+      throw notFound('skill_version_unavailable', 'The skill version does not exist or has expired');
     }
     return clone(skill);
   },
   'skill.file': (state, rawParams) => {
     const filePath = String(rawParams.path || '').trim();
-    if (!filePath) throw invalidArg('skill_path_required', '辅助文件读取需要包内路径');
+    if (!filePath) throw invalidArg('skill_path_required', 'Auxiliary file reading requires the path within the package');
     const skill = state.skills.get(String(rawParams.skillId || ''));
     if (!skill || skill.pin.versionId !== rawParams.versionId || skill.pin.contentHash !== rawParams.contentHash) {
-      throw notFound('skill_version_unavailable', '技能版本不存在或已失效');
+      throw notFound('skill_version_unavailable', 'The skill version does not exist or has expired');
     }
     const file = (skill.files || []).find((f) => f.path === filePath);
-    if (!file) throw notFound('skill_file_unavailable', `技能文件不存在: ${filePath}`);
+    if (!file) throw notFound('skill_file_unavailable', `Skill file does not exist:${filePath}`);
     return {
       pin: clone(skill.pin),
       file: { path: file.path, size: Buffer.byteLength(file.content || '', 'utf8') },
@@ -156,7 +156,7 @@ export function changeSkillContext(state, canvasId, body = {}) {
 
   if (action === 'ack_reset') {
     if (ctx.revision !== expectedRevision || (body.scopeId && ctx.scopeId !== body.scopeId)) {
-      throw conflict('skill_context_revision_conflict', '独立任务状态已变化');
+      throw conflict('skill_context_revision_conflict', 'Independent task status has changed');
     }
     ctx.lifecycle = 'active';
     return clone(ctx);
@@ -167,21 +167,21 @@ export function changeSkillContext(state, canvasId, body = {}) {
   if (state.skillContextReceipts.has(receiptKey)) {
     const prior = state.skillContextReceipts.get(receiptKey);
     if (prior.digest !== digest) {
-      throw conflict('skill_context_request_conflict', '相同请求标识已用于不同技能操作');
+      throw conflict('skill_context_request_conflict', 'The same request ID has been used for different skill operations');
     }
     return clone(prior.result);
   }
 
   if (ctx.lifecycle !== 'active') {
-    throw conflict('skill_scope_reset_pending', '独立任务正在准备，请重试原请求');
+    throw conflict('skill_scope_reset_pending', 'The independent task is being prepared, please retry the original request.');
   }
   if (expectedRevision !== ctx.revision) {
-    throw conflict('skill_context_revision_conflict', '技能状态已变化，请刷新后重试');
+    throw conflict('skill_context_revision_conflict', 'The skill status has changed, please refresh and try again.');
   }
 
   const incomingPins = Array.isArray(body.pins) ? body.pins : [];
   if (incomingPins.length > 4) {
-    throw invalidArg('skill_selection_limit', '最多使用 4 个技能');
+    throw invalidArg('skill_selection_limit', 'Use up to 4 skills');
   }
   if (action === 'activate') {
     ctx.activePins = clone(incomingPins);
@@ -193,7 +193,7 @@ export function changeSkillContext(state, canvasId, body = {}) {
     ctx.activePins = clone(incomingPins);
     ctx.lifecycle = 'reset_pending';
   } else if (action !== 'refresh') {
-    throw invalidArg('invalid_skill_context_action', '技能操作无效');
+    throw invalidArg('invalid_skill_context_action', 'Skill operation is invalid');
   }
   ctx.revision += 1;
   const snapshot = clone(ctx);

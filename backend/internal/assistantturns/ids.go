@@ -26,7 +26,7 @@ func ValidTurnID(turnID string) bool {
 
 func requireActor(userID, canvasID string) error {
 	if strings.TrimSpace(userID) == "" || strings.TrimSpace(canvasID) == "" {
-		return &Error{Reason: ReasonIdentity, Message: "助手回合需要用户和画布身份"}
+		return &Error{Reason: ReasonIdentity, Message: "Assistant turn requires user and canvas identity"}
 	}
 	return nil
 }

@@ -3,7 +3,7 @@ import { submitStoryboardTask } from "../src/services/storyboard-submission";
 import { creationRuns, type CreationSubmission } from "../src/services/api/creation-runs";
 import type { CreateTaskInput } from "../src/services/api/task-center";
 
-const request = { type: "canvas_text", operation: "storyboard", projectId: "canvas", prompt: "剧本" } as CreateTaskInput;
+const request = { type: "canvas_text", operation: "storyboard", projectId: "canvas", prompt: "script" } as CreateTaskInput;
 function harness() {
     const calls: string[] = [];
     const run = { id: "run", executionEpoch: 1, executionOwner: "owner" };
@@ -18,18 +18,18 @@ function harness() {
     } as typeof creationRuns;
     return { api, calls };
 }
-test("取消专业拆镜确认不会批准或提交任务", async () => {
+test("Canceling the confirmation of professional lens disassembly will not approve or submit the task.", async () => {
     const h = harness();
     expect(await submitStoryboardTask(request, { signal: new AbortController().signal, assertCurrent() {}, confirm: async () => false }, h.api)).toBeUndefined();
     expect(h.calls).toEqual(["prepare", "release"]);
 });
-test("确认后提交原配置对应的专业任务", async () => {
+test("After confirmation, submit the professional tasks corresponding to the original configuration.", async () => {
     const h = harness();
     expect((await submitStoryboardTask(request, { signal: new AbortController().signal, assertCurrent() {}, confirm: async () => true }, h.api))?.id).toBe("task");
     expect(h.calls).toEqual(["prepare", "approve", "execute", "release"]);
 });
-test("确认期间编辑分镜会阻止提交", async () => {
+test("Editing storyboards during confirmation blocks submission", async () => {
 	const h = harness();
-	await expect(submitStoryboardTask(request, { signal: new AbortController().signal, assertCurrent() { throw new Error("分镜已编辑"); }, confirm: async () => true }, h.api)).rejects.toThrow();
+	await expect(submitStoryboardTask(request, { signal: new AbortController().signal, assertCurrent() { throw new Error("Storyboard edited"); }, confirm: async () => true }, h.api)).rejects.toThrow();
 	expect(h.calls).toEqual(["prepare", "release"]);
 });

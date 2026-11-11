@@ -15,5 +15,5 @@ test("both brands retain strict managed endpoint recognition and relay credentia
 });
 
 test("connected identity prefers email over display name and username", () => {
-    expect(beefTVConnectionLabel({state: "connected", account: {id: "1", email: "creator@example.com", display_name: "Creator", username: "legacy"}})).toBe("已连接 creator@example.com");
+    expect(beefTVConnectionLabel({state: "connected", account: {id: "1", email: "creator@example.com", display_name: "Creator", username: "legacy"}})).toBe("Connected creator@example.com");
 });

@@ -24,8 +24,8 @@ function Harness() {
     return <ConfigProvider theme={{ algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm }}><App><BeefTVConnectionProvider>
         <main style={{ width: "100%", maxWidth: 380, background: dark ? "#141414" : "#fff" }}>
             {location.pathname === "/settings" ? <ChannelSettingsPane onOpenModels={() => {}} /> : null}
-            <div className="canvas-assistant-composer-footer"><CanvasAssistantModelPicker busy={busy || assistant.modelBusy} /><button onClick={() => void assistant.send("synthetic", [])}>发送测试消息</button></div>
-            <button onClick={() => setBusy(!busy)}>切换忙碌</button><button onClick={() => setDark(!dark)}>切换主题</button>
+            <div className="canvas-assistant-composer-footer"><CanvasAssistantModelPicker busy={busy || assistant.modelBusy} /><button onClick={() => void assistant.send("synthetic", [])}>Send test message</button></div>
+            <button onClick={() => setBusy(!busy)}>Toggle busy</button><button onClick={() => setDark(!dark)}>switch theme</button>
             <output>{assistant.error || ""}</output>
         </main>
     </BeefTVConnectionProvider></App></ConfigProvider>;

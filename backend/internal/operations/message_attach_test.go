@@ -34,7 +34,7 @@ func TestConversationMessageAttachAppliesReceiptInSameTransaction(t *testing.T) 
 	if payload["conversation"] == nil || payload["message"] == nil {
 		t.Fatal("first attach missing canonical conversation")
 	}
-	if content, _ := payload["content"].(string); content != "图片已生成" {
+	if content, _ := payload["content"].(string); content != "Image has been generated" {
 		t.Fatalf("media content = %#v", payload["content"])
 	}
 	message := h.conversationMessage(t, "conv-ok", "msg-ok")
@@ -70,11 +70,11 @@ func TestConversationMessageAttachTextUsesReceiptTransaction(t *testing.T) {
 		t.Fatal("text attach should write a receipt")
 	}
 	payload, _ := result.Result.(map[string]any)
-	if content, _ := payload["content"].(string); content != "成片旁白" {
+	if content, _ := payload["content"].(string); content != "Narration of the finished film" {
 		t.Fatalf("text content = %#v", payload["content"])
 	}
 	message := h.conversationMessage(t, "conv-text", "msg-text")
-	if content, _ := message["content"].(string); content != "成片旁白" {
+	if content, _ := message["content"].(string); content != "Narration of the finished film" {
 		t.Fatalf("stored text = %#v", message)
 	}
 	if h.receiptCount(t, localtask.AttachMessageEffectKey(task.ID, "msg-text", 0)) != 1 {
@@ -173,7 +173,7 @@ func TestConversationMessageAttachRejectsClientResultPayloadAndFailedTask(t *tes
 		t.Fatalf("failed task attach = %v", err)
 	}
 	message := h.conversationMessage(t, "conv-client", "msg-client")
-	if content, _ := message["content"].(string); content == "不该写入" {
+	if content, _ := message["content"].(string); content == "should not write" {
 		t.Fatal("failed task wrote message content")
 	}
 }
@@ -350,10 +350,10 @@ func (h *harness) seedConversation(t *testing.T, conversationID, messageID, task
 	t.Helper()
 	payload := map[string]any{
 		"id":        conversationID,
-		"title":     "创作对话",
+		"title":     "creative dialogue",
 		"updatedAt": "2026-10-02T00:00:00.000Z",
 		"messages": []any{
-			map[string]any{"id": "user-1", "role": "user", "content": "镜头", "mode": "image"},
+			map[string]any{"id": "user-1", "role": "user", "content": "lens", "mode": "image"},
 			map[string]any{
 				"id": messageID, "role": "assistant", "mode": "image", "content": "", "status": "pending",
 				"taskIds": []any{taskID},

@@ -17,19 +17,19 @@ Object.assign(window, { go: { main: { DesktopApp: { SaveOwnedArtifact: async (_n
 
 function fixtureProject(id: string): CanvasProject {
     return {
-        id, title: `测试 ${id}`, createdAt: "2026-09-30T00:00:00Z", updatedAt: "2026-09-30T00:00:00Z",
+        id, title: `test${id}`, createdAt: "2026-09-30T00:00:00Z", updatedAt: "2026-09-30T00:00:00Z",
         nodes: [], connections: [], chatSessions: [], activeChatId: null, backgroundMode: "dots", showImageInfo: false,
         viewport: { x: 0, y: 0, k: 1 }, directorScenes: [],
-        timeline: { version: 2, durationMs: 1000, tracks: [{ id: "voice", kind: "audio", label: "配音", order: 0 }], clips: [
+        timeline: { version: 2, durationMs: 1000, tracks: [{ id: "voice", kind: "audio", label: "Dubbing", order: 0 }], clips: [
             { id: "voice", kind: "audio", nodeId: "direct:voice", trackId: "voice", startMs: 0, durationMs: 1000,
-                directMedia: { id: "voice", kind: "audio", title: "测试配音", storageKey: "audio:fixture:voice", url: "blob:expired", mimeType: "audio/wav", durationMs: 1000 } },
+                directMedia: { id: "voice", kind: "audio", title: "Test dubbing", storageKey: "audio:fixture:voice", url: "blob:expired", mimeType: "audio/wav", durationMs: 1000 } },
         ] },
     };
 }
 
 function Controls() {
     const { message } = App.useApp();
-    return <button onClick={() => void reportOwnedMediaSave(message, exportCanvasProjects([fixtureProject("missing")]))}>测试缺失导出</button>;
+    return <button onClick={() => void reportOwnedMediaSave(message, exportCanvasProjects([fixtureProject("missing")]))}>Test missing export</button>;
 }
 
 function RouteReceipt() {

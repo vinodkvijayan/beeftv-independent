@@ -27,7 +27,7 @@ func TestDeferredProviderPollKeepsOriginalTaskIdentityWithoutImmediateReclaim(t 
 	}
 	repo := New(db)
 	diagnostic := &model.TaskFailureDiagnostics{ExecutionResult: "pending", Requests: []model.TaskRequestEvidence{{Operation: "submit", RequestID: "req-original-submit"}}}
-	if err := repo.DeferRunningTaskForProviderPoll(task.ID, task.LeaseOwner, "后台仍在生成", time.Minute, diagnostic); err != nil {
+	if err := repo.DeferRunningTaskForProviderPoll(task.ID, task.LeaseOwner, "Still generating in the background", time.Minute, diagnostic); err != nil {
 		t.Fatal(err)
 	}
 	claimed, err := repo.ClaimNextTask("worker-2", 45*time.Second)
@@ -60,7 +60,7 @@ func TestUpdateTaskProviderProgressIsMonotonic(t *testing.T) {
 	if err := db.AutoMigrate(&model.Task{}); err != nil {
 		t.Fatal(err)
 	}
-	task := model.Task{ID: "task-progress", UserID: "user-1", Type: "canvas_video", Status: model.TaskStatusRunning, Stage: "正在连接上游"}
+	task := model.Task{ID: "task-progress", UserID: "user-1", Type: "canvas_video", Status: model.TaskStatusRunning, Stage: "Connecting to upstream"}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestUpdateTaskProviderProgressIsMonotonic(t *testing.T) {
 	if err := db.First(&stored, "id = ?", task.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Progress != 76 || stored.Stage != "上游生成中" {
+	if stored.Progress != 76 || stored.Stage != "Upstream is generating" {
 		t.Fatalf("stored progress = %d, stage = %q", stored.Progress, stored.Stage)
 	}
 }

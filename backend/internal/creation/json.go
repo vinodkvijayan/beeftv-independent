@@ -92,7 +92,7 @@ func parseDocument(raw string) (map[string]any, error) {
 	var doc map[string]any
 	err := json.Unmarshal([]byte(raw), &doc)
 	if doc == nil && err == nil {
-		return nil, kernel.BadAuthRequest("画布文档格式无效")
+		return nil, kernel.BadAuthRequest("Canvas document format is invalid")
 	}
 	return doc, err
 }
@@ -100,17 +100,17 @@ func parseDocument(raw string) (map[string]any, error) {
 func documentObjects(value any) (map[string]map[string]any, error) {
 	list, ok := value.([]any)
 	if !ok {
-		return nil, kernel.BadAuthRequest("画布节点或连线格式无效")
+		return nil, kernel.BadAuthRequest("Canvas node or connection format is invalid")
 	}
 	out := map[string]map[string]any{}
 	for _, raw := range list {
 		item, ok := raw.(map[string]any)
 		if !ok {
-			return nil, kernel.BadAuthRequest("画布对象格式无效")
+			return nil, kernel.BadAuthRequest("Canvas object format is invalid")
 		}
 		id := stringValue(item["id"])
 		if id == "" || out[id] != nil {
-			return nil, kernel.BadAuthRequest("画布对象 ID 缺失或重复")
+			return nil, kernel.BadAuthRequest("Missing or duplicate canvas object ID")
 		}
 		out[id] = item
 	}

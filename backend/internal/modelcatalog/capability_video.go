@@ -272,63 +272,63 @@ func applyModelSpecificVideoCapability(profile *VideoCapabilityConfig, protocol 
 
 func validateVideoCapabilityConfig(value *VideoCapabilityConfig) error {
 	if value.References.PromptMaxChars < 0 || value.References.PromptMaxChars > 1000000 {
-		return kernel.BadAuthRequest("提示词最大字符数必须在 0-1000000 之间，0 表示交由服务商校验")
+		return kernel.BadAuthRequest("The maximum number of characters in the prompt word must be between 0 and 1000000. 0 means that it will be verified by the service provider.")
 	}
 	if value.References.PromptMaxUTF16Units < 0 || value.References.PromptMaxUTF16Units > 1000000 {
-		return kernel.BadAuthRequest("提示词最大 UTF-16 单位数必须在 0-1000000 之间，0 表示交由服务商校验")
+		return kernel.BadAuthRequest("The maximum number of UTF-16 units of the prompt word must be between 0-1000000, 0 means it will be verified by the service provider")
 	}
-	for name, number := range map[string]int{"最少图片引用数": value.References.MinImages, "最大图片引用数": value.References.MaxImages, "最大视频引用数": value.References.MaxVideos, "最大音频引用数": value.References.MaxAudios} {
+	for name, number := range map[string]int{"Minimum number of image citations": value.References.MinImages, "Maximum number of image citations": value.References.MaxImages, "Maximum number of video citations": value.References.MaxVideos, "Maximum number of audio references": value.References.MaxAudios} {
 		if number < 0 || number > 100 {
-			return kernel.BadAuthRequest(name + "必须在 0-100 之间")
+			return kernel.BadAuthRequest(name + "Must be between 0-100")
 		}
 	}
 	if value.References.MinImages > value.References.MaxImages {
-		return kernel.BadAuthRequest("最少图片引用数不能超过最大图片引用数")
+		return kernel.BadAuthRequest("The minimum number of image references cannot exceed the maximum number of image references")
 	}
 	if value.References.MaxImageBytes < 0 || value.References.MaxVideoBytes < 0 || value.References.MaxAudioBytes < 0 || value.References.MaxVideoDuration < 0 || value.References.MaxAudioDuration < 0 || value.References.MinVideoDuration < 0 || value.References.MinAudioDuration < 0 || value.References.MaxAudioTotalDuration < 0 || value.References.MaxVideoTotalDuration < 0 {
-		return kernel.BadAuthRequest("引用素材限制不能小于 0")
+		return kernel.BadAuthRequest("Reference material limit cannot be less than 0")
 	}
 	if value.References.MinImageWidth < 0 || value.References.MaxImageWidth < 0 || value.References.MinImageHeight < 0 || value.References.MaxImageHeight < 0 || value.References.MinVideoWidth < 0 || value.References.MaxVideoWidth < 0 || value.References.MinVideoHeight < 0 || value.References.MaxVideoHeight < 0 {
-		return kernel.BadAuthRequest("引用素材尺寸限制不能小于 0")
+		return kernel.BadAuthRequest("The reference material size limit cannot be less than 0")
 	}
 	if value.References.MinImageAspect < 0 || value.References.MaxImageAspect < 0 || value.References.MinVideoAspect < 0 || value.References.MaxVideoAspect < 0 || value.References.MinImagePixels < 0 || value.References.MaxImagePixels < 0 || value.References.MinVideoPixels < 0 || value.References.MaxVideoPixels < 0 {
-		return kernel.BadAuthRequest("引用素材宽高比或像素限制不能小于 0")
+		return kernel.BadAuthRequest("Referenced footage aspect ratio or pixel limit cannot be less than 0")
 	}
 	if (value.References.MaxVideoDuration > 0 && value.References.MinVideoDuration > value.References.MaxVideoDuration) || (value.References.MaxAudioDuration > 0 && value.References.MinAudioDuration > float64(value.References.MaxAudioDuration)) {
-		return kernel.BadAuthRequest("引用素材最小时长不能超过最大时长")
+		return kernel.BadAuthRequest("The minimum duration of quoted material cannot exceed the maximum duration")
 	}
 	if err := validateVideoDuration(value.Duration); err != nil {
 		return err
 	}
 	if len(value.Ratios) == 0 {
 		if strings.TrimSpace(value.DefaultRatio) != "" {
-			return kernel.BadAuthRequest("未配置画面比例时不能设置默认比例")
+			return kernel.BadAuthRequest("The default ratio cannot be set when the aspect ratio is not configured.")
 		}
 	} else if strings.TrimSpace(value.DefaultRatio) == "" || !containsCapabilityString(value.Ratios, value.DefaultRatio) {
-		return kernel.BadAuthRequest("默认画面比例必须属于支持值")
+		return kernel.BadAuthRequest("The default aspect ratio must be among the supported values")
 	}
 	if len(value.Resolutions) == 0 {
 		if strings.TrimSpace(value.DefaultResolution) != "" {
-			return kernel.BadAuthRequest("未配置输出分辨率时不能设置默认分辨率")
+			return kernel.BadAuthRequest("Default resolution cannot be set when output resolution is not configured")
 		}
 	} else if strings.TrimSpace(value.DefaultResolution) == "" || !containsCapabilityString(value.Resolutions, value.DefaultResolution) {
-		return kernel.BadAuthRequest("默认输出分辨率必须属于支持值")
+		return kernel.BadAuthRequest("The default output resolution must be among the supported values")
 	}
 	if len(value.Operations) == 0 || strings.TrimSpace(value.DefaultOperation) == "" || !containsCapabilityString(value.Operations, value.DefaultOperation) {
-		return kernel.BadAuthRequest("请至少配置一个生成模式，并选择默认模式")
+		return kernel.BadAuthRequest("Please configure at least one build mode and select the default mode")
 	}
 	for operation, limits := range value.OperationReferences {
 		if !containsCapabilityString(value.Operations, operation) {
-			return kernel.BadAuthRequest("参考素材限制对应的生成模式不存在")
+			return kernel.BadAuthRequest("The generation mode corresponding to the reference material restriction does not exist")
 		}
 		for _, count := range []*int{limits.MinImages, limits.MaxImages, limits.MaxVideos, limits.MaxAudios} {
 			if count != nil && (*count < 0 || *count > 100) {
-				return kernel.BadAuthRequest("参考素材数量限制必须在 0-100 之间")
+				return kernel.BadAuthRequest("Reference material limit must be between 0-100")
 			}
 		}
 		refs := videoReferencesForOperation(value, operation)
 		if refs.MinImages > refs.MaxImages {
-			return kernel.BadAuthRequest("最少图片引用数不能超过最大图片引用数")
+			return kernel.BadAuthRequest("The minimum number of image references cannot exceed the maximum number of image references")
 		}
 	}
 	return nil
@@ -338,27 +338,27 @@ func validateVideoDuration(value VideoDurationConfig) error {
 	switch value.Selection {
 	case "range":
 		if math.IsNaN(value.FractionalMin) || math.IsInf(value.FractionalMin, 0) || value.FractionalMin != 0 && (!value.Continuous || value.FractionalMin < .92 || value.FractionalMin > float64(value.Min)) {
-			return kernel.BadAuthRequest("视频小数时长范围无效")
+			return kernel.BadAuthRequest("Invalid video decimal duration range")
 		}
 		if value.Min < 1 || value.Max < value.Min || value.Max > 3600 || value.Step < 1 || value.Default < value.Min || value.Default > value.Max || !value.Continuous && (value.Default-value.Min)%value.Step != 0 {
-			return kernel.BadAuthRequest("视频时长范围或默认值无效")
+			return kernel.BadAuthRequest("Invalid video duration range or default value")
 		}
 	case "enum":
 		if len(value.Values) == 0 || len(value.Values) > 100 {
-			return kernel.BadAuthRequest("视频固定时长至少需要一个选项")
+			return kernel.BadAuthRequest("Video fixed duration requires at least one option")
 		}
 		values := append([]int(nil), value.Values...)
 		sort.Ints(values)
 		for index, item := range values {
 			if (item < 1 && item != -1) || item > 3600 || (index > 0 && values[index-1] == item) {
-				return kernel.BadAuthRequest("视频固定时长选项无效或重复")
+				return kernel.BadAuthRequest("Video fixed duration option is invalid or duplicate")
 			}
 		}
 		if !containsInt(values, value.Default) {
-			return kernel.BadAuthRequest("视频默认时长必须属于固定时长选项")
+			return kernel.BadAuthRequest("Video default duration must be a fixed duration option")
 		}
 	default:
-		return kernel.BadAuthRequest("视频时长选择方式仅支持范围或固定值")
+		return kernel.BadAuthRequest("The video duration selection method only supports range or fixed value")
 	}
 	return nil
 }
@@ -378,7 +378,7 @@ func validateReferenceDuration(kind string, index int, durationMs int64, minimum
 		return nil
 	}
 	if durationMs <= 0 {
-		return kernel.BadAuthRequest(fmt.Sprintf("第 %d 段参考%s的时长无法读取，请重新导入素材后再提交", index+1, kind))
+		return kernel.BadAuthRequest(fmt.Sprintf("The duration of paragraph %d reference %s cannot be read. Please re-import the material before submitting.", index+1, kind))
 	}
 	// 按实际违反的是下限还是上限给建议：2–15 秒的限制下，16 秒的素材要往短改。
 	tooShort := durationMs < durationLimitMs(minimum)
@@ -391,26 +391,26 @@ func validateReferenceDuration(kind string, index int, durationMs int64, minimum
 // durationRequirement 写成「2–15 秒」「2 秒以上」「15 秒以内」，说明要改成多少。
 func durationRequirement(minimum, maximum float64) string {
 	if minimum <= 0 {
-		return formatDurationBound(maximum) + " 秒以内"
+		return formatDurationBound(maximum) + " Within seconds"
 	}
 	if maximum <= 0 {
-		return formatDurationBound(minimum) + " 秒以上"
+		return formatDurationBound(minimum) + " more than seconds"
 	}
-	return formatDurationBound(minimum) + "–" + formatDurationBound(maximum) + " 秒"
+	return formatDurationBound(minimum) + "–" + formatDurationBound(maximum) + " seconds"
 }
 
 // durationFixAction 按实际违反的是哪一侧给出可直接照做的下一步。
 func durationFixAction(kind string, tooShort bool) string {
 	noun := kind
 	if tooShort {
-		return "请换一段更长的" + noun + "后再提交"
+		return "Please change to a longer one" + noun + "Submit later"
 	}
-	return "请裁剪或换一段更短的" + noun + "后再提交"
+	return "Please cut or replace it with a shorter one" + noun + "Submit later"
 }
 
 func validateVideoTask(profile *VideoCapabilityConfig, input TaskInput) error {
 	if profile == nil {
-		return kernel.BadAuthRequest("当前视频模型能力参数无效")
+		return kernel.BadAuthRequest("The current video model capability parameter is invalid")
 	}
 	if err := validateVideoReferenceMedia(profile, input); err != nil {
 		return err
@@ -420,23 +420,23 @@ func validateVideoTask(profile *VideoCapabilityConfig, input TaskInput) error {
 
 func validateVideoTaskParameters(profile *VideoCapabilityConfig, input TaskInput) error {
 	if profile == nil {
-		return kernel.BadAuthRequest("当前视频模型能力参数无效")
+		return kernel.BadAuthRequest("The current video model capability parameter is invalid")
 	}
 	profile = tightenedVideoCapability(input.Config, profile)
 	operation := videoTaskOperation(profile, input)
 	if operation == "draft_to_final" {
 		if !containsCapabilityString(profile.Operations, "draft_to_final") && !profile.Draft.Supported {
-			return kernel.BadAuthRequest("当前视频模型不支持样片转高清成片")
+			return kernel.BadAuthRequest("The current video model does not support converting samples into high-definition films.")
 		}
 		if metadataString(input.Metadata, "videoDraftTaskId") == "" {
-			return kernel.BadAuthRequest("高清成片需要关联已完成的有声样片任务 ID")
+			return kernel.BadAuthRequest("The high-definition film needs to be associated with the completed audio sample task ID")
 		}
 		res := normalizeResolution(input.Config.VQuality)
 		if res != "720p" && res != "1080p" {
-			return kernel.BadAuthRequest("样片转高清成片仅支持 720p 或 1080p 分辨率")
+			return kernel.BadAuthRequest("Converting samples to HD only supports 720p or 1080p resolution")
 		}
 		if len(profile.Resolutions) > 0 && videoResolutionNameRequest(profile, input.Config.VQuality) == "" {
-			return kernel.BadAuthRequest("输出分辨率不在当前模型支持范围内")
+			return kernel.BadAuthRequest("The output resolution is not within the support range of the current model")
 		}
 		return nil
 	}
@@ -452,18 +452,18 @@ func validateVideoTaskParameters(profile *VideoCapabilityConfig, input TaskInput
 	if !allowed && videoDurationSupported(profile) {
 		requirement := videoDurationRequirement(profile.Duration)
 		if requirement == "" {
-			return kernel.BadAuthRequest("当前模型没有可用的输出时长，请先在模型能力里设置至少 4 秒的时长后再提交")
+			return kernel.BadAuthRequest("The current model has no available output duration. Please set a duration of at least 4 seconds in the model capabilities before submitting.")
 		}
-		return kernel.BadAuthRequest(fmt.Sprintf("输出时长为 %s 秒，当前模型只支持 %s；请改成 %s 后再提交", strings.TrimSpace(input.Config.VideoSeconds), requirement, requirement))
+		return kernel.BadAuthRequest(fmt.Sprintf("The output duration is %s seconds. The current model only supports %s; please change it to %s before submitting.", strings.TrimSpace(input.Config.VideoSeconds), requirement, requirement))
 	}
 	if input.Config.Size != "" && !(hasServerVideoCapability(input.Config) && len(profile.Ratios) == 0) && !videoRatioAllowed(profile.Ratios, input.Config.Size) {
-		return kernel.BadAuthRequest("画面比例不在当前模型支持范围内")
+		return kernel.BadAuthRequest("The aspect ratio is not within the support range of the current model")
 	}
 	if len(profile.Resolutions) > 0 && !isAutomaticVideoResolution(input.Config.VQuality) && videoResolutionNameRequest(profile, input.Config.VQuality) == "" {
-		return kernel.BadAuthRequest("输出分辨率不在当前模型支持范围内")
+		return kernel.BadAuthRequest("The output resolution is not within the support range of the current model")
 	}
 	if !containsCapabilityString(profile.Operations, operation) {
-		return kernel.BadAuthRequest("当前视频模型不支持该生成模式")
+		return kernel.BadAuthRequest("The current video model does not support this generation mode")
 	}
 	if len(profile.OperationReferences) > 0 {
 		return validateVideoReferenceCounts(videoReferencesForOperation(profile, metadataString(input.Metadata, "videoEditOperation")), input)
@@ -496,25 +496,25 @@ func videoDurationRequirement(value VideoDurationConfig) string {
 		manual := make([]string, 0, len(value.Values))
 		for _, seconds := range value.Values {
 			if seconds == -1 {
-				parts = append(parts, "自动")
+				parts = append(parts, "automatic")
 				continue
 			}
 			manual = append(manual, strconv.Itoa(seconds))
 		}
 		if len(manual) > 0 {
-			parts = append(parts, strings.Join(manual, "、")+" 秒")
+			parts = append(parts, strings.Join(manual, "、")+" seconds")
 		}
 		if len(parts) == 0 {
 			return ""
 		}
-		return strings.Join(parts, " 或 ")
+		return strings.Join(parts, " or")
 	}
 	minimum := durationMinimum(value)
 	maximum := float64(value.Max)
 	if maximum > 0 {
-		return formatDurationBound(minimum) + "–" + formatDurationBound(maximum) + " 秒"
+		return formatDurationBound(minimum) + "–" + formatDurationBound(maximum) + " seconds"
 	}
-	return formatDurationBound(minimum) + " 秒以上"
+	return formatDurationBound(minimum) + " more than seconds"
 }
 
 func videoRatioAllowed(options []string, value string) bool {

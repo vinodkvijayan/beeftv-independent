@@ -15,7 +15,7 @@ import (
 )
 
 func TestNoAvailableChannelIsNotUserRateLimiting(t *testing.T) {
-	for _, message := range []string{"暂无可用渠道", "分组 Gemini 下模型 gemini-3.7-flash 无可用渠道（distributor）"} {
+	for _, message := range []string{"No channels available yet", "Model gemini-3.7-flash under group Gemini has no available channel (distributor)"} {
 		body, _ := json.Marshal(map[string]any{"error": map[string]any{"code": "upstream_crowded", "message": message}})
 		failure := generation.ClassifyHTTP(503, "", string(body))
 		if failure.Category != generation.CategoryProviderUnavailable {
@@ -26,11 +26,11 @@ func TestNoAvailableChannelIsNotUserRateLimiting(t *testing.T) {
 
 func TestOutboundPolicyErrorsHaveActionableCopyAndDiagnostics(t *testing.T) {
 	for _, message := range []string{
-		"不允许访问本机或内网地址", "不允许访问本机、内网或链路本地地址",
-		"不允许访问保留地址或特殊用途地址", "不允许访问链路本地、未指定或组播地址",
-		"外部服务域名解析失败",
+		"Access to this machine or intranet address is not allowed", "Access to local machine, intranet or link-local address is not allowed",
+		"Access to reserved or special purpose addresses is not allowed", "Do not allow access to link-local, unspecified, or multicast addresses",
+		"External service domain name resolution failed",
 	} {
-		raw := message + "。HTTP 400。排查编号：任务 job-outbound · 请求 req-outbound。"
+		raw := message + ". HTTP 400. Troubleshooting number: Task job-outbound · Request req-outbound."
 		for _, failure := range []generation.Failure{
 			generation.ClassifyText(raw), generation.ClassifyAppError(400, 400, "invalid_argument", raw),
 		} {
@@ -41,7 +41,7 @@ func TestOutboundPolicyErrorsHaveActionableCopyAndDiagnostics(t *testing.T) {
 				t.Fatalf("unsafe global bypass advice: %+v", failure)
 			}
 			if strings.Contains(message, "链路本地、未指定") {
-				if !strings.Contains(failure.Action, "允许列表也不能放行") || strings.Contains(failure.Action, "仅将该主机") {
+				if !strings.Contains(failure.Action, "The allow list cannot be released either.") || strings.Contains(failure.Action, "仅将该主机") {
 					t.Fatalf("metadata block should not suggest an allowlist bypass: %+v", failure)
 				}
 			} else if strings.Contains(message, "不允许") && (!strings.Contains(failure.Action, "管理员") || !strings.Contains(failure.Action, "仅将该主机")) {
@@ -57,7 +57,7 @@ func TestOutboundPolicyErrorsHaveActionableCopyAndDiagnostics(t *testing.T) {
 func TestOutboundPolicyCopyDoesNotOverrideStructuredProviderErrors(t *testing.T) {
 	for _, raw := range []string{
 		`{"error":{"code":"invalid_api_key","message":"不允许访问本机或内网地址"},"request_id":"req-auth","task_id":"job-auth"}`,
-		`{"error":{"code":"invalid_api_key","message":"invalid key"},"prompt":"外部服务域名解析失败","request_id":"req-auth","task_id":"job-auth"}`,
+		`{"error":{"code":"invalid_api_key","message":"invalid key"},"prompt":"External service domain name resolution failed","request_id":"req-auth","task_id":"job-auth"}`,
 	} {
 		failure := generation.ClassifyAppError(401, 401, "invalid_api_key", raw)
 		if failure.Category != generation.CategoryAuth || failure.HTTPStatus != 401 || failure.RequestID != "req-auth" || failure.TaskID != "job-auth" {
@@ -117,7 +117,7 @@ func TestGatewayReferenceGeometryAndRequestSize(t *testing.T) {
 	if file.Category != generation.CategoryInputTooLarge || !strings.Contains(file.Reason, "单个参考文件") {
 		t.Fatalf("file size failure: %+v", file)
 	}
-	persisted := generation.ClassifyText("第 1 张参考图高度为 200 像素，需要 300–6000 像素；请调整尺寸或更换后再提交")
+	persisted := generation.ClassifyText("The first reference image is 200 pixels high and requires 300–6000 pixels; please resize or replace before submitting")
 	if persisted.Category != generation.CategoryInvalidParams || !strings.Contains(persisted.Reason, "第 1 张") {
 		t.Fatalf("persisted height: %+v", persisted)
 	}
@@ -126,7 +126,7 @@ func TestGatewayReferenceGeometryAndRequestSize(t *testing.T) {
 func TestGatewayReferenceDurationWithRequestSuffix(t *testing.T) {
 	raw := `{"error":{"code":"400","message":"素材转换失败: Duration must be between 1.8s and 30.2s.","type":"api_error"}} (request id: 202609270829245377912978268d9d6USz1NP3R)`
 	f := generation.ClassifyText(raw)
-	if f.Category != generation.CategoryInvalidParams || f.RequestID != "202609270829245377912978268d9d6USz1NP3R" || !strings.Contains(f.Action, "1.8–30.2 秒") || f.Reason != "参考素材时长不符合模型要求" {
+	if f.Category != generation.CategoryInvalidParams || f.RequestID != "202609270829245377912978268d9d6USz1NP3R" || !strings.Contains(f.Action, "1.8–30.2 秒") || f.Reason != "The duration of the reference material does not meet the model requirements" {
 		t.Fatalf("unexpected failure: %+v", f)
 	}
 	if !f.BlocksAutomaticRetry() {
@@ -171,7 +171,7 @@ func TestClassifyHTTP451SafetyBody(t *testing.T) {
 	if !failure.IsModeration() {
 		t.Fatalf("451 safety body category = %s", failure.Category)
 	}
-	if !strings.Contains(failure.UserMessage(), "请调整提示词或参考素材") {
+	if !strings.Contains(failure.UserMessage(), "Please adjust the prompt words or reference materials") {
 		t.Fatalf("user message = %q", failure.UserMessage())
 	}
 }
@@ -199,11 +199,11 @@ func TestClassifyProviderJSONShapes(t *testing.T) {
 		category generation.FailureCategory
 		contains string
 	}{
-		{name: "openai", status: 400, body: `{"error":{"message":"Invalid size","type":"invalid_request_error","param":"size","code":"invalid_request"},"request_id":"req_abc123"}`, category: generation.CategoryInvalidParams, contains: "参数"},
-		{name: "gemini", status: 400, body: `{"error":{"code":400,"message":"API key not valid","status":"UNAUTHENTICATED"}}`, category: generation.CategoryAuth, contains: "鉴权"},
-		{name: "dashscope", status: 400, body: `{"code":"InvalidParameter","message":"url error, please check url！","request_id":"req-dash-1"}`, category: generation.CategoryInputInaccessible, contains: "参考素材无法读取"},
-		{name: "newapi", status: 200, body: `{"code":"RequestParameterIsWrong","data":null,"msg":"参数: prompt 的长度: 23142 大于最大长度 10000"}`, category: generation.CategoryContextTooLong, contains: "长度限制"},
-		{name: "gemini-feedback", status: 200, body: `{"promptFeedback":{"blockReason":"SAFETY"}}`, category: generation.CategoryModerationInput, contains: "内容安全审核"},
+		{name: "openai", status: 400, body: `{"error":{"message":"Invalid size","type":"invalid_request_error","param":"size","code":"invalid_request"},"request_id":"req_abc123"}`, category: generation.CategoryInvalidParams, contains: "parameters"},
+		{name: "gemini", status: 400, body: `{"error":{"code":400,"message":"API key not valid","status":"UNAUTHENTICATED"}}`, category: generation.CategoryAuth, contains: "Authentication"},
+		{name: "dashscope", status: 400, body: `{"code":"InvalidParameter","message":"url error, please check url！","request_id":"req-dash-1"}`, category: generation.CategoryInputInaccessible, contains: "Reference material cannot be read"},
+		{name: "newapi", status: 200, body: `{"code":"RequestParameterIsWrong","data":null,"msg":"参数: prompt 的长度: 23142 大于最大长度 10000"}`, category: generation.CategoryContextTooLong, contains: "length limit"},
+		{name: "gemini-feedback", status: 200, body: `{"promptFeedback":{"blockReason":"SAFETY"}}`, category: generation.CategoryModerationInput, contains: "Content security review"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -253,7 +253,7 @@ func TestClassifyNonJSONAndHTML(t *testing.T) {
 	if strings.Contains(htmlFailure.UserMessage(), "nginx") || strings.Contains(htmlFailure.UserMessage(), "<html") {
 		t.Fatalf("html leaked: %q", htmlFailure.UserMessage())
 	}
-	malformed := generation.ClassifyText("接口返回非 JSON 内容：text/html")
+	malformed := generation.ClassifyText("The interface returns non-JSON content: text/html")
 	if malformed.Category != generation.CategoryMalformedResponse {
 		t.Fatalf("malformed category = %s", malformed.Category)
 	}
@@ -261,7 +261,7 @@ func TestClassifyNonJSONAndHTML(t *testing.T) {
 
 func TestClassifyWrappedAndDownloadErrors(t *testing.T) {
 	httpErr := generation.HTTPError{StatusCode: 502, Status: "502 Bad Gateway", Body: "Bad Gateway"}
-	wrapped := generation.ClassifyError(wrapError("视频任务创建失败", httpErr))
+	wrapped := generation.ClassifyError(wrapError("Video task creation failed", httpErr))
 	if wrapped.Category != generation.CategoryProviderUnavailable {
 		t.Fatalf("wrapped 502 category = %s message=%q", wrapped.Category, wrapped.UserMessage())
 	}
@@ -336,7 +336,7 @@ func TestLikenessCodeNotPromptWording(t *testing.T) {
 
 func TestThinkingModeToolChoice(t *testing.T) {
 	failure := generation.ClassifyHTTP(400, "", `{"error":{"message":"Thinking mode does not support this tool_choice","request_id":"req_think1"}}`)
-	if !strings.Contains(failure.UserMessage(), "不支持强制工具调用") {
+	if !strings.Contains(failure.UserMessage(), "Forced tool calls are not supported") {
 		t.Fatalf("message = %q", failure.UserMessage())
 	}
 }
@@ -421,13 +421,13 @@ func TestStructuredUnknownDoesNotReadRequestEchoes(t *testing.T) {
 
 func TestSensitiveAssignmentsAreRemovedBeforeChineseFallback(t *testing.T) {
 	for _, message := range []string{
-		"请求失败 api_key = PROBE_PRIVATE_ALPHA",
-		`请求失败 "api_key" : "PROBE_PRIVATE_ALPHA with spaces"`,
-		"请求失败 Authorization: Bearer PROBE_PRIVATE_BETA",
-		"请求失败 Cookie : session=PROBE_PRIVATE_GAMMA; csrf=PROBE_PRIVATE_DELTA",
-		"请求失败 access_token : PROBE_PRIVATE_EPSILON",
-		"请求失败 prompt: PROBE_PRIVATE_ZETA more private words",
-		"请求失败 提示词: PROBE_PRIVATE_ZETA more private words",
+		"Request failed api_key = PROBE_PRIVATE_ALPHA",
+		`Request failed "api_key" : "PROBE_PRIVATE_ALPHA with spaces"`,
+		"Request failed Authorization: Bearer PROBE_PRIVATE_BETA",
+		"Request failed Cookie: session=PROBE_PRIVATE_GAMMA; csrf=PROBE_PRIVATE_DELTA",
+		"Request failed access_token: PROBE_PRIVATE_EPSILON",
+		"Request failed prompt: PROBE_PRIVATE_ZETA more private words",
+		"Request failed Prompt words: PROBE_PRIVATE_ZETA more private words",
 	} {
 		body, err := json.Marshal(map[string]any{"error": map[string]string{"message": message}})
 		if err != nil {
@@ -481,13 +481,13 @@ func TestReferenceDurationAdviceSurvivesPersistence(t *testing.T) {
 	for _, text := range []string{
 		`{"error":{"code":"400","message":"素材转换失败: Height must be between 300px and 6000px."}}`,
 		`{"error":{"code":"400","message":"aspect ratio must be between 0.4 and 2.5"}}`,
-		"第 1 段参考音频时长为 16.00 秒，需要 不超过 15 秒；请裁剪或更换这段素材后再提交",
-		"第 1 张参考图高度为 216 像素，需要 至少 300 像素；请调整尺寸或更换后再提交",
-		"第 2 段参考音频时长为 0.90 秒，需要 2–30 秒；请裁剪或更换这段素材后再提交",
-		"第 2 段参考音频时长为 0.90 秒，需要改到 2–30 秒；请换一段更长的音频后再提交",
-		"参考音频「配音.wav」时长为 0.90 秒，需要改到 2 秒以上；请换一段更长的音频后再提交",
-		"输出时长为 3 秒，当前模型只支持 4–15 秒；请改成 4–15 秒后再提交",
-		"参考素材时长不符合模型要求。请检查每段参考音频和视频，将不符合要求的素材调整为 1.8–30.2 秒后重新提交。",
+		"The length of the reference audio segment 1 is 16.00 seconds and should not exceed 15 seconds; please crop or replace this material before submitting",
+		"The height of the first reference image is 216 pixels and requires at least 300 pixels; please adjust the size or replace it before submitting.",
+		"The second reference audio is 0.90 seconds long and takes 2–30 seconds; please crop or replace this material before submitting",
+		"The length of the second reference audio is 0.90 seconds and needs to be changed to 2-30 seconds; please change to a longer audio before submitting.",
+		"The length of the reference audio \"dubbing.wav\" is 0.90 seconds and needs to be changed to more than 2 seconds; please change to a longer audio before submitting.",
+		"The output time is 3 seconds, and the current model only supports 4–15 seconds; please change it to 4–15 seconds before submitting.",
+		"The reference material duration does not meet the model requirements. Please check each reference audio and video, adjust the footage that does not meet the requirements to 1.8–30.2 seconds and resubmit.",
 	} {
 		failure := generation.ClassifyText(text)
 		reloaded := generation.ClassifyText(failure.UserMessage())
@@ -540,7 +540,7 @@ func TestGatewayVideoPreflightErrorFixture(t *testing.T) {
 }
 
 func TestReferencePixelDiagnosticIDIsNotDuplicated(t *testing.T) {
-	input := "第 1 个参考视频像素总量为 331776（432×768）。需要 407696–8295044 像素；请调整尺寸。排查编号：请求 202609290516575609492488268d9d6HqaXq7bq。"
+	input := "The total number of pixels in the first reference video is 331776 (432×768). Requires 407696–8295044 pixels; please resize. Troubleshooting number: Request 202609290516575609492488268d9d6HqaXq7bq."
 	failure := generation.ClassifyText(input)
 	if strings.Count(failure.UserMessage(), "202609290516575609492488268d9d6HqaXq7bq") != 1 {
 		t.Fatalf("duplicate ID: %s", failure.UserMessage())
@@ -640,7 +640,7 @@ func TestClassifyManagedMediaTaskErrorRefinesSanitizedMessage(t *testing.T) {
 	chineseErr := &beeftv.MediaTaskError{
 		TaskID:  "med_cn_123456",
 		Code:    "media_submission_rejected",
-		Message: "第 1 张参考图高度为 200 像素，需要 300–6000 像素；请调整尺寸或更换后再提交",
+		Message: "The first reference image is 200 pixels high and requires 300–6000 pixels; please resize or replace before submitting",
 	}
 	chineseFailure := generation.ClassifyError(chineseErr)
 	if chineseFailure.Category != generation.CategoryInvalidParams || !strings.Contains(chineseFailure.Reason, "第 1 张参考图") || chineseFailure.TaskID != "med_cn_123456" {

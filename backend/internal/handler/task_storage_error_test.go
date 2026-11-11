@@ -14,7 +14,7 @@ func TestTaskStorageFailureIsLocalAndDoesNotExposeDatabaseDetails(t *testing.T) 
 		t.Fatal(err)
 	}
 	response := h.do(t, http.MethodPost, "/api/tasks", map[string]any{
-		"type": "canvas_text", "prompt": "一只猫在丛林中漫步", "model": "text-test",
+		"type": "canvas_text", "prompt": "A cat walks in the jungle", "model": "text-test",
 		"input": map[string]any{"mode": "text", "config": map[string]any{"channelId": "channel", "model": "text-test"}},
 	})
 	body := response.Body.String()

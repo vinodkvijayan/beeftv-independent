@@ -28,7 +28,7 @@ func TestTaskRecoveryOutcomeMigrationOnlyAddsNullableColumn(t *testing.T) {
 	if err = db.Exec("ALTER TABLE tasks ADD COLUMN custom_marker TEXT").Error; err != nil {
 		t.Fatal(err)
 	}
-	if err = db.Exec(`INSERT INTO tasks(id,user_id,type,status,stage,result_json,custom_marker) VALUES('historical','owner','canvas_image','running','上游生成中','original','keep')`).Error; err != nil {
+	if err = db.Exec(`INSERT INTO tasks(id,user_id,type,status,stage,result_json,custom_marker) VALUES('historical','owner','canvas_image','running','upstream generating','original','keep')`).Error; err != nil {
 		t.Fatal(err)
 	}
 	var before string
@@ -50,7 +50,7 @@ func TestTaskRecoveryOutcomeMigrationOnlyAddsNullableColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	if row.Status != "running" || row.ResultJSON != "original" || row.RecoveryOutcome != nil || row.CustomMarker != "keep" {
-		t.Fatalf("历史记录被改写: %+v", row)
+		t.Fatalf("History has been rewritten: %+v", row)
 	}
 	var columns []struct {
 		Name      string
@@ -65,12 +65,12 @@ func TestTaskRecoveryOutcomeMigrationOnlyAddsNullableColumn(t *testing.T) {
 		if c.Name == "recovery_outcome" {
 			found = true
 			if c.Notnull != 0 || c.DfltValue != nil {
-				t.Fatal("新列不是无默认值的可空列")
+				t.Fatal("New column is not a nullable column with no default value")
 			}
 		}
 	}
 	if !found {
-		t.Fatal("缺少 recovery_outcome")
+		t.Fatal("recovery_outcome missing")
 	}
 	if err = RequireLocalSchema(db); err != nil {
 		t.Fatal(err)
@@ -79,7 +79,7 @@ func TestTaskRecoveryOutcomeMigrationOnlyAddsNullableColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err = RequireLocalSchema(db); err == nil {
-		t.Fatal("缺少已迁移列仍标 Ready")
+		t.Fatal("Missing migrated columns are still marked Ready")
 	}
 }
 
@@ -104,10 +104,10 @@ func TestTaskRecoveryOutcomeMigrationRollsBackWithLedgerFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err = MigrateLocalSchema(db); err == nil {
-		t.Fatal("注入失败没有阻止迁移")
+		t.Fatal("Injection failure did not prevent migration")
 	}
 	version, _ := currentSchemaVersion(db)
 	if version != 25 || db.Migrator().HasColumn(&model.Task{}, "recovery_outcome") {
-		t.Fatal("DDL 与迁移记录未同时回滚")
+		t.Fatal("DDL and migration records are not rolled back at the same time")
 	}
 }

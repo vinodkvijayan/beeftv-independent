@@ -161,10 +161,10 @@ func (r *Runtime) Dispatch(ctx context.Context) {
 // 进行中的执行仍跑完，由 platform.Worker.Stop 先排空再有界等待。
 func (r *Runtime) ProcessOne(ctx context.Context) Outcome {
 	if r == nil || r.closed.Load() {
-		return Outcome{Kind: KindFailed, Err: errors.New("任务运行时已关闭")}
+		return Outcome{Kind: KindFailed, Err: errors.New("The task was closed while running")}
 	}
 	if r.repo == nil {
-		return Outcome{Kind: KindFailed, Err: errors.New("任务仓库未初始化")}
+		return Outcome{Kind: KindFailed, Err: errors.New("Task repository not initialized")}
 	}
 	owner := r.cfg.NewOwner()
 	task, err := r.repo.ClaimNext(ctx, owner, r.cfg.TaskLeaseTTL)
@@ -195,7 +195,7 @@ func (r *Runtime) dispatch(ctx context.Context, slots chan struct{}) {
 		return
 	}
 	if r.policy == nil {
-		r.logf("task dispatch paused: stage=runtime_policy worker_id=%s error=%v", r.cfg.WorkerID, errors.New("调度策略未初始化"))
+		r.logf("task dispatch paused: stage=runtime_policy worker_id=%s error=%v", r.cfg.WorkerID, errors.New("Scheduling policy is not initialized"))
 		return
 	}
 	concurrency, err := r.policy.WorkerConcurrency(ctx)
@@ -212,7 +212,7 @@ func (r *Runtime) dispatch(ctx context.Context, slots chan struct{}) {
 			return
 		}
 		if r.coordinator == nil {
-			r.logf("task dispatch paused: stage=global_slot worker_id=%s error=%v", r.cfg.WorkerID, errors.New("运行时协调器未初始化"))
+			r.logf("task dispatch paused: stage=global_slot worker_id=%s error=%v", r.cfg.WorkerID, errors.New("Runtime coordinator not initialized"))
 			return
 		}
 		slot, acquired, err := r.coordinator.AcquireLease(ctx, r.cfg.SlotScope, concurrency, r.cfg.SlotTTL)
@@ -275,7 +275,7 @@ func (r *Runtime) runClaimed(parent context.Context, task *model.Task, slot Slot
 		if r.repo != nil && task != nil {
 			_ = r.repo.ReleaseLease(task.ID, task.LeaseOwner)
 		}
-		return Outcome{Kind: KindFailed, Err: errors.New("任务运行时已关闭")}
+		return Outcome{Kind: KindFailed, Err: errors.New("The task was closed while running")}
 	}
 	timeout := 15 * time.Minute
 	if r.policy != nil {
@@ -310,7 +310,7 @@ func (r *Runtime) runClaimed(parent context.Context, task *model.Task, slot Slot
 		renewers.Wait()
 	}()
 	if r.executor == nil {
-		return Outcome{Kind: KindFailed, Err: errors.New("任务执行器未初始化")}
+		return Outcome{Kind: KindFailed, Err: errors.New("Task executor is not initialized")}
 	}
 	outcome := r.executor.Execute(session)
 	return r.finish(session, outcome)
@@ -378,9 +378,9 @@ func (r *Runtime) finish(session *session, outcome Outcome) Outcome {
 		}
 		if outcome.Kind == KindCompleted {
 			if outcome.ProviderAccepted {
-				return Outcome{Kind: KindUncertain, Err: fmt.Errorf("任务租约失效，停止保存上游结果：%w", lost), ProviderAccepted: true}
+				return Outcome{Kind: KindUncertain, Err: fmt.Errorf("The task lease expires and stops saving upstream results: %w", lost), ProviderAccepted: true}
 			}
-			return Outcome{Kind: KindLeaseLost, Err: fmt.Errorf("任务租约失效，停止保存上游结果：%w", lost)}
+			return Outcome{Kind: KindLeaseLost, Err: fmt.Errorf("The task lease expires and stops saving upstream results: %w", lost)}
 		}
 		return outcome
 	}

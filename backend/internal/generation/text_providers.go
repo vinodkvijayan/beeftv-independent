@@ -18,10 +18,10 @@ func RunDeclarativeAgentTask(ctx context.Context, input Input, adapter protocol.
 	}
 	knownWire := wire == "chat-completion" || wire == "responses" || wire == "claude-api"
 	if input.TextOptions.Thinking && !knownWire {
-		return nil, errors.New("当前声明式 Agent 渠道尚不支持思考模式，请关闭思考模式或切换内置协议渠道")
+		return nil, errors.New("The current declarative Agent channel does not support thinking mode. Please turn off thinking mode or switch to the built-in protocol channel.")
 	}
 	if input.AgentRequests == nil {
-		return nil, errors.New("画布 Agent 工具请求缺少协议参数")
+		return nil, errors.New("Canvas Agent tool request is missing protocol parameters")
 	}
 	request := map[string]any{
 		"chatCompletion": input.AgentRequests.ChatCompletion,
@@ -36,7 +36,7 @@ func RunDeclarativeAgentTask(ctx context.Context, input Input, adapter protocol.
 	if knownWire {
 		body := ProtocolBodyObject(spec.Body)
 		if body == nil {
-			return nil, errors.New("声明式 Agent 请求体必须是 JSON 对象")
+			return nil, errors.New("Declarative Agent request body must be a JSON object")
 		}
 		ApplyTextThinking(body, input, wire)
 		NormalizeAgentToolChoice(body, input, wire)
@@ -60,7 +60,7 @@ func RunDeclarativeAgentTask(ctx context.Context, input Input, adapter protocol.
 			}
 			var payload map[string]interface{}
 			if err := json.Unmarshal(data, &payload); err != nil {
-				return nil, fmt.Errorf("Agent 接口返回格式无效：%w", err)
+				return nil, fmt.Errorf("The Agent interface return format is invalid: %w", err)
 			}
 			return ParseAgentToolPayload(payload, wire)
 		}
@@ -91,7 +91,7 @@ func RunDeclarativeAgentTask(ctx context.Context, input Input, adapter protocol.
 	}
 	result["toolCalls"] = calls
 	if strings.TrimSpace(parsed.Text) == "" && len(calls) == 0 {
-		return nil, errors.New("声明式 Agent 接口没有返回内容")
+		return nil, errors.New("Declarative Agent interface returns no content")
 	}
 	return result, nil
 }
@@ -211,7 +211,7 @@ func ClaudeToolChoice(value interface{}) interface{} {
 
 func RunClaudeTextTask(ctx context.Context, input Input) (map[string]interface{}, error) {
 	if len(input.ReferenceVideos) > 0 {
-		return nil, errors.New("Claude API 当前不支持视频参考输入")
+		return nil, errors.New("The Claude API does not currently support video reference input")
 	}
 	messages := make([]map[string]interface{}, 0, len(input.TextHistory)+1)
 	for _, message := range ValidatedTextHistory(input.TextHistory) {
@@ -251,7 +251,7 @@ func ClaudeTextContent(input Input) (interface{}, error) {
 		if strings.HasPrefix(value, "data:") {
 			mimeType, data, ok := SplitDataURL(value)
 			if !ok {
-				return nil, errors.New("Claude 参考图片 data URL 无效")
+				return nil, errors.New("Claude reference picture data URL is invalid")
 			}
 			content = append(content, map[string]interface{}{"type": "image", "source": map[string]interface{}{"type": "base64", "media_type": mimeType, "data": data}})
 		} else {

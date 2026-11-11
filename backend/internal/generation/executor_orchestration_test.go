@@ -109,7 +109,7 @@ type countingResolvePort struct{ calls atomic.Int32 }
 func (p *countingResolvePort) Resolve(config Config) (Config, error) {
 	p.calls.Add(1)
 	if p.calls.Load() > 1 && config.ChannelModelKey == "seedance-2-5-480p" && config.Model == "doubao-seedance-2-5" {
-		return Config{}, errors.New("系统渠道模型标识不一致")
+		return Config{}, errors.New("System channel model identification is inconsistent")
 	}
 	out := config
 	out.ChannelModelKey = "seedance-2-5-480p"
@@ -178,10 +178,10 @@ func TestExecuteCanvasTextStreamsVisibleTextWithoutReasoning(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
-	if result["text"] != "可见回答" {
+	if result["text"] != "Visible answer" {
 		t.Fatalf("result = %#v", result)
 	}
-	if streamed.String() != "可见回答" {
+	if streamed.String() != "Visible answer" {
 		t.Fatalf("streamed = %q", streamed.String())
 	}
 	if strings.Contains(streamed.String(), "内部分析") {
@@ -257,7 +257,7 @@ func TestExecuteTextWithRetiredVendorIDUsesMergedInterface(t *testing.T) {
 	if path != "/v1/chat/completions" || body["temperature"] != 0.2 || body["stream"] != true {
 		t.Fatalf("path = %q body = %#v", path, body)
 	}
-	if result["text"] != "好" || streamed.String() != "好" {
+	if result["text"] != "good" || streamed.String() != "good" {
 		t.Fatalf("result = %#v streamed = %q", result, streamed.String())
 	}
 }

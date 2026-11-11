@@ -34,7 +34,7 @@ func (s *Service) CreateProjectAssetFolder(userID string, projectID string, req 
 		return model.ProjectAssetFolder{}, err
 	}
 	if projectAssetFolderNameExists(folders, parentID, name, "") {
-		return model.ProjectAssetFolder{}, kernel.BadAuthRequest("同级目录下已存在同名文件夹")
+		return model.ProjectAssetFolder{}, kernel.BadAuthRequest("A folder with the same name already exists in the same directory")
 	}
 	position := nextProjectAssetFolderPosition(folders, parentID)
 	now := time.Now()
@@ -49,7 +49,7 @@ func (s *Service) CreateProjectAssetFolder(userID string, projectID string, req 
 	folder := model.ProjectAssetFolder{ID: kernel.NewID(), ProjectID: projectID, ParentID: parentID, Name: name, NameKey: projectAssetFolderNameKey(name), Style: style, Theme: theme, Position: position, CreatedAt: now, UpdatedAt: now}
 	if err := s.repo.CreateProjectAssetFolderActive(userID, &folder); err != nil {
 		if isProjectAssetFolderNameConflict(err) {
-			return model.ProjectAssetFolder{}, kernel.BadAuthRequest("同级目录下已存在同名文件夹")
+			return model.ProjectAssetFolder{}, kernel.BadAuthRequest("A folder with the same name already exists in the same directory")
 		}
 		return model.ProjectAssetFolder{}, mapProjectWriteError(err)
 	}
@@ -102,12 +102,12 @@ func (s *Service) UpdateProjectAssetFolder(userID string, projectID string, fold
 		folder.Theme = theme
 	}
 	if projectAssetFolderNameExists(folders, folder.ParentID, folder.Name, folder.ID) {
-		return model.ProjectAssetFolder{}, kernel.BadAuthRequest("同级目录下已存在同名文件夹")
+		return model.ProjectAssetFolder{}, kernel.BadAuthRequest("A folder with the same name already exists in the same directory")
 	}
 	folder.UpdatedAt = time.Now()
 	if err := s.repo.UpdateProjectAssetFolderActive(userID, project.Revision, folder); err != nil {
 		if isProjectAssetFolderNameConflict(err) {
-			return model.ProjectAssetFolder{}, kernel.BadAuthRequest("同级目录下已存在同名文件夹")
+			return model.ProjectAssetFolder{}, kernel.BadAuthRequest("A folder with the same name already exists in the same directory")
 		}
 		return model.ProjectAssetFolder{}, mapProjectWriteError(err)
 	}
@@ -127,7 +127,7 @@ func (s *Service) resolveAssetFolderID(projectID string, requested *string) (str
 	}
 	folderID := strings.TrimSpace(*requested)
 	if _, err := s.repo.ProjectAssetFolder(projectID, folderID); err != nil {
-		return "", kernel.BadAuthRequest("目标文件夹不存在或不属于当前素材库")
+		return "", kernel.BadAuthRequest("The target folder does not exist or does not belong to the current library")
 	}
 	return folderID, nil
 }
@@ -141,7 +141,7 @@ func validateProjectAssetFolderStyle(value string) (string, error) {
 	case "glass", "stacked", "midnight", "paper", "cinema", "compact":
 		return style, nil
 	default:
-		return "", kernel.BadAuthRequest("不支持的文件夹样式")
+		return "", kernel.BadAuthRequest("Unsupported folder style")
 	}
 }
 
@@ -154,17 +154,17 @@ func validateProjectAssetFolderTheme(value string) (string, error) {
 	case "aurora", "obsidian", "ember", "pearl":
 		return theme, nil
 	default:
-		return "", kernel.BadAuthRequest("不支持的文件夹主题")
+		return "", kernel.BadAuthRequest("Unsupported folder themes")
 	}
 }
 
 func validateProjectAssetFolderName(value string) (string, error) {
 	name := strings.TrimSpace(value)
 	if name == "" {
-		return "", kernel.BadAuthRequest("文件夹名称不能为空")
+		return "", kernel.BadAuthRequest("Folder name cannot be empty")
 	}
 	if len([]rune(name)) > 60 {
-		return "", kernel.BadAuthRequest("文件夹名称不能超过 60 个字符")
+		return "", kernel.BadAuthRequest("Folder name cannot exceed 60 characters")
 	}
 	return name, nil
 }
@@ -191,22 +191,22 @@ func validateProjectAssetFolderParent(folders []model.ProjectAssetFolder, folder
 	seen := make(map[string]struct{}, projectAssetFolderMaxDepth)
 	for currentID != "" {
 		if currentID == folderID && folderID != "" {
-			return kernel.BadAuthRequest("文件夹不能移动到自身或其子目录")
+			return kernel.BadAuthRequest("A folder cannot be moved to itself or its subdirectories")
 		}
 		if _, exists := seen[currentID]; exists {
-			return kernel.BadAuthRequest("文件夹目录关系存在循环")
+			return kernel.BadAuthRequest("There is a cycle in the folder directory relationship")
 		}
 		seen[currentID] = struct{}{}
 		current, ok := byID[currentID]
 		if !ok {
-			return kernel.BadAuthRequest("父文件夹不存在或不属于当前项目")
+			return kernel.BadAuthRequest("The parent folder does not exist or does not belong to the current project")
 		}
 		ancestorDepth++
 		currentID = current.ParentID
 	}
 	subtreeHeight := projectAssetFolderSubtreeHeight(folders, folderID)
 	if ancestorDepth+subtreeHeight > projectAssetFolderMaxDepth {
-		return kernel.BadAuthRequest("文件夹层级不能超过 8 层")
+		return kernel.BadAuthRequest("The folder level cannot exceed 8 levels")
 	}
 	return nil
 }

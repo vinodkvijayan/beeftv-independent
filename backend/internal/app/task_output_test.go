@@ -63,7 +63,7 @@ func TestTaskClientContextRequiresCreatePageMetadata(t *testing.T) {
 }
 
 func TestTaskSummaryExposesStablePaymentRequiredCode(t *testing.T) {
-	summary := taskSummaryForOutput(model.Task{Error: "上游模型服务返回 HTTP 402：当前账户余额不足"})
+	summary := taskSummaryForOutput(model.Task{Error: "The upstream model service returns HTTP 402: Insufficient current account balance"})
 	if summary.ErrorCode != "quota_unknown" {
 		t.Fatalf("ErrorCode = %q, want quota_unknown", summary.ErrorCode)
 	}
@@ -165,7 +165,7 @@ func TestTaskOutputResourceReadsPersistedMedia(t *testing.T) {
 }
 
 func TestHistoricalVODParameterFailureProjection(t *testing.T) {
-	original := model.Task{Type: "canvas_image", Status: model.TaskStatusFailed, Stage: "submission_unknown", Error: "图片结果尚未确认", FailureDiagnostics: &model.TaskFailureDiagnostics{ProviderCode: "vod_image_invalid_params", HTTPStatus: 400, Requests: []model.TaskRequestEvidence{{Dispatched: true, Outcome: "http_error", HTTPStatus: 400, ProviderCode: "vod_image_invalid_params"}}}}
+	original := model.Task{Type: "canvas_image", Status: model.TaskStatusFailed, Stage: "submission_unknown", Error: "Image results not yet confirmed", FailureDiagnostics: &model.TaskFailureDiagnostics{ProviderCode: "vod_image_invalid_params", HTTPStatus: 400, Requests: []model.TaskRequestEvidence{{Dispatched: true, Outcome: "http_error", HTTPStatus: 400, ProviderCode: "vod_image_invalid_params"}}}}
 	got := taskForOutput(original)
 	if got.ErrorCode != "invalid_params" || got.Stage == "submission_unknown" {
 		t.Fatalf("not corrected: %+v", got)

@@ -84,44 +84,44 @@ describe('Durable visible text projection', () => {
   test('initial partial, text starts, deltas, whole replacements and final-only suffix are all retained once', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [entry(8, 'previous turn')], tools: [] });
-    expect(projection.accept({ type: 'message_start', message: assistant('开头') })).toEqual([
-      { type: 'text_snapshot', text: '开头' },
+    expect(projection.accept({ type: 'message_start', message: assistant('Beginning') })).toEqual([
+      { type: 'text_snapshot', text: 'Beginning' },
       { type: 'reasoning_snapshot', segments: [{ id: 'live-1:0', text: SECRET, status: 'done' }] },
     ]);
-    projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: '中段' }] });
-    expect(projection.text).toBe('开头中段');
-    projection.accept({ type: 'message_update', changes: [{ type: 'text_start', contentIndex: 2, block: { type: 'text', text: '新段' } }] });
-    expect(projection.text).toBe('开头中段新段');
-    projection.accept({ type: 'message_update', changes: [{ type: 'block', contentIndex: 2, block: { type: 'text', text: '修订段' } }] });
-    expect(projection.text).toBe('开头中段修订段');
-    projection.accept({ type: 'message_update', changes: [{ type: 'message', message: assistant('完整替换') }] });
-    expect(projection.accept({ type: 'message_end', entry: entry(12, '完整替换和尾部') })).toEqual([
-      { type: 'text_snapshot', text: '完整替换和尾部' },
+    projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: 'middle section' }] });
+    expect(projection.text).toBe('Beginning and middle section');
+    projection.accept({ type: 'message_update', changes: [{ type: 'text_start', contentIndex: 2, block: { type: 'text', text: 'new section' } }] });
+    expect(projection.text).toBe('New paragraph in the beginning and middle paragraph');
+    projection.accept({ type: 'message_update', changes: [{ type: 'block', contentIndex: 2, block: { type: 'text', text: 'Revise paragraph' } }] });
+    expect(projection.text).toBe('Revision of the beginning and middle paragraphs');
+    projection.accept({ type: 'message_update', changes: [{ type: 'message', message: assistant('complete replacement') }] });
+    expect(projection.accept({ type: 'message_end', entry: entry(12, 'Full replacement and tail') })).toEqual([
+      { type: 'text_snapshot', text: 'Full replacement and tail' },
       { type: 'reasoning_snapshot', segments: [{ id: '12:0', text: SECRET, status: 'done' }] },
     ]);
-    expect(projection.accept({ type: 'message_end', entry: entry(12, '完整替换和尾部') })).toEqual([]);
+    expect(projection.accept({ type: 'message_end', entry: entry(12, 'Full replacement and tail') })).toEqual([]);
     // 思考正文有自己的通道：正文投影永远不把它当回复。
     expect(projection.text).not.toContain(SECRET);
   });
   test('late attachment and overflow snapshots restore only this turn without duplication', () => {
     const projection = createDurableTurnProjection();
-    const snapshot = { type: 'snapshot', afterEntry: 10, entries: [entry(8, 'previous turn'), entry(12, '工具前说明')], generation: { message: assistant('当前开头') } };
-    expect(projection.accept(snapshot).find((payload) => payload.type === 'text_snapshot')?.text).toBe('工具前说明\n\n当前开头');
-    projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: '中段' }] });
-    expect(snapshot.generation.message.content[1].text).toBe('当前开头');
-    projection.accept({ type: 'snapshot', entries: [entry(8, 'previous turn'), entry(12, '工具前说明'), entry(15, '当前开头中段尾部')], generation: { message: assistant('继续处理') } });
-    expect(projection.text).toBe('工具前说明\n\n当前开头中段尾部\n\n继续处理');
-    projection.accept({ type: 'message_end', entry: entry(16, '继续处理完成') });
-    expect(projection.text).toBe('工具前说明\n\n当前开头中段尾部\n\n继续处理完成');
+    const snapshot = { type: 'snapshot', afterEntry: 10, entries: [entry(8, 'previous turn'), entry(12, 'Pre-tool instructions')], generation: { message: assistant('Current beginning') } };
+    expect(projection.accept(snapshot).find((payload) => payload.type === 'text_snapshot')?.text).toBe('Pre-tool instructions\n\nCurrent beginning');
+    projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: 'middle section' }] });
+    expect(snapshot.generation.message.content[1].text).toBe('Current beginning');
+    projection.accept({ type: 'snapshot', entries: [entry(8, 'previous turn'), entry(12, 'Pre-tool instructions'), entry(15, 'Current beginning, middle and end')], generation: { message: assistant('Continue processing') } });
+    expect(projection.text).toBe('Pre-tool instructions\n\nCurrent beginning, middle and end\n\nContinue processing');
+    projection.accept({ type: 'message_end', entry: entry(16, 'Continue processing to completion') });
+    expect(projection.text).toBe('Pre-tool instructions\n\nCurrent beginning, middle and end\n\nContinue processing to completion');
     expect(projection.text).not.toContain('previous turn');
     // 终态与重开历史共用同一纯投影：按条目身份去重，忽略无正文的工具终止步骤与报错条目。
     expect(durableTurnReplyText([
-      entry(12, '工具前说明'),
-      entry(15, '当前开头中段尾部'),
-      entry(15, '当前开头中段尾部'),
-      entry(16, '继续处理完成'),
+      entry(12, 'Pre-tool instructions'),
+      entry(15, 'Current beginning, middle and end'),
+      entry(15, 'Current beginning, middle and end'),
+      entry(16, 'Continue processing to completion'),
       { id: 17, model: [{ role: 'assistant', content: [{ type: 'toolCall', id: 'p1', name: 'canvas_generation_propose', arguments: {} }] }] },
-      { id: 18, model: [{ role: 'assistant', stopReason: 'error', content: [{ type: 'text', text: '不该显示的报错残片' }] }] },
+      { id: 18, model: [{ role: 'assistant', stopReason: 'error', content: [{ type: 'text', text: 'Error fragments that should not be displayed' }] }] },
     ])).toBe(projection.text);
   });
 });
@@ -133,94 +133,94 @@ describe('Durable readable reasoning projection', () => {
   const entry = (id, content) => ({ id, model: [assistant(content)] });
   const segments = (payloads) => payloads.find((payload) => payload.type === 'reasoning_snapshot')?.segments;
 
-  test('思考增量逐段累积，只有最后一块还在生成，正文开始后标题就该变', () => {
+  test('Think about the increments accumulated paragraph by paragraph. Only the last piece is still being generated. The title should change after the text begins.', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [], tools: [] });
     projection.accept({ type: 'message_start', message: assistant([]) });
     // 还没有可读正文时不发空抽屉。
     expect(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_start', contentIndex: 0, block: thinking('') }] })).toEqual([]);
-    expect(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: '先看' }] }))
-      .toEqual([{ type: 'reasoning_snapshot', segments: [{ id: 'live-1:0', text: '先看', status: 'streaming' }] }]);
-    expect(segments(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: '画布。' }] })))
-      .toEqual([{ id: 'live-1:0', text: '先看画布。', status: 'streaming' }]);
+    expect(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: 'Look first' }] }))
+      .toEqual([{ type: 'reasoning_snapshot', segments: [{ id: 'live-1:0', text: 'Look first', status: 'streaming' }] }]);
+    expect(segments(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: 'canvas.' }] })))
+      .toEqual([{ id: 'live-1:0', text: 'Look at the canvas first.', status: 'streaming' }]);
     // 正文开始：思考块已经写完，界面据此从「正在思考…」换成「思考过程」。
     expect(projection.accept({ type: 'message_update', changes: [{ type: 'text_start', contentIndex: 1, block: text('') }] }))
-      .toEqual([{ type: 'reasoning_snapshot', segments: [{ id: 'live-1:0', text: '先看画布。', status: 'done' }] }]);
-    expect(projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: '开始做。' }] }))
-      .toEqual([{ type: 'text_snapshot', text: '开始做。' }]);
+      .toEqual([{ type: 'reasoning_snapshot', segments: [{ id: 'live-1:0', text: 'Look at the canvas first.', status: 'done' }] }]);
+    expect(projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: 'Start doing it.' }] }))
+      .toEqual([{ type: 'text_snapshot', text: 'Start doing it.' }]);
     // 终态：临时槽换成官方 entry 身份，内容与阶段不变。
-    expect(projection.accept({ type: 'message_end', entry: entry(12, [thinking('先看画布。'), text('开始做。')]) }))
-      .toEqual([{ type: 'reasoning_snapshot', segments: [{ id: '12:0', text: '先看画布。', status: 'done' }] }]);
-    expect(projection.accept({ type: 'message_end', entry: entry(12, [thinking('先看画布。'), text('开始做。')]) })).toEqual([]);
-    expect(projection.text).toBe('开始做。');
+    expect(projection.accept({ type: 'message_end', entry: entry(12, [thinking('Look at the canvas first.'), text('Start doing it.')]) }))
+      .toEqual([{ type: 'reasoning_snapshot', segments: [{ id: '12:0', text: 'Look at the canvas first.', status: 'done' }] }]);
+    expect(projection.accept({ type: 'message_end', entry: entry(12, [thinking('Look at the canvas first.'), text('Start doing it.')]) })).toEqual([]);
+    expect(projection.text).toBe('Start doing it.');
   });
 
-  test('思考→工具→思考→正文：每一段可读思考都留下，工具参数不进投影', () => {
+  test('Thinking→Tools→Thinking→Text: Each paragraph of readable thinking is left, and the tool parameters are not projected.', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [], tools: [] });
     projection.accept({ type: 'message_start', message: assistant([]) });
-    projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: '先读画布' }] });
+    projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: 'read canvas first' }] });
     const toolCall = { type: 'toolCall', id: 't1', name: 'canvas_node_configure', arguments: { apiKey: SECRET } };
-    expect(segments(projection.accept({ type: 'message_end', entry: entry(11, [thinking('先读画布'), toolCall]) })))
-      .toEqual([{ id: '11:0', text: '先读画布', status: 'done' }]);
+    expect(segments(projection.accept({ type: 'message_end', entry: entry(11, [thinking('read canvas first'), toolCall]) })))
+      .toEqual([{ id: '11:0', text: 'read canvas first', status: 'done' }]);
     projection.accept({ type: 'message_start', message: assistant([]) });
-    projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: '再确认素材' }] });
-    expect(projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: '好，开始。' }] }))
-      .toEqual([{ type: 'text_snapshot', text: '好，开始。' }, { type: 'reasoning_snapshot', segments: [
-        { id: '11:0', text: '先读画布', status: 'done' },
-        { id: 'live-2:0', text: '再确认素材', status: 'done' },
+    projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: 'Confirm the material again' }] });
+    expect(projection.accept({ type: 'message_update', changes: [{ type: 'text_delta', contentIndex: 1, delta: 'OK, let\'s get started.' }] }))
+      .toEqual([{ type: 'text_snapshot', text: 'OK, let\'s get started.' }, { type: 'reasoning_snapshot', segments: [
+        { id: '11:0', text: 'read canvas first', status: 'done' },
+        { id: 'live-2:0', text: 'Confirm the material again', status: 'done' },
       ] }]);
     const projected = JSON.stringify(projection.reasoning);
-    expect(projected).toContain('先读画布');
-    expect(projected).toContain('再确认素材');
+    expect(projected).toContain('read canvas first');
+    expect(projected).toContain('Confirm the material again');
     expect(projected).not.toContain(SECRET);
     expect(projected).not.toContain('canvas_node_configure');
   });
 
-  test('redacted 与空思考不算可读内容，也不生成空抽屉', () => {
+  test('redacted and empty thinking do not count as readable content and do not generate empty drawers.', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [], tools: [] });
     projection.accept({ type: 'message_start', message: assistant([]) });
-    const redacted = thinking('加密占位', { redacted: true, thinkingSignature: SIGNATURE });
+    const redacted = thinking('Encrypted placeholder', { redacted: true, thinkingSignature: SIGNATURE });
     expect(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_start', contentIndex: 0, block: redacted }] })).toEqual([]);
-    expect(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: '不该出现' }] })).toEqual([]);
+    expect(projection.accept({ type: 'message_update', changes: [{ type: 'thinking_delta', contentIndex: 0, delta: 'Shouldn\'t have appeared' }] })).toEqual([]);
     expect(projection.reasoning).toEqual([]);
-    expect(projection.accept({ type: 'message_end', entry: entry(12, [redacted, text('已按画布检查。')]) }))
-      .toEqual([{ type: 'text_snapshot', text: '已按画布检查。' }]);
-    expect(JSON.stringify(projection.reasoning)).not.toContain('加密占位');
+    expect(projection.accept({ type: 'message_end', entry: entry(12, [redacted, text('Checked by canvas.')]) }))
+      .toEqual([{ type: 'text_snapshot', text: 'Checked by canvas.' }]);
+    expect(JSON.stringify(projection.reasoning)).not.toContain('Encrypted placeholder');
   });
 
-  test('溢出快照整体替换本轮思考，不重复也不混进别的回合', () => {
+  test('The overflow snapshot replaces the current round of thinking as a whole, without duplication or mixing into other rounds.', () => {
     const projection = createDurableTurnProjection();
-    const snapshot = { type: 'snapshot', afterEntry: 10, entries: [entry(8, [thinking('上一轮思考'), text('上一轮正文')]), entry(12, [thinking('工具前思考'), text('工具前说明')])],
-      generation: { message: assistant([thinking('当前思考')]) } };
+    const snapshot = { type: 'snapshot', afterEntry: 10, entries: [entry(8, [thinking('Last round of thinking'), text('Previous round text')]), entry(12, [thinking('Think before tools'), text('Pre-tool instructions')])],
+      generation: { message: assistant([thinking('Current Thoughts')]) } };
     expect(projection.accept(snapshot).map((payload) => payload.type)).toEqual(['text_snapshot', 'reasoning_snapshot']);
-    expect(projection.text).toBe('工具前说明');
+    expect(projection.text).toBe('Pre-tool instructions');
     expect(projection.reasoning).toEqual([
-      { id: '12:0', text: '工具前思考', status: 'done' },
-      { id: 'live-1:0', text: '当前思考', status: 'streaming' },
+      { id: '12:0', text: 'Think before tools', status: 'done' },
+      { id: 'live-1:0', text: 'Current Thoughts', status: 'streaming' },
     ]);
-    projection.accept({ type: 'snapshot', entries: [entry(8, [thinking('上一轮思考'), text('上一轮正文')]), entry(12, [thinking('工具前思考'), text('工具前说明')]), entry(15, [thinking('工具后思考'), text('工具后说明')])],
-      generation: { message: assistant([thinking('继续思考')]) } });
-    expect(projection.text).toBe('工具前说明\n\n工具后说明');
+    projection.accept({ type: 'snapshot', entries: [entry(8, [thinking('Last round of thinking'), text('Previous round text')]), entry(12, [thinking('Think before tools'), text('Pre-tool instructions')]), entry(15, [thinking('Thinking after Tools'), text('Instructions behind the tool')])],
+      generation: { message: assistant([thinking('keep thinking')]) } });
+    expect(projection.text).toBe('Pre-tool instructions\n\nInstructions behind the tool');
     expect(projection.reasoning).toEqual([
-      { id: '12:0', text: '工具前思考', status: 'done' },
-      { id: '15:0', text: '工具后思考', status: 'done' },
-      { id: 'live-2:0', text: '继续思考', status: 'streaming' },
+      { id: '12:0', text: 'Think before tools', status: 'done' },
+      { id: '15:0', text: 'Thinking after Tools', status: 'done' },
+      { id: 'live-2:0', text: 'keep thinking', status: 'streaming' },
     ]);
   });
 
-  test('签名、工具参数和上游原文都不进任何展示快照', () => {
+  test('Signatures, tool parameters and upstream original texts are not included in any display snapshots', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [], tools: [] });
     const payloads = projection.accept({ type: 'message_end', entry: entry(12, [
-      thinking('可读片段', { thinkingSignature: SIGNATURE }),
+      thinking('readable fragment', { thinkingSignature: SIGNATURE }),
       { type: 'toolCall', id: 't1', name: 'canvas_node_configure', arguments: { apiKey: SECRET } },
-      text('完成'),
+      text('Done'),
     ]) });
     expect(payloads).toEqual([
-      { type: 'text_snapshot', text: '完成' },
-      { type: 'reasoning_snapshot', segments: [{ id: '12:0', text: '可读片段', status: 'done' }] },
+      { type: 'text_snapshot', text: 'Done' },
+      { type: 'reasoning_snapshot', segments: [{ id: '12:0', text: 'readable fragment', status: 'done' }] },
     ]);
     const serialized = JSON.stringify(payloads);
     expect(serialized).not.toContain(SIGNATURE);
@@ -228,23 +228,23 @@ describe('Durable readable reasoning projection', () => {
     expect(serialized).not.toContain('canvas_node_configure');
   });
 
-  test('终态与历史用同一形状的思考片段：本轮每个助手条目都算，片段身份带 entry 与内容下标', () => {
+  test('The final state and history use thinking fragments of the same shape: each assistant entry in this round counts, and the fragment identity has entry and content subscripts.', () => {
     // 工具调用前后的两段思考都属于这一轮，不能只留最后一条消息的思考。
     expect(durableReasoningSegments([
-      entry(11, [thinking('先看画布。', { thinkingSignature: SIGNATURE }), { type: 'toolCall', id: 't1', name: 'canvas_get', arguments: {} }]),
-      entry(12, [thinking('再确认素材。'), text('开始做。')]),
+      entry(11, [thinking('Look at the canvas first.', { thinkingSignature: SIGNATURE }), { type: 'toolCall', id: 't1', name: 'canvas_get', arguments: {} }]),
+      entry(12, [thinking('Confirm the material again.'), text('Start doing it.')]),
     ])).toEqual([
-      { id: '11:0', text: '先看画布。', status: 'done' },
-      { id: '12:0', text: '再确认素材。', status: 'done' },
+      { id: '11:0', text: 'Look at the canvas first.', status: 'done' },
+      { id: '12:0', text: 'Confirm the material again.', status: 'done' },
     ]);
-    expect(durableReasoningSegments([entry(12, [thinking('', { redacted: true }), text('只回答正文。')])])).toEqual([]);
-    expect(durableReasoningSegments([entry(13, [text('这一轮没有思考。')])])).toEqual([]);
+    expect(durableReasoningSegments([entry(12, [thinking('', { redacted: true }), text('Only answer text.')])])).toEqual([]);
+    expect(durableReasoningSegments([entry(13, [text('No thinking this round.')])])).toEqual([]);
     expect(durableReasoningSegments(undefined)).toEqual([]);
-    expect(durableReasoningSegments([{ id: 14, model: [{ role: 'user', content: [text('用户输入')] }] }])).toEqual([]);
+    expect(durableReasoningSegments([{ id: 14, model: [{ role: 'user', content: [text('user input')] }] }])).toEqual([]);
   });
 });
 
-describe('思考被替换为空或 redacted 时发清空事件', () => {
+describe('Clear event is emitted when the think is replaced with empty or redacted', () => {
   const thinking = (body, extra = {}) => ({ type: 'thinking', thinking: body, ...extra });
   const text = (value) => ({ type: 'text', text: value });
   const assistant = (content) => ({ role: 'assistant', content });
@@ -255,13 +255,13 @@ describe('思考被替换为空或 redacted 时发清空事件', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [], tools: [] });
     projection.accept({ type: 'message_start', message: assistant([]) });
-    projection.accept({ type: 'message_update', changes: [{ type: 'thinking_start', contentIndex: 0, block: thinking('将被替换的旧内容') }] });
-    expect(projection.reasoning).toEqual([{ id: 'live-1:0', text: '将被替换的旧内容', status: 'streaming' }]);
+    projection.accept({ type: 'message_update', changes: [{ type: 'thinking_start', contentIndex: 0, block: thinking('Old content to be replaced') }] });
+    expect(projection.reasoning).toEqual([{ id: 'live-1:0', text: 'Old content to be replaced', status: 'streaming' }]);
     return projection;
   };
 
-  test('整块被替换成空 thinking 或 redacted：宿主清空并推送完整空数组', () => {
-    for (const replacement of [thinking(''), thinking('不透明占位', { redacted: true })]) {
+  test('The entire block is replaced with an empty thinking or redacted: the host clears and pushes the complete empty array', () => {
+    for (const replacement of [thinking(''), thinking('Opaque placeholder', { redacted: true })]) {
       const projection = shown();
       expect(segments(projection.accept({ type: 'message_update', changes: [{ type: 'block', contentIndex: 0, block: replacement }] }))).toEqual([]);
       expect(projection.reasoning).toEqual([]);
@@ -270,10 +270,10 @@ describe('思考被替换为空或 redacted 时发清空事件', () => {
     }
   });
 
-  test('整条消息替换为空、snapshot 替换为空：同样清空', () => {
+  test('Replace the entire message with empty, replace the snapshot with empty: also clear', () => {
     const replacedMessage = shown();
-    expect(segments(replacedMessage.accept({ type: 'message_update', changes: [{ type: 'message', message: assistant([thinking('新的可读内容')]) }] })))
-      .toEqual([{ id: 'live-2:0', text: '新的可读内容', status: 'streaming' }]);
+    expect(segments(replacedMessage.accept({ type: 'message_update', changes: [{ type: 'message', message: assistant([thinking('new readable content')]) }] })))
+      .toEqual([{ id: 'live-2:0', text: 'new readable content', status: 'streaming' }]);
     expect(segments(replacedMessage.accept({ type: 'message_update', changes: [{ type: 'message', message: assistant([thinking('', { redacted: true })]) }] }))).toEqual([]);
     expect(replacedMessage.reasoning).toEqual([]);
 
@@ -282,13 +282,13 @@ describe('思考被替换为空或 redacted 时发清空事件', () => {
     expect(replacedSnapshot.reasoning).toEqual([]);
   });
 
-  test('从来没有可读思考时不发空事件，界面不生成空抽屉', () => {
+  test('There is never an empty event when readable, and the interface does not generate an empty drawer.', () => {
     const projection = createDurableTurnProjection();
     projection.accept({ type: 'snapshot', afterEntry: 10, entries: [], tools: [] });
     projection.accept({ type: 'message_start', message: assistant([]) });
     expect(projection.accept({ type: 'message_update', changes: [{ type: 'block', contentIndex: 0, block: thinking('', { redacted: true }) }] })).toEqual([]);
-    expect(projection.accept({ type: 'message_end', entry: entry(12, [thinking('', { redacted: true }), text('只回答正文。')]) }))
-      .toEqual([{ type: 'text_snapshot', text: '只回答正文。' }]);
+    expect(projection.accept({ type: 'message_end', entry: entry(12, [thinking('', { redacted: true }), text('Only answer text.')]) }))
+      .toEqual([{ type: 'text_snapshot', text: 'Only answer text.' }]);
   });
 });
 

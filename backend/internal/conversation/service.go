@@ -121,7 +121,7 @@ func (s *Service) Get(userID, conversationID string) (Record, error) {
 	if userID == "" {
 		return Record{}, errIdentity()
 	}
-	if _, err := requiredID(conversationID, "对话"); err != nil {
+	if _, err := requiredID(conversationID, "dialogue"); err != nil {
 		return Record{}, err
 	}
 	if !s.storeReady() {
@@ -156,7 +156,7 @@ func (s *Service) Put(userID, conversationID string, expectedRevision int64, raw
 		return Record{}, errIdentity()
 	}
 	if expectedRevision < 0 {
-		return Record{}, errInvalid("对话版本无效")
+		return Record{}, errInvalid("Conversation version is invalid")
 	}
 	doc, err := NormalizeDocument(conversationID, raw)
 	if err != nil {
@@ -235,11 +235,11 @@ func (s *Service) Delete(userID, conversationID string, expectedRevision int64) 
 	if userID == "" {
 		return Record{}, errIdentity()
 	}
-	if _, err := requiredID(conversationID, "对话"); err != nil {
+	if _, err := requiredID(conversationID, "dialogue"); err != nil {
 		return Record{}, err
 	}
 	if expectedRevision < 0 {
-		return Record{}, errInvalid("对话版本无效")
+		return Record{}, errInvalid("Conversation version is invalid")
 	}
 	if !s.storeReady() {
 		return Record{}, errUnavailable()
@@ -329,10 +329,10 @@ func (s *Service) Import(userID, operationID, clientHash string, raw json.RawMes
 		return ImportResult{}, errIdentity()
 	}
 	if operationID == "" {
-		return ImportResult{}, errInvalid("缺少导入操作标识")
+		return ImportResult{}, errInvalid("Missing import operation identifier")
 	}
 	if !importOperationPattern(operationID) {
-		return ImportResult{}, errInvalid("导入操作标识无效")
+		return ImportResult{}, errInvalid("Invalid import operation ID")
 	}
 	doc, err := NormalizeDocument("", raw)
 	if err != nil {
@@ -437,17 +437,17 @@ func (s *Service) AttachMessageResult(userID string, input AttachInput) (Record,
 	if userID == "" {
 		return Record{}, errIdentity()
 	}
-	if _, err := requiredID(input.ConversationID, "对话"); err != nil {
+	if _, err := requiredID(input.ConversationID, "dialogue"); err != nil {
 		return Record{}, err
 	}
-	if _, err := requiredID(input.MessageID, "消息"); err != nil {
+	if _, err := requiredID(input.MessageID, "news"); err != nil {
 		return Record{}, err
 	}
-	if _, err := requiredID(input.TaskID, "任务"); err != nil {
+	if _, err := requiredID(input.TaskID, "Task"); err != nil {
 		return Record{}, err
 	}
 	if input.Status != "" && input.Status != "done" && input.Status != "error" && input.Status != "cancelled" && input.Status != "pending" && input.Status != "streaming" {
-		return Record{}, errInvalid("消息状态无效")
+		return Record{}, errInvalid("Message status is invalid")
 	}
 	cleanedURLs := make([]string, 0, len(input.ResultURLs))
 	for _, url := range input.ResultURLs {
@@ -456,7 +456,7 @@ func (s *Service) AttachMessageResult(userID string, input AttachInput) (Record,
 			continue
 		}
 		if isTempMediaBlob(text) {
-			return Record{}, errInvalid("结果不能包含临时媒体")
+			return Record{}, errInvalid("Results cannot contain temporary media")
 		}
 		cleanedURLs = append(cleanedURLs, text)
 	}
@@ -535,10 +535,10 @@ func (s *Service) AttachMessageResult(userID string, input AttachInput) (Record,
 		}
 		encoded, marshalErr := json.Marshal(object)
 		if marshalErr != nil {
-			return errInvalid("对话内容无法保存")
+			return errInvalid("Conversation content cannot be saved")
 		}
 		if len(encoded) > maxDocumentBytes {
-			return errInvalid("对话内容过大")
+			return errInvalid("Conversation content is too large")
 		}
 		next := *existing
 		next.Revision = existing.Revision + 1
@@ -591,7 +591,7 @@ func recordFromRow(row *model.CreationConversation) (Record, error) {
 	}
 	if !row.Deleted {
 		if strings.TrimSpace(row.Document) == "" || !json.Valid([]byte(row.Document)) {
-			return Record{}, errInvalid("对话记录损坏，已保留现场")
+			return Record{}, errInvalid("The conversation record is damaged and the scene has been reserved.")
 		}
 		record.Document = json.RawMessage(row.Document)
 	}

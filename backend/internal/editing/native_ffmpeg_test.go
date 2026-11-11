@@ -69,7 +69,7 @@ func TestRenderFFmpegSixSecondAudioAndChineseSubtitles(t *testing.T) {
 	voice.SourceStartMs = 1000
 	bgm := clip("bgm", KindAudio, "a", 0, 6000, "resource:bgm")
 	bgm.Volume = 0.2
-	project.Clips = append(project.Clips, voice, bgm, Clip{ID: "sub", Kind: KindSubtitle, TrackID: "s", StartMs: 1000, DurationMs: 2000, Text: "中文成片验证"})
+	project.Clips = append(project.Clips, voice, bgm, Clip{ID: "sub", Kind: KindSubtitle, TrackID: "s", StartMs: 1000, DurationMs: 2000, Text: "Chinese film verification"})
 	plan, err := Compile(project, nil, DefaultOptions())
 	if err != nil {
 		t.Fatal(err)
@@ -350,7 +350,7 @@ func TestRenderFFmpegImageGapSubtitleTerminates(t *testing.T) {
 		Tracks:     []Track{{ID: "v"}, {ID: "a"}, {ID: "s"}},
 		Clips: []Clip{
 			still, voice,
-			{ID: "sub", Kind: KindSubtitle, TrackID: "s", StartMs: 500, DurationMs: 1000, Text: "图片"},
+			{ID: "sub", Kind: KindSubtitle, TrackID: "s", StartMs: 500, DurationMs: 1000, Text: "pictures"},
 		},
 	}
 	opts := DefaultOptions()

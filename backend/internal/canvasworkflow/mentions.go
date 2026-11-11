@@ -38,7 +38,7 @@ func nodePromptBindings(prompt string, bindings []Binding, nodes map[string]Node
 			}
 		}
 		if !exists || !connected {
-			return nil, BadRequest("提示词引用的工作流节点已断开或删除，请重新选择")
+			return nil, BadRequest("The workflow node referenced by the prompt word has been disconnected or deleted, please select again.")
 		}
 		binding := Binding{NodeID: id, Field: "prompt", Index: match[0], Original: prompt[match[0]:match[1]]}
 		if node.MediaType != "text" {
@@ -48,15 +48,15 @@ func nodePromptBindings(prompt string, bindings []Binding, nodes map[string]Node
 					continue
 				}
 				if index >= 0 && index != media.Index {
-					return nil, BadRequest("节点 " + node.Title + " 对应多个参考位置，请保留一条引用连线")
+					return nil, BadRequest("node" + node.Title + " Corresponding to multiple reference locations, please keep a reference connection")
 				}
 				index = media.Index
 			}
 			if index < 0 {
-				return nil, BadRequest("节点 " + node.Title + " 未建立有效的素材引用")
+				return nil, BadRequest("node" + node.Title + " No valid material reference created")
 			}
 			binding.Field = "promptMention"
-			binding.ReferenceLabel = fmt.Sprintf("@%s%d", map[string]string{"image": "图片", "video": "视频", "audio": "音频"}[node.MediaType], index+1)
+			binding.ReferenceLabel = fmt.Sprintf("@%s%d", map[string]string{"image": "pictures", "video": "video", "audio": "Audio"}[node.MediaType], index+1)
 		}
 		mentions = append(mentions, binding)
 	}

@@ -12,7 +12,7 @@ function task(partial: Partial<GenerationTask> & Pick<GenerationTask, "id" | "ty
     return {
         projectId: "I_96aFkPCCdKBLz2pzja8",
         status: "succeeded",
-        prompt: "历史图片",
+        prompt: "historical pictures",
         attempts: 1,
         createdAt: "2026-09-24T00:00:00.000Z",
         updatedAt: "2026-09-24T00:00:00.000Z",

@@ -26,11 +26,11 @@ import (
 )
 
 func TestArchiveFromMarkdownInfersMetadata(t *testing.T) {
-	archive, err := archiveFromMarkdown([]byte("# 小说转分镜\n\n把小说段落拆成可拍摄的镜头。\n"), "", "")
+	archive, err := archiveFromMarkdown([]byte("# Novel to Storyboard\n\nBreak down novel passages into filmable shots."), "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if archive.Metadata.Name != "小说转分镜" || archive.Metadata.Description != "把小说段落拆成可拍摄的镜头。" {
+	if archive.Metadata.Name != "Novel to storyboard" || archive.Metadata.Description != "Break down novel passages into filmable shots." {
 		t.Fatalf("metadata = %#v", archive.Metadata)
 	}
 	if string(archive.Files["SKILL.md"]) == "" || archive.ContentHash == "" {
@@ -40,7 +40,7 @@ func TestArchiveFromMarkdownInfersMetadata(t *testing.T) {
 
 func TestArchiveFromZipNormalizesWrapperAndNestedFiles(t *testing.T) {
 	data := skillZip(t, map[string]string{
-		"director-main/SKILL.md":             "---\nname: AI 导演\ndescription: 导演工作流\nmetadata:\n  version: 2.1\n---\n",
+		"director-main/SKILL.md":             "---\nname: AI Director\ndescription: Director workflow\nmetadata:\n  version: 2.1\n---",
 		"director-main/references/camera.md": "# Camera",
 		"director-main/scripts/check.js":     "export default true",
 	})
@@ -102,7 +102,7 @@ func TestFetchGitHubSkillArchiveMirrorFallbackAndCommitVerification(t *testing.T
 		_ = w.Close()
 		return buf.Bytes()
 	}
-	validBody := "---\nname: canvas-context\ndescription: 画布上下文技能\n---\n# 画布上下文技能\n\n读取画布说明。\n"
+	validBody := "---\nname: canvas-context\ndescription: Canvas contextual skills\n---\n# Canvas context skills\n\nRead the canvas description."
 	buildCommitZip := func(commitSHA string) []byte {
 		return buildCommitZipWithBody(commitSHA, true, "beeftv-skills-"+commitSHA, validBody)
 	}
@@ -175,7 +175,7 @@ func TestFetchGitHubSkillArchiveMirrorFallbackAndCommitVerification(t *testing.T
 	if err != nil {
 		t.Fatalf("fetchGitHubSkillArchive failed: %v", err)
 	}
-	if commit != wantSHA || canonicalURL != "https://github.com/example/beeftv-skills" || resolvedRef != "main" || archive.Metadata.Name != "画布上下文技能" {
+	if commit != wantSHA || canonicalURL != "https://github.com/example/beeftv-skills" || resolvedRef != "main" || archive.Metadata.Name != "Canvas context skills" {
 		t.Fatalf("unexpected archive metadata: commit=%s url=%s ref=%s name=%s", commit, canonicalURL, resolvedRef, archive.Metadata.Name)
 	}
 
@@ -195,7 +195,7 @@ func TestArchiveFromZipSubdirMatchingRejectsWrongRootAndMatchesRootWithNestedSki
 	singleRootZip := skillZip(t, map[string]string{
 		"repo-main/SKILL.md": "---\nname: real-skill\ndescription: Real root skill\n---\n# Real Skill\n",
 	})
-	if _, err := archiveFromZip(singleRootZip, "nonexistent"); err == nil || !strings.Contains(err.Error(), "GitHub 子目录不存在或为空") {
+	if _, err := archiveFromZip(singleRootZip, "nonexistent"); err == nil || !strings.Contains(err.Error(), "GitHub subdirectory does not exist or is empty") {
 		t.Fatalf("expected nonexistent subdir on single-skill repo to fail, got %v", err)
 	}
 	if got, err := archiveFromZip(singleRootZip, "real-skill"); err != nil || got.Metadata.TechnicalName != "real-skill" {
@@ -228,8 +228,8 @@ func TestEnsureSkillPackagesMigratesAndRefreshesBuiltinSkills(t *testing.T) {
 		t.Fatal(err)
 	}
 	svc := New(repository.New(db), t.TempDir(), nil)
-	builtin := model.Skill{ID: kernel.NewID(), Name: "内置导演", Description: "内置工作流", Instruction: "# 内置导演\n\n第一版", Status: skillStatusEnabled, Source: 3}
-	userSkill := model.Skill{ID: kernel.NewID(), Name: "用户技能", Description: "用户工作流", Instruction: "# 用户技能\n\n第一版", Status: skillStatusEnabled, Source: skillSourceUser}
+	builtin := model.Skill{ID: kernel.NewID(), Name: "Built-in director", Description: "Built-in workflow", Instruction: "# Built-in director\n\nfirst edition", Status: skillStatusEnabled, Source: 3}
+	userSkill := model.Skill{ID: kernel.NewID(), Name: "User skills", Description: "user workflow", Instruction: "# User skills\n\nfirst edition", Status: skillStatusEnabled, Source: skillSourceUser}
 	if err := db.Create(&builtin).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -249,10 +249,10 @@ func TestEnsureSkillPackagesMigratesAndRefreshesBuiltinSkills(t *testing.T) {
 	assertSkillVersionCount(t, db, builtin.ID, 1)
 	assertSkillVersionCount(t, db, userSkill.ID, 1)
 
-	if err := db.Model(&model.Skill{}).Where("id = ?", builtin.ID).Update("instruction", "# 内置导演\n\n第二版").Error; err != nil {
+	if err := db.Model(&model.Skill{}).Where("id = ?", builtin.ID).Update("instruction", "# Built-in director\n\nsecond edition").Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Model(&model.Skill{}).Where("id = ?", userSkill.ID).Update("instruction", "# 用户技能\n\n不应在启动时重建").Error; err != nil {
+	if err := db.Model(&model.Skill{}).Where("id = ?", userSkill.ID).Update("instruction", "# User skills\n\nShould not be rebuilt on startup").Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := svc.EnsureSkillPackages(); err != nil {
@@ -279,7 +279,7 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 	if err := db.AutoMigrate(&model.Workspace{}); err != nil {
 		t.Fatalf("AutoMigrate Workspace: %v", err)
 	}
-	if err := db.Create(&model.Workspace{ID: "tester", Name: "测试工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "tester", Name: "Test workspace"}).Error; err != nil {
 		t.Fatalf("Create Workspace: %v", err)
 	}
 	if err := svc.EnsureBuiltinSkills(); err != nil {
@@ -294,7 +294,7 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 		t.Fatalf("AddedSkills: %v", err)
 	}
 	if len(addedByDefault) != 3 {
-		t.Fatalf("AddedSkills count = %d, want 3 default-added lucky加一 skills", len(addedByDefault))
+		t.Fatalf("AddedSkills count = %d, want 3 default-added lucky plus one skills", len(addedByDefault))
 	}
 
 	expected := []struct {
@@ -306,21 +306,21 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 	}{
 		{
 			skillID:   "novel-to-manju-agent",
-			skillName: "小说改编漫剧 Agent",
+			skillName: "Novel adapted from comic book Agent",
 			version:   "1.1.0",
 			minFiles:  20,
 			auxPaths:  []string{"references/dialogue.md", "references/requirements.md", "agents/director.md"},
 		},
 		{
 			skillID:   "ai-drama-reference-art",
-			skillName: "AI短剧参考图提示词编写",
+			skillName: "Writing prompts for AI short drama reference pictures",
 			version:   "1.0.0",
 			minFiles:  1,
 			auxPaths:  nil,
 		},
 		{
 			skillID:   "seedance-clip-writer",
-			skillName: "Seedance 视频提示词编写",
+			skillName: "Seedance video prompt word writing",
 			version:   "9.3.0",
 			minFiles:  9,
 			auxPaths:  []string{"references/performance_layer.md", "references/script_to_shot_breakdown.md", "references/transition_grammar.md"},
@@ -339,8 +339,8 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 		if !detail.IsAdded {
 			t.Fatalf("%s IsAdded = false, want true by default for local workspace owner", tc.skillID)
 		}
-		if detail.EffectiveUser.Name != "lucky加一" || detail.OwnerUID != "lucky-plus-one" {
-			t.Fatalf("%s attribution = %+v (owner=%q), want lucky加一 / lucky-plus-one", tc.skillID, detail.EffectiveUser, detail.OwnerUID)
+		if detail.EffectiveUser.Name != "lucky plus one" || detail.OwnerUID != "lucky-plus-one" {
+			t.Fatalf("%s attribution = %+v (owner=%q), want lucky plus one / lucky-plus-one", tc.skillID, detail.EffectiveUser, detail.OwnerUID)
 		}
 		if detail.FileCount < tc.minFiles {
 			t.Fatalf("%s FileCount = %d, want >= %d", tc.skillID, detail.FileCount, tc.minFiles)
@@ -350,7 +350,7 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 		if err != nil {
 			t.Fatalf("MarketRelease(%s, %s): %v", tc.skillID, releaseID, err)
 		}
-		if rel.Author != "lucky加一" || len(rel.Files) < tc.minFiles {
+		if rel.Author != "lucky plus one" || len(rel.Files) < tc.minFiles {
 			t.Fatalf("MarketRelease(%s) = %+v", tc.skillID, rel)
 		}
 		chunk, err := svc.MarketFile(context.Background(), tc.skillID, releaseID, "SKILL.md", 0, 4096)
@@ -365,7 +365,7 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 			t.Fatalf("AgentVersion(%s): %v", tc.skillID, err)
 		}
 		if !strings.Contains(resource.Instruction, "lucky加一") {
-			t.Fatalf("%s instruction missing attribution lucky加一", tc.skillID)
+			t.Fatalf("%s instruction missing attribution lucky plus one", tc.skillID)
 		}
 		if !strings.Contains(resource.Instruction, "{ expectedRevision, nodes: [") || !strings.Contains(resource.Instruction, "{ nodeId, expectedRevision, patch: { title:") {
 			t.Fatalf("%s instruction missing expectedRevision / patch schema guidance", tc.skillID)
@@ -460,7 +460,7 @@ func TestBuiltinSeedSkillsIncludeLuckyPlusOnePackagesAndAuxiliaryFiles(t *testin
 	}
 
 	if _, err := svc.ValidateAgentSkills("tester", pins); err != nil {
-		t.Fatalf("ValidateAgentSkills(all 3 lucky加一 skills): %v", err)
+		t.Fatalf("ValidateAgentSkills(all 3 lucky plus one skills): %v", err)
 	}
 }
 
@@ -531,7 +531,7 @@ func TestSyncAndRemovePluginSkillsLifecycle(t *testing.T) {
 	if err := db.AutoMigrate(&model.Workspace{}); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "tester", Name: "测试工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "tester", Name: "Test workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 
@@ -540,14 +540,14 @@ func TestSyncAndRemovePluginSkillsLifecycle(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(skillDir, "references"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("---\nname: 分镜九宫格拆解\ndescription: 把剧本拆解为九宫格分镜\n---\n# 分镜九宫格拆解\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("---\nname: Storyboard nine-square grid dismantling\ndescription: Disassemble the script into nine-square grid storyboards\n---\n# Storyboard Nine Palace Grid Dismantling"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(skillDir, "references", "guide.md"), []byte("# Guide\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := svc.SyncPluginSkills("storyboard-grid", "分镜九宫格", "1.0.0", []string{pluginSkillsRoot}); err != nil {
+	if err := svc.SyncPluginSkills("storyboard-grid", "Storyboard Nine Palaces", "1.0.0", []string{pluginSkillsRoot}); err != nil {
 		t.Fatalf("SyncPluginSkills failed: %v", err)
 	}
 
@@ -555,7 +555,7 @@ func TestSyncAndRemovePluginSkillsLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(added) != 1 || added[0].SourceType != "plugin" || added[0].SkillName != "分镜九宫格拆解" {
+	if len(added) != 1 || added[0].SourceType != "plugin" || added[0].SkillName != "Storyboard nine-square grid dismantling" {
 		t.Fatalf("unexpected added skills: %#v", added)
 	}
 

@@ -54,7 +54,7 @@ binaries retain their own corresponding-source obligations.
 
 The [media source delivery procedure](docs/media-source-distribution.md)
 describes the delivered notices, source packets and Windows source receipt. The application
-provides a “第三方许可与源码” entry from its changelog dialog. License texts are
+provides a “Third Party License and Source Code” entry from its changelog dialog. License texts are
 also available offline in the distributed files. These delivery mechanisms
 do not resolve the separate question of combination compatibility.
 

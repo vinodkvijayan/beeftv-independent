@@ -75,7 +75,7 @@ func openTurnFixture(t *testing.T) *turnFixture {
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	repo := repository.New(db)
@@ -83,8 +83,8 @@ func openTurnFixture(t *testing.T) *turnFixture {
 	turns := assistantturns.New(assistantturns.NewStore(repo), testCanvasFactory{base: canv}, filepath.Join(dir, "assistant-turns"))
 	fx := &turnFixture{db: db, path: path, dir: dir, repo: repo, canvas: canv, turns: turns, userID: "local", canvasID: "canvas-1"}
 	fx.writeCanvas(t, map[string]any{
-		"id": fx.canvasID, "title": "回合", "revision": 0,
-		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "原节点", "position": map[string]any{"x": 0, "y": 0}}},
+		"id": fx.canvasID, "title": "round", "revision": 0,
+		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "original node", "position": map[string]any{"x": 0, "y": 0}}},
 		"connections": []any{},
 	})
 	return fx
@@ -875,7 +875,7 @@ func TestStoryboardRowUpdateReceiptEdgesReconstructAndUndo(t *testing.T) {
 	doc := fx.readCanvas(t)
 	at := map[string]any{"x": 0, "y": 0}
 	doc["nodes"] = []any{
-		map[string]any{"id": "script", "type": "script", "title": "分镜", "position": at, "metadata": map[string]any{"storyboard": map[string]any{"rows": []any{
+		map[string]any{"id": "script", "type": "script", "title": "Storyboard", "position": at, "metadata": map[string]any{"storyboard": map[string]any{"rows": []any{
 			map[string]any{"id": "shot-1", "imageNodeId": "old"}, map[string]any{"id": "shot-2", "dialogue": "keep"}}}}},
 		map[string]any{"id": "old", "type": "image", "title": "old", "position": at},
 		map[string]any{"id": "new", "type": "image", "title": "new", "position": at},

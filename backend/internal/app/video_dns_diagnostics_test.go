@@ -25,11 +25,11 @@ func TestVideoFailureStagesSurviveWorkerRefreshSQLiteAndDiagnosticZIP(t *testing
 		err                                    error
 		status                                 int
 	}{
-		{"query_dns", "正在查询上游任务", "查询原任务（DNS 解析）", "local_network", "local_network_failed", dns, 0},
-		{"download_dns", "正在取回生成结果", "取回生成结果（DNS 解析）", "local_network", "local_network_failed", videoDownloadError{TaskID: "original", Cause: dns}, 0},
-		{"supplier_media", "正在查询上游任务", "上游读取参考素材", "upstream_response", "upstream_business_failed", generation.NewRawPayloadError(`{"error":{"code":"504","message":"Failed to download media from the provided URL. context deadline exceeded"}}`), 200},
-		{"query_http", "正在查询上游任务", "正在查询上游任务", "upstream_http", "upstream_request_failed", providerHTTPError{StatusCode: 503, Body: `{"error":{"message":"unavailable"}}`}, 503},
-		{"submit_http", "正在提交生成任务", "正在提交生成任务", "upstream_http", "upstream_request_failed", providerHTTPError{StatusCode: 503, Body: `{"error":{"message":"unavailable"}}`}, 503},
+		{"query_dns", "Querying upstream tasks", "Query the original task (DNS resolution)", "local_network", "local_network_failed", dns, 0},
+		{"download_dns", "Retrieving generated results", "Retrieve generated results (DNS resolution)", "local_network", "local_network_failed", videoDownloadError{TaskID: "original", Cause: dns}, 0},
+		{"supplier_media", "Querying upstream tasks", "Read reference material upstream", "upstream_response", "upstream_business_failed", generation.NewRawPayloadError(`{"error":{"code":"504","message":"Failed to download media from the provided URL. context deadline exceeded"}}`), 200},
+		{"query_http", "Querying upstream tasks", "Querying upstream tasks", "upstream_http", "upstream_request_failed", providerHTTPError{StatusCode: 503, Body: `{"error":{"message":"unavailable"}}`}, 503},
+		{"submit_http", "Submitting build task", "Submitting build task", "upstream_http", "upstream_request_failed", providerHTTPError{StatusCode: 503, Body: `{"error":{"message":"unavailable"}}`}, 503},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
@@ -42,7 +42,7 @@ func TestVideoFailureStagesSurviveWorkerRefreshSQLiteAndDiagnosticZIP(t *testing
 				t.Fatal(err)
 			}
 			now := time.Now().UTC()
-			task := model.Task{ID: "owned-task", UserID: "owner", Type: "canvas_video", Status: model.TaskStatusRunning, Stage: "正在连接上游", ProviderRequestID: "original", CreatedAt: now, UpdatedAt: now}
+			task := model.Task{ID: "owned-task", UserID: "owner", Type: "canvas_video", Status: model.TaskStatusRunning, Stage: "Connecting to upstream", ProviderRequestID: "original", CreatedAt: now, UpdatedAt: now}
 			if err := db.Create(&task).Error; err != nil {
 				t.Fatal(err)
 			}
@@ -50,7 +50,7 @@ func TestVideoFailureStagesSurviveWorkerRefreshSQLiteAndDiagnosticZIP(t *testing
 			if err := (appTaskStagePort{service: svc, task: task}).SetStage(context.Background(), tc.stage); err != nil {
 				t.Fatal(err)
 			}
-			if task.Stage != "正在连接上游" {
+			if task.Stage != "Connecting to upstream" {
 				t.Fatal("fixture no longer exercises the stale worker copy")
 			}
 			if err := svc.refreshTaskProviderState(&task); err != nil || task.Stage != tc.stage {
@@ -58,7 +58,7 @@ func TestVideoFailureStagesSurviveWorkerRefreshSQLiteAndDiagnosticZIP(t *testing
 			}
 			task.FailureDiagnostics = &model.TaskFailureDiagnostics{Requests: []model.TaskRequestEvidence{{Operation: "query_or_download", Method: "GET", Outcome: "business_error", HTTPStatus: tc.status, RequestID: "owned-request"}}}
 			captureTaskFailureDiagnostics(&task, tc.err, "unknown")
-			if ok, err := svc.repo.UpdateTaskTerminalState(task.ID, "", model.TaskStatusRunning, model.TaskStatusFailed, "失败", "通用文案", now, task.FailureDiagnostics); !ok || err != nil {
+			if ok, err := svc.repo.UpdateTaskTerminalState(task.ID, "", model.TaskStatusRunning, model.TaskStatusFailed, "failed", "Universal copywriting", now, task.FailureDiagnostics); !ok || err != nil {
 				t.Fatalf("terminal capture: %t %v", ok, err)
 			}
 			tasks, err := svc.repo.Tasks("owner", 10, "", false)
@@ -119,7 +119,7 @@ func TestOriginalBeefTVTaskDNSDeferralDoesNotNeedHealthyDNS(t *testing.T) {
 	if !svc.shouldDeferVideoProviderTask(task, string(input), transient) || lookups != 0 {
 		t.Fatal("known original-task recovery depends on another DNS lookup")
 	}
-	for _, err := range []error{context.Canceled, &outbound.DNSResolutionError{Cause: &net.DNSError{Err: "not found", IsNotFound: true}}, BadAuthRequest("不允许访问链路本地、未指定或组播地址")} {
+	for _, err := range []error{context.Canceled, &outbound.DNSResolutionError{Cause: &net.DNSError{Err: "not found", IsNotFound: true}}, BadAuthRequest("Do not allow access to link-local, unspecified, or multicast addresses")} {
 		if svc.shouldDeferVideoProviderTask(task, string(input), err) {
 			t.Fatal("permanent failure, cancellation or security rejection deferred")
 		}

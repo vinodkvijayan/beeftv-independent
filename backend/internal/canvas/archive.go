@@ -33,7 +33,7 @@ func WriteProjectArchive(ctx context.Context, out io.Writer, raw json.RawMessage
 	}
 	id, _ := doc["id"].(string)
 	if strings.TrimSpace(id) == "" {
-		return fmt.Errorf("画布缺少身份")
+		return fmt.Errorf("Canvas is missing identity")
 	}
 	keys := map[string]bool{}
 	var collect func(any) error
@@ -41,11 +41,11 @@ func WriteProjectArchive(ctx context.Context, out io.Writer, raw json.RawMessage
 		switch item := value.(type) {
 		case map[string]any:
 			if drawing, _ := item["drawingId"].(string); drawing != "" {
-				return fmt.Errorf("画板文件仅保存在浏览器中，请从画布导出完整工程")
+				return fmt.Errorf("Artboard files are only saved in the browser, please export the complete project from the canvas")
 			}
 			if key, _ := item["storageKey"].(string); strings.TrimSpace(key) != "" {
 				if !strings.HasPrefix(key, "resource:") || strings.TrimSpace(strings.TrimPrefix(key, "resource:")) == "" {
-					return fmt.Errorf("工程含尚未保存的本地素材，请先完成素材保存")
+					return fmt.Errorf("The project contains local materials that have not yet been saved. Please save the materials first.")
 				}
 				keys[key] = true
 			}
@@ -85,7 +85,7 @@ func WriteProjectArchive(ctx context.Context, out io.Writer, raw json.RawMessage
 			if media.Body != nil {
 				media.Body.Close()
 			}
-			return fmt.Errorf("工程素材尚未就绪")
+			return fmt.Errorf("Engineering materials are not ready yet")
 		}
 		ext := ".bin"
 		if values, err := mime.ExtensionsByType(media.MimeType); err == nil && len(values) > 0 {
@@ -106,7 +106,7 @@ func WriteProjectArchive(ctx context.Context, out io.Writer, raw json.RawMessage
 			return closeErr
 		}
 		if n != media.Bytes {
-			return fmt.Errorf("工程素材字节数与保存记录不一致")
+			return fmt.Errorf("The number of project material bytes is inconsistent with the saved record")
 		}
 		files = append(files, map[string]any{"storageKey": key, "path": name, "mimeType": media.MimeType, "bytes": n})
 	}

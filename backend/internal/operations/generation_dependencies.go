@@ -51,7 +51,7 @@ func validateGenerationDependencies(doc map[string]any, nodes map[string]map[str
 		return nil
 	}
 	return PreconditionFailed("generation_dependencies_not_ready",
-		"参考素材尚未就绪，不能与依赖它的节点一起生成。请先完成节点 "+strings.Join(unready, "、")+"，确认产物就绪后再提议节点 "+strings.Join(blocked, "、"),
+		"The reference material is not ready yet and cannot be generated with the nodes that depend on it. Please complete the node first"+strings.Join(unready, "、")+", confirm that the product is ready before proposing nodes"+strings.Join(blocked, "、"),
 		map[string]any{"unreadyNodeIds": unready, "blockedNodeIds": blocked})
 }
 
@@ -61,7 +61,7 @@ type generationDependencyGraph struct {
 	config   map[string]string
 }
 
-var generationDependencyMention = regexp.MustCompile(`@\[(node|asset):([^\]]+)\]|@(图片|视频|音频|文本|角色|绘图)(\d+)`)
+var generationDependencyMention = regexp.MustCompile(`@\[(node|asset):([^\]]+)\]|@(Picture|Video|Audio|Text|Character|Drawing)(\d+)`)
 var generationDependencyNodeMention = regexp.MustCompile(`@\[node:([^\]]+)\]`)
 
 func (g generationDependencyGraph) references(target, kind string) []string {
@@ -132,7 +132,7 @@ func (g generationDependencyGraph) references(target, kind string) []string {
 	}
 	media := []string{}
 	for _, id := range selected {
-		if label := g.label(id); label != "文本" && (label != "" || g.nodes[id] == nil) {
+		if label := g.label(id); label != "text" && (label != "" || g.nodes[id] == nil) {
 			media = append(media, id)
 		}
 	}
@@ -162,34 +162,34 @@ func (g generationDependencyGraph) label(id string) string {
 	node := g.nodes[id]
 	meta := dependencyMetadata(node)
 	if dependencyString(meta, "workflowKind") == "character" && dependencyString(meta, "characterAssetId") != "" {
-		return "角色"
+		return "role"
 	}
 	switch dependencyString(node, "type") {
 	case "image", "colorgrade":
-		return "图片"
+		return "pictures"
 	case "video":
-		return "视频"
+		return "video"
 	case "audio":
-		return "音频"
+		return "Audio"
 	case "drawing":
-		return "绘图"
+		return "Drawing"
 	case "media-conversion":
 		state, _ := meta["mediaConversion"].(map[string]any)
 		if dependencyString(state, "outputKind") == "video" {
-			return "视频"
+			return "video"
 		}
-		return "图片"
+		return "pictures"
 	case "text":
 		if dependencyString(meta, "content") != "" || dependencyString(meta, "prompt") != "" {
-			return "文本"
+			return "text"
 		}
 	case "skill":
 		if dependencyString(meta, "content") != "" || meta["skillSnapshot"] != nil {
-			return "文本"
+			return "text"
 		}
 	case "markdown", "html", "svg":
 		if dependencyString(meta, "content") != "" {
-			return "文本"
+			return "text"
 		}
 	}
 	return ""
@@ -197,7 +197,7 @@ func (g generationDependencyGraph) label(id string) string {
 
 func (g generationDependencyGraph) materialized(id string) bool {
 	meta := dependencyMetadata(g.nodes[id])
-	if g.label(id) == "角色" {
+	if g.label(id) == "role" {
 		return true
 	} // Character asset versions are hydrated by the existing asset boundary.
 	switch dependencyString(g.nodes[id], "type") {
@@ -211,7 +211,7 @@ func (g generationDependencyGraph) materialized(id string) bool {
 	case "audio":
 		return dependencyString(meta, "content") != ""
 	default:
-		return dependencyString(meta, "content") != "" || dependencyString(meta, "storageKey") != "" || g.label(id) == "文本"
+		return dependencyString(meta, "content") != "" || dependencyString(meta, "storageKey") != "" || g.label(id) == "text"
 	}
 }
 
@@ -243,7 +243,7 @@ func (g generationDependencyGraph) ready(id string, visited map[string]bool) boo
 
 func (g generationDependencyGraph) colorGradeSource(id string) string {
 	for _, source := range g.incoming[id] {
-		if g.label(source) == "图片" && dependencyString(dependencyMetadata(g.nodes[source]), "content") != "" {
+		if g.label(source) == "pictures" && dependencyString(dependencyMetadata(g.nodes[source]), "content") != "" {
 			return source
 		}
 	}

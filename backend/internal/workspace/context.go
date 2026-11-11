@@ -14,10 +14,10 @@ type Context struct {
 
 func (c Context) Validate() error {
 	if strings.TrimSpace(c.ID) == "" {
-		return errors.New("工作区 ID 不能为空")
+		return errors.New("Workspace ID cannot be empty")
 	}
 	if strings.TrimSpace(c.DataDir) == "" {
-		return errors.New("工作区数据目录不能为空")
+		return errors.New("The workspace data directory cannot be empty")
 	}
 	return nil
 }

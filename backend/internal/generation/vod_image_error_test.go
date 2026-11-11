@@ -69,7 +69,7 @@ func TestVODImageErrorContract(t *testing.T) {
 			}
 		})
 	}
-	for _, text := range []string{"VOD image task failed [TaskTimeout]: opaque", "图片任务执行超时。请联系支持查询原任务结果，不要立即重新生成。"} {
+	for _, text := range []string{"VOD image task failed [TaskTimeout]: opaque", "The image task execution timed out. Please contact support to check the original task results and do not regenerate immediately."} {
 		if got := generation.ClassifyText(fmt.Sprintf(`{"error":{"code":"invalid_api_key","message":%q}}`, text)); got.Category != generation.CategoryAuth {
 			t.Fatalf("authoritative auth replaced: %+v", got)
 		}

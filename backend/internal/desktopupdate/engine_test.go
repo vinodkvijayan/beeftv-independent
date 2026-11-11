@@ -52,7 +52,7 @@ func TestCheckDownloadInstallHappyPath(t *testing.T) {
 		case "/latest":
 			http.Redirect(w, r, "/desktop-update.json", http.StatusFound)
 		case "/desktop-update.json":
-			payload := testPayload("v1.6.0", "darwin-arm64", "https://example.invalid/placeholder", hex.EncodeToString(sum[:]), int64(len(zipBytes)), "新版本说明")
+			payload := testPayload("v1.6.0", "darwin-arm64", "https://example.invalid/placeholder", hex.EncodeToString(sum[:]), int64(len(zipBytes)), "New release notes")
 			payload.Platforms["darwin-arm64"] = PlatformArtifact{
 				URL:    "https://" + r.Host + "/BeefTV.zip",
 				SHA256: hex.EncodeToString(sum[:]),
@@ -117,7 +117,7 @@ func TestCheckDownloadInstallHappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.Status != StatusAvailable || state.LatestVersion != "v1.6.0" || state.ReleaseNotes != "新版本说明" {
+	if state.Status != StatusAvailable || state.LatestVersion != "v1.6.0" || state.ReleaseNotes != "New release notes" {
 		t.Fatalf("%+v", state)
 	}
 	state, err = engine.DownloadUpdate(context.Background())

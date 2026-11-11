@@ -137,7 +137,7 @@ func TestRegisterTaskOutputFromTaskKeepsTopLevelOverMetadata(t *testing.T) {
 func TestRegisterTaskOutputFromTaskRejectsForeignProjectAndResource(t *testing.T) {
 	svc, db := newTestService(t, nil)
 	project, unit, video, shot := seedWorkflowOutputFixture(t, svc, db)
-	foreignProject := seedProject(t, db, model.Project{ID: "project-foreign", UserID: "user-2", Name: "别人的项目"})
+	foreignProject := seedProject(t, db, model.Project{ID: "project-foreign", UserID: "user-2", Name: "other people's projects"})
 	now := time.Now()
 	ownedResource := model.Resource{ID: "resource-owned", UserID: "user-1", Kind: "video", Status: model.ResourceStatusReady, MimeType: "video/mp4", Size: 512, CreatedAt: now, UpdatedAt: now}
 	foreignResource := model.Resource{ID: "resource-foreign", UserID: "user-2", Kind: "video", Status: model.ResourceStatusReady, MimeType: "video/mp4", Size: 512, CreatedAt: now, UpdatedAt: now}
@@ -207,7 +207,7 @@ func TestRegisterTaskOutputFromTaskIsIdempotentForTheSameTask(t *testing.T) {
 	}
 	task := model.Task{
 		ID: "ac745990450a86d3365eb92ec26f378e", UserID: "user-1", ProjectID: project.ID, Type: "canvas_video", Status: model.TaskStatusSucceeded,
-		Prompt: "人物抬头", ResultJSON: `{"mode":"video","video":{"storageKey":"resource:resource-idempotent"}}`,
+		Prompt: "Character looks up", ResultJSON: `{"mode":"video","video":{"storageKey":"resource:resource-idempotent"}}`,
 		CreatedAt: now, UpdatedAt: now,
 	}
 	for _, item := range []any{&resource, &task} {
@@ -272,7 +272,7 @@ func TestRegisterTaskOutputFromTaskFallsBackToOwnedTaskProject(t *testing.T) {
 func TestRegisterTaskOutputFromTaskRequiresBusinessProjectWhenTaskScopeIsCanvas(t *testing.T) {
 	svc, db := newTestService(t, nil)
 	now := time.Now()
-	canvas := model.CanvasProject{ID: "canvas-scope-1", UserID: "user-1", Title: "探索", CreatedAt: now, UpdatedAt: now}
+	canvas := model.CanvasProject{ID: "canvas-scope-1", UserID: "user-1", Title: "Explore", CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&canvas).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -284,18 +284,18 @@ func TestRegisterTaskOutputFromTaskRequiresBusinessProjectWhenTaskScopeIsCanvas(
 		t.Fatal(err)
 	}
 	err := svc.RegisterTaskOutputFromTask(task, `{"workflowStepId":"step-1"}`)
-	if err == nil || err.Error() != "任务未提供短剧项目 ID，无法登记产物" {
+	if err == nil || err.Error() != "The task did not provide a short play project ID and the product could not be registered." {
 		t.Fatalf("canvas scope = %v", err)
 	}
 }
 
 func seedWorkflowOutputFixture(t *testing.T, svc *Service, db *gorm.DB) (model.Project, model.ProjectUnit, model.WorkflowStepInstance, model.Shot) {
 	t.Helper()
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	video := workflowStepByKey(t, workflow, "video")
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}

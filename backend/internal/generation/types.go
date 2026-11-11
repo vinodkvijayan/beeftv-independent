@@ -192,7 +192,7 @@ func (e ResponseDecodeError) Unwrap() error { return e.Err }
 type CircuitOpenError struct{}
 
 func (CircuitOpenError) Error() string {
-	return "当前渠道连续失败，已暂时熔断，请稍后重试"
+	return "The current channel has failed continuously and has been temporarily disconnected. Please try again later."
 }
 
 // StatePendingError 表示上游任务状态尚未同步，应继续查询原任务。
@@ -202,7 +202,7 @@ type StatePendingError struct {
 }
 
 func (e StatePendingError) Error() string {
-	return fmt.Sprintf("上游任务状态尚未同步，将继续查询原任务（任务 %s）", e.TaskID)
+	return fmt.Sprintf("The status of the upstream task has not been synchronized, and the original task will continue to be queried (task %s)", e.TaskID)
 }
 
 func (e StatePendingError) Unwrap() error { return e.Cause }

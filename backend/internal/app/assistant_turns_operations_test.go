@@ -111,7 +111,7 @@ func TestUndoAssistantTurnRecoversWhenSettlementNeverRan(t *testing.T) {
 		t.Fatal(err)
 	}
 	h.run(t, "canvas.nodes.create", "recovered", "00112233aabbccdd",
-		map[string]any{"nodes": []any{map[string]any{"title": "恢复", "type": "text"}}})
+		map[string]any{"nodes": []any{map[string]any{"title": "restore", "type": "text"}}})
 	// 刻意不调用 FinalizeAssistantTurn：撤销必须自己从回执重建这一轮的改动。
 	restored, err := h.s.AssistantTurns().Undo("local", "c", "00112233aabbccdd")
 	if err != nil {

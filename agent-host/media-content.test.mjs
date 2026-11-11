@@ -60,7 +60,7 @@ test('turn guidance matches the actual native media transport gate', () => {
     const context = mediaCapabilityContext(route);
     if (route.api !== model.api || route.modelId !== model.modelId) {
       expect(() => mediaToolResult({ result: { content: [part()] } }, 'media.inspect', route)).toThrow('media_input_unsupported');
-      expect(context).toContain('不能直接接收 video/audio');
+      expect(context).toContain('Cannot receive video/audio directly');
       expect(context).toContain('media_review');
     } else {
       expect(mediaToolResult({ result: { content: [part()] } }, 'media.inspect', route).content.length).toBeGreaterThan(1);
@@ -98,19 +98,19 @@ test('an unreadable attached image is reported to the model instead of ending th
   const requests = [];
   const opsRequest = async (method, path) => {
     requests.push(path);
-    const error = new Error('precondition_failed: 无法检查媒体');
+    const error = new Error('precondition_failed: Unable to check media');
     error.reason = 'media_probe_failed';
     throw error;
   };
-  const content = await attachmentContent({ canvasId: 'c1', message: '看看这张图', attachments: [{ kind: 'image', nodeId: 'n1', resourceId: 'r1' }] }, 't1', opsRequest);
+  const content = await attachmentContent({ canvasId: 'c1', message: 'look at this picture', attachments: [{ kind: 'image', nodeId: 'n1', resourceId: 'r1' }] }, 't1', opsRequest);
   expect(requests).toEqual(['/ops/media.overview']);
   expect(content.some(part => part.type === 'image')).toBe(false);
-  expect(content.at(-1).text).toContain('这张图片没有读取成功（media_probe_failed）');
+  expect(content.at(-1).text).toContain('This picture was not read successfully (media_probe_failed)');
 });
 
 test('attachment authorization failures still end the turn', async () => {
   const opsRequest = async () => {
-    const error = new Error('scope_denied: 不能读取其他画布');
+    const error = new Error('scope_denied: Cannot read other canvases');
     error.reason = 'scope_denied';
     throw error;
   };
@@ -159,7 +159,7 @@ test('Anthropic adapter preserves signed thinking blocks and ephemeral cache_con
       {
         role: 'assistant',
         content: [
-          { type: 'thinking', thinking: '先读取画布。', signature: 'sig-bedrock-channel-a' },
+          { type: 'thinking', thinking: 'Read the canvas first.', signature: 'sig-bedrock-channel-a' },
           { type: 'redacted_thinking', data: 'opaque' },
           { type: 'tool_use', id: 'toolu_1', name: 'canvas_get', input: { canvasId: 'c1' }, cache_control: { type: 'ephemeral' } },
         ],
@@ -172,7 +172,7 @@ test('Anthropic adapter preserves signed thinking blocks and ephemeral cache_con
   expect(adapted.metadata).toEqual({ user_id: 'durable:00000000-0000-0000-0000-000000000001' });
   expect(adapted.system).toEqual([{ type: 'text', text: 'sys', cache_control: { type: 'ephemeral' } }]);
   expect(adapted.tools).toEqual([{ name: 'canvas_get', cache_control: { type: 'ephemeral' } }]);
-  expect(adapted.messages[1].content[0]).toEqual({ type: 'thinking', thinking: '先读取画布。', signature: 'sig-bedrock-channel-a' });
+  expect(adapted.messages[1].content[0]).toEqual({ type: 'thinking', thinking: 'Read the canvas first.', signature: 'sig-bedrock-channel-a' });
 
   // Selective downgrade for pre-upgrade signatures in a now-pinned session:
   const mixed = adaptMediaRequest(payload, {
@@ -182,7 +182,7 @@ test('Anthropic adapter preserves signed thinking blocks and ephemeral cache_con
   });
   expect(mixed.system).toEqual([{ type: 'text', text: 'sys', cache_control: { type: 'ephemeral' } }]);
   expect(mixed.messages[1].content).toEqual([
-    { type: 'text', text: '先读取画布。' },
+    { type: 'text', text: 'Read the canvas first.' },
     { type: 'tool_use', id: 'toolu_1', name: 'canvas_get', input: { canvasId: 'c1' }, cache_control: { type: 'ephemeral' } },
   ]);
 

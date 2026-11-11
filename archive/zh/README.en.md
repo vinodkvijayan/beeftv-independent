@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://github.com/glanderness/BeefTV/stargazers"><img src="https://img.shields.io/github/stars/glanderness/BeefTV?style=flat-square&amp;logo=github&amp;label=Stars&amp;labelColor=303030&amp;color=E86C36" alt="BeefTV GitHub stars"></a>
   <a href="https://github.com/glanderness/BeefTV/releases/latest"><img src="https://img.shields.io/github/v/release/glanderness/BeefTV?style=flat-square&amp;label=Release&amp;labelColor=303030&amp;color=525252" alt="Latest BeefTV release"></a>
-  <a href="QUICKSTART.md#下载与首次打开"><img src="https://img.shields.io/badge/Desktop-macOS%20%7C%20Windows-525252?style=flat-square&amp;labelColor=303030" alt="Desktop support for macOS and Windows"></a>
+<a href="QUICKSTART.md#Download and first-time opening"><img src="https://img.shields.io/badge/Desktop-macOS%20%7C%20Windows-525252?style=flat-square&amp;labelColor=303030" alt="Desktop support for macOS and Windows"></a>
   <a href="QUICKSTART.md"><img src="https://img.shields.io/badge/Workspace-Local--first-525252?style=flat-square&amp;labelColor=303030" alt="Local-first workspace"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Source%20Available-525252?style=flat-square&amp;labelColor=303030" alt="Source-available license; see LICENSE for terms"></a>
 </p>
@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">简体中文</a> ·
+  <a href="README.md">Simplified Chinese</a> ·
   <a href="#recent-updates">Recent updates</a> ·
   <a href="#product-demo">Product demo</a> ·
   <a href="#workflows">Workflows</a> ·
@@ -97,7 +97,7 @@ Connect media, local processing, and AI generation in an editable workflow. The 
   </tr>
 </table>
 
-[Production record](docs/content/docs/overview/examples.mdx#工作流单人物替换) (Chinese)
+[Production record](docs/content/docs/overview/examples.mdx#Workflow single character replacement) (Chinese)
 
 - **Connect processing and generation:** Adapt frame rate locally; use the video and character image as separate generation references.
 - **Keep the configuration editable:** Adjust nodes, connections, models, prompts, and output settings, then save a template revision.

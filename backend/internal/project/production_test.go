@@ -13,7 +13,7 @@ import (
 
 func seedChapter(t *testing.T, svc *Service, projectID string) model.ProjectUnit {
 	t.Helper()
-	unit, err := svc.CreateProjectUnit("user-1", projectID, CreateProjectUnitRequest{Title: "第一章", SourceText: "角色推门进入房间。"})
+	unit, err := svc.CreateProjectUnit("user-1", projectID, CreateProjectUnitRequest{Title: "Chapter 1", SourceText: "The character opens the door and enters the room."})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +22,7 @@ func seedChapter(t *testing.T, svc *Service, projectID string) model.ProjectUnit
 
 func TestWorkflowStepMachineRejectsIllegalTransitionAndEmptyStoryGate(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	if err := svc.EnsureBuiltinTemplate(); err != nil {
 		t.Fatal(err)
@@ -38,8 +38,8 @@ func TestWorkflowStepMachineRejectsIllegalTransitionAndEmptyStoryGate(t *testing
 	if _, err := svc.UpdateWorkflowStep("user-1", project.ID, step.ID, UpdateWorkflowStepRequest{Status: string(model.WorkflowStepStatusRunning)}); err != nil {
 		t.Fatal(err)
 	}
-	empty := seedProject(t, db, model.Project{ID: "project-empty", UserID: "user-1", Name: "空章项目"})
-	emptyUnit, err := svc.CreateProjectUnit("user-1", empty.ID, CreateProjectUnitRequest{Title: "空章"})
+	empty := seedProject(t, db, model.Project{ID: "project-empty", UserID: "user-1", Name: "Blank item"})
+	emptyUnit, err := svc.CreateProjectUnit("user-1", empty.ID, CreateProjectUnitRequest{Title: "Empty seal"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func TestWorkflowStepMachineRejectsIllegalTransitionAndEmptyStoryGate(t *testing
 
 func TestArchivedAndForeignOwnerRejectProductionWrites(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	if err := svc.EnsureBuiltinTemplate(); err != nil {
 		t.Fatal(err)
@@ -80,7 +80,7 @@ func TestArchivedAndForeignOwnerRejectProductionWrites(t *testing.T) {
 	if _, err := svc.CreateUnitWorkflow("user-1", project.ID, unit.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.CreateProjectShot("user-2", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "画面", DurationMs: 1000}); !IsNotFound(err) {
+	if _, err := svc.CreateProjectShot("user-2", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Picture", DurationMs: 1000}); !IsNotFound(err) {
 		t.Fatalf("foreign shot create = %v, want not found", err)
 	}
 	archived, err := svc.UpdateProject("user-1", project.ID, UpdateProjectRequest{Status: string(model.ProjectStatusArchived)})
@@ -90,37 +90,37 @@ func TestArchivedAndForeignOwnerRejectProductionWrites(t *testing.T) {
 	if archived.Status != model.ProjectStatusArchived {
 		t.Fatalf("status = %s", archived.Status)
 	}
-	if _, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "画面", DurationMs: 1000}); err == nil {
+	if _, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Picture", DurationMs: 1000}); err == nil {
 		t.Fatal("created shot on archived project")
 	}
 	if _, err := svc.LinkProjectAsset("user-1", project.ID, LinkProjectAssetRequest{AssetID: "missing"}); err == nil {
 		t.Fatal("linked asset on archived project")
 	}
-	if _, err := svc.CreateProjectCharacter("user-1", project.ID, CreateProjectCharacterRequest{Name: "角色"}); err == nil {
+	if _, err := svc.CreateProjectCharacter("user-1", project.ID, CreateProjectCharacterRequest{Name: "role"}); err == nil {
 		t.Fatal("created character on archived project")
 	}
 	if _, err := svc.CreateUnitWorkflow("user-1", project.ID, unit.ID); err == nil {
 		t.Fatal("created workflow on archived project")
 	}
 	now := time.Now()
-	if err := svc.repo.SaveShotWithRevisionActive("user-1", &model.Shot{ID: "shot-x", ProjectID: project.ID, UnitID: unit.ID, Title: "归档后", Description: "画面", CreatedAt: now, UpdatedAt: now}, &model.ShotRevision{ID: "rev-x", ShotID: "shot-x", PlotDescription: "画面", CreatedAt: now}, true, ""); !errors.Is(err, repository.ErrProjectArchived) {
+	if err := svc.repo.SaveShotWithRevisionActive("user-1", &model.Shot{ID: "shot-x", ProjectID: project.ID, UnitID: unit.ID, Title: "After archiving", Description: "Picture", CreatedAt: now, UpdatedAt: now}, &model.ShotRevision{ID: "rev-x", ShotID: "shot-x", PlotDescription: "Picture", CreatedAt: now}, true, ""); !errors.Is(err, repository.ErrProjectArchived) {
 		t.Fatalf("archived repo shot write = %v, want ErrProjectArchived", err)
 	}
-	active := seedProject(t, db, model.Project{ID: "project-2", UserID: "user-1", Name: "进行中"})
-	if err := svc.repo.SaveShotWithRevisionActive("user-2", &model.Shot{ID: "shot-y", ProjectID: active.ID, Title: "劫持", Description: "画面", CreatedAt: now, UpdatedAt: now}, &model.ShotRevision{ID: "rev-y", ShotID: "shot-y", PlotDescription: "画面", CreatedAt: now}, true, ""); !IsNotFound(err) {
+	active := seedProject(t, db, model.Project{ID: "project-2", UserID: "user-1", Name: "In progress"})
+	if err := svc.repo.SaveShotWithRevisionActive("user-2", &model.Shot{ID: "shot-y", ProjectID: active.ID, Title: "Hijack", Description: "Picture", CreatedAt: now, UpdatedAt: now}, &model.ShotRevision{ID: "rev-y", ShotID: "shot-y", PlotDescription: "Picture", CreatedAt: now}, true, ""); !IsNotFound(err) {
 		t.Fatalf("foreign repo shot write = %v, want not found", err)
 	}
 }
 
 func TestLinkCanvasUnitKeepsExistingIDAndSkipsForeignOldProjectBump(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	foreign := seedProject(t, db, model.Project{ID: "foreign", UserID: "user-2", Name: "别人的项目", Revision: 9})
-	target := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	unit, err := svc.CreateProjectUnit("user-1", target.ID, CreateProjectUnitRequest{Title: "第一章"})
+	foreign := seedProject(t, db, model.Project{ID: "foreign", UserID: "user-2", Name: "other people's projects", Revision: 9})
+	target := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	unit, err := svc.CreateProjectUnit("user-1", target.ID, CreateProjectUnitRequest{Title: "Chapter 1"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", Title: "分镜", ProjectID: foreign.ID, Revision: 1, PayloadJSON: `{"nodes":[]}`}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", Title: "Storyboard", ProjectID: foreign.ID, Revision: 1, PayloadJSON: `{"nodes":[]}`}
 	if err := db.Create(&canvas).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -153,13 +153,13 @@ func TestLinkCanvasUnitKeepsExistingIDAndSkipsForeignOldProjectBump(t *testing.T
 
 func TestConfirmCandidateRollsBackWhenAssetInsertFails(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	created, err := svc.CreateProjectAssetCandidates("user-1", project.ID, CreateAssetCandidatesRequest{
 		Source: AssetCandidateSourceChapterCharacter,
 		Candidates: []AssetCandidateInput{{
-			UnitID: unit.ID, Name: "小红帽", Category: string(model.AssetCategoryCharacter),
-			Details: map[string]any{"role": "主角", "appearance": "红色斗篷", "clothing": "红色兜帽", "physique": "儿童", "personality": "勇敢", "voiceLanguage": "普通话", "voiceAge": "儿童", "voiceTimbre": "清亮"},
+			UnitID: unit.ID, Name: "little red riding hood", Category: string(model.AssetCategoryCharacter),
+			Details: map[string]any{"role": "Protagonist", "appearance": "red cloak", "clothing": "red hood", "physique": "children", "personality": "brave", "voiceLanguage": "mandarin", "voiceAge": "children", "voiceTimbre": "clear"},
 		}},
 	})
 	if err != nil {
@@ -192,9 +192,9 @@ func TestConfirmCandidateRollsBackWhenAssetInsertFails(t *testing.T) {
 
 func TestShotRevisionCASRejectsStaleCurrentPointer(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +206,7 @@ func TestShotRevisionCASRejectsStaleCurrentPointer(t *testing.T) {
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var workers sync.WaitGroup
-	for _, plot := range []string{"甲改画面", "乙改画面"} {
+	for _, plot := range []string{"A change screen", "B changes the screen"} {
 		workers.Add(1)
 		go func(plot string) {
 			defer workers.Done()
@@ -246,8 +246,8 @@ func TestShotRevisionCASRejectsStaleCurrentPointer(t *testing.T) {
 
 func TestCharacterVersionCASRejectsStalePrimary(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	created, err := svc.CreateProjectCharacter("user-1", project.ID, CreateProjectCharacterRequest{Name: "小红帽", Definition: map[string]any{"role": "主角"}})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	created, err := svc.CreateProjectCharacter("user-1", project.ID, CreateProjectCharacterRequest{Name: "little red riding hood", Definition: map[string]any{"role": "Protagonist"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -264,7 +264,7 @@ func TestCharacterVersionCASRejectsStalePrimary(t *testing.T) {
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var workers sync.WaitGroup
-	for index, name := range []string{"小红帽甲", "小红帽乙"} {
+	for index, name := range []string{"little red riding hood", "Little Red Riding Hood B"} {
 		workers.Add(1)
 		go func(index int, name string) {
 			defer workers.Done()
@@ -299,28 +299,28 @@ func TestCharacterVersionCASRejectsStalePrimary(t *testing.T) {
 
 func TestReplaceShotsRejectsStaleExpectedIDs(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	if _, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "拾起信封", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "pick up envelope", DurationMs: 3000}}},
 	}); err != nil {
 		t.Fatal(err)
 	}
 	_, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{"stale-shot"},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "并发", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "Concurrency", DurationMs: 3000}}},
 	})
-	if err == nil || err.Error() != "本章分镜已发生变化，请刷新后重新确认" {
+	if err == nil || err.Error() != "The storyboard of this chapter has changed, please refresh and confirm again." {
 		t.Fatalf("stale replace = %v", err)
 	}
 }
 
 func TestGeneratedOutputIsIdempotentByTaskIdentity(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	if err := svc.EnsureBuiltinTemplate(); err != nil {
 		t.Fatal(err)
@@ -338,7 +338,7 @@ func TestGeneratedOutputIsIdempotentByTaskIdentity(t *testing.T) {
 	if videoStep.ID == "" {
 		t.Fatal("missing video step")
 	}
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,7 +352,7 @@ func TestGeneratedOutputIsIdempotentByTaskIdentity(t *testing.T) {
 	}
 	register := func() {
 		t.Helper()
-		versionID, err := svc.EnsureGeneratedProjectAsset("user-1", project.ID, task.ID, shot.ID, resource.ID, "video", "生成")
+		versionID, err := svc.EnsureGeneratedProjectAsset("user-1", project.ID, task.ID, shot.ID, resource.ID, "video", "generate")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -399,13 +399,13 @@ func TestGeneratedOutputIsIdempotentByTaskIdentity(t *testing.T) {
 
 func TestMoveProjectAssetRejectsMissingFolderInsideTransaction(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	now := time.Now()
 	resource := model.Resource{ID: "resource-1", UserID: "user-1", Kind: "image", Status: model.ResourceStatusReady, MimeType: "image/png", CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&resource).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.LinkProjectAsset("user-1", project.ID, LinkProjectAssetRequest{AssetID: resource.ID, Title: "海报", Source: AssetSourceUploaded}); err != nil {
+	if _, err := svc.LinkProjectAsset("user-1", project.ID, LinkProjectAssetRequest{AssetID: resource.ID, Title: "poster", Source: AssetSourceUploaded}); err != nil {
 		t.Fatal(err)
 	}
 	if err := svc.repo.MoveProjectAssetActive("user-1", project.ID, resource.ID, "missing-folder", 0); !IsNotFound(err) {

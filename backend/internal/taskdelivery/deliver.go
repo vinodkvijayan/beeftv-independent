@@ -348,7 +348,7 @@ func generationOutputVersion(task model.Task, assetID, versionID string, now tim
 		Status:         model.AssetVersionStatusConfirmed,
 		DefinitionJSON: "{}",
 		Prompt:         task.Prompt,
-		Note:           "生成任务产物",
+		Note:           "Generate task products",
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
@@ -429,11 +429,11 @@ func resourceErrorCode(err error) string {
 func generationAssetTitle(mediaType string) string {
 	switch mediaType {
 	case "video":
-		return "生成视频"
+		return "Generate video"
 	case "audio":
-		return "生成音频"
+		return "Generate audio"
 	default:
-		return "生成图片"
+		return "Generate pictures"
 	}
 }
 
@@ -487,15 +487,15 @@ func generationAssetPayload(task model.Task, output localtask.CanonicalOutput, r
 		"primaryVersionId": versionID,
 		"title":            generationAssetTitle(output.MediaType),
 		"coverUrl":         resourceURL,
-		"tags":             []string{"生成"},
-		"source":           "生成任务",
+		"tags":             []string{"generate"},
+		"source":           "Generate tasks",
 		"createdAt":        now.UTC().Format(time.RFC3339Nano),
 		"updatedAt":        now.UTC().Format(time.RFC3339Nano),
 		"data":             data,
 		"metadata":         metadata,
 	})
 	if err != nil {
-		return "", fmt.Errorf("序列化生成素材失败：%w", err)
+		return "", fmt.Errorf("Serialization failed to generate material: %w", err)
 	}
 	return string(payload), nil
 }

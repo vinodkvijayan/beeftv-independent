@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-runninghub",
   "version": "0.1.0",
-  "description": "把 RunningHub 接进 BeefTV：你的工作流和 AI 应用就是模型，画布上直接用它们生成图片、视频和音频。",
+  "description": "Connect RunningHub to BeefTV: Your workflows and AI applications are models, and they are used to generate images, videos, and audio directly on the canvas.",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {

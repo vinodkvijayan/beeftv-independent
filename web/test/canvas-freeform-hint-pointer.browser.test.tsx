@@ -41,7 +41,7 @@ test("the freeform hint lets a double-click reach the canvas without selecting i
         </style>
         <div id="canvas"></div><div id="empty-state">${hint}</div>
     `);
-    const label = page.getByText("双击画布", { exact: false });
+    const label = page.getByText("Double click on the canvas", { exact: false });
     const box = await label.boundingBox();
     expect(box).not.toBeNull();
     await page.evaluate(() => {
@@ -52,6 +52,6 @@ test("the freeform hint lets a double-click reach the canvas without selecting i
     });
     await page.mouse.dblclick(box!.x + box!.width / 2, box!.y + box!.height / 2);
     expect(await page.evaluate(() => (window as Window & { canvasDoubleClicks?: number }).canvasDoubleClicks)).toBe(1);
-    expect(await page.evaluate(() => window.getSelection()?.toString())).not.toContain("双击画布");
-    expect(await page.getByRole("button", { name: "关闭连线提示" }).evaluate((button) => getComputedStyle(button).pointerEvents)).toBe("auto");
+    expect(await page.evaluate(() => window.getSelection()?.toString())).not.toContain("Double click on the canvas");
+    expect(await page.getByRole("button", { name: "Close connection prompt" }).evaluate((button) => getComputedStyle(button).pointerEvents)).toBe("auto");
 });

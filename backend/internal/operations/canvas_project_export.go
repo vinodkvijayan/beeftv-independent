@@ -13,7 +13,7 @@ type CanvasProjectExporter interface {
 }
 
 func registerCanvasProjectExportOps(r *Registry) {
-	r.Register(Op{ID: "canvas.project.export", Summary: "免费导出可编辑工程 ZIP", Scope: ScopeCanvas, AssistantCanvas: true, ReplaySafe: true,
+	r.Register(Op{ID: "canvas.project.export", Summary: "Free export of editable projects to ZIP", Scope: ScopeCanvas, AssistantCanvas: true, ReplaySafe: true,
 		Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"expectedRevision":{"type":"integer","minimum":0}},"required":["canvasId","expectedRevision"]}`), Handler: opCanvasProjectExport})
 }
 
@@ -26,11 +26,11 @@ func opCanvasProjectExport(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || args.ExpectedRevision == nil || *args.ExpectedRevision < 0 || strings.TrimSpace(ctx.OperationID) == "" {
-		return nil, InvalidArg("invalid_params", "canvasId、expectedRevision 和稳定操作标识必填")
+		return nil, InvalidArg("invalid_params", "canvasId, expectedRevision and stable operation identifier are required")
 	}
 	exporter, ok := ctx.Domain.(CanvasProjectExporter)
 	if !ok {
-		return nil, Unsupported("project_export_unavailable", "当前工作区无法导出工程")
+		return nil, Unsupported("project_export_unavailable", "The current workspace cannot export the project")
 	}
 	document, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
 	if err != nil {
@@ -41,7 +41,7 @@ func opCanvasProjectExport(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, AsError(err)
 	}
 	if revision := canvasRevision(doc); revision != *args.ExpectedRevision {
-		return nil, Conflict("revision_conflict", "画布已变化，请重新读取", map[string]any{"currentRevision": revision})
+		return nil, Conflict("revision_conflict", "The canvas has changed, please read again", map[string]any{"currentRevision": revision})
 	}
 	resource, err := exporter.ExportCanvasProjectArchive(ctx.Context, ctx.UserID, ctx.OperationID, document)
 	if err != nil {
@@ -55,7 +55,7 @@ func opCanvasProjectExport(ctx *Context, raw json.RawMessage) (any, error) {
 		return r
 	}, strings.TrimSpace(name))
 	if name == "" {
-		name = "BeefTV工程"
+		name = "BeefTV project"
 	}
 	return map[string]any{"canvasId": args.CanvasID, "sourceRevision": *args.ExpectedRevision, "resourceId": resource.ID, "storageKey": "resource:" + resource.ID, "fileName": name + ".zip", "mimeType": resource.MimeType, "bytes": resource.Size, "local": true, "charged": false, "editable": true}, nil
 }

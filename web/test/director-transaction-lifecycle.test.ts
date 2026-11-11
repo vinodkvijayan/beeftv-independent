@@ -45,8 +45,8 @@ function fakeTarget() {
     return { target, emit: (type: string, event: Partial<Event> = {}) => (listeners.get(type) || []).forEach((listener) => listener(event as Event)), count: () => [...listeners.values()].reduce((sum, items) => sum + items.length, 0) };
 }
 
-describe("终止监听的安装生命周期（#1 回归）", () => {
-    test("监听先安装、手势后开始，终止事件仍然生效", () => {
+describe("Terminating the listener's installation lifecycle (regression #1)", () => {
+    test("The monitoring is installed first and started after the gesture. The termination event still takes effect.", () => {
         const { log, transaction, set } = harness(5);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -59,7 +59,7 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
         expect(log.commits).toEqual([[5, 9]]);
     });
 
-    test("Escape 取消并恢复快照", () => {
+    test("Escape cancels and restores a snapshot", () => {
         const { log, transaction, set, get } = harness(1);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -72,7 +72,7 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
         expect(log.terminated).toBe(1);
     });
 
-    test("window blur 保留当前可见值并只 commit 一次（#305 验收：失焦不回原点）", () => {
+    test("window blur retains the current visible value and only commits once (#305 Acceptance: Defocusing will not return to the origin)", () => {
         const { log, transaction, set, get } = harness(2);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -89,7 +89,7 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
         expect(log.commits).toEqual([[2, 77]]);
     });
 
-    test("document hidden 保留当前可见值并只 commit 一次", () => {
+    test("document hidden retains the currently visible value and commits only once", () => {
         const { log, transaction, set, get } = harness(3);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -104,7 +104,7 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
         expect(log.commits).toEqual([[3, 88]]);
     });
 
-    test("pointercancel 仍然取消并恢复快照", () => {
+    test("pointercancel still cancels and restores the snapshot", () => {
         const { log, transaction, set, get } = harness(2);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -117,7 +117,7 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
         expect(log.restores).toEqual([2]);
     });
 
-    test("可见性事件在未隐藏时既不提交也不取消", () => {
+    test("Visibility events are neither submitted nor canceled when not hidden", () => {
         const { log, transaction, set } = harness(4);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -131,7 +131,7 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
         expect(log.commits).toEqual([[4, 6]]);
     });
 
-    test("disposer 摘除全部监听", () => {
+    test("disposer removes all monitors", () => {
         const { log, transaction, set } = harness(0);
         const win = fakeTarget();
         const doc = fakeTarget();
@@ -145,8 +145,8 @@ describe("终止监听的安装生命周期（#1 回归）", () => {
     });
 });
 
-describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
-    test("正常结束恰好提交一次，重复终止不再提交", () => {
+describe("Final state idempotence and stale base protection (#4 regression)", () => {
+    test("Normal end is submitted exactly once, repeated termination is no longer submitted.", () => {
         const { log, transaction, set } = harness(1);
         transaction.begin();
         set(2);
@@ -158,7 +158,7 @@ describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
         expect(log.active).toEqual([true, false]);
     });
 
-    test("取消后不提交，且不会残留可被后续消费的 base", () => {
+    test("It will not be submitted after cancellation, and there will be no base left that can be consumed later.", () => {
         const { log, transaction, set, get } = harness(10);
         transaction.begin();
         set(20);
@@ -170,7 +170,7 @@ describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
         expect(transaction.active()).toBe(false);
     });
 
-    test("未开始手势时的终止是空操作，不会误提交普通点击", () => {
+    test("The termination when the gesture has not started is a no-op, and ordinary clicks will not be mistakenly submitted.", () => {
         const { log, transaction } = harness(7);
         transaction.end("commit");
         transaction.end("cancel");
@@ -179,7 +179,7 @@ describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
         expect(log.active).toEqual([]);
     });
 
-    test("终态后可以重新开始新手势，base 取新快照而非旧值", () => {
+    test("You can restart a new gesture after the final state, and the base takes a new snapshot instead of the old value.", () => {
         const { log, transaction, set } = harness(1);
         transaction.begin();
         set(2);
@@ -194,7 +194,7 @@ describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
         ]);
     });
 
-    test("取消后新手势的 base 是恢复后的值", () => {
+    test("The base of the new gesture after cancellation is the restored value.", () => {
         const { log, transaction, set } = harness(5);
         transaction.begin();
         set(99);
@@ -205,7 +205,7 @@ describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
         expect(log.commits).toEqual([[5, 8]]);
     });
 
-    test("read 返回 null 时不进入手势，终止也不提交", () => {
+    test("When read returns null, it does not enter the gesture, and it does not commit when it terminates.", () => {
         const log: Array<[number, number]> = [];
         const transaction = createDirectorTransaction<number>({
             read: () => null,
@@ -219,7 +219,7 @@ describe("终态幂等与陈旧 base 防护（#4 回归）", () => {
         expect(log).toEqual([]);
     });
 
-    test("提交路径不触发第三方拖拽终止，取消路径才触发", () => {
+    test("Submitting the path does not trigger third-party drag termination. It only triggers when canceling the path.", () => {
         const committed = harness(0);
         committed.transaction.begin();
         committed.transaction.end("commit");

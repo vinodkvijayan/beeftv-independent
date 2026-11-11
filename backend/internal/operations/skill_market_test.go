@@ -37,7 +37,7 @@ func TestSkillMarketDiscoveryOperationsAndFailureIdentity(t *testing.T) {
 			t.Fatalf("discovery permissions: %+v", op)
 		}
 	}
-	if _, err := r.ops["skill.market.search"].Handler(ctx, json.RawMessage(`{"q":"分镜"}`)); err != nil || p.query != "分镜" || p.page != 1 || p.size != 10 {
+	if _, err := r.ops["skill.market.search"].Handler(ctx, json.RawMessage(`{"q":"分镜"}`)); err != nil || p.query != "Storyboard" || p.page != 1 || p.size != 10 {
 		t.Fatalf("query changed: %+v %v", p, err)
 	}
 	for _, params := range []string{`{"pageSize":21}`, `{"page":-1}`, `{"token":"secret"}`} {
@@ -52,7 +52,7 @@ func TestSkillMarketDiscoveryOperationsAndFailureIdentity(t *testing.T) {
 	if err != nil || value.(*skillhub.Release).ReleaseID != "r1" {
 		t.Fatalf("exact release lost: %v", err)
 	}
-	p.err = &skillhub.Error{Status: 503, Reason: "enterprise_service_not_configured", Message: "暂时不可用", RetryAfter: "30"}
+	p.err = &skillhub.Error{Status: 503, Reason: "enterprise_service_not_configured", Message: "Temporarily unavailable", RetryAfter: "30"}
 	_, err = r.ops["skill.market.search"].Handler(ctx, json.RawMessage(`{}`))
 	var failure *Error
 	if !errors.As(err, &failure) || failure.Reason != "enterprise_service_not_configured" || failure.Details["upstreamStatus"] != 503 || failure.Details["retryAfter"] != "30" {

@@ -21,9 +21,9 @@ func TestUserAssetsPageBelongsToCanvasContract(t *testing.T) {
 	}
 	now := time.Now().UTC()
 	for _, asset := range []model.Asset{
-		{ID: "asset-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1","kind":"image","title":"海边"}`, CreatedAt: now, UpdatedAt: now},
-		{ID: "asset-2", UserID: "owner", Kind: "text", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed, Title: "提示词", PayloadJSON: `{"id":"asset-2","kind":"text","title":"提示词"}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
-		{ID: "asset-3", UserID: "other", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "他人", PayloadJSON: `{"id":"asset-3","kind":"image","title":"他人"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1","kind":"image","title":"海边"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-2", UserID: "owner", Kind: "text", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed, Title: "prompt word", PayloadJSON: `{"id":"asset-2","kind":"text","title":"提示词"}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
+		{ID: "asset-3", UserID: "other", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "others", PayloadJSON: `{"id":"asset-3","kind":"image","title":"他人"}`, CreatedAt: now, UpdatedAt: now},
 	} {
 		if err := db.Create(&asset).Error; err != nil {
 			t.Fatal(err)

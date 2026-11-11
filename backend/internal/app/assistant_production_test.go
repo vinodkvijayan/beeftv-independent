@@ -20,7 +20,7 @@ func TestAssistantProductionAtomicAuthorizationAndReplay(t *testing.T) {
 	raw, _ := svc.UserCanvasProject("local", canvasID)
 	var doc map[string]any
 	_ = json.Unmarshal(raw, &doc)
-	doc["nodes"] = []any{map[string]any{"id": "image", "type": "image", "title": "首帧", "metadata": map[string]any{"prompt": "雨后的花店", "size": "9:16", "count": 1}}, map[string]any{"id": "speech", "type": "audio", "title": "旁白", "metadata": map[string]any{"prompt": "把春天，带回家。", "model": "custom::speech", "audioVoice": "alloy"}}}
+	doc["nodes"] = []any{map[string]any{"id": "image", "type": "image", "title": "first frame", "metadata": map[string]any{"prompt": "Flower shop after the rain", "size": "9:16", "count": 1}}, map[string]any{"id": "speech", "type": "audio", "title": "narration", "metadata": map[string]any{"prompt": "Bring spring home.", "model": "custom::speech", "audioVoice": "alloy"}}}
 	doc["connections"] = []any{}
 	raw, _ = json.Marshal(doc)
 	if _, err := svc.UpsertUserCanvasProject("local", raw); err != nil {
@@ -142,7 +142,7 @@ func TestAssistantProductionAtomicAuthorizationAndReplay(t *testing.T) {
 		t.Fatal("recovering failed receipt created another purchase", count)
 	}
 	changed := targets[1]
-	changed.Prompt = "新增一段未确认的旁白"
+	changed.Prompt = "Add an unconfirmed narration"
 	err = svc.Database().Transaction(func(tx *gorm.DB) error {
 		_, e := svc.BindDomain(tx).(*operationSession).SubmitAuthorizedGeneration("local", next, canvasID, []operations.GenerationTarget{changed})
 		return e
@@ -174,8 +174,8 @@ func TestAssistantProductionPendingProposalCannotAuthorizeNextTurn(t *testing.T)
 	var doc map[string]any
 	_ = json.Unmarshal(raw, &doc)
 	doc["nodes"] = []any{
-		map[string]any{"id": "image", "type": "image", "title": "首帧", "metadata": map[string]any{"prompt": "雨后的花店", "size": "9:16", "count": 1}},
-		map[string]any{"id": "speech", "type": "audio", "title": "旁白", "metadata": map[string]any{"prompt": "把春天，带回家。", "model": "custom::speech", "audioVoice": "alloy"}},
+		map[string]any{"id": "image", "type": "image", "title": "first frame", "metadata": map[string]any{"prompt": "Flower shop after the rain", "size": "9:16", "count": 1}},
+		map[string]any{"id": "speech", "type": "audio", "title": "narration", "metadata": map[string]any{"prompt": "Bring spring home.", "model": "custom::speech", "audioVoice": "alloy"}},
 	}
 	doc["connections"] = []any{}
 	raw, _ = json.Marshal(doc)

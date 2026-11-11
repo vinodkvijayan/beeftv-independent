@@ -17,7 +17,7 @@ let hostStarting = false;
 // Stop after dispatch but before the assistant got the message: the chat stream stays silent.
 let earlyStop = false;
 const chatBodies: Array<Record<string, unknown>> = [], cancelBodies: Array<Record<string, unknown>> = [];
-const observerActive = { turnId: "t-observer", userText: "只创建草案", selectedNodeIds: [], supplements: [], attachments: [], skills: [], status: "running",
+const observerActive = { turnId: "t-observer", userText: "Create draft only", selectedNodeIds: [], supplements: [], attachments: [], skills: [], status: "running",
     lifecycle: { type: "lifecycle", phase: "retry", attempt: 1, reason: "timeout" } };
 
 beforeEach(() => { earlyStop = false; chatBodies.length = 0; cancelBodies.length = 0; hostStarting = false; observerMode = false; observerChatStarted = false; observerSettled = false; holdObserverHistory = false; heldObserverHistory = []; cancelled = false; historyFailure = false; settle = false; chatRequests = 0; cancelRequests = 0; scopeTest = false; holdOldHistory = false; configurationBlocked = false; seedHistoricalTurn = false; historyFailureReason = "host_unreachable"; historyReads = 0; oldHistoryResolve = null; oldSteerResolve = null; steerUsers.length = 0; });
@@ -38,7 +38,7 @@ beforeAll(async () => {
         if (scopeTest && pathname.endsWith("/assistant/sessions")) return ok({ currentSessionId: "session-" + user, sessions: [] });
         if (scopeTest && pathname.endsWith("/assistant/history")) {
             if (user === "A" && holdOldHistory) return new Promise<Response>(resolve => { oldHistoryResolve = resolve; });
-            return ok({ sessionId: "session-" + user, turns: [{ turnId: "past-" + user, userText: "过去" + user, selectedNodeIds: [], reply: "历史" + user, toolCalls: [], change: null, proposals: [], error: null, cancelled: false }], active: { turnId: "active-" + user, userText: "任务" + user, selectedNodeIds: [], supplements: [], attachments: [], skills: [], status: "running" } });
+            return ok({ sessionId: "session-" + user, turns: [{ turnId: "past-" + user, userText: "past" + user, selectedNodeIds: [], reply: "history" + user, toolCalls: [], change: null, proposals: [], error: null, cancelled: false }], active: { turnId: "active-" + user, userText: "Task" + user, selectedNodeIds: [], supplements: [], attachments: [], skills: [], status: "running" } });
         }
         if (scopeTest && pathname.endsWith("/assistant/steer")) {
             const body = await req.json(); steerUsers.push(body.sessionId);
@@ -51,8 +51,8 @@ beforeAll(async () => {
         if (pathname.endsWith("/assistant/sessions")) { if (configurationBlocked) return Response.json({ code: 503, reason: historyFailureReason }, { status: 503 }); return ok({ currentSessionId: "s1", sessions: [] }); }
         if (observerMode && pathname.endsWith("/assistant/history")) {
             historyReads++;
-            if (observerSettled) return ok({ sessionId: "s1", active: null, turns: [{ turnId: "t-observer", userText: "只创建草案", selectedNodeIds: [],
-                reply: "后台已完成", toolCalls: [], change: null, proposals: [], error: null, cancelled: false, createdAt: "2026-10-15" }] });
+            if (observerSettled) return ok({ sessionId: "s1", active: null, turns: [{ turnId: "t-observer", userText: "Create draft only", selectedNodeIds: [],
+                reply: "Backstage completed", toolCalls: [], change: null, proposals: [], error: null, cancelled: false, createdAt: "2026-10-15" }] });
             if (!observerChatStarted) return ok({ sessionId: "s1", turns: [], active: null });
             if (holdObserverHistory) return new Promise<Response>(resolve => { heldObserverHistory.push(resolve); });
             return ok({ sessionId: "s1", turns: [], active: observerActive });
@@ -61,17 +61,17 @@ beforeAll(async () => {
             chatRequests++; observerChatStarted = true;
             return new Response([
                 JSON.stringify({ type: "session", sessionId: "s1", turnId: "t-observer" }),
-                JSON.stringify({ type: "text_delta", delta: "已开始。" }),
+                JSON.stringify({ type: "text_delta", delta: "Started." }),
                 JSON.stringify({ type: "observer_error", reason: "interrupted" }),
             ].join("\n") + "\n", { headers: { "content-type": "application/x-ndjson" } });
         }
         if (pathname.endsWith("/assistant/history")) {
             historyReads++;
             if (configurationBlocked) return Response.json({ code: 503, reason: historyFailureReason }, { status: 503 });
-            if (seedHistoricalTurn) return ok({ sessionId: "s1", turns: [{ turnId: "past", userText: "旧消息", selectedNodeIds: [], reply: "此前保存的回复", toolCalls: [], change: null, proposals: [], error: null, cancelled: false }] });
+            if (seedHistoricalTurn) return ok({ sessionId: "s1", turns: [{ turnId: "past", userText: "old news", selectedNodeIds: [], reply: "Previously saved replies", toolCalls: [], change: null, proposals: [], error: null, cancelled: false }] });
             if (cancelled && historyFailure) return Response.json({ code: 500, msg: "Synthetic read failure" }, { status: 500 });
-            return ok({ sessionId: "s1", turns: cancelled && settle ? [{ turnId: "t1", userText: "只创建草案", selectedNodeIds: [],
-                reply: "两个草案已创建。已停止。", toolCalls: [], change: null, proposals: [], error: null, cancelled: true, createdAt: "2026-10-08" }] : [] });
+            return ok({ sessionId: "s1", turns: cancelled && settle ? [{ turnId: "t1", userText: "Create draft only", selectedNodeIds: [],
+                reply: "Two drafts have been created. Stopped.", toolCalls: [], change: null, proposals: [], error: null, cancelled: true, createdAt: "2026-10-08" }] : [] });
         }
         if (pathname.endsWith("/assistant/cancel")) {
             cancelled = true; cancelRequests++; cancelBodies.push(await req.json());
@@ -82,7 +82,7 @@ beforeAll(async () => {
             if (earlyStop) return new Response(new ReadableStream({ start() {} }), { headers: { "content-type": "application/x-ndjson" } });
             if (rejectChat) return Response.json({ code: 413, reason: "body_too_large" }, { status: 413, headers: { "X-Beeftv-Turn-Admission": "rejected" } });
             return new Response(new ReadableStream({ start(controller) {
-                controller.enqueue(new TextEncoder().encode(JSON.stringify({ type: "text_delta", delta: "两个草案已创建。" }) + "\n"));
+                controller.enqueue(new TextEncoder().encode(JSON.stringify({ type: "text_delta", delta: "Two drafts have been created." }) + "\n"));
             } }), { headers: { "content-type": "application/x-ndjson" } });
         }
         if (pathname.startsWith("/api/")) return ok({});
@@ -98,37 +98,37 @@ test("rejected oversized input leaves the real hook able to send another message
     try {
         rejectChat = true;
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "开始", exact: true }).click();
-        await page.getByTestId("error").filter({ hasText: "本次消息内容过大" }).waitFor();
+        await page.getByRole("button", { name: "start", exact: true }).click();
+        await page.getByTestId("error").filter({ hasText: "The content of this message is too large" }).waitFor();
         expect(await page.getByTestId("streaming").innerText()).toBe("false");
         rejectChat = false;
-        await page.getByRole("button", { name: "开始", exact: true }).click();
-        await page.getByTestId("streamed").filter({ hasText: "两个草案已创建" }).waitFor();
+        await page.getByRole("button", { name: "start", exact: true }).click();
+        await page.getByTestId("streamed").filter({ hasText: "Two drafts have been created" }).waitFor();
         expect(chatRequests).toBe(2);
     } finally { rejectChat = false; await page.close(); }
 });
 
 test("real hook keeps received text after Stop until the matching durable receipt replaces it", async () => {
     const page = await browser.newPage(); await page.goto(server.url.toString());
-    await page.getByRole("button", { name: "开始", exact: true }).click();
-    await page.getByTestId("streamed").filter({ hasText: "两个草案已创建。" }).waitFor({ timeout: 10000 }).catch(async error => {
+    await page.getByRole("button", { name: "start", exact: true }).click();
+    await page.getByTestId("streamed").filter({ hasText: "Two drafts have been created." }).waitFor({ timeout: 10000 }).catch(async error => {
         throw new Error(error.message + " Hook UI: " + await page.locator("body").innerText() + " chats=" + chatRequests);
     });
     historyFailure = true;
-    await page.getByRole("button", { name: "停止", exact: true }).click();
+    await page.getByRole("button", { name: "stop", exact: true }).click();
     await page.waitForFunction(() => document.querySelector('[data-testid="streaming"]')?.textContent === "false");
-    await page.getByTestId("history-error").filter({ hasText: "没能读取对话" }).waitFor();
-    expect(await page.getByTestId("streamed").innerText()).toBe("两个草案已创建。");
-    expect(await page.getByTestId("pending").innerText()).toBe("只创建草案");
+    await page.getByTestId("history-error").filter({ hasText: "Couldn't read conversation" }).waitFor();
+    expect(await page.getByTestId("streamed").innerText()).toBe("Two drafts have been created.");
+    expect(await page.getByTestId("pending").innerText()).toBe("Create draft only");
     expect(await page.getByTestId("error").innerText()).toBe("");
     historyFailure = false;
-    await page.getByRole("button", { name: "重新读取" }).click();
+    await page.getByRole("button", { name: "reread" }).click();
     await page.waitForFunction(() => !document.querySelector('[data-testid="history-error"]')?.textContent);
-    expect(await page.getByTestId("streamed").innerText()).toBe("两个草案已创建。");
-    expect(await page.getByTestId("pending").innerText()).toBe("只创建草案");
+    expect(await page.getByTestId("streamed").innerText()).toBe("Two drafts have been created.");
+    expect(await page.getByTestId("pending").innerText()).toBe("Create draft only");
     settle = true;
-    await page.getByRole("button", { name: "重新读取" }).click();
-    await page.getByTestId("history").filter({ hasText: "已停止" }).waitFor();
+    await page.getByRole("button", { name: "reread" }).click();
+    await page.getByTestId("history").filter({ hasText: "Stopped" }).waitFor();
     expect(await page.getByTestId("pending").innerText()).toBe("");
     expect(await page.getByTestId("streamed").innerText()).toBe("");
     expect(chatRequests).toBe(1); expect(cancelRequests).toBe(1);
@@ -141,20 +141,20 @@ test("observer_error switches the real hook to reading the running turn, shows i
     try {
         await page.goto(server.url.toString());
         await page.waitForFunction(() => document.querySelector('[data-testid="streaming"]')?.textContent === "false");
-        await page.getByRole("button", { name: "开始", exact: true }).click();
+        await page.getByRole("button", { name: "start", exact: true }).click();
         await page.waitForFunction(() => document.querySelector('[data-testid="awaiting"]')?.textContent === "true");
         // Still reading the result: not an unknown-outcome failure.
         expect(await page.getByTestId("error").innerText()).toBe("");
-        expect(await page.getByTestId("pending").innerText()).toBe("只创建草案");
-        expect(await page.getByTestId("streamed").innerText()).toBe("已开始。");
+        expect(await page.getByTestId("pending").innerText()).toBe("Create draft only");
+        expect(await page.getByTestId("streamed").innerText()).toBe("Started.");
         for (let count = 0; !heldObserverHistory.length && count < 50; count++) await new Promise(resolve => setTimeout(resolve, 20));
         holdObserverHistory = false;
         for (const resolve of heldObserverHistory.splice(0)) resolve(Response.json({ code: 0, data: { sessionId: "s1", turns: [], active: observerActive } }));
-        await page.getByTestId("lifecycle").filter({ hasText: "模型暂时没响应，正在再试一次。" }).waitFor({ timeout: 5000 });
+        await page.getByTestId("lifecycle").filter({ hasText: "The model is temporarily unresponsive, trying again." }).waitFor({ timeout: 5000 });
         expect(await page.getByTestId("streaming").innerText()).toBe("true");
         expect(await page.getByTestId("error").innerText()).toBe("");
         observerSettled = true;
-        await page.getByTestId("history").filter({ hasText: "后台已完成" }).waitFor({ timeout: 8000 });
+        await page.getByTestId("history").filter({ hasText: "Backstage completed" }).waitFor({ timeout: 8000 });
         expect(await page.getByTestId("pending").innerText()).toBe("");
         expect(await page.getByTestId("lifecycle").innerText()).toBe("");
         expect(await page.getByTestId("error").innerText()).toBe("");
@@ -167,13 +167,13 @@ test("Stop before the message is sent clears the pending message, says it stoppe
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "开始", exact: true }).click();
-        await page.getByTestId("pending").filter({ hasText: "只创建草案" }).waitFor();
+        await page.getByRole("button", { name: "start", exact: true }).click();
+        await page.getByTestId("pending").filter({ hasText: "Create draft only" }).waitFor();
         expect(await page.getByTestId("streaming").innerText()).toBe("true");
-        await page.getByRole("button", { name: "停止", exact: true }).click();
+        await page.getByRole("button", { name: "stop", exact: true }).click();
         await page.waitForFunction(() => document.querySelector('[data-testid="streaming"]')?.textContent === "false");
         expect(await page.getByTestId("pending").innerText()).toBe("");
-        expect(await page.getByTestId("error").innerText()).toBe("已停下，这条消息没有发出。");
+        expect(await page.getByTestId("error").innerText()).toBe("Stopped, this message was not sent.");
         expect(await page.getByTestId("awaiting").innerText()).toBe("false");
         expect(await page.getByTestId("history").innerText()).toBe("");
         expect(chatRequests).toBe(0); expect(cancelRequests).toBe(0);
@@ -185,11 +185,11 @@ test("Stop after sending but before the assistant got the message names that req
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "开始", exact: true }).click();
+        await page.getByRole("button", { name: "start", exact: true }).click();
         for (let count = 0; !chatBodies.length && count < 200; count++) await new Promise(resolve => setTimeout(resolve, 20));
         expect(chatBodies).toHaveLength(1);
-        await page.getByRole("button", { name: "停止", exact: true }).click();
-        await page.getByTestId("error").filter({ hasText: "已停下，这条消息没有被处理。" }).waitFor({ timeout: 5000 });
+        await page.getByRole("button", { name: "stop", exact: true }).click();
+        await page.getByTestId("error").filter({ hasText: "Stopped, this message has not been processed." }).waitFor({ timeout: 5000 });
         expect(cancelBodies).toEqual([{ canvasId: "c1", sessionId: "s1", requestId: chatBodies[0].requestId }]);
         expect(String(chatBodies[0].requestId)).toMatch(/^[A-Za-z0-9_-]{1,128}$/);
         expect(await page.getByTestId("pending").innerText()).toBe("");
@@ -202,8 +202,8 @@ test("Stop after sending but before the assistant got the message names that req
         expect(historyReads).toBe(reads);
         // Retry is a new request; the stopped one stays stopped.
         earlyStop = false;
-        await page.getByRole("button", { name: "重试", exact: true }).click();
-        await page.getByTestId("streamed").filter({ hasText: "两个草案已创建。" }).waitFor();
+        await page.getByRole("button", { name: "Try again", exact: true }).click();
+        await page.getByTestId("streamed").filter({ hasText: "Two drafts have been created." }).waitFor();
         expect(chatBodies).toHaveLength(2);
         expect(chatBodies[1].requestId).not.toBe(chatBodies[0].requestId);
     } finally { await page.close(); }
@@ -212,25 +212,25 @@ test("Stop after sending but before the assistant got the message names that req
 test("same canvas ID cannot carry history, active task, or delayed supplements across account epochs", async () => {
     scopeTest = true;
     const page = await browser.newPage(); await page.goto(server.url.toString() + "?scope-test");
-    await page.getByTestId("history").filter({ hasText: "历史A" }).waitFor();
-    expect(await page.getByTestId("pending").innerText()).toBe("任务A");
-    await page.getByRole("button", { name: "补充", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('[data-testid="supplements"]')?.textContent === "补充A:sending");
+    await page.getByTestId("history").filter({ hasText: "HistoryA" }).waitFor();
+    expect(await page.getByTestId("pending").innerText()).toBe("Task A");
+    await page.getByRole("button", { name: "supplement", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[data-testid="supplements"]')?.textContent === "Supplement A: sending");
     holdOldHistory = true;
-    await page.getByRole("button", { name: "重新读取", exact: true }).click();
+    await page.getByRole("button", { name: "reread", exact: true }).click();
     for (let count = 0; !oldHistoryResolve && count < 30; count++) await new Promise(resolve => setTimeout(resolve, 10));
     expect(oldHistoryResolve).not.toBeNull();
-    await page.getByRole("button", { name: "切换用户", exact: true }).click();
-    await page.getByTestId("history").filter({ hasText: "历史B" }).waitFor();
+    await page.getByRole("button", { name: "Switch user", exact: true }).click();
+    await page.getByTestId("history").filter({ hasText: "History B" }).waitFor();
     expect(await page.getByTestId("session").innerText()).toBe("session-B");
-    expect(await page.getByTestId("pending").innerText()).toBe("任务B");
+    expect(await page.getByTestId("pending").innerText()).toBe("Task B");
     expect(await page.getByTestId("supplements").innerText()).toBe("");
-    oldHistoryResolve!(Response.json({ code: 0, data: { sessionId: "session-A", turns: [{ turnId: "late-A", reply: "延迟旧历史A" }] } }));
+    oldHistoryResolve!(Response.json({ code: 0, data: { sessionId: "session-A", turns: [{ turnId: "late-A", reply: "Delay old history A" }] } }));
     oldSteerResolve!(Response.json({ code: 0, data: { accepted: true } }));
-    await page.getByRole("button", { name: "补充", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('[data-testid="supplements"]')?.textContent === "补充A:accepted");
-    expect(await page.getByTestId("history").innerText()).toBe("历史B");
-    expect(await page.getByTestId("pending").innerText()).toBe("任务B");
+    await page.getByRole("button", { name: "supplement", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[data-testid="supplements"]')?.textContent === "Supplement A: accepted");
+    expect(await page.getByTestId("history").innerText()).toBe("History B");
+    expect(await page.getByTestId("pending").innerText()).toBe("Task B");
     expect(steerUsers).toEqual(["session-A", "session-B"]);
     expect(chatRequests).toBe(0); expect(cancelRequests).toBe(0);
     await page.close();
@@ -244,18 +244,18 @@ test("unconfigured empty history waits for configuration, retains later recovere
     expect(historyReads).toBeGreaterThan(0);
     expect(await page.getByTestId("history-error").innerText()).toBe("");
     configurationBlocked = false; seedHistoricalTurn = true;
-    await page.getByRole("button", { name: "刷新状态", exact: true }).click();
-    await page.getByTestId("history").filter({ hasText: "此前保存的回复" }).waitFor();
+    await page.getByRole("button", { name: "refresh status", exact: true }).click();
+    await page.getByTestId("history").filter({ hasText: "Previously saved replies" }).waitFor();
     configurationBlocked = true;
-    await page.getByRole("button", { name: "刷新状态", exact: true }).click();
+    await page.getByRole("button", { name: "refresh status", exact: true }).click();
     await page.getByTestId("status-reason").filter({ hasText: "model_not_configured" }).waitFor();
-    await page.getByRole("button", { name: "重新读取", exact: true }).click();
-    await page.getByTestId("history-error").filter({ hasText: "已有内容仍然保留" }).waitFor();
-    expect(await page.getByTestId("history").innerText()).toBe("此前保存的回复");
+    await page.getByRole("button", { name: "reread", exact: true }).click();
+    await page.getByTestId("history-error").filter({ hasText: "Existing content remains" }).waitFor();
+    expect(await page.getByTestId("history").innerText()).toBe("Previously saved replies");
     await page.close();
     historyFailureReason = "read_failed"; seedHistoricalTurn = false;
     const empty = await browser.newPage(); await empty.goto(server.url.toString());
-    await empty.getByTestId("history-error").filter({ hasText: "没能读取对话。请重新读取。" }).waitFor();
-    expect(await empty.getByTestId("history-error").innerText()).not.toContain("已有内容");
+    await empty.getByTestId("history-error").filter({ hasText: "Failed to read conversation. Please read again." }).waitFor();
+    expect(await empty.getByTestId("history-error").innerText()).not.toContain("Already have content");
     await empty.close();
 }, 15000);

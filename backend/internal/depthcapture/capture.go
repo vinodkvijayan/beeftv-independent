@@ -48,7 +48,7 @@ func (s *Service) Process(ctx context.Context, task *model.Task) error {
 	platform := PlatformID(s.goos)
 	var cudaPython, cudaToolDir, cudaModelRuntime string
 	choice, err := ChooseDevice(ctx, s.goos, s.goarch, s.nvidia != nil && s.nvidia(ctx), func(probeCtx context.Context) error {
-		if progressErr := s.progress(task, "验证 CUDA 深度模型", 2); progressErr != nil {
+		if progressErr := s.progress(task, "Validating CUDA deep models", 2); progressErr != nil {
 			return progressErr
 		}
 		var resolveErr error
@@ -74,7 +74,7 @@ func (s *Service) Process(ctx context.Context, task *model.Task) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := s.progress(task, "准备视频", 8); err != nil {
+	if err := s.progress(task, "Prepare video", 8); err != nil {
 		return err
 	}
 	workDir, err := s.mkdirTemp("", "beeftv-depth-*")
@@ -99,26 +99,26 @@ func (s *Service) Process(ctx context.Context, task *model.Task) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := s.progress(task, "加载深度模型", 15); err != nil {
+	if err := s.progress(task, "Load depth model", 15); err != nil {
 		return err
 	}
 	if choice.Device == "cpu" {
-		if err := s.progress(task, "使用 CPU 处理，可能耗时较长", 15); err != nil {
+		if err := s.progress(task, "Processing using CPU may take a long time", 15); err != nil {
 			return err
 		}
 	}
 	runErr := s.run(ctx, python, toolDir, modelRuntime, choice.Device, inputPath, outputDir, func(line string) {
 		switch {
 		case strings.Contains(line, "[2/3]"):
-			_ = s.progress(task, "分析视频", 35)
+			_ = s.progress(task, "Analyze video", 35)
 		case strings.Contains(line, "[3/3]"):
-			_ = s.progress(task, "生成结果视频", 82)
+			_ = s.progress(task, "Generate result video", 82)
 		}
 	})
 	if ShouldRetryOnCPU(runErr, ctx.Err(), 0) && choice.Device == "cuda" {
 		s.requireCPUComponents()
 		choice = DeviceChoice{Variant: "cpu", Device: "cpu", FallbackReason: runErr.Error()}
-		if err := s.progress(task, "CUDA 设备故障，改用 CPU（可能耗时较长）", 15); err != nil {
+		if err := s.progress(task, "CUDA device failure, switch to CPU (may take longer)", 15); err != nil {
 			return err
 		}
 		python, toolDir, modelRuntime, err = s.resolveRuntime(ctx, task, platform, "cpu")
@@ -134,9 +134,9 @@ func (s *Service) Process(ctx context.Context, task *model.Task) error {
 		runErr = s.run(ctx, python, toolDir, modelRuntime, "cpu", inputPath, outputDir, func(line string) {
 			switch {
 			case strings.Contains(line, "[2/3]"):
-				_ = s.progress(task, "分析视频", 35)
+				_ = s.progress(task, "Analyze video", 35)
 			case strings.Contains(line, "[3/3]"):
-				_ = s.progress(task, "生成结果视频", 82)
+				_ = s.progress(task, "Generate result video", 82)
 			}
 		})
 	}
@@ -153,7 +153,7 @@ func (s *Service) Process(ctx context.Context, task *model.Task) error {
 	if len(matches) != 1 {
 		return s.failUnlessCanceled(ctx, task, stageOutput, ErrNoPreview.Error())
 	}
-	if err := s.progress(task, "保存到素材库", 92); err != nil {
+	if err := s.progress(task, "Save to library", 92); err != nil {
 		return err
 	}
 	preview := matches[0]
@@ -167,7 +167,7 @@ func (s *Service) Process(ctx context.Context, task *model.Task) error {
 	}
 	facts, err := s.probeOutput(ctx, preview)
 	if err != nil || !facts.HasVideo || facts.Width <= 0 || facts.Height <= 0 || facts.DurationMs <= 0 {
-		return s.failUnlessCanceled(ctx, task, stageOutput, "无法读取深度结果视频的实际尺寸和时长")
+		return s.failUnlessCanceled(ctx, task, stageOutput, "Unable to read actual size and duration of depth result video")
 	}
 	// 补帧会替换预览文件；Windows 不允许替换仍被打开的文件，所以补帧完成后才打开。
 	if facts.FPS > 0 && facts.FPS < 29.95 && ensureMinimumPreviewFPS(ctx, preview, s.configure) == nil {

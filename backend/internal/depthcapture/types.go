@@ -12,8 +12,8 @@ import (
 
 const (
 	StandardProfile = "vda-small-mps-standard-v1"
-	Prompt          = "深度动作捕捉"
-	InitialStage    = "检查深度处理组件"
+	Prompt          = "Deep motion capture"
+	InitialStage    = "Check out depth processing components"
 	Provider        = "local"
 	ModelID         = "video-depth-anything-small"
 	MaxDurationMs   = int64(15_100)

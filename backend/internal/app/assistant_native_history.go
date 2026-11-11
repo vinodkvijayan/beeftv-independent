@@ -13,7 +13,7 @@ import (
 func (s *Service) RevalidateAssistantNativeSource(ctx context.Context, userID, currentTurnID, originTurnID, sessionID string, source operations.MediaSource) (any, error) {
 	pin, _ := json.Marshal(source)
 	if !s.assistantTurnsOrInit().HasNativeSource(userID, originTurnID, sessionID, string(pin)) {
-		return nil, operations.PermissionDenied("native_history_untrusted", "历史素材没有读取授权")
+		return nil, operations.PermissionDenied("native_history_untrusted", "Historical material does not have read authorization")
 	}
 	if _, err := s.assistantTurnsOrInit().NativeHistoryScope(userID, currentTurnID, originTurnID, sessionID); err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (s *Service) RevalidateAssistantNativeSource(ctx context.Context, userID, c
 		return nil, err
 	}
 	if resource.Size > 256<<20 {
-		return nil, operations.PreconditionFailed("media_too_large", "历史素材过大", nil)
+		return nil, operations.PreconditionFailed("media_too_large", "Historical material is too large", nil)
 	}
 	body, err := s.BindDomain(nil).(*operationSession).OpenMediaResource(ctx, userID, source.ResourceID)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *Service) RevalidateAssistantNativeSource(ctx context.Context, userID, c
 		return nil, err
 	}
 	if size > 256<<20 || hex.EncodeToString(hash.Sum(nil)) != source.Version {
-		return nil, operations.Conflict("stale_media_version", "历史素材内容已变化，请重新添加", nil)
+		return nil, operations.Conflict("stale_media_version", "The historical material content has changed, please add it again", nil)
 	}
 	return operations.MediaResult{Source: source}, nil
 }

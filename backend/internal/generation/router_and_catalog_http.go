@@ -214,7 +214,7 @@ func SafeCatalogRouteRejection(err error) bool {
 
 func CreateDirectTaskAttempt(repo *repository.Repository, task *model.Task) (*model.RouteAttempt, error) {
 	if task.Attempts > 1 && task.ProviderRequestID == "" {
-		return nil, modelcatalog.DispatchUncertainError{Message: "旧任务已尝试执行但缺少提交记录，为避免重复创建上游任务已停止自动重发"}
+		return nil, modelcatalog.DispatchUncertainError{Message: "The old task has been tried to be executed but the submission record is missing. To avoid repeated creation of upstream tasks, automatic resending has been stopped."}
 	}
 	id, err := repo.NextPrefixedID("ATTEMPT")
 	if err != nil {
@@ -262,7 +262,7 @@ func BeginTaskRouteAttempt(
 			}
 			if task.Type == "canvas_image" && existing.DispatchState != "not_sent" {
 				if _, err := repo.ImageSubmission(existing.ID, task.ID, task.UserID); err != nil {
-					return nil, ImageRecoveryError{Cause: errors.New("原任务发送信息暂不可用，尚未确认结果")}
+					return nil, ImageRecoveryError{Cause: errors.New("The original task sending information is temporarily unavailable and the result has not been confirmed yet.")}
 				}
 			}
 			if existing.DispatchState == "not_sent" || existing.ProviderRequestID != "" || managedReceipt || (task.Type == "canvas_image" && (existing.DispatchState == "accepted" || existing.DispatchState == "submission_unknown")) {
@@ -274,7 +274,7 @@ func BeginTaskRouteAttempt(
 				}
 				return existing, nil
 			}
-			return nil, ImageRecoveryError{Cause: errors.New("原任务已提交，尚未确认结果")}
+			return nil, ImageRecoveryError{Cause: errors.New("The original task has been submitted, but the result has not been confirmed yet")}
 		}
 		if task.Type == "canvas_image" && (existing.DispatchState == "submission_unknown" || existing.DispatchState == "accepted") {
 			image = modelcatalog.ImageSubmissionViewFromRepo(repo, existing, task)
@@ -304,7 +304,7 @@ func BeginTaskRouteAttempt(
 		if next, err := retryRejectedImage(task, decision.Attempt, HTTPError{StatusCode: 429, Body: `{"error":{"code":"rate_limit_exceeded"}}`}); next != nil || err != nil {
 			return next, err
 		}
-		return nil, errors.New("上游已拒绝本次图片请求，请查看失败原因")
+		return nil, errors.New("The upstream has rejected this image request, please check the reason for the failure.")
 	case modelcatalog.AttemptSwitchRoute:
 		return router.SwitchTaskToNextRoute(store, codec, task, attempts)
 	case modelcatalog.AttemptCreateDirect:
@@ -409,7 +409,7 @@ func TestAdminChannelModel(
 		}
 	}
 	if strings.TrimSpace(channel.BaseURL) == "" || strings.TrimSpace(channel.APIKey) == "" {
-		return nil, kernel.BadAuthRequest("请先在渠道中配置 Base URL 和 API Key")
+		return nil, kernel.BadAuthRequest("Please configure the Base URL and API Key in the channel first")
 	}
 	if _, err := outbound.ValidateOutboundURL(channel.BaseURL); err != nil {
 		return nil, err
@@ -514,7 +514,7 @@ func TestAdminChannelModel(
 		if errors.Is(err, context.DeadlineExceeded) {
 			status = http.StatusGatewayTimeout
 		}
-		return nil, kernel.WrapAppError(status, "模型测试失败："+PersistableTaskFailureMessage(err), err)
+		return nil, kernel.WrapAppError(status, "Model test failed:"+PersistableTaskFailureMessage(err), err)
 	}
 	return &modelcatalog.AdminChannelModelTestResult{DurationMs: time.Since(startedAt).Milliseconds()}, nil
 }
@@ -529,7 +529,7 @@ func FetchChannelModelCatalog(
 	resolveProtocol func(string) (protocol.Adapter, bool),
 ) ([]modelcatalog.ChannelModelCatalogItem, error) {
 	if actor == nil || strings.TrimSpace(actor.ID) == "" {
-		return nil, kernel.Unauthorized("请先登录")
+		return nil, kernel.Unauthorized("Please log in first")
 	}
 	if resolveReq != nil {
 		if err := resolveReq(&input); err != nil {
@@ -563,7 +563,7 @@ func FetchChannelModelCatalogBytes(ctx context.Context, baseURL, apiFormat, apiK
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
 	if err != nil {
-		return nil, kernel.BadAuthRequest("模型服务地址无效")
+		return nil, kernel.BadAuthRequest("The model service address is invalid")
 	}
 	if apiFormat == "gemini" {
 		request.Header.Set("x-goog-api-key", apiKey)
@@ -592,7 +592,7 @@ func MapChannelModelCatalogError(err error) error {
 	}
 	var jsonErr modelcatalog.CatalogJSONError
 	if errors.As(err, &jsonErr) {
-		return CatalogError(http.StatusBadGateway, "catalog_response_invalid", "模型目录响应格式不兼容，需要 OpenAI data 数组或 Gemini models 数组", jsonErr.Cause)
+		return CatalogError(http.StatusBadGateway, "catalog_response_invalid", "Model catalog response format is incompatible, requires OpenAI data array or Gemini models array", jsonErr.Cause)
 	}
 	var rejected modelcatalog.CatalogUpstreamRejectedError
 	if errors.As(err, &rejected) {
@@ -604,7 +604,7 @@ func MapChannelModelCatalogError(err error) error {
 func ChannelModelsUpstreamError(err error) error {
 	var network net.Error
 	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &network) && network.Timeout()) {
-		return CatalogError(http.StatusGatewayTimeout, "catalog_timeout", "读取模型目录超时，请检查渠道地址和网络后重试", err)
+		return CatalogError(http.StatusGatewayTimeout, "catalog_timeout", "Reading the model directory timed out, please check the channel address and network and try again.", err)
 	}
 	var authErr *kernel.AppError
 	if errors.As(err, &authErr) {
@@ -612,17 +612,17 @@ func ChannelModelsUpstreamError(err error) error {
 	}
 	var httpErr HTTPError
 	if !errors.As(err, &httpErr) {
-		return CatalogError(http.StatusBadGateway, "catalog_network_failed", "连接模型服务失败，请检查渠道地址和网络", err)
+		return CatalogError(http.StatusBadGateway, "catalog_network_failed", "Failed to connect to model service, please check the channel address and network", err)
 	}
 	switch httpErr.StatusCode {
 	case http.StatusUnauthorized, http.StatusForbidden:
-		return CatalogError(http.StatusBadGateway, "catalog_auth_failed", "模型服务鉴权失败，请检查 API Key 或服务商访问权限", err)
+		return CatalogError(http.StatusBadGateway, "catalog_auth_failed", "Model service authentication failed, please check API Key or service provider access permissions", err)
 	case http.StatusNotFound:
-		return CatalogError(http.StatusBadGateway, "catalog_unsupported", "模型服务未提供此模型目录接口，请核对地址或手动添加模型", err)
+		return CatalogError(http.StatusBadGateway, "catalog_unsupported", "The model service does not provide this model directory interface. Please check the address or add the model manually.", err)
 	case http.StatusMethodNotAllowed, http.StatusNotImplemented:
-		return CatalogError(http.StatusBadGateway, "catalog_unsupported", "模型服务不支持读取模型目录，请手动添加模型", err)
+		return CatalogError(http.StatusBadGateway, "catalog_unsupported", "The model service does not support reading the model directory. Please add the model manually.", err)
 	case http.StatusTooManyRequests:
-		return CatalogError(http.StatusBadGateway, "catalog_rate_limited", "模型服务请求过于频繁或额度不足", err)
+		return CatalogError(http.StatusBadGateway, "catalog_rate_limited", "Model service requests are too frequent or the quota is insufficient", err)
 	default:
 		return CatalogError(http.StatusBadGateway, "catalog_upstream_failed", httpErr.Error(), err)
 	}
@@ -641,11 +641,11 @@ func ValidateTaskCapability(
 ) error {
 	encoded, err := json.Marshal(input)
 	if err != nil {
-		return kernel.BadAuthRequest("任务输入格式无效")
+		return kernel.BadAuthRequest("Invalid task input format")
 	}
 	var taskInput Input
 	if err := json.Unmarshal(encoded, &taskInput); err != nil {
-		return kernel.BadAuthRequest("任务参数格式无效，请检查模型设置后重新提交")
+		return kernel.BadAuthRequest("The task parameter format is invalid, please check the model settings and resubmit.")
 	}
 	if taskInput.Mode != "image" && taskInput.Mode != "video" && taskInput.Mode != "audio" {
 		return nil

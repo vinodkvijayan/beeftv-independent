@@ -16,17 +16,17 @@ func originalPath(thumbnailPath string, itemID string, libraryPath string) (stri
 		return "", err
 	}
 	if !validItemID(itemID) {
-		return "", kernel.BadAuthRequest("Eagle 素材 ID 无效")
+		return "", kernel.BadAuthRequest("Eagle asset ID is invalid")
 	}
 	realItemDir, err := canonicalItemDir(realRoot, itemID)
 	if err != nil {
 		if errors.Is(err, errOutsideLibrary) {
-			return "", errors.New("Eagle 素材路径不在当前素材库内")
+			return "", errors.New("Eagle material path is not in the current material library")
 		}
-		return "", errors.New("Eagle 原文件目录不存在")
+		return "", errors.New("Eagle original file directory does not exist")
 	}
 	if _, err := resolveInside(realItemDir, thumbnailPath); err != nil {
-		return "", errors.New("Eagle 素材路径不在当前素材库内")
+		return "", errors.New("Eagle material path is not in the current material library")
 	}
 	base := filepath.Base(filepath.Clean(filepath.FromSlash(thumbnailPath)))
 	stem := strings.TrimSuffix(base, filepath.Ext(base))
@@ -38,7 +38,7 @@ func originalPath(thumbnailPath string, itemID string, libraryPath string) (stri
 	}
 	entries, err := os.ReadDir(realItemDir)
 	if err != nil {
-		return "", errors.New("Eagle 原文件目录不存在")
+		return "", errors.New("Eagle original file directory does not exist")
 	}
 	candidates := make([]string, 0, len(entries))
 	for _, entry := range entries {
@@ -52,7 +52,7 @@ func originalPath(thumbnailPath string, itemID string, libraryPath string) (stri
 		candidates = append(candidates, resolved)
 	}
 	if len(candidates) == 0 {
-		return "", errors.New("Eagle 原始文件不存在")
+		return "", errors.New("Eagle original file does not exist")
 	}
 	sort.Strings(candidates)
 	return candidates[0], nil
@@ -64,15 +64,15 @@ func thumbnailInsideLibrary(thumbnailPath string, itemID string, libraryPath str
 		return "", err
 	}
 	if !validItemID(itemID) {
-		return "", kernel.BadAuthRequest("Eagle 素材 ID 无效")
+		return "", kernel.BadAuthRequest("Eagle asset ID is invalid")
 	}
 	realItemDir, err := canonicalItemDir(realRoot, itemID)
 	if err != nil {
-		return "", errors.New("Eagle 缩略图路径不在当前素材库内")
+		return "", errors.New("Eagle thumbnail path is not in the current library")
 	}
 	resolved, err := resolveInsideFile(realItemDir, thumbnailPath)
 	if err != nil {
-		return "", errors.New("Eagle 缩略图路径不在当前素材库内")
+		return "", errors.New("Eagle thumbnail path is not in the current library")
 	}
 	return resolved, nil
 }
@@ -82,15 +82,15 @@ var errOutsideLibrary = errors.New("eagle path outside library")
 func canonicalLibraryRoot(libraryPath string) (string, error) {
 	libraryPath = filepath.Clean(filepath.FromSlash(strings.TrimSpace(libraryPath)))
 	if libraryPath == "." || libraryPath == "" || !filepath.IsAbs(libraryPath) {
-		return "", errors.New("Eagle 素材库路径无效，无法安全读取原文件")
+		return "", errors.New("The Eagle material library path is invalid and the original file cannot be read safely.")
 	}
 	realRoot, err := filepath.EvalSymlinks(libraryPath)
 	if err != nil {
-		return "", errors.New("Eagle 素材库路径无效，无法安全读取原文件")
+		return "", errors.New("The Eagle material library path is invalid and the original file cannot be read safely.")
 	}
 	info, err := os.Stat(realRoot)
 	if err != nil || !info.IsDir() {
-		return "", errors.New("Eagle 素材库路径无效，无法安全读取原文件")
+		return "", errors.New("The Eagle material library path is invalid and the original file cannot be read safely.")
 	}
 	return realRoot, nil
 }
@@ -98,7 +98,7 @@ func canonicalLibraryRoot(libraryPath string) (string, error) {
 func canonicalItemDir(realRoot string, itemID string) (string, error) {
 	itemDir := filepath.Join(realRoot, "images", itemID+".info")
 	if filepath.Clean(itemDir) != itemDir || filepath.Base(itemDir) != itemID+".info" {
-		return "", kernel.BadAuthRequest("Eagle 素材 ID 无效")
+		return "", kernel.BadAuthRequest("Eagle asset ID is invalid")
 	}
 	realItem, err := filepath.EvalSymlinks(itemDir)
 	if err != nil {
@@ -109,7 +109,7 @@ func canonicalItemDir(realRoot string, itemID string) (string, error) {
 	}
 	info, err := os.Stat(realItem)
 	if err != nil || !info.IsDir() {
-		return "", errors.New("Eagle 原文件目录不存在")
+		return "", errors.New("Eagle original file directory does not exist")
 	}
 	return realItem, nil
 }

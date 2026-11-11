@@ -52,7 +52,7 @@ func TestGenerationStageLeaseAndCancellation(t *testing.T) {
 			if tc.cancelled {
 				cancel()
 			}
-			err = port.SetStage(ctx, "正在准备参考素材")
+			err = port.SetStage(ctx, "Preparing reference materials")
 			if (err != nil) != tc.wantError {
 				t.Fatalf("error = %v", err)
 			}
@@ -63,7 +63,7 @@ func TestGenerationStageLeaseAndCancellation(t *testing.T) {
 			if err := db.First(&got, "id = ?", task.ID).Error; err != nil {
 				t.Fatal(err)
 			}
-			wantStage := "正在准备参考素材"
+			wantStage := "Preparing reference materials"
 			if tc.wantError {
 				wantStage = task.Stage
 			}

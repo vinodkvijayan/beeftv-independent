@@ -7,16 +7,16 @@ function ImportForm({ busy = false, mode = "markdown", localRuntime = true }: { 
     const [form] = Form.useForm<InstallFormValues>();
     return <SkillInstallForm form={form} id="import-check" mode={mode} installing={busy} localRuntime={localRuntime}
         onFinish={() => {}}
-        initialValues={{ tag: "creative", name: "保留名称", is_public: false, autoUpdate: true }} />;
+        initialValues={{ tag: "creative", name: "reserved name", is_public: false, autoUpdate: true }} />;
 }
 
 test("import fields bind names and preserve initial values through the shared form", () => {
     const html = renderToStaticMarkup(<ImportForm />);
-    expect(html).toContain('value="保留名称"');
+    expect(html).toContain('value="reserved name"');
     expect(html).toContain('for="import-check_name"');
     expect(html).toContain('id="import-check_tag"');
     expect(html).toContain('role="combobox"');
-    expect(html).toContain("创意设计");
+    expect(html).toContain("creative design");
     expect(html).toContain('accept=".md,.markdown,text/markdown"');
     expect(html).toMatch(/<input(?=[^>]*id="import-check_files")(?=[^>]*aria-required="true")[^>]*>/);
     expect(html).not.toContain('name="url"');
@@ -38,6 +38,6 @@ test("source modes retain their file filters and hosted-only repository fields",
     const github = renderToStaticMarkup(<ImportForm mode="github" localRuntime={false} />);
     for (const field of ["url", "ref", "subdir"]) expect(github).toContain(`id="import-check_${field}"`);
     expect(github).not.toContain('type="file"');
-    expect(github).toContain('aria-label="公开状态"');
-    expect(github).toContain('aria-label="自动同步"');
+    expect(github).toContain('aria-label="Public status"');
+    expect(github).toContain('aria-label="Automatic synchronization"');
 });

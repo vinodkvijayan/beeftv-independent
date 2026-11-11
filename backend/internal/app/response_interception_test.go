@@ -9,24 +9,24 @@ func TestInterceptResponseMessageMatchesCaseInsensitivelyAndStopsAtFirstRule(t *
 	setting := ResponseInterceptionSetting{
 		Enabled: true,
 		Rules: []ResponseInterceptionRule{
-			{Contains: "余额不足", Replace: "网络异常，请重试"},
-			{Contains: "异常", Replace: "第二条"},
+			{Contains: "Insufficient balance", Replace: "Network abnormality, please try again"},
+			{Contains: "Abnormal", Replace: "Article 2"},
 		},
 	}
-	if got := interceptResponseMessage(setting, "上游返回：余额不足"); got != "网络异常，请重试" {
+	if got := interceptResponseMessage(setting, "Upstream return: Insufficient balance"); got != "Network abnormality, please try again" {
 		t.Fatalf("interceptResponseMessage() = %q", got)
 	}
 	if got := interceptResponseMessage(setting, "request failed: 429"); got != "request failed: 429" {
 		t.Fatalf("unmatched message = %q", got)
 	}
-	if got := interceptResponseMessage(ResponseInterceptionSetting{Enabled: true, Rules: []ResponseInterceptionRule{{Contains: "429", Replace: "网络异常，请重试"}}}, "HTTP 429 Too Many Requests"); got != "网络异常，请重试" {
+	if got := interceptResponseMessage(ResponseInterceptionSetting{Enabled: true, Rules: []ResponseInterceptionRule{{Contains: "429", Replace: "Network abnormality, please try again"}}}, "HTTP 429 Too Many Requests"); got != "Network abnormality, please try again" {
 		t.Fatalf("case-insensitive match = %q", got)
 	}
 }
 
 func TestValidateResponseInterceptionSettingRejectsEmptyRuleText(t *testing.T) {
 	for name, value := range map[string]ResponseInterceptionSetting{
-		"contains": {Rules: []ResponseInterceptionRule{{Contains: " ", Replace: "替换"}}},
+		"contains": {Rules: []ResponseInterceptionRule{{Contains: " ", Replace: "replace"}}},
 		"replace":  {Rules: []ResponseInterceptionRule{{Contains: "429", Replace: " "}}},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -38,8 +38,8 @@ func TestValidateResponseInterceptionSettingRejectsEmptyRuleText(t *testing.T) {
 }
 
 func TestNormalizeResponseInterceptionSettingTrimsRules(t *testing.T) {
-	value := normalizeResponseInterceptionSetting(ResponseInterceptionSetting{Rules: []ResponseInterceptionRule{{Contains: " 429 ", Replace: " 网络异常，请重试 "}}})
-	if value.Rules[0].Contains != "429" || value.Rules[0].Replace != "网络异常，请重试" {
+	value := normalizeResponseInterceptionSetting(ResponseInterceptionSetting{Rules: []ResponseInterceptionRule{{Contains: " 429 ", Replace: " Network abnormality, please try again"}}})
+	if value.Rules[0].Contains != "429" || value.Rules[0].Replace != "Network abnormality, please try again" {
 		t.Fatalf("normalized rules = %#v", value.Rules)
 	}
 	if strings.TrimSpace(value.Rules[0].Contains) != value.Rules[0].Contains {

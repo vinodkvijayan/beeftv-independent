@@ -20,11 +20,11 @@ func WorkspaceMiddleware(scope workspace.Context) gin.HandlerFunc {
 func CurrentWorkspace(c *gin.Context) (workspace.Context, error) {
 	value, exists := c.Get(workspaceContextKey)
 	if !exists {
-		return workspace.Context{}, errors.New("本地工作区上下文未初始化")
+		return workspace.Context{}, errors.New("The local workspace context is not initialized")
 	}
 	scope, ok := value.(workspace.Context)
 	if !ok {
-		return workspace.Context{}, errors.New("本地工作区上下文无效")
+		return workspace.Context{}, errors.New("The local workspace context is invalid")
 	}
 	if err := scope.Validate(); err != nil {
 		return workspace.Context{}, err

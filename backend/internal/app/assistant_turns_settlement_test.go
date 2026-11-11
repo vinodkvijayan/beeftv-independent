@@ -31,12 +31,12 @@ func TestFinalizeKeepsSnapshotWhenReceiptQueryFails(t *testing.T) {
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	service := NewLocal(repository.New(db), dir)
-	doc := map[string]any{"id": "canvas-1", "title": "撤销回归", "revision": 0,
-		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "原节点", "position": map[string]any{"x": 0, "y": 0}}},
+	doc := map[string]any{"id": "canvas-1", "title": "Undo return", "revision": 0,
+		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "original node", "position": map[string]any{"x": 0, "y": 0}}},
 		"connections": []any{}}
 	encoded, err := json.Marshal(doc)
 	if err != nil {
@@ -62,7 +62,7 @@ func TestFinalizeKeepsSnapshotWhenReceiptQueryFails(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := service.FinalizeAssistantTurn(turnID); err == nil {
-		t.Fatal("回执查询失败时结算必须返回错误，而不是静默当成没有改动")
+		t.Fatal("When the receipt query fails, the settlement must return an error instead of silently treating it as if there is no change.")
 	}
 	reopenedDB, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
@@ -71,16 +71,16 @@ func TestFinalizeKeepsSnapshotWhenReceiptQueryFails(t *testing.T) {
 	reopened := NewLocal(repository.New(reopenedDB), dir)
 	record, readErr := reopened.loadAssistantTurn(turnID)
 	if readErr != nil {
-		t.Fatalf("轮记录必须保留: %v", readErr)
+		t.Fatalf("Round records must be kept: %v", readErr)
 	}
 	if record.State != assistantTurnStateOpen {
-		t.Fatalf("查询失败后不应把回合标成已结算，得到 %q", record.State)
+		t.Fatalf("The round should not be marked as settled after query failure, resulting in %q", record.State)
 	}
 	if len(record.Document) == 0 {
-		t.Fatal("查询失败后轮前文档必须保留，否则撤销会失效")
+		t.Fatal("After the query fails, the previous document must be retained, otherwise the revocation will be invalid.")
 	}
 	if record.Change != nil {
-		t.Fatal("查询失败时不应写入不完整的变更摘要")
+		t.Fatal("Incomplete change summaries should not be written when a query fails")
 	}
 }
 
@@ -124,7 +124,7 @@ func TestFinalizeIsIdempotentAndPreservesEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	if first.Change == nil || len(first.Document) == 0 {
-		t.Fatalf("首次结算应留下变更摘要与轮前文档: %+v", first)
+		t.Fatalf("The first settlement should leave a summary of changes and pre-round documents: %+v", first)
 	}
 	// 重复结算必须幂等：不能把已经确认的变更摘要或轮前文档清掉。
 	settleTurn(t, service, turnID)
@@ -133,11 +133,11 @@ func TestFinalizeIsIdempotentAndPreservesEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	if second.Change == nil || len(second.Document) == 0 || second.State != assistantTurnStateSettled {
-		t.Fatalf("重复结算清掉了已确认证据: %+v", second)
+		t.Fatalf("Duplicate settlement cleared the confirmed evidence: %+v", second)
 	}
 
 	if _, err := service.AssistantTurns().Undo("local", canvasID, turnID); err != nil {
-		t.Fatalf("撤销失败: %v", err)
+		t.Fatalf("Undo failed: %v", err)
 	}
 	// 撤销之后再结算一次也不能抹掉「已撤销」这件事。
 	settleTurn(t, service, turnID)
@@ -146,7 +146,7 @@ func TestFinalizeIsIdempotentAndPreservesEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !third.Undone || len(third.Document) == 0 {
-		t.Fatalf("已撤销证据被重复结算清掉: %+v", third)
+		t.Fatalf("The revoked evidence was cleared by repeated settlement: %+v", third)
 	}
 }
 
@@ -166,12 +166,12 @@ func TestFinalizeIgnoresIdempotentWriteThatDidNotAdvanceRevision(t *testing.T) {
 		t.Fatal(err)
 	}
 	if record.Change != nil {
-		t.Fatalf("没有推进版本的幂等写入不应产生变更摘要: %+v", record.Change)
+		t.Fatalf("Idempotent writes without pushing the version should not produce a change summary: %+v", record.Change)
 	}
 	if _, err := service.AssistantTurns().Undo("local", canvasID, turnID); err == nil {
-		t.Fatal("没有改动的回合应被拒绝撤销")
+		t.Fatal("Rounds without changes shall be refused revocation")
 	} else if turnErr, ok := err.(*AssistantTurnError); !ok || turnErr.Reason != AssistantTurnReasonNoChange {
-		t.Fatalf("撤销原因应为 %s，得到 %v", AssistantTurnReasonNoChange, err)
+		t.Fatalf("Cancellation reason should be %s, got %v", AssistantTurnReasonNoChange, err)
 	}
 }
 
@@ -197,20 +197,20 @@ func TestFinalizeDeduplicatesIdempotentReplayOnSameRevision(t *testing.T) {
 		t.Fatal(err)
 	}
 	if record.Change == nil {
-		t.Fatal("这一轮确实推进了版本，应有变更摘要")
+		t.Fatal("This round does advance the version and should have a summary of changes")
 	}
 	if len(record.Change.OperationIDs) != 2 {
-		t.Fatalf("同一版本的幂等重放不应产生第二条回执: %v", record.Change.OperationIDs)
+		t.Fatalf("Idempotent replay of the same version should not generate a second receipt: %v", record.Change.OperationIDs)
 	}
 	if record.Change.RevisionBefore != before || record.Change.RevisionAfter != second {
-		t.Fatalf("变更区间应为 (%d, %d]，得到 (%d, %d]", before, second,
+		t.Fatalf("The change interval should be (%d, %d], and we get (%d, %d]", before, second,
 			record.Change.RevisionBefore, record.Change.RevisionAfter)
 	}
 	if _, err := service.AssistantTurns().Undo("local", canvasID, turnID); err != nil {
-		t.Fatalf("去重后的多写回合应可撤销: %v", err)
+		t.Fatalf("The multi-write round after deduplication should be reversible: %v", err)
 	}
 	if ids := nodeIDs(t, service, canvasID); len(ids) != 1 || ids[0] != "n1" {
-		t.Fatalf("撤销后应回到轮前节点集合，得到 %v", ids)
+		t.Fatalf("After revocation, we should return to the set of nodes before the round and get %v", ids)
 	}
 }
 
@@ -242,20 +242,20 @@ func TestAssistantTurnScopeRequiresOpenOwnedTurn(t *testing.T) {
 	}
 	scope, ok, err := service.AssistantTurns().ScopeForHost("local", turnID)
 	if err != nil || !ok {
-		t.Fatalf("开启中的回合应可读范围: ok=%v err=%v", ok, err)
+		t.Fatalf("The opening round should have a readable range of: ok=%v err=%v", ok, err)
 	}
 	if scope.CanvasID != canvasID {
-		t.Fatalf("范围里的画布应为 %s，得到 %s", canvasID, scope.CanvasID)
+		t.Fatalf("The canvas in the range should be %s, and we get %s", canvasID, scope.CanvasID)
 	}
 	if _, ok, _ := service.AssistantTurns().ScopeForHost("other-user", turnID); ok {
-		t.Fatal("其他用户不应读到这一轮的范围")
+		t.Fatal("Other users should not read the scope of this round")
 	}
 	settleTurn(t, service, turnID)
 	if _, ok, _ := service.AssistantTurns().ScopeForHost("local", turnID); ok {
-		t.Fatal("已结算的回合不应再接受写入归属")
+		t.Fatal("Settled rounds should no longer accept write attribution")
 	}
 	if _, ok, _ := service.AssistantTurns().ScopeForHost("local", "not-a-turn"); ok {
-		t.Fatal("未知回合不应给出范围")
+		t.Fatal("Unknown rounds should not be given a range")
 	}
 }
 
@@ -265,11 +265,11 @@ func TestCanvasAssociatedReferencesUseExistingParsers(t *testing.T) {
 	raw, err := json.Marshal(map[string]any{
 		"id": "canvas-1", "revision": 5,
 		"nodes": []any{
-			map[string]any{"id": "n1", "type": "image", "title": "镜头",
+			map[string]any{"id": "n1", "type": "image", "title": "lens",
 				"metadata": map[string]any{"assetId": "asset-1", "storageKey": "resource:res-1",
 					"generationBatch": map[string]any{"taskId": "task-1",
 						"agentGenerationContinuation": map[string]any{"taskId": "task-2"}}}},
-			map[string]any{"id": "n2", "type": "text", "title": "旁白", "metadata": map[string]any{"assetId": "asset-ignored"}},
+			map[string]any{"id": "n2", "type": "text", "title": "narration", "metadata": map[string]any{"assetId": "asset-ignored"}},
 		},
 		"connections": []any{},
 	})
@@ -278,13 +278,13 @@ func TestCanvasAssociatedReferencesUseExistingParsers(t *testing.T) {
 	}
 	assets, tasks := canvasAssociatedReferences(raw)
 	if !containsAll(assets, "asset-1") {
-		t.Fatalf("素材关联应复用媒体引用解析: %v", assets)
+		t.Fatalf("Material association should reuse media reference analysis: %v", assets)
 	}
 	if containsAll(assets, "asset-ignored") {
-		t.Fatalf("没有真实资源引用的 assetId 不应被当成关联素材: %v", assets)
+		t.Fatalf("AssetIds without real resource references should not be treated as associated assets: %v", assets)
 	}
 	if !containsAll(tasks, "task-1", "task-2") {
-		t.Fatalf("任务关联应包含生成批次与续跑任务: %v", tasks)
+		t.Fatalf("The task association should include batch generation and continuation tasks: %v", tasks)
 	}
 }
 
@@ -298,13 +298,13 @@ func TestBeginAssistantTurnPersistsVerifiedReferences(t *testing.T) {
 	}
 	scope, ok, err := service.AssistantTurns().ScopeForHost("local", turnID)
 	if err != nil || !ok {
-		t.Fatalf("开启中的回合应可读范围: ok=%v err=%v", ok, err)
+		t.Fatalf("The opening round should have a readable range of: ok=%v err=%v", ok, err)
 	}
 	if !containsAll(scope.AssetIDs, "asset-explicit") {
-		t.Fatalf("显式素材引用应进入范围: %v", scope.AssetIDs)
+		t.Fatalf("Explicit material references should go into range: %v", scope.AssetIDs)
 	}
 	if !containsAll(scope.CanvasIDs, "canvas-ref") {
-		t.Fatalf("额外画布引用应进入范围: %v", scope.CanvasIDs)
+		t.Fatalf("Extra canvas reference should go into scope: %v", scope.CanvasIDs)
 	}
 }
 

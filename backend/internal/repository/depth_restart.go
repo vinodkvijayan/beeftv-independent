@@ -12,5 +12,5 @@ func (r *Repository) PauseDepthCapturesAfterRestart(ctx context.Context) error {
 	now := time.Now()
 	return r.db.WithContext(ctx).Model(&model.Task{}).
 		Where("type = ? AND status IN ?", model.TaskTypeDepthCapture, []model.TaskStatus{model.TaskStatusQueued, model.TaskStatusRunning}).
-		Updates(map[string]any{"status": model.TaskStatusFailed, "stage": "已暂停，等待手动继续", "error": "应用已重新启动，深度捕捉已暂停。请确认组件已安装，再点击重试继续。", "lease_owner": "", "lease_expires_at": nil, "next_poll_at": nil, "completed_at": now, "updated_at": now}).Error
+		Updates(map[string]any{"status": model.TaskStatusFailed, "stage": "Paused, waiting for manual continuation", "error": "The app has been restarted and depth capture has been paused. Please confirm that the component has been installed and click Retry to continue.", "lease_owner": "", "lease_expires_at": nil, "next_poll_at": nil, "completed_at": now, "updated_at": now}).Error
 }

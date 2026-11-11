@@ -1,7 +1,7 @@
-# 视频生成 JSON · ratio / duration
+# Video generation JSON · ratio / duration
 
-适用于服务商明确提供 `POST /v1/video/generations`，并使用 `images`、`ratio`、整数 `duration` 的 JSON 接口。
+It is applicable to the JSON interface where the service provider explicitly provides `POST /v1/video/generations` and uses `images`, `ratio`, and integer `duration`.
 
-本插件由 BeefTV Contributors 维护。它描述具体请求格式，不代表与任何服务商存在合作或授权关系。
+This plugin is maintained by BeefTV Contributors. It describes the specific request format and does not imply a cooperative or authorized relationship with any service provider.
 
-完整请求、查询及结果格式见 [接口说明](docs/interface.md)。
+For complete request, query and result formats, see [Interface Description](docs/interface.md).

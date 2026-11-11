@@ -55,7 +55,7 @@ describe('bounded authenticated canvas read view', () => {
     expect(JSON.stringify(input)).toBe(original);
   });
   test('large canvas is explicitly paged; node and long original field remain addressable', () => {
-    const data = fixture(1000); data.result.canvas.nodes[999].metadata.prompt = '真实原文'.repeat(40000);
+    const data = fixture(1000); data.result.canvas.nodes[999].metadata.prompt = 'True original text'.repeat(40000);
     const first = canvasReadView(data);
     expect(first.result.readView.complete).toBe(false);
     expect(first.result.readView.nextOffset).toBeGreaterThan(0);

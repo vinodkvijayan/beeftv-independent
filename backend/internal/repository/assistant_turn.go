@@ -23,7 +23,7 @@ func (r *Repository) assistantTurnDB(tx *gorm.DB) *gorm.DB {
 func (r *Repository) AssistantTurnByID(tx *gorm.DB, turnID string) (*model.AssistantTurn, error) {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return nil, errors.New("助手回合存储不可用")
+		return nil, errors.New("Assistant turn storage is not available")
 	}
 	var row model.AssistantTurn
 	err := db.Where("turn_id = ?", strings.TrimSpace(turnID)).First(&row).Error
@@ -36,7 +36,7 @@ func (r *Repository) AssistantTurnByID(tx *gorm.DB, turnID string) (*model.Assis
 func (r *Repository) InsertAssistantTurn(tx *gorm.DB, row *model.AssistantTurn) (inserted bool, err error) {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return false, errors.New("助手回合存储不可用")
+		return false, errors.New("Assistant turn storage is not available")
 	}
 	result := db.Clauses(clause.OnConflict{DoNothing: true}).Create(row)
 	if result.Error != nil {
@@ -48,7 +48,7 @@ func (r *Repository) InsertAssistantTurn(tx *gorm.DB, row *model.AssistantTurn) 
 func (r *Repository) SaveAssistantTurn(tx *gorm.DB, row *model.AssistantTurn) error {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return errors.New("助手回合存储不可用")
+		return errors.New("Assistant turn storage is not available")
 	}
 	// Only explicit intent invalidation writes this monotonic fence. A delayed
 	// settlement or replay must not restore a previously cancelled source intent.
@@ -61,7 +61,7 @@ func (r *Repository) CompactAssistantTurnDocuments(tx *gorm.DB, turnIDs []string
 	}
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return errors.New("助手回合存储不可用")
+		return errors.New("Assistant turn storage is not available")
 	}
 	return db.Model(&model.AssistantTurn{}).
 		Where("turn_id IN ? AND state <> ? AND TRIM(COALESCE(document, '')) <> ''", turnIDs, "open").
@@ -72,7 +72,7 @@ func (r *Repository) CompactAssistantTurnDocuments(tx *gorm.DB, turnIDs []string
 func (r *Repository) ListPrunableAssistantTurns(tx *gorm.DB, retain int) ([]string, error) {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return nil, errors.New("助手回合存储不可用")
+		return nil, errors.New("Assistant turn storage is not available")
 	}
 	if retain < 0 {
 		retain = 0
@@ -99,7 +99,7 @@ func (r *Repository) ListPrunableAssistantTurns(tx *gorm.DB, retain int) ([]stri
 func (r *Repository) CountAgentOpReceiptsByTurn(tx *gorm.DB, turnID string) (int64, error) {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return 0, errors.New("助手操作回执不可用")
+		return 0, errors.New("Assistant operation receipt is not available")
 	}
 	var count int64
 	err := db.Model(&model.AgentOpRecord{}).Where("turn_id = ?", strings.TrimSpace(turnID)).Count(&count).Error
@@ -109,7 +109,7 @@ func (r *Repository) CountAgentOpReceiptsByTurn(tx *gorm.DB, turnID string) (int
 func (r *Repository) SucceededAgentOpsByTurn(tx *gorm.DB, userID, turnID string) ([]model.AgentOpRecord, error) {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return nil, errors.New("助手操作回执不可用")
+		return nil, errors.New("Assistant operation receipt is not available")
 	}
 	var rows []model.AgentOpRecord
 	err := db.Where("user_id = ? AND turn_id = ? AND status = ?", userID, turnID, "succeeded").Find(&rows).Error
@@ -119,7 +119,7 @@ func (r *Repository) SucceededAgentOpsByTurn(tx *gorm.DB, userID, turnID string)
 func (r *Repository) AgentOpsByIDs(tx *gorm.DB, userID string, ids []string) ([]model.AgentOpRecord, error) {
 	db := r.assistantTurnDB(tx)
 	if db == nil {
-		return nil, errors.New("助手操作回执不可用")
+		return nil, errors.New("Assistant operation receipt is not available")
 	}
 	if len(ids) == 0 {
 		return nil, nil

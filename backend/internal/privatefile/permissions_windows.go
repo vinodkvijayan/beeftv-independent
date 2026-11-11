@@ -22,11 +22,11 @@ func ownerOnlyDescriptor() (*windows.SECURITY_DESCRIPTOR, error) {
 func Check(name string, _ os.FileInfo) error {
 	wanted, err := ownerOnlyDescriptor()
 	if err != nil {
-		return errors.New("无法核对投稿状态文件的 Windows 权限")
+		return errors.New("Unable to check Windows permissions for submission status file")
 	}
 	actual, err := windows.GetNamedSecurityInfo(name, windows.SE_FILE_OBJECT, windows.OWNER_SECURITY_INFORMATION|windows.DACL_SECURITY_INFORMATION)
 	if err != nil {
-		return errors.New("无法读取投稿状态文件的 Windows 权限")
+		return errors.New("Unable to read Windows permissions for contribution status file")
 	}
 	owner, _, err := actual.Owner()
 	wantedOwner, _, wantedErr := wanted.Owner()
@@ -45,7 +45,7 @@ func Check(name string, _ os.FileInfo) error {
 		return tail[i:]
 	}
 	if err != nil || wantedErr != nil || controlErr != nil || owner == nil || owner.String() != wantedOwner.String() || control&windows.SE_DACL_PROTECTED == 0 || aces(wanted) == "" || aces(actual) != aces(wanted) {
-		return errors.New("投稿状态文件必须仅允许当前 Windows 用户访问")
+		return errors.New("Contribution status files must be accessible only to the current Windows user")
 	}
 	return nil
 }

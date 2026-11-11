@@ -88,7 +88,7 @@ func TestTaskRouteExecutorSwitchesOnlyWhenNextRouteIsAvailable(t *testing.T) {
 	if len(p.finished) != 2 || p.finished[0] != "route-a:failed" || p.finished[1] != "route-b:succeeded" {
 		t.Fatalf("finished attempts = %v", p.finished)
 	}
-	if len(p.logs) != 1 || p.logs[0] != "上游未创建任务，切换备用能力路由:route-b" {
+	if len(p.logs) != 1 || p.logs[0] != "No task is created in the upstream, switch the backup capability route: route-b" {
 		t.Fatalf("route switch logs = %v", p.logs)
 	}
 }

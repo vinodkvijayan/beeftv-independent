@@ -17,15 +17,15 @@ func TestCanvasProductionHTTPReadsWithoutMutationAndRegistersOnlyExactReadyOutpu
 	if err != nil {
 		t.Fatal(err)
 	}
-	project, err := env.service.ProjectService().CreateProject(owner.ID, app.CreateProjectRequest{Name: "画布制作"})
+	project, err := env.service.ProjectService().CreateProject(owner.ID, app.CreateProjectRequest{Name: "Canvas production"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	unit, err := env.service.ProjectService().CreateProjectUnit(owner.ID, project.ID, app.CreateProjectUnitRequest{Title: "第一章", SourceText: "两人对谈"})
+	unit, err := env.service.ProjectService().CreateProjectUnit(owner.ID, project.ID, app.CreateProjectUnitRequest{Title: "Chapter 1", SourceText: "Two people talking"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	shot, err := env.service.ProjectService().CreateProjectShot(owner.ID, project.ID, app.CreateProjectShotRequest{UnitID: unit.ID, Title: "对谈镜头", Description: "人物全景"})
+	shot, err := env.service.ProjectService().CreateProjectShot(owner.ID, project.ID, app.CreateProjectShotRequest{UnitID: unit.ID, Title: "Talk shot", Description: "Panorama of people"})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -67,7 +67,7 @@ func TestEditorShellReportsPlatformAvailableWithoutPlatformState(t *testing.T) {
 	if !state.PlatformAvailable || !state.CanToggle {
 		t.Fatalf("editor shell should be a user-toggleable application, got %#v", state)
 	}
-	if state.BlockedReason == "管理员已停用该插件" {
+	if state.BlockedReason == "The administrator has disabled this plugin" {
 		t.Fatalf("editor shell reported as admin-disabled: %#v", state)
 	}
 }
@@ -134,7 +134,7 @@ func TestInstallUploadedNilStoreDoesNotInstall(t *testing.T) {
 	}
 	svc := New(runtime, nil)
 	_, err = svc.InstallUploaded("admin-1", testPluginPackage(t, testManifest("nil-store-upload", "1.0.0")), "nil-store-upload.beeftv-plugin")
-	if err == nil || !strings.Contains(err.Error(), "插件状态存储未初始化") {
+	if err == nil || !strings.Contains(err.Error(), "Plugin state storage is not initialized") {
 		t.Fatalf("nil store error = %v", err)
 	}
 	if _, ok := ByID(runtime.List(), "nil-store-upload"); ok {
@@ -260,7 +260,7 @@ func TestSetPlatformAvailabilityNilStoreDoesNotChangeRuntime(t *testing.T) {
 	}
 	nilSvc := New(runtime, nil)
 	_, _, err = nilSvc.SetPlatformAvailability(&model.User{ID: "admin-1"}, officialID, false)
-	if err == nil || !strings.Contains(err.Error(), "插件状态存储未初始化") {
+	if err == nil || !strings.Contains(err.Error(), "Plugin state storage is not initialized") {
 		t.Fatalf("nil store error = %v", err)
 	}
 	item, ok := ByID(runtime.List(), officialID)

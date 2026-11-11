@@ -50,7 +50,7 @@ func stopAssistantContinuationsForIntent(c *gin.Context, svc assistantContinuati
 		}
 		// Keep the stopping receipt even if host /complete has already settled
 		// the Go turn. Retrying names this request, never a newer user input.
-		c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "continuation_stop_unconfirmed", "msg": "未能确认已停止自动继续，请重试。"})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "continuation_stop_unconfirmed", "msg": "Failed to confirm that auto-continue has been stopped, please try again."})
 		return false
 	}
 	return true

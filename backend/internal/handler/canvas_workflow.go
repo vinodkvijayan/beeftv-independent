@@ -23,7 +23,7 @@ func registerCanvasWorkflowRoutes(r *gin.RouterGroup, svc canvasWorkflowService)
 	// Every route resolves the current desktop owner; mutations additionally
 	// require the same trusted UI principal as manual generation.
 	owner := func(c *gin.Context, write bool) string {
-		if write && !requireTrustedDesktopWritePrincipal(c, "工作流只能由当前桌面界面创建和运行") {
+		if write && !requireTrustedDesktopWritePrincipal(c, "Workflows can only be created and run from the current desktop interface") {
 			return ""
 		}
 		user, e := currentUser(c, svc)
@@ -76,7 +76,7 @@ func registerCanvasWorkflowRoutes(r *gin.RouterGroup, svc canvasWorkflowService)
 		if raw := c.Query("revision"); raw != "" {
 			n, e := strconv.Atoi(raw)
 			if e != nil || n < 1 {
-				fail(c, http.StatusBadRequest, fmt.Errorf("工作流版本必须为正整数"))
+				fail(c, http.StatusBadRequest, fmt.Errorf("Workflow version must be a positive integer"))
 				return
 			}
 			revision = n
@@ -223,7 +223,7 @@ func registerCanvasWorkflowRoutes(r *gin.RouterGroup, svc canvasWorkflowService)
 			ResourceID string `json:"resourceId"`
 		}
 		if err := c.ShouldBindJSON(&request); err != nil {
-			fail(c, http.StatusBadRequest, fmt.Errorf("请选择图片"))
+			fail(c, http.StatusBadRequest, fmt.Errorf("Please select a picture"))
 			return
 		}
 		value, err := runs.Select(user, c.Param("id"), request.NodeID, request.ResourceID)

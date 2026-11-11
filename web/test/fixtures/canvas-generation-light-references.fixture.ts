@@ -13,7 +13,7 @@ const status = document.querySelector<HTMLPreElement>("#status")!;
 const results: Record<string, unknown> = {};
 function check(value: unknown, message: string): asserts value { if (!value) throw new Error(message); }
 function context(referenceImages: ReferenceImage[] = []): NodeGenerationContext {
-    return { prompt: "保留角色和构图", referenceImages, referenceVideos: [], referenceAudios: [], characterReferences: [], resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 1, imageCount: referenceImages.length, videoCount: 0, audioCount: 0 };
+    return { prompt: "Preserve character and composition", referenceImages, referenceVideos: [], referenceAudios: [], characterReferences: [], resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 1, imageCount: referenceImages.length, videoCount: 0, audioCount: 0 };
 }
 function canvas(rgb: string) {
     const element = document.createElement("canvas"); element.width = 4; element.height = 4;
@@ -35,7 +35,7 @@ async function serverState() { return (await fetch("/__light_references/state"))
 document.querySelector<HTMLButtonElement>("#block-cache")!.onclick = async () => {
     configureApiRuntime(`${cacheOrigin}/api`, "fixture-only");
     for (let index = 0; index < 16; index++) void cacheResourceObjectUrl(`resource:blocked-${index}`).catch(() => {});
-    status.textContent = "正在占满预览缓存下载队列";
+    status.textContent = "Filling up preview cache download queue";
 };
 document.querySelector<HTMLButtonElement>("#prepare-references")!.onclick = async () => {
     try {

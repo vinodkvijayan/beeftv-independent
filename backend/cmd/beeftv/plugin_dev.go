@@ -30,9 +30,9 @@ func runPlugin(args []string) error {
 	}
 }
 
-const pluginUsage = `用法：
-  beeftv plugin validate <插件目录|manifest.json|.beeftv-plugin>
-  beeftv plugin try <插件目录|manifest.json|.beeftv-plugin> --interface <接口 ID> [--model m] [--prompt p] [--base-url u] [--options '{"key":1}']`
+const pluginUsage = `Usage:
+  beeftv plugin validate <plugin directory|manifest.json|.beeftv-plugin>
+  beeftv plugin try <plugin directory|manifest.json|.beefv-plugin> --interface <interface ID> [--model m] [--prompt p] [--base-url u] [--options '{"key":1}']`
 
 func runPluginValidate(args []string) error {
 	if len(args) != 1 {
@@ -78,11 +78,11 @@ func runPluginTry(args []string) error {
 	}
 	path := args[0]
 	flags := flag.NewFlagSet("plugin try", flag.ContinueOnError)
-	interfaceID := flags.String("interface", "", "接口 ID（manifest 里 providers[].id）")
-	model := flags.String("model", "test-model", "模型 ID")
-	prompt := flags.String("prompt", "一句话的测试内容", "提示词")
-	baseURL := flags.String("base-url", "", "服务地址，留空用接口的默认地址")
-	options := flags.String("options", "", "放进这个接口命名空间的 providerOptions，JSON 对象")
+	interfaceID := flags.String("interface", "", "Interface ID (providers[].id in manifest)")
+	model := flags.String("model", "test-model", "Model ID")
+	prompt := flags.String("prompt", "One sentence test content", "prompt word")
+	baseURL := flags.String("base-url", "", "Service address, leave blank to use the default address of the interface")
+	options := flags.String("options", "", "providerOptions, JSON object put into the namespace of this interface")
 	if err := flags.Parse(args[1:]); err != nil {
 		return flagError(err)
 	}
@@ -105,10 +105,10 @@ func runPluginTry(args []string) error {
 		}
 	}
 	if adapter == nil {
-		return &cliError{code: exitBadRequest, reason: "plugin_interface_not_found", msg: "这个插件里没有该接口；有多个接口时用 --interface 指定"}
+		return &cliError{code: exitBadRequest, reason: "plugin_interface_not_found", msg: "There is no such interface in this plug-in; if there are multiple interfaces, use --interface to specify"}
 	}
 	if strings.TrimSpace(provider.Module) != "" {
-		return &cliError{code: exitBadRequest, reason: "plugin_module_interface", msg: "这个接口由插件 JS 实现，不能离线试跑；请装进 BeefTV 后用「生成测试」"}
+		return &cliError{code: exitBadRequest, reason: "plugin_module_interface", msg: "This interface is implemented by plug-in JS and cannot be tested offline; please install it into BeefTV and use \"Generate Test\""}
 	}
 	capability := protocol.CapabilityText
 	if categories := adapter.Metadata().Categories; len(categories) > 0 {
@@ -118,13 +118,13 @@ func runPluginTry(args []string) error {
 	if strings.TrimSpace(*options) != "" {
 		var values map[string]any
 		if err := json.Unmarshal([]byte(*options), &values); err != nil {
-			return &cliError{code: exitBadRequest, reason: "plugin_options_invalid", msg: "--options 需要一个 JSON 对象"}
+			return &cliError{code: exitBadRequest, reason: "plugin_options_invalid", msg: "--options requires a JSON object"}
 		}
 		request.ProviderOptions = map[string]map[string]any{adapter.Metadata().ID: values}
 	}
 	spec, err := adapter.BuildCreate(context.Background(), protocol.RequestContext{BaseURL: *baseURL, Request: request})
 	if err != nil {
-		return &cliError{code: exitBadRequest, reason: "plugin_request_invalid", msg: "构造请求失败：" + err.Error()}
+		return &cliError{code: exitBadRequest, reason: "plugin_request_invalid", msg: "Construct request failed:" + err.Error()}
 	}
 	base := strings.TrimSpace(*baseURL)
 	if base == "" {
@@ -145,7 +145,7 @@ func runPluginTry(args []string) error {
 		"query":       spec.Query,
 		"body":        spec.Body,
 		"auth":        describeDevAuth(spec.Auth, provider.Auth),
-		"note":        "只构造请求，没有发出，也没有用到密钥。",
+		"note":        "The request is only constructed, not sent, and no key is used.",
 	})
 }
 
@@ -155,7 +155,7 @@ func runPluginTry(args []string) error {
 func loadPluginForDev(path string) (protocol.Manifest, []protocol.Adapter, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return protocol.Manifest{}, nil, &cliError{code: exitNotFound, reason: "plugin_path_unavailable", msg: "找不到这个路径：" + path}
+		return protocol.Manifest{}, nil, &cliError{code: exitNotFound, reason: "plugin_path_unavailable", msg: "This path cannot be found:" + path}
 	}
 	var raw []byte
 	var parseErr error
@@ -179,15 +179,15 @@ func loadPluginForDev(path string) (protocol.Manifest, []protocol.Adapter, error
 		raw, parseErr = os.ReadFile(path)
 	}
 	if parseErr != nil {
-		return protocol.Manifest{}, nil, &cliError{code: exitBadRequest, reason: "plugin_invalid", msg: "插件校验失败：" + parseErr.Error()}
+		return protocol.Manifest{}, nil, &cliError{code: exitBadRequest, reason: "plugin_invalid", msg: "Plug-in verification failed:" + parseErr.Error()}
 	}
 	var manifest protocol.Manifest
 	if err := json.Unmarshal(raw, &manifest); err != nil {
-		return protocol.Manifest{}, nil, &cliError{code: exitBadRequest, reason: "plugin_invalid", msg: "manifest 不是合法的 JSON：" + err.Error()}
+		return protocol.Manifest{}, nil, &cliError{code: exitBadRequest, reason: "plugin_invalid", msg: "Manifest is not valid JSON:" + err.Error()}
 	}
 	adapters, err := protocol.LoadInstalledProviders(raw)
 	if err != nil {
-		return protocol.Manifest{}, nil, &cliError{code: exitBadRequest, reason: "plugin_invalid", msg: "插件校验失败：" + err.Error()}
+		return protocol.Manifest{}, nil, &cliError{code: exitBadRequest, reason: "plugin_invalid", msg: "Plug-in verification failed:" + err.Error()}
 	}
 	return manifest, adapters, nil
 }
@@ -198,7 +198,7 @@ func describeDevAuth(spec, provider protocol.ManifestAuth) string {
 		auth = provider
 	}
 	if strings.TrimSpace(auth.Type) == "" {
-		return "未声明"
+		return "Not declared"
 	}
-	return fmt.Sprintf("%s（读取配置字段 %s）", auth.Type, auth.Field)
+	return fmt.Sprintf("%s (read configuration field %s)", auth.Type, auth.Field)
 }

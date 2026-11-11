@@ -172,7 +172,7 @@ func TestCanvasFailureWritebackFollowsTaskOutcome(t *testing.T) {
 		case "video-kept-media":
 			meta["status"], meta["content"] = "success", "https://example.invalid/earlier-cut.mp4"
 		case "video-explained":
-			meta["status"], meta["taskStatus"], meta["errorDetails"] = "error", "failed", "当前模型不支持生成声音，请关闭声音后重试"
+			meta["status"], meta["taskStatus"], meta["errorDetails"] = "error", "failed", "The current model does not support sound generation, please turn off the sound and try again."
 		}
 		nodes = append(nodes, map[string]any{"id": task.ID, "type": "video", "metadata": meta})
 	}
@@ -200,7 +200,7 @@ func TestCanvasFailureWritebackFollowsTaskOutcome(t *testing.T) {
 		t.Fatalf("node with media was overwritten: %+v", meta)
 	}
 	// The client's explanation of the same failure stays; only the outcome is added.
-	if meta := readProgressNodeMeta(t, svc, canvasID, "video-explained"); meta["errorDetails"] != "当前模型不支持生成声音，请关闭声音后重试" || nodeTaskOutcome(meta)["phase"] != "failed" {
+	if meta := readProgressNodeMeta(t, svc, canvasID, "video-explained"); meta["errorDetails"] != "The current model does not support sound generation, please turn off the sound and try again." || nodeTaskOutcome(meta)["phase"] != "failed" {
 		t.Fatalf("client failure explanation replaced: %+v", meta)
 	}
 	settling := readProgressNodeMeta(t, svc, canvasID, "video-settling")

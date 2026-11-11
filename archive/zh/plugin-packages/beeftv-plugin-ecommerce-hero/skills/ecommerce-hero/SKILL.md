@@ -1,20 +1,20 @@
 ---
 name: ecommerce-hero
-description: 电商一键商品主图编排技能：根据商品名称、白底参考图与卖点，自动规划多张高转化商品主图并在画布上生成。
+description: E-commerce one-click product main image arrangement skill: Based on the product name, white background reference image and selling points, automatically plan multiple high-converting product main images and generate them on the canvas.
 ---
 
-# 一键商品主图（`ecommerce-hero`）
+# One-click product main image (`ecommerce-hero`)
 
-## 适用场景
+## Applicable scenarios
 
-- 用户需要为电商商品制作主图、详情页首屏场景图、棚拍白底/质感主图或节日大促氛围图。
-- 用户上传了商品原图或提供了商品名称与卖点，希望快速出 1 至 4 张不同场景的商品主图。
+- Users need to create main images for e-commerce products, home screen scene images for detail pages, studio white background/textured main images, or holiday promotion atmosphere images.
+- The user has uploaded the original image of the product or provided the product name and selling points, hoping to quickly produce 1 to 4 main images of the product in different scenes.
 
-## 编排步骤
+## Arrangement steps
 
-1. 提炼商品名称 `productTitle` 与 2~4 条核心视觉卖点 `sellingPoints`（材质、功能、适用人群或场景）。
-2. 调用 `ecommerce_hero_arrange` 工具：
-   - 传入 `productTitle`、`sellingPoints` 和用户期望的 `sceneCount`（1~4 张，默认 2 张）。
-   - 如果画布上已有商品白底参考图，可在创建后使用 `canvas_edge_create` 将商品原图节点连接到各张待生成的主图节点作为参考图。
-   - 若用户要求直接出图，将 `proposeGeneration` 设为 `true`，由系统登记生成提议并交由用户确认。
-3. 向用户说明每张主图对应的场景定位（极简棚拍、真实生活场景、细节特写、氛围海报）。
+1. Refining the product name `productTitle` and 2~4 core visual selling points `sellingPoints` (material, function, applicable group or scene).
+2. Call the `ecommerce_hero_arrange` tool:
+   - Input `productTitle`, `sellingPoints` and user expected `sceneCount` (1~4 pictures, default 2 pictures).
+   - If there is already a product white background reference image on the canvas, you can use `canvas_edge_create` after creation to connect the original product image node to each main image node to be generated as a reference image.
+   - If the user requests to publish the picture directly, set `proposeGeneration` to `true`, and the system will register and generate the proposal and submit it to the user for confirmation.
+3. Explain to users the scene positioning corresponding to each main image (minimalist studio shots, real life scenes, detailed close-ups, atmospheric posters).

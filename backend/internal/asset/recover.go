@@ -176,7 +176,7 @@ func (s *Service) recoverWrite(resource *model.Resource, artifact RecoveredArtif
 		if err != nil {
 			if claimedFailed {
 				if saveErr := s.persistFailedResource(resource, err); saveErr != nil {
-					return resource, errors.Join(err, fmt.Errorf("恢复资源重试失败状态失败：%w", saveErr))
+					return resource, errors.Join(err, fmt.Errorf("Recovery resource retry failed with status failure: %w", saveErr))
 				}
 			}
 			return resource, err
@@ -190,7 +190,7 @@ func (s *Service) recoverWrite(resource *model.Resource, artifact RecoveredArtif
 			return resource, err
 		}
 		if saveErr := s.persistFailedResource(resource, err); saveErr != nil {
-			return resource, errors.Join(err, fmt.Errorf("记录资源失败状态失败：%w", saveErr))
+			return resource, errors.Join(err, fmt.Errorf("Failed to record resource failure status: %w", saveErr))
 		}
 		if acquired {
 			s.releaseRetry(resource.UserID, day, artifact.Size, identity)
@@ -205,7 +205,7 @@ func (s *Service) recoverWrite(resource *model.Resource, artifact RecoveredArtif
 		resource.Error = ""
 		if err := s.repo.SaveResource(resource); err != nil {
 			// Leave the original READY row; do not persist PENDING.
-			return resource, fmt.Errorf("保存资源就绪状态失败：%w", err)
+			return resource, fmt.Errorf("Failed to save resource ready status: %w", err)
 		}
 	} else if err := s.finalizeReady(resource); err != nil {
 		return resource, err

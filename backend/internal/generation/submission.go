@@ -29,7 +29,7 @@ func (e RequestNotSentError) Unwrap() error { return e.Cause }
 type RequestPreparationError struct{ Cause error }
 
 func (e RequestPreparationError) Error() string {
-	return fmt.Sprintf("本次请求准备失败：%v", e.Cause)
+	return fmt.Sprintf("The preparation of this request failed: %v", e.Cause)
 }
 func (e RequestPreparationError) Unwrap() error { return e.Cause }
 
@@ -45,12 +45,12 @@ func (e ProtocolPreparationError) Unwrap() error { return RequestPreparationErro
 type ReferenceStoragePreparationError struct{ Cause error }
 
 func (e ReferenceStoragePreparationError) Error() string {
-	return fmt.Sprintf("参考素材对象存储准备失败：%v", e.Cause)
+	return fmt.Sprintf("Reference material object storage preparation failed: %v", e.Cause)
 }
 func (e ReferenceStoragePreparationError) Unwrap() error { return e.Cause }
 
 func (e SubmissionUnknownError) Error() string {
-	return fmt.Sprintf("提交结果尚未确认：%v", e.Cause)
+	return fmt.Sprintf("The submission result has not yet been confirmed: %v", e.Cause)
 }
 
 func (e SubmissionUnknownError) Unwrap() error { return e.Cause }

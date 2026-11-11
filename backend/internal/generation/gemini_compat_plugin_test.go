@@ -20,7 +20,7 @@ func TestGeminiOpenAICompatPluginRequestsVersionedPath(t *testing.T) {
 		t.Fatal("gemini-openai-compat plugin is not installed")
 	}
 	spec, err := adapter.BuildCreate(context.Background(), protocol.RequestContext{Request: protocol.GenerationRequest{
-		Capability: protocol.CapabilityText, Model: "gemini-2.5-flash", Prompt: "一句话故事",
+		Capability: protocol.CapabilityText, Model: "gemini-2.5-flash", Prompt: "one sentence story",
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -30,7 +30,7 @@ func TestGeminiOpenAICompatPluginRequestsVersionedPath(t *testing.T) {
 	}
 	// 参数按当前接口格式的 ID 命名空间传入；插件要读自己的那一份，否则设置里的参数会被悄悄丢掉。
 	withOptions, err := adapter.BuildCreate(context.Background(), protocol.RequestContext{Request: protocol.GenerationRequest{
-		Capability: protocol.CapabilityText, Model: "gemini-2.5-flash", Prompt: "一句话故事",
+		Capability: protocol.CapabilityText, Model: "gemini-2.5-flash", Prompt: "one sentence story",
 		ProviderOptions: map[string]map[string]any{"gemini-openai-compat": {"temperature": 0.7, "top_p": 0.9}},
 	}})
 	if err != nil {

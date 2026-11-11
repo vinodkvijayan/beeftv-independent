@@ -28,7 +28,7 @@ func testBundle(t *testing.T) (string, string, *bundle) {
 		t.Fatal(err)
 	}
 	metadata := filepath.Join(root, "metadata.json")
-	data, _ := json.Marshal(skillhub.Metadata{Name: "分镜方法", Description: "A reusable method", License: "CC0-1.0", VersionLabel: "1.0.0", Requirements: []string{}, Showcase: []skillhub.Showcase{}})
+	data, _ := json.Marshal(skillhub.Metadata{Name: "Storyboarding method", Description: "A reusable method", License: "CC0-1.0", VersionLabel: "1.0.0", Requirements: []string{}, Showcase: []skillhub.Showcase{}})
 	if err := os.WriteFile(metadata, data, 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestRemoteSearchFetchAndExplicitInstallWithoutDesktop(t *testing.T) {
 		}
 		switch r.URL.Path {
 		case "/search":
-			if r.URL.Query().Get("q") != "分镜" {
+			if r.URL.Query().Get("q") != "Storyboard" {
 				t.Error("query was changed")
 			}
 			envelope(w, skillhub.SearchResult{Items: []skillhub.SearchItem{{SkillID: release.SkillID, ReleaseID: release.ReleaseID}}, Total: 1, Page: 1, PageSize: 20})
@@ -75,7 +75,7 @@ func TestRemoteSearchFetchAndExplicitInstallWithoutDesktop(t *testing.T) {
 	}))
 	defer server.Close()
 	var out bytes.Buffer
-	if err := Run(context.Background(), []string{"search", "分镜", "--market", server.URL, "--json"}, &out); err != nil {
+	if err := Run(context.Background(), []string{"search", "Storyboard", "--market", server.URL, "--json"}, &out); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(out.String(), "r_one") {
@@ -131,7 +131,7 @@ func TestRemoteUnavailableIsNotAnEmptyCatalog(t *testing.T) {
 	}))
 	defer server.Close()
 	var out bytes.Buffer
-	err := Run(context.Background(), []string{"search", "分镜", "--market", server.URL}, &out)
+	err := Run(context.Background(), []string{"search", "Storyboard", "--market", server.URL}, &out)
 	var failure *Error
 	if !errors.As(err, &failure) || failure.Code != 9 || failure.Reason != "enterprise_service_not_configured" || out.Len() != 0 {
 		t.Fatalf("lost remote failure: %v %s", err, out.String())

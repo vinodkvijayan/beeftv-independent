@@ -181,37 +181,37 @@ func TestShouldRetryArkPrivateAssetBinding(t *testing.T) {
 		want    bool
 	}{
 		{
-			name:    "素材组未建成时网络失败可重试",
-			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, Error: `创建方舟素材组失败：Post "https://ark.cn-shanghai.volcengineapi.com/": EOF`},
+			name:    "If the network fails when the material group is not completed, you can try again.",
+			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, Error: `Failed to create Ark material group: Post "https://ark.cn-shanghai.volcengineapi.com/": EOF`},
 			want:    true,
 		},
 		{
-			name:    "素材组未建成时上游业务拒绝也可重试",
-			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, Error: "创建方舟素材组失败：方舟素材库请求失败（HTTP 403）：SubscriptionRequired"},
+			name:    "When the material group is not completed, you can try again if the upstream business rejects it.",
+			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, Error: "Failed to create Ark material group: Ark material library request failed (HTTP 403): SubscriptionRequired"},
 			want:    true,
 		},
 		{
-			name:    "素材组已建时上传素材失败可重试",
-			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", Error: "上传方舟可信素材失败：Post \"https://ark.cn-beijing.volcengineapi.com/\": EOF"},
+			name:    "If the material group has been created and the material upload fails, you can try again.",
+			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", Error: "Failed to upload Ark's trusted material: Post \"https://ark.cn-beijing.volcengineapi.com/\": EOF"},
 			want:    true,
 		},
 		{
-			name:    "素材组已建时素材 ID 解析失败可重试",
-			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", Error: "方舟素材库没有返回素材 ID"},
+			name:    "If the material ID parsing fails when the material group has been created, you can try again.",
+			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", Error: "Ark material library does not return material ID"},
 			want:    true,
 		},
 		{
-			name:    "审核拒绝保持终态不重试",
+			name:    "Review rejection remains final without retrying",
 			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", ArkAssetID: "asset-1", Error: "FaceMismatch: Face consistency verification failed."},
 			want:    false,
 		},
 		{
-			name:    "素材组已建时的其他失败不重试",
-			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", Error: "生成方舟素材临时地址失败：对象存储不可用"},
+			name:    "Other failures when the material group has been created will not be retried.",
+			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusFail, AssetGroupID: "group-1", Error: "Failed to generate temporary address of Ark material: Object storage is unavailable"},
 			want:    false,
 		},
 		{
-			name:    "非失败状态不重试",
+			name:    "No retry in non-failure status",
 			binding: &model.ArkPrivateAssetBinding{Status: arkPrivateAssetStatusLive, ArkAssetID: "asset-1"},
 			want:    false,
 		},
@@ -263,7 +263,7 @@ func TestArkPrivateAssetUpstreamDetail(t *testing.T) {
 		t.Fatalf("detail = %q", got)
 	}
 	emptyError := map[string]interface{}{"ResponseMetadata": map[string]interface{}{"Error": map[string]interface{}{}}}
-	if got := arkPrivateAssetUpstreamDetail(emptyError); got != "方舟素材库请求失败" {
+	if got := arkPrivateAssetUpstreamDetail(emptyError); got != "Ark material library request failed" {
 		t.Fatalf("empty upstream error detail = %q", got)
 	}
 }

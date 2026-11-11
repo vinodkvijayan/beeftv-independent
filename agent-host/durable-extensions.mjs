@@ -64,7 +64,7 @@ export function createDurableSkillController({ skills, getModels, state, update,
     if (context.lifecycle !== 'reset_pending') return context;
     // Repeating reset after a crash before acknowledgement is safe: no model
     // request can pass until the same Go-owned scope has been acknowledged.
-    await entry.root.reset('用户开始一个独立任务。只使用当前明确选择的技能和本轮提供的资源。', CTX);
+    await entry.root.reset('The user starts an independent task. Only use the currently explicitly selected skills and resources available this round.', CTX);
     await update(entry, (doc) => { doc.plan = emptyPlan(); doc.lastStudioSnapshot = null; doc.lastStudioSnapshotRevision = null; doc.studioDigestText = ''; });
     entry.turn.plan = null;
     return skills.changeContext(entry, { action: 'ack_reset', scopeId: context.scopeId, expectedRevision: context.revision }, '');
@@ -188,7 +188,7 @@ export async function installDurableExtensions({
   function hostTools() {
     const items = [{
       name: 'plan_update', label: 'plan.update', readOnly: true, replay: 'safe',
-      description: '更新当前创作计划（整体替换步骤清单）',
+      description: 'Update the current creation plan (overall replacement step list)',
       parameters: PLAN_UPDATE_PARAMETERS,
       execute: async (toolCallId, args) => {
         const started = Date.now();
@@ -202,7 +202,7 @@ export async function installDurableExtensions({
           entry.turn.plan = publicPlan(nextPlan);
           entry.generation.planTouchedInTurn = true;
           entry.log.push({ toolCallId: toolCallId || null, tool: 'plan.update', args: args || {}, isError: false, ms: Date.now() - started });
-          return { content: [{ type: 'text', text: renderPlanSection(nextPlan) || '当前制作计划已清空。' }] };
+          return { content: [{ type: 'text', text: renderPlanSection(nextPlan) || 'The current production schedule has been cleared.' }] };
         } catch (error) {
           entry.log.push({ toolCallId: toolCallId || null, tool: 'plan.update', args: args || {}, isError: true, error: error.message, ms: Date.now() - started });
           throw error;
@@ -212,7 +212,7 @@ export async function installDurableExtensions({
     if (skills) {
       items.push({
         name: 'skill_load', label: 'skill.load', readOnly: false, replay: 'safe',
-        description: '按技能目录 id 加载已安装技能正文',
+        description: 'Load the installed skill text by skill directory id',
         parameters: SKILL_LOAD_PARAMETERS,
         execute: async (_toolCallId, args, signal) => {
           const id = String(args?.id || '').trim();
@@ -221,7 +221,7 @@ export async function installDurableExtensions({
           const pinned = active.activePins.find((pin) => pin.skillId === id);
           let item = pinned ? { pin: pinned } : find(entry.skillCatalog.items);
           if (!item) item = find(normalizeSkillCatalog(await skills.readCatalog(entry, signal, entry.turn.turnId, { id })));
-          if (!item) throw fail('skill_not_installed: 技能目录里没有这个 id');
+          if (!item) throw fail('skill_not_installed: This id does not exist in the skill directory');
           const [resource] = await loadPinnedSkills({ pins: [item.pin], signal,
             readVersion: (pin, readSignal) => skills.readVersion(entry, pin, readSignal, entry.turn.turnId) });
           await prepareSkillContext(entry, [item.pin], `tool:${_toolCallId}`, entry.turn.turnId, { append: true, skillLoad: true });
@@ -229,7 +229,7 @@ export async function installDurableExtensions({
             const loaded = doc.loadedSkills || [];
             if (!loaded.some((record) => sameSkillPin(record, resource.pin))) doc.loadedSkills = [...loaded, loadedSkillRecord(resource, 'tool', entry.turn.turnId)];
           });
-          return { content: [{ type: 'text', text: expandSkillContent('按上面技能的步骤继续当前任务。', [resource]) }] };
+          return { content: [{ type: 'text', text: expandSkillContent('Follow the steps for the skill above to continue the current task.', [resource]) }] };
         },
       });
     }
@@ -242,9 +242,9 @@ export async function installDurableExtensions({
   );
   const tools = baseHostTools.map((tool) => defineTool({
     name: tool.name, description: tool.description + (tool.label === 'canvas.generation.propose'
-      ? '。成功提案会结束本轮；plan_update 与本调用同一次响应发出。'
+      ? '. A successful proposal will end this round; plan_update is issued in the same response as this call.'
       : tool.label === 'skill.script.run'
-        ? '。首次运行需用户确认并结束本轮；plan_update 可与本调用同一次响应发出。'
+        ? '. The first run requires user confirmation and the end of this round; plan_update can be issued in the same response as this call.'
         : ''), parameters: tool.parameters,
     replay: durableToolReplay(tool), executionMode: 'sequential',
     ...(['media.overview', 'media.inspect', 'media.check', 'media.review'].includes(tool.label) ? { outputLimits: { maxBytes: 64 * 1024 * 1024, maxLines: 100000 } } : {}),
@@ -305,7 +305,7 @@ export async function installDurableExtensions({
           executeTool: async (toolName, toolParams, callContext = context, options = {}) => {
             const currentMode = entry.permissionMode || entry.generation?.permissionMode || 'canvas';
             if (currentMode === 'read-only' && !entry.readOnlyToolNames?.has(toolName)) {
-              const err = new Error(`scope_denied: 本轮助手只能读取（禁止调用 ${toolName}）`);
+              const err = new Error(`scope_denied: This round of helpers can only read (disabled from calling${toolName}）`);
               err.reason = 'scope_denied';
               throw err;
             }
@@ -447,7 +447,7 @@ export async function installDurableExtensions({
             } catch (error) {
               entry.generation.skillContextFailure = {
                 reason: error?.reason || 'skill_context_unavailable',
-                message: error?.message || '技能状态不可用',
+                message: error?.message || 'Skill status is unavailable',
               };
               throw error;
             }
@@ -511,14 +511,14 @@ export async function installDurableExtensions({
               const hints = [];
               if (unboundMedia.length > 0) {
                 const list = unboundMedia.map((n) => `${n.id}「${n.title || n.type}」`).join('、');
-                hints.push(`本轮新建的媒体节点（${list}）尚未通过 canvas_script_row_update 的 imageNodeId/videoNodeId 写回对应分镜行`);
+                hints.push(`The newly created media nodes in this round (${list}) The imageNodeId/videoNodeId of canvas_script_row_update has not yet been written back to the corresponding storyboard row.`);
               }
               if (unlinkedVideos.length > 0) {
                 const vList = unlinkedVideos.map((n) => `${n.id}「${n.title || n.type}」`).join('、');
-                hints.push(`本轮新建的视频节点（${vList}）尚未通过 canvas_edge_create 连接对应的首帧图节点`);
+                hints.push(`The newly created video node in this round (${vList}) has not yet connected to the corresponding first frame graph node through canvas_edge_create`);
               }
               return {
-                continue: `[制作现场检查] ${hints.join('；')}（当前画布 expectedRevision=${canvas.revision}）。请先补齐上述绑定/连线后再回复用户。`,
+                continue: `[Production site inspection]${hints.join('；')}(current canvas expectedRevision=${canvas.revision}). Please complete the above binding/connection before replying to the user.`,
               };
             }
           }
@@ -621,7 +621,7 @@ export async function installDurableExtensions({
         }
       }
     }, (error) => {
-      entry.generation.skillContextFailure = { reason: error?.reason || 'skill_context_unavailable', message: error?.message || '技能状态不可用' };
+      entry.generation.skillContextFailure = { reason: error?.reason || 'skill_context_unavailable', message: error?.message || 'Skill status is unavailable' };
     });
   }
 

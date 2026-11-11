@@ -28,10 +28,10 @@ func (s *Service) CreateProjectShot(userID string, projectID string, req CreateP
 	}
 	title := strings.TrimSpace(req.Title)
 	if title == "" {
-		return model.Shot{}, kernel.BadAuthRequest("镜头标题不能为空")
+		return model.Shot{}, kernel.BadAuthRequest("Shot title cannot be empty")
 	}
 	if req.Position < 0 || req.DurationMs < 0 {
-		return model.Shot{}, kernel.BadAuthRequest("镜头顺序和时长不能为负数")
+		return model.Shot{}, kernel.BadAuthRequest("Shot order and duration cannot be negative numbers")
 	}
 	now := time.Now()
 	shotID := strings.TrimSpace(req.ID)
@@ -58,7 +58,7 @@ func (s *Service) CreateProjectShot(userID string, projectID string, req CreateP
 		expectedRevisionID = existing.CurrentRevisionID
 	}
 	if !validShotStatus(status) {
-		return model.Shot{}, kernel.BadAuthRequest("不支持的镜头状态")
+		return model.Shot{}, kernel.BadAuthRequest("Unsupported lens status")
 	}
 	updatedAt := time.Now()
 	description := strings.TrimSpace(req.Description)
@@ -82,7 +82,7 @@ func (s *Service) ReplaceProjectUnitShots(userID string, projectID string, unitI
 		return nil, err
 	}
 	if len(req.Shots) == 0 || len(req.Shots) > 200 {
-		return nil, kernel.BadAuthRequest("章节分镜数量必须在 1 到 200 之间")
+		return nil, kernel.BadAuthRequest("The number of chapter shots must be between 1 and 200")
 	}
 	currentShots, err := s.repo.ProjectUnitShots(projectID, unitID)
 	if err != nil {
@@ -100,7 +100,7 @@ func (s *Service) ReplaceProjectUnitShots(userID string, projectID string, unitI
 		expectedPointers[shot.ID] = shot.CurrentRevisionID
 	}
 	if req.ExpectedRevision <= 0 {
-		return nil, kernel.BadAuthRequest("请刷新后再保存分镜")
+		return nil, kernel.BadAuthRequest("Please refresh and then save the storyboard")
 	}
 	now := time.Now()
 	shots := make([]model.Shot, 0, len(req.Shots))
@@ -110,7 +110,7 @@ func (s *Service) ReplaceProjectUnitShots(userID string, projectID string, unitI
 		title := strings.TrimSpace(input.Title)
 		description := strings.TrimSpace(input.Description)
 		if title == "" || description == "" || input.DurationMs < 0 {
-			return nil, kernel.BadAuthRequest("分镜标题、描述或时长无效")
+			return nil, kernel.BadAuthRequest("Invalid storyboard title, description or duration")
 		}
 		shotID := kernel.NewID()
 		revision, err := newShotRevision(userID, shotID, input.Revision, description, input.DurationMs, now)
@@ -127,7 +127,7 @@ func (s *Service) ReplaceProjectUnitShots(userID string, projectID string, unitI
 				continue
 			}
 			if len(seenVersions) >= 6 {
-				return nil, kernel.BadAuthRequest("单个分镜最多引用 6 个资产版本")
+				return nil, kernel.BadAuthRequest("A single storyboard can reference up to 6 asset versions")
 			}
 			if _, err := s.repo.AssetVersionForProject(projectID, versionID); err != nil {
 				return nil, err
@@ -201,7 +201,7 @@ func (s *Service) DeleteProjectShot(userID string, projectID string, shotID stri
 	}
 	shotID = strings.TrimSpace(shotID)
 	if shotID == "" {
-		return kernel.BadAuthRequest("镜头不能为空")
+		return kernel.BadAuthRequest("Lens cannot be empty")
 	}
 	if _, err := s.repo.ShotForProject(projectID, shotID); err != nil {
 		return err
@@ -215,20 +215,20 @@ func newShotRevision(userID string, shotID string, input ShotRevisionInput, fall
 		plotDescription = strings.TrimSpace(fallbackDescription)
 	}
 	if plotDescription == "" {
-		return model.ShotRevision{}, kernel.BadAuthRequest("镜头画面描述不能为空")
+		return model.ShotRevision{}, kernel.BadAuthRequest("Lens picture description cannot be empty")
 	}
 	durationMs := input.DurationMs
 	if durationMs == 0 {
 		durationMs = fallbackDuration
 	}
 	if durationMs < 0 {
-		return model.ShotRevision{}, kernel.BadAuthRequest("镜头时长不能为负数")
+		return model.ShotRevision{}, kernel.BadAuthRequest("Shot duration cannot be negative")
 	}
 	actionBeatsJSON := "[]"
 	if input.ActionBeats != nil {
 		encoded, err := json.Marshal(input.ActionBeats)
 		if err != nil {
-			return model.ShotRevision{}, kernel.BadAuthRequest("动作节拍格式无效")
+			return model.ShotRevision{}, kernel.BadAuthRequest("Invalid action beat format")
 		}
 		actionBeatsJSON = string(encoded)
 	}
@@ -262,7 +262,7 @@ func (s *Service) LinkShotAsset(userID string, projectID string, shotID string, 
 	}
 	role := strings.TrimSpace(req.Role)
 	if !validShotAssetRole(role) {
-		return model.ShotAssetReference{}, kernel.BadAuthRequest("不支持的镜头素材用途")
+		return model.ShotAssetReference{}, kernel.BadAuthRequest("Unsupported Lens Material Usage")
 	}
 	now := time.Now()
 	reference := model.ShotAssetReference{ID: kernel.NewID(), ShotID: shotID, AssetVersionID: versionID, Role: role, Status: "linked", CreatedAt: now}
@@ -281,14 +281,14 @@ func (s *Service) UnlinkShotAsset(userID string, projectID string, shotID string
 	}
 	referenceID = strings.TrimSpace(referenceID)
 	if referenceID == "" {
-		return kernel.BadAuthRequest("镜头资产引用不能为空")
+		return kernel.BadAuthRequest("Lens asset reference cannot be null")
 	}
 	deleted, err := s.repo.DeleteShotAssetReferenceActive(userID, projectID, shotID, referenceID, time.Now())
 	if err != nil {
 		return mapProjectWriteError(err)
 	}
 	if !deleted {
-		return kernel.NotFound("镜头资产引用不存在")
+		return kernel.NotFound("Lens asset reference does not exist")
 	}
 	return nil
 }
@@ -299,7 +299,7 @@ func (s *Service) CreateProjectAssetCandidates(userID string, projectID string, 
 	}
 	sourceTaskID := strings.TrimSpace(req.SourceTaskID)
 	if len(req.Candidates) > 100 || (len(req.Candidates) == 0 && sourceTaskID == "") {
-		return nil, kernel.BadAuthRequest("资产候选数量必须在 1 到 100 之间")
+		return nil, kernel.BadAuthRequest("Number of asset candidates must be between 1 and 100")
 	}
 	source := strings.TrimSpace(req.Source)
 	existingCandidates, err := s.repo.ProjectAssetCandidates(projectID)
@@ -318,13 +318,13 @@ func (s *Service) CreateProjectAssetCandidates(userID string, projectID string, 
 		nameKey := model.AssetCandidateNameKey(name)
 		category := model.AssetCategory(strings.TrimSpace(input.Category))
 		if name == "" || nameKey == "" || !validAssetCategory(category) {
-			return nil, kernel.BadAuthRequest("资产候选名称或分类无效")
+			return nil, kernel.BadAuthRequest("Invalid asset candidate name or classification")
 		}
 		if category == model.AssetCategoryCharacter && source != AssetCandidateSourceChapterCharacter {
-			return nil, kernel.BadAuthRequest("角色候选只能从剧情章节的角色提取流程创建")
+			return nil, kernel.BadAuthRequest("Character candidates can only be created from the character extraction process in story chapters.")
 		}
 		if category == model.AssetCategoryCharacter && strings.TrimSpace(input.UnitID) == "" {
-			return nil, kernel.BadAuthRequest("角色候选必须关联剧情章节")
+			return nil, kernel.BadAuthRequest("Role candidates must be related to plot chapters")
 		}
 		if input.UnitID != "" {
 			if _, err := s.repo.ProjectUnit(projectID, input.UnitID); err != nil {
@@ -338,7 +338,7 @@ func (s *Service) CreateProjectAssetCandidates(userID string, projectID string, 
 		}
 		detailsJSON, err := marshalProjectDetails(input.Details)
 		if err != nil {
-			return nil, kernel.BadAuthRequest("资产候选详情格式无效")
+			return nil, kernel.BadAuthRequest("Asset candidate details format is invalid")
 		}
 		if category == model.AssetCategoryCharacter {
 			if err := validateCharacterCandidateDetails(input.Details); err != nil {
@@ -360,7 +360,7 @@ func (s *Service) CreateProjectAssetCandidates(userID string, projectID string, 
 	if applySource.TaskID != "" {
 		for _, input := range req.Candidates {
 			if unitID := strings.TrimSpace(input.UnitID); unitID != "" && unitID != applySource.UnitID {
-				return nil, kernel.Forbidden("不能把其他章节的生成结果写入本章")
+				return nil, kernel.Forbidden("The generated results of other chapters cannot be written into this chapter.")
 			}
 		}
 	}
@@ -510,7 +510,7 @@ func validateCharacterCandidateDetails(details map[string]any) error {
 		}
 	}
 	if text("role") == "" || descriptiveCount < 3 || text("voiceLanguage") == "" || text("voiceAge") == "" || text("voiceTimbre") == "" {
-		return kernel.BadAuthRequest("角色候选必须包含剧情定位、稳定设定和声音画像")
+		return kernel.BadAuthRequest("Role candidates must include plot positioning, stable settings and voice portraits")
 	}
 	return nil
 }

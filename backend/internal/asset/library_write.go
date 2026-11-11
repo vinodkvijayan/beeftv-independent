@@ -166,10 +166,10 @@ func uniquePreparedAssets(items []model.Asset) ([]model.Asset, error) {
 	for index := range items {
 		id := strings.TrimSpace(items[index].ID)
 		if id == "" {
-			return nil, kernel.BadAuthRequest("素材 ID 无效")
+			return nil, kernel.BadAuthRequest("Invalid asset ID")
 		}
 		if _, exists := seen[id]; exists {
-			return nil, kernel.BadAuthRequest("素材列表包含重复 ID")
+			return nil, kernel.BadAuthRequest("Asset list contains duplicate IDs")
 		}
 		seen[id] = struct{}{}
 	}
@@ -224,7 +224,7 @@ func (l *Library) requireOwnedFolder(userID, folderID string) error {
 	}
 	if _, err := l.repo.AssetFolderForUser(userID, folderID); err != nil {
 		if isNotFound(err) {
-			return kernel.BadAuthRequest("素材分类不存在")
+			return kernel.BadAuthRequest("Material classification does not exist")
 		}
 		return err
 	}
@@ -234,7 +234,7 @@ func (l *Library) requireOwnedFolder(userID, folderID string) error {
 func (l *Library) validateOwnedResources(userID, payloadJSON string) error {
 	ids := map[string]struct{}{}
 	if err := assets.CollectOwnedDocumentReferences(payloadJSON, ids); err != nil {
-		return kernel.BadAuthRequest("素材数据无法解析")
+		return kernel.BadAuthRequest("Material data cannot be parsed")
 	}
 	if len(ids) == 0 {
 		return nil
@@ -251,10 +251,10 @@ func (l *Library) validateOwnedResources(userID, payloadJSON string) error {
 	for _, id := range wanted {
 		resource, exists := owned[id]
 		if !exists {
-			return kernel.BadAuthRequest("素材引用的资源不存在或不属于当前用户")
+			return kernel.BadAuthRequest("The resource referenced by the material does not exist or does not belong to the current user")
 		}
 		if resource.Status != model.ResourceStatusReady {
-			return kernel.BadAuthRequest("素材引用的资源尚未就绪")
+			return kernel.BadAuthRequest("The resource referenced by the material is not ready yet")
 		}
 	}
 	return nil

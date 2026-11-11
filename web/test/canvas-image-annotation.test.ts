@@ -7,8 +7,8 @@ import { annotationHistory, normalizeAnnotationRect } from "../src/components/ca
 describe("inline image annotation model", () => {
     test("keeps the compact annotation toolbar icon-only", () => {
         const source = readFileSync(resolve(import.meta.dir, "../src/components/canvas/canvas-node-annotation-dialog.tsx"), "utf8");
-        expect(source).not.toContain('font-medium">标注</span>');
-        expect(source).not.toContain("}保存</button>");
+        expect(source).not.toContain('font-medium">Annotation</span>');
+        expect(source).not.toContain("}Save</button>");
         expect(source).toContain('aria-label={isSubmitting ? "正在保存" : "保存标注"}');
         expect(source).toContain("text-neutral-900");
     });
@@ -28,7 +28,7 @@ describe("inline image annotation model", () => {
     test("a new operation clears the redo stack", () => {
         const brush = { type: "brush" as const, color: "#f00", size: 4, points: [{ x: 1, y: 1 }] };
         const undone = annotationHistory.undo(annotationHistory.push(annotationHistory.empty(), brush));
-        const text = { type: "text" as const, color: "#fff", size: 24, x: 5, y: 8, text: "重点" };
+        const text = { type: "text" as const, color: "#fff", size: 24, x: 5, y: 8, text: "focus" };
         expect(annotationHistory.push(undone, text).redo).toEqual([]);
     });
 });

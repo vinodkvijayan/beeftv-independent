@@ -53,14 +53,14 @@ export async function startCustomerScenarioServer(options: { port?: number } = {
             state.posts.push(body);
             // Match taskForOutput/publicTaskInputJSON: recovery receives mode
             // and metadata while credentials and binary references are omitted.
-            state.task ||= { id: "original-customer-task", projectId: body.projectId, type: body.type, prompt: body.prompt, clientOperationId: body.input?.metadata?.clientOperationId, status: "running", stage: "供应商处理中", progress: 10, attempts: 1, createdAt: "2026-10-17T00:00:00Z", updatedAt: "2026-10-17T00:00:00Z", inputJson: JSON.stringify({ mode: body.input.mode, metadata: body.input.metadata }) };
+            state.task ||= { id: "original-customer-task", projectId: body.projectId, type: body.type, prompt: body.prompt, clientOperationId: body.input?.metadata?.clientOperationId, status: "running", stage: "Supplier is processing", progress: 10, attempts: 1, createdAt: "2026-10-17T00:00:00Z", updatedAt: "2026-10-17T00:00:00Z", inputJson: JSON.stringify({ mode: body.input.mode, metadata: body.input.metadata }) };
             if (state.delayReceipt) await new Promise(resolve => setTimeout(resolve, 6000));
             return json(state.task);
         }
         if (url.pathname.startsWith("/api/tasks/by-operation/")) { state.lookups.push(url.pathname); return state.task ? json(state.task) : Response.json({ code: 404, msg: "not found", reason: "task_not_found" }, { status: 404 }); }
         if (url.pathname === "/api/tasks") return json(state.task ? [state.task] : []);
         if (url.pathname === "/api/tasks/original-customer-task") return json(state.task);
-        if (url.pathname === "/api/projects/synthetic-domain/characters/character-asset") { if (state.holdCharacter) await state.gate; return json({ asset: { id: "character-asset", title: "测试角色" }, character: { versionId: "character-v1", definition: { appearance: "synthetic" }, representations: [{ resourceId: "character-image", role: "primary" }] } }); }
+        if (url.pathname === "/api/projects/synthetic-domain/characters/character-asset") { if (state.holdCharacter) await state.gate; return json({ asset: { id: "character-asset", title: "test role" }, character: { versionId: "character-v1", definition: { appearance: "synthetic" }, representations: [{ resourceId: "character-image", role: "primary" }] } }); }
         const resource = url.pathname.match(/^\/api\/resources\/([^/]+)(\/file)?$/);
         if (resource) {
             const name = resource[1]!;

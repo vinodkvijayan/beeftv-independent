@@ -1,6 +1,6 @@
 [
   {
-    "name": "带方向分辨率与结构化时长区间",
+    "name": "With directional resolution and structured duration intervals",
     "workflow": {
       "id": "wf-directional-range",
       "label": "Directional Range",
@@ -10,7 +10,7 @@
         {
           "name": "resolution",
           "type": "string",
-          "values": ["736p竖", "736p横", "736p(1:1)"],
+          "values": ["736p vertical", "736p horizontal", "736p(1:1)"],
           "mapping": "resolution"
         },
         {
@@ -22,15 +22,15 @@
         }
       ],
       "defaults": {
-        "resolution": "736P竖",
+        "resolution": "736P vertical",
         "duration": 5
       }
     },
     "expected": {
       "ratios": [],
       "defaultRatio": "",
-      "resolutions": ["736p竖", "736p横", "736p(1:1)"],
-      "defaultResolution": "736p竖",
+      "resolutions": ["736p vertical", "736p horizontal", "736p(1:1)"],
+      "defaultResolution": "736p vertical",
       "duration": {
         "selection": "range",
         "min": 1,
@@ -41,7 +41,7 @@
     }
   },
   {
-    "name": "大小写混合 mapping、空白与重复项去重、离散时长枚举",
+    "name": "Mixed case mapping, blank and duplicate deduplication, discrete duration enumeration",
     "workflow": {
       "id": "wf-mixed-mapping-enum",
       "label": "Mixed Mapping Enum",
@@ -86,7 +86,7 @@
     }
   },
   {
-    "name": "数字默认值转型与单值默认时长",
+    "name": "Numeric default value transformation and single value default duration",
     "workflow": {
       "id": "wf-numeric-defaults",
       "label": "Numeric Defaults",
@@ -123,7 +123,7 @@
     }
   },
   {
-    "name": "带正号数字字符串在枚举与默认值中均被拒绝",
+    "name": "Numeric strings with positive signs are rejected in both enumerations and default values",
     "workflow": {
       "id": "wf-reject-leading-plus",
       "label": "Reject Leading Plus",
@@ -133,7 +133,7 @@
         {
           "name": "resolution",
           "type": "string",
-          "values": ["768p竖", "768p横"],
+          "values": ["768p vertical", "768p horizontal"],
           "mapping": "resolution"
         },
         {
@@ -144,15 +144,15 @@
         }
       ],
       "defaults": {
-        "resolution": "768p竖",
+        "resolution": "768p vertical",
         "duration": "+8"
       }
     },
     "expected": {
       "ratios": [],
       "defaultRatio": "",
-      "resolutions": ["768p竖", "768p横"],
-      "defaultResolution": "768p竖",
+      "resolutions": ["768p vertical", "768p horizontal"],
+      "defaultResolution": "768p vertical",
       "duration": {
         "selection": "enum",
         "values": [12, 8],

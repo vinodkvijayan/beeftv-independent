@@ -1,8 +1,8 @@
 # OpenAI Audio Speech
 
-该插件调用 OpenAI 风格的同步文字转语音接口，把宿主提示词映射为 `input`。当前只发送模型与文本，声音、格式、语速和其他 TTS 选项尚未纳入 adapter。
+The plug-in calls the OpenAI style synchronous text-to-speech interface and maps the host prompt word to `input`. Currently only models and text are sent, sound, format, speech rate and other TTS options have not yet been incorporated into the adapter.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -12,21 +12,21 @@ Authorization: Bearer <API_KEY>
 Content-Type: application/json
 ```
 
-## 模型、声音与输出格式
+## Models, sounds and output formats
 
-模型、voice、格式、单次文本长度、流式能力和价格以 OpenAI 或兼容渠道实际文档为准。当前宿主 metadata 没有声明参数表，这意味着只有 `model` 和 `prompt` 的内部映射稳定，不意味着上游没有必填 `voice`。若上游要求 voice，管理员必须先扩展 adapter，不能依赖未白名单的字段自动透传。
+Model, voice, format, single text length, streaming capabilities and price are subject to actual documentation from OpenAI or compatible channels. The current host metadata does not declare a parameter table, which means that only the internal mapping of `model` and `prompt` is stable. It does not mean that `voice` is not required in the upstream. If the upstream requires voice, the administrator must first expand the adapter and cannot rely on automatic transparent transmission of fields that are not whitelisted.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-实际请求正文固定为：
+The actual request body is fixed to:
 
 ```json
 {"model":"YOUR_TTS_MODEL","input":"请在午夜前离开这座城市。"}
 ```
 
-完整上游常见请求参考：
+Complete upstream common request reference:
 
 ```bash
 curl "{channel_base_url}/v1/audio/speech" \
@@ -36,13 +36,13 @@ curl "{channel_base_url}/v1/audio/speech" \
   --output speech.mp3
 ```
 
-第二个示例包含当前 adapter 尚未发送的 `voice` 和 `response_format`，用于说明必须补齐的协议字段。
+The second example contains `voice` and `response_format` that have not yet been sent by the current adapter to illustrate the protocol fields that must be completed.
 
-## 响应与当前实现差异
+## Response to differences from current implementation
 
-OpenAI 官方 Speech API 通常直接返回音频二进制流；当前 `parseAudioResponse` 却按 JSON 中的 `url/audio_url/data` 解析。因此本插件当前更适合“返回音频 URL JSON”的兼容渠道，不能宣称已经正确处理 OpenAI 官方二进制响应。直连官方服务前必须增加二进制响应合同、MIME/文件名处理和资源保存测试。
+The official OpenAI Speech API usually returns the audio binary stream directly; currently `parseAudioResponse` is parsed as `url/audio_url/data` in JSON. Therefore this plugin is currently more suitable for the "return audio URL JSON" compatible channel and cannot claim to have correctly processed the official OpenAI binary response. Binary response contract, MIME/file name processing and resource saving tests must be added before directly connecting to official services.
 
-## 官方资料
+## Official information
 
 - [OpenAI Text-to-speech guide](https://developers.openai.com/api/docs/guides/text-to-speech)
 - [OpenAI Audio Speech reference](https://developers.openai.com/api/reference/resources/audio/subresources/speech/methods/create)

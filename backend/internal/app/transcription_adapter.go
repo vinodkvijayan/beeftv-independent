@@ -16,11 +16,11 @@ type transcribeMediaOpener struct {
 func (o transcribeMediaOpener) Open(ctx context.Context, resourceID string) (transcription.Media, io.ReadCloser, error) {
 	_ = ctx
 	if o.service == nil {
-		return transcription.Media{}, nil, fmt.Errorf("无法读取待转写媒体，可能已被删除")
+		return transcription.Media{}, nil, fmt.Errorf("The media to be transcribed cannot be read. It may have been deleted.")
 	}
 	resource, reader, err := o.service.OpenResource(o.userID, resourceID)
 	if err != nil || reader == nil || resource == nil {
-		return transcription.Media{}, nil, fmt.Errorf("无法读取待转写媒体，可能已被删除")
+		return transcription.Media{}, nil, fmt.Errorf("The media to be transcribed cannot be read. It may have been deleted.")
 	}
 	return transcription.Media{MimeType: resource.MimeType}, reader, nil
 }

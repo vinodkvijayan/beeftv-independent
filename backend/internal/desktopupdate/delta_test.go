@@ -409,7 +409,7 @@ func newDeltaTestServer(
 				Schema:  payloadSchemaV2,
 				Version: "v2.1.1",
 				Commit:  strings.Repeat("c", 40),
-				Notes:   "v2.1.1 增量更新测试",
+				Notes:   "v2.1.1 incremental update test",
 				Platforms: map[string]PlatformArtifact{
 					"darwin-arm64": {
 						URLs:   []string{fullURL},
@@ -564,7 +564,7 @@ func TestWindowsEngineIncrementalUpdateAndFallback(t *testing.T) {
 					Schema:  payloadSchemaV2,
 					Version: "v2.1.1",
 					Commit:  strings.Repeat("d", 40),
-					Notes:   "Windows 增量更新测试",
+					Notes:   "Windows incremental update testing",
 					Platforms: map[string]PlatformArtifact{
 						"windows-amd64": {
 							URLs:   []string{fullURL},

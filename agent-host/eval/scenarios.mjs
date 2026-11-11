@@ -175,7 +175,7 @@ export function createFakeModelServer(options = {}) {
         // 跳过媒体适配层追加的提示消息、末尾瞬态上下文（画布摘要/计划/压缩恢复技能）或纯图片附件用户消息
         if (
           !txt ||
-          txt.startsWith('以下是前述工具返回的素材内容') ||
+          txt.startsWith('The following is the material content returned by the aforementioned tools') ||
           isTransientStudioTailMessage(messages[i]) ||
           (hasImageAttachment && !txt.includes('BEEFTV_CONTEXT:'))
         ) {
@@ -259,28 +259,28 @@ export function createFakeModelServer(options = {}) {
 
       // 识别当前属于哪个场景/步骤
       // S4: 中途补充改向
-      if (allText.includes('古风武侠开场') || allText.includes('赛博朋克霓虹夜市')) {
-        const steered = allText.includes('赛博朋克霓虹夜市');
+      if (allText.includes('The opening of ancient martial arts') || allText.includes('Cyberpunk Neon Night Market')) {
+        const steered = allText.includes('Cyberpunk Neon Night Market');
         if (toolResults.length === 0) {
           sendToolCall(res, body.model, 'canvas_get', {});
           return;
         }
         const createdNodesResult = toolResults.find((t) => t.name === 'canvas_nodes_create');
         if (!createdNodesResult) {
-          const styleLabel = steered ? '赛博朋克霓虹夜市' : '古风武侠';
+          const styleLabel = steered ? 'Cyberpunk Neon Night Market' : 'Ancient style martial arts';
           sendToolCall(res, body.model, 'canvas_nodes_create', {
             expectedRevision: rev,
             nodes: [
-              { type: 'script', title: '分镜脚本' },
+              { type: 'script', title: 'Storyboard' },
               {
                 type: 'image',
-                title: '镜 1 首帧',
-                prompt: `${styleLabel}风格，雨夜霓虹全息招牌下的黑客特写，竖屏 9:16`,
+                title: 'Mirror 1 first frame',
+                prompt: `${styleLabel}Style, close-up of hacker under neon holographic sign on rainy night, vertical screen 9:16`,
               },
               {
                 type: 'image',
-                title: '镜 2 首帧',
-                prompt: `${styleLabel}风格，义体侦探在霓虹夜市小巷追踪无人机，竖屏 9:16`,
+                title: 'Mirror 2 first frame',
+                prompt: `${styleLabel}Style, prosthetic detective tracking drones in neon night market alleys, vertical screen 9:16`,
               },
             ],
           });
@@ -297,17 +297,17 @@ export function createFakeModelServer(options = {}) {
             rows: [
               {
                 durationSeconds: 5,
-                plotDescription: '赛博朋克霓虹夜市街头，黑客抬头看向闪烁的全息广告牌',
-                dialogue: '信号就是从夜市深处发出来的。',
-                imageGenerationPrompt: '赛博朋克霓虹夜市，全息招牌下的黑客近景，冷蓝与品红霓虹光，9:16',
-                videoMotionPrompt: '镜头缓慢推向黑客脸部，身后霓虹灯牌闪烁，雨水滑落',
+                plotDescription: 'On the cyberpunk neon night market street, hackers look up at the flashing holographic billboards',
+                dialogue: 'The signal was sent from deep inside the night market.',
+                imageGenerationPrompt: 'Cyberpunk neon night market, close shot of hackers under holographic signboard, cool blue and magenta neon light, 9:16',
+                videoMotionPrompt: 'The camera slowly moves toward the hacker\'s face, with neon signs flashing behind him and rain falling.',
               },
               {
                 durationSeconds: 5,
-                plotDescription: '赛博朋克霓虹夜市暗巷，微型无人机掠过蒸汽摊位',
-                dialogue: '跟上它，别跟丢了！',
-                imageGenerationPrompt: '赛博朋克霓虹夜市暗巷，蒸汽与全息投影交织，微型无人机掠过，9:16',
-                videoMotionPrompt: '镜头跟随无人机快速穿梭于霓虹夜市摊位之间',
+                plotDescription: 'Cyberpunk neon night market dark alley, micro drones fly over steam stalls',
+                dialogue: 'Keep up with it, don\'t lose it!',
+                imageGenerationPrompt: 'Cyberpunk neon night market dark alley, steam and holographic projection intertwined, micro drone passing by, 9:16',
+                videoMotionPrompt: 'The camera follows the drone as it quickly shuttles between the neon night market stalls',
               },
             ],
           });
@@ -329,13 +329,13 @@ export function createFakeModelServer(options = {}) {
         sendTextReply(
           res,
           body.model,
-          '已按你中途补充的最新要求改为**赛博朋克霓虹夜市**风格，并收敛为 2 个镜头，完成了分镜脚本与 2 个首帧图节点的创建与绑定。',
+          'It has been changed to the **Cyberpunk Neon Night Market** style according to the latest requirements you added midway, and has been condensed into 2 shots. The creation and binding of the storyboard script and 2 first frame image nodes have been completed.',
         );
         return;
       }
 
       // S2: 8 镜头分镜表 + 只为前 2 个镜头创建首帧图节点并回填
-      if (allText.includes('8 个镜头') || allText.includes('只为前 2 个镜头')) {
+      if (allText.includes('8 shots') || allText.includes('Just for the first 2 shots')) {
         if (toolResults.length === 0) {
           sendToolCall(res, body.model, 'canvas_get', {});
           return;
@@ -347,16 +347,16 @@ export function createFakeModelServer(options = {}) {
           sendToolCall(res, body.model, 'canvas_nodes_create', {
             expectedRevision: rev,
             nodes: [
-              { type: 'script', title: '分镜脚本' },
+              { type: 'script', title: 'Storyboard' },
               {
                 type: 'image',
-                title: '镜 1 首帧',
-                prompt: '深空轨道站全景，巨大环形空间站掠过蓝白色气态巨行星，电影感科幻写实，9:16',
+                title: 'Mirror 1 first frame',
+                prompt: 'Panoramic view of deep space orbital station, huge ring-shaped space station passing by blue-white gas giant planet, movie-like sci-fi realism, 9:16',
               },
               {
                 type: 'image',
-                title: '镜 2 首帧',
-                prompt: '驾驶舱内景，女宇航员凝视全息星图上的红色异常信号点，冷光映照面罩，9:16',
+                title: 'Mirror 2 first frame',
+                prompt: 'Cockpit interior, female astronaut stares at the red abnormal signal point on the holographic star map, cold light illuminates the mask, 9:16',
               },
             ],
           });
@@ -372,10 +372,10 @@ export function createFakeModelServer(options = {}) {
             const n = idx + 1;
             return {
               durationSeconds: n <= 4 ? 4 : 3,
-              plotDescription: `第 ${n} 镜：深空探索任务关键画面 ${n}，展现星际跃迁与未知遗迹`,
-              dialogue: n === 1 ? '这里是先驱号，准备进入跃迁轨道。' : `第 ${n} 镜台词：信号强度持续上升。`,
-              imageGenerationPrompt: `科幻电影感第 ${n} 镜首帧提示词，深空探索场景 ${n}，高细节写实光影`,
-              videoMotionPrompt: `第 ${n} 镜视频运镜提示词，镜头平稳推进展现科幻空间纵深`,
+              plotDescription: `No.${n} Mirror: Key images from deep space exploration missions${n}, showing interstellar jumps and unknown ruins`,
+              dialogue: n === 1 ? 'Here is the Pioneer, preparing to enter the jump orbit.' : `No.${n} Mirror line: Signal strength continues to rise.`,
+              imageGenerationPrompt: `Science fiction movies${n} Prompt words for the first frame of the shot, deep space exploration scene${n}, high-detail realistic light and shadow`,
+              videoMotionPrompt: `No.${n} Mirror video prompts the movement of the camera, and the camera advances smoothly to show the depth of the science fiction space`,
             };
           });
           sendToolCall(res, body.model, 'canvas_script_rows_append', {
@@ -401,13 +401,13 @@ export function createFakeModelServer(options = {}) {
         sendTextReply(
           res,
           body.model,
-          '已完成 8 个镜头的完整分镜脚本，并严格按要求仅为前 2 个镜头创建了「镜 1 首帧」「镜 2 首帧」图片节点并绑定到第 1、2 行，第 3–8 镜保持未生成状态。',
+          'The complete storyboard scripts for 8 shots have been completed, and the "First Frame of Shot 1" and "First Frame of Shot 2" image nodes have been created strictly for the first 2 shots as required and bound to lines 1 and 2. Shots 3-8 remain ungenerated.',
         );
         return;
       }
 
       // S3: 局部修改第 3 个镜头与第 3 个首帧图节点
-      if (allText.includes('第 3 个镜头') || allText.includes('清晨薄雾森林')) {
+      if (allText.includes('Shot 3') || allText.includes('Morning mist forest')) {
         const getResult = toolResults.find((t) => t.name === 'canvas_get');
         if (!getResult) {
           sendToolCall(res, body.model, 'canvas_get', {});
@@ -416,7 +416,7 @@ export function createFakeModelServer(options = {}) {
         const canvasNodes = getResult.data?.nodes || getResult.data?.result?.canvas?.nodes || [];
         const scriptNode = canvasNodes.find((n) => n.type === 'script') || { id: 'node-script-1' };
         const img3Node =
-          canvasNodes.find((n) => n.id === 'node-img-3' || n.title === '镜 3 首帧') || { id: 'node-img-3' };
+          canvasNodes.find((n) => n.id === 'node-img-3' || n.title === 'Mirror 3 first frame') || { id: 'node-img-3' };
         const rowUpdate = toolResults.find((t) => t.name === 'canvas_script_row_update');
         if (!rowUpdate) {
           sendToolCall(res, body.model, 'canvas_script_row_update', {
@@ -425,8 +425,8 @@ export function createFakeModelServer(options = {}) {
             patches: [
               {
                 rowId: 'shot-3',
-                plotDescription: '清晨薄雾森林中，阳光穿透树冠洒在青苔小径上，主角缓步前行',
-                imageGenerationPrompt: '清晨薄雾森林，丁达尔阳光穿透高大松林，薄雾弥漫，写实电影感，9:16',
+                plotDescription: 'In the misty forest in the early morning, the sunlight penetrates the tree canopy and shines on the mossy path, and the protagonist walks slowly',
+                imageGenerationPrompt: 'In the misty forest in the early morning, Tyndall sunlight penetrates the tall pine forest, and the mist fills the air, creating a realistic cinematic feel, 9:16',
               },
             ],
           });
@@ -438,7 +438,7 @@ export function createFakeModelServer(options = {}) {
             expectedRevision: rev,
             nodeId: img3Node.id,
             patch: {
-              content: '清晨薄雾森林，丁达尔阳光穿透高大松林，薄雾弥漫，写实电影感，9:16',
+              content: 'In the misty forest in the early morning, Tyndall sunlight penetrates the tall pine forest, and the mist fills the air, creating a realistic cinematic feel, 9:16',
             },
           });
           return;
@@ -446,13 +446,13 @@ export function createFakeModelServer(options = {}) {
         sendTextReply(
           res,
           body.model,
-          '已只将第 3 个镜头的分镜描述与「镜 3 首帧」图片节点的提示词更新为「清晨薄雾森林」主题，其余第 1、2、4 镜头及对应节点、连线均保持原样未动。',
+          'Only the storyboard description of the third shot and the prompt word of the "First Frame of Shot 3" image node have been updated to the theme of "Morning Mist Forest". The remaining shots 1, 2, and 4 and their corresponding nodes and connections remain unchanged.',
         );
         return;
       }
 
       // S8: 用户只要一张首帧，已选技能不能把流程带成整套分镜
-      if (allText.includes('放学后的天台') || allText.includes('这次只做一张竖屏日系动漫风的首帧图')) {
+      if (allText.includes('The rooftop after school') || allText.includes('This time I will only make the first frame of a vertical Japanese anime style picture.')) {
         if (toolResults.length === 0) {
           sendToolCall(res, body.model, 'canvas_get', {});
           return;
@@ -464,8 +464,8 @@ export function createFakeModelServer(options = {}) {
             nodes: [
               {
                 type: 'image',
-                title: '放学后的天台 首帧',
-                prompt: '日系动漫风格，放学后的天台，少女回头，夕光与微风，竖屏 9:16',
+                title: 'Rooftop after school first frame',
+                prompt: 'Japanese anime style, rooftop after school, girl looking back, sunset and breeze, vertical screen 9:16',
               },
             ],
           });
@@ -487,33 +487,33 @@ export function createFakeModelServer(options = {}) {
           sendToolCall(res, body.model, 'canvas_generation_propose', {
             kind: 'image',
             nodeIds: [imgNode.id],
-            note: '按你的要求只做这一张竖屏首帧，确认后开始生成',
+            note: 'According to your request, only the first frame of the vertical screen will be made, and the generation will start after confirmation.',
           });
           return;
         }
         sendTextReply(
           res,
           body.model,
-          '已按你的要求只建了 1 张竖屏首帧图节点，画幅 9:16、数量 1，并提交了生成方案。在面板里确认后才会开始生成。',
+          'We have created only one vertical screen first frame image node according to your request, with a frame size of 9:16 and a quantity of 1, and the generation plan has been submitted. The generation will start after confirmation in the panel.',
         );
         return;
       }
 
       // S9: 选了「资产分批制作」技能，第 1 批只能做角色且最多 4 张
-      if (allText.includes('资产分批制作技能')) {
+      if (allText.includes('Asset batch production skills')) {
         if (toolResults.length === 0) {
           sendToolCall(res, body.model, 'canvas_get', {});
           return;
         }
         const created = toolResults.find((t) => t.name === 'canvas_nodes_create');
         if (!created) {
-          const characters = ['林晞', '陈野', '江陌', '苏未'];
+          const characters = ['Lin Xi', 'Chen Ye', 'Jiangmo', 'Su Wei'];
           sendToolCall(res, body.model, 'canvas_nodes_create', {
             expectedRevision: rev,
             nodes: characters.map((name, idx) => ({
               type: 'image',
-              title: `角色 ${idx + 1} 定稿`,
-              prompt: `校园科幻短剧主角 ${name} 的角色确认稿，全身设定图，干净背景，便于后续统一造型`,
+              title: `role${idx + 1} Finalize`,
+              prompt: `Protagonist in campus science fiction short drama${name} The character confirmation draft, the whole body setting picture, and the clean background will facilitate the subsequent unified styling.`,
             })),
           });
           return;
@@ -524,20 +524,20 @@ export function createFakeModelServer(options = {}) {
           sendToolCall(res, body.model, 'canvas_generation_propose', {
             kind: 'image',
             nodeIds: imgNodes.map((n) => n.id),
-            note: '第 1 批只提交这 4 个角色确认稿，请确认后再做下一批',
+            note: 'Only the confirmation drafts for these 4 characters will be submitted for the first batch. Please confirm before doing the next batch.',
           });
           return;
         }
         sendTextReply(
           res,
           body.model,
-          '已按「资产分批制作」技能做完第 1 批：4 个主角的角色确认稿，没有混入道具或场景。确认造型后，我再做下一批。',
+          'The first batch has been completed according to the "Asset Batch Production" skill: the character confirmation drafts of the four protagonists, without mixing in props or scenes. After confirming the shape, I will make the next batch.',
         );
         return;
       }
 
       // S10: 参数以节点当前值为准，不改节点，只按现有设置重提方案
-      if (allText.includes('改成方形了')) {
+      if (allText.includes('Changed to a square shape')) {
         if (toolResults.length === 0) {
           sendToolCall(res, body.model, 'canvas_get', {});
           return;
@@ -550,20 +550,20 @@ export function createFakeModelServer(options = {}) {
           sendToolCall(res, body.model, 'canvas_generation_propose', {
             kind: 'image',
             nodeIds: [imgNode.id],
-            note: '按节点当前的 1:1 方形设置和数量 1 重新提交生成方案，未改动节点',
+            note: 'Resubmit the generation plan with the node\'s current 1:1 square setting and quantity 1, with the node unchanged',
           });
           return;
         }
         sendTextReply(
           res,
           body.model,
-          '已按节点现在的设置（1:1 方形、1 张）重新提交生成方案，没有改动节点。请在面板里确认后再生成。',
+          'The generation plan has been resubmitted according to the current settings of the nodes (1:1 square, 1 sheet), without changing the nodes. Please confirm in the panel before generating.',
         );
         return;
       }
 
       // S11: 第一次 media.inspect 漏了 expectedVersion，读取错误后先 overview 再带版本复查
-      if (allText.includes('人物的手有没有问题')) {
+      if (allText.includes('Are there any problems with the character’s hands?')) {
         if (toolResults.length === 0) {
           sendToolCall(res, body.model, 'canvas_get', {});
           return;
@@ -597,14 +597,14 @@ export function createFakeModelServer(options = {}) {
         sendTextReply(
           res,
           body.model,
-          '我看过这张图的画面了：人物的手部结构和手指数量看起来正常，没有明显畸形。',
+          'I\'ve seen this picture: the character\'s hand structure and number of fingers look normal, with no obvious deformities.',
         );
         return;
       }
 
       // S5/S7: 生成后自动唤醒或用户主动发起的复查，触发来源由运行器分别记录。
-      if (allText.includes('手部畸形') || allText.includes('复查刚生成的画面')) {
-        const isFollowupReview = allText.includes('复查刚生成的画面') || allText.includes('任务已完成');
+      if (allText.includes('hand deformity') || allText.includes('Review the newly generated screen')) {
+        const isFollowupReview = allText.includes('Review the newly generated screen') || allText.includes('Task completed');
         if (!isFollowupReview) {
           if (toolResults.length === 0) {
             sendToolCall(res, body.model, 'canvas_get', {});
@@ -617,8 +617,8 @@ export function createFakeModelServer(options = {}) {
               nodes: [
                 {
                   type: 'image',
-                  title: '镜 1 首帧',
-                  prompt: '特写人像，女主在雨夜街头举起手电筒查看信件，写实电影感，9:16',
+                  title: 'Mirror 1 first frame',
+                  prompt: 'Close-up portrait, the heroine holds up a flashlight to read a letter on the street on a rainy night, realistic movie feel, 9:16',
                 },
               ],
             });
@@ -630,14 +630,14 @@ export function createFakeModelServer(options = {}) {
             sendToolCall(res, body.model, 'canvas_generation_propose', {
               kind: 'image',
               nodeIds: [imgNodeId],
-              note: '为镜 1 首帧提交生成提议，请确认后开始生成',
+              note: 'Submit a generation proposal for the first frame of Mirror 1, please confirm before starting the generation',
             });
             return;
           }
           sendTextReply(
             res,
             body.model,
-            '已创建「镜 1 首帧」节点并提交图片生成提议。请在面板中确认生成，生成完成后可以让我复查画面。',
+            'The "Mirror 1 First Frame" node has been created and the image generation proposal has been submitted. Please confirm the generation in the panel and let me review the screen after the generation is completed.',
           );
           return;
         }
@@ -670,7 +670,7 @@ export function createFakeModelServer(options = {}) {
             nodeId: imgNode.id,
             patch: {
               content:
-                '特写人像，女主在雨夜街头双手自然握持手电筒查看信件，五指结构自然清晰，无多余手指，写实电影感，9:16',
+                'Close-up portrait, the heroine is holding a flashlight with both hands naturally on the street on a rainy night to read a letter. The structure of the five fingers is naturally clear and there are no extra fingers. It has a realistic and cinematic feel, 9:16',
             },
           });
           return;
@@ -680,14 +680,14 @@ export function createFakeModelServer(options = {}) {
           sendToolCall(res, body.model, 'canvas_generation_propose', {
             kind: 'image',
             nodeIds: [imgNode.id],
-            note: '检测到手部六指畸形，已修正提示词强调五指结构自然，重新发起生成提议',
+            note: 'Six-finger deformity of the hand was detected, the prompt word has been corrected to emphasize the natural structure of the five fingers, and the generation proposal is re-initiated.',
           });
           return;
         }
         sendTextReply(
           res,
           body.model,
-          '通过 `media_inspect` 检查发现生成画面存在人物右手六指畸形问题，已修改节点提示词修正手部解剖结构描述，并重新提交生成提议。',
+          'Through the `media_inspect` inspection, it was found that the generated screen had a six-finger deformity problem on the character\'s right hand. The node prompt word has been modified to correct the description of the anatomical structure of the hand, and the generation proposal has been resubmitted.',
         );
         return;
       }
@@ -700,7 +700,7 @@ export function createFakeModelServer(options = {}) {
             return;
           }
           const loadedSkill = toolResults.find((t) => t.name === 'skill_load');
-          if (!loadedSkill && !fullConversationText.includes('# 短剧分镜到首帧')) {
+          if (!loadedSkill && !fullConversationText.includes('# Storyboard the short play to the first frame')) {
             sendToolCall(res, body.model, 'skill_load', { id: 'short-drama-storyboard' });
             return;
           }
@@ -711,10 +711,10 @@ export function createFakeModelServer(options = {}) {
               nodes: [
                 {
                   type: 'markdown',
-                  title: '角色设定',
-                  prompt: '# 角色设定\n- **林晚（女主）**：26岁调查记者，黑色风衣，眼神坚毅。\n- **沈默（反派）**：30岁神秘线人，金丝眼镜，冷峻深沉。',
+                  title: 'Character setting',
+                  prompt: '#Character settings\n- **Lin Wan (female protagonist)**: 26-year-old investigative reporter, black trench coat, firm eyes.\n- **Silence (Villain)**: 30-year-old mysterious informant, gold-rimmed glasses, cold and deep.',
                 },
-                { type: 'script', title: '分镜脚本' },
+                { type: 'script', title: 'Storyboard' },
               ],
             });
             return;
@@ -728,17 +728,17 @@ export function createFakeModelServer(options = {}) {
               rows: [
                 {
                   durationSeconds: 5,
-                  plotDescription: '雨夜天台，林晚攥着染血的怀表质问沈默',
-                  dialogue: '林晚：这块表为什么会在你手里？',
-                  imageGenerationPrompt: '竖屏 9:16 写实电影感，雨夜天台，26岁黑色风衣女记者攥着怀表，冷色调',
-                  videoMotionPrompt: '镜头从怀表特写上移至林晚质问的脸庞，雨水滑落',
+                  plotDescription: 'On the rooftop on a rainy night, Lin Wan held a blood-stained pocket watch and questioned the silence.',
+                  dialogue: 'Lin Wan: Why is this watch in your hand?',
+                  imageGenerationPrompt: 'Vertical screen 9:16 Realistic cinematic feel, on the rooftop on a rainy night, a 26-year-old female reporter in black trench coat clutches a pocket watch, cold colors',
+                  videoMotionPrompt: 'The camera moved from the close-up of the pocket watch to Lin Wan\'s questioning face, and the rain fell down',
                 },
                 {
                   durationSeconds: 5,
-                  plotDescription: '沈默站在霓虹阴影中冷笑转身',
-                  dialogue: '沈默：你以为你查到的是真相吗？',
-                  imageGenerationPrompt: '竖屏 9:16 写实电影感，30岁金丝眼镜男子站在天台阴影中回眸冷笑',
-                  videoMotionPrompt: '沈默缓缓转头看向镜头，身后闪电划破夜空',
+                  plotDescription: 'Standing silently in the neon shadow and turning around with a sneer',
+                  dialogue: 'Silence: Do you think what you found is the truth?',
+                  imageGenerationPrompt: 'Vertical screen 9:16 Realistic cinematic feel, a 30-year-old man with gold-rimmed glasses stands in the shadow of the rooftop and looks back with a sneer.',
+                  videoMotionPrompt: 'Silence slowly turned her head to look at the camera, and lightning streaked through the night sky behind her',
                 },
               ],
             });
@@ -747,7 +747,7 @@ export function createFakeModelServer(options = {}) {
           sendTextReply(
             res,
             body.model,
-            '已按「短剧分镜到首帧」技能规范完成第 1 步「角色设定」节点与第 2 步「分镜脚本」前 2 镜。请确认分镜内容是否需要调整。',
+            'The first two steps of the "Character Settings" node and the first two shots of the second step "Storyboarding" have been completed according to the "Short Play Storyboarding to the First Frame" skill specification. Please confirm whether the storyboard content needs to be adjusted.',
           );
           return;
         }
@@ -760,7 +760,7 @@ export function createFakeModelServer(options = {}) {
           sendTextReply(
             res,
             body.model,
-            '已核对当前画布上的「角色设定」与「分镜脚本」2 个镜头，竖屏 9:16 画幅与写实电影感设定保持不变，随时可按技能第 3 步物化首帧图并提出生成提议。',
+            'The two shots "Character Settings" and "Storyboard Script" on the current canvas have been checked. The vertical screen 9:16 frame and realistic movie-like settings remain unchanged. You can materialize the first frame according to step 3 of the skill at any time and make a generation proposal.',
           );
           return;
         }
@@ -784,13 +784,13 @@ export function createFakeModelServer(options = {}) {
               nodes: [
                 {
                   type: 'image',
-                  title: '镜 1 首帧',
-                  prompt: '竖屏 9:16 写实电影感，雨夜天台，26岁黑色风衣女记者攥着怀表，冷色调',
+                  title: 'Mirror 1 first frame',
+                  prompt: 'Vertical screen 9:16 Realistic cinematic feel, on the rooftop on a rainy night, a 26-year-old female reporter in black trench coat clutches a pocket watch, cold colors',
                 },
                 {
                   type: 'image',
-                  title: '镜 2 首帧',
-                  prompt: '竖屏 9:16 写实电影感，30岁金丝眼镜男子站在天台阴影中回眸冷笑',
+                  title: 'Mirror 2 first frame',
+                  prompt: 'Vertical screen 9:16 Realistic cinematic feel, a 30-year-old man with gold-rimmed glasses stands in the shadow of the rooftop and looks back with a sneer.',
                 },
               ],
             });
@@ -831,14 +831,14 @@ export function createFakeModelServer(options = {}) {
             sendToolCall(res, body.model, 'canvas_generation_propose', {
               kind: 'image',
               nodeIds: imgList.map((n) => n.id),
-              note: '按短剧分镜到首帧技能第 3 步，为镜 1 首帧、镜 2 首帧发起生成提议',
+              note: 'Storyboard the skit to step 3 of the first frame skill, and initiate generation suggestions for the first frame of mirror 1 and the first frame of mirror 2',
             });
             return;
           }
           sendTextReply(
             res,
             body.model,
-            '已严格按照「短剧分镜到首帧」技能第 3 步规范：创建「镜 1 首帧」「镜 2 首帧」图片节点（画幅 9:16、数量 1），将真实节点 ID 写回分镜行 `imageNodeId`，并提交了生成提议。请在面板里确认后才会开始生成、才会计费。',
+            'Step 3 of the "Short Play Storyboarding to the First Frame" skill has been strictly followed: Create "First Frame of Mirror 1" and "First Frame of Mirror 2" picture nodes (frame 9:16, quantity 1), write the real node ID back to the storyboard line `imageNodeId`, and submit a generation proposal. Please confirm in the panel before the generation and billing will start.',
           );
           return;
         }
@@ -854,26 +854,26 @@ export function createFakeModelServer(options = {}) {
         sendToolCall(res, body.model, 'canvas_nodes_create', {
           expectedRevision: rev,
           nodes: [
-            { type: 'script', title: '分镜脚本' },
+            { type: 'script', title: 'Storyboard' },
             {
               type: 'image',
-              title: '镜 1 首帧',
-              prompt: '都市雨夜街头，女主撑着透明雨伞蹲在积水路边，捡起一枚带刻痕的银色袖扣，霓虹倒影，竖屏 9:16',
+              title: 'Mirror 1 first frame',
+              prompt: 'On the street on a rainy night in the city, the heroine squatted on the side of the puddle holding a transparent umbrella and picked up a silver cufflink with scores, neon reflection, vertical screen 9:16',
             },
             {
               type: 'image',
-              title: '镜 2 首帧',
-              prompt: '女主猛然抬头看向街角暗巷，远处黑影一闪而过，雨丝如织，悬疑冷色调，竖屏 9:16',
+              title: 'Mirror 2 first frame',
+              prompt: 'The heroine suddenly raised her head and looked towards the dark alley at the corner of the street. Black shadows flashed past in the distance, rain was like weaving, suspenseful and cold tones, vertical screen 9:16',
             },
             {
               type: 'video',
-              title: '镜 1 视频',
-              prompt: '镜头从雨水涟漪推向女主手中的银色袖扣，女主手指微微颤抖',
+              title: 'mirror 1 video',
+              prompt: 'The camera moves from the ripples of rain to the silver cufflinks in the heroine\'s hand, and the heroine\'s fingers tremble slightly.',
             },
             {
               type: 'video',
-              title: '镜 2 视频',
-              prompt: '女主撑伞急步追向街角暗巷，镜头快速跟拍，霓虹灯光在湿滑地面拉出光轨',
+              title: 'mirror 2 video',
+              prompt: 'The heroine held an umbrella and hurriedly chased into the dark alley around the corner. The camera quickly followed the shot, and the neon lights drew light trails on the slippery ground.',
             },
           ],
         });
@@ -893,17 +893,17 @@ export function createFakeModelServer(options = {}) {
           rows: [
             {
               durationSeconds: 5,
-              plotDescription: '女主在都市雨夜街头积水旁发现失踪案关键银色袖扣',
-              dialogue: '这枚袖扣……他昨晚真的来过这里！',
-              imageGenerationPrompt: '都市雨夜街头，女主撑着透明雨伞蹲在积水路边，捡起一枚带刻痕的银色袖扣，9:16',
-              videoMotionPrompt: '镜头从雨水涟漪推向女主手中的银色袖扣，女主手指微微颤抖',
+              plotDescription: 'The heroine discovers the key to the disappearance case, silver cufflinks, beside the puddles on the street on a rainy night in the city.',
+              dialogue: 'This cufflink...he really was here last night!',
+              imageGenerationPrompt: 'On the street on a rainy night in the city, the heroine squatted on the side of the pond holding a transparent umbrella and picked up a silver cufflink with a score, 9:16',
+              videoMotionPrompt: 'The camera moves from the ripples of rain to the silver cufflinks in the heroine\'s hand, and the heroine\'s fingers tremble slightly.',
             },
             {
               durationSeconds: 5,
-              plotDescription: '女主抬头发现暗巷黑影闪过，立刻起身追入雨幕',
-              dialogue: '站住！别走！',
-              imageGenerationPrompt: '女主猛然抬头看向街角暗巷，远处黑影一闪而过，雨丝如织，悬疑冷色调，9:16',
-              videoMotionPrompt: '女主撑伞急步追向街角暗巷，镜头快速跟拍',
+              plotDescription: 'The heroine looked up and saw a dark shadow flashing across the dark alley, and immediately got up and chased her into the rain.',
+              dialogue: 'Stop! Don\'t go!',
+              imageGenerationPrompt: 'The heroine suddenly looked up at the dark alley at the corner of the street. Black shadows flashed past in the distance, rain was like weaving, suspenseful and cold tones, 9:16',
+              videoMotionPrompt: 'The heroine held an umbrella and hurriedly chased towards the corner of the street, and the camera quickly followed her.',
             },
           ],
         });
@@ -955,7 +955,7 @@ export function createFakeModelServer(options = {}) {
         sendToolCall(res, body.model, 'canvas_generation_propose', {
           kind: 'image',
           nodeIds: imgNodes.map((n) => n.id),
-          note: '为镜 1、镜 2 首帧图发起生成提议',
+          note: 'Initiate generation proposal for the first frame of Mirror 1 and Mirror 2',
         });
         return;
       }
@@ -963,7 +963,7 @@ export function createFakeModelServer(options = {}) {
       sendTextReply(
         res,
         body.model,
-        '已完成都市短剧雨夜寻踪开场的 2 镜头分镜脚本、2 个首帧图节点与 2 个视频生成节点，完成了分镜行绑定与首帧到视频的参考连线，并提出了首帧图生成提议。',
+        'The 2-shot storyboard script, 2 first frame graph nodes and 2 video generation nodes for the opening of the urban short drama "Traveling on a Rainy Night" have been completed. The storyboard row binding and the reference connection from the first frame to the video have been completed, and a proposal for first frame graph generation has been made.',
       );
     } catch (error) {
       res.writeHead(error?.reason === 'aborted_budget' ? 429 : 500, { 'Content-Type': 'application/json' });
@@ -1006,13 +1006,13 @@ export function createFakeModelServer(options = {}) {
 export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
   return {
     id: canvasId,
-    title: '森林奇遇四镜头分镜画布',
+    title: 'Forest adventure four-shot storyboard canvas',
     revision: 5,
     nodes: [
       {
         id: 'node-script-1',
         type: 'script',
-        title: '分镜脚本',
+        title: 'Storyboard',
         position: { x: 120, y: 160 },
         width: 920,
         height: 360,
@@ -1027,14 +1027,14 @@ export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
                 id: 'shot-1',
                 shotNumber: 1,
                 durationSeconds: 5,
-                plotDescription: '第一镜：正午烈日下的荒原古道，旅人背影远去',
-                dialogue: '旅途才刚刚开始。',
-                shotSize: '远景',
-                camera: '固定',
-                motion: '静止',
-                emotion: '苍凉',
-                imageGenerationPrompt: '正午烈日下的荒原古道，旅人背影，9:16',
-                videoMotionPrompt: '风沙掠过荒原古道，旅人缓步前行',
+                plotDescription: 'First shot: An ancient road in the wilderness under the scorching sun at noon, the travelers’ backs disappearing into the distance',
+                dialogue: 'The journey has just begun.',
+                shotSize: 'Vision',
+                camera: 'Fixed',
+                motion: 'still',
+                emotion: 'Desolation',
+                imageGenerationPrompt: 'The ancient road in the wilderness under the scorching sun at noon, the back of the traveler, 9:16',
+                videoMotionPrompt: 'The wind and sand swept over the ancient road in the wilderness, and the travelers moved forward slowly',
                 imageNodeId: 'node-img-1',
                 videoNodeId: 'node-vid-1',
                 status: 'idle',
@@ -1043,14 +1043,14 @@ export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
                 id: 'shot-2',
                 shotNumber: 2,
                 durationSeconds: 5,
-                plotDescription: '第二镜：黄昏溪流边的石桥，旅人驻足饮水',
-                dialogue: '前面应该就是山谷入口了。',
-                shotSize: '中景',
-                camera: '平视',
-                motion: '缓推',
-                emotion: '平静',
-                imageGenerationPrompt: '黄昏溪流边的石桥，旅人驻足饮水，暖色调，9:16',
-                videoMotionPrompt: '溪水潺潺流动，夕阳余晖洒在水面',
+                plotDescription: 'Second shot: Stone bridge by the stream at dusk, travelers stop to drink water',
+                dialogue: 'The entrance to the valley should be ahead.',
+                shotSize: 'medium shot',
+                camera: 'eye level',
+                motion: 'Push slowly',
+                emotion: 'calm',
+                imageGenerationPrompt: 'Stone bridge by the stream at dusk, travelers stop to drink water, warm colors, 9:16',
+                videoMotionPrompt: 'The gurgling stream flows, and the afterglow of the setting sun shines on the water',
                 imageNodeId: 'node-img-2',
                 videoNodeId: 'node-vid-2',
                 status: 'idle',
@@ -1059,14 +1059,14 @@ export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
                 id: 'shot-3',
                 shotNumber: 3,
                 durationSeconds: 5,
-                plotDescription: '第三镜：深夜暴雨中的废弃木屋，篝火摇曳',
-                dialogue: '今晚只能在这里避雨了。',
-                shotSize: '近景',
-                camera: '平视',
-                motion: '固定',
-                emotion: '孤寂',
-                imageGenerationPrompt: '深夜暴雨中的废弃木屋，室内篝火摇曳，9:16',
-                videoMotionPrompt: '窗外暴雨倾盆，屋内篝火火星跳动',
+                plotDescription: 'Third shot: Abandoned wooden house in heavy rain late at night, bonfire swaying',
+                dialogue: 'I can only take shelter from the rain tonight.',
+                shotSize: 'close shot',
+                camera: 'eye level',
+                motion: 'Fixed',
+                emotion: 'loneliness',
+                imageGenerationPrompt: 'Abandoned wooden house in heavy rain late at night, bonfire swaying indoors, 9:16',
+                videoMotionPrompt: 'Heavy rain pours outside the window, and sparks dance from the bonfire inside the house',
                 imageNodeId: 'node-img-3',
                 videoNodeId: 'node-vid-3',
                 status: 'idle',
@@ -1075,14 +1075,14 @@ export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
                 id: 'shot-4',
                 shotNumber: 4,
                 durationSeconds: 5,
-                plotDescription: '第四镜：雪山之巅的破晓金光，旅人眺望云海',
-                dialogue: '终于到了。',
-                shotSize: '大远景',
-                camera: '航拍',
-                motion: '环绕上升',
-                emotion: '振奋',
-                imageGenerationPrompt: '雪山之巅的破晓金光，旅人眺望云海，9:16',
-                videoMotionPrompt: '航拍镜头围绕雪山之巅缓缓上升，云海翻涌',
+                plotDescription: 'The fourth shot: the golden light of dawn on the top of the snow-capped mountains, the traveler looks at the sea of clouds',
+                dialogue: 'Finally arrived.',
+                shotSize: 'big vision',
+                camera: 'aerial photography',
+                motion: 'rising around',
+                emotion: 'Invigorate',
+                imageGenerationPrompt: 'The golden light of dawn on the top of the snow-capped mountains, the traveler looks at the sea of clouds, 9:16',
+                videoMotionPrompt: 'Aerial footage slowly rises around the top of the snow-capped mountains, and the sea of clouds surges',
                 imageNodeId: 'node-img-4',
                 videoNodeId: 'node-vid-4',
                 status: 'idle',
@@ -1094,14 +1094,14 @@ export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
       ...[1, 2, 3, 4].map((n) => ({
         id: `node-img-${n}`,
         type: 'image',
-        title: `镜 ${n} 首帧`,
+        title: `mirror${n} first frame`,
         position: { x: 1120, y: 80 + (n - 1) * 440 },
         width: 720,
         height: 405,
         metadata: {
           content: '',
-          prompt: `原始第 ${n} 镜首帧提示词`,
-          composerContent: `原始第 ${n} 镜首帧提示词`,
+          prompt: `Original Chapter${n} First frame prompt word`,
+          composerContent: `Original Chapter${n} First frame prompt word`,
           status: 'idle',
           size: '9:16',
           count: 1,
@@ -1110,14 +1110,14 @@ export function buildS3SeedCanvas(canvasId = 'canvas-s3') {
       ...[1, 2, 3, 4].map((n) => ({
         id: `node-vid-${n}`,
         type: 'video',
-        title: `镜 ${n} 视频`,
+        title: `mirror${n} video`,
         position: { x: 1920, y: 80 + (n - 1) * 440 },
         width: 720,
         height: 405,
         metadata: {
           content: '',
-          prompt: `原始第 ${n} 镜视频运镜提示词`,
-          composerContent: `原始第 ${n} 镜视频运镜提示词`,
+          prompt: `Original Chapter${n} Mirror video mirror tips`,
+          composerContent: `Original Chapter${n} Mirror video mirror tips`,
           status: 'idle',
           size: '9:16',
           seconds: '6',
@@ -1157,8 +1157,8 @@ export const SCENARIOS = [
     id: 'shortdrama-2shot',
     code: 'S1',
     aliases: ['S1', 's1', 'shortdrama-2shot'],
-    name: 'S1 短剧开场 2 镜（全链路脚本+首帧+视频+连线）',
-    description: '空画布输入 2 镜头都市短剧开场需求，检查分镜节点、2 行分镜、首帧图与视频节点、参考连线及零悬空节点。',
+    name: 'S1 short play opening 2 shots (full link script + first frame + video + connection)',
+    description: 'Enter the opening requirements of a 2-shot urban short play on an empty canvas, and check the storyboard nodes, 2-line storyboards, first frame image and video nodes, reference connections and zero dangling nodes.',
     capabilities: [],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
@@ -1168,7 +1168,7 @@ export const SCENARIOS = [
     turns: [
       {
         id: 'turn-s1-1',
-        message: '做一个都市短剧开场：女主在雨夜街头发现失踪线索（含每镜剧情描述、台词与首帧/视频提示词），做 2 个镜头的脚本和首帧图节点，并连到对应视频生成节点。',
+        message: 'Make an urban short play opening: the heroine discovers missing clues on the streets on a rainy night (including plot descriptions for each shot, lines and first frame/video prompts), make scripts and first frame graph nodes for the two shots, and connect them to the corresponding video generation nodes.',
       },
     ],
     evaluate({ simGo, canvasId, turnRecords }) {
@@ -1219,27 +1219,27 @@ export const SCENARIOS = [
         {
           name: 'script_node_created',
           passed: scriptNodes.length >= 1,
-          detail: `script 节点数=${scriptNodes.length}`,
+          detail: `script node number=${scriptNodes.length}`,
         },
         {
           name: 'script_rows_complete',
           passed: rowsComplete,
-          detail: `分镜行数=${rows.length}，字段完整=${rowsComplete}`,
+          detail: `Number of storyboard lines =${rows.length},field complete=${rowsComplete}`,
         },
         {
           name: 'image_and_video_nodes_created',
           passed: imgNodes.length >= 2 && vidNodes.length >= 2,
-          detail: `image 节点=${imgNodes.length}，video 节点=${vidNodes.length}`,
+          detail: `image node=${imgNodes.length}, video node =${vidNodes.length}`,
         },
         {
           name: 'image_to_video_edges_connected',
           passed: imgToVidEdges.length >= 2,
-          detail: `image->video 连线数=${imgToVidEdges.length}`,
+          detail: `image->video number of connections =${imgToVidEdges.length}`,
         },
         {
           name: 'zero_dangling_media_nodes',
           passed: danglingMediaNodes.length === 0 && mediaNodes.length >= 4,
-          detail: `悬空媒体节点数=${danglingMediaNodes.length}`,
+          detail: `Number of dangling media nodes =${danglingMediaNodes.length}`,
         },
         {
           name: 'no_unrecovered_errors',
@@ -1260,8 +1260,8 @@ export const SCENARIOS = [
     id: 'storyboard-8shot',
     code: 'S2',
     aliases: ['S2', 's2', 'storyboard-8shot'],
-    name: 'S2 8 镜分镜表且仅物化前 2 镜首帧',
-    description: '生成完整 8 镜分镜表，只为前 2 镜创建首帧图节点并写回分镜行 imageNodeId，第 3–8 镜不越界创建。',
+    name: 'S2 8-shot storyboard and only the first 2 frames of materialization',
+    description: 'Generate a complete 8-shot storyboard. Only create the first frame graph node for the first 2 shots and write back the storyboard row imageNodeId. The 3rd to 8th shots are not created out of bounds.',
     capabilities: [],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
@@ -1271,7 +1271,7 @@ export const SCENARIOS = [
     turns: [
       {
         id: 'turn-s2-1',
-        message: '做一个 30 秒科幻预告片分镜表（8 个镜头），先把分镜表写完整，再只为前 2 个镜头创建首帧图节点并回填到分镜行。',
+        message: 'Make a 30-second science fiction trailer storyboard (8 shots). Complete the storyboard first, then create the first frame graph node for only the first 2 shots and backfill it into the storyboard row.',
       },
     ],
     evaluate({ simGo, canvasId }) {
@@ -1297,22 +1297,22 @@ export const SCENARIOS = [
         {
           name: 'eight_storyboard_rows',
           passed: rows.length === 8,
-          detail: `分镜行数=${rows.length}（期望 8）`,
+          detail: `Number of storyboard lines =${rows.length}(expected 8)`,
         },
         {
           name: 'only_two_image_nodes_created',
           passed: imgNodes.length === 2,
-          detail: `image 节点数=${imgNodes.length}（期望 2，不越界建 8 个）`,
+          detail: `image node number =${imgNodes.length}(Expect 2, build 8 without crossing the line)`,
         },
         {
           name: 'first_two_rows_bound_to_real_nodes',
           passed: boundRows12,
-          detail: `第1镜绑定=${rows[0]?.imageNodeId || '无'}，第2镜绑定=${rows[1]?.imageNodeId || '无'}`,
+          detail: `1st mirror binding =${rows[0]?.imageNodeId || 'None'}, 2nd mirror binding =${rows[1]?.imageNodeId || 'None'}`,
         },
         {
           name: 'rows_3_to_8_remain_unbound',
           passed: unboundRows3to8,
-          detail: `第3-8镜未绑定=${unboundRows3to8}`,
+          detail: `Mirrors 3-8 are not bound =${unboundRows3to8}`,
         },
       ];
 
@@ -1328,8 +1328,8 @@ export const SCENARIOS = [
     id: 'local-edit',
     code: 'S3',
     aliases: ['S3', 's3', 'local-edit'],
-    name: 'S3 已有画布单镜局部修改（严禁误伤其余节点）',
-    description: '预置 4 镜分镜+4 首帧+4 视频画布，只改第 3 镜画面与第 3 首帧提示词，断言其余节点/行/连线零改动。',
+    name: 'S3 has partially modified the existing canvas single lens (accidental damage to other nodes is strictly prohibited)',
+    description: 'Preset 4-shot storyboard + 4 first frames + 4 video canvases, only change the 3rd shot and the 3rd first-frame prompt word, and assert that the remaining nodes/rows/connections have zero changes.',
     capabilities: [],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
@@ -1340,7 +1340,7 @@ export const SCENARIOS = [
     turns: [
       {
         id: 'turn-s3-1',
-        message: '只把第 3 个镜头的画面改成清晨薄雾森林，并同步更新第 3 个首帧图节点的提示词，不要动其他镜头和节点。',
+        message: 'Only change the third shot to a misty forest in the early morning, and update the prompt word of the third first frame node simultaneously. Do not touch other shots and nodes.',
       },
     ],
     evaluate({ simGo, canvasId, setupState }) {
@@ -1381,27 +1381,27 @@ export const SCENARIOS = [
         {
           name: 'row_3_updated',
           passed: Boolean(row3Updated),
-          detail: `第3镜描述=${afterRows[2]?.plotDescription || ''}`,
+          detail: `3rd mirror description =${afterRows[2]?.plotDescription || ''}`,
         },
         {
           name: 'img_3_prompt_updated',
           passed: Boolean(img3Updated),
-          detail: `镜3首帧提示词=${afterImg3?.metadata?.prompt || ''}`,
+          detail: `Mirror 3 first frame prompt word=${afterImg3?.metadata?.prompt || ''}`,
         },
         {
           name: 'other_rows_unchanged',
           passed: otherRowsUnchanged,
-          detail: `第1/2/4镜完全未变=${otherRowsUnchanged}`,
+          detail: `Shots 1/2/4 are completely unchanged =${otherRowsUnchanged}`,
         },
         {
           name: 'other_nodes_unchanged',
           passed: otherNodesUnchanged && after.nodes.length === before.nodes.length,
-          detail: `其余7个媒体节点完全未变=${otherNodesUnchanged}，总节点数=${after.nodes.length}`,
+          detail: `The remaining 7 media nodes are completely unchanged =${otherNodesUnchanged}, total number of nodes =${after.nodes.length}`,
         },
         {
           name: 'edges_unchanged',
           passed: edgesUnchanged,
-          detail: `全部12条连线未变=${edgesUnchanged}`,
+          detail: `All 12 connections remain unchanged =${edgesUnchanged}`,
         },
       ];
 
@@ -1417,8 +1417,8 @@ export const SCENARIOS = [
     id: 'mid-turn-steer',
     code: 'S4',
     aliases: ['S4', 's4', 'mid-turn-steer'],
-    name: 'S4 同轮中途补充改向（/steer 实时收敛）',
-    description: '首轮发起 4 镜古风武侠需求，在模型首个请求到达时通过 /steer 注入改为赛博朋克霓虹夜市 2 镜头，同轮完成。',
+    name: 'S4 Supplementary redirection in the middle of the same round (/steer real-time convergence)',
+    description: 'In the first round, 4 shots of ancient martial arts were initiated. When the first request for the model arrived, it was changed to 2 shots of Cyberpunk Neon Night Market through /steer injection, which was completed in the same round.',
     capabilities: [],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
@@ -1428,9 +1428,9 @@ export const SCENARIOS = [
     turns: [
       {
         id: 'turn-s4-1',
-        message: '帮我规划一个 4 镜头古风武侠开场，创建脚本节点和 4 个首帧图节点。',
+        message: 'Help me plan a 4-shot ancient martial arts opening, create script nodes and 4 first frame graph nodes.',
         steerOnFirstModelRequest: {
-          message: '改成赛博朋克霓虹夜市风格，而且只需要 2 个镜头。',
+          message: 'Change it to a cyberpunk neon night market style and only require 2 shots.',
         },
       },
     ],
@@ -1453,22 +1453,22 @@ export const SCENARIOS = [
         {
           name: 'steer_accepted_mid_turn',
           passed: steerAccepted,
-          detail: `steer响应=${JSON.stringify(steerResults[0] || null)}`,
+          detail: `steerresponse=${JSON.stringify(steerResults[0] || null)}`,
         },
         {
           name: 'converged_to_2_shots',
           passed: rows.length === 2 && imgNodes.length === 2,
-          detail: `最终分镜行数=${rows.length}，image节点数=${imgNodes.length}`,
+          detail: `Number of final storyboard lines =${rows.length}, number of image nodes =${imgNodes.length}`,
         },
         {
           name: 'style_updated_to_cyberpunk',
           passed: isCyberpunk,
-          detail: `赛博朋克霓虹夜市风格生效=${isCyberpunk}`,
+          detail: `Cyberpunk neon night market style takes effect =${isCyberpunk}`,
         },
         {
           name: 'completed_in_single_turn',
           passed: (turnRecords || []).length === 1 && !turnRecords[0]?.error,
-          detail: `回合数=${(turnRecords || []).length}`,
+          detail: `Number of rounds=${(turnRecords || []).length}`,
         },
       ];
 
@@ -1484,19 +1484,19 @@ export const SCENARIOS = [
     id: 'post-generation-review',
     code: 'S5',
     aliases: ['S5', 's5', 'post-generation-review'],
-    name: 'S5 生成后自动唤醒画面复查与重提生成',
-    description: '首轮提交生成提议并由模拟器完成带六指缺陷的生成产物，验证宿主是否具备 wake-on-generation 自动唤醒复查能力。',
+    name: 'Automatic wake-up screen review and re-generation after S5 generation',
+    description: 'In the first round, the generation proposal is submitted and the simulator completes the generation product with the six-finger defect to verify whether the host has the wake-on-generation automatic wake-up review capability.',
     capabilities: ['wake-on-generation'],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
       const doc = simGo.ensureCanvas(canvasId);
-      simGo.flagNextTaskDefect('人物右手有6根手指，手部明显畸形');
+      simGo.flagNextTaskDefect('The character\'s right hand has 6 fingers and the hand is obviously deformed.');
       return { beforeCanvas: clone(doc) };
     },
     turns: [
       {
         id: 'turn-s5-1',
-        message: '创建一个特写人像首帧图节点并提交生成任务，生成完成后帮我检查画面是否有手部畸形，有问题就重写提示词重新生成。',
+        message: 'Create a node for the first frame of a close-up portrait and submit the generation task. After the generation is completed, help me check whether there are hand deformities in the picture. If there are any problems, rewrite the prompt words and regenerate.',
         confirmProposalsAfterTurn: true,
         // 上限而非固定等待：真实模型被唤醒后要几次请求才复查完，看到复查且助手停下就结束。
         awaitAutoWakeMs: 120_000,
@@ -1520,17 +1520,17 @@ export const SCENARIOS = [
         {
           name: 'initial_node_and_proposal_created',
           passed: imgNodes.length >= 1 && firstProposalConfirmed && taskDelivered,
-          detail: `image节点=${imgNodes.length}, 首次提议已确认=${firstProposalConfirmed}, 任务已交付=${taskDelivered}`,
+          detail: `image node=${imgNodes.length}, first proposal confirmed =${firstProposalConfirmed}, task delivered =${taskDelivered}`,
         },
         {
           name: 'auto_wake_on_generation',
           passed: autoWoken && mediaInspected && reProposed,
           capabilityGap: !autoWoken && wakeResult?.eventAccepted ? 'wake-on-generation' : undefined,
           detail: autoWoken
-            ? `已自动唤醒并执行 media.inspect(${snap.counts.mediaInspections}) 与重提生成(${canvasProposals.length})`
+            ? `Has automatically woken up and executed media.inspect(${snap.counts.mediaInspections}) and retrieval generation (${canvasProposals.length})`
             : wakeResult?.eventAccepted
-              ? '完成事件已接受；观察窗口内没有自动复查 (capability gap: wake-on-generation)'
-              : '生成完成事件未被宿主接受，不能据此判断自动唤醒能力',
+              ? 'Completion event accepted; no automatic review within watch window (capability gap: wake-on-generation)'
+              : 'The generation completion event is not accepted by the host and cannot be used to judge the automatic wake-up capability.',
         },
       ];
 
@@ -1551,8 +1551,8 @@ export const SCENARIOS = [
     id: 'skill-across-turns',
     code: 'S6',
     aliases: ['S6', 's6'],
-    name: 'S6 首轮激活技能后的多轮规则保持（short-drama-storyboard）',
-    description: '仅首轮选择「短剧分镜到首帧」技能，后续自然补充和确认，验证活动技能仍进入每次模型请求且首帧遵守规则；不触发或宣称压缩。',
+    name: 'S6 multi-round rules maintenance after activating skills in the first round (short-drama-storyboard)',
+    description: 'Only the "short drama storyboarding to the first frame" skill is selected in the first round, and will be naturally supplemented and confirmed later to verify that the active skill still enters every model request and the first frame complies with the rules; no compression is triggered or declared.',
     capabilities: [],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
@@ -1565,28 +1565,28 @@ export const SCENARIOS = [
         id: 'turn-s6-1',
         useActiveSkillPins: true,
         message:
-          '[S6_TURN_1] 我选了「短剧分镜到首帧」技能。剧本梗概：雨夜天台，女记者林晚拿着染血怀表质问线人沈默（2个镜头，竖屏 9:16，写实电影感）。请先完成角色设定和分镜脚本。',
+          '[S6_TURN_1] I chose the "Short Play Storyboarding to the First Frame" skill. Summary of the script: On the rooftop on a rainy night, female reporter Lin Wan holds a blood-stained pocket watch to question the silence of her informant (2 shots, vertical screen 9:16, realistic cinematic feel). Please complete the character settings and storyboards first.',
       },
       {
         id: 'turn-s6-2',
         message:
-          '[S6_TURN_2] 角色设定我确认了。补充一下：林晚调查失踪案已经三年，怀表里藏着微缩胶卷，沈默其实是幕后组织联络人。请完善分镜，先让我看看。',
+          '[S6_TURN_2] I have confirmed the character settings. To add: Lin Wan has been investigating the disappearance case for three years. There is a microfilm hidden in his pocket watch. Shen Mo is actually the liaison person of the organization behind the scenes. Please improve the storyboard and let me see it first.',
       },
       {
         id: 'turn-s6-3',
         message:
-          '[S6_TURN_3] 天台要有积水反射远处的红色霓虹，冷蓝主光配合闪电侧逆光。先核对现有分镜是否适合这个氛围，暂时不要做图。',
+          '[S6_TURN_3] There should be water on the rooftop to reflect the red neon in the distance, and the cold blue main light should be combined with the lightning side backlight. First check whether the existing storyboard is suitable for the atmosphere, and don’t make pictures yet.',
       },
       {
         id: 'turn-s6-4',
-        message: '[S6_TURN_4] 分镜确认了，开始准备这两个镜头的首帧吧。',
+        message: '[S6_TURN_4] The storyboard is confirmed, let’s start preparing the first frames of these two shots.',
       },
     ],
     evaluate({ simGo, canvasId, turnRecords, requestEvidence = [] }) {
       const snap = simGo.snapshot();
       const doc = snap.canvases[canvasId] || { nodes: [], connections: [] };
       const nodes = doc.nodes || [];
-      const mdNode = nodes.find((n) => (n.type === 'markdown' || n.type === 'text') && String(n.title || '').includes('角色设定'));
+      const mdNode = nodes.find((n) => (n.type === 'markdown' || n.type === 'text') && String(n.title || '').includes('Character setting'));
       const scriptNode = nodes.find((n) => n.type === 'script');
       const rows = scriptNode?.metadata?.storyboard?.rows || [];
       const imgNodes = nodes.filter((n) => n.type === 'image');
@@ -1609,27 +1609,27 @@ export const SCENARIOS = [
           name: 'active_skill_present_in_every_turn_request',
           // 只用能按会话确认属于本场景的请求作证据；归属未知的单列，不算通过也不算失败。
           passed: new Set(owned.map((entry) => entry.turnId)).size === 4 && owned.every((entry) => entry.activeSkillPresent),
-          detail: `活动技能进入非系统请求上下文=${owned.filter((entry) => entry.activeSkillPresent).length}/${owned.length} 次模型请求，归属未知 ${requestEvidence.length - owned.length} 次`,
+          detail: `Active skill enters non-system request context =${owned.filter((entry) => entry.activeSkillPresent).length}/${owned.length} Sub-model request, ownership unknown${requestEvidence.length - owned.length} times`,
         },
         {
           name: 'four_turns_completed_in_same_session',
           passed: (turnRecords || []).length === 4 && turnRecords.every((t) => !t.error),
-          detail: `完成回合数=${(turnRecords || []).length}`,
+          detail: `Number of rounds completed =${(turnRecords || []).length}`,
         },
         {
           name: 'step1_and_step2_artifacts_preserved',
           passed: Boolean(mdNode) && Boolean(scriptNode) && rows.length === 2,
-          detail: `角色设定节点=${Boolean(mdNode)}，分镜脚本行数=${rows.length}`,
+          detail: `Role setting node =${Boolean(mdNode)}, the number of storyboard lines =${rows.length}`,
         },
         {
           name: 'step3_image_nodes_follow_skill_naming_and_aspect',
           passed: titlesFollowSkill && configured916,
-          detail: `标题符合「镜 N 首帧」=${titlesFollowSkill}，画幅9:16且count=1=${configured916} (${imgNodes.map((n) => `${n.title}:${n.metadata?.size}/${n.metadata?.count}`).join(', ')})`,
+          detail: `The title matches "Mirror N First Frame" =${titlesFollowSkill}, frame size 9:16 and count=1=${configured916} (${imgNodes.map((n) => `${n.title}:${n.metadata?.size}/${n.metadata?.count}`).join(', ')})`,
         },
         {
           name: 'step3_rows_bound_and_proposal_submitted',
           passed: rowsBound && proposalCreated,
-          detail: `分镜行imageNodeId已回填=${rowsBound}，生成提议已提交=${proposalCreated}`,
+          detail: `Storyline row imageNodeId has been backfilled =${rowsBound}, the generated proposal has been submitted =${proposalCreated}`,
         },
       ];
 
@@ -1644,23 +1644,23 @@ export const SCENARIOS = [
     id: 'user-requested-generation-review',
     code: 'S7',
     aliases: ['S7', 's7'],
-    name: 'S7 用户主动复查生成结果并修正重提',
-    description: '用户确认首轮生成后，再主动要求检查产物；验证读取产物、改提示词与重提生成，重提仍等待用户确认。',
+    name: 'S7 users actively review the generated results and correct and resubmit them',
+    description: 'After the user confirms the first round of generation, he then proactively requests to check the product; the user verifies reading the product, changing the prompt word, and reproducing the product. The resubmission is still waiting for the user\'s confirmation.',
     capabilities: [],
     expectedBaselinePass: true,
     setup(simGo, canvasId) {
       simGo.ensureCanvas(canvasId);
-      simGo.flagNextTaskDefect('人物右手有6根手指，手部明显畸形');
+      simGo.flagNextTaskDefect('The character\'s right hand has 6 fingers and the hand is obviously deformed.');
     },
     turns: [
       {
         id: 'turn-s7-1',
-        message: '创建一个特写人像首帧图节点并提交生成提议，注意手部畸形问题。',
+        message: 'Create a close-up portrait first frame graph node and submit a generation proposal, paying attention to hand deformities.',
         confirmProposalsAfterTurn: true,
       },
       {
         id: 'turn-s7-2',
-        message: '图已经生成好了，请复查刚生成的画面，有问题就改提示词，再给我一个生成提议。',
+        message: 'The picture has been generated. Please review the newly generated picture, change the prompt word if there is any problem, and give me a generation suggestion.',
       },
     ],
     evaluate({ simGo, canvasId, turnRecords }) {
@@ -1681,17 +1681,17 @@ export const SCENARIOS = [
         {
           name: 'explicit_user_review_after_delivery',
           passed: turnRecords.length === 2 && turnRecords.every((turn) => !turn.error) && tasks.length === 1 && tasks[0].status === 'succeeded',
-          detail: `用户轮次=${turnRecords.length}，首次生成任务已交付=${tasks[0]?.status === 'succeeded'}`,
+          detail: `User round =${turnRecords.length}, the first build task has been delivered =${tasks[0]?.status === 'succeeded'}`,
         },
         {
           name: 'result_inspected_and_prompt_corrected',
           passed: inspectedAt >= 0 && correctedAt > inspectedAt && proposedAt > correctedAt && nodes.length === 1,
-          detail: `按顺序检查、修改、重提=${inspectedAt >= 0 && correctedAt > inspectedAt && proposedAt > correctedAt}，在原节点修改而非重复创建=${nodes.length === 1}`,
+          detail: `Check, modify, and repeat in order =${inspectedAt >= 0 && correctedAt > inspectedAt && proposedAt > correctedAt}, modify the original node instead of re-creating =${nodes.length === 1}`,
         },
         {
           name: 'replacement_proposal_waits_for_user_confirmation',
           passed: proposals.length === 2 && proposals[0].confirmed && !proposals[1].confirmed && tasks.length === 1,
-          detail: `提议数=${proposals.length}，重提尚未确认=${proposals[1]?.confirmed === false}，实际任务数=${tasks.length}`,
+          detail: `Number of proposals=${proposals.length}, the re-mention has not yet been confirmed =${proposals[1]?.confirmed === false}, actual number of tasks =${tasks.length}`,
         },
       ];
       return { passed: checks.every((check) => check.passed), status: checks.every((check) => check.passed) ? 'passed' : 'failed', checks };
@@ -1715,7 +1715,7 @@ export function resolveScenarioList(selector = 'all') {
       (s) => s.id.toLowerCase() === part.toLowerCase() || s.code.toLowerCase() === part.toLowerCase() || (s.aliases || []).some((a) => a.toLowerCase() === part.toLowerCase()),
     );
     if (!found) {
-      throw new Error(`未知评测场景: ${part}（可选: all, parity, ${pool.map((s) => `${s.code}/${s.id}`).join(', ')}）`);
+      throw new Error(`Unknown evaluation scenario:${part}(optional: all, parity,${pool.map((s) => `${s.code}/${s.id}`).join(', ')}）`);
     }
     if (!matched.includes(found)) matched.push(found);
   }

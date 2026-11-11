@@ -47,12 +47,12 @@ func TestRegisterTaskOutputFromTaskPersistsMediaAssetAndArtifactIdempotently(t *
 			videoStep = step
 		}
 	}
-	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
 	submittedRevisionID := shot.CurrentRevisionID
-	if _, _, err = service.ProjectService().CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "任务提交后修改的镜头", DurationMs: 3000}); err != nil {
+	if _, _, err = service.ProjectService().CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "Shots modified after task submission", DurationMs: 3000}); err != nil {
 		t.Fatal(err)
 	}
 	now := time.Now()
@@ -128,8 +128,8 @@ func workflowProjectRevision(t *testing.T, db *gorm.DB, projectID string) int64 
 func seedWorkflowProject(t *testing.T, db *gorm.DB) (model.Project, model.ProjectUnit) {
 	t.Helper()
 	now := time.Now()
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
-	unit := model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Kind: model.ProjectUnitKindChapter, Title: "第一章", Status: model.ProjectUnitStatusDraft, CreatedAt: now, UpdatedAt: now}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
+	unit := model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Kind: model.ProjectUnitKindChapter, Title: "Chapter 1", Status: model.ProjectUnitStatusDraft, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&project).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -168,8 +168,8 @@ func TestCreateProjectCharacterCandidatesIsIdempotentAcrossPendingAndConfirmed(t
 	request := CreateAssetCandidatesRequest{
 		Source: assetCandidateSourceChapterCharacter,
 		Candidates: []AssetCandidateInput{{
-			UnitID: unit.ID, Name: " 小红帽 ", Category: string(model.AssetCategoryCharacter),
-			Details: validCharacterCandidateDetails([]any{"小红"}),
+			UnitID: unit.ID, Name: " little red riding hood", Category: string(model.AssetCategoryCharacter),
+			Details: validCharacterCandidateDetails([]any{"Xiaohong"}),
 		}},
 	}
 
@@ -212,7 +212,7 @@ func TestCreateProjectCharacterCandidatesRejectsNonChapterSource(t *testing.T) {
 	project, unit := seedWorkflowProject(t, db)
 	_, err := service.ProjectService().CreateProjectAssetCandidates("user-1", project.ID, CreateAssetCandidatesRequest{
 		Source:     "agent",
-		Candidates: []AssetCandidateInput{{UnitID: unit.ID, Name: "猎人", Category: string(model.AssetCategoryCharacter), Details: validCharacterCandidateDetails(nil)}},
+		Candidates: []AssetCandidateInput{{UnitID: unit.ID, Name: "hunter", Category: string(model.AssetCategoryCharacter), Details: validCharacterCandidateDetails(nil)}},
 	})
 	if err == nil {
 		t.Fatal("agent source unexpectedly created a character candidate")
@@ -221,8 +221,8 @@ func TestCreateProjectCharacterCandidatesRejectsNonChapterSource(t *testing.T) {
 
 func validCharacterCandidateDetails(aliases []any) map[string]any {
 	return map[string]any{
-		"role": "主角", "aliases": aliases, "appearance": "红色斗篷", "clothing": "红色兜帽与斗篷", "physique": "儿童体型",
-		"personality": "勇敢", "voiceLanguage": "普通话", "voiceAge": "儿童", "voiceTimbre": "清亮",
+		"role": "Protagonist", "aliases": aliases, "appearance": "red cloak", "clothing": "Red hood and cloak", "physique": "Child size",
+		"personality": "brave", "voiceLanguage": "mandarin", "voiceAge": "children", "voiceTimbre": "clear",
 	}
 }
 
@@ -252,7 +252,7 @@ func TestWorkflowCompletionRequiresStageGate(t *testing.T) {
 	if _, err := service.ProjectService().UpdateWorkflowStep("user-1", project.ID, step.ID, UpdateWorkflowStepRequest{Status: "completed"}); err == nil {
 		t.Fatal("empty chapter completed story gate")
 	}
-	unit.SourceText = "第一章正文"
+	unit.SourceText = "Chapter 1 Text"
 	unit.UpdatedAt = time.Now()
 	if err := db.Save(&unit).Error; err != nil {
 		t.Fatal(err)
@@ -272,7 +272,7 @@ func TestCreateShotRevisionInvalidatesExistingArtifacts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物推门进入", DurationMs: 3000})
+	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Characters push the door to enter", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func TestCreateShotRevisionInvalidatesExistingArtifacts(t *testing.T) {
 	if err := db.Create(&artifact).Error; err != nil {
 		t.Fatal(err)
 	}
-	updatedShot, revision, err := service.ProjectService().CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "人物推门后停在门口", Action: "推门、停顿", DurationMs: 3500})
+	updatedShot, revision, err := service.ProjectService().CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "The character stops at the door after pushing it open", Action: "push the door, pause", DurationMs: 3500})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -317,7 +317,7 @@ func TestReplaceProjectUnitShotsCreatesGeneratedAssetReferencesAtomically(t *tes
 	service, db := newProjectWorkflowV2TestService(t)
 	project, unit := seedWorkflowProject(t, db)
 	now := time.Now()
-	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategory("prop"), Status: model.AssetVersionStatus("ready"), PrimaryVersionID: "asset-version-1", Title: "旧信封", CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategory("prop"), Status: model.AssetVersionStatus("ready"), PrimaryVersionID: "asset-version-1", Title: "old envelope", CreatedAt: now, UpdatedAt: now}
 	version := model.AssetVersion{ID: "asset-version-1", AssetID: asset.ID, Version: 1, Status: model.AssetVersionStatus("ready"), CreatedAt: now, UpdatedAt: now}
 	link := model.ProjectAssetLink{ID: "project-asset-link-1", ProjectID: project.ID, AssetID: asset.ID, CreatedAt: now}
 	for _, item := range []any{&asset, &version, &link} {
@@ -330,7 +330,7 @@ func TestReplaceProjectUnitShotsCreatesGeneratedAssetReferencesAtomically(t *tes
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: workflowProjectRevision(t, db, project.ID),
 		Shots: []ReplaceProjectUnitShotInput{{
-			CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "人物拾起信封", DurationMs: 3000, Revision: ShotRevisionInput{PlotDescription: "人物拾起信封"}},
+			CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "Character picks up envelope", DurationMs: 3000, Revision: ShotRevisionInput{PlotDescription: "Character picks up envelope"}},
 			AssetVersionIDs:          []string{version.ID, version.ID},
 		}},
 	})
@@ -350,16 +350,16 @@ func TestReplaceProjectUnitShotsCreatesGeneratedAssetReferencesAtomically(t *tes
 	_, err = service.ProjectService().ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{"stale-shot-id"},
 		ExpectedRevision: workflowProjectRevision(t, db, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "并发替换", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "Concurrent replacement", DurationMs: 3000}}},
 	})
-	if err == nil || err.Error() != "本章分镜已发生变化，请刷新后重新确认" {
+	if err == nil || err.Error() != "The storyboard of this chapter has changed, please refresh and confirm again." {
 		t.Fatalf("concurrent replacement error = %v", err)
 	}
 
 	_, err = service.ProjectService().ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedRevision: workflowProjectRevision(t, db, project.ID),
 		Shots: []ReplaceProjectUnitShotInput{{
-			CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "无效资产", DurationMs: 3000},
+			CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "Invalid asset", DurationMs: 3000},
 			AssetVersionIDs:          []string{"missing-version"},
 		}},
 	})
@@ -385,7 +385,7 @@ func TestUnlinkShotAssetDeletesReferenceAndInvalidatesProduction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物走入画面", DurationMs: 3000})
+	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character enters the screen", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -446,7 +446,7 @@ func TestDeleteProjectShotCleansRelationsAndCompactsPositions(t *testing.T) {
 	shots := make([]model.Shot, 0, 3)
 	for index, title := range []string{"SC.01", "SC.02", "SC.03"} {
 		shot, createErr := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{
-			UnitID: unit.ID, Title: title, Description: "镜头画面", Position: index, DurationMs: 3000,
+			UnitID: unit.ID, Title: title, Description: "camera footage", Position: index, DurationMs: 3000,
 		})
 		if createErr != nil {
 			t.Fatal(createErr)
@@ -460,7 +460,7 @@ func TestDeleteProjectShotCleansRelationsAndCompactsPositions(t *testing.T) {
 	now := time.Now()
 	reference := model.ShotAssetReference{ID: "delete-reference-1", ShotID: target.ID, AssetVersionID: "asset-version-1", Role: "reference", Status: "linked", CreatedAt: now}
 	artifact := model.ShotArtifact{ID: "delete-artifact-1", ProjectID: project.ID, UnitID: unit.ID, ShotID: target.ID, RevisionID: target.CurrentRevisionID, Type: "video", Version: 1, Status: "ready", Selected: true, CreatedAt: now, UpdatedAt: now}
-	candidate := model.ProjectAssetCandidate{ID: "delete-candidate-1", ProjectID: project.ID, UnitID: unit.ID, ShotID: target.ID, Name: "雨伞", Category: model.AssetCategory("prop"), Status: "pending_confirmation", DetailsJSON: "{}", CreatedAt: now, UpdatedAt: now}
+	candidate := model.ProjectAssetCandidate{ID: "delete-candidate-1", ProjectID: project.ID, UnitID: unit.ID, ShotID: target.ID, Name: "umbrella", Category: model.AssetCategory("prop"), Status: "pending_confirmation", DetailsJSON: "{}", CreatedAt: now, UpdatedAt: now}
 	productionLink := model.ProductionTaskLink{ID: "delete-production-link-1", TaskID: "delete-task-1", ProjectID: project.ID, UnitID: unit.ID, ShotID: target.ID, ArtifactType: "video", CreatedAt: now, UpdatedAt: now}
 	for _, item := range []any{&reference, &artifact, &candidate, &productionLink} {
 		if err := db.Create(item).Error; err != nil {
@@ -517,7 +517,7 @@ func TestUpdateChapterSourceInvalidatesAllUnitArtifacts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "旧剧情镜头", DurationMs: 3000})
+	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "old plot footage", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -525,7 +525,7 @@ func TestUpdateChapterSourceInvalidatesAllUnitArtifacts(t *testing.T) {
 	if err := db.Create(&artifact).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err := service.ProjectService().UpdateProjectUnit("user-1", project.ID, unit.ID, UpdateProjectUnitRequest{Title: unit.Title, SourceText: "修改后的章节正文"}); err != nil {
+	if _, err := service.ProjectService().UpdateProjectUnit("user-1", project.ID, unit.ID, UpdateProjectUnitRequest{Title: unit.Title, SourceText: "Revised chapter text"}); err != nil {
 		t.Fatal(err)
 	}
 	var storedArtifact model.ShotArtifact
@@ -554,11 +554,11 @@ func TestRegisterTaskOutputAcceptsLinkedCanvasAndCreatesShotArtifact(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物走入画面", DurationMs: 3000})
+	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character enters the screen", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "探索画布", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "Explore canvas", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	task := model.Task{ID: "task-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusSucceeded, ResultJSON: `{}`, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	resource := model.Resource{ID: "resource-1", UserID: "user-1", Kind: "image", Status: model.ResourceStatusReady, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	for _, item := range []any{&canvas, &task, &resource} {
@@ -606,7 +606,7 @@ func TestChapterStoryboardOutputRegistrationDoesNotInvalidateApprovedRevision(t 
 	created, err := service.ProjectService().ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: workflowProjectRevision(t, db, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "批准时的画面", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "Approval screen", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -629,7 +629,7 @@ func TestChapterStoryboardOutputRegistrationDoesNotInvalidateApprovedRevision(t 
 	}
 	task := model.Task{
 		ID: "chapter-storyboard-1", UserID: "user-1", ProjectID: project.ID, Type: "canvas_text", Operation: "storyboard",
-		Status: model.TaskStatusSucceeded, Prompt: "章节分镜", InputJSON: string(input),
+		Status: model.TaskStatusSucceeded, Prompt: "Chapter storyboard", InputJSON: string(input),
 		ResultJSON: `{"mode":"text","text":"镜头表"}`, CreatedAt: now, UpdatedAt: now, CompletedAt: &now,
 	}
 	if err := db.Create(&task).Error; err != nil {
@@ -665,12 +665,12 @@ func TestChapterStoryboardOutputRegistrationDoesNotInvalidateApprovedRevision(t 
 	replaced, err := service.ProjectService().ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  approvedShotIDs,
 		ExpectedRevision: approvedRevision,
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "按原批准快照恢复", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.02", Description: "Restore from original approved snapshot", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatalf("approved snapshot after this task's output registration = %v", err)
 	}
-	if len(replaced) != 1 || replaced[0].Description != "按原批准快照恢复" {
+	if len(replaced) != 1 || replaced[0].Description != "Restore from original approved snapshot" {
 		t.Fatalf("replaced = %+v, want recovered storyboard row", replaced)
 	}
 }
@@ -681,7 +681,7 @@ func TestChapterStoryboardApprovedRevisionConflictsAfterInPlaceShotEdit(t *testi
 	created, err := service.ProjectService().ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: workflowProjectRevision(t, db, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "批准时的画面", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "Approval screen", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -703,13 +703,13 @@ func TestChapterStoryboardApprovedRevisionConflictsAfterInPlaceShotEdit(t *testi
 	}
 	task := model.Task{
 		ID: "chapter-storyboard-2", UserID: "user-1", ProjectID: project.ID, Type: "canvas_text", Operation: "storyboard",
-		Status: model.TaskStatusSucceeded, Prompt: "章节分镜", InputJSON: string(input),
+		Status: model.TaskStatusSucceeded, Prompt: "Chapter storyboard", InputJSON: string(input),
 		ResultJSON: `{"mode":"text","text":"镜头表"}`, CreatedAt: now, UpdatedAt: now, CompletedAt: &now,
 	}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := service.ProjectService().CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "镜头已改内容", DurationMs: 3200}); err != nil {
+	if _, _, err := service.ProjectService().CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "The content of the shot has been changed", DurationMs: 3200}); err != nil {
 		t.Fatal(err)
 	}
 	afterEdit := workflowProjectRevision(t, db, project.ID)
@@ -725,19 +725,19 @@ func TestChapterStoryboardApprovedRevisionConflictsAfterInPlaceShotEdit(t *testi
 	_, err = service.ProjectService().ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{created[0].ID},
 		ExpectedRevision: approvedRevision,
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.99", Description: "恢复写入会覆盖改稿", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.99", Description: "Restoring writing will overwrite the changes.", DurationMs: 3000}}},
 	})
 	if err == nil {
 		t.Fatal("original approved revision replaced in-place same-id edits")
 	}
-	if err.Error() != "项目已被其他操作更新，请重新加载后再保存" && err.Error() != "本章分镜已发生变化，请刷新后重新确认" {
+	if err.Error() != "The project has been updated by other operations, please reload before saving." && err.Error() != "The storyboard of this chapter has changed, please refresh and confirm again." {
 		t.Fatalf("stale approved snapshot = %v", err)
 	}
 	var stored model.Shot
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "镜头已改内容" {
-		t.Fatalf("description = %q, want 镜头已改内容", stored.Description)
+	if stored.Description != "The content of the shot has been changed" {
+		t.Fatalf("description = %q, want The content of the lens has been changed", stored.Description)
 	}
 }

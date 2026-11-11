@@ -1,8 +1,8 @@
-# 火山方舟 Agent Plan 图片生成
+# Volcano Ark Agent Plan image generation
 
-本插件面向火山方舟 Agent Plan 专属图片入口。请求体与官方 Ark Seedream 协议一致，但 Base URL 与 API Key 必须来自 Agent Plan 控制台。
+This plug-in is for the Volcano Ark Agent Plan exclusive picture entrance. The request body is consistent with the official Ark Seedream protocol, but the Base URL and API Key must come from the Agent Plan console.
 
-## 接口、鉴权与区域
+## Interfaces, Authentication and Zones
 
 {{OPERATIONS}}
 
@@ -12,26 +12,26 @@ Authorization: Bearer <AGENT_PLAN_API_KEY>
 Content-Type: application/json
 ```
 
-与官方 `/api/v3` 的差异：
+Differences from the official `/api/v3`:
 
-| 项 | 官方 Ark | Agent Plan |
+| Item | Official Ark | Agent Plan |
 | --- | --- | --- |
 | Base URL | `https://ark.cn-beijing.volces.com/api/v3` | `https://ark.cn-beijing.volces.com/api/plan/v3` |
-| API Key | 推理接入控制台 Key | Agent Plan 专属 Key |
-| 计费 | 推理后付费/项目额度 | AFP 套餐抵扣 |
-| 请求体 | Seedream images/generations | 同左 |
+| API Key | Inference Access Console Key | Agent Plan Exclusive Key |
+| Billing | Post-inference payment/project quota | AFP package deduction |
+| Request body | Seedream images/generations | Same as left |
 
-不要把官方 Key 打到 `/api/plan/v3`，也不要把 Agent Plan Key 打到 `/api/v3`。
+Do not type the official Key to `/api/plan/v3`, nor type the Agent Plan Key to `/api/v3`.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-当前实现：`aspectRatio -> size`，所有 `images -> image[]`；`extra` 可透传 `size`、`sequential_image_generation`、`sequential_image_generation_options`、`watermark`。
+Current implementation: `aspectRatio -> size`, all `images -> image[]`; `extra` can transparently transmit `size`, `sequential_image_generation`, `sequential_image_generation_options`, `watermark`.
 
-## 官方资料
+## Official information
 
-- [火山方舟 Agent Plan 文档](https://www.volcengine.com/docs/82379/2375486)
-- [火山方舟视觉模型 API 文档](https://www.volcengine.com/docs/82379)
+- [Volcano Ark Agent Plan Document](https://www.volcengine.com/docs/82379/2375486)
+- [Volcano Ark Visual Model API Document](https://www.volcengine.com/docs/82379)
 
 {{CONTRACT}}

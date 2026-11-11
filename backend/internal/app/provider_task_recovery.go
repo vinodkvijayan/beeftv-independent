@@ -77,7 +77,7 @@ func (s *Service) queryFailedVideoTask(ctx context.Context, task *model.Task, cl
 				if projection.Status == "completed" {
 					res, qErr = mq.Client.Result(queryCtx, projection, false)
 				} else if projection.Status == "failed" {
-					qErr = errors.New("原媒体任务未成功，请核对原任务结算")
+					qErr = errors.New("The original media task was unsuccessful, please check the original task settlement")
 					if projection.Error != nil {
 						qErr = projection.Error
 					}

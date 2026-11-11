@@ -5,7 +5,7 @@ import { resolveResourceVideoPlayback } from "../src/services/resource-video-pla
 const originalAdapter = apiClient.defaults.adapter;
 afterEach(() => { apiClient.defaults.adapter = originalAdapter; });
 
-test("就绪记录缺少副本时，返回的原件仍可触发解码失败恢复", async () => {
+test("When a ready record lacks a copy, the returned original can still trigger decoding failure recovery", async () => {
     const original = new Blob(["HEVC"], { type: "video/mp4" });
     const urls: string[] = [];
     apiClient.defaults.adapter = async (config) => {
@@ -16,7 +16,7 @@ test("就绪记录缺少副本时，返回的原件仍可触发解码失败恢�
     expect(urls).toEqual(["/resources/missing-copy", "/resources/missing-copy/file?variant=playback&proxy=1"]);
 });
 
-test("等待兼容副本就绪再拉取播放文件，原视频不作为副本缓存", async () => {
+test("Wait for the compatible copy to be ready before pulling the playback file. The original video will not be cached as a copy.", async () => {
     const urls: string[] = [];
     let polls = 0;
     const compatible = new Blob(["H264"], { type: "video/mp4" });
@@ -28,7 +28,7 @@ test("等待兼容副本就绪再拉取播放文件，原视频不作为副本�
     expect(urls).toEqual(["/resources/hevc-ready", "/resources/hevc-ready", "/resources/hevc-ready/file?variant=playback&proxy=1"]);
 });
 
-test("关闭视频中止等待，不继续下载兼容副本", async () => {
+test("Close the video, pause and wait, and do not continue to download compatible copies.", async () => {
     let requests = 0;
     const controller = new AbortController();
     apiClient.defaults.adapter = async (config) => {
@@ -41,17 +41,17 @@ test("关闭视频中止等待，不继续下载兼容副本", async () => {
     expect(requests).toBe(1);
 });
 
-test("兼容副本失败保留原文件地址并返回可读错误，不下载坏副本", async () => {
+test("If the compatible copy fails, the original file address will be retained and a readable error will be returned, and the bad copy will not be downloaded.", async () => {
     let requests = 0;
     apiClient.defaults.adapter = async (config) => {
         requests++;
         return { data: { code: 0, data: { resource: { id: "hevc-failed", playbackStatus: "failed" } } }, status: 200, statusText: "OK", headers: {}, config };
     };
-    await expect(resolveResourceVideoPlayback("resource:hevc-failed", "original", new AbortController().signal, true)).rejects.toThrow("视频已导入");
+    await expect(resolveResourceVideoPlayback("resource:hevc-failed", "original", new AbortController().signal, true)).rejects.toThrow("Video has been imported");
     expect(requests).toBe(2);
 });
 
-test("浏览器解码失败后才申请兼容预览", async () => {
+test("Apply for compatibility preview only after the browser fails to decode", async () => {
     const urls: string[] = [];
     const compatible = new Blob(["H264"], { type: "video/mp4" });
     apiClient.defaults.adapter = async (config) => {

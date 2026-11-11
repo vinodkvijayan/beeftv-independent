@@ -55,7 +55,7 @@ beforeAll(async () => {
     browser = await chromium.launch({ headless: true, executablePath });
     page = await browser.newPage({ viewport: { width: 1859, height: 727 } });
     await page.goto(server.url.toString(), { waitUntil: "domcontentloaded" });
-    await page.getByRole("region", { name: "工作流设定" }).waitFor({ timeout: 10_000 });
+    await page.getByRole("region", { name: "Workflow settings" }).waitFor({ timeout: 10_000 });
 }, 120_000);
 
 afterAll(async () => {
@@ -73,7 +73,7 @@ test("empty workflow editor keeps full canvas height, shrinks within 90vh with a
 
         const layoutBox = await page.locator(".workflow-editor-layout").boundingBox();
         const canvasBox = await page.locator(".workflow-editor-canvas").boundingBox();
-        const graphBox = await page.getByRole("region", { name: "工作流节点图" }).boundingBox();
+        const graphBox = await page.getByRole("region", { name: "Workflow node diagram" }).boundingBox();
         const propertiesBox = await page.locator(".workflow-editor-properties").boundingBox();
         const libraryBox = await page.locator(".workflow-editor-library").boundingBox();
         const libraryScrollHeight = await page.locator(".workflow-editor-library").evaluate((el) => el.scrollHeight);
@@ -90,11 +90,11 @@ test("empty workflow editor keeps full canvas height, shrinks within 90vh with a
         expect(Math.abs(propertiesBox!.height - expectedHeight)).toBeLessThanOrEqual(2);
         expect(Math.abs(libraryBox!.height - Math.min(libraryScrollHeight, canvasBox!.height - 24))).toBeLessThanOrEqual(2);
         expect(libraryBox!.y + libraryBox!.height).toBeLessThanOrEqual(canvasBox!.y + canvasBox!.height + 1);
-        expect(await page.getByRole("combobox", { name: "从成功画布节点导入步骤" }).isVisible()).toBe(true);
+        expect(await page.getByRole("combobox", { name: "Import steps from success canvas node" }).isVisible()).toBe(true);
     }
 
     await page.setViewportSize({ width: 1440, height: 600 });
-    await page.getByRole("button", { name: "保存" }).click();
+    await page.getByRole("button", { name: "Save" }).click();
     await page.getByRole("alert").waitFor({ timeout: 5_000 });
     const surfaceWithAlert = await page.locator(".workflow-surface").boundingBox();
     const layoutWithAlert = await page.locator(".workflow-editor-layout").boundingBox();
@@ -103,8 +103,8 @@ test("empty workflow editor keeps full canvas height, shrinks within 90vh with a
     expect(layoutWithAlert!.height).toBeGreaterThanOrEqual(360);
 
     await page.setViewportSize({ width: 1859, height: 727 });
-    await page.getByRole("button", { name: "添加视频生成节点" }).click();
-    await page.getByRole("textbox", { name: "工作流节点名称" }).waitFor({ timeout: 5_000 });
+    await page.getByRole("button", { name: "Add video generation node" }).click();
+    await page.getByRole("textbox", { name: "Workflow node name" }).waitFor({ timeout: 5_000 });
 
     const expectedHeightAfterNode = Math.min(780, 727 * 0.76);
     const layoutAfterNode = await page.locator(".workflow-editor-layout").boundingBox();
@@ -119,7 +119,7 @@ test("empty workflow editor keeps full canvas height, shrinks within 90vh with a
     expect(scrollMetrics.scrollHeight).toBeGreaterThan(scrollMetrics.clientHeight);
     expect(scrollMetrics.scrollTop).toBeGreaterThan(0);
 
-    const outputCheckbox = await page.getByRole("checkbox", { name: "作为工作流输出" }).boundingBox();
+    const outputCheckbox = await page.getByRole("checkbox", { name: "as workflow output" }).boundingBox();
     expect(outputCheckbox).not.toBeNull();
     expect(outputCheckbox!.y + outputCheckbox!.height).toBeLessThanOrEqual(propertiesAfterNode!.y + propertiesAfterNode!.height + 1);
 }, 30_000);

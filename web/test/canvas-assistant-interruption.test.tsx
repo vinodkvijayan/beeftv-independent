@@ -6,8 +6,8 @@ import { CanvasAssistantComposer } from "@/pages/canvas/canvas-assistant-compose
 import type { AssistantTurn } from "@/services/api/agent-assistant";
 
 const interrupted: AssistantTurn = {
-    turnId: "paused", userText: "只创建草案", selectedNodeIds: [],
-    reply: "两个草案已创建。", toolCalls: [], proposals: [],
+    turnId: "paused", userText: "Create draft only", selectedNodeIds: [],
+    reply: "Two drafts have been created.", toolCalls: [], proposals: [],
     change: { revisionBefore: 1, revisionAfter: 2, createdNodeIds: ["a", "b"], updatedNodeIds: [], createdEdgeIds: [] },
     error: "raw provider error", errorReason: "turn_timeout", cancelled: false, createdAt: "2026-10-08",
 };
@@ -17,87 +17,87 @@ function render(turn = interrupted, options: { undone?: boolean; continue?: bool
         onContinue={options.continue === false ? undefined : () => {}} />);
 }
 
-describe("自动继续消息只按已确认身份简短展示", () => {
-    const internal = "【自动继续】这次生成已结束。不要改动或发送我的未发送草稿。";
-    test("运行中与恢复后的回合显示自动标记，保留原始提示词数据", () => {
+describe("Auto-continue messages are only briefly displayed based on confirmed identity", () => {
+    const internal = "[Auto-continue] This generation has ended. Do not change or send my unsent drafts.";
+    test("Automatic marking is displayed for running and restored rounds, retaining the original prompt word data", () => {
         const turn: AssistantTurn = { ...interrupted, continuationId: "trusted-receipt", userText: internal };
         const pending = renderToStaticMarkup(<CanvasAssistantUserMessage text={internal} selectedCount={2} continuationId={turn.continuationId} />);
         const recovered = render(JSON.parse(JSON.stringify(turn)));
         for (const html of [pending, recovered]) {
-            expect(html).toContain("自动继续");
-            expect(html).toContain("生成已结束，继续检查结果和制作。");
-            expect(html).not.toContain("未发送草稿");
+            expect(html).toContain("Automatically continue");
+            expect(html).toContain("The generation has ended, continue checking the results and production.");
+            expect(html).not.toContain("Draft not sent");
         }
         expect(turn.userText).toBe(internal);
     });
-    test("普通用户发送同样文字仍原样显示，补充消息也不被折叠", () => {
+    test("The same text sent by ordinary users will still be displayed as it is, and supplementary messages will not be folded.", () => {
         expect(render({ ...interrupted, userText: internal })).toContain(internal);
         const supplement = render({ ...interrupted, continuationId: "trusted-receipt", userText: internal, supplements: [internal] });
         expect(supplement).toContain(internal);
-        expect(supplement).toContain("生成已结束，继续检查结果和制作。");
+        expect(supplement).toContain("The generation has ended, continue checking the results and production.");
     });
 });
 
-describe("处理未完成仍保留可检查的结果", () => {
-    test("超时保留回复、实际改动与撤销，并提供中性状态和继续入口", () => {
+describe("Processing is not completed but results can be checked.", () => {
+    test("Retain replies, actual changes and revocations over time, and provide neutral status and continuation entrance", () => {
         const html = render();
-        expect(html).toContain("两个草案已创建");
-        expect(html).toContain("新建 2 个节点");
-        expect(html).toContain("撤销这一轮");
-        expect(html).toContain("尚未完成");
-        expect(html).toContain("继续处理");
+        expect(html).toContain("Two drafts have been created");
+        expect(html).toContain("Create 2 new nodes");
+        expect(html).toContain("Undo this round");
+        expect(html).toContain("Not yet completed");
+        expect(html).toContain("Continue processing");
         expect(html).toContain('class="canvas-assistant-incomplete"');
         expect(html).not.toContain("canvas-assistant-failed");
         expect(html).not.toContain("raw provider error");
     });
-    test("已经撤销、旧回合或只读时不展示继续按钮", () => {
+    test("The continue button is not displayed when it has been undone, old round or read-only.", () => {
         for (const html of [render(interrupted, { undone: true }), render(interrupted, { continue: false })]) {
-            expect((html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) || []).some(button => button.includes("继续处理"))).toBe(false);
+            expect((html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) || []).some(button => button.includes("Continue processing"))).toBe(false);
         }
-        expect(render(interrupted, { undone: true })).toContain("画布改动已撤销");
+        expect(render(interrupted, { undone: true })).toContain("Canvas changes undone");
     });
-    test("不可继续的配置错误仍明确失败，不冒充已恢复", () => {
+    test("Non-continuable configuration error still clearly fails and does not pretend to have been recovered", () => {
         const html = render({ ...interrupted, errorReason: "forbidden" });
         expect(html).toContain("canvas-assistant-failed");
-        expect(html).not.toContain("继续处理");
-        expect(html).not.toContain("尚未完成");
+        expect(html).not.toContain("Continue processing");
+        expect(html).not.toContain("Not yet completed");
     });
-    test("运行中保留输入和停止，并有明确补充入口，不新增素材附件", () => {
-        const html = renderToStaticMarkup(<QueryClientProvider client={new QueryClient()}><CanvasAssistantComposer value="只改结尾" onChange={() => {}} onSend={() => {}} onStop={() => {}}
+    test("Input and stop are retained during operation, and there is a clear supplementary entrance, and no new material attachments are added.", () => {
+        const html = renderToStaticMarkup(<QueryClientProvider client={new QueryClient()}><CanvasAssistantComposer value="Only change the ending" onChange={() => {}} onSend={() => {}} onStop={() => {}}
             streaming disabled={false} canSupplement supplementBusy={false} references={[]} selectedCount={3} selectionAttached onDetachSelection={() => {}} /></QueryClientProvider>);
         expect(html).toMatch(/补\s*充/);
-        expect(html).toContain("停止");
+        expect(html).toContain("stop");
         const input = html.match(/<textarea\b[^>]*>/)?.[0] || html.match(/<div\b[^>]*contentEditable="true"[^>]*>/)?.[0];
         expect(input).toBeDefined();
         expect(input).not.toContain('disabled=""');
-        expect(html).not.toContain("已选 3 个节点");
+        expect(html).not.toContain("3 nodes selected");
     });
-    test("历史中保留已收到的补充要求，不改写原用户消息", () => {
-        const html = render({ ...interrupted, supplements: ["结尾改成蛋糕"] });
-        expect(html).toContain("只创建草案");
-        expect(html).toContain("结尾改成蛋糕");
+    test("Supplementary requests received will be retained in the history and the original user messages will not be overwritten.", () => {
+        const html = render({ ...interrupted, supplements: ["The ending is changed to cake"] });
+        expect(html).toContain("Create draft only");
+        expect(html).toContain("The ending is changed to cake");
     });
 });
 
-describe("停下的回合按实际结果给出下一步", () => {
+describe("The stopped round gives the next step based on the actual result.", () => {
     const stopped: AssistantTurn = { ...interrupted, turnId: "stopped", error: null, errorReason: null, cancelled: true };
-    const continueButtons = (html: string) => (html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) || []).filter(button => button.includes("继续处理"));
-    test("停下前已经改动画布：保留改动和撤销，并提供继续入口", () => {
+    const continueButtons = (html: string) => (html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) || []).filter(button => button.includes("Continue processing"));
+    test("The canvas has been modified before stopping: changes and undo are retained, and a continuation entry is provided.", () => {
         const html = render(stopped);
-        expect(html).toContain("这一条已经停下了");
-        expect(html).toContain("新建 2 个节点");
-        expect(html).toContain("撤销这一轮");
+        expect(html).toContain("This one has been stopped");
+        expect(html).toContain("Create 2 new nodes");
+        expect(html).toContain("Undo this round");
         expect(continueButtons(html)).toHaveLength(1);
-        expect(html).toContain("在输入框里确认或补充要求后发送。");
+        expect(html).toContain("Send after confirming or adding requirements in the input box.");
     });
-    test("停下时还没有任何改动：只说明已停下，不提供继续，也不显示为完成", () => {
+    test("No changes have been made when stopped: it only indicates that it has been stopped, does not provide continuation, and does not indicate completion.", () => {
         const html = render({ ...stopped, reply: "", change: null });
-        expect(html).toContain("这一条已经停下了。");
+        expect(html).toContain("This one has been stopped.");
         expect(continueButtons(html)).toHaveLength(0);
         expect(html).not.toContain("canvas-assistant-change");
-        expect(html).not.toContain("已完成");
+        expect(html).not.toContain("Completed");
     });
-    test("已撤销、旧回合或只读时，停下的回合不提供继续", () => {
+    test("When the round has been revoked, old round or read-only, the stopped round does not provide continuation.", () => {
         expect(continueButtons(render(stopped, { undone: true }))).toHaveLength(0);
         expect(continueButtons(render(stopped, { continue: false }))).toHaveLength(0);
     });
@@ -105,42 +105,42 @@ describe("停下的回合按实际结果给出下一步", () => {
 
 const proposalTurn: AssistantTurn = {
     ...interrupted, turnId: "with-proposal", error: null, errorReason: null,
-    proposals: [{ proposalId: "gp-1", kind: "image", nodeIds: ["a"], model: "图片模型", modelKey: "channel::image" }],
+    proposals: [{ proposalId: "gp-1", kind: "image", nodeIds: ["a"], model: "Picture model", modelKey: "channel::image" }],
 };
 function buttons(html: string) {
     return (html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) || []).map(button => button.replace(/<[^>]+>/g, "").replace(/\s+/g, ""));
 }
 
-describe("撤销后的生成建议不再可用", () => {
-    test("未撤销时仍提供生成与先不用", () => {
+describe("Revoked generated suggestions are no longer available", () => {
+    test("Generating and not using are still provided when not revoked", () => {
         const labels = buttons(render(proposalTurn));
-        expect(labels).toContain("生成");
-        expect(labels).toContain("先不用");
+        expect(labels).toContain("generate");
+        expect(labels).toContain("No need for now");
     });
-    test("撤销后未开始的建议只说明不会生成，没有按钮", () => {
+    test("Suggestions that have not been started after being revoked only indicate that they will not be generated and there is no button.", () => {
         const html = render(proposalTurn, { undone: true });
-        expect(html).toContain("这一轮已撤销，不会生成。");
-        expect(buttons(html)).not.toContain("生成");
-        expect(buttons(html)).not.toContain("先不用");
+        expect(html).toContain("This round has been undone and will not be generated.");
+        expect(buttons(html)).not.toContain("generate");
+        expect(buttons(html)).not.toContain("No need for now");
     });
-    test("撤销前已经开始的生成仍显示已开始生成", () => {
+    test("A build that was started before canceling still shows that the build has started.", () => {
         const html = renderToStaticMarkup(<CanvasAssistantTurnView turn={proposalTurn} status={{ undone: true }} handledProposals={new Set(["gp-1"])}
             onLocate={() => {}} onUndo={() => {}} onRunProposal={() => {}} onDismissProposal={() => {}} />);
-        expect(html).toContain("已开始生成");
-        expect(html).not.toContain("这一轮已撤销，不会生成。");
+        expect(html).toContain("Started generating");
+        expect(html).not.toContain("This round has been undone and will not be generated.");
     });
 });
 
-describe("技能标签只显示名称", () => {
+describe("Skill labels only show names", () => {
     const hash = "352590bd".repeat(8);
-    test("有名称时显示名称和版本", () => {
-        const html = render({ ...interrupted, skills: [{ skillId: "s1", versionId: "cc4bb169", contentHash: hash, skillName: "短剧资产分批流程", version: "1" }] });
-        expect(html).toContain("技能：短剧资产分批流程 · 1");
+    test("Display the name and version when there is a name", () => {
+        const html = render({ ...interrupted, skills: [{ skillId: "s1", versionId: "cc4bb169", contentHash: hash, skillName: "Short drama asset batching process", version: "1" }] });
+        expect(html).toContain("Skills: Short drama asset batching process · 1");
     });
-    test("名称不可识别时说明已移除，不显示标识", () => {
+    test("If the name is unrecognizable, the description has been removed and the logo will not be displayed.", () => {
         const html = render({ ...interrupted, skills: [{ skillId: "352590bd", versionId: "cc4bb169", contentHash: hash }],
-            supplementInputs: [{ message: "补充", skills: [{ skillId: "352590bd", versionId: "cc4bb169", contentHash: hash }] }] });
-        expect(html).toContain("技能：已移除的技能");
+            supplementInputs: [{ message: "supplement", skills: [{ skillId: "352590bd", versionId: "cc4bb169", contentHash: hash }] }] });
+        expect(html).toContain("Skills: Removed skills");
         expect(html).not.toContain("352590bd");
         expect(html).not.toContain("cc4bb169");
     });

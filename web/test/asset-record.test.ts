@@ -5,9 +5,9 @@ import { parseAssetRecord, parseAssetRecordList } from "@/lib/asset-record";
 const completeImage = {
     id: "image-1",
     kind: "image",
-    title: "完整图片",
+    title: "full picture",
     coverUrl: "https://example.com/a.png",
-    tags: ["角色"],
+    tags: ["role"],
     createdAt: "2026-08-29T00:00:00.000Z",
     updatedAt: "2026-08-29T00:00:00.000Z",
     data: { dataUrl: "https://example.com/a.png", width: 1, height: 1, bytes: 1, mimeType: "image/png" },
@@ -15,12 +15,12 @@ const completeImage = {
 
 describe("parseAssetRecord", () => {
     test("accepts a complete image asset", () => {
-        expect(parseAssetRecord(completeImage).tags).toEqual(["角色"]);
+        expect(parseAssetRecord(completeImage).tags).toEqual(["role"]);
     });
 
     test("rejects missing or malformed tags", () => {
         expect(() => parseAssetRecord({ ...completeImage, tags: undefined })).toThrow(/tags/);
-        expect(() => parseAssetRecord({ ...completeImage, tags: ["角色", 1] })).toThrow(/tags/);
+        expect(() => parseAssetRecord({ ...completeImage, tags: ["role", 1] })).toThrow(/tags/);
     });
 
     test("rejects incomplete image data instead of filling zeros", () => {
@@ -61,16 +61,16 @@ describe("parseAssetRecord", () => {
 const completeVideo = {
     id: "video-1",
     kind: "video",
-    title: "生成视频",
+    title: "Generate video",
     coverUrl: "https://example.com/a.mp4",
-    tags: ["生成"],
+    tags: ["generate"],
     createdAt: "2026-08-29T00:00:00.000Z",
     updatedAt: "2026-08-29T00:00:00.000Z",
     data: { url: "https://example.com/a.mp4", width: 720, height: 1280, bytes: 1, mimeType: "video/mp4" },
 };
 
-describe("parseAssetRecord 视频尺寸", () => {
-    test("宽高未知（0）放行，视频照常入库", () => {
+describe("parseAssetRecord video size", () => {
+    test("The width and height are unknown (0) and released, and the video is stored as usual.", () => {
         const parsed = parseAssetRecord({ ...completeVideo, data: { ...completeVideo.data, width: 0, height: 0 } });
         expect(parsed.kind).toBe("video");
         if (parsed.kind === "video") {
@@ -79,13 +79,13 @@ describe("parseAssetRecord 视频尺寸", () => {
         }
     });
 
-    test("负数与非法值仍然拒", () => {
+    test("Negative numbers and illegal values are still rejected", () => {
         expect(() => parseAssetRecord({ ...completeVideo, data: { ...completeVideo.data, width: -1 } })).toThrow(/width/);
         expect(() => parseAssetRecord({ ...completeVideo, data: { ...completeVideo.data, height: Number.NaN } })).toThrow(/height/);
         expect(() => parseAssetRecord({ ...completeVideo, data: { ...completeVideo.data, width: "720" } })).toThrow(/width/);
     });
 
-    test("图片不受影响：零尺寸仍然拒", () => {
+    test("Images are not affected: zero size is still rejected", () => {
         expect(() => parseAssetRecord({ ...completeImage, data: { ...completeImage.data, width: 0, height: 1 } })).toThrow(/width/);
     });
 });

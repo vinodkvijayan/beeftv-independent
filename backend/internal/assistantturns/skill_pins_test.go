@@ -37,7 +37,7 @@ func TestSessionSkillPinsCoverEarlierRoundsOfSameOwnerAndConversation(t *testing
 	fx := openTurnFixture(t)
 	const session = "durable:11111111-2222-3333-4444-555555555555"
 	const other = "durable:66666666-7777-8888-9999-000000000000"
-	earlier := skills.Pin{SkillID: "earlier", VersionID: "v1", ContentHash: strings.Repeat("a", 64), SkillName: "资产分批"}
+	earlier := skills.Pin{SkillID: "earlier", VersionID: "v1", ContentHash: strings.Repeat("a", 64), SkillName: "Asset tranches"}
 	elsewhere := skills.Pin{SkillID: "elsewhere", VersionID: "v1", ContentHash: strings.Repeat("b", 64)}
 	foreign := skills.Pin{SkillID: "foreign", VersionID: "v1", ContentHash: strings.Repeat("c", 64)}
 	begin := func(turnID, sessionID string, pins []skills.Pin) {

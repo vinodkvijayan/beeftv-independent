@@ -11,7 +11,7 @@ func TestPortraitQuoteRefreshAndRemoval(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	model := CatalogModel{ID: "seedance-2.0-portrait", DisplayName: "Seedance 2.0 真人素材版", VideoPricing: json.RawMessage(`{"currency":"CNY","mode":"tokens","rates":{"720p":{"output":69,"reference_video":42}}}`)}
+	model := CatalogModel{ID: "seedance-2.0-portrait", DisplayName: "Seedance 2.0 live-action material version", VideoPricing: json.RawMessage(`{"currency":"CNY","mode":"tokens","rates":{"720p":{"output":69,"reference_video":42}}}`)}
 	if err := applyCatalog(store, []CatalogModel{model}, "", "42", ""); err != nil {
 		t.Fatal(err)
 	}

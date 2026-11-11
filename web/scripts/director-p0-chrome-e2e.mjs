@@ -405,15 +405,15 @@ async function smokeWorkbench(cdp, baseUrl) {
     const initial = await cdp.evaluate(`(() => {
         const headings = [...document.querySelectorAll('h2')].map((h) => h.textContent || "");
         return {
-            snapshot: headings.some((t) => t.includes('环境快照')),
-            matrix15: headings.some((t) => t.includes('P0 手工复现矩阵（15）')),
+            snapshot: headings.some((t) => t.includes('Environment Snapshot')),
+            matrix15: headings.some((t) => t.includes('P0 manual reproduction matrix (15)')),
             injectLocal: !!document.querySelector('[data-testid="inject-local-model"]'),
             injectMissing: !!document.querySelector('[data-testid="inject-missing-model"]'),
             shellCount: document.querySelectorAll('.director-viewport-shell').length,
         };
     })()`);
-    assert(initial.snapshot, "A1 环境快照 rendered");
-    assert(initial.matrix15, "A2 P0 手工复现矩阵（15）rendered");
+    assert(initial.snapshot, "A1 environment snapshot rendered");
+    assert(initial.matrix15, "A2 P0 manual reproduction matrix (15) rendered");
     assert(initial.injectLocal && initial.injectMissing, "A3 both inject buttons present");
     assert(initial.shellCount === 0, "A4 workbench closed initially", `shellCount=${initial.shellCount}`);
 
@@ -426,33 +426,33 @@ async function smokeWorkbench(cdp, baseUrl) {
     const layoutGating = await cdp.evaluate(`(() => ({
         mode: document.querySelector('[data-director-mode]')?.getAttribute('data-director-mode') ?? null,
         sequencer: document.querySelectorAll('.director-sequencer').length,
-        autoKey: document.querySelectorAll('button[aria-label="自动帧"]').length,
+        autoKey: document.querySelectorAll('button[aria-label="Autoframe"]').length,
     }))()`);
-    assert(layoutGating.mode === "layout", "A6 默认进入摆场模式", `got ${JSON.stringify(layoutGating.mode)}`);
-    assert(layoutGating.sequencer === 0 && layoutGating.autoKey === 0, "A7 摆场模式不显示时间轴与 AutoKey", JSON.stringify(layoutGating));
+    assert(layoutGating.mode === "layout", "A6 enters the swing mode by default", `got ${JSON.stringify(layoutGating.mode)}`);
+    assert(layoutGating.sequencer === 0 && layoutGating.autoKey === 0, "A7 swing mode does not display timeline and AutoKey", JSON.stringify(layoutGating));
 
     // 原 A6 的断言意图（AutoKey 默认不开启）在它真正存在的模式里继续守住。
-    const switched = await cdp.click('[aria-label="动画时间轴"]');
-    if (!switched) throw new Error("A: 动画时间轴按钮 not clickable");
+    const switched = await cdp.click('[aria-label="Animation Timeline"]');
+    if (!switched) throw new Error("A: Animation timeline button not clickable");
     const sequencerShown = await cdp.poll(`document.querySelectorAll('.director-sequencer').length === 1`, "sequencer in animate mode", 20000);
-    assert(sequencerShown, "A8 动画模式显示时间轴");
+    assert(sequencerShown, "A8 animation mode displays timeline");
 
-    const autoKey = await cdp.evaluate(`document.querySelector('button[aria-label="自动帧"]')?.getAttribute('aria-pressed') ?? null`);
+    const autoKey = await cdp.evaluate(`document.querySelector('button[aria-label="Autoframe"]')?.getAttribute('aria-pressed') ?? null`);
     assert(autoKey === "false", "A9 AutoKey defaults to aria-pressed=false", `got ${JSON.stringify(autoKey)}`);
 
     const addedCube = await addCube(cdp);
-    if (!addedCube) throw new Error("A: 添加立方体 button not clickable");
-    const cubeAppeared = await cdp.poll(`!!document.querySelector('[data-director-row-label="立方体"]')`, "cube row", 20000);
+    if (!addedCube) throw new Error("A: Add cube button not clickable");
+    const cubeAppeared = await cdp.poll(`!!document.querySelector('[data-director-row-label="cube"]')`, "cube row", 20000);
     assert(cubeAppeared, "A10 added cube appears in object list");
 
     const undone = await undo(cdp);
-    if (!undone) throw new Error("A: 撤销 button not clickable");
-    const cubeGone = await cdp.poll(`!document.querySelector('[data-director-row-label="立方体"]')`, "cube removed by undo", 20000);
+    if (!undone) throw new Error("A: Undo button not clickable");
+    const cubeGone = await cdp.poll(`!document.querySelector('[data-director-row-label="cube"]')`, "cube removed by undo", 20000);
     assert(cubeGone, "A11 Undo removes the added cube");
 
     // 场景结束前必须真实关闭：下一个场景要重新导航，不能靠忽略 beforeunload 绕过未保存态。
-    const closed = await cdp.click('[aria-label="关闭导演台"]');
-    if (!closed) throw new Error("A: 关闭导演台 button not clickable");
+    const closed = await cdp.click('[aria-label="Close director\'s desk"]');
+    if (!closed) throw new Error("A: Close director's desk button not clickable");
     const shellGone = await cdp.poll(`document.querySelectorAll('.director-viewport-shell').length === 0`, "workbench closed", 30000);
     assert(shellGone, "A12 workbench closed cleanly before leaving scenario A");
 
@@ -476,8 +476,8 @@ async function localModel(cdp, baseUrl) {
     const opened = await cdp.click('[data-testid="toggle-workbench"]');
     if (!opened) throw new Error("B: toggle-workbench not clickable");
 
-    await cdp.click('[aria-label="场景"]');
-    const rowReady = await cdp.poll(`!!document.querySelector('[data-director-row-label="本地模型 repro triangle"]')`, "model row", 30000);
+    await cdp.click('[aria-label="scene"]');
+    const rowReady = await cdp.poll(`!!document.querySelector('[data-director-row-label="Local model repro triangle"]')`, "model row", 30000);
     assert(rowReady, "B2 local model row present in object list");
     const hasCanvas = await cdp.poll(`(() => { const c = document.querySelector('.director-viewport-shell canvas'); return !!c && c.clientWidth > 0; })()`, "canvas", 40000);
     assert(hasCanvas, "B3 real canvas present");
@@ -488,10 +488,10 @@ async function localModel(cdp, baseUrl) {
         const t = document.body.innerText || "";
         const c = document.querySelector('.director-viewport-shell canvas');
         return {
-            modelFailed: t.includes('个 3D 模型加载失败'),
-            retryLoad: [...document.querySelectorAll('.director-viewport-notice button')].some((b) => (b.textContent || "").includes('重试加载') && b.getClientRects().length > 0),
-            renderFailed: t.includes('3D 视口渲染失败'),
-            contextLost: t.includes('3D 显示上下文已丢失'),
+            modelFailed: t.includes('3D model failed to load'),
+            retryLoad: [...document.querySelectorAll('.director-viewport-notice button')].some((b) => (b.textContent || "").includes('Retry loading') && b.getClientRects().length > 0),
+            renderFailed: t.includes('3D viewport rendering failed'),
+            contextLost: t.includes('3D display context has been lost'),
             canvasUsable: !!c && c.clientWidth > 0 && c.clientHeight > 0,
         };
     })()`);
@@ -499,7 +499,7 @@ async function localModel(cdp, baseUrl) {
     assert(!stable.retryLoad, "B5 no retry-load affordance");
     assert(!stable.renderFailed, "B6 no viewport render failure");
     assert(!stable.contextLost, "B7 no WebGL context-lost notice");
-    assert(stable.canvasUsable, "B8 5s 稳定窗口内无失败且 canvas 持续可用");
+    assert(stable.canvasUsable, "B8 has no failures within the 5s stability window and canvas continues to be available.");
 
     assert(cdp.problems.length === 0, "B9 no browser problems in scenario B", JSON.stringify(cdp.problems));
 }
@@ -520,21 +520,21 @@ async function missingRetry(cdp, baseUrl) {
     const opened = await cdp.click('[data-testid="toggle-workbench"]');
     if (!opened) throw new Error("C: toggle-workbench not clickable");
 
-    const failed = await cdp.poll(`/个 3D 模型加载失败/.test(document.body.innerText || "")`, "load-failed notice", 40000);
+    const failed = await cdp.poll(`/3D model failed to load/.test(document.body.innerText || "")`, "load-failed notice", 40000);
     assert(failed, "C2 model-load-failed notice appears");
-    const retryVisible = await cdp.poll(`[...document.querySelectorAll('button')].some((b) => (b.textContent || "").includes('重试加载'))`, "retry affordance", 20000);
-    assert(retryVisible, "C3 actionable 重试加载 affordance present");
+    const retryVisible = await cdp.poll(`[...document.querySelectorAll('button')].some((b) => (b.textContent || "").includes('Retry loading'))`, "retry affordance", 20000);
+    assert(retryVisible, "C3 actionable retry loading affordance present");
 
-    const clickedRetry = await cdp.clickText("重试加载");
-    if (!clickedRetry) throw new Error("C: 重试加载 button not clickable");
+    const clickedRetry = await cdp.clickText("Retry loading");
+    if (!clickedRetry) throw new Error("C: Retry loading button not clickable");
 
-    const noticeCleared = await cdp.poll(`!/个 3D 模型加载失败/.test(document.body.innerText || "")`, "notice cleared after retry", 20000);
+    const noticeCleared = await cdp.poll(`!/3D model loading failed/.test(document.body.innerText || "")`, "notice cleared after retry", 20000);
     assert(noticeCleared, "C4 notice clears when retry restarts the load");
-    const failedAgain = await cdp.poll(`/个 3D 模型加载失败/.test(document.body.innerText || "")`, "second-round failure", 40000);
+    const failedAgain = await cdp.poll(`/3D model failed to load/.test(document.body.innerText || "")`, "second-round failure", 40000);
     assert(failedAgain, "C5 second-round failure after retry");
 
-    const closed = await cdp.click('[aria-label="关闭导演台"]');
-    if (!closed) throw new Error("C: 关闭导演台 button not clickable");
+    const closed = await cdp.click('[aria-label="Close director\'s desk"]');
+    if (!closed) throw new Error("C: Close director's desk button not clickable");
     const shellGone = await cdp.poll(`document.querySelectorAll('.director-viewport-shell').length === 0`, "workbench closed", 20000);
     assert(shellGone, "C6 workbench closed cleanly");
 
@@ -573,13 +573,13 @@ async function deleteWhileLoading(cdp, baseUrl) {
         const opened = await cdp.click('[data-testid="toggle-workbench"]');
         if (!opened) throw new Error("D: toggle-workbench not clickable");
 
-        await cdp.click('[aria-label="场景"]');
-        const rowReady = await cdp.poll(`!!document.querySelector('[data-director-row-label="本地模型 repro triangle"]')`, "model row", 30000);
+        await cdp.click('[aria-label="scene"]');
+        const rowReady = await cdp.poll(`!!document.querySelector('[data-director-row-label="Local model repro triangle"]')`, "model row", 30000);
         assert(rowReady, "D1 model row present while load still in flight");
 
-        const deleted = await deleteSceneRow(cdp, "本地模型 repro triangle");
+        const deleted = await deleteSceneRow(cdp, "Local model repro triangle");
         if (!deleted) throw new Error("D: delete button not clickable");
-        const gone = await cdp.poll(`!(document.body.innerText || "").includes('本地模型 repro triangle')`, "name removed", 20000);
+        const gone = await cdp.poll(`!(document.body.innerText || "").includes('local model repro triangle')`, "name removed", 20000);
         assert(gone, "D2 object removed while its load was in flight");
     } finally {
         await cdp.send("Network.emulateNetworkConditions", {
@@ -596,11 +596,11 @@ async function deleteWhileLoading(cdp, baseUrl) {
         const t = document.body.innerText || "";
         const c = document.querySelector('.director-viewport-shell canvas');
         return {
-            nameBack: t.includes('本地模型 repro triangle'),
-            modelFailed: t.includes('个 3D 模型加载失败'),
-            retryLoad: [...document.querySelectorAll('.director-viewport-notice button')].some((b) => (b.textContent || "").includes('重试加载') && b.getClientRects().length > 0),
-            renderFailed: t.includes('3D 视口渲染失败'),
-            contextLost: t.includes('3D 显示上下文已丢失'),
+            nameBack: t.includes('local model repro triangle'),
+            modelFailed: t.includes('3D model failed to load'),
+            retryLoad: [...document.querySelectorAll('.director-viewport-notice button')].some((b) => (b.textContent || "").includes('Retry loading') && b.getClientRects().length > 0),
+            renderFailed: t.includes('3D viewport rendering failed'),
+            contextLost: t.includes('3D display context has been lost'),
             canvasUsable: !!c && c.clientWidth > 0 && c.clientHeight > 0,
         };
     })()`);
@@ -609,8 +609,8 @@ async function deleteWhileLoading(cdp, baseUrl) {
     assert(!settled.renderFailed && !settled.contextLost, "D5 viewport stayed healthy");
     assert(settled.canvasUsable, "D6 canvas still usable after in-flight delete");
 
-    const closed = await cdp.click('[aria-label="关闭导演台"]');
-    if (!closed) throw new Error("D: 关闭导演台 button not clickable");
+    const closed = await cdp.click('[aria-label="Close director\'s desk"]');
+    if (!closed) throw new Error("D: Close director's desk button not clickable");
     const shellGone = await cdp.poll(`document.querySelectorAll('.director-viewport-shell').length === 0`, "workbench closed", 20000);
     assert(shellGone, "D7 workbench closed cleanly");
 
@@ -658,17 +658,17 @@ async function webglLossRestore(cdp, baseUrl) {
     assert(prepared, "E3 WEBGL_lose_context extension acquired from live context");
 
     await cdp.evaluate(`(() => { window.__directorE2ELoseContext.loseContext(); return true; })()`);
-    const lostNotice = await cdp.poll(`(document.body.innerText || "").includes('3D 显示上下文已丢失')`, "context-lost notice", 30000);
+    const lostNotice = await cdp.poll(`(document.body.innerText || "").includes('3D display context has been lost')`, "context-lost notice", 30000);
     assert(lostNotice, "E4 context-lost notice surfaced in DOM");
 
     await cdp.evaluate(`(() => { window.__directorE2ELoseContext.restoreContext(); return true; })()`);
-    const restored = await cdp.poll(`!(document.body.innerText || "").includes('3D 显示上下文已丢失')`, "context-lost notice cleared", 30000);
+    const restored = await cdp.poll(`!(document.body.innerText || "").includes('3D display context has been lost')`, "context-lost notice cleared", 30000);
     assert(restored, "E5 context-lost notice cleared after restore");
     const canvasUsable = await cdp.poll(`(() => { const c = document.querySelector('.director-viewport-shell canvas'); return !!c && c.clientWidth > 0 && c.clientHeight > 0; })()`, "canvas usable after restore", 20000);
     assert(canvasUsable, "E6 canvas remains usable after restore");
 
-    const closed = await cdp.click('[aria-label="关闭导演台"]');
-    if (!closed) throw new Error("E: 关闭导演台 button not clickable");
+    const closed = await cdp.click('[aria-label="Close director\'s desk"]');
+    if (!closed) throw new Error("E: Close director's desk button not clickable");
     const shellGone = await cdp.poll(`document.querySelectorAll('.director-viewport-shell').length === 0`, "workbench closed", 20000);
     assert(shellGone, "E7 workbench closed cleanly");
 
@@ -702,20 +702,20 @@ async function saveFailureCloseGuard(cdp, baseUrl) {
 
     // canonical 改动：dock 新增立方体会走 commit → coordinator.edit → flush（被强制失败）。
     const addedCube = await addCube(cdp);
-    if (!addedCube) throw new Error("F: 添加立方体 button not clickable");
+    if (!addedCube) throw new Error("F: Add cube button not clickable");
 
-    const errorState = await cdp.poll(`(document.body.innerText || "").includes('保存失败')`, "save failure header", 40000);
-    assert(errorState, "F3 header surfaces 保存失败 after forced flush failure");
+    const errorState = await cdp.poll(`(document.body.innerText || "").includes('Save failed')`, "save failure header", 40000);
+    assert(errorState, "F3 header surfaces failed to save after forced flush failure");
     await cdp.contextClick('.director-viewport-dock button[aria-haspopup="menu"]');
-    const retryVisible = await cdp.poll(`[...document.querySelectorAll('[role="menuitem"]')].some((b) => b.getClientRects().length > 0 && (b.textContent || "").includes('重试保存') && b.getAttribute('aria-disabled') !== 'true')`, "retry save affordance", 20000);
-    assert(retryVisible, "F4 actionable 重试保存 affordance present");
+    const retryVisible = await cdp.poll(`[...document.querySelectorAll('[role="menuitem"]')].some((b) => b.getClientRects().length > 0 && (b.textContent || "").includes('Retry saving') && b.getAttribute('aria-disabled') !== 'true')`, "retry save affordance", 20000);
+    assert(retryVisible, "F4 actionable retry save affordance present");
     await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape" });
     await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape" });
 
-    const closeClicked = await cdp.click('[aria-label="关闭导演台"]');
-    if (!closeClicked) throw new Error("F: 关闭导演台 button not clickable");
+    const closeClicked = await cdp.click('[aria-label="Close director\'s desk"]');
+    if (!closeClicked) throw new Error("F: Close director's desk button not clickable");
 
-    const modalShown = await cdp.poll(`!!document.querySelector('.ant-modal-confirm') && (document.body.innerText || "").includes('留在导演台')`, "close confirm modal", 40000);
+    const modalShown = await cdp.poll(`!!document.querySelector('.ant-modal-confirm') && (document.body.innerText || "").includes('stay at the director's desk')`, "close confirm modal", 40000);
     assert(modalShown, "F5 close is guarded by a confirm dialog, not silent exit");
 
     await cdp.evaluate(`(() => {
@@ -727,10 +727,10 @@ async function saveFailureCloseGuard(cdp, baseUrl) {
         return true;
     })()`);
     const stayClicked = await cdp.click(".ant-modal-confirm .ant-modal-confirm-btns button:first-child");
-    if (!stayClicked) throw new Error("F: 留在导演台 button not clickable");
+    if (!stayClicked) throw new Error("F: Stay on the director's desk button not clickable");
     const cancelEvents = await cdp.evaluate(`window.__directorCancelEvents`);
     assert(
-        cancelEvents.some((event) => event.type === "click" && event.trusted && event.button === "留在导演台"),
+        cancelEvents.some((event) => event.type === "click" && event.trusted && event.button === "Stay at the director's desk"),
         "F6a trusted click reaches stay button",
         JSON.stringify(cancelEvents),
     );
@@ -748,11 +748,11 @@ async function saveFailureCloseGuard(cdp, baseUrl) {
         : await cdp.evaluate(`({ events: window.__directorCancelEvents, modals: [
         ...document.querySelectorAll('.ant-modal-confirm')
     ].map((modal) => ({ text: (modal.innerText || '').slice(0, 300), className: modal.className, opacity: getComputedStyle(modal).opacity })) })`);
-    assert(modalGone, "F6 confirm dialog dismissed after choosing 留在导演台", JSON.stringify(remainingModals));
+    assert(modalGone, "F6 confirm dialog dismissed after choosing to stay at the director's desk", JSON.stringify(remainingModals));
 
     await sleep(1000);
     const stillOpen = await cdp.evaluate(`document.querySelectorAll('.director-viewport-shell').length`);
-    assert(stillOpen === 1, "F7 workbench remains open after choosing 留在导演台", `shellCount=${stillOpen}`);
+    assert(stillOpen === 1, "F7 workbench remains open after choosing to stay at the director's desk", `shellCount=${stillOpen}`);
 
     assert(cdp.problems.length === 0, "F8 no browser problems in scenario F", JSON.stringify(cdp.problems));
 }
@@ -778,7 +778,7 @@ async function delayedMediaAfterClose(cdp, baseUrl) {
                 return image;
             };
         })()`);
-        if (kind === "screenshot") await cdp.click('[aria-label="截图"]');
+        if (kind === "screenshot") await cdp.click('[aria-label="screenshot"]');
         else await cdp.evaluate(`(() => {
             const canvas = document.createElement('canvas'); canvas.width = canvas.height = 8;
             canvas.toBlob((blob) => {
@@ -788,47 +788,47 @@ async function delayedMediaAfterClose(cdp, baseUrl) {
             });
         })()`);
         assert(await cdp.poll(`window.__delayedMedia.length === 1`, "upload waiting", 10000), `G ${kind}: upload is in flight`);
-        await cdp.click('[aria-label="关闭导演台"]');
+        await cdp.click('[aria-label="Close director\'s desk"]');
         await cdp.poll(`!document.querySelector('.director-viewport-shell')`, "closed", 15000);
         await cdp.click('[data-testid="toggle-workbench"]');
         await cdp.poll(`document.querySelector('.director-viewport-shell')?.dataset.rendererReady === 'true'`, "reopened", 40000);
         await addCube(cdp);
         const count = `document.querySelector('[data-testid="object-count"]')?.textContent.replace(/\\s/g,'')`;
-        assert(await cdp.poll(`${count} === '对象数4'`, "new edit", 10000), `G ${kind}: reopened scene has new edit`);
+        assert(await cdp.poll(`${count} === 'Object number 4'`, "new edit", 10000), `G ${kind}: reopened scene has new edit`);
         await cdp.evaluate(`window.__restoreMedia(); window.__delayedMedia.forEach(release => release());`);
         await sleep(1500);
-        assert(await cdp.evaluate(`${count} === '对象数4'`), `G ${kind}: late completion preserves canonical scene`);
+        assert(await cdp.evaluate(`${count} === 'Object number 4'`), `G ${kind}: late completion preserves canonical scene`);
         assert(cdp.problems.length === 0, `G ${kind}: no browser problems`, JSON.stringify(cdp.problems));
     }
 }
 
 async function addCube(cdp) {
-    if (!await cdp.click('[aria-label="场景"]')) return false;
-    if (!await cdp.click('[aria-label="添加场景对象"]')) return false;
-    return cdp.clickText("立方体", '[role="menuitem"]');
+    if (!await cdp.click('[aria-label="scene"]')) return false;
+    if (!await cdp.click('[aria-label="Add scene object"]')) return false;
+    return cdp.clickText("cube", '[role="menuitem"]');
 }
 
 async function multiScaleGesture(cdp, baseUrl) {
     console.log("\n=== H. multi-scale gesture uses one baseline ===");
     await cdp.navigateFresh(`${baseUrl}/dev/director-repro`);
     await cdp.click('[data-testid="toggle-workbench"]');
-    await cdp.click('[aria-label="场景"]');
-    await cdp.click('[data-director-row-label="立方体 A"] > button');
+    await cdp.click('[aria-label="scene"]');
+    await cdp.click('[data-director-row-label="Cube A"] > button');
     await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Shift", code: "ShiftLeft", modifiers: 8 });
     // Multi-selection belongs to the row's click handler; pass the held modifier to the pointer events.
-    const box = await cdp.evaluate(`(() => { const r = document.querySelector('[data-director-row-label="球体 B"] > button').getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()`);
+    const box = await cdp.evaluate(`(() => { const r = document.querySelector('[data-director-row-label="Sphere B"] > button').getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()`);
     await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", ...box, button: "left", buttons: 1, clickCount: 1, modifiers: 8 });
     await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", ...box, button: "left", buttons: 0, clickCount: 1, modifiers: 8 });
     await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Shift", code: "ShiftLeft" });
-    assert(await cdp.poll(`!!document.querySelector('[aria-label="多选统一缩放滑杆"]')`, "multi inspector"), "H1 two objects selected");
-    const setScale = (value) => cdp.evaluate(`(() => { const input = document.querySelector('[aria-label="多选统一缩放滑杆"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input, ${value}); input.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+    assert(await cdp.poll(`!!document.querySelector('[aria-label="Multiple selection unified zoom slider"]')`, "multi inspector"), "H1 two objects selected");
+    const setScale = (value) => cdp.evaluate(`(() => { const input = document.querySelector('[aria-label="Multiple selection unified scaling slider"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${value}); input.dispatchEvent(new Event('input',{bubbles:true})); })()`);
     await setScale(1.1);
     await setScale(1.2);
-    assert(await cdp.evaluate(`Number(document.querySelector('[aria-label="多选统一缩放滑杆"]').value) === 1.2`), "H2 consecutive input 1.1 -> 1.2 does not compound");
+    assert(await cdp.evaluate(`Number(document.querySelector('[aria-label="Multiple selection unified zoom slider"]').value) === 1.2`), "H2 consecutive input 1.1 -> 1.2 does not compound");
     await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape" });
     await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape" });
-    await cdp.click('[data-director-row-label="球体 B"] > button');
-    assert(await cdp.poll(`Number(document.querySelector('[aria-label="统一缩放滑杆"]')?.value) === 1`, "cancelled scale"), "H3 Escape cancels entire scale gesture");
+    await cdp.click('[data-director-row-label="Sphere B"] > button');
+    assert(await cdp.poll(`Number(document.querySelector('[aria-label="Unified zoom slider"]')?.value) === 1`, "cancelled scale"), "H3 Escape cancels entire scale gesture");
     assert(cdp.problems.length === 0, "H4 no browser problems", JSON.stringify(cdp.problems));
 }
 
@@ -850,7 +850,7 @@ async function legacyCoverRecovery(cdp, baseUrl) {
         const host = document.createElement('div'); host.id = 'legacy-cover-fixture'; document.body.append(host);
         const scene = createDirectorReproScene(); scene.shots[0].previewNodeId = 'legacy-image';
         createRoot(host).render(React.createElement(CanvasDirectorNodePanel, {
-            node: {id:'legacy-director',type:'director',title:'旧导演台',position:{x:0,y:0},width:640,height:640,metadata:{directorSceneId:scene.id}},
+node: {id:'legacy-director',type:'director',title:'Old Director's Desk',position:{x:0,y:0},width:640,height:640,metadata:{directorSceneId:scene.id}},
             scene, readNodeContent:()=>undefined, readNodeStorageKey:(id)=>id==='legacy-image'?'image:director-e2e-legacy-cover':undefined, onOpen:()=>{}
         }));
     })()`);
@@ -870,9 +870,9 @@ async function recordingSessionCleanup(cdp, baseUrl) {
         window.__playback.getState().setViewMode('free');
     })()`);
     await cdp.contextClick('.director-viewport-dock button[aria-haspopup="menu"]');
-    assert(await cdp.clickText("导出白膜视频", '[role="menuitem"]'), "J1 starts export from real menu");
+    assert(await cdp.clickText("Export white film video", '[role="menuitem"]'), "J1 starts export from real menu");
     assert(await cdp.poll(`window.__playback.getState().playing === true`, "recording started", 20000), "J2 recording takes playback control");
-    await cdp.click('[aria-label="关闭导演台"]');
+    await cdp.click('[aria-label="Close director\'s desk"]');
     assert(await cdp.poll(`!document.querySelector('.director-viewport-shell')`, "closed export"), "J3 closes while recording");
     assert(await cdp.evaluate(`(() => { const s = window.__playback.getState(); return !s.playing && s.playhead === 1.5 && s.viewMode === 'free'; })()`), "J4 abort immediately restores pre-export playback");
     await cdp.click('[data-testid="toggle-workbench"]');

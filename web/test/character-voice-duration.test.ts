@@ -11,7 +11,7 @@ const seedanceConfig = { model: "native::seedance-2.0", videoEditOperation: "ref
 
 test("stored character voice keeps duration through canvas hydration and preflight", async () => {
     const character = spyOn(projects, "getProjectCharacter").mockResolvedValue({
-        asset: { id: "character-1", title: "爸爸" },
+        asset: { id: "character-1", title: "dad" },
         character: { versionId: "version-1", definition: {}, representations: [], voice: { profile: { sampleResourceId: "voice-1" }, instructions: "" } },
     } as Awaited<ReturnType<typeof projects.getProjectCharacter>>);
     const resource = spyOn(resources, "getResource").mockResolvedValue({ id: "voice-1", mimeType: "audio/mpeg", objectKey: "voice.mp3", durationMs: 2500, size: 1234 } as resources.RemoteResource);
@@ -42,7 +42,7 @@ test("stored character voice keeps duration through canvas hydration and preflig
 
 test("character images and voice retain the source card for H3 ordering", async () => {
     const character = spyOn(projects, "getProjectCharacter").mockResolvedValue({
-        asset: { id: "character-1", title: "爸爸" },
+        asset: { id: "character-1", title: "dad" },
         character: { versionId: "version-1", definition: {}, representations: [{ resourceId: "front", role: "front" }, { resourceId: "side", role: "side" }], voice: { profile: { sampleResourceId: "voice-1" }, instructions: "" } },
     } as Awaited<ReturnType<typeof projects.getProjectCharacter>>);
     const resource = spyOn(resources, "getResource").mockResolvedValue({ id: "voice-1", mimeType: "audio/mpeg", objectKey: "voice.mp3", durationMs: 2500, size: 1234 } as resources.RemoteResource);
@@ -62,14 +62,14 @@ test("character images and voice retain the source card for H3 ordering", async 
 
 test("video promptOnly keeps character identity bound to actual non-contiguous image slots", async () => {
     const character = spyOn(projects, "getProjectCharacter").mockImplementation(async (_projectId, assetId) => ({
-        asset: { id: assetId, title: assetId === "b" ? "小乙" : "小甲" },
-        character: { versionId: "v1", definition: { personality: "不应自动注入的性格设定" }, representations: [
+        asset: { id: assetId, title: assetId === "b" ? "Xiao Yi" : "Xiaojia" },
+        character: { versionId: "v1", definition: { personality: "Character settings that should not be automatically injected" }, representations: [
             { resourceId: `${assetId}-front`, role: "front" },
             { resourceId: `${assetId}-side`, role: "side" },
         ] },
     } as Awaited<ReturnType<typeof projects.getProjectCharacter>>));
     try {
-        const prompt = "@角色1 在右侧拿手机，@角色2 在左侧说：你找我？";
+        const prompt = "@Character 1 is holding the phone on the right, @Character 2 is saying on the left: Are you looking for me?";
         const hydrated = compileNodeGenerationReferences(await hydrateNodeGenerationContext({
             prompt,
             referenceImages: [{ id: "scene", name: "scene.png", type: "image/png", dataUrl: "", storageKey: "resource:scene" }],
@@ -78,11 +78,11 @@ test("video promptOnly keeps character identity bound to actual non-contiguous i
             resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 0, imageCount: 1, videoCount: 0, audioCount: 0,
         }, "canvas", "project", "video", true, false, { maxImages: 9, maxVideos: 3, maxAudios: 3 }), seedanceConfig, "reference_to_video");
         expect(hydrated.referenceImages.map(image => image.storageKey)).toEqual(["resource:scene", "resource:b-front", "resource:a-front", "resource:b-side", "resource:a-side"]);
-        expect(hydrated.prompt).toContain("@角色1 与「小乙」指同一角色。该角色外观参考 @图片2、@图片4");
-        expect(hydrated.prompt).toContain("@角色2 与「小甲」指同一角色。该角色外观参考 @图片3、@图片5");
+        expect(hydrated.prompt).toContain("@Character 1 and \"Xiao B\" refer to the same character. The appearance of this character refers to @Picture 2, @Picture 4");
+        expect(hydrated.prompt).toContain("@Character 2 and \"Xiao Jia\" refer to the same character. The appearance of this character refers to @Picture 3, @Picture 5");
         expect(hydrated.prompt).toContain(prompt);
-        expect(hydrated.prompt).not.toContain("不应自动注入");
-        expect(hydrated.prompt).not.toContain("@音频");
+        expect(hydrated.prompt).not.toContain("should not be automatically injected");
+        expect(hydrated.prompt).not.toContain("@audio");
     } finally {
         character.mockRestore();
     }
@@ -97,15 +97,15 @@ test("two characters can bind an already connected voice sample without duplicat
     try {
         const audio = { id: "sample", name: "sample.mp3", type: "audio/mpeg", url: "https://example.com/sample.mp3", storageKey: "resource:shared-voice", durationMs: 2500 };
         const hydrated = compileNodeGenerationReferences(await hydrateNodeGenerationContext({
-            prompt: "@角色1 说早安，@角色2 回答你好。", referenceImages: [], referenceVideos: [], referenceAudios: [audio],
-            characterReferences: [{ nodeId: "a", assetId: "甲" }, { nodeId: "b", assetId: "乙" }],
+            prompt: "@Character 1 says good morning, @Character 2 replies Hello.", referenceImages: [], referenceVideos: [], referenceAudios: [audio],
+            characterReferences: [{ nodeId: "a", assetId: "A" }, { nodeId: "b", assetId: "B" }],
             resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 0, imageCount: 0, videoCount: 0, audioCount: 1,
         }, "canvas", "project", "video", true, false), seedanceConfig, "reference_to_video");
         expect(hydrated.referenceAudios).toEqual([audio]);
         expect(resource).not.toHaveBeenCalled();
-        expect(hydrated.prompt).toContain("@角色1 与「甲」指同一角色。该角色音色参考 @音频1。");
-        expect(hydrated.prompt).toContain("@角色2 与「乙」指同一角色。该角色音色参考 @音频1。");
-        expect(hydrated.prompt).not.toContain("@图片");
+        expect(hydrated.prompt).toContain("@Character 1 and \"A\" refer to the same character. The character’s timbre refers to @Audio 1.");
+        expect(hydrated.prompt).toContain("@Character 2 and \"B\" refer to the same character. The character’s timbre refers to @Audio 1.");
+        expect(hydrated.prompt).not.toContain("@picture");
     } finally {
         character.mockRestore();
         resource.mockRestore();
@@ -113,19 +113,19 @@ test("two characters can bind an already connected voice sample without duplicat
 });
 
 test("character binding does not alter TTS, images, H3 ordering, frames or workflows", async () => {
-    const character = spyOn(projects, "getProjectCharacter").mockResolvedValue({ asset: { id: "a", title: "甲" }, character: { versionId: "v1", definition: {}, representations: [] } } as Awaited<ReturnType<typeof projects.getProjectCharacter>>);
-    const base: NodeGenerationContext = { prompt: "你好", referenceImages: [], referenceVideos: [], referenceAudios: [], characterReferences: [{ nodeId: "a", assetId: "a" }], resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 0, imageCount: 0, videoCount: 0, audioCount: 0 };
+    const character = spyOn(projects, "getProjectCharacter").mockResolvedValue({ asset: { id: "a", title: "A" }, character: { versionId: "v1", definition: {}, representations: [] } } as Awaited<ReturnType<typeof projects.getProjectCharacter>>);
+    const base: NodeGenerationContext = { prompt: "hello", referenceImages: [], referenceVideos: [], referenceAudios: [], characterReferences: [{ nodeId: "a", assetId: "a" }], resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 0, imageCount: 0, videoCount: 0, audioCount: 0 };
     try {
         for (const mode of ["audio", "image", "text"] as const) {
             const hydrated = await hydrateNodeGenerationContext(base, "canvas", "project", mode, false, false);
-            expect(hydrated.prompt).toBe("你好");
+            expect(hydrated.prompt).toBe("hello");
             expect(hydrated.characterReferenceBindings).toBeUndefined();
         }
         const hydrated = await hydrateNodeGenerationContext(base, "canvas", "project", "video", false, false);
-        expect(hydrated.prompt).toBe("你好");
+        expect(hydrated.prompt).toBe("hello");
         for (const config of [
             { ...seedanceConfig, model: "fal::minimax/h3-max", channels: [{ id: "fal", models: ["minimax/h3-max"], modelProfiles: [{ model: "minimax/h3-max", protocol: "newapi" }] }] },
-        ]) expect(compileNodeGenerationReferences(hydrated, config as AiConfig, "reference_to_video").prompt).toBe("你好");
-        expect(compileNodeGenerationReferences(hydrated, seedanceConfig, "image_to_video").prompt).toBe("你好");
+        ]) expect(compileNodeGenerationReferences(hydrated, config as AiConfig, "reference_to_video").prompt).toBe("hello");
+        expect(compileNodeGenerationReferences(hydrated, seedanceConfig, "image_to_video").prompt).toBe("hello");
     } finally { character.mockRestore(); }
 });

@@ -68,7 +68,7 @@ func TestCreationConversationRoutesRegisterOnDesktopAPI(t *testing.T) {
 
 func TestCreationConversationPutGetAndConflict(t *testing.T) {
 	router, _ := conversationRouter(t)
-	body := []byte(`{"expectedRevision":0,"document":{"id":"conversation-1","title":"第一镜","messages":[{"id":"m1","role":"user","content":"hi"}]}}`)
+	body := []byte(`{"expectedRevision":0,"document":{"id":"conversation-1","title":"First Lens","messages":[{"id":"m1","role":"user","content":"hi"}]}}`)
 	put := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPut, "/api/creation-conversations/conversation-1", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -83,7 +83,7 @@ func TestCreationConversationPutGetAndConflict(t *testing.T) {
 	if replay.Code != http.StatusOK {
 		t.Fatalf("lost-ack replay status=%d body=%s", replay.Code, replay.Body.String())
 	}
-	changed := []byte(`{"expectedRevision":0,"document":{"id":"conversation-1","title":"第二镜","messages":[{"id":"m1","role":"user","content":"hi"}]}}`)
+	changed := []byte(`{"expectedRevision":0,"document":{"id":"conversation-1","title":"Second Mirror","messages":[{"id":"m1","role":"user","content":"hi"}]}}`)
 	conflict := httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/api/creation-conversations/conversation-1", bytes.NewReader(changed))
 	req.Header.Set("Content-Type", "application/json")

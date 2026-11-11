@@ -112,11 +112,11 @@ func summarizeUpdateFailure(message string) string {
 	reason := "details-redacted"
 	lower := strings.ToLower(message)
 	for _, item := range []struct{ marker, code string }{
-		{"超时", "timeout"}, {"deadline exceeded", "timeout"}, {"timeout", "timeout"},
+		{"timeout", "timeout"}, {"deadline exceeded", "timeout"}, {"timeout", "timeout"},
 		{"no space left", "disk-full"}, {"not enough space", "disk-full"},
 		{"permission denied", "permission-denied"}, {"access is denied", "permission-denied"},
 		{"connection reset", "connection-reset"}, {"connection refused", "connection-refused"},
-		{"文件损坏", "verification-failed"},
+		{"Corrupted file", "verification-failed"},
 	} {
 		if strings.Contains(lower, item.marker) {
 			reason = item.code

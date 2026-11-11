@@ -40,7 +40,7 @@ func TestSkillScriptAutoRunSettingReplacesProposalConfirmation(t *testing.T) {
 	var zipBuf bytes.Buffer
 	zw := zip.NewWriter(&zipBuf)
 	for name, content := range map[string]string{
-		"SKILL.md":        "---\nname: 自动运行开关测试\ndescription: 验证自动运行设置\n---\n运行 scripts/echo.js",
+		"SKILL.md":        "---\nname: Automatically run switch test\ndescription: Verify autorun settings\n---\nRun scripts/echo.js",
 		"scripts/echo.js": "console.log('ECHO:' + process.argv.slice(2).join(','));",
 	} {
 		f, err := zw.Create(name)

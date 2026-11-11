@@ -1,18 +1,18 @@
 ---
 name: character-replacement
-description: AI 视频角色替换与全片区间回插技能：针对单人/多人镜头执行「关键帧精准换人 + Seedance 2.5 视频元素替换」双阶段高保真替换，并将替换后的镜头无损回插至全片时间线。
+description: AI video character replacement and full-film interval interpolation skills: Perform "key frame precise substitution + Seedance 2.5 video element replacement" two-stage high-fidelity replacement for single/multiplayer shots, and insert the replaced shots into the full film timeline without loss.
 ---
 
-# AI 角色替换工作室（`character-replacement`）
+# AI character replacement studio (`character-replacement`)
 
-## 适用场景
+## Applicable scenarios
 
-- 用户希望把已有视频片段或短剧镜头中的某个角色（单人画面，或双人/多人同框中的左侧、中间、右侧人物）替换为新的目标角色形象。
-- 用户需要控制替换范围：`full-person`（完整人物含外观和服装）、`visible-part`（当前可见部分）、`face-hair`（仅脸部和头发）、`clothing`（仅服装）、`arm-hand`（手臂和手部）。
-- 用户希望保持原视频中的运镜、人物动作节奏、手持道具（如文件夹、冷兵器等）以及画面中其他未替换角色 100% 不变。
-- 用户在替换完单个或若干个镜头后，希望把替换好的镜头按时间区间（`startMs ~ endMs`）完整回插到原全片时间线中并保留原片连续原声。
+- The user wants to replace a certain character in an existing video clip or skit scene (single-person screen, or the left, middle, or right character in a two-person/multi-person frame) with a new target character image.
+- Users need to control the replacement range: `full-person` (complete character including appearance and clothing), `visible-part` (currently visible part), `face-hair` (face and hair only), `clothing` (clothing only), `arm-hand` (arms and hands).
+- The user hopes to keep the camera movement, character action rhythm, hand-held props (such as folders, cold weapons, etc.) and other unreplaced characters in the original video 100% unchanged.
+- After replacing a single or several shots, the user hopes to completely insert the replaced shots into the original full film timeline according to the time interval (`startMs ~ endMs`) and retain the continuous original sound of the original film.
 
-## 双阶段高保真编排步骤
+## Two-stage high-fidelity orchestration steps
 
 1. **识别现场素材节点**：
    - 原镜头关键帧图片节点 `sourceKeyframeNodeId`（作为图1：提供原镜头构图、光影、遮挡关系与其余人物）。

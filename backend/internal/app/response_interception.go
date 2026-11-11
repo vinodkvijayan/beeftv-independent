@@ -73,7 +73,7 @@ func (s *Service) responseInterceptionSetting() (ResponseInterceptionSetting, er
 		return value, nil
 	}
 	if err := json.Unmarshal([]byte(setting.ValueJSON), &value); err != nil {
-		return ResponseInterceptionSetting{}, fmt.Errorf("模型响应拦截配置格式错误: %w", err)
+		return ResponseInterceptionSetting{}, fmt.Errorf("Model response interception configuration format error: %w", err)
 	}
 	value = normalizeResponseInterceptionSetting(value)
 	if err := validateResponseInterceptionSetting(value); err != nil {
@@ -95,20 +95,20 @@ func normalizeResponseInterceptionSetting(value ResponseInterceptionSetting) Res
 
 func validateResponseInterceptionSetting(value ResponseInterceptionSetting) error {
 	if len(value.Rules) > maxResponseInterceptionRules {
-		return fmt.Errorf("模型响应拦截规则不能超过 %d 条", maxResponseInterceptionRules)
+		return fmt.Errorf("Model response interception rules cannot exceed %d", maxResponseInterceptionRules)
 	}
 	for index, rule := range value.Rules {
 		if rule.Contains == "" {
-			return fmt.Errorf("第 %d 条拦截规则的匹配文案不能为空", index+1)
+			return fmt.Errorf("The matching copy of interception rule No. %d cannot be empty.", index+1)
 		}
 		if len([]rune(rule.Contains)) > maxResponseInterceptionTextRunes {
-			return fmt.Errorf("第 %d 条拦截规则的匹配文案不能超过 %d 个字符", index+1, maxResponseInterceptionTextRunes)
+			return fmt.Errorf("The matching copy of blocking rule %d cannot exceed %d characters.", index+1, maxResponseInterceptionTextRunes)
 		}
 		if rule.Replace == "" {
-			return fmt.Errorf("第 %d 条拦截规则的替换文案不能为空", index+1)
+			return fmt.Errorf("The replacement copy of interception rule No. %d cannot be empty.", index+1)
 		}
 		if len([]rune(rule.Replace)) > maxResponseInterceptionReplaceRunes {
-			return fmt.Errorf("第 %d 条拦截规则的替换文案不能超过 %d 个字符", index+1, maxResponseInterceptionReplaceRunes)
+			return fmt.Errorf("The replacement copy of block rule %d cannot exceed %d characters.", index+1, maxResponseInterceptionReplaceRunes)
 		}
 	}
 	return nil

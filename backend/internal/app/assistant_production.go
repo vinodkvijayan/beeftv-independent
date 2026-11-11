@@ -51,7 +51,7 @@ func (s *Service) confirmAssistantProductionWithApprover(userID, turnID string, 
 			var existing operations.GenerationAuthorization
 			if json.Unmarshal([]byte(source.GenerationAuthorizationJSON), &existing) == nil {
 				if existing.ProposalID != "" && existing.ProposalID != input.ProposalID {
-					return operations.Conflict("production_changed", "这一轮已确认了不同的制作方案", nil)
+					return operations.Conflict("production_changed", "Different production plans have been confirmed for this round", nil)
 				}
 				expectedTargets = existing.Targets
 			}
@@ -68,18 +68,18 @@ func (s *Service) confirmAssistantProductionWithApprover(userID, turnID string, 
 			return err
 		}
 		if len(expectedTargets) > 0 && !reflect.DeepEqual(current, expectedTargets) {
-			return operations.Conflict("production_changed", "制作方案已变化，请重新确认", nil)
+			return operations.Conflict("production_changed", "The production plan has changed, please reconfirm", nil)
 		}
 		isMultiStage := len(input.Targets) > 0 || input.ContinuePlan || len(current) > len(input.NodeIDs)
 		if source.Undone || source.ContinuationInvalidated || (isMultiStage && source.DurableSessionID == "") {
-			return operations.PreconditionFailed("production_revoked", "这次制作授权已停止，请重新确认", nil)
+			return operations.PreconditionFailed("production_revoked", "This production authorization has been stopped, please reconfirm", nil)
 		}
 		plan := operations.GenerationAuthorization{SourceTurnID: turnID, ProposalID: input.ProposalID, Targets: current}
 		encoded, _ := json.Marshal(plan)
 		if source.GenerationAuthorizationJSON != "" && source.GenerationAuthorizationJSON != string(encoded) {
 			var existing operations.GenerationAuthorization
 			if json.Unmarshal([]byte(source.GenerationAuthorizationJSON), &existing) != nil || existing.SourceTurnID != "" {
-				return operations.Conflict("production_changed", "这一轮已确认了不同的制作方案", nil)
+				return operations.Conflict("production_changed", "Different production plans have been confirmed for this round", nil)
 			}
 		}
 		if err = tx.Model(&source).Update("generation_authorization_json", string(encoded)).Error; err != nil {
@@ -93,13 +93,13 @@ func (s *Service) confirmAssistantProductionWithApprover(userID, turnID string, 
 		for _, target := range current {
 			if wanted[target.NodeID] {
 				if target.Kind != input.Kind {
-					return operations.InvalidArg("invalid_kind", "首批素材类型不一致")
+					return operations.InvalidArg("invalid_kind", "The first batch of material types are inconsistent")
 				}
 				batch = append(batch, target)
 			}
 		}
 		if len(batch) == 0 || len(batch) != len(wanted) {
-			return operations.InvalidArg("invalid_batch", "首批素材不在制作计划内")
+			return operations.InvalidArg("invalid_batch", "The first batch of material is not in the production plan")
 		}
 		result, err = domain.admitProductionTargets(userID, input.CanvasID, plan, batch)
 		if err != nil {
@@ -179,14 +179,14 @@ func (s *operationSession) SubmitAuthorizedGeneration(userID, turnID, canvasID s
 	if json.Unmarshal([]byte(source.GenerationAuthorizationJSON), &plan) != nil || plan.SourceTurnID == "" {
 		// Only the trusted confirmation endpoint can create a spend grant.
 		// A later model call cannot promote a recorded, unconfirmed proposal.
-		return nil, operations.PreconditionFailed("production_authorization_required", "请先在确认卡片中确认本次制作方案", nil)
+		return nil, operations.PreconditionFailed("production_authorization_required", "Please confirm this production plan in the confirmation card first", nil)
 	}
 	var owner model.AssistantTurn
 	if err := s.tx.First(&owner, "turn_id = ? AND user_id = ? AND canvas_id = ?", plan.SourceTurnID, userID, canvasID).Error; err != nil {
 		return nil, err
 	}
 	if owner.Undone || owner.ContinuationInvalidated || owner.DurableSessionID != source.DurableSessionID || owner.GenerationAuthorizationJSON != source.GenerationAuthorizationJSON {
-		return nil, operations.PreconditionFailed("production_revoked", "本次制作授权已停止", nil)
+		return nil, operations.PreconditionFailed("production_revoked", "This production authorization has been stopped", nil)
 	}
 	approved := map[string]operations.GenerationTarget{}
 	for _, target := range plan.Targets {
@@ -194,7 +194,7 @@ func (s *operationSession) SubmitAuthorizedGeneration(userID, turnID, canvasID s
 	}
 	for _, target := range targets {
 		if !reflect.DeepEqual(approved[target.NodeID], target) {
-			return nil, operations.PreconditionFailed("production_changed", "素材或参数超出已确认的制作方案，请重新确认", nil)
+			return nil, operations.PreconditionFailed("production_changed", "The materials or parameters exceed the confirmed production plan, please reconfirm", nil)
 		}
 	}
 	return s.admitProductionTargets(userID, canvasID, plan, targets)
@@ -257,7 +257,7 @@ func (s *operationSession) admitProductionTargets(userID, canvasID string, plan 
 			storage, _ := meta["storageKey"].(string)
 			content, _ := meta["content"].(string)
 			if (id != "" && id != existing.ID) || (id == "" && ((opID != "" && opID != key) || meta["generationSubmissionState"] == "submitting" || strings.TrimSpace(storage) != "" || strings.TrimSpace(content) != "")) {
-				return nil, operations.Conflict("production_node_changed", "素材节点已使用其他任务，请先检查当前结果", nil)
+				return nil, operations.Conflict("production_node_changed", "The material node has been used by other tasks, please check the current results first", nil)
 			}
 			proj, _, _, err := assistantturns.ProjectTaskInTx(s.tx, userID, *existing)
 			if err != nil {
@@ -285,7 +285,7 @@ func (s *operationSession) admitProductionTargets(userID, canvasID string, plan 
 			nodes[target.NodeID]["metadata"] = meta
 		}
 		if meta["status"] == "loading" || meta["taskStatus"] == "queued" || meta["taskStatus"] == "running" || meta["generationSubmissionState"] == "submitting" {
-			return nil, operations.Conflict("production_node_changed", "素材节点已使用其他任务，请先检查当前结果", nil)
+			return nil, operations.Conflict("production_node_changed", "The material node has been used by other tasks, please check the current results first", nil)
 		}
 		input, err := s.productionTaskInput(userID, target, nodes)
 		if err != nil {
@@ -334,23 +334,23 @@ func (s *operationSession) productionTaskInput(userID string, target operations.
 		node := nodes[id]
 		meta, _ := node["metadata"].(map[string]any)
 		if meta["status"] == "loading" || meta["taskStatus"] == "queued" || meta["taskStatus"] == "running" || meta["generationSubmissionState"] == "submitting" {
-			return nil, operations.PreconditionFailed("generation_dependencies_not_ready", "参考素材仍在生成，请等待原任务保存", nil)
+			return nil, operations.PreconditionFailed("generation_dependencies_not_ready", "The reference material is still being generated, please wait for the original task to be saved.", nil)
 		}
 		key, _ := meta["storageKey"].(string)
 		if !strings.HasPrefix(key, "resource:") {
-			return nil, operations.PreconditionFailed("generation_dependencies_not_ready", "参考素材尚未保存", nil)
+			return nil, operations.PreconditionFailed("generation_dependencies_not_ready", "Reference material has not been saved yet", nil)
 		}
 		resource, err := s.repo.Resource(strings.TrimPrefix(key, "resource:"))
 		if err != nil {
 			return nil, err
 		}
 		if resource.UserID != userID || resource.Status != "ready" {
-			return nil, operations.PreconditionFailed("generation_dependencies_not_ready", "参考素材尚未就绪或不属于当前工作区", nil)
+			return nil, operations.PreconditionFailed("generation_dependencies_not_ready", "The reference material is not ready or does not belong to the current workspace", nil)
 		}
 		kind := fmt.Sprint(node["type"])
 		field := map[string]string{"image": "referenceImages", "video": "referenceVideos", "audio": "referenceAudios"}[kind]
 		if field == "" {
-			return nil, operations.InvalidArg("unsupported_reference", "本次制作只支持已保存的图片、视频和声音参考")
+			return nil, operations.InvalidArg("unsupported_reference", "This production only supports saved pictures, videos and sound references.")
 		}
 		list, _ := input[field].([]any)
 		input[field] = append(list, map[string]any{"id": id, "storageKey": key, "mimeType": resource.MimeType, "width": resource.Width, "height": resource.Height, "durationMs": resource.DurationMs})

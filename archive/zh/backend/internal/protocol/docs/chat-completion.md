@@ -1,8 +1,8 @@
 # OpenAI Chat Completions
 
-Chat Completions 是基于 `messages` 的同步或流式文本协议。宿主默认把提示词包装成一条 `user` 消息；需要多轮上下文、工具调用或结构化输出时，通过模型扩展参数传入完整 OpenAI 字段。
+Chat Completions is a synchronous or streaming text protocol based on `messages`. By default, the host packages the prompt word into a `user` message; when multiple rounds of context, tool calls, or structured output are required, the complete OpenAI field is passed in through the model extension parameters.
 
-## 接口、鉴权与请求模式
+## Interface, authentication and request mode
 
 {{OPERATIONS}}
 
@@ -12,19 +12,19 @@ Authorization: Bearer <API_KEY>
 Content-Type: application/json
 ```
 
-官方服务的 Base URL 通常以 `/v1` 结尾；在宿主中应以渠道实际配置为准。同步请求返回单个 JSON；`stream: true` 时上游返回 SSE，宿主文本任务流负责转发和组装事件。
+The Base URL of the official service usually ends with `/v1`; the actual configuration of the channel in the host should prevail. Synchronous requests return a single JSON; for `stream: true` the upstream returns SSE, and the host text task flow is responsible for forwarding and assembling events.
 
-## 模型与兼容边界
+## Model and compatibility boundaries
 
-模型名不会由插件维护白名单，必须填写渠道实际暴露的模型 ID。OpenAI 新项目更推荐 Responses API；现有 Chat Completions 模型和兼容渠道仍可使用本插件。兼容渠道可能只实现字段子集，不能因为路径相同就假定支持工具、视觉输入或 JSON Schema。
+The model name will not be whitelisted by the plug-in, and the model ID actually exposed by the channel must be filled in. New OpenAI projects recommend the Responses API; existing Chat Completions models and compatible channels can still use this plug-in. Compatible channels may only implement a subset of fields, and support for tools, visual input, or JSON Schema cannot be assumed just because the paths are the same.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-可通过 `extra` 透传 `messages`、`temperature`、`top_p`、`max_tokens`、`stream`、`tools` 和 `response_format`。传入 `extra.messages` 时会替换默认单条消息，而不是追加。
+`messages`, `temperature`, `top_p`, `max_tokens`, `stream`, `tools` and `response_format` can be transparently transmitted through `extra`. Passing in `extra.messages` will replace the default single message instead of appending it.
 
-## 完整请求示例
+## Complete request example
 
 ```bash
 curl "{channel_base_url}/v1/chat/completions" \
@@ -48,13 +48,13 @@ curl "{channel_base_url}/v1/chat/completions" \
 }
 ```
 
-## 响应解析、流式与错误
+## Response parsing, streaming and errors
 
-同步解析只读取 `choices[0].message.content`，并保留顶层 `usage`。当前解析器不把 `tool_calls` 当文本结果；只有工具调用而没有正文时，应由调用方进入工具回合，不能当作普通文本成功。流式分片、结束标记和断线续传由文本任务 SSE 链路处理，不使用此同步 JSON 解析器硬拼。
+Synchronous parsing reads only `choices[0].message.content` and retains the top level `usage`. The current parser does not treat `tool_calls` as a text result; when there is only a tool call without text, the caller should enter the tool turn and cannot be treated as ordinary text. Streaming fragmentation, end markers, and resuming are handled by the text task SSE link and are not hard-coded using this synchronous JSON parser.
 
-常见失败包括模型不存在、上下文超限、字段不受兼容服务支持、额度或速率限制。应保留上游 HTTP 状态和错误正文，不改写为成功。
+Common failures include model not existing, context limit exceeded, fields not supported by compatible services, quota or rate limits. The upstream HTTP status and error text should be preserved and not overwritten as success.
 
-## 官方资料
+## Official information
 
 - [OpenAI Chat Completions API Reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)
 - [OpenAI Text generation guide](https://developers.openai.com/api/docs/guides/text)

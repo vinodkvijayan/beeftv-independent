@@ -74,7 +74,7 @@ func (p managedMediaPort) Begin(req *http.Request) (bool, error) {
 		return false, err
 	}
 	if wire.ReplayProtocol != beeftv.MediaProtocolVersion || wire.Header.Get("Idempotency-Key") != req.Header.Get("Idempotency-Key") || wire.URL != req.URL.String() {
-		return false, errors.New("媒体任务原始提交身份不一致")
+		return false, errors.New("Media task original submission identity inconsistent")
 	}
 	task := req.Context().Value(TaskContext{}).(model.Task)
 	if err := p.service.repo.ClaimImageSubmissionSend(row, task.LeaseOwner, 1); err != nil {
@@ -194,7 +194,7 @@ func (s *Service) ManagedTaskQuery(ctx context.Context, task model.Task, row *mo
 		wire, err = s.ImageSubmissionWire(row)
 	}
 	if err != nil {
-		return Query{}, managed || row.QueryCipher != "", imageRecoveryError{errors.New("原任务查询信息暂不可用，尚未确认结果")}
+		return Query{}, managed || row.QueryCipher != "", imageRecoveryError{errors.New("The original task query information is temporarily unavailable, and the results have not been confirmed yet.")}
 	}
 	managed = managed || managedFrozenImage(task, wire)
 	if !managed {
@@ -214,7 +214,7 @@ func (s *Service) ManagedTaskQuery(ctx context.Context, task model.Task, row *mo
 	}
 	key := strings.TrimSpace(wire.Header.Get("Idempotency-Key"))
 	if key == "" {
-		return Query{}, true, imageRecoveryError{errors.New("历史媒体任务缺少原始查询编号")}
+		return Query{}, true, imageRecoveryError{errors.New("Historical media task missing original query number")}
 	}
 	base := wire.URL
 	for _, part := range []string{"/media/tasks", "/images/generations", "/images/edits"} {
@@ -249,7 +249,7 @@ func (s *Service) ManagedTaskQuery(ctx context.Context, task model.Task, row *mo
 	if kind == "upscale" {
 		client.ExpectedOutputKind = strings.TrimPrefix(task.Type, "canvas_")
 		if client.ExpectedOutputKind != "image" && client.ExpectedOutputKind != "video" {
-			return Query{}, true, errors.New("原超分任务素材类型无效")
+			return Query{}, true, errors.New("The original super mission material type is invalid")
 		}
 	}
 	return Query{Client: client, Key: key, Kind: kind, Legacy: wire.ReplayProtocol != beeftv.MediaProtocolVersion}, true, nil
@@ -376,8 +376,8 @@ func isUnrecoverableVideoQueryError(err error) bool {
 		return true
 	}
 	msg := err.Error()
-	return strings.Contains(msg, "该任务的请求协议不支持安全查询上游状态") || strings.Contains(msg, "上游返回的任务 ID 与原视频任务不一致") ||
-		strings.Contains(msg, "超分回执与原任务不一致") || strings.Contains(msg, "任务输入解析失败") || strings.Contains(msg, "该任务没有可恢复的上游任务 ID")
+	return strings.Contains(msg, "The request protocol of this task does not support secure querying of upstream status") || strings.Contains(msg, "The task ID returned by the upstream is inconsistent with the original video task") ||
+		strings.Contains(msg, "The super score receipt is inconsistent with the original task") || strings.Contains(msg, "任务输入解析失败") || strings.Contains(msg, "The task has no recoverable upstream task ID")
 }
 
 func VideoTaskPastRetentionWindow(task model.Task, now time.Time) bool {

@@ -57,7 +57,7 @@ type MediaImageRead struct {
 	Crop           *MediaImageCrop `json:"crop,omitempty"`
 }
 
-const mediaImageCropSchema = `{"type":"object","description":"图片局部原像素裁剪（0~1比例）","properties":{"x":{"type":"number"},"y":{"type":"number"},"width":{"type":"number"},"height":{"type":"number"}},"required":["x","y","width","height"]}`
+const mediaImageCropSchema = `{"type":"object","description":"Picture local original pixel cropping (0~1 ratio)","properties":{"x":{"type":"number"},"y":{"type":"number"},"width":{"type":"number"},"height":{"type":"number"}},"required":["x","y","width","height"]}`
 
 // 3 MiB becomes 4 MiB of base64, below the SDK's default 4.5 MiB inline budget.
 // This bounds payload bytes without imposing a pixel limit on detail inspection.
@@ -72,7 +72,7 @@ const (
 
 func inlineImagePart(path, mime string, source MediaSource) (MediaPart, error) {
 	if stat, err := os.Stat(path); err == nil && stat.Size() > maxInlineImageBytes {
-		return MediaPart{}, PreconditionFailed("media_part_too_large", "图片超过单次读取大小，请分区查看图片细节", nil)
+		return MediaPart{}, PreconditionFailed("media_part_too_large", "The image exceeds the size of a single read, please partition to view the image details", nil)
 	}
 	return mediaFilePart(path, "image", mime, source)
 }
@@ -193,7 +193,7 @@ func scaleImagePreviewJPEG(source, target string) error {
 func imageFFmpegCommand(ctx context.Context, args ...string) ([]byte, error) {
 	bin, err := editing.ResolveFFmpegBinary()
 	if err != nil {
-		return nil, PreconditionFailed("media_ffmpeg_unavailable", "媒体检查需要 ffmpeg", nil)
+		return nil, PreconditionFailed("media_ffmpeg_unavailable", "Media checking requires ffmpeg", nil)
 	}
 	return mediaCommand(ctx, bin, args...)
 }
@@ -211,7 +211,7 @@ func (p preparedMedia) readImage(ctx context.Context, operation string, args med
 		}
 		config, format, err = imageConfig(input)
 		if err != nil {
-			return MediaResult{}, PreconditionFailed("media_processing_failed", "图片无法解码", nil)
+			return MediaResult{}, PreconditionFailed("media_processing_failed", "Picture cannot be decoded", nil)
 		}
 	}
 	info := &MediaImageRead{View: "original", Width: config.Width, Height: config.Height, OriginalWidth: config.Width, OriginalHeight: config.Height}
@@ -250,22 +250,22 @@ func (p preparedMedia) readImage(ctx context.Context, operation string, args med
 		info.View = "preview"
 		info.Inspectable = !oversizeForInspect
 		if oversizeForInspect {
-			result.Note = "这张图片超过单次读取大小，当前仅为概览。小字和纹理等细节请用 media.inspect 的 imageCrop 分区查看原始像素；不要根据概览猜测细节。"
+			result.Note = "This image exceeds the size for a single read and is currently an overview only. For details such as small text and textures, use media.inspect's imageCrop partition to see the original pixels; don't guess the details based on the overview."
 		} else {
-			result.Note = "当前为概览缩略图。小字和纹理等细节请用 media.inspect（mode=frames 或 imageCrop）查看原始像素；不要根据概览猜测细节。"
+			result.Note = "Currently an overview thumbnail. For details such as small text and textures, use media.inspect (mode=frames or imageCrop) to see the original pixels; don't guess the details based on the overview."
 		}
 		part, err = inlineImagePart(input, "image/jpeg", result.Source)
 	}
 	if err != nil {
 		if AsError(err).Reason == "media_part_too_large" {
-			return MediaResult{}, PreconditionFailed("media_part_too_large", "图片超过单次读取大小，请分区查看图片细节", nil)
+			return MediaResult{}, PreconditionFailed("media_part_too_large", "The image exceeds the size of a single read, please partition to view the image details", nil)
 		}
 		return MediaResult{}, err
 	}
 	if info.View != "original" {
 		output, _, err := imageConfig(input)
 		if err != nil {
-			return MediaResult{}, PreconditionFailed("media_processing_failed", "图片处理未产生有效内容", nil)
+			return MediaResult{}, PreconditionFailed("media_processing_failed", "Image processing did not produce valid content", nil)
 		}
 		info.Width, info.Height = output.Width, output.Height
 	}

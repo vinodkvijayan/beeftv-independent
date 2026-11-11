@@ -66,15 +66,15 @@ for (const mode of ["editor", "canvas"] as const) {
         const page = await browser.newPage({ viewport: { width: 1600, height: 1100 } });
         try {
             await page.goto(`${server.url}?mode=${mode}`);
-            const name = mode === "editor" ? "本地导出（ffmpeg.wasm）" : "生成新片段";
+            const name = mode === "editor" ? "Local export (ffmpeg.wasm)" : "Generate new fragment";
             await clickTwice(page, name);
-            await page.getByRole("button", { name: "取消导出", exact: true }).waitFor();
+            await page.getByRole("button", { name: "Cancel export", exact: true }).waitFor();
             const pending = await snapshot(page);
             expect(pending.local).toHaveLength(1);
             expect(pending.local[0].map((source: any) => source.nodeId)).toEqual(["video", "voice", "bgm"]);
             expect(pending.local[0].every((source: any) => source.url?.startsWith("data:"))).toBe(true);
             await page.evaluate(() => (window as any).timelineFixture.receipt.failLocal());
-            await page.getByText("字幕烧录失败，未导出无字幕成片", { exact: true }).waitFor();
+            await page.getByText("Subtitle burning failed and the film without subtitles was not exported.", { exact: true }).waitFor();
             expect((await snapshot(page)).downloads).toBe(0);
             expect((await snapshot(page)).created).toBe(0);
             expect(await page.getByText(/导出完成|已生成新视频片段/).count()).toBe(0);
@@ -85,13 +85,13 @@ for (const mode of ["editor", "canvas"] as const) {
         const page = await browser.newPage({ viewport: { width: 1600, height: 1100 } });
         try {
             await page.goto(`${server.url}?mode=${mode}`);
-            const name = mode === "editor" ? "本地导出（ffmpeg.wasm）" : "导出成片";
+            const name = mode === "editor" ? "Local export (ffmpeg.wasm)" : "Export to movie";
             await page.getByRole("button", { name, exact: true }).click();
-            await page.getByRole("button", { name: "取消导出", exact: true }).click();
-            await page.getByRole("button", { name: "取消导出", exact: true }).waitFor({ state: "hidden" });
+            await page.getByRole("button", { name: "Cancel export", exact: true }).click();
+            await page.getByRole("button", { name: "Cancel export", exact: true }).waitFor({ state: "hidden" });
             expect((await snapshot(page)).aborted).toBe(1);
             await page.getByRole("button", { name, exact: true }).click();
-            await page.getByRole("button", { name: "取消导出", exact: true }).waitFor();
+            await page.getByRole("button", { name: "Cancel export", exact: true }).waitFor();
             await page.evaluate(() => (window as any).timelineFixture.unmount());
             const final = await snapshot(page);
             expect(final.aborted).toBe(2);
@@ -102,7 +102,7 @@ for (const mode of ["editor", "canvas"] as const) {
     }, 15_000);
 }
 
-test("CanvasTimelineDialog 首个片段右侧紧贴下一段时仍可拖动，相邻片段顺次让位", async () => {
+test("CanvasTimelineDialog The right side of the first segment can still be dragged when it is next to the next segment, and the adjacent segments will give way in sequence.", async () => {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1100 } });
     try {
         await page.goto(`${server.url}?mode=canvas-drag`);
@@ -140,13 +140,13 @@ test("EditorExport default server route preserves all media, submits once and di
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await clickTwice(page, "渲染成片（服务端）");
-        await page.getByRole("button", { name: "渲染中…", exact: true }).waitFor();
+        await clickTwice(page, "Render into slices (server side)");
+        await page.getByRole("button", { name: "Rendering…", exact: true }).waitFor();
         const pending = await snapshot(page);
         expect(pending.remote).toHaveLength(1);
         expect(pending.remote[0].clips.map((clip: any) => clip.kind)).toEqual(["video", "audio", "audio"]);
         await page.evaluate(() => (window as any).timelineFixture.receipt.failRemote());
-        await page.getByText("服务端字幕字体缺失，渲染失败", { exact: true }).waitFor();
+        await page.getByText("The server-side subtitle font is missing and rendering fails.", { exact: true }).waitFor();
         expect(await page.locator("video, a[download]").count()).toBe(0);
         expect((await snapshot(page)).downloads).toBe(0);
     } finally { await page.close(); }

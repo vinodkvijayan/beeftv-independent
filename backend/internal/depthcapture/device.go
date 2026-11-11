@@ -11,13 +11,13 @@ func ChooseDevice(ctx context.Context, goos, goarch string, cudaCandidate bool, 
 		return DeviceChoice{Variant: "mps", Device: "mps"}, nil
 	}
 	if goos != "windows" || goarch != "amd64" {
-		return DeviceChoice{}, fmt.Errorf("深度处理暂不支持 %s/%s", goos, goarch)
+		return DeviceChoice{}, fmt.Errorf("Depth processing does not currently support %s/%s", goos, goarch)
 	}
 	if err := ctx.Err(); err != nil {
 		return DeviceChoice{}, err
 	}
 	if !cudaCandidate {
-		return DeviceChoice{Variant: "cpu", Device: "cpu", FallbackReason: "未检测到可用的 NVIDIA CUDA 设备"}, nil
+		return DeviceChoice{Variant: "cpu", Device: "cpu", FallbackReason: "No available NVIDIA CUDA device detected"}, nil
 	}
 	if tryCUDA == nil {
 		return DeviceChoice{}, ErrMissingCUDA

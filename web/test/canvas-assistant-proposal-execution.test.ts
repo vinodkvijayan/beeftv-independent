@@ -36,7 +36,7 @@ test("proposal read failures are not reported as proven input drift", async () =
     await executeAssistantProposal(args);
     expect(submissions).toBe(0);
     expect(args.claims.size).toBe(0);
-    expect(notices).toEqual(["无法核对提案的最新内容，请检查连接后重试。"]);
+    expect(notices).toEqual(["Unable to check the latest content of the proposal, please check your connection and try again."]);
 });
 
 test("a revoked continuation intent asks for a fresh proposal without submitting generation", async () => {
@@ -46,17 +46,17 @@ test("a revoked continuation intent asks for a fresh proposal without submitting
     await executeAssistantProposal(args);
     expect(submissions).toBe(0);
     expect(args.claims.size).toBe(0);
-    expect(notices).toEqual(["要求已更新，请让助手重新提出生成方案。"]);
+    expect(notices).toEqual(["The requirements have been updated, please ask the assistant to propose a new generation plan."]);
 });
 
 const blockedCopy: [AssistantProposalBlockedReason, string][] = [
-    ["canvas_saving", "画布还在保存。稍等几秒再点生成。"],
-    ["canvas_conflict", "画布有未解决的版本冲突。请在顶部保存状态中使用最新版本，再让助手重新提出方案。"],
-    ["settings_unsaved", "生成设置还没保存。保存后再点生成。"],
-    ["canvas_changed", "画布在提出方案后改过。请让助手重新提出方案。"],
-    ["settings_changed", "生成设置在提出方案后改过。请让助手重新提出方案。"],
-    ["content_mismatch", "画布显示的内容和已保存的不一致。请重新打开这个画布，再让助手重新提出方案。"],
-    ["invalid_source", "这项方案缺少核对信息。请让助手重新提出方案。"],
+    ["canvas_saving", "The canvas is still being saved. Wait a few seconds before clicking Generate."],
+    ["canvas_conflict", "Canvas has an unresolved version conflict. Please use the latest version in the top save state and let the assistant propose the solution again."],
+    ["settings_unsaved", "The build settings have not been saved. After saving, click Generate."],
+    ["canvas_changed", "The canvas was altered after the proposal was proposed. Please ask your assistant to propose a new plan."],
+    ["settings_changed", "The build settings were changed after the proposal was proposed. Please ask your assistant to propose a new plan."],
+    ["content_mismatch", "The content displayed on the canvas is inconsistent with the saved content. Please reopen this canvas and let the assistant propose the plan again."],
+    ["invalid_source", "This proposal lacks verification information. Please ask your assistant to propose a new plan."],
 ];
 for (const [reason, copy] of blockedCopy) test(`blocked proposal (${reason}) tells the user why and what to do`, async () => {
     const notices: string[] = [];
@@ -233,7 +233,7 @@ test("F02: reference-driven compatibility fallback is rejected after re-resoluti
     const videoNode = { ...node, type: CanvasNodeType.Video };
     const requirements = { capability: "video" as const, input: { textCount: 1, imageCount: 1, videoCount: 0, audioCount: 0, characterCount: 0 } };
     expect(buildGenerationConfig(config, videoNode, "video", requirements).model).toBe(models[1]);
-    expect(() => buildConfirmedGenerationConfig(config, videoNode, "video", requirements, models[0])).toThrow("请让助手重新提出生成方案");
+    expect(() => buildConfirmedGenerationConfig(config, videoNode, "video", requirements, models[0])).toThrow("Please ask the assistant to re-propose the generation plan");
     expect(buildConfirmedGenerationConfig(config, videoNode, "video", requirements).model).toBe(models[1]);
 });
 
@@ -247,7 +247,7 @@ test("a round the server reports as undone never reads or submits the proposal",
     let submissions = 0;
     const notices: string[] = [];
     const args = input({
-        confirmRunnable: async () => "这一轮已撤销，不会生成。",
+        confirmRunnable: async () => "This round has been undone and will not be generated.",
         prepare: async () => { prepared++; throw new Error("must not read"); },
         generate: async () => { submissions++; },
         notify: text => { notices.push(text); },
@@ -256,7 +256,7 @@ test("a round the server reports as undone never reads or submits the proposal",
     expect(prepared).toBe(0);
     expect(submissions).toBe(0);
     expect(args.claims.size).toBe(0);
-    expect(notices).toEqual(["这一轮已撤销，不会生成。"]);
+    expect(notices).toEqual(["This round has been undone and will not be generated."]);
 });
 
 test("a confirmed round continues to the normal submission path", async () => {
@@ -279,7 +279,7 @@ test("a second click while the first is still being checked does not check or su
     const first = executeAssistantProposal(args);
     await executeAssistantProposal(args);
     expect(prepares).toBe(1);
-    expect(notices).toEqual(["这项提案已提交或正在提交，请在任务列表查看进度。"]);
+    expect(notices).toEqual(["This proposal has been submitted or is being submitted. Please check the progress in the task list."]);
     release();
     await first;
     expect(submissions).toBe(1);
@@ -298,7 +298,7 @@ test("switching canvas or account while checking submits nothing and lets the us
     await executeAssistantProposal(args);
     expect(submissions).toBe(0);
     expect(args.claims.size).toBe(0);
-    expect(notices).toEqual(["画布或账号已切换，未提交生成。请重新确认提案。"]);
+    expect(notices).toEqual(["The canvas or account has been switched and the generation has not been submitted. Please reconfirm the proposal."]);
     owned = true;
     await executeAssistantProposal({ ...args, prepare: async () => structuredClone({ nodes: [node], connections: [], config: defaultConfig, assets: [], skills: [] }), generate: async (_id, _mode, _prompt, options) => { submissions++; options?.onTaskUpdate?.(task); } });
     expect(submissions).toBe(1);

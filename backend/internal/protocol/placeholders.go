@@ -39,13 +39,13 @@ func ResolveProtocolPlaceholders(refs []MediaRef, requests any, hydrate bool) (a
 	references := map[string]string{}
 	for _, media := range refs {
 		if !strings.HasPrefix(media.StorageKey, "resource:") {
-			return nil, kernel.BadAuthRequest("规划图片必须引用当前账号资源")
+			return nil, kernel.BadAuthRequest("Planning pictures must reference current account resources")
 		}
 		value := media.StorageKey
 		if hydrate {
 			value = kernel.FirstNonEmpty(media.DataURL, media.URL)
 			if value == "" {
-				return nil, kernel.BadAuthRequest("规划图片尚未读取成功")
+				return nil, kernel.BadAuthRequest("The planning picture has not been read successfully")
 			}
 		}
 		references[media.StorageKey] = value
@@ -65,7 +65,7 @@ func ResolveProtocolPlaceholders(refs []MediaRef, requests any, hydrate bool) (a
 			if strings.HasPrefix(typed, "resource:") {
 				resolved, ok := references[typed]
 				if !ok {
-					return nil, kernel.BadAuthRequest("模型协议引用了未获准的图片")
+					return nil, kernel.BadAuthRequest("Model agreement references unapproved images")
 				}
 				return resolved, nil
 			}
@@ -90,7 +90,7 @@ func ResolveProtocolPlaceholders(refs []MediaRef, requests any, hydrate bool) (a
 				case "image":
 					source, _ := typed["source"].(map[string]any)
 					if source["type"] != "url" {
-						return nil, kernel.BadAuthRequest("规划图片必须使用资源占位")
+						return nil, kernel.BadAuthRequest("Planning pictures must use resource placeholder")
 					}
 					imageRef = source["url"]
 				}
@@ -100,28 +100,28 @@ func ResolveProtocolPlaceholders(refs []MediaRef, requests any, hydrate bool) (a
 				if imageRef != nil {
 					ref, ok := imageRef.(string)
 					if !ok || references[ref] == "" {
-						return nil, kernel.BadAuthRequest("规划图片不在获准资源清单")
+						return nil, kernel.BadAuthRequest("Planning pictures are not in the approved resource list")
 					}
 				}
 				if raw, ok := typed["fileData"].(map[string]any); ok {
 					ref, _ := raw["fileUri"].(string)
 					if references[ref] == "" {
-						return nil, kernel.BadAuthRequest("规划图片不在获准资源清单")
+						return nil, kernel.BadAuthRequest("Planning pictures are not in the approved resource list")
 					}
 				}
 				if typed["inlineData"] != nil {
-					return nil, kernel.BadAuthRequest("规划图片不能持久化内嵌数据")
+					return nil, kernel.BadAuthRequest("Planning pictures cannot persist embedded data")
 				}
 			}
 			if hydrate && typed["type"] == "url" {
 				if ref, ok := typed["url"].(string); ok && strings.HasPrefix(ref, "resource:") {
 					data, ok := references[ref]
 					if !ok {
-						return nil, kernel.BadAuthRequest("模型图片未获准")
+						return nil, kernel.BadAuthRequest("Model image not approved")
 					}
 					mime, payload, ok := splitDataURL(data)
 					if !ok {
-						return nil, kernel.BadAuthRequest("模型图片需要可读取的图片数据")
+						return nil, kernel.BadAuthRequest("Model images require readable image data")
 					}
 					return map[string]any{"type": "base64", "media_type": mime, "data": payload}, nil
 				}
@@ -131,11 +131,11 @@ func ResolveProtocolPlaceholders(refs []MediaRef, requests any, hydrate bool) (a
 					if ref, ok := raw["fileUri"].(string); ok && strings.HasPrefix(ref, "resource:") {
 						data, ok := references[ref]
 						if !ok {
-							return nil, kernel.BadAuthRequest("模型图片未获准")
+							return nil, kernel.BadAuthRequest("Model image not approved")
 						}
 						mime, payload, ok := splitDataURL(data)
 						if !ok {
-							return nil, kernel.BadAuthRequest("模型图片需要可读取的图片数据")
+							return nil, kernel.BadAuthRequest("Model images require readable image data")
 						}
 						delete(typed, "fileData")
 						typed["inlineData"] = map[string]any{"mimeType": mime, "data": payload}

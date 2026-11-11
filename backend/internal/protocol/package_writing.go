@@ -15,39 +15,39 @@ import (
 var (
 	packageManifestKeys = map[string]string{
 		"name": "", "client": "", "surfaces": "", "permissions": "", "configuration": "", "contributes": "",
-		"id":            "插件 ID 取自 package.json 的 name，删掉这一项",
-		"version":       "版本取自 package.json 的 version，删掉这一项",
-		"description":   "说明写在 package.json 的 description",
-		"author":        "作者写在 package.json 的 author",
-		"displayName":   "显示名写在 beeftv.name",
-		"apiVersion":    "不用写，npm 插件总按最新的清单规则读取",
-		"schemaVersion": "不用写，删掉这一项",
-		"trusted":       "不用写，只有 BeefTV 自带的插件算内置",
-		"renderer":      "写在 beeftv.contributes.canvasNodes[].renderer",
-		"canvasNodes":   "写在 beeftv.contributes.canvasNodes",
-		"providers":     "写在 beeftv.contributes.providers",
-		"workflows":     "写在 beeftv.contributes.workflows",
+		"id":            "The plug-in ID is taken from the name of package.json, delete this item",
+		"version":       "The version is taken from version of package.json, delete this item",
+		"description":   "The description is written in the description of package.json",
+		"author":        "The author writes in package.json author",
+		"displayName":   "The display name is written as beeftv.name",
+		"apiVersion":    "No need to write, npm plug-in always reads according to the latest manifest rules",
+		"schemaVersion": "No need to write, delete this item",
+		"trusted":       "No need to write, only the plug-ins that come with BeefTV are considered built-in",
+		"renderer":      "Written in beeftv.contributes.canvasNodes[].renderer",
+		"canvasNodes":   "Written in beeftv.contributes.canvasNodes",
+		"providers":     "Written in beeftv.contributes.providers",
+		"workflows":     "Written in beeftv.contributes.workflows",
 	}
 	packageContributionKeys = map[string]string{
 		"providers": "", "workflows": "", "canvasNodes": "",
-		"skills":      "技能写在 package.json 的 pi.skills",
-		"extensions":  "助手扩展写在 package.json 的 pi.extensions",
-		"slots":       "界面挂点在 client 代码里用 host.contribute 注册",
-		"editorSlots": "界面挂点在 client 代码里用 host.contribute 注册",
+		"skills":      "Skills are written in pi.skills in package.json",
+		"extensions":  "Helper extensions are written in pi.extensions in package.json",
+		"slots":       "The interface hanging point is registered with host.contribute in the client code.",
+		"editorSlots": "The interface hanging point is registered with host.contribute in the client code.",
 	}
 	packageCanvasNodeKeys = map[string]string{
 		"id": "", "label": "", "defaultTitle": "", "defaultSize": "", "schema": "", "renderer": "", "fields": "",
 		"description": "", "acceptsInputKind": "", "maxInputCount": "", "showOutputConnection": "",
-		"type":          "节点类型就是 id，删掉 type",
-		"title":         "用 label（添加菜单里的名字）和 defaultTitle（新节点的标题）",
-		"defaultWidth":  "用 defaultSize: { width, height }",
-		"defaultHeight": "用 defaultSize: { width, height }",
+		"type":          "The node type is id, delete type",
+		"title":         "Use label (the name in the add menu) and defaultTitle (the title of the new node)",
+		"defaultWidth":  "Use defaultSize: { width, height }",
+		"defaultHeight": "Use defaultSize: { width, height }",
 	}
 	packageFieldKeys = map[string]string{
 		"name": "", "type": "", "label": "", "required": "", "secret": "", "default": "", "description": "", "values": "",
-		"key":          "字段名用 name",
-		"defaultValue": "默认值用 default",
-		"options":      "下拉选项用 values（字符串数组）",
+		"key":          "Use name for field name",
+		"defaultValue": "Use default for default value",
+		"options":      "Use values (array of strings) for drop-down options",
 	}
 )
 
@@ -89,7 +89,7 @@ func CheckPackageManifestWriting(root string) error {
 	if len(problems) == 0 {
 		return nil
 	}
-	return fmt.Errorf("package.json 的 beeftv 写法需要修改：\n%s", strings.Join(problems, "\n"))
+	return fmt.Errorf("The beeftv writing method of package.json needs to be modified:\n%s", strings.Join(problems, "\n"))
 }
 
 func fieldProblems(prefix string, fields []map[string]json.RawMessage) []string {
@@ -111,7 +111,7 @@ func unknownKeys(prefix string, object map[string]json.RawMessage, allowed map[s
 		hint, known := allowed[key]
 		switch {
 		case !known:
-			problems = append(problems, fmt.Sprintf("- %s.%s：BeefTV 不认识这一项", prefix, key))
+			problems = append(problems, fmt.Sprintf("- %s.%s: BeefTV does not recognize this item", prefix, key))
 		case hint != "":
 			problems = append(problems, fmt.Sprintf("- %s.%s：%s", prefix, key, hint))
 		}

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { chromium } from "playwright";
 import { existsSync } from "node:fs";
 
-test("生成图片拉取失败显示重试，点击后恢复图片，明暗主题和窄屏均可操作", async () => {
+test("If the generated image fails to be pulled, the display will retry. Click to restore the image. Both light and dark themes and narrow screens can be operated.", async () => {
     const build = await Bun.build({ entrypoints: [import.meta.dir + "/fixtures/canvas-image-recovery-harness.tsx"], target: "browser",
         define: { "process.env.NODE_ENV": '"production"', "import.meta.env.DEV": "false", "import.meta.env.PROD": "true", "import.meta.env.MODE": '"production"', "import.meta.env.VITE_CANVAS_LOCAL_MODE": '"false"', "import.meta.env.VITE_CANVAS_BACKEND_URL": '"/api"' },
         plugins: [{ name: "assets", setup(builder) {
@@ -35,10 +35,10 @@ test("生成图片拉取失败显示重试，点击后恢复图片，明暗主�
             const page = await context.newPage();
             page.on("pageerror", (error) => console.error(error.message));
             await page.goto(`${server.url}?theme=${theme}&scale=${scale}`);
-            const status = page.getByRole("status", { name: "图片加载失败" });
+            const status = page.getByRole("status", { name: "Image loading failed" });
             await status.waitFor({ timeout: 7000 });
             expect(await status.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
-            const button = page.getByRole("button", { name: "重新加载图片" });
+            const button = page.getByRole("button", { name: "Reload image" });
             const bounds = (await button.boundingBox())!;
             const parentBounds = (await status.boundingBox())!;
             expect(bounds.width).toBeGreaterThanOrEqual(27);

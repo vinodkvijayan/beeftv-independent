@@ -19,10 +19,10 @@ type OwnedArchiveEntry struct {
 
 func (r *Runtime) WriteOwnedArchiveTo(ctx context.Context, entries []OwnedArchiveEntry, dest string) error {
 	if r == nil || r.service == nil {
-		return errors.New("本地后端尚未就绪")
+		return errors.New("The local backend is not ready yet")
 	}
 	if len(entries) == 0 || len(entries) > 50_000 {
-		return errors.New("导出文件数量无效")
+		return errors.New("Invalid number of export files")
 	}
 	if _, err := sanitizeSaveDestination(dest); err != nil {
 		return err
@@ -35,18 +35,18 @@ func (r *Runtime) WriteOwnedArchiveTo(ctx context.Context, entries []OwnedArchiv
 	inlineBytes := 0
 	for _, entry := range entries {
 		if !safeOwnedArchiveName(entry.Name) || names[entry.Name] {
-			return errors.New("导出文件名无效或重复")
+			return errors.New("Invalid or duplicate export file name")
 		}
 		names[entry.Name] = true
 		if entry.ResourceID != "" && len(entry.Data) != 0 {
-			return errors.New("导出文件来源无效")
+			return errors.New("Invalid export file source")
 		}
 		if entry.ResourceID == "" && len(entry.Data) == 0 {
-			return errors.New("导出文件没有内容")
+			return errors.New("Export file has no content")
 		}
 		inlineBytes += len(entry.Data)
 		if inlineBytes > maxOwnedArtifactBytes {
-			return errors.New("本地附加文件过大，请先保存素材后再导出")
+			return errors.New("The local attached file is too large, please save the material first and then export it.")
 		}
 	}
 	return writeOwnedFileWith(dest, nil, func(writer io.Writer) error {
@@ -68,10 +68,10 @@ func (r *Runtime) WriteOwnedArchiveTo(ctx context.Context, entries []OwnedArchiv
 				}
 				resource, err := r.service.Resource(owner.ID, id)
 				if err != nil {
-					return errors.New("没有可导出的本机文件")
+					return errors.New("No native files to export")
 				}
 				if resource.Size > 1<<30 || total+resource.Size > 2<<30 {
-					return errors.New("导出文件超过大小限制")
+					return errors.New("Export file exceeds size limit")
 				}
 				source, err := openLocalOwnedResourceFile(resource, r.cfg.DataDir)
 				if err != nil {
@@ -87,11 +87,11 @@ func (r *Runtime) WriteOwnedArchiveTo(ctx context.Context, entries []OwnedArchiv
 					return copyErr
 				}
 				if written == 0 || (resource.Size > 0 && written != resource.Size) {
-					return errors.New("导出文件读取不完整")
+					return errors.New("The export file is incompletely read")
 				}
 				total += written
 				if written > 1<<30 || total > 2<<30 {
-					return errors.New("导出文件超过大小限制")
+					return errors.New("Export file exceeds size limit")
 				}
 				continue
 			}
@@ -101,7 +101,7 @@ func (r *Runtime) WriteOwnedArchiveTo(ctx context.Context, entries []OwnedArchiv
 			}
 			total += written
 			if total > 2<<30 {
-				return errors.New("导出文件超过大小限制")
+				return errors.New("Export file exceeds size limit")
 			}
 		}
 		if err := ctx.Err(); err != nil {

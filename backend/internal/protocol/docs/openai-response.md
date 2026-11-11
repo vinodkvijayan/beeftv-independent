@@ -1,8 +1,8 @@
 # OpenAI Responses API
 
-Responses API 是 OpenAI 当前统一的文本与工具调用接口，输入使用 `input`，可同时承载简单字符串、结构化消息和工具回合。宿主默认发送字符串提示词，并从同步响应的 `output_text` 或 `output[]` 中提取文本。
+Responses API is OpenAI's current unified text and tool calling interface. The input uses `input`, which can carry simple strings, structured messages and tool rounds at the same time. The host sends the string prompt word by default and extracts the text from the `output_text` or `output[]` of the synchronous response.
 
-## 接口、鉴权与请求模式
+## Interface, authentication and request mode
 
 {{OPERATIONS}}
 
@@ -12,17 +12,17 @@ Authorization: Bearer <API_KEY>
 Content-Type: application/json
 ```
 
-## 模型与能力发现
+## Model and capability discovery
 
-插件不硬编码模型表。请使用渠道模型管理中已验证支持 Responses API 的模型 ID。兼容服务即使实现 `/v1/responses`，也可能不支持内置工具、状态延续、结构化输出或多模态输入，能力必须以该服务文档和实际探测为准。
+The plugin does not hardcode model tables. Please use a model ID from Channel Model Management that has been verified to support the Responses API. Even if a compatible service implements `/v1/responses`, it may not support built-in tools, state continuation, structured output, or multimodal input. Capabilities must be based on the service documentation and actual detection.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-`extra` 可透传 `input`、`instructions`、`temperature`、`top_p`、`max_output_tokens`、`stream`、`tools` 和 `text`。`extra.input` 会替换默认字符串；复杂输入必须使用上游规定的 item 结构，不应把 Chat Completions 的 `messages` 原样塞进来。
+`extra` can transparently transmit `input`, `instructions`, `temperature`, `top_p`, `max_output_tokens`, `stream`, `tools` and `text`. `extra.input` will replace the default string; complex input must use the item structure specified by the upstream, and `messages` of Chat Completions should not be inserted as it is.
 
-## 请求示例
+## Request example
 
 ```bash
 curl "{channel_base_url}/v1/responses" \
@@ -45,7 +45,7 @@ curl "{channel_base_url}/v1/responses" \
 }
 ```
 
-## 结构化输入示例
+## Structured input example
 
 ```json
 {
@@ -57,13 +57,13 @@ curl "{channel_base_url}/v1/responses" \
 }
 ```
 
-## 响应解析与限制
+## Response parsing and restrictions
 
-解析器优先读取顶层 `output_text`；缺失时遍历 `output`，尝试读取 item 的 `text` 或 `content`，并保留 `usage`。当前实现没有完整执行 function call、computer use、file search 等输出 item，也不通过 `previous_response_id` 自动续接状态。需要这些能力时必须在 Agent 调用链中显式实现，不能只靠文档声称支持。
+The parser reads the top-level `output_text` first; if it is missing, it traverses `output`, tries to read the `text` or `content` of the item, and retains `usage`. The current implementation does not fully execute function call, computer use, file search and other output items, nor does it automatically continue the status through `previous_response_id`. When these capabilities are needed, they must be explicitly implemented in the Agent call chain and cannot just rely on documentation claims to support them.
 
-流式响应由文本事件链路处理。上游拒绝、模型不支持、输入结构错误、输出 token 超限和工具参数校验失败均应作为失败返回。
+Streaming responses are handled by text event links. Upstream rejection, model unsupported, input structure error, output token exceeding the limit and tool parameter verification failure should all be returned as failures.
 
-## 官方资料
+## Official information
 
 - [OpenAI Responses API Reference](https://developers.openai.com/api/reference/resources/responses/methods/create)
 - [OpenAI Responses migration guide](https://developers.openai.com/api/docs/guides/migrate-to-responses)

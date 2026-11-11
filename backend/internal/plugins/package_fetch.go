@@ -60,14 +60,14 @@ func NpmPackageFetcher(command []string) PackageFetcher {
 			}
 		}
 		if err := os.WriteFile(filepath.Join(prefixDir, "package.json"), []byte(`{"private":true}`), 0o644); err != nil {
-			return "", fmt.Errorf("准备插件暂存目录失败：%w", err)
+			return "", fmt.Errorf("Failed to prepare plug-in temporary directory: %w", err)
 		}
 		args := append(invocation[1:], "install", "--prefix", prefixDir, "--install-links", "--ignore-scripts",
 			"--legacy-peer-deps", "--prefer-online", "--no-audit", "--no-fund", "--omit=dev", "--registry", registry, spec)
 		output, err := exec.CommandContext(ctx, invocation[0], args...).CombinedOutput()
 		if err != nil {
 			return "", packageError(http.StatusBadGateway, "plugin_download_failed",
-				fmt.Sprintf("下载插件 %q 失败：%s", spec, lastLines(string(output), 6)))
+				fmt.Sprintf("Download plug-in %q failed: %s", spec, lastLines(string(output), 6)))
 		}
 		var installed struct {
 			Dependencies map[string]string `json:"dependencies"`
@@ -78,7 +78,7 @@ func NpmPackageFetcher(command []string) PackageFetcher {
 				return filepath.Join(prefixDir, "node_modules", filepath.FromSlash(name)), nil
 			}
 		}
-		return "", packageError(http.StatusBadGateway, "plugin_download_failed", fmt.Sprintf("npm 没有装出插件 %q", spec))
+		return "", packageError(http.StatusBadGateway, "plugin_download_failed", fmt.Sprintf("npm did not install the plugin %q", spec))
 	}
 }
 
@@ -98,7 +98,7 @@ func NormalizeNpmRegistry(raw string) (string, error) {
 	case NpmjsRegistry:
 		return NpmjsRegistry, nil
 	}
-	return "", packageError(http.StatusBadRequest, "plugin_registry_unsupported", "只支持 npmmirror 与 npmjs 两个下载源")
+	return "", packageError(http.StatusBadRequest, "plugin_registry_unsupported", "Only supports npmmirror and npmjs two download sources")
 }
 
 func (s *Service) SetPackageFetcher(fetch PackageFetcher) {
@@ -118,7 +118,7 @@ func (c *Runtime) SetPackageFetcher(fetch PackageFetcher) {
 
 func (s *Service) InstallPackage(source, registry string) (View, error) {
 	if s == nil || s.runtime == nil {
-		return View{}, fmt.Errorf("插件运行时未初始化")
+		return View{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	view, err := s.runtime.InstallPackage(source, registry)
 	if err != nil {
@@ -152,7 +152,7 @@ func (s *Service) InstallPackageArchive(data []byte, registry string) (View, err
 // until the new one is downloaded, validated and committed.
 func (c *Runtime) InstallPackage(source, registry string) (View, error) {
 	if c == nil {
-		return View{}, fmt.Errorf("插件运行时未初始化")
+		return View{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	spec, recordedSpec, isLocalPath, err := resolvePackageSource(source)
 	if err != nil {
@@ -168,11 +168,11 @@ func (c *Runtime) InstallPackage(source, registry string) (View, error) {
 
 	pluginsRoot := filepath.Join(c.dataDir, "plugins")
 	if err := os.MkdirAll(pluginsRoot, 0o755); err != nil {
-		return View{}, fmt.Errorf("创建插件目录失败：%w", err)
+		return View{}, fmt.Errorf("Failed to create plug-in directory: %w", err)
 	}
 	stageDir, err := os.MkdirTemp(pluginsRoot, ".stage-*")
 	if err != nil {
-		return View{}, fmt.Errorf("创建插件暂存目录失败：%w", err)
+		return View{}, fmt.Errorf("Failed to create plug-in temporary directory: %w", err)
 	}
 	defer os.RemoveAll(stageDir)
 	ctx, cancel := context.WithTimeout(context.Background(), packageInstallTimeout)
@@ -195,13 +195,13 @@ func (c *Runtime) InstallPackage(source, registry string) (View, error) {
 	defer c.endMutation()
 	id := staged.Manifest.Metadata.ID
 	if IsReservedApplication(id) {
-		return View{}, packageError(http.StatusConflict, "plugin_id_reserved", fmt.Sprintf("插件 ID %q 由官方应用保留", id))
+		return View{}, packageError(http.StatusConflict, "plugin_id_reserved", fmt.Sprintf("Plugin ID %q is reserved by the official application", id))
 	}
 	c.mu.RLock()
 	existing, exists := c.plugins[id]
 	c.mu.RUnlock()
 	if exists && IsBuiltInSource(existing.Source) {
-		return View{}, packageError(http.StatusConflict, "plugin_id_reserved", fmt.Sprintf("内置插件 %q 不能通过安装包覆盖", id))
+		return View{}, packageError(http.StatusConflict, "plugin_id_reserved", fmt.Sprintf("The built-in plug-in %q cannot be overwritten through the installation package", id))
 	}
 	relRoot, err := filepath.Rel(stageDir, staged.RootDir)
 	if err != nil {
@@ -213,7 +213,7 @@ func (c *Runtime) InstallPackage(source, registry string) (View, error) {
 	if _, err := os.Stat(installRoot); err == nil {
 		backupDir = installRoot + ".bak-" + fmt.Sprint(time.Now().UnixNano())
 		if err := os.Rename(installRoot, backupDir); err != nil {
-			return View{}, fmt.Errorf("备份旧插件目录失败：%w", err)
+			return View{}, fmt.Errorf("Failed to back up old plugin directory: %w", err)
 		}
 	}
 	restore := func() {
@@ -224,7 +224,7 @@ func (c *Runtime) InstallPackage(source, registry string) (View, error) {
 	}
 	if err := os.Rename(stageDir, installRoot); err != nil {
 		restore()
-		return View{}, fmt.Errorf("启用新插件目录失败：%w", err)
+		return View{}, fmt.Errorf("Failed to enable new plugin directory: %w", err)
 	}
 	installed, err := protocol.ParsePluginPackageDir(filepath.Join(installRoot, relRoot))
 	if err != nil {
@@ -280,11 +280,11 @@ func fetchPackageWithMirrorFallback(
 		(strings.TrimSpace(entry.MirrorTarball) != "" || strings.TrimSpace(entry.Tarball) != "") {
 		if requestedVersion != "" && requestedVersion != "latest" && strings.TrimSpace(entry.Version) != "" && requestedVersion != strings.TrimSpace(entry.Version) {
 			return "", packageError(http.StatusBadRequest, "plugin_source_invalid",
-				fmt.Sprintf("精选插件 %q 仅支持安装已校验的官方版本 %s", basePkgName, strings.TrimSpace(entry.Version)))
+				fmt.Sprintf("Selected plug-in %q only supports the installation of the verified official version %s", basePkgName, strings.TrimSpace(entry.Version)))
 		}
 		if !validPackageSHA256(strings.ToLower(strings.TrimSpace(entry.SHA256))) {
 			return "", packageError(http.StatusBadGateway, "plugin_download_failed",
-				fmt.Sprintf("精选插件 %q 缺少有效的 SHA-256 校验值", basePkgName))
+				fmt.Sprintf("Featured plugin %q is missing a valid SHA-256 checksum", basePkgName))
 		}
 		tgzPath, err := downloadMirroredTarball(ctx, entry.Tarball, entry.MirrorTarball, entry.SHA256, registry, stageDir)
 		if err != nil {
@@ -354,11 +354,11 @@ func expandTarballMirrorURLs(tarballURL, mirrorTarballURL, expectedSHA256, regis
 func downloadMirroredTarball(ctx context.Context, tarballURL, mirrorTarballURL, expectedSHA256, registry, stageDir string) (string, error) {
 	wantSHA := strings.ToLower(strings.TrimSpace(expectedSHA256))
 	if wantSHA != "" && !validPackageSHA256(wantSHA) {
-		return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("无效的插件包 SHA-256 校验值 %q", expectedSHA256))
+		return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Invalid plug-in package SHA-256 check value %q", expectedSHA256))
 	}
 	candidates := expandTarballMirrorURLs(tarballURL, mirrorTarballURL, wantSHA, registry)
 	if len(candidates) == 0 {
-		return "", packageError(http.StatusBadGateway, "plugin_download_failed", "未配置可用的插件包下载地址")
+		return "", packageError(http.StatusBadGateway, "plugin_download_failed", "The available plug-in package download address is not configured.")
 	}
 	var lastErr error
 	for _, candidate := range candidates {
@@ -382,25 +382,25 @@ func downloadMirroredTarball(ctx context.Context, tarballURL, mirrorTarballURL, 
 			continue
 		}
 		if len(data) > maxRemoteTarballBytes {
-			lastErr = fmt.Errorf("插件安装包超过大小限制（%d MB）", maxRemoteTarballBytes>>20)
+			lastErr = fmt.Errorf("The plug-in installation package exceeds the size limit (%d MB)", maxRemoteTarballBytes>>20)
 			continue
 		}
 		if wantSHA != "" {
 			sum := sha256.Sum256(data)
 			got := hex.EncodeToString(sum[:])
 			if got != wantSHA {
-				lastErr = fmt.Errorf("插件包 SHA-256 校验失败（期望 %s，实际 %s）", wantSHA, got)
+				lastErr = fmt.Errorf("Plug-in package SHA-256 verification failed (expected %s, actual %s)", wantSHA, got)
 				continue
 			}
 		}
 		targetFile := filepath.Join(stageDir, ".downloaded-plugin.tgz")
 		if err := os.WriteFile(targetFile, data, 0o644); err != nil {
-			return "", fmt.Errorf("保存下载的插件包失败：%w", err)
+			return "", fmt.Errorf("Failed to save downloaded plug-in package: %w", err)
 		}
 		return targetFile, nil
 	}
 	return "", packageError(http.StatusBadGateway, "plugin_download_failed",
-		fmt.Sprintf("从镜像源下载插件包失败：%v", lastErr))
+		fmt.Sprintf("Failed to download plug-in package from mirror source: %v", lastErr))
 }
 
 // downloadGitHubSourceDir downloads a github:<owner>/<repo>[@ref][#path:/subpath][#sha256=<hex>]
@@ -424,7 +424,7 @@ func downloadGitHubSourceDir(ctx context.Context, spec, registry, stageDir strin
 	}
 	parts := strings.Split(strings.Trim(trimmed, "/"), "/")
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" || strings.ContainsAny(ref, `/\`) {
-		return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("无效的 GitHub 插件来源 %q", spec))
+		return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Invalid GitHub plugin source %q", spec))
 	}
 	archiveURL := fmt.Sprintf("https://github.com/%s/%s/archive/%s.tar.gz", parts[0], parts[1], url.PathEscape(ref))
 	tgzPath, err := downloadMirroredTarball(ctx, archiveURL, "", expectedSHA, registry, stageDir)
@@ -433,21 +433,21 @@ func downloadGitHubSourceDir(ctx context.Context, spec, registry, stageDir strin
 	}
 	unpackedRoot, err := unpackTarballToDir(tgzPath, stageDir)
 	if err != nil {
-		return "", packageError(http.StatusBadGateway, "plugin_download_failed", fmt.Sprintf("解压 GitHub 插件源码包失败：%v", err))
+		return "", packageError(http.StatusBadGateway, "plugin_download_failed", fmt.Sprintf("Failed to decompress the GitHub plug-in source code package: %v", err))
 	}
 	if subPath != "" {
 		cleanSub := path.Clean(subPath)
 		if cleanSub == "." || cleanSub == ".." || strings.HasPrefix(cleanSub, "../") || path.IsAbs(cleanSub) {
-			return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("无效的插件子目录 %q", subPath))
+			return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Invalid plugin subdirectory %q", subPath))
 		}
 		candidate := filepath.Join(unpackedRoot, filepath.FromSlash(cleanSub))
 		if relCheck, relErr := filepath.Rel(unpackedRoot, candidate); relErr != nil || strings.HasPrefix(relCheck, "..") {
-			return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("插件子目录越界 %q", subPath))
+			return "", packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Plug-in subdirectory out of bounds %q", subPath))
 		}
 		if info, statErr := os.Stat(filepath.Join(candidate, "package.json")); statErr == nil && info.Mode().IsRegular() {
 			return candidate, nil
 		}
-		return "", packageError(http.StatusBadRequest, "plugin_package_invalid", fmt.Sprintf("GitHub 仓库子目录 %q 下未找到 package.json", subPath))
+		return "", packageError(http.StatusBadRequest, "plugin_package_invalid", fmt.Sprintf("package.json was not found in the GitHub warehouse subdirectory %q", subPath))
 	}
 	return unpackedRoot, nil
 }
@@ -481,40 +481,40 @@ func unpackTarballToDir(tgzPath, stageDir string) (string, error) {
 		}
 		entryCount++
 		if entryCount > maxTarEntries {
-			return "", fmt.Errorf("压缩包条目数超过上限（%d）", maxTarEntries)
+			return "", fmt.Errorf("The number of compressed package entries exceeds the upper limit (%d)", maxTarEntries)
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir, tar.TypeXHeader, tar.TypeXGlobalHeader:
 			continue
 		case tar.TypeReg, tar.TypeRegA:
 		default:
-			return "", fmt.Errorf("压缩包包含不支持的条目类型 %q (%s)", hdr.Typeflag, hdr.Name)
+			return "", fmt.Errorf("The archive contains unsupported entry type %q (%s)", hdr.Typeflag, hdr.Name)
 		}
 		rawName := strings.TrimPrefix(strings.TrimSpace(hdr.Name), "./")
 		if rawName == "" || strings.ContainsRune(rawName, '\\') || path.IsAbs(rawName) {
-			return "", fmt.Errorf("压缩包包含非法路径 %q", hdr.Name)
+			return "", fmt.Errorf("The compressed package contains illegal path %q", hdr.Name)
 		}
 		cleanRel := path.Clean(rawName)
 		if cleanRel == "." || cleanRel == ".." || strings.HasPrefix(cleanRel, "../") || strings.Contains(cleanRel, "..") {
-			return "", fmt.Errorf("压缩包路径越界 %q", hdr.Name)
+			return "", fmt.Errorf("The compressed package path is out of bounds %q", hdr.Name)
 		}
 		if hdr.Size < 0 || hdr.Size > maxTarSingleFileBytes {
-			return "", fmt.Errorf("压缩包单文件 %q 超过大小上限（%d MB）", hdr.Name, maxTarSingleFileBytes>>20)
+			return "", fmt.Errorf("The compressed package file %q exceeds the upper limit of size (%d MB)", hdr.Name, maxTarSingleFileBytes>>20)
 		}
 		content, err := io.ReadAll(io.LimitReader(tr, maxTarSingleFileBytes+1))
 		if err != nil {
 			return "", err
 		}
 		if int64(len(content)) > maxTarSingleFileBytes {
-			return "", fmt.Errorf("压缩包单文件 %q 超过大小上限（%d MB）", hdr.Name, maxTarSingleFileBytes>>20)
+			return "", fmt.Errorf("The compressed package file %q exceeds the upper limit of size (%d MB)", hdr.Name, maxTarSingleFileBytes>>20)
 		}
 		totalBytes += int64(len(content))
 		if totalBytes > maxTarTotalBytes {
-			return "", fmt.Errorf("压缩包解压总大小超过上限（%d MB）", maxTarTotalBytes>>20)
+			return "", fmt.Errorf("The total decompressed size of the compressed package exceeds the upper limit (%d MB)", maxTarTotalBytes>>20)
 		}
 		targetPath := filepath.Join(destDir, filepath.FromSlash(cleanRel))
 		if relCheck, relErr := filepath.Rel(destDir, targetPath); relErr != nil || strings.HasPrefix(relCheck, "..") {
-			return "", fmt.Errorf("压缩包路径越界 %q", hdr.Name)
+			return "", fmt.Errorf("The compressed package path is out of bounds %q", hdr.Name)
 		}
 		if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
 			return "", err
@@ -607,7 +607,7 @@ func (c *Runtime) commitPackageRecord(pkg protocol.PluginPackage, spec string, e
 func resolvePackageSource(source string) (string, string, bool, error) {
 	source = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(source), "npm:"))
 	if source == "" {
-		return "", "", false, packageError(http.StatusBadRequest, "plugin_source_required", "插件来源不能为空")
+		return "", "", false, packageError(http.StatusBadRequest, "plugin_source_required", "Plug-in source cannot be empty")
 	}
 	if info, err := os.Stat(source); err == nil {
 		abs, absErr := filepath.Abs(source)
@@ -624,32 +624,32 @@ func resolvePackageSource(source string) (string, string, bool, error) {
 	}
 	if strings.HasPrefix(source, "https://") || strings.HasPrefix(source, "http://") {
 		if strings.ContainsAny(source, " \t\r\n") {
-			return "", "", false, packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("无效的插件地址 %q", source))
+			return "", "", false, packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Invalid plugin address %q", source))
 		}
 		parsed, err := url.Parse(source)
 		if err != nil || parsed.Hostname() == "" || parsed.User != nil {
-			return "", "", false, packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("无效的插件地址 %q", source))
+			return "", "", false, packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Invalid plugin address %q", source))
 		}
 		return source, source, false, nil
 	}
 	if strings.HasPrefix(source, "-") || strings.ContainsAny(source, " \t\r\n;|&$`<>") {
-		return "", "", false, packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("无效的插件来源 %q", source))
+		return "", "", false, packageError(http.StatusBadRequest, "plugin_source_invalid", fmt.Sprintf("Invalid plugin source %q", source))
 	}
 	return source, source, false, nil
 }
 
 func (s *Service) UpdatePackage(id, registry string) (View, error) {
 	if s == nil || s.runtime == nil {
-		return View{}, fmt.Errorf("插件运行时未初始化")
+		return View{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	s.runtime.mu.RLock()
 	record, ok := s.runtime.plugins[strings.TrimSpace(id)]
 	s.runtime.mu.RUnlock()
 	if !ok {
-		return View{}, packageError(http.StatusNotFound, "plugin_not_found", fmt.Sprintf("插件 %q 不存在", id))
+		return View{}, packageError(http.StatusNotFound, "plugin_not_found", fmt.Sprintf("Plug-in %q does not exist", id))
 	}
 	if record.Source != OriginPackage || strings.TrimSpace(record.PackageSpec) == "" {
-		return View{}, packageError(http.StatusConflict, "plugin_update_unsupported", fmt.Sprintf("插件 %q 不能在线更新", id))
+		return View{}, packageError(http.StatusConflict, "plugin_update_unsupported", fmt.Sprintf("Plug-in %q cannot be updated online", id))
 	}
 	// 用户点更新就是要最新版，所以不带安装时写的版本号。否则会重装旧版本，精选插件还会被拒绝。
 	if name, ok := npmPackageName(record.PackageSpec); ok {

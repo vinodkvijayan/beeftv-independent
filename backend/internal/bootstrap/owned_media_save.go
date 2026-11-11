@@ -24,7 +24,7 @@ const maxOwnedArtifactBytes = 32 << 20
 
 func (r *Runtime) CopyOwnedResourceTo(resourceID, destPath string) error {
 	if r == nil || r.service == nil {
-		return errors.New("本地后端尚未就绪")
+		return errors.New("The local backend is not ready yet")
 	}
 	id, err := sanitizeOwnedResourceID(resourceID)
 	if err != nil {
@@ -40,7 +40,7 @@ func (r *Runtime) CopyOwnedResourceTo(resourceID, destPath string) error {
 	}
 	resource, err := r.service.Resource(owner.ID, id)
 	if err != nil {
-		return errors.New("没有可导出的本机文件")
+		return errors.New("No native files to export")
 	}
 	src, err := openLocalOwnedResourceFile(resource, r.cfg.DataDir)
 	if err != nil {
@@ -52,10 +52,10 @@ func (r *Runtime) CopyOwnedResourceTo(resourceID, destPath string) error {
 
 func WriteOwnedArtifact(dest string, data []byte) error {
 	if len(data) == 0 {
-		return errors.New("没有可导出的文件")
+		return errors.New("No files to export")
 	}
 	if len(data) > maxOwnedArtifactBytes {
-		return errors.New("导出包太大，请减少所选内容后再导出")
+		return errors.New("The export package is too large. Please reduce the selected content before exporting.")
 	}
 	dest, err := sanitizeSaveDestination(dest)
 	if err != nil {
@@ -66,7 +66,7 @@ func WriteOwnedArtifact(dest string, data []byte) error {
 
 func openLocalOwnedResourceFile(resource *model.Resource, dataDir string) (*os.File, error) {
 	if resource == nil || resource.Provider != "local" || resource.Status != model.ResourceStatusReady {
-		return nil, errors.New("没有可导出的本机文件")
+		return nil, errors.New("No native files to export")
 	}
 	return localasset.NewFileStore(dataDir).Open(resource.ObjectKey)
 }
@@ -85,7 +85,7 @@ func writeOwnedFileWith(dest string, src *os.File, write func(io.Writer) error) 
 	directory := filepath.Dir(dest)
 	temporary, err := os.CreateTemp(directory, ".beeftv-save-*")
 	if err != nil {
-		return errors.New("无法写入所选位置")
+		return errors.New("Unable to write to selected location")
 	}
 	temporaryPath := temporary.Name()
 	defer func() {
@@ -95,16 +95,16 @@ func writeOwnedFileWith(dest string, src *os.File, write func(io.Writer) error) 
 		}
 	}()
 	if err := temporary.Chmod(0o600); err != nil && runtime.GOOS != "windows" {
-		return errors.New("无法写入所选位置")
+		return errors.New("Unable to write to selected location")
 	}
 	if err := write(temporary); err != nil {
-		return errors.New("无法写出文件")
+		return errors.New("Unable to write file")
 	}
 	if err := temporary.Sync(); err != nil {
-		return errors.New("无法写出文件")
+		return errors.New("Unable to write file")
 	}
 	if err := temporary.Close(); err != nil {
-		return errors.New("无法写出文件")
+		return errors.New("Unable to write file")
 	}
 	if err := replaceFile(temporaryPath, dest); err != nil {
 		return err
@@ -121,14 +121,14 @@ func rejectSameFile(src *os.File, dest string) error {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil
 		}
-		return errors.New("无法写入所选位置")
+		return errors.New("Unable to write to selected location")
 	}
 	srcInfo, err := src.Stat()
 	if err != nil {
-		return errors.New("没有可导出的本机文件")
+		return errors.New("No native files to export")
 	}
 	if os.SameFile(srcInfo, destInfo) {
-		return errors.New("不能覆盖正在导出的原文件")
+		return errors.New("The original file being exported cannot be overwritten.")
 	}
 	return nil
 }
@@ -138,7 +138,7 @@ func replaceFile(tmpPath, dest string) error {
 	// (Go 1.5+). Do not delete dest+suffix or swap through a sidecar: that can
 	// erase an unrelated user file and leave dest missing if restore fails.
 	if err := os.Rename(tmpPath, dest); err != nil {
-		return errors.New("无法保存到所选位置")
+		return errors.New("Unable to save to selected location")
 	}
 	return nil
 }
@@ -146,14 +146,14 @@ func replaceFile(tmpPath, dest string) error {
 func sanitizeOwnedResourceID(resourceID string) (string, error) {
 	id := strings.TrimSpace(resourceID)
 	if id == "" || len(id) > 128 {
-		return "", errors.New("没有可导出的本机文件")
+		return "", errors.New("No native files to export")
 	}
 	if strings.ContainsAny(id, "/\\:") || strings.Contains(id, "..") {
-		return "", errors.New("没有可导出的本机文件")
+		return "", errors.New("No native files to export")
 	}
 	for _, r := range id {
 		if r < 33 || r > 126 || unicode.IsSpace(r) {
-			return "", errors.New("没有可导出的本机文件")
+			return "", errors.New("No native files to export")
 		}
 	}
 	return id, nil
@@ -167,7 +167,7 @@ func sanitizeSaveFileName(name string) string {
 	base := filepath.Base(strings.TrimSpace(name))
 	base = strings.ReplaceAll(base, "\x00", "")
 	if base == "" || base == "." || base == ".." {
-		return "未命名媒体"
+		return "unnamed media"
 	}
 	var builder strings.Builder
 	for _, r := range base {
@@ -179,7 +179,7 @@ func sanitizeSaveFileName(name string) string {
 	}
 	cleaned := strings.Trim(builder.String(), " .")
 	if cleaned == "" || cleaned == "." || cleaned == ".." {
-		return "未命名媒体"
+		return "unnamed media"
 	}
 	return limitSaveFileName(cleaned)
 }
@@ -194,13 +194,13 @@ func limitSaveFileName(name string) string {
 	if budget < 1 {
 		trimmed := strings.TrimRight(truncateToUTF8Bytes(name, maxSaveFileNameBytes), " .")
 		if trimmed == "" {
-			return "未命名媒体"
+			return "unnamed media"
 		}
 		return trimmed
 	}
 	truncated := strings.TrimRight(truncateToUTF8Bytes(base, budget), " .")
 	if truncated == "" {
-		return "未命名媒体" + ext
+		return "unnamed media" + ext
 	}
 	return truncated + ext
 }
@@ -221,12 +221,12 @@ func truncateToUTF8Bytes(value string, maxBytes int) string {
 func sanitizeSaveDestination(destPath string) (string, error) {
 	dest := strings.TrimSpace(destPath)
 	if dest == "" {
-		return "", errors.New("没有选择保存位置")
+		return "", errors.New("No save location selected")
 	}
 	dest = filepath.Clean(dest)
 	info, err := os.Stat(dest)
 	if err == nil && info.IsDir() {
-		return "", errors.New("保存位置不能是文件夹")
+		return "", errors.New("The save location cannot be a folder")
 	}
 	return dest, nil
 }

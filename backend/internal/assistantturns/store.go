@@ -229,5 +229,5 @@ func recordToModel(rec Record, now time.Time) *model.AssistantTurn {
 }
 
 func storeUnavailable() error {
-	return errors.New("助手操作回执不可用，已保留撤销快照")
+	return errors.New("Assistant operation receipt is not available, undo snapshot has been retained")
 }

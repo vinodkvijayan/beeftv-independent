@@ -24,7 +24,7 @@ func (s *Service) ApplyPluginSkills(pluginID, pluginName, version string, skillD
 		err = s.RemovePluginSkills(pluginID)
 	}
 	if err != nil {
-		log.Printf("同步插件 %s 的技能失败：%v", pluginID, err)
+		log.Printf("The skill of synchronization plug-in %s failed: %v", pluginID, err)
 	}
 }
 
@@ -44,7 +44,7 @@ func (s *Service) SyncPluginSkills(pluginID string, pluginName string, version s
 	}
 	return s.syncDirectorySkills(skillDirSource{
 		sourceType: skillSourceTypePlugin, sourceURL: "plugin://" + pluginID, idPrefix: "plugin-" + sanitizePluginSkillSlug(pluginID) + "-",
-		ownerFallback: "plugin:" + pluginID, authorName: authorName, version: version, fallbackDescription: authorName + " 插件技能",
+		ownerFallback: "plugin:" + pluginID, authorName: authorName, version: version, fallbackDescription: authorName + " Plug-in skills",
 	}, skillDirs)
 }
 

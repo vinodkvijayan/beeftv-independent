@@ -94,13 +94,13 @@ func TestParsePluginPackageDirValidatesPiPackageAndClientCanvasNode(t *testing.T
 	if err := os.WriteFile(filepath.Join(dir, "extensions", "index.ts"), []byte("export default function() {}"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte("# 分镜九宫格插件"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte("# Storyboard nine-square grid plug-in"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	packageJSON := []byte(`{
 		"name": "@beeftv/plugin-storyboard-grid",
 		"version": "1.2.0",
-		"description": "分镜九宫格拆解与合成插件",
+		"description": "Storyboard nine-square grid disassembly and synthesis plug-in",
 		"author": {"name": "BeefTV"},
 		"pi": {
 			"extensions": ["./extensions/index.ts"],
@@ -108,13 +108,13 @@ func TestParsePluginPackageDirValidatesPiPackageAndClientCanvasNode(t *testing.T
 		},
 		"beeftv": {
 			"id": "storyboard-grid",
-			"displayName": "分镜九宫格",
+			"displayName": "Storyboard Nine Palaces",
 			"client": "./dist/client.js",
 			"contributes": {
 				"canvasNodes": [
 					{
 						"type": "storyboard-grid",
-						"title": "分镜九宫格",
+						"title": "Storyboard Nine Palaces",
 						"defaultWidth": 520,
 						"defaultHeight": 420,
 						"renderer": "client"
@@ -131,10 +131,10 @@ func TestParsePluginPackageDirValidatesPiPackageAndClientCanvasNode(t *testing.T
 	if err != nil {
 		t.Fatalf("ParsePluginPackageDir failed: %v", err)
 	}
-	if pkg.Manifest.Metadata.ID != "storyboard-grid" || pkg.Manifest.Metadata.Name != "分镜九宫格" || pkg.Manifest.Metadata.Version != "1.2.0" {
+	if pkg.Manifest.Metadata.ID != "storyboard-grid" || pkg.Manifest.Metadata.Name != "Storyboard Nine Palaces" || pkg.Manifest.Metadata.Version != "1.2.0" {
 		t.Fatalf("unexpected manifest metadata: %#v", pkg.Manifest.Metadata)
 	}
-	if pkg.Manifest.Metadata.Vendor != "BeefTV" || pkg.Manifest.Metadata.Documentation != "# 分镜九宫格插件" {
+	if pkg.Manifest.Metadata.Vendor != "BeefTV" || pkg.Manifest.Metadata.Documentation != "# Storyboard nine-square grid plug-in" {
 		t.Fatalf("unexpected vendor/docs: %#v", pkg.Manifest.Metadata)
 	}
 	if pkg.Manifest.Client != "./dist/client.js" {
@@ -145,7 +145,7 @@ func TestParsePluginPackageDirValidatesPiPackageAndClientCanvasNode(t *testing.T
 	}
 	node := pkg.Manifest.Contributes.CanvasNodes[0]
 	w, h := node.NodeDimensions()
-	if node.NodeType() != "storyboard-grid" || node.NodeLabel() != "分镜九宫格" || w != 520 || h != 420 || node.Renderer != "client" {
+	if node.NodeType() != "storyboard-grid" || node.NodeLabel() != "Storyboard Nine Palaces" || w != 520 || h != 420 || node.Renderer != "client" {
 		t.Fatalf("unexpected canvas node: %#v", node)
 	}
 }

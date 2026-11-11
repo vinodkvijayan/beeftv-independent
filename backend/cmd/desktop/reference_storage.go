@@ -24,7 +24,7 @@ func (a *DesktopApp) ReferenceStorageSettings() (referencestorage.PublicConfig, 
 
 func (a *DesktopApp) SaveReferenceStorage(config referencestorage.Config) (referencestorage.PublicConfig, error) {
 	if !a.migrationMu.TryLock() {
-		return referencestorage.PublicConfig{}, errors.New("工作区正在迁移，请稍后保存")
+		return referencestorage.PublicConfig{}, errors.New("The workspace is being migrated, please save later")
 	}
 	defer a.migrationMu.Unlock()
 	a.mu.RLock()
@@ -35,10 +35,10 @@ func (a *DesktopApp) SaveReferenceStorage(config referencestorage.Config) (refer
 
 func (a *DesktopApp) UploadReferenceMedia(ids []string) (map[string]string, error) {
 	if len(ids) == 0 || len(ids) > 20 {
-		return nil, errors.New("参考素材数量无效")
+		return nil, errors.New("Invalid reference material quantity")
 	}
 	if !a.migrationMu.TryLock() {
-		return nil, errors.New("工作区正在迁移或上传，请稍后重试")
+		return nil, errors.New("The workspace is being migrated or uploaded, please try again later.")
 	}
 	defer a.migrationMu.Unlock()
 	a.mu.RLock()
@@ -47,7 +47,7 @@ func (a *DesktopApp) UploadReferenceMedia(ids []string) (map[string]string, erro
 	closing := a.closing
 	a.mu.RUnlock()
 	if runtime == nil || closing {
-		return nil, errors.New("工作区尚未就绪")
+		return nil, errors.New("Workspace is not ready yet")
 	}
 	config, err := referencestorage.Load(dir)
 	if err != nil {
@@ -79,13 +79,13 @@ func (a *DesktopApp) UploadReferenceMedia(ids []string) (map[string]string, erro
 		}
 		// CopyOwnedResourceTo checks ownership; arbitrary paths never reach the uploader.
 		started := time.Now().UnixMilli()
-		label := "参考素材 " + strconv.Itoa(index+1)
+		label := "Reference material" + strconv.Itoa(index+1)
 		a.mu.Lock()
 		a.referenceUploadProgress = model.TaskReferenceProgress{Label: label, Phase: "preparing", StartedAt: started, UpdatedAt: started}
 		a.mu.Unlock()
 		path := filepath.Join(staging, strconv.Itoa(index))
 		if err = runtime.CopyOwnedResourceTo(id, path); err != nil {
-			return nil, fmt.Errorf("参考素材 %d 读取失败：%w", index+1, err)
+			return nil, fmt.Errorf("Reference material %d failed to read: %w", index+1, err)
 		}
 		var rate outbound.ProgressRate
 		link, err := referencestorage.Upload(ctx, config, path, func(loaded, total int64, phase string) {
@@ -101,7 +101,7 @@ func (a *DesktopApp) UploadReferenceMedia(ids []string) (map[string]string, erro
 			a.referenceUploadProgress.BytesPerSecond = rate.Rate(now, loaded)
 		})
 		if err != nil {
-			return nil, fmt.Errorf("参考素材 %d 上传失败：%w", index+1, err)
+			return nil, fmt.Errorf("Reference material %d failed to upload: %w", index+1, err)
 		}
 		links[id] = link
 	}
@@ -116,14 +116,14 @@ func (a *DesktopApp) ReferenceUploadStatus() model.TaskReferenceProgress {
 
 func (a *DesktopApp) TestReferenceStorage() error {
 	if !a.migrationMu.TryLock() {
-		return errors.New("工作区正在迁移或上传，请稍后测试")
+		return errors.New("The workspace is being migrated or uploaded, please test later")
 	}
 	defer a.migrationMu.Unlock()
 	a.mu.RLock()
 	dir, closing := a.dataDir, a.closing
 	a.mu.RUnlock()
 	if closing {
-		return errors.New("工作区正在关闭")
+		return errors.New("Workspace is closing")
 	}
 	config, err := referencestorage.Load(dir)
 	if err != nil {
@@ -131,7 +131,7 @@ func (a *DesktopApp) TestReferenceStorage() error {
 	}
 	temp := filepath.Join(dir, "cache", "tmp")
 	if err := os.MkdirAll(temp, 0700); err != nil {
-		return errors.New("无法创建存储测试文件，请检查本地磁盘")
+		return errors.New("Unable to create storage test file, please check local disk")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()

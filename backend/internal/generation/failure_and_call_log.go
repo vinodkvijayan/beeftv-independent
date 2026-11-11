@@ -32,10 +32,10 @@ import (
 
 const (
 	ContentModerationErrorCode      = "sensitive_words_detected"
-	ContentModerationRetryMessage   = "内容未通过安全审核，请修改提示词或参考图后重新生成；原任务不能直接重试"
-	SubmissionUncertainRetryMessage = "提交结果尚未确认，请先查询原任务，不要立即重新提交"
-	DownloadFailureRetryMessage     = "生成结果下载失败，请先重新加载或查询原任务，不要立即重新提交"
-	taskStageRequestNotSent         = "请求尚未提交"
+	ContentModerationRetryMessage   = "The content has not passed the security review. Please modify the prompt word or reference picture and regenerate it; the original task cannot be retried directly."
+	SubmissionUncertainRetryMessage = "The submission result has not been confirmed yet. Please check the original task first and do not resubmit immediately."
+	DownloadFailureRetryMessage     = "The download of the generated results failed. Please reload or query the original task first. Do not resubmit immediately."
+	taskStageRequestNotSent         = "The request has not been submitted yet"
 )
 
 type AnalyticsKey struct{}
@@ -124,8 +124,8 @@ func ClassifyTaskFailure(err error) Failure {
 	}
 	failure := ApplyAppFailureWrappers(err, ClassifyError(err))
 	if failure.Category == CategoryInvalidParams && !failure.Uncertain && DefiniteMidjourneyCountRejection(err) {
-		failure.Reason = "Midjourney 需要一次请求生成 4 张图片"
-		failure.Action = "请重新选择 Midjourney 模型，使用固定四张设置后重试"
+		failure.Reason = "Midjourney requires one request to generate 4 images"
+		failure.Action = "Please reselect the Midjourney model, use the fixed four settings and try again"
 	}
 	return failure
 }
@@ -135,11 +135,11 @@ func ApplyAppFailureWrappers(err error, failure Failure) Failure {
 	if errors.As(err, &imageRecovery) {
 		failure.Category = CategorySubmissionUncertain
 		failure.Uncertain = true
-		failure.Reason = "图片结果尚未确认，自动恢复已停止"
-		failure.Action = "请保留任务记录并联系支持查询结果，不要重复提交"
+		failure.Reason = "Image result not confirmed yet, auto-recovery stopped"
+		failure.Action = "Please keep task records and contact support to check the results. Do not submit again."
 		var preparation ImagePreparationError
 		if errors.As(err, &preparation) {
-			failure.Reason = "图片提交记录无法确认，自动恢复已停止"
+			failure.Reason = "The image submission record cannot be confirmed and automatic recovery has been stopped."
 		}
 		return failure
 	}
@@ -148,7 +148,7 @@ func ApplyAppFailureWrappers(err error, failure Failure) Failure {
 		failure = ClassifyError(preparation.Cause)
 		failure.Uncertain, failure.Retryable = false, false
 		failure.Reason = preparation.Error()
-		failure.Action = "请保留排查信息并联系支持检查本地任务记录"
+		failure.Action = "Please keep the troubleshooting information and contact support to check local task records"
 		return failure
 	}
 	var unknown SubmissionUnknownError
@@ -393,10 +393,10 @@ func ProviderRequestErrorDetails(err error) (string, string) {
 		return "", ""
 	}
 	if errors.Is(err, context.Canceled) {
-		return "request_cancelled", "任务取消，中断上游请求"
+		return "request_cancelled", "The task is canceled and the upstream request is interrupted."
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		return "upstream_timeout", "等待上游响应超时"
+		return "upstream_timeout", "Timeout waiting for upstream response"
 	}
 	return "", SafeProviderLogError(err)
 }
@@ -404,7 +404,7 @@ func ProviderRequestErrorDetails(err error) (string, string) {
 func SafeProviderLogError(err error) string {
 	var httpErr HTTPError
 	if errors.As(err, &httpErr) {
-		return fmt.Sprintf("上游 HTTP %d", httpErr.StatusCode)
+		return fmt.Sprintf("Upstream HTTP %d", httpErr.StatusCode)
 	}
 	return truncateRunes(err.Error(), 500)
 }
@@ -468,13 +468,13 @@ func ReadBeefTVSeedanceMedia(userID string, kind string, media Media, openResour
 	resourceID := strings.TrimPrefix(media.StorageKey, "resource:")
 	resource, body, err := openResource(userID, resourceID)
 	if err != nil {
-		return nil, "", false, fmt.Errorf("读取任务参考资源失败：%w", err)
+		return nil, "", false, fmt.Errorf("Failed to read task reference resources: %w", err)
 	}
 	defer body.Close()
 	limit := BeefTVSeedanceKindMaxBytes(kind)
 	data, err := io.ReadAll(io.LimitReader(body, limit+1))
 	if err != nil {
-		return nil, "", false, fmt.Errorf("读取任务参考资源失败：%w", err)
+		return nil, "", false, fmt.Errorf("Failed to read task reference resources: %w", err)
 	}
 	return data, firstNonEmpty(media.MimeType, resource.MimeType), false, nil
 }
@@ -499,38 +499,38 @@ func (p localReferenceStoragePort) Enabled() (bool, error) {
 
 func (p localReferenceStoragePort) Upload(ctx context.Context, userID, resourceID string) (string, error) {
 	if p.localMode == nil || !p.localMode() {
-		return "", errors.New("当前工作区未启用本地素材上传")
+		return "", errors.New("Local material upload is not enabled in the current workspace")
 	}
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
 	config, err := referencestorage.Load(p.dataDir)
 	if err != nil {
-		return "", errors.New("参考素材对象存储配置无法读取")
+		return "", errors.New("The reference material object storage configuration cannot be read.")
 	}
 	_, body, err := p.openResource(userID, resourceID)
 	if err != nil {
-		return "", errors.New("参考素材无法读取，请检查素材是否仍在当前工作区")
+		return "", errors.New("The reference material cannot be read, please check whether the material is still in the current workspace")
 	}
 	defer body.Close()
 	temp := filepath.Join(p.dataDir, "cache", "tmp")
 	if err := os.MkdirAll(temp, 0700); err != nil {
-		return "", errors.New("无法准备参考素材，请检查本地磁盘")
+		return "", errors.New("Unable to prepare reference material, please check local disk")
 	}
 	file, err := os.CreateTemp(temp, "reference-generation-*")
 	if err != nil {
-		return "", errors.New("无法准备参考素材，请检查本地磁盘")
+		return "", errors.New("Unable to prepare reference material, please check local disk")
 	}
 	defer os.Remove(file.Name())
 	_, copyErr := io.Copy(file, body)
 	closeErr := file.Close()
 	if copyErr != nil || closeErr != nil {
-		return "", errors.New("无法保存临时参考素材，请检查本地磁盘")
+		return "", errors.New("Unable to save temporary reference material, please check local disk")
 	}
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	return referencestorage.Upload(ctx, config, file.Name(), ReferenceUploadObserver(ctx, "参考素材"))
+	return referencestorage.Upload(ctx, config, file.Name(), ReferenceUploadObserver(ctx, "Reference material"))
 }
 
 type taskRequestEvidenceKey struct{}
@@ -677,14 +677,14 @@ func CaptureTaskFailureDiagnostics(task *model.Task, err error, source string) {
 		d.Requests, d.OmittedRequests, d.Input, d.ExecutionResult = prior.Requests, prior.OmittedRequests, prior.Input, prior.ExecutionResult
 	}
 	if source == "local_result" {
-		d.Stage = "本地结果处理"
+		d.Stage = "local result processing"
 		if failure.Category == CategoryLocalDiskFull {
-			d.Stage = "保存生成结果（磁盘空间不足）"
+			d.Stage = "Save build results (insufficient disk space)"
 		}
 	}
 	if len(d.Requests) > 0 && d.Requests[len(d.Requests)-1].Outcome == "response_limit" {
 		last := d.Requests[len(d.Requests)-1]
-		d.Source, d.Stage, d.RequestID, d.HTTPStatus = "local_response", "本地响应大小校验", last.RequestID, last.HTTPStatus
+		d.Source, d.Stage, d.RequestID, d.HTTPStatus = "local_response", "Local response size verification", last.RequestID, last.HTTPStatus
 	}
 	var httpErr HTTPError
 	var managedHTTP *beeftv.MediaHTTPError
@@ -701,11 +701,11 @@ func CaptureTaskFailureDiagnostics(task *model.Task, err error, source string) {
 		d.HTTPStatus, d.ProviderCode, d.RequestID = upload.HTTPStatus, upload.Code, upload.RequestID
 	case errors.As(err, &dns):
 		d.Source, d.TransportPhase = "local_network", "dns"
-		d.Stage = "解析模型服务域名"
-		if errors.As(err, &download) || task.Stage == "正在取回生成结果" {
-			d.Stage = "取回生成结果（DNS 解析）"
+		d.Stage = "Parse model service domain name"
+		if errors.As(err, &download) || task.Stage == "Retrieving generated results" {
+			d.Stage = "Retrieve generated results (DNS resolution)"
 		} else if task.ProviderRequestID != "" {
-			d.Stage = "查询原任务（DNS 解析）"
+			d.Stage = "Query the original task (DNS resolution)"
 		}
 	case errors.As(err, &httpErr):
 		d.Source, d.HTTPStatus, d.ProviderCode = "upstream_http", httpErr.StatusCode, failure.ProviderCode
@@ -727,9 +727,9 @@ func CaptureTaskFailureDiagnostics(task *model.Task, err error, source string) {
 	case errors.As(err, &payload):
 		d.Source, d.ProviderCode = "upstream_response", failure.ProviderCode
 		if failure.Category == CategoryInputInaccessible {
-			d.Stage = "上游读取参考素材"
+			d.Stage = "Read reference material upstream"
 		} else if task.ProviderRequestID != "" {
-			d.Stage = "上游任务处理"
+			d.Stage = "Upstream task processing"
 		}
 		if len(d.Requests) > 0 {
 			last := d.Requests[len(d.Requests)-1]

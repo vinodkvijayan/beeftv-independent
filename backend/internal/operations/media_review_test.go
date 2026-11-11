@@ -28,7 +28,7 @@ func TestMediaReviewUsesOwnedVersionedClipAndDoesNotExposeBytes(t *testing.T) {
 	sum := sha256.Sum256(data)
 	d := &reviewDomain{mediaDomain: &mediaDomain{owner: "owner", data: data}}
 	ctx := &Context{Context: context.Background(), UserID: "owner", Domain: d}
-	args := mediaReviewArgs{CanvasID: "canvas", NodeID: "node", ExpectedVersion: hex.EncodeToString(sum[:]), StartMs: 200, EndMs: 1200, Question: "观察动作和声音"}
+	args := mediaReviewArgs{CanvasID: "canvas", NodeID: "node", ExpectedVersion: hex.EncodeToString(sum[:]), StartMs: 200, EndMs: 1200, Question: "Observe movements and sounds"}
 	call := func(a mediaReviewArgs) (any, error) { b, _ := json.Marshal(a); return runMediaReview(ctx, b) }
 	result, err := call(args)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestMediaReviewSelectsReferencedResourceBeforeInference(t *testing.T) {
 						assetPayload: `{"resourceId":"resource","poster":{"resourceId":"other"}}`,
 					}}
 					args := map[string]any{"canvasId": "canvas", "expectedVersion": hex.EncodeToString(sum[:]),
-						"startMs": 200, "endMs": 1200, "mode": mode, "question": "观察片段"}
+						"startMs": 200, "endMs": 1200, "mode": mode, "question": "Observation snippet"}
 					args[target] = map[string]string{"nodeId": "node", "assetId": "asset"}[target]
 					if test.resourceID != "" {
 						args["resourceId"] = test.resourceID

@@ -17,7 +17,7 @@ func Verify(path string) error {
 		return err
 	}
 	if info.Mode().Perm() != 0o600 {
-		return fmt.Errorf("连接凭据权限为 %o，应为 0600", info.Mode().Perm())
+		return fmt.Errorf("Connection credentials permission is %o, should be 0600", info.Mode().Perm())
 	}
 	return nil
 }

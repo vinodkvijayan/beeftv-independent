@@ -64,13 +64,13 @@ type Runtime struct {
 func Open(_ context.Context, raw Config) (result *Runtime, openErr error) {
 	cfg := raw.withDefaults()
 	if cfg.Profile != ProfileServer && cfg.Profile != ProfileDesktop {
-		return nil, fmt.Errorf("不支持的运行模式：%s", cfg.Profile)
+		return nil, fmt.Errorf("Unsupported operating mode: %s", cfg.Profile)
 	}
 	if strings.TrimSpace(cfg.DataDir) == "" {
-		return nil, errors.New("后端数据目录不能为空")
+		return nil, errors.New("The backend data directory cannot be empty")
 	}
 	if cfg.Profile == ProfileDesktop && !strings.HasPrefix(cfg.ListenAddr, "127.0.0.1:") {
-		return nil, errors.New("桌面运行时只能监听 127.0.0.1")
+		return nil, errors.New("The desktop can only listen to 127.0.0.1 when running")
 	}
 	if err := os.MkdirAll(cfg.DataDir, 0o755); err != nil {
 		return nil, err
@@ -255,7 +255,7 @@ func Open(_ context.Context, raw Config) (result *Runtime, openErr error) {
 	businessCatalog := canvasHandler.NewBusinessCatalog(router.Routes())
 	canvasHandler.RegisterBusinessDiscovery(api, businessCatalog, svc)
 	router.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "msg": "请求不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "msg": "Request does not exist"})
 	})
 
 	rootHandler := http.Handler(router)
@@ -365,7 +365,7 @@ func (r *Runtime) Handler() http.Handler { return r.handler }
 
 func (r *Runtime) Start() error {
 	if r == nil || r.closed.Load() {
-		return errors.New("运行时已关闭")
+		return errors.New("Runtime is closed")
 	}
 	if !r.started.CompareAndSwap(false, true) {
 		return nil
@@ -399,7 +399,7 @@ func (r *Runtime) Start() error {
 	go func() {
 		err := r.httpServer.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			r.serveErr <- fmt.Errorf("HTTP 服务异常退出：%w", err)
+			r.serveErr <- fmt.Errorf("HTTP service exited abnormally: %w", err)
 		}
 		close(r.serveErr)
 	}()
@@ -410,11 +410,11 @@ func (r *Runtime) Start() error {
 		// 运行时发现：端口是动态的，外部客户端靠工作区对应的运行时描述文件找到当前地址，
 		// 而不是靠猜端口或拿到桌面启动令牌。写失败不影响应用启动。
 		if err := runtimeinfo.Write(r.cfg.DataDir, opsURL, buildinfo.Current().Version); err != nil {
-			log.Printf("未能写入运行时地址（外部 Agent 需手动指定 BEEFTV_BASE_URL）：%v", err)
+			log.Printf("Failed to write runtime address (external Agent needs to manually specify BEEFTV_BASE_URL): %v", err)
 		}
 		if r.assistantHost != nil {
 			if err := r.assistantHost.Start(opsURL, r.launchToken); err != nil {
-				log.Printf("内置创作助手宿主未启动（不影响应用启动）：%v", err)
+				log.Printf("The built-in creative assistant host is not started (does not affect application startup): %v", err)
 			}
 		}
 	}
@@ -479,19 +479,19 @@ func (r *Runtime) Close(ctx context.Context) error {
 			r.beefTV.Close()
 		}
 		if err := r.DepthComponents().CloseComponents(ctx); err != nil {
-			failures = append(failures, fmt.Errorf("暂停组件下载：%w", err))
+			failures = append(failures, fmt.Errorf("Pause component download: %w", err))
 		}
 		// 干净退出先撤掉运行时地址：留着会让下一次发现连到一个已经不在的端口。
 		if r.cfg.Profile == ProfileDesktop {
 			if err := runtimeinfo.Remove(r.cfg.DataDir); err != nil {
-				failures = append(failures, fmt.Errorf("清理运行时地址：%w", err))
+				failures = append(failures, fmt.Errorf("Clean up runtime address: %w", err))
 			}
 		}
 		if r.httpServer != nil {
 			httpCtx, cancel := context.WithTimeout(ctx, min(30*time.Second, r.cfg.ShutdownTimeout))
 			if err := r.httpServer.Shutdown(httpCtx); err != nil {
 				_ = r.httpServer.Close()
-				failures = append(failures, fmt.Errorf("关闭 HTTP 服务：%w", err))
+				failures = append(failures, fmt.Errorf("Close HTTP service: %w", err))
 			}
 			cancel()
 		}
@@ -503,7 +503,7 @@ func (r *Runtime) Close(ctx context.Context) error {
 			workerErr = r.service.StopWorker(workerCtx)
 		}
 		if workerErr != nil {
-			failures = append(failures, fmt.Errorf("等待后台任务退出：%w", workerErr))
+			failures = append(failures, fmt.Errorf("Waiting for the background task to exit: %w", workerErr))
 		}
 		cancel()
 		if r.backgroundDone != nil {
@@ -513,7 +513,7 @@ func (r *Runtime) Close(ctx context.Context) error {
 				select {
 				case <-r.backgroundDone:
 				case <-ctx.Done():
-					failures = append(failures, fmt.Errorf("等待初始化任务退出：%w", ctx.Err()))
+					failures = append(failures, fmt.Errorf("Waiting for the initialization task to exit: %w", ctx.Err()))
 				}
 			}
 		}

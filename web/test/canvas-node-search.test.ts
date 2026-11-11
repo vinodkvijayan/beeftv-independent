@@ -32,7 +32,7 @@ describe("canvas node timestamps", () => {
         expect(created[0]).toMatchObject({ createdAt: "2026-08-28T01:00:00.000Z", updatedAt: "2026-08-28T01:00:00.000Z" });
 
         const unchanged = created[0]!;
-        const edited = { ...unchanged, title: "新标题" };
+        const edited = { ...unchanged, title: "new title" };
         const updated = stampCanvasNodeChanges(created, [edited], "2026-08-28T02:00:00.000Z");
         expect(updated[0]?.createdAt).toBe("2026-08-28T01:00:00.000Z");
         expect(updated[0]?.updatedAt).toBe("2026-08-28T02:00:00.000Z");
@@ -67,22 +67,22 @@ describe("canvas node timestamps", () => {
 
 describe("canvas node search", () => {
     test("shows the one-based storyboard shot number without incrementing it", () => {
-        const shot = node("shot", { metadata: { chapterTitle: "第一集", shotIndex: 1 } });
-        expect(canvasNodeSearchContext(shot)).toBe("第一集 · 镜头 1");
+        const shot = node("shot", { metadata: { chapterTitle: "Episode 1", shotIndex: 1 } });
+        expect(canvasNodeSearchContext(shot)).toBe("Episode 1 · Shot 1");
     });
 
     test("searching a shot number does not include the preceding storyboard shot", () => {
-        const first = node("first-shot", { title: "雨夜街道", metadata: { shotIndex: 1, workflowTitle: "镜头 1 分镜图" } });
-        const second = node("second-shot", { title: "室内对话", metadata: { shotIndex: 2, workflowTitle: "镜头 2 分镜图" } });
-        expect(searchCanvasNodes([first, second], "镜头 2").map((item) => item.id)).toEqual(["second-shot"]);
-        expect(searchCanvasNodes([first, second], "镜头 1").map((item) => item.id)).toEqual(["first-shot"]);
+        const first = node("first-shot", { title: "rainy night street", metadata: { shotIndex: 1, workflowTitle: "Shot 1 storyboard" } });
+        const second = node("second-shot", { title: "indoor conversation", metadata: { shotIndex: 2, workflowTitle: "Shot 2 storyboard" } });
+        expect(searchCanvasNodes([first, second], "Shot 2").map((item) => item.id)).toEqual(["second-shot"]);
+        expect(searchCanvasNodes([first, second], "Shot 1").map((item) => item.id)).toEqual(["first-shot"]);
     });
 
     test("defaults to recently edited order and searches model or tags", () => {
-        const older = node("older", { updatedAt: "2026-08-20T01:00:00.000Z", metadata: { model: "wan-video", assetTags: ["夜景"] } });
+        const older = node("older", { updatedAt: "2026-08-20T01:00:00.000Z", metadata: { model: "wan-video", assetTags: ["night view"] } });
         const newer = node("newer", { updatedAt: "2026-08-28T01:00:00.000Z", metadata: { model: "seedance" } });
         expect(searchCanvasNodes([older, newer], "").map((item) => item.id)).toEqual(["newer", "older"]);
-        expect(searchCanvasNodes([older, newer], "夜景").map((item) => item.id)).toEqual(["older"]);
+        expect(searchCanvasNodes([older, newer], "night view").map((item) => item.id)).toEqual(["older"]);
         expect(searchCanvasNodes([older, newer], "seedance").map((item) => item.id)).toEqual(["newer"]);
     });
 
@@ -93,20 +93,20 @@ describe("canvas node search", () => {
             metadata: { content: "data:image/png;base64,AAAA", naturalWidth: 1920, naturalHeight: 1080, bytes: 2 * 1024 * 1024, model: "image-model" },
         });
         expect(canvasNodeMaterialSummary(image)).toContain("1920×1080");
-        expect(canvasNodeSearchContext(image)).toBe("图片节点");
+        expect(canvasNodeSearchContext(image)).toBe("Picture node");
         expect(canvasNodeSearchTimes(image)).toMatchObject({ createdAt: image.createdAt, updatedAt: image.updatedAt });
     });
 
     test("indexes textual node body so name-or-content search can find 123", () => {
-        const text = node("note", { type: CanvasNodeType.Text, title: "备注", metadata: { content: "123" } });
-        const markdown = node("doc", { type: CanvasNodeType.Markdown, title: "说明", metadata: { content: "abc 123 xyz" } });
+        const text = node("note", { type: CanvasNodeType.Text, title: "Remarks", metadata: { content: "123" } });
+        const markdown = node("doc", { type: CanvasNodeType.Markdown, title: "Description", metadata: { content: "abc 123 xyz" } });
         expect(searchCanvasNodes([text, markdown], "123").map((item) => item.id)).toEqual(["note", "doc"]);
     });
 
     test("does not index media URLs stored in metadata.content", () => {
-        const video = node("clip", { type: CanvasNodeType.Video, title: "镜头A", metadata: { content: "blob:http://localhost/unique-media-token-xyz" } });
-        const image = node("pic", { type: CanvasNodeType.Image, title: "图片A", metadata: { content: "data:image/png;base64,AAAA123TOKEN" } });
-        const audio = node("snd", { type: CanvasNodeType.Audio, title: "音效A", metadata: { content: "blob:http://localhost/audio-secret-url" } });
+        const video = node("clip", { type: CanvasNodeType.Video, title: "Lens A", metadata: { content: "blob:http://localhost/unique-media-token-xyz" } });
+        const image = node("pic", { type: CanvasNodeType.Image, title: "Picture A", metadata: { content: "data:image/png;base64,AAAA123TOKEN" } });
+        const audio = node("snd", { type: CanvasNodeType.Audio, title: "Sound effect A", metadata: { content: "blob:http://localhost/audio-secret-url" } });
         expect(searchCanvasNodes([video, image, audio], "unique-media-token-xyz")).toEqual([]);
         expect(searchCanvasNodes([video, image, audio], "AAAA123TOKEN")).toEqual([]);
         expect(searchCanvasNodes([video, image, audio], "audio-secret-url")).toEqual([]);

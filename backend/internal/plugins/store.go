@@ -87,7 +87,7 @@ func (s repositoryStore) LoadPluginRegistry() ([]RegistryRecord, bool, error) {
 func (s repositoryStore) CommitPluginRegistry(commit RegistryCommit) error {
 	data, err := json.Marshal(commit.Records)
 	if err != nil {
-		return fmt.Errorf("编码插件 registry：%w", err)
+		return fmt.Errorf("Encoding plug-in registry: %w", err)
 	}
 	return s.repo.CommitPluginRegistry(RegistrySettingKey, string(data), commit.Platform, commit.DeletePluginID)
 }

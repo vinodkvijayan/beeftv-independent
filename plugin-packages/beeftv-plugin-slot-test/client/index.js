@@ -2,14 +2,14 @@
 // 并订阅全部 5 类宿主事件。插件停用或卸载时由宿主自动撤销全部挂载。
 
 const EDITOR_SLOTS = [
-  { slot: "editor.timeline-panel", label: "时间线面板扩展" },
-  { slot: "editor.preview-renderer", label: "预览渲染扩展" },
-  { slot: "editor.inspector", label: "属性检查器扩展" },
-  { slot: "editor.asset-ingest", label: "素材导入扩展" },
-  { slot: "editor.subtitle-tool", label: "字幕工具扩展" },
-  { slot: "editor.transcription-provider", label: "转写服务扩展" },
-  { slot: "editor.export-renderer", label: "导出渲染扩展" },
-  { slot: "editor.ai-assistant", label: "剪辑 AI 助手扩展" },
+  { slot: "editor.timeline-panel", label: "Timeline panel extension" },
+  { slot: "editor.preview-renderer", label: "Preview rendering extension" },
+  { slot: "editor.inspector", label: "Property inspector extension" },
+  { slot: "editor.asset-ingest", label: "Material import extension" },
+  { slot: "editor.subtitle-tool", label: "Subtitle Tool Extension" },
+  { slot: "editor.transcription-provider", label: "Transcription service extension" },
+  { slot: "editor.export-renderer", label: "Export rendering extension" },
+  { slot: "editor.ai-assistant", label: "Clip AI Assistant Extension" },
 ];
 
 const HOST_EVENTS = [
@@ -40,12 +40,12 @@ export function activate(host) {
   // 1. canvas.node — 自定义画布节点
   function SlotTestNodeCard(props) {
     const greeting =
-      host.config?.get?.("greeting", "你好 BeefTV") || "你好 BeefTV";
+      host.config?.get?.("greeting", "Hello BeefTV") || "Hello BeefTV";
     const note =
       props?.node?.metadata?.pluginData?.note ||
       props?.node?.metadata?.content ||
       props?.node?.metadata?.prompt ||
-      "全插槽演示节点已就绪";
+      "Full socket demo node ready";
     return h(
       "div",
       {
@@ -73,7 +73,7 @@ export function activate(host) {
       h(
         "div",
         { style: { fontSize: 11, opacity: 0.65 } },
-        `已捕获事件：${eventLog.length} 条`,
+        `Captured events:${eventLog.length} Article`,
       ),
     );
   }
@@ -81,9 +81,9 @@ export function activate(host) {
   host.contribute("canvas.node", {
     id: "slot-test-node",
     type: "slot-test-node",
-    label: "插槽测试节点",
-    title: "插槽测试节点",
-    defaultTitle: "插槽测试节点",
+    label: "Socket test node",
+    title: "Socket test node",
+    defaultTitle: "Socket test node",
     defaultWidth: 260,
     defaultHeight: 160,
     defaultSize: { width: 260, height: 160 },
@@ -99,8 +99,8 @@ export function activate(host) {
   // 2. canvas.addNodeMenu — 添加节点菜单条目
   host.contribute("canvas.addNodeMenu", {
     id: "slot-test-add-node",
-    label: "插槽测试节点",
-    title: "插槽测试节点",
+    label: "Socket test node",
+    title: "Socket test node",
     nodeType: "slot-test-node",
     section: "node",
     defaultOrder: 95,
@@ -111,54 +111,54 @@ export function activate(host) {
   // 3. canvas.toolbar.main — 画布主工具栏按钮
   host.contribute("canvas.toolbar.main", {
     id: "slot-test-toolbar-main",
-    label: "插槽主栏按钮",
-    title: "插槽主栏按钮",
+    label: "Slot home button",
+    title: "Slot home button",
     category: "create",
     defaultVisible: true,
     defaultOrder: 95,
-    onClick: () => host.ui?.notify?.("已触发画布主工具栏插件按钮", "info"),
-    run: () => host.ui?.notify?.("已触发画布主工具栏插件按钮", "info"),
+    onClick: () => host.ui?.notify?.("Canvas main toolbar plugin button triggered", "info"),
+    run: () => host.ui?.notify?.("Canvas main toolbar plugin button triggered", "info"),
   });
 
   // 4. canvas.toolbar.selection — 多选工具栏按钮
   host.contribute("canvas.toolbar.selection", {
     id: "slot-test-toolbar-selection",
-    label: "插槽多选动作",
-    title: "插槽多选动作",
+    label: "Slot multi-select action",
+    title: "Slot multi-select action",
     category: "selection",
     defaultVisible: true,
     defaultOrder: 95,
-    onClick: () => host.ui?.notify?.("已触发多选工具栏插件动作", "info"),
-    run: () => host.ui?.notify?.("已触发多选工具栏插件动作", "info"),
+    onClick: () => host.ui?.notify?.("Multi-select toolbar plugin action triggered", "info"),
+    run: () => host.ui?.notify?.("Multi-select toolbar plugin action triggered", "info"),
   });
 
   // 5. canvas.toolbar.nodeHover — 节点悬停工具栏按钮
   host.contribute("canvas.toolbar.nodeHover", {
     id: "slot-test-toolbar-node-hover",
-    label: "插槽悬停动作",
-    title: "插槽悬停动作",
+    label: "Slot hover action",
+    title: "Slot hover action",
     category: "node-state",
     defaultVisible: true,
     defaultOrder: 95,
-    onClick: () => host.ui?.notify?.("已触发节点悬停工具栏插件动作", "info"),
-    run: () => host.ui?.notify?.("已触发节点悬停工具栏插件动作", "info"),
+    onClick: () => host.ui?.notify?.("Node hover toolbar plugin action triggered", "info"),
+    run: () => host.ui?.notify?.("Node hover toolbar plugin action triggered", "info"),
   });
 
   // 6. canvas.contextMenu — 画布与节点右键菜单项
   host.contribute("canvas.contextMenu", {
     id: "slot-test-context-menu",
-    label: "插槽测试右键动作",
+    label: "Slot test right click action",
     target: "both",
     order: 95,
-    onSelect: () => host.ui?.notify?.("已触发右键菜单插件动作", "info"),
-    run: () => host.ui?.notify?.("已触发右键菜单插件动作", "info"),
+    onSelect: () => host.ui?.notify?.("Right-click menu plug-in action has been triggered", "info"),
+    run: () => host.ui?.notify?.("Right-click menu plug-in action has been triggered", "info"),
   });
 
   // 7. canvas.nodePanel — 节点配置面板扩展区域
   host.contribute("canvas.nodePanel", {
     id: "slot-test-node-panel",
-    title: "插槽测试配置区",
-    label: "插槽测试配置区",
+    title: "Slot test configuration area",
+    label: "Slot test configuration area",
     order: 95,
     render: ({ node }) =>
       h(
@@ -167,17 +167,17 @@ export function activate(host) {
           "data-testid": "slot-test-node-panel",
           style: { fontSize: 12, padding: "8px 0" },
         },
-        `当前节点：${node?.title || node?.id || "未命名"}`,
+        `Current node:${node?.title || node?.id || "Unnamed"}`,
       ),
   });
 
   // 8. canvas.promptActions — 提示词输入框旁的动作按钮
   host.contribute("canvas.promptActions", {
     id: "slot-test-prompt-action",
-    label: "追加测试标签",
+    label: "Add test tag",
     order: 95,
     onClick: ({ prompt, setPrompt }) => {
-      const next = `${String(prompt || "").trim()} [光影质感]`.trim();
+      const next = `${String(prompt || "").trim()} [Light and shadow texture]`.trim();
       setPrompt?.(next);
     },
   });
@@ -185,8 +185,8 @@ export function activate(host) {
   // 9. canvas.sidePanel — 画布侧栏面板页
   host.contribute("canvas.sidePanel", {
     id: "slot-test-side-panel",
-    label: "插槽监控",
-    title: "插槽与事件监控",
+    label: "Slot monitoring",
+    title: "Slot and event monitoring",
     order: 95,
     render: () =>
       h(
@@ -195,9 +195,9 @@ export function activate(host) {
           "data-testid": "slot-test-side-panel",
           style: { padding: 12, fontSize: 12 },
         },
-        h("div", { style: { fontWeight: 600, marginBottom: 8 } }, "宿主事件日志"),
+        h("div", { style: { fontWeight: 600, marginBottom: 8 } }, "Host event log"),
         eventLog.length === 0
-          ? h("div", { style: { opacity: 0.7 } }, "暂无事件记录")
+          ? h("div", { style: { opacity: 0.7 } }, "No event record yet")
           : eventLog.map((item, idx) =>
               h(
                 "div",
@@ -212,7 +212,7 @@ export function activate(host) {
   //     这个自检插件只挂上钩子、不改任何东西，避免启用后影响真实生成。
   host.contribute("generation.beforeSubmit", {
     id: "slot-test-before-submit",
-    label: "全插槽演示插件",
+    label: "Full slot demo plugin",
     order: 95,
     transform: () => undefined,
   });
@@ -231,7 +231,7 @@ export function activate(host) {
             "data-testid": `slot-test-${item.slot}`,
             style: { padding: 8, fontSize: 12 },
           },
-          `[全插槽演示] ${item.label}`,
+          `[Full Slots Demo]${item.label}`,
         ),
     });
   }
@@ -239,25 +239,25 @@ export function activate(host) {
   // 12. assets.source — 外部素材来源
   host.contribute("assets.source", {
     id: "slot-test-assets-source",
-    label: "演示素材源",
-    description: "全插槽演示插件提供的示例素材来源",
-    listFolders: async () => [{ id: "demo-root", name: "演示素材目录" }],
+    label: "Demo source",
+    description: "Sample assets provided by the full slot demo plug-in",
+    listFolders: async () => [{ id: "demo-root", name: "Demo material directory" }],
     list: async () => [],
     render: () =>
       h(
         "div",
         { "data-testid": "slot-test-assets-source", style: { padding: 12 } },
-        "演示外部素材来源已挂载",
+        "Demonstration external material source has been mounted",
       ),
   });
 
   // 13. assets.itemActions — 素材卡片与详情操作
   host.contribute("assets.itemActions", {
     id: "slot-test-asset-action",
-    label: "发送至插槽测试",
+    label: "Send to slot test",
     order: 95,
     onSelect: (asset) => {
-      host.ui?.notify?.(`已选择素材：${asset?.title || asset?.id || ""}`, "info");
+      host.ui?.notify?.(`Selected materials:${asset?.title || asset?.id || ""}`, "info");
     },
   });
 
@@ -265,8 +265,8 @@ export function activate(host) {
   host.contribute("app.page", {
     id: "slot-test-page",
     path: "/p/beeftv-plugin-slot-test",
-    title: "全插槽演示页",
-    label: "全插槽演示页",
+    title: "Full slot demo page",
+    label: "Full slot demo page",
     render: () =>
       h(
         "div",
@@ -274,11 +274,11 @@ export function activate(host) {
           "data-testid": "slot-test-app-page",
           style: { padding: 24, display: "flex", flexDirection: "column", gap: 12 },
         },
-        h("h2", { style: { margin: 0 } }, "全插槽演示插件独立页面"),
+        h("h2", { style: { margin: 0 } }, "Full slot demo plugin standalone page"),
         h(
           "p",
           { style: { margin: 0, opacity: 0.8 } },
-          "本页面通过 app.page 插槽挂载，路径为 /p/beeftv-plugin-slot-test。",
+          "This page is mounted through the app.page slot, and the path is /p/beeftv-plugin-slot-test.",
         ),
       ),
   });
@@ -286,7 +286,7 @@ export function activate(host) {
   // 15. app.sidebar — 全局侧栏导航入口
   host.contribute("app.sidebar", {
     id: "slot-test-sidebar",
-    label: "插槽演示",
+    label: "Slot demo",
     path: "/p/beeftv-plugin-slot-test",
     order: 95,
   });
@@ -294,18 +294,18 @@ export function activate(host) {
   // 16. app.command — 全局命令面板命令
   host.contribute("app.command", {
     id: "slot-test-command",
-    label: "运行全插槽演示自检",
+    label: "Run the full-slot demo self-test",
     shortcut: "Mod+Shift+9",
-    keywords: ["slot", "test", "插槽", "演示"],
-    onSelect: () => host.ui?.notify?.("全插槽演示插件自检通过", "success"),
-    run: () => host.ui?.notify?.("全插槽演示插件自检通过", "success"),
+    keywords: ["slot", "test", "slot", "Demo"],
+    onSelect: () => host.ui?.notify?.("All-slot demo plug-in self-test passed", "success"),
+    run: () => host.ui?.notify?.("All-slot demo plug-in self-test passed", "success"),
   });
 
   // 17. app.settings — 插件中心自定义设置面板
   host.contribute("app.settings", {
     id: "slot-test-settings",
-    title: "全插槽演示插件设置",
-    label: "全插槽演示插件设置",
+    title: "Full slot demo plugin setup",
+    label: "Full slot demo plugin setup",
     render: ({ config, onChange }) =>
       h(
         "div",
@@ -313,10 +313,10 @@ export function activate(host) {
           "data-testid": "slot-test-app-settings",
           style: { display: "flex", flexDirection: "column", gap: 8, padding: 8 },
         },
-        h("label", { style: { fontSize: 12, fontWeight: 500 } }, "测试问候语"),
+        h("label", { style: { fontSize: 12, fontWeight: 500 } }, "Test greeting"),
         h("input", {
           type: "text",
-          value: String(config?.greeting ?? "你好 BeefTV"),
+          value: String(config?.greeting ?? "Hello BeefTV"),
           onChange: (e) =>
             onChange?.({ ...(config || {}), greeting: e.target.value }),
           style: {
@@ -332,8 +332,8 @@ export function activate(host) {
   // 18. pluginCenter.section — 插件中心左侧分区栏
   host.contribute("pluginCenter.section", {
     id: "slot-test-section",
-    label: "插槽诊断",
-    description: "查看 27 个扩展插槽与 5 类宿主事件的挂载状态",
+    label: "Slot diagnostics",
+    description: "View mount status of 27 expansion slots and 5 host events",
     order: 95,
     render: () =>
       h(
@@ -342,15 +342,15 @@ export function activate(host) {
           "data-testid": "slot-test-plugin-center-section",
           style: { padding: 16, fontSize: 13 },
         },
-        "全部 27 个界面扩展位与 5 类事件监听均已激活。",
+        "All 27 interface extension bits and 5 types of event listening are activated.",
       ),
   });
 
   // 19. project.view — 项目详情分页视图
   host.contribute("project.view", {
     id: "slot-test-project-view",
-    label: "插槽视图",
-    title: "插槽演示视图",
+    label: "Slot view",
+    title: "Slot demo view",
     order: 95,
     render: ({ projectId }) =>
       h(
@@ -359,7 +359,7 @@ export function activate(host) {
           "data-testid": "slot-test-project-view",
           style: { padding: 16, fontSize: 13 },
         },
-        `项目 ${projectId || "当前项目"} 的插件扩展分页视图`,
+        `Project${projectId || "Current project"} Plug-in to extend paginated view`,
       ),
   });
 
@@ -367,7 +367,7 @@ export function activate(host) {
   host.contribute("assistant.toolCard", {
     id: "slot-test-tool-card",
     toolName: "slot_test_ping",
-    label: "插槽测试探针",
+    label: "Socket test probe",
     render: ({ args, result, status }) =>
       h(
         "div",
@@ -381,11 +381,11 @@ export function activate(host) {
             fontSize: 12,
           },
         },
-        h("div", { style: { fontWeight: 600 } }, "🧩 插槽测试探针回执"),
+        h("div", { style: { fontWeight: 600 } }, "🧩 Socket test probe receipt"),
         h(
           "div",
           { style: { marginTop: 4, opacity: 0.85 } },
-          `输入消息：${args?.message || ""} · 状态：${status || "completed"}`,
+          `Enter message:${args?.message || ""} · Status:${status || "completed"}`,
         ),
         result
           ? h(

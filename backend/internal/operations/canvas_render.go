@@ -15,7 +15,7 @@ type TimelineRenderAdmission interface {
 }
 
 func registerCanvasRenderOps(r *Registry) {
-	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.timeline.render", Summary: "免费本地渲染已保存的时间线", Scope: ScopeCanvas,
+	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.timeline.render", Summary: "Free local rendering of saved timelines", Scope: ScopeCanvas,
 		Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"expectedRevision":{"type":"integer","minimum":0},"options":{"type":"object","properties":{"width":{"type":"integer"},"height":{"type":"integer"},"fps":{"type":"integer"},"sampleRate":{"type":"integer"},"burnSubtitles":{"type":"boolean"}}}},"required":["canvasId","expectedRevision"]}`), Handler: opCanvasTimelineRender})
 }
 
@@ -29,11 +29,11 @@ func opCanvasTimelineRender(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || args.ExpectedRevision == nil || *args.ExpectedRevision < 0 || strings.TrimSpace(ctx.OperationID) == "" {
-		return nil, InvalidArg("invalid_params", "canvasId、expectedRevision 和稳定操作标识必填")
+		return nil, InvalidArg("invalid_params", "canvasId, expectedRevision and stable operation identifier are required")
 	}
 	admission, ok := ctx.Domain.(TimelineRenderAdmission)
 	if !ok {
-		return nil, Unsupported("timeline_render_unavailable", "当前工作区无法创建本地渲染任务")
+		return nil, Unsupported("timeline_render_unavailable", "The current workspace cannot create a local rendering task")
 	}
 	canvasRaw, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
 	if err != nil {
@@ -44,7 +44,7 @@ func opCanvasTimelineRender(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, AsError(err)
 	}
 	if revision := canvasRevision(doc); revision != *args.ExpectedRevision {
-		return nil, Conflict("revision_conflict", "画布已变化，请重新读取", map[string]any{"currentRevision": revision})
+		return nil, Conflict("revision_conflict", "The canvas has changed, please read again", map[string]any{"currentRevision": revision})
 	}
 	timelineRaw, err := json.Marshal(doc["timeline"])
 	if err != nil {
@@ -52,7 +52,7 @@ func opCanvasTimelineRender(ctx *Context, raw json.RawMessage) (any, error) {
 	}
 	var timeline editing.Project
 	if err = json.Unmarshal(timelineRaw, &timeline); err != nil {
-		return nil, InvalidArg("invalid_timeline", "画布中没有有效时间线")
+		return nil, InvalidArg("invalid_timeline", "There is no valid timeline in the canvas")
 	}
 	sources, err := timelineSources(ctx, doc, &timeline)
 	if err != nil {

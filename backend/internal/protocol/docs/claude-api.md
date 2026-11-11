@@ -1,8 +1,8 @@
 # Claude Messages API
 
-Claude Messages 使用无状态 `messages` 请求生成内容。宿主默认创建一条 `user` 消息、设置 `max_tokens: 4096`，并自动添加 `anthropic-version: 2023-06-01`。系统提示使用顶层 `system`，不能伪装成 `system` 角色消息。
+Claude Messages uses stateless `messages` requests to generate content. By default, the host creates a `user` message, sets `max_tokens: 4096`, and automatically adds `anthropic-version: 2023-06-01`. The system prompts to use the top-level `system` and cannot disguise it as `system` role message.
 
-## 接口、鉴权与版本头
+## Interface, authentication and version header
 
 {{OPERATIONS}}
 
@@ -13,19 +13,19 @@ anthropic-version: 2023-06-01
 Content-Type: application/json
 ```
 
-宿主的通用渠道中转也可能以 Bearer 方式连接兼容网关；直连 Anthropic 时必须按官方 `x-api-key` 规则配置渠道。版本头由适配器固定添加，Beta 能力需要额外头部时当前插件不会自动猜测。
+The host's general channel transfer may also be connected to a compatible gateway in Bearer mode; when directly connected to Anthropic, the channel must be configured according to the official `x-api-key` rules. Version headers are permanently added by the adapter, and the current plugin will not automatically guess when Beta capabilities require additional headers.
 
-## 模型与兼容边界
+## Model and compatibility boundaries
 
-模型 ID 必须使用账户和区域实际可用的 Anthropic 模型名。AWS Bedrock、Google Vertex AI 与 Anthropic 原生 API 的鉴权、路径和模型名不同，不能把原生 Messages 插件直接当作云厂商协议使用，除非中间网关已完成协议转换。
+The model ID must use an Anthropic model name that is actually available in the account and region. The authentication, path, and model name of the native APIs of AWS Bedrock, Google Vertex AI, and Anthropic are different. The native Messages plug-in cannot be used directly as a cloud vendor protocol unless the intermediate gateway has completed protocol conversion.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-`extra` 可透传 `max_tokens`、`system`、`messages`、`temperature`、`top_p`、`top_k`、`tools`、`tool_choice` 和 `stream`。`extra.messages` 替换默认消息数组。`max_tokens` 是必需的上游字段，未覆盖时宿主发送 4096。
+`extra` can transparently transmit `max_tokens`, `system`, `messages`, `temperature`, `top_p`, `top_k`, `tools`, `tool_choice` and `stream`. `extra.messages` replaces the default message array. `max_tokens` is a required upstream field, the host sends 4096 when not covered.
 
-## 请求示例
+## Request example
 
 ```bash
 curl "{channel_base_url}/v1/messages" \
@@ -51,13 +51,13 @@ curl "{channel_base_url}/v1/messages" \
 }
 ```
 
-## 多内容块、工具与流式
+## Multiple content blocks, tools and streaming
 
-响应解析遍历 `content[]`，只拼接 `type: text` 的块。`tool_use`、thinking、引用等非文本块不会被误当成正文，但当前统一文本结果也不会保存这些块；需要工具循环或完整块语义时应走专用 Agent 执行层。`stream: true` 的事件流由文本任务链路处理，同步解析器只接收完整 JSON。
+The response parsing traverses `content[]` and only splices the blocks of `type: text`. Non-text blocks such as `tool_use`, thinking, and quotations will not be mistaken for text, but the current unified text results will not save these blocks; when tool loops or complete block semantics are required, the dedicated Agent execution layer should be used. `stream: true`'s event stream is handled by the text task link, and the synchronous parser only receives full JSON.
 
-常见错误包括缺少版本头、模型 ID 无权限、交替角色结构不合法、`max_tokens` 缺失或上下文超限。兼容网关可能接受 Bearer 但不接受 `x-api-key`，需要在渠道层确认，不在插件里双发密钥。
+Common errors include missing version headers, unauthorized model IDs, illegal alternating role structures, missing `max_tokens`, or context overruns. Compatible gateways may accept Bearer but not `x-api-key`. This needs to be confirmed at the channel level and does not double-issue the key in the plug-in.
 
-## 官方资料
+## Official information
 
 - [Anthropic Messages API](https://platform.claude.com/docs/en/api/messages)
 - [Anthropic Messages examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages)

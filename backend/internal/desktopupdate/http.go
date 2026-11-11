@@ -31,7 +31,7 @@ func newHTTPClient() *http.Client {
 
 func httpsRedirects(req *http.Request, via []*http.Request) error {
 	if len(via) >= maxRedirects {
-		return fmt.Errorf("重定向次数过多")
+		return fmt.Errorf("Too many redirects")
 	}
 	if req.URL == nil || req.URL.Scheme != "https" || req.URL.Host == "" || req.URL.User != nil {
 		return errInsecureUpdateURL
@@ -90,7 +90,7 @@ func (e *Engine) getBytes(ctx context.Context, rawURL string, maxBytes int64, ti
 		return nil, classifyTransportError(err, false)
 	}
 	if int64(len(data)) > maxBytes {
-		return nil, fmt.Errorf("更新信息过大")
+		return nil, fmt.Errorf("Update information is too large")
 	}
 	return data, nil
 }

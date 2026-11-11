@@ -5,7 +5,7 @@ import type { AssistantTurn } from "@/services/api/agent-assistant";
 
 test("a settled tool-only turn keeps its confirmation card after history serialization", () => {
     const turn: AssistantTurn = {
-        turnId: "proposal-turn", userText: "准备下一张首帧", selectedNodeIds: [], reply: "",
+        turnId: "proposal-turn", userText: "Prepare the next first frame", selectedNodeIds: [], reply: "",
         toolCalls: [{ tool: "canvas.generation.propose", args: { nodeIds: ["shot"], kind: "image" }, isError: false }],
         change: null, error: null, cancelled: false, createdAt: "2026-10-18",
         proposals: [{ proposalId: "gp-1", kind: "image", nodeIds: ["shot"], model: "fixture-image", modelKey: "fixture::image",
@@ -17,10 +17,10 @@ test("a settled tool-only turn keeps its confirmation card after history seriali
             onLocate={() => actions++} onUndo={() => actions++} onRunProposal={() => actions++} onDismissProposal={() => actions++} />);
         expect(html).toContain("canvas-assistant-card");
         expect(html).toContain("fixture-image");
-        expect(html).toContain("生成");
-        expect(html).toContain("先不用");
-        expect(html).not.toContain("尚未完成");
-        expect(html).not.toContain("已开始生成");
+        expect(html).toContain("generate");
+        expect(html).toContain("No need for now");
+        expect(html).not.toContain("Not yet completed");
+        expect(html).not.toContain("Started generating");
         expect(html).not.toContain("disabled");
     }
     expect(actions).toBe(0);

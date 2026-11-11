@@ -35,11 +35,11 @@ async function uploadFailure(result: AdapterResult | Error) {
     } catch (error) {
         return error;
     }
-    throw new Error("上传本应失败");
+    throw new Error("Upload should have failed");
 }
 
-describe("资源直传失败分类", () => {
-    test("鉴权、越权与体积超限属于重试不会自愈的永久失败", async () => {
+describe("Resource direct transfer failure classification", () => {
+    test("Authentication, unauthorized access, and volume exceeding the limit are permanent failures that will not self-heal after retrying.", async () => {
         for (const status of [400, 401, 403, 404, 413, 415]) {
             const error = await uploadFailure({ status, body: { code: status, data: null, msg: "" } });
             expect(error).toBeInstanceOf(ResourceUploadError);
@@ -48,7 +48,7 @@ describe("资源直传失败分类", () => {
         }
     });
 
-    test("限流与服务端故障属于瞬时失败，允许退回本机后重传", async () => {
+    test("Current limiting and server-side failures are transient failures and are allowed to be returned to the local machine and retransmitted.", async () => {
         for (const status of [429, 500, 502, 503]) {
             const error = await uploadFailure({ status, body: { code: status, data: null, msg: "" } });
             expect(error).toBeInstanceOf(ResourceUploadError);
@@ -56,22 +56,22 @@ describe("资源直传失败分类", () => {
         }
     });
 
-    test("断网等非 HTTP 失败按瞬时处理", async () => {
+    test("Non-HTTP failures such as network disconnection will be handled immediately.", async () => {
         const error = await uploadFailure(new Error("Network Error"));
         expect(error).toBeInstanceOf(ResourceUploadError);
         expect((error as ResourceUploadError).permanent).toBe(false);
     });
 
-    test("保留后端可读文案，并把 multipart 超限翻译成中文", async () => {
-        const quota = await uploadFailure({ status: 403, body: { code: 403, data: null, msg: "存储配额不足" } });
-        expect((quota as ResourceUploadError).message).toBe("存储配额不足");
+    test("Keep the back-end readable copy and translate multipart into Chinese", async () => {
+        const quota = await uploadFailure({ status: 403, body: { code: 403, data: null, msg: "Insufficient storage quota" } });
+        expect((quota as ResourceUploadError).message).toBe("Insufficient storage quota");
 
         const oversize = await uploadFailure({ status: 400, body: { code: 400, data: null, msg: "http: request body too large" } });
-        expect((oversize as ResourceUploadError).message).toContain("文件过大");
+        expect((oversize as ResourceUploadError).message).toContain("File too large");
         expect((oversize as ResourceUploadError).permanent).toBe(true);
     });
 
-    test("成功响应仍返回后端资源本身", async () => {
+    test("A successful response still returns the backend resource itself", async () => {
         const resource = await uploadWith({
             status: 200,
             body: { code: 0, msg: "", data: { resource: { id: "res-1", kind: "image", status: "ready", publicUrl: "", size: 1 } } },

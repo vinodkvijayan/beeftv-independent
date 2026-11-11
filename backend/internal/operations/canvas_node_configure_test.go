@@ -219,10 +219,10 @@ func TestSeedreamSizePrecheckCoversConfigurePrepareAndPropose(t *testing.T) {
 		{"seedream-4-5-251128", "5504x3040", true, ""},
 		{"doubao-seedream-5-0-pro-260628", "1.5K", true, ""},
 		{"doubao-seedream-5-0-260128", "16:9", true, ""},
-		{"seedream-4-5-251128", "1500x1500", false, "Seedream 4.5 的图片至少要 2560x1440（369 万像素），1500x1500 只有 225 万像素"},
-		{"seedream-4-5-251128", "1K", false, "Seedream 4.5 没有 1K 档位，请改选 2K、4K，或直接填宽x高像素（例如 2560x1440）"},
-		{"dola-seedream-5-0-pro-260628", "4K", false, "Seedream 5.0 Pro 没有 4K 档位，请改选 1K、1.5K、2K，或直接填宽x高像素（例如 1280x720）"},
-		{"doubao-seedream-5-0-pro-260628", "4K", false, "Seedream 5.0 Pro 没有 4K 档位，请改选 1K、1.5K、2K，或直接填宽x高像素（例如 1280x720）"},
+		{"seedream-4-5-251128", "1500x1500", false, "Seedream 4.5 images must be at least 2560x1440 (3.69 million pixels), 1500x1500 only has 2.25 million pixels"},
+		{"seedream-4-5-251128", "1K", false, "Seedream 4.5 does not have a 1K level, please select 2K, 4K instead, or directly fill in width x height pixels (for example, 2560x1440)"},
+		{"dola-seedream-5-0-pro-260628", "4K", false, "Seedream 5.0 Pro does not have 4K gear, please choose 1K, 1.5K, 2K instead, or directly fill in width x height pixels (for example, 1280x720)"},
+		{"doubao-seedream-5-0-pro-260628", "4K", false, "Seedream 5.0 Pro does not have 4K gear, please choose 1K, 1.5K, 2K instead, or directly fill in width x height pixels (for example, 1280x720)"},
 	} {
 		modelKey := "beeftv::" + item.model
 		resolve := func(string, string) (AssistantGenerationModel, error) {
@@ -294,16 +294,16 @@ func TestSeedreamSizePrecheckReadsNodeLayerModeWhenPatchOmitsIt(t *testing.T) {
 		ok        bool
 		wantCopy  string
 	}{
-		{name: "图层节点只改尺寸为像素", nodeMode: "layers", patch: map[string]any{"size": "2048x2048"},
-			wantCopy: "Seedream 5.0 Pro 的图层拆分不支持 2048x2048，请改选 1K、1.5K、2K 档位，或选「跟随原图」"},
-		{name: "图层节点换模型并改像素", nodeMode: "layers", patch: map[string]any{"model": "doubao-seedream-5-0-pro-260628", "size": "2048x2048"}, withModel: true,
-			wantCopy: "Seedream 5.0 Pro 的图层拆分不支持 2048x2048，请改选 1K、1.5K、2K 档位，或选「跟随原图」"},
-		{name: "图层节点改跟随原图", nodeMode: "layers", patch: map[string]any{"size": "auto"}, ok: true},
-		{name: "图层节点改档位", nodeMode: "layers", patch: map[string]any{"size": "1.5K"}, ok: true},
-		{name: "普通生图节点用像素", nodeMode: "image", patch: map[string]any{"size": "2048x2048"}, ok: true},
-		{name: "普通生图节点用 auto", nodeMode: "image", patch: map[string]any{"size": "auto"}, ok: true},
-		{name: "普通生图节点像素过小", nodeMode: "image", patch: map[string]any{"size": "512x512"},
-			wantCopy: "Seedream 5.0 Pro 的图片至少要 1280x720（92 万像素），512x512 只有 26 万像素"},
+		{name: "Layer nodes only change size to pixels", nodeMode: "layers", patch: map[string]any{"size": "2048x2048"},
+			wantCopy: "The layer splitting of Seedream 5.0 Pro does not support 2048x2048. Please select 1K, 1.5K, 2K instead, or select \"Follow the original image\""},
+		{name: "Change the model of the layer node and change the pixels", nodeMode: "layers", patch: map[string]any{"model": "doubao-seedream-5-0-pro-260628", "size": "2048x2048"}, withModel: true,
+			wantCopy: "The layer splitting of Seedream 5.0 Pro does not support 2048x2048. Please select 1K, 1.5K, 2K instead, or select \"Follow the original image\""},
+		{name: "The layer nodes are changed to follow the original image", nodeMode: "layers", patch: map[string]any{"size": "auto"}, ok: true},
+		{name: "Change layer node level", nodeMode: "layers", patch: map[string]any{"size": "1.5K"}, ok: true},
+		{name: "Common graph nodes use pixels", nodeMode: "image", patch: map[string]any{"size": "2048x2048"}, ok: true},
+		{name: "Use auto for ordinary graph nodes.", nodeMode: "image", patch: map[string]any{"size": "auto"}, ok: true},
+		{name: "The pixels of ordinary raw graph nodes are too small", nodeMode: "image", patch: map[string]any{"size": "512x512"},
+			wantCopy: "Seedream 5.0 Pro pictures must be at least 1280x720 (920,000 pixels), 512x512 only has 260,000 pixels"},
 	} {
 		t.Run(item.name, func(t *testing.T) {
 			p := &configureProbe{proposeProbe: proposeProbe{doc: proposeCanvas(t, []map[string]any{{"id": "n", "type": "image", "title": "n",

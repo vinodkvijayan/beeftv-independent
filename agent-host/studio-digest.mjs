@@ -4,8 +4,8 @@
 import { getCurrentSystemMessage } from '@earendil-works/pi-ai/utils/transcript';
 
 const TYPE_LABEL = {
-  image: '图片', video: '视频', audio: '音频', text: '文本', markdown: '文档', script: '分镜板',
-  frame: '分组', svg: 'SVG', html: '网页', panorama: '全景', compare: '对比', chart: '图表',
+  image: 'pictures', video: 'video', audio: 'Audio', text: 'text', markdown: 'Documentation', script: 'Storyboard',
+  frame: 'Group', svg: 'SVG', html: 'web page', panorama: 'Panorama', compare: 'Contrast', chart: 'chart',
 };
 const MEDIA = new Set(['image', 'video', 'audio']);
 
@@ -31,13 +31,13 @@ export function isTransientStudioTailMessage(message) {
   return (
     (text.startsWith('<beeftv_studio>\n') ||
       text.startsWith('<beeftv_plan>\n') ||
-      text.startsWith('[系统恢复：以下技能之前已加载，因对话被压缩，原文补回。')) &&
+      text.startsWith('[System recovery: The following skills have been loaded before. Due to the compression of the dialogue, the original text has been added.')) &&
     SERIALIZED_STUDIO_TAIL_RE.test(text)
   );
 }
 
 const HISTORICAL_TOOL_IMAGE_OMITTED_TEXT =
-  '[历史媒体预览图已省略，如需复查概览请调 media_overview，查看原图或局部细节请调 media_inspect]';
+  '[Historical media preview images have been omitted. To review the overview, please call media_overview. To view the original image or partial details, please call media_inspect]';
 // 仅裁剪 >=16KB base64 的真实媒体预览图；几百字节的小占位图/图标直接保留以维持前缀缓存字节一致。
 const DEFAULT_MIN_PRUNE_IMAGE_CHARS = 16 * 1024;
 
@@ -208,7 +208,7 @@ export function withCurrentStudio(messages, digest, options = {}) {
   if (includeStudio) {
     const studioText =
       digest ||
-      '当前画布无法读取，现场状态未知。不要使用历史快照推断当前内容；本次相关写入已暂停，请说明读取失败后再继续。';
+      'The current canvas cannot be read and the scene status is unknown. Do not use historical snapshots to infer the current content; this time related writing has been suspended, please explain the reading failure before continuing.';
     tailBlocks.push(`<beeftv_studio>\n${studioText}\n</beeftv_studio>`);
   }
   if (tailBlocks.length === 0) {
@@ -238,12 +238,12 @@ export function nodeState(node) {
   if (meta.status === 'success' || meta.assetId || meta.storageKey) return 'done';
   return 'empty';
 }
-const STATE_LABEL = { done: '完成', running: '生成中', failed: '失败', empty: '空' };
+const STATE_LABEL = { done: 'Done', running: 'Generating', failed: 'failed', empty: 'empty' };
 
 function formatMediaStatus(node) {
-  if (!node) return '不存在';
+  if (!node) return 'does not exist';
   const state = nodeState(node);
-  const label = STATE_LABEL[state] || '不存在';
+  const label = STATE_LABEL[state] || 'does not exist';
   const durationMs = Number(node?.metadata?.durationMs);
   if (state === 'done' && Number.isFinite(durationMs) && durationMs > 0) {
     return `${label}(${Math.round(durationMs)}ms)`;
@@ -282,54 +282,54 @@ export function buildStudioDigest(canvas, { maxBytes = 3600, selectedNodeIds = [
   }
   const lines = [];
   const summary = Object.entries(counts).map(([kind, c]) => {
-    const label = TYPE_LABEL[kind] || '其他';
+    const label = TYPE_LABEL[kind] || 'Others';
     if (!MEDIA.has(kind)) return `${label} ${c.total}`;
-    const parts = [c.done && `完成 ${c.done}`, c.running && `生成中 ${c.running}`, c.failed && `失败 ${c.failed}`, c.empty && `待生成 ${c.empty}`].filter(Boolean);
+    const parts = [c.done && `Complete${c.done}`, c.running && `Generating${c.running}`, c.failed && `failed${c.failed}`, c.empty && `To be generated${c.empty}`].filter(Boolean);
     return `${label} ${c.total}${parts.length ? `（${parts.join('、')}）` : ''}`;
   });
-  lines.push(`[制作现场｜画布版本 ${canvas?.revision ?? '?'}｜本轮请求前的实际状态]`);
-  lines.push(nodes.length ? `概况：${summary.join('｜')}｜连线 ${connections.length}` : '概况：画布是空的。');
+  lines.push(`[Production site｜Canvas version${canvas?.revision ?? '?'}|Actual status before this round of request]`);
+  lines.push(nodes.length ? `Overview:${summary.join('｜')}|Connect${connections.length}` : 'Overview: The canvas is empty.');
   const documents = nodes.filter(node => !MEDIA.has(node.type) && node.type !== 'script');
   if (documents.length) {
-    lines.push(`内容节点（正文仅为预览，原文用 canvas_get 按当前版本读取）：${documents.slice(0, 8).map(node =>
-      `${node.id}「${clip(node.title, 24)}」${TYPE_LABEL[node.type] || node.type} ${clip(node.metadata?.content || node.metadata?.composerContent, 100)}`).join('；')}${documents.length > 8 ? `…共 ${documents.length} 个` : ''}`);
+    lines.push(`Content node (the text is only a preview, the original text is read with canvas_get according to the current version):${documents.slice(0, 8).map(node =>
+      `${node.id}「${clip(node.title, 24)}」${TYPE_LABEL[node.type] || node.type} ${clip(node.metadata?.content || node.metadata?.composerContent, 100)}`).join('；')}${documents.length > 8 ? `…total${documents.length} a` : ''}`);
   }
 
   const rowBound = new Set();
   for (const board of nodes.filter((node) => node.type === 'script')) {
     const rows = storyboardRows(board);
-    lines.push(`分镜板「${clip(board.title, 24)}」id=${board.id}，共 ${rows.length} 镜：`);
+    lines.push(`Storyboard "${clip(board.title, 24)}」id=${board.id}, a total of${rows.length} Mirror:`);
     rows.forEach((row, index) => {
       if (row.imageNodeId) rowBound.add(row.imageNodeId);
       if (row.videoNodeId) rowBound.add(row.videoNodeId);
-      const image = row.imageNodeId ? formatMediaStatus(byId.get(row.imageNodeId)) : '未建';
-      const video = row.videoNodeId ? formatMediaStatus(byId.get(row.videoNodeId)) : '未建';
-      const prompts = `${row.imageGenerationPrompt ? '图词✓' : '图词✗'} ${row.videoMotionPrompt ? '视词✓' : '视词✗'}`;
-      lines.push(`  镜${row.shotNumber ?? index + 1} ${row.durationSeconds ?? '?'}s｜行id=${row.id}｜首帧 ${row.imageNodeId || '—'} ${image}｜视频 ${row.videoNodeId || '—'} ${video}｜${prompts}｜${clip(row.plotDescription, 18)}`);
+      const image = row.imageNodeId ? formatMediaStatus(byId.get(row.imageNodeId)) : 'Not built';
+      const video = row.videoNodeId ? formatMediaStatus(byId.get(row.videoNodeId)) : 'Not built';
+      const prompts = `${row.imageGenerationPrompt ? 'Picture word ✓' : 'Picture word ✗'} ${row.videoMotionPrompt ? 'Sight words✓' : 'Sight words ✗'}`;
+      lines.push(`  mirror${row.shotNumber ?? index + 1} ${row.durationSeconds ?? '?'}s|row id=${row.id}|First frame${row.imageNodeId || '—'} ${image}|Video${row.videoNodeId || '—'} ${video}｜${prompts}｜${clip(row.plotDescription, 18)}`);
     });
   }
 
   const running = nodes.filter((node) => MEDIA.has(node.type) && nodeState(node) === 'running');
-  if (running.length) lines.push(`生成中：${running.slice(0, 8).map((node) => `${node.id}「${clip(node.title, 16)}」`).join('、')}${running.length > 8 ? `…共 ${running.length}` : ''}`);
+  if (running.length) lines.push(`Generating:${running.slice(0, 8).map((node) => `${node.id}「${clip(node.title, 16)}」`).join('、')}${running.length > 8 ? `…total${running.length}` : ''}`);
   const failed = nodes.filter((node) => MEDIA.has(node.type) && nodeState(node) === 'failed');
-  if (failed.length) lines.push(`失败：${failed.slice(0, 6).map((node) => `${node.id}「${clip(node.title, 14)}」${clip(node.metadata?.generationErrorSummary || node.metadata?.errorDetails || node.metadata?.taskErrorCode, 40)}`).join('；')}${failed.length > 6 ? `…共 ${failed.length}` : ''}`);
+  if (failed.length) lines.push(`Failure:${failed.slice(0, 6).map((node) => `${node.id}「${clip(node.title, 14)}」${clip(node.metadata?.generationErrorSummary || node.metadata?.errorDetails || node.metadata?.taskErrorCode, 40)}`).join('；')}${failed.length > 6 ? `…total${failed.length}` : ''}`);
   const loose = nodes.filter((node) => MEDIA.has(node.type) && !rowBound.has(node.id));
   if (loose.length && !nodes.some((node) => node.type === 'script')) {
-    lines.push(`媒体节点：${loose.slice(0, 16).map((node) => `${node.id}「${clip(node.title, 14)}」${TYPE_LABEL[node.type]}${formatMediaStatus(node)}`).join('、')}${loose.length > 16 ? `…共 ${loose.length}` : ''}`);
+    lines.push(`Media node:${loose.slice(0, 16).map((node) => `${node.id}「${clip(node.title, 14)}」${TYPE_LABEL[node.type]}${formatMediaStatus(node)}`).join('、')}${loose.length > 16 ? `…total${loose.length}` : ''}`);
   } else if (loose.length) {
-    lines.push(`不在分镜行里的媒体节点 ${loose.length} 个：${loose.slice(0, 8).map((node) => `${node.id}「${clip(node.title, 14)}」${TYPE_LABEL[node.type]}${formatMediaStatus(node)}`).join('、')}${loose.length > 8 ? `…共 ${loose.length}` : ''}（如需关联分镜行请用 canvas_script_row_update 绑定 imageNodeId/videoNodeId）`);
+    lines.push(`Media nodes not in storyboard rows${loose.length} of:${loose.slice(0, 8).map((node) => `${node.id}「${clip(node.title, 14)}」${TYPE_LABEL[node.type]}${formatMediaStatus(node)}`).join('、')}${loose.length > 8 ? `…total${loose.length}` : ''}(If you need to associate the storyboard row, please use canvas_script_row_update to bind imageNodeId/videoNodeId)`);
   }
   const selected = selectedNodeIds.map((id) => byId.get(id)).filter(Boolean);
-  if (selected.length) lines.push(`用户选中：${selected.slice(0, 8).map((node) => `${node.id}「${clip(node.title, 14)}」`).join('、')}`);
+  if (selected.length) lines.push(`User selected:${selected.slice(0, 8).map((node) => `${node.id}「${clip(node.title, 14)}」`).join('、')}`);
 
   let text = lines.join('\n');
   // 超预算时从分镜明细开始收缩，保证概况、进行中、失败这些关键信息留下。
   while (Buffer.byteLength(text, 'utf8') > maxBytes) {
-    const index = lines.findLastIndex((line) => line.startsWith('  镜'));
+    const index = lines.findLastIndex((line) => line.startsWith('  mirror'));
     if (index < 0) { text = clip(text, Math.floor(maxBytes / 3)); break; }
     lines.splice(index, 1);
     const hidden = lines.filter((line) => line.startsWith('…')).length;
-    if (!hidden) lines.push('…分镜明细已收缩，需要时用 canvas_get 读取分镜板');
+    if (!hidden) lines.push('...The storyboard details have been shrunk. Use canvas_get to read the storyboard when needed.');
     text = lines.join('\n');
   }
   return { text, snapshot: snapshotOf(nodes), stats: { revision: canvas?.revision ?? null, nodes: nodes.length, connections: connections.length } };
@@ -349,8 +349,8 @@ export function snapshotOf(nodes) {
 export function describeChangesSince(previous, current, { limit = 420 } = {}) {
   if (!previous || typeof previous !== 'object') return '';
   const parts = [];
-  const name = (entry) => `「${clip(entry?.t, 14) || '未命名'}」`;
-  const list = (items) => items.slice(0, 5).join('') + (items.length > 5 ? `等 ${items.length} 个` : '');
+  const name = (entry) => `「${clip(entry?.t, 14) || 'Unnamed'}」`;
+  const list = (items) => items.slice(0, 5).join('') + (items.length > 5 ? `Wait${items.length} a` : '');
   const edited = [], added = [], removed = [], done = [], failed = [];
   for (const [id, now] of Object.entries(current)) {
     const before = previous[id];
@@ -362,11 +362,11 @@ export function describeChangesSince(previous, current, { limit = 420 } = {}) {
     if (before.h !== now.h && before.s === now.s) edited.push(name(now));
   }
   for (const [id, before] of Object.entries(previous)) if (!current[id]) removed.push(name(before));
-  if (edited.length) parts.push(`用户修改了${list(edited)}`);
-  if (added.length) parts.push(`新增 ${added.length} 个节点（${list(added)}）`);
-  if (removed.length) parts.push(`删除了${list(removed)}`);
-  if (done.length) parts.push(`${list(done)}生成完成`);
-  if (failed.length) parts.push(`${list(failed)}生成失败`);
+  if (edited.length) parts.push(`User modified${list(edited)}`);
+  if (added.length) parts.push(`New${added.length} nodes (${list(added)}）`);
+  if (removed.length) parts.push(`deleted${list(removed)}`);
+  if (done.length) parts.push(`${list(done)}Generation completed`);
+  if (failed.length) parts.push(`${list(failed)}Build failed`);
   if (!parts.length) return '';
-  return clip(`自上次对话结束后：${parts.join('；')}。以此为准，不要覆盖这些变化。`, limit);
+  return clip(`Since the last conversation:${parts.join('；')}. Use this as a guide and do not overwrite these changes.`, limit);
 }

@@ -52,9 +52,9 @@ type VideoDownloadError struct {
 
 func (e VideoDownloadError) Error() string {
 	if strings.TrimSpace(e.TaskID) == "" {
-		return fmt.Sprintf("视频结果下载失败：%v", e.Cause)
+		return fmt.Sprintf("Video result download failed: %v", e.Cause)
 	}
-	return fmt.Sprintf("视频结果下载失败（任务 %s）：%v", e.TaskID, e.Cause)
+	return fmt.Sprintf("Video result download failed (task %s): %v", e.TaskID, e.Cause)
 }
 
 func (e VideoDownloadError) Unwrap() error { return e.Cause }
@@ -166,7 +166,7 @@ func RunVideoPollLoop(ctx context.Context, taskID string, policy VideoPollPolicy
 
 func NormalizeVideoPollPolicy(policy VideoPollPolicy) VideoPollPolicy {
 	if policy.QueryStage == "" {
-		policy.QueryStage = "正在查询上游任务"
+		policy.QueryStage = "Querying upstream tasks"
 	}
 	if policy.Interval <= 0 {
 		policy.Interval = DefaultVideoPollInterval
@@ -193,7 +193,7 @@ func RunVideoDownload(ctx context.Context, taskID string, policy VideoPollPolicy
 	ctx, cancel := context.WithDeadline(ctx, PollingDeadline(ctx))
 	defer cancel()
 	runtime, _ := RuntimeFromContext(ctx)
-	if err := setExecutionStage(ctx, runtime, "正在取回生成结果"); err != nil {
+	if err := setExecutionStage(ctx, runtime, "Retrieving generated results"); err != nil {
 		return nil, "", err
 	}
 	ctx, cleanup, err := withVideoDownloadPartial(ctx)

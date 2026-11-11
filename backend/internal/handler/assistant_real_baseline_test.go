@@ -34,7 +34,7 @@ func TestAssistantEfficiencyBaselineOnRealBackend(t *testing.T) {
 	}
 	env.beginTurn(t, "00000000000000aa", assistantTurnInput(nil, nil))
 	if code, body := env.opsRaw("model.catalog", "", "00000000000000aa", `{"capabilities":["image","video"]}`); code != 200 || !strings.Contains(body, `"seedance-2.0-fast"`) || !strings.Contains(body, `"seedream-5-0-260128"`) {
-		t.Fatalf("测量用模型目录为空或缺少图片/视频模型，基线会失真: %d %.300s", code, body)
+		t.Fatalf("The model directory for measurement is empty or lacks image/video models, and the baseline will be distorted: %d %.300s", code, body)
 	}
 	canvases := []string{"base-new", "base-edit", "base-multi"}
 	for _, id := range canvases {
@@ -76,9 +76,9 @@ func TestAssistantEfficiencyBaselineOnRealBackend(t *testing.T) {
 		provider = map[string]any{"baseUrl": url, "model": os.Getenv("BEEFTV_REAL_BASELINE_MODEL"), "api": "openai-completions"}
 	}
 	scenarios := []map[string]any{
-		{"id": "new-short", "canvasId": "base-new", "messages": []string{"帮我做一个15秒的竖屏短片：雨夜街头，一个撑伞的女孩走过霓虹灯，分2个镜头。用最便宜的模型出方案。"}},
-		{"id": "small-edit", "canvasId": "base-edit", "messages": []string{"新建一个文字节点，写上今晚拍摄的要点：雨夜、霓虹、慢镜头。", "把这个节点的标题改成「拍摄要点」。"}},
-		{"id": "create-then-edit", "canvasId": "base-multi", "messages": []string{"做一个3镜头的短片分镜和首帧方案，主题：猫咪在厨房偷吃。", "把第2镜的描述改得更搞笑一点，只改这一镜。"}},
+		{"id": "new-short", "canvasId": "base-new", "messages": []string{"Help me make a 15-second vertical screen short film: a girl holding an umbrella walks through the neon lights on the street on a rainy night, divided into 2 shots. Use the cheapest model to come up with a solution."}},
+		{"id": "small-edit", "canvasId": "base-edit", "messages": []string{"Create a new text node and write down the key points of tonight’s shooting: rainy night, neon lights, slow motion.", "Change the title of this node to \"Photography Points\"."}},
+		{"id": "create-then-edit", "canvasId": "base-multi", "messages": []string{"Make a 3-shot short film storyboard and first frame plan, with the theme: Cat eating in the kitchen.", "Change the description of shot 2 to be more funny, just change this shot."}},
 	}
 	config, err := json.Marshal(map[string]any{"root": root, "directory": t.TempDir(), "backend": backend.URL + "/api", "beginUrl": backend.URL + "/__begin",
 		"hostToken": assistantTestHostToken, "provider": provider, "scenarios": scenarios, "outDir": out, "maxRequests": 120, "turnTimeoutMs": 300000})
@@ -126,18 +126,18 @@ func TestAssistantEfficiencyBaselineOnRealBackend(t *testing.T) {
 			t.Fatal(err)
 		}
 		if len(report.Turns) != 5 || report.TotalRequests != 10 || report.AttributedRequests != 10 {
-			t.Fatalf("回合或请求数不对: %+v", report)
+			t.Fatalf("Wrong number of rounds or requests: %+v", report)
 		}
 		for _, turn := range report.Turns {
 			if turn.Status != "done" || len(turn.Requests) != 2 {
-				t.Fatalf("回合状态或请求数不对: %+v", turn)
+				t.Fatalf("Wrong round status or request number: %+v", turn)
 			}
 			first, second := turn.Requests[0], turn.Requests[1]
 			if len(first.Tools) != 1 || first.Tools[0] != "model_catalog" || first.PromptTokens != 1000 || first.CachedTokens != 0 || first.CompletionTokens != 20 || first.UsageMissing {
-				t.Fatalf("第一次请求解析不对: %+v", first)
+				t.Fatalf("The first request parsing is incorrect: %+v", first)
 			}
 			if len(second.Tools) != 0 || second.CachedTokens != 900 || second.UsageMissing {
-				t.Fatalf("第二次请求解析不对: %+v", second)
+				t.Fatalf("The second request parsing is incorrect: %+v", second)
 			}
 		}
 	}

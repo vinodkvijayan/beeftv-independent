@@ -61,10 +61,10 @@ export async function awaitBusinessTasks(data, { opsRequest, turnId, signal, can
     const failed = tasks.find(isTaskTerminalFailure);
     const saved = tasks.filter(isTaskSaved).length;
     const settled = tasks.every(task => isTaskTerminalFailure(task) || isTaskSaved(task) || isTaskMaterializationFailed(task));
-    if (failed && settled) return { ...data, result: { ...result, status: failed.status, tasks, taskError: failed.error || '素材任务未成功，保留原任务，不重复生成' } };
+    if (failed && settled) return { ...data, result: { ...result, status: failed.status, tasks, taskError: failed.error || 'The material task was unsuccessful, the original task will be retained and will not be regenerated.' } };
     const ready = tasks.every(isTaskSaved);
     if (settled && !ready) return { ...data, result: { ...result, status: 'incomplete', tasks, materializationFailed: true,
-      note: '生成结果尚未保存成功；保留原任务，只恢复原结果的保存，不能重新生成。' } };
+      note: 'The generated results have not been successfully saved; the original task is retained and only the original results are saved, and cannot be regenerated.' } };
     const downloading = tasks.some(task =>
       task?.delivery?.outputs?.some(output => ['downloading', 'retrying', 'waiting'].includes(output.state)) ||
       (task?.status === 'failed' && taskPhase(task) === 'retrievable'));
@@ -96,7 +96,7 @@ export async function awaitBusinessTasks(data, { opsRequest, turnId, signal, can
     catch { signal?.throwIfAborted(); }
     // Admission already succeeded. A failed observation must not hide the
     // original identity and induce a new render or paid submission.
-    return { ...data, result: { ...result, status: 'pending', observationFailed: true, note: '原任务已受理，暂时无法读取进度；请按返回的任务ID查询，不要重新提交' } };
+    return { ...data, result: { ...result, status: 'pending', observationFailed: true, note: 'The original task has been accepted and the progress cannot be read temporarily; please query according to the returned task ID and do not resubmit.' } };
   }
-  return { ...data, result: { ...result, status: 'pending', note: '原任务仍在处理中，保留任务ID；请查询原任务，不能重复提交' } };
+  return { ...data, result: { ...result, status: 'pending', note: 'The original task is still being processed and the task ID is retained; please query the original task and cannot submit it again.' } };
 }

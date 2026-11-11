@@ -26,7 +26,7 @@ func requireSkillMarketReleaseMetadata(db *gorm.DB) error {
 		return err
 	}
 	if !has {
-		return fmt.Errorf("本地技能市场版本资料缺失，请启用自动迁移")
+		return fmt.Errorf("The local skills market version data is missing, please enable automatic migration.")
 	}
 	return nil
 }

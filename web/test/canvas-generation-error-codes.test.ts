@@ -11,14 +11,14 @@ import { assistantProposalProgress } from "@/pages/canvas/canvas-assistant-copy"
 import { applyGeneratedMediaResultMetadata, videoMetadata } from "@/lib/canvas/canvas-generation-task-sync";
 
 function node(metadata: CanvasNodeData["metadata"]): CanvasNodeData {
-    return { id: "n1", type: CanvasNodeType.Image, title: "镜头", position: { x: 0, y: 0 }, width: 100, height: 100, metadata };
+    return { id: "n1", type: CanvasNodeType.Image, title: "lens", position: { x: 0, y: 0 }, width: 100, height: 100, metadata };
 }
 
 const succeededTask: GenerationTask = {
     id: "task-1",
     type: "canvas_image",
     status: "succeeded",
-    prompt: "猫",
+    prompt: "cat",
     attempts: 1,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -65,13 +65,13 @@ describe("generation result-apply error codes", () => {
         expect(canvasGenerationTaskNodes([original], "n1", succeededTask)[0].metadata?.status).toBe("success");
     });
     test("durable ack is a canvas conflict only for a revision conflict", () => {
-        const conflict = new CanvasGenerationDurableAckError(new ApiError("云端画布已有更新", { status: 409, reason: "stale_revision" }));
+        const conflict = new CanvasGenerationDurableAckError(new ApiError("Cloud Canvas has been updated", { status: 409, reason: "stale_revision" }));
         expect(conflict.code).toBe("canvas_conflict");
-        expect(conflict.message).toContain("画布尚未更新");
+        expect(conflict.message).toContain("Canvas has not been updated yet");
 
         const applyFailed = new CanvasGenerationDurableAckError(new Error("bind refused"));
         expect(applyFailed.code).toBe("result_apply_failed");
-        expect(applyFailed.message).toContain("还没放回画布");
+        expect(applyFailed.message).toContain("Haven't put it back on the canvas yet");
         expect(explainGenerationError(applyFailed).category).toBe("result_apply_failed");
         expect(shouldBlockAutomaticRetry(applyFailed)).toBe(true);
     });
@@ -79,7 +79,7 @@ describe("generation result-apply error codes", () => {
     test("materialization failure is a download failure, not a canvas conflict", () => {
         const error = new CanvasGenerationMaterializationError(new Error("connection reset"));
         expect(error.code).toBe("download_failed");
-        expect(error.message).toContain("还没取回");
+        expect(error.message).toContain("Not retrieved yet");
         expect(explainGenerationError(error).category).toBe("download_failed");
         expect(shouldBlockAutomaticRetry(error)).toBe(true);
         expect(shouldBlockAutomaticRetry({ code: "download_failed" })).toBe(true);
@@ -97,7 +97,7 @@ describe("generation result-apply error codes", () => {
 
     test("failure metadata offers resource reload for reloadable kept-result codes", () => {
         for (const code of ["canvas_conflict", "download_failed", "result_apply_failed"]) {
-            const failure = canvasGenerationFailureMetadata({ code }, { prompt: "猫", mode: "image" });
+            const failure = canvasGenerationFailureMetadata({ code }, { prompt: "cat", mode: "image" });
             expect(failure.generationErrorCode).toBe(code);
             expect(canReloadCanvasNodeResource({ taskId: "task-1", ...failure })).toBe(true);
             expect(isNodeRegenerateBlocked(failure)).toBe(true);

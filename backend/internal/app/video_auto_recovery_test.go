@@ -84,11 +84,11 @@ func TestVideoAndUpscaleAutomaticRecoveryDownloadsAndBindsCanvas(t *testing.T) {
 
 	doc, _ := json.Marshal(map[string]any{
 		"id":       canvasID,
-		"title":    "视频与超分自动恢复",
+		"title":    "Video and super score automatic recovery",
 		"revision": revision,
 		"nodes": []any{
-			map[string]any{"id": "node-video", "type": "video", "title": "视频", "position": map[string]any{"x": 0, "y": 0}, "metadata": map[string]any{"taskId": "auto-video-1", "status": "error"}},
-			map[string]any{"id": "node-upscale", "type": "image", "title": "超分图片", "position": map[string]any{"x": 200, "y": 0}, "metadata": map[string]any{"taskId": "auto-upscale-1", "status": "error"}},
+			map[string]any{"id": "node-video", "type": "video", "title": "video", "position": map[string]any{"x": 0, "y": 0}, "metadata": map[string]any{"taskId": "auto-video-1", "status": "error"}},
+			map[string]any{"id": "node-upscale", "type": "image", "title": "Super score pictures", "position": map[string]any{"x": 200, "y": 0}, "metadata": map[string]any{"taskId": "auto-upscale-1", "status": "error"}},
 		},
 		"connections": []any{},
 	})
@@ -511,7 +511,7 @@ func TestExpiredRunningTaskLeaseIsReclaimedOnRestartAndNeverCancelled(t *testing
 		ProjectID:      "proj-1",
 		Type:           "canvas_video",
 		Status:         model.TaskStatusRunning,
-		Stage:          "正在等待上游返回",
+		Stage:          "Waiting for upstream to return",
 		LeaseOwner:     "dead-worker-1",
 		LeaseExpiresAt: &past,
 		StartedAt:      &started,

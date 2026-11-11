@@ -77,7 +77,7 @@ func TestManualImageRecoveryProbe(t *testing.T) {
 	})
 	task := model.Task{ID: "historical-image-probe", UserID: "local", ProjectID: canvasID, Type: "canvas_image", Status: model.TaskStatusFailed, Stage: "submission_unknown", Error: "context deadline exceeded", RouteRun: 3,
 		InputJSON: `{"mode":"image","metadata":{"source":"canvas","nodeId":"n1"}}`}
-	doc, err := json.Marshal(map[string]any{"id": canvasID, "title": "历史图片自动恢复验收", "revision": revision, "nodes": []any{map[string]any{"id": "n1", "type": "image", "title": "历史图片", "width": 320, "height": 200, "position": map[string]any{"x": 0, "y": 0}, "metadata": map[string]any{"taskId": task.ID, "status": "error", "error": task.Error, "generationSubmissionState": "unknown"}}}, "connections": []any{}})
+	doc, err := json.Marshal(map[string]any{"id": canvasID, "title": "Automatic restoration and acceptance of historical pictures", "revision": revision, "nodes": []any{map[string]any{"id": "n1", "type": "image", "title": "historical pictures", "width": 320, "height": 200, "position": map[string]any{"x": 0, "y": 0}, "metadata": map[string]any{"taskId": task.ID, "status": "error", "error": task.Error, "generationSubmissionState": "unknown"}}}, "connections": []any{}})
 	if err != nil {
 		t.Fatal(err)
 	}

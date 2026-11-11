@@ -47,14 +47,14 @@ func (s *Service) OpenRange(userID string, id string, rangeHeader string) (*Reso
 
 func (s *Service) OpenPublicRange(id string, rangeHeader string) (*ResourceStream, error) {
 	if s == nil || s.repo == nil {
-		return nil, kernel.Forbidden("匿名下载链接无效")
+		return nil, kernel.Forbidden("Anonymous download link is invalid")
 	}
 	resource, err := s.repo.Resource(id)
 	if err != nil {
-		return nil, kernel.Forbidden("匿名下载链接无效")
+		return nil, kernel.Forbidden("Anonymous download link is invalid")
 	}
 	if resource.Provider != "local" {
-		return nil, kernel.Forbidden("匿名下载链接无效")
+		return nil, kernel.Forbidden("Anonymous download link is invalid")
 	}
 	return s.OpenOwnedRange(resource.UserID, resource, rangeHeader)
 }
@@ -127,7 +127,7 @@ func (s *Service) PrepareDelivery(userID string, id string, options ResourceDeli
 	resource, err := s.repo.ResourceForUser(userID, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, kernel.NotFound("资源不存在")
+			return nil, kernel.NotFound("Resource does not exist")
 		}
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (s *Service) PrepareDelivery(userID string, id string, options ResourceDeli
 
 func (s *Service) PrepareOwnedDelivery(userID string, resource *model.Resource, options ResourceDeliveryOptions) (*ResourceDelivery, error) {
 	if resource == nil {
-		return nil, errors.New("资源不存在")
+		return nil, errors.New("Resource does not exist")
 	}
 	if resource.Status != model.ResourceStatusReady {
 		return nil, ResourceNotReady()

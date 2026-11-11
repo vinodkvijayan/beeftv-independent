@@ -174,7 +174,7 @@ type appPromptPort struct{ service *Service }
 
 func (p appPromptPort) Compile(userID, operation string, values map[string]string) (string, error) {
 	if p.service == nil {
-		return "", errors.New("编译用户提示词失败：提示词端口未接入")
+		return "", errors.New("Failed to compile user prompt word: prompt word port is not connected")
 	}
 	compiled, err := p.service.compilePrompt(userID, operation, values)
 	if err != nil {
@@ -191,7 +191,7 @@ type appConfigPort struct{ service *Service }
 
 func (p appConfigPort) Resolve(config generation.Config) (generation.Config, error) {
 	if p.service == nil {
-		return generation.Config{}, errors.New("无法解析系统渠道配置")
+		return generation.Config{}, errors.New("Unable to parse system channel configuration")
 	}
 	return p.service.resolveProviderConfig(config)
 }
@@ -214,7 +214,7 @@ type appStylePort struct{ service *Service }
 
 func (p appStylePort) Apply(userID, projectID string, input *generation.Input) error {
 	if p.service == nil {
-		return errors.New("项目画风执行配置无效：画风端口未接入")
+		return errors.New("Project style execution configuration is invalid: the style port is not connected")
 	}
 	return p.service.applyGenerationStyleProfile(userID, projectID, input)
 }

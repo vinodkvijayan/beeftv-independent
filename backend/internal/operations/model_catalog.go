@@ -10,7 +10,7 @@ type ModelCatalogReader interface {
 }
 
 func registerModelCatalogOp(r *Registry) {
-	r.Register(Op{AssistantCanvas: true, ID: "model.catalog", Summary: "按类型查询可用模型、参考能力与报价", ReadOnly: true, Scope: ScopeWorkspaceRead,
+	r.Register(Op{AssistantCanvas: true, ID: "model.catalog", Summary: "Check available models, reference capabilities and quotes by type", ReadOnly: true, Scope: ScopeWorkspaceRead,
 		Params: json.RawMessage(`{"type":"object","properties":{"capability":{"type":"string","enum":["text","image","video","audio"]},"capabilities":{"type":"array","items":{"type":"string","enum":["text","image","video","audio"]}}}}`),
 		Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 			var args struct {
@@ -21,7 +21,7 @@ func registerModelCatalogOp(r *Registry) {
 				return nil, err
 			}
 			if args.Capability != "" && len(args.Capabilities) > 0 {
-				return nil, InvalidArg("invalid_capability", "capability 与 capabilities 请选择一种")
+				return nil, InvalidArg("invalid_capability", "capability and capabilities Please choose one")
 			}
 			if args.Capability != "" {
 				args.Capabilities = []string{args.Capability}
@@ -32,12 +32,12 @@ func registerModelCatalogOp(r *Registry) {
 				case "text", "image", "video", "audio":
 					wanted[capability] = true
 				default:
-					return nil, InvalidArg("invalid_capability", "请选择 text、image、video 或 audio")
+					return nil, InvalidArg("invalid_capability", "Please select text, image, video or audio")
 				}
 			}
 			reader, ok := ctx.Domain.(ModelCatalogReader)
 			if !ok {
-				return nil, Unsupported("model_catalog_unavailable", "当前工作区无法读取模型目录")
+				return nil, Unsupported("model_catalog_unavailable", "The current workspace cannot read the model directory")
 			}
 			catalog, err := reader.AgentModelCatalog()
 			if err != nil || catalog == nil {

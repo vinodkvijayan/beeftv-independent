@@ -90,7 +90,7 @@ func normalizeModelRequestOption(name string, value any) any {
 func DecodeCapabilitySpec(raw string) (CapabilitySpec, error) {
 	var spec CapabilitySpec
 	if err := json.Unmarshal([]byte(raw), &spec); err != nil {
-		return spec, kernel.BadAuthRequest("能力配置不是有效 JSON")
+		return spec, kernel.BadAuthRequest("Capability configuration is not valid JSON")
 	}
 	normalized, err := NormalizeCapabilitySpec(spec)
 	if err != nil {
@@ -107,10 +107,10 @@ func ValidateCapabilitySpec(spec CapabilitySpec) error {
 func NormalizeCapabilitySpec(spec CapabilitySpec) (CapabilitySpec, error) {
 	spec.Capability = normalizeCapability(spec.Capability)
 	if spec.Version != 1 {
-		return spec, kernel.BadAuthRequest("能力配置 version 必须为 1")
+		return spec, kernel.BadAuthRequest("Capability configuration version must be 1")
 	}
 	if spec.Capability == "" {
-		return spec, kernel.BadAuthRequest("能力配置必须声明 capability")
+		return spec, kernel.BadAuthRequest("Capability configuration must declare capability")
 	}
 	operations := make([]string, 0, len(spec.Operations))
 	seenOperations := make(map[string]bool, len(spec.Operations))
@@ -126,10 +126,10 @@ func NormalizeCapabilitySpec(spec CapabilitySpec) (CapabilitySpec, error) {
 	for rawName, constraint := range spec.Inputs {
 		name := normalizeCapabilityValue(rawName)
 		if name == "" || constraint.Min < 0 || constraint.Max < constraint.Min {
-			return spec, kernel.BadAuthRequest("输入能力范围无效")
+			return spec, kernel.BadAuthRequest("Invalid input capability range")
 		}
 		if _, exists := normalizedInputs[name]; exists {
-			return spec, kernel.BadAuthRequest("输入能力存在重复名称：" + name)
+			return spec, kernel.BadAuthRequest("There is a duplicate name for the input ability:" + name)
 		}
 		normalizedInputs[name] = constraint
 	}
@@ -138,27 +138,27 @@ func NormalizeCapabilitySpec(spec CapabilitySpec) (CapabilitySpec, error) {
 	for rawName, constraint := range spec.Options {
 		name := canonicalCapabilityOptionName(rawName)
 		if strings.TrimSpace(name) == "" {
-			return spec, kernel.BadAuthRequest("能力参数名称不能为空")
+			return spec, kernel.BadAuthRequest("Capability parameter name cannot be empty")
 		}
 		if _, exists := normalizedOptions[name]; exists {
-			return spec, kernel.BadAuthRequest("能力参数存在重复别名：" + name)
+			return spec, kernel.BadAuthRequest("There are duplicate aliases for capability parameters:" + name)
 		}
 		hasValues := len(constraint.Values) > 0
 		hasRange := constraint.Min != nil || constraint.Max != nil || constraint.Step != nil
 		if !hasValues && !hasRange {
-			return spec, kernel.BadAuthRequest("能力参数必须声明 values 或数值范围")
+			return spec, kernel.BadAuthRequest("Capability parameters must declare values or numeric ranges")
 		}
 		if hasValues && hasRange {
-			return spec, kernel.BadAuthRequest("能力参数不能同时声明 values 和数值范围")
+			return spec, kernel.BadAuthRequest("Capability parameters cannot declare values and numerical ranges at the same time")
 		}
 		if hasRange && (constraint.Min == nil || constraint.Max == nil) {
-			return spec, kernel.BadAuthRequest("数值范围必须同时声明 min 和 max")
+			return spec, kernel.BadAuthRequest("Numeric ranges must be declared with both min and max")
 		}
 		if constraint.Min != nil && constraint.Max != nil && *constraint.Max < *constraint.Min {
-			return spec, kernel.BadAuthRequest("能力参数数值范围无效")
+			return spec, kernel.BadAuthRequest("Ability parameter value range is invalid")
 		}
 		if constraint.Step != nil && *constraint.Step <= 0 {
-			return spec, kernel.BadAuthRequest("能力参数 step 必须大于 0")
+			return spec, kernel.BadAuthRequest("The capability parameter step must be greater than 0")
 		}
 		normalizedOptions[name] = constraint
 	}
@@ -177,40 +177,40 @@ func decodeLogicalDefaults(raw string, spec CapabilitySpec) (map[string]any, err
 func MatchCapability(spec CapabilitySpec, intent ModelRequestIntent) CapabilityMatch {
 	reasons := make([]string, 0)
 	if normalizeCapability(intent.Capability) != normalizeCapability(spec.Capability) {
-		reasons = append(reasons, "能力类型不匹配")
+		reasons = append(reasons, "Ability type mismatch")
 	}
 	if operation := normalizeCapabilityValue(intent.Operation); operation != "" && len(spec.Operations) > 0 && !containsNormalized(spec.Operations, operation) {
-		reasons = append(reasons, "不支持操作 "+intent.Operation)
+		reasons = append(reasons, "Operation not supported"+intent.Operation)
 	}
 	for inputType, count := range intent.Inputs {
 		if count < 0 {
-			reasons = append(reasons, "输入数量不能小于 0")
+			reasons = append(reasons, "The input quantity cannot be less than 0")
 			continue
 		}
 		constraint, declared := spec.Inputs[inputType]
 		if !declared {
 			if count > 0 {
-				reasons = append(reasons, "不支持 "+capabilityInputLabel(inputType)+"输入")
+				reasons = append(reasons, "Not supported"+capabilityInputLabel(inputType)+"input")
 			}
 			continue
 		}
 		if count < constraint.Min || count > constraint.Max {
-			reasons = append(reasons, fmt.Sprintf("%s数量需在 %d-%d 之间", capabilityInputLabel(inputType), constraint.Min, constraint.Max))
+			reasons = append(reasons, fmt.Sprintf("The quantity of %s needs to be between %d-%d", capabilityInputLabel(inputType), constraint.Min, constraint.Max))
 		}
 	}
 	for inputType, constraint := range spec.Inputs {
 		if intent.Inputs[inputType] < constraint.Min {
-			reasons = append(reasons, fmt.Sprintf("至少需要 %d 个%s", constraint.Min, capabilityInputLabel(inputType)))
+			reasons = append(reasons, fmt.Sprintf("At least %d %s are required", constraint.Min, capabilityInputLabel(inputType)))
 		}
 	}
 	for name, value := range intent.Options {
 		constraint, declared := spec.Options[canonicalCapabilityOptionName(name)]
 		if !declared {
-			reasons = append(reasons, "不支持参数 "+capabilityOptionLabel(name))
+			reasons = append(reasons, "Parameters not supported"+capabilityOptionLabel(name))
 			continue
 		}
 		if !matchOptionConstraint(name, constraint, value) {
-			reasons = append(reasons, "参数 "+capabilityOptionLabel(name)+"超出支持范围")
+			reasons = append(reasons, "parameters"+capabilityOptionLabel(name)+"Out of support range")
 		}
 	}
 	return CapabilityMatch{Matched: len(reasons) == 0, Reasons: reasons}
@@ -219,13 +219,13 @@ func MatchCapability(spec CapabilitySpec, intent ModelRequestIntent) CapabilityM
 func capabilityInputLabel(name string) string {
 	switch normalizeCapabilityValue(name) {
 	case "image":
-		return "参考图片"
+		return "Reference pictures"
 	case "video":
-		return "参考视频"
+		return "Reference video"
 	case "audio":
-		return "参考音频"
+		return "Reference audio"
 	case "mask":
-		return "蒙版"
+		return "Mask"
 	default:
 		return name
 	}
@@ -234,29 +234,29 @@ func capabilityInputLabel(name string) string {
 func capabilityOptionLabel(name string) string {
 	switch canonicalCapabilityOptionName(name) {
 	case "size":
-		return "画面尺寸"
+		return "Screen size"
 	case "quality":
-		return "生成质量"
+		return "Build quality"
 	case "transparentBackground":
-		return "透明背景"
+		return "Transparent background"
 	case "count":
-		return "输出数量"
+		return "Output quantity"
 	case "videoSeconds":
-		return "视频时长"
+		return "Video duration"
 	case "vquality":
-		return "输出分辨率"
+		return "Output resolution"
 	case "videoGenerateAudio":
-		return "同步音频"
+		return "Sync audio"
 	case "videoWatermark":
-		return "水印设置"
+		return "Watermark settings"
 	case "audioVoice":
-		return "音色"
+		return "timbre"
 	case "audioFormat":
-		return "音频格式"
+		return "audio format"
 	case "audioSpeed":
-		return "语速"
+		return "speaking speed"
 	case "audioInstructions":
-		return "朗读指令"
+		return "Read instructions aloud"
 	default:
 		return name
 	}

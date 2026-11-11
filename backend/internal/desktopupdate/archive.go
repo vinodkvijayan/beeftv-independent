@@ -133,11 +133,11 @@ func extractSecureZipWithProgress(ctx context.Context, zipPath, dest string, lim
 			return err
 		}
 		if _, exists := seen[strings.ToLower(rel)]; exists {
-			return fmt.Errorf("更新包包含重复路径")
+			return fmt.Errorf("Update package contains duplicate paths")
 		}
 		seen[strings.ToLower(rel)] = struct{}{}
 		if isZipSymlink(file) {
-			return fmt.Errorf("更新包不能包含符号链接")
+			return fmt.Errorf("Update package cannot contain symbolic links")
 		}
 		if !dirOnly && file.UncompressedSize64 > limits.MaxEntryBytes {
 			return ErrInvalidArchive
@@ -263,7 +263,7 @@ func rejectExtractedSymlinks(root string) error {
 			return infoErr
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("更新包不能包含符号链接")
+			return fmt.Errorf("Update package cannot contain symbolic links")
 		}
 		return nil
 	})

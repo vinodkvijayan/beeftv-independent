@@ -16,7 +16,7 @@ const node = (id: string, type: CanvasNodeType, metadata: CanvasNodeData["metada
 const styleNode = node("style", CanvasNodeType.Text, {
     workflowKind: "styleboard",
     stylePresetId: "style-v1",
-    content: "统一的项目画风",
+    content: "Unified project style",
 });
 
 describe("storyboard generation context", () => {
@@ -25,7 +25,7 @@ describe("storyboard generation context", () => {
             styleNode,
             node("character-turnaround", CanvasNodeType.Image, {
                 workflowKind: "character",
-                composerContent: "生成角色三视图",
+                composerContent: "Generate three views of the character",
             }),
         ]);
 
@@ -38,9 +38,9 @@ describe("storyboard generation context", () => {
             node("character-card", CanvasNodeType.Text, {
                 workflowKind: "character",
                 characterAssetId: "asset-1",
-                characterName: "李当歌",
+                characterName: "Li Dange",
             }),
-        ])).toThrow("角色卡“李当歌”版本未同步");
+        ])).toThrow("The version of the character card \"Li Dange\" is not synchronized");
     });
 
     it("passes linked character cards with a current version", () => {
@@ -50,16 +50,16 @@ describe("storyboard generation context", () => {
                 workflowKind: "character",
                 characterAssetId: "asset-1",
                 characterVersionId: "version-1",
-                characterName: "李当歌",
-                characterDefinition: { role: "镇国公世子" },
+                characterName: "Li Dange",
+                characterDefinition: { role: "Prince of Zhenguo Gong" },
             }),
         ]);
 
         expect(context.characters).toEqual([{
             assetId: "asset-1",
             versionId: "version-1",
-            name: "李当歌",
-            definition: { role: "镇国公世子" },
+            name: "Li Dange",
+            definition: { role: "Prince of Zhenguo Gong" },
         }]);
     });
 });

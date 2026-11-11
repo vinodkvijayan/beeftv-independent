@@ -9,38 +9,38 @@ import {
 import type { ProjectDetail } from "@/services/api/projects";
 import type { StoryboardRow } from "@/types/canvas";
 
-describe("章节分镜写入分镜制作", () => {
-    test("将分镜任务结果完整映射为镜头脚本", () => {
+describe("Chapter storyboard writing and storyboard production", () => {
+    test("Completely map storyboard task results into shot scripts", () => {
         const shots = storyboardRowsToProjectShots([storyboardRow()], projectDetail());
 
         expect(shots).toHaveLength(1);
         expect(shots[0]).toMatchObject({
-            title: "镜头01",
-            description: "林默推门进入雨夜的旧屋。",
+            title: "Shot 01",
+            description: "Lin Mo pushed the door open and entered the old house on a rainy night.",
             durationMs: 5000,
             revision: {
-                plotDescription: "林默推门进入雨夜的旧屋。",
-                dialogue: "林默：有人吗？",
-                shotSize: "中景",
-                cameraAngle: "平视，35mm",
-                cameraMovement: "缓慢推进",
-                imagePrompt: "雨夜旧屋中的林默",
-                videoPrompt: "林默推门，镜头缓慢推进\n\n【角色参考】\n林默：@[asset:character-1]\n\n【场景与道具参考】\n旧信封：@[asset:prop-1]",
-                continuityNotes: "林默停在门内，右手仍扶着门把",
-                actionBeats: [{ description: "0-2 秒推门；2-5 秒环顾" }],
+                plotDescription: "Lin Mo pushed the door open and entered the old house on a rainy night.",
+                dialogue: "Lin Mo: Is there anyone?",
+                shotSize: "medium shot",
+                cameraAngle: "Head-up, 35mm",
+                cameraMovement: "advance slowly",
+                imagePrompt: "Lin Mo in the old house on a rainy night",
+                videoPrompt: "Lin Mo pushed the door open and the camera slowly advanced\n\n【Character Reference】\nLin Mo: @[asset:character-1]\n\n[Scene and prop reference]\nOld envelope: @[asset:prop-1]",
+                continuityNotes: "Lin Mo stopped inside the door, still holding the doorknob with his right hand.",
+                actionBeats: [{ description: "0-2 seconds to push the door; 2-5 seconds to look around" }],
             },
         });
         expect(shots[0].assetVersionIds).toEqual(expect.arrayContaining(["asset-version-1", "asset-version-2"]));
-        expect(shots[0].revision.action).toContain("表演调度：林默谨慎推门并环顾室内");
-        expect(shots[0].revision.action).toContain("声音：雨声与木门摩擦声");
+        expect(shots[0].revision.action).toContain("Performance Scheduling: Lin Mo opened the door cautiously and looked around the room");
+        expect(shots[0].revision.action).toContain("Sound: the sound of rain and the friction of wooden doors");
     });
 
-    test("把已确认角色和本章待确认角色交给分镜任务", () => {
+    test("Submit confirmed characters and unconfirmed characters in this chapter to storyboard tasks", () => {
         const detail = projectDetail();
 
         expect(chapterStoryboardCharacters(detail, "chapter-1")).toEqual([
-            { assetId: "character-1", versionId: "character-version-1", name: "林默", definition: { appearance: "黑色风衣" } },
-            { name: "张天昊", definition: { role: "主角" } },
+            { assetId: "character-1", versionId: "character-version-1", name: "Lin Mo", definition: { appearance: "Black trench coat" } },
+            { name: "Zhang Tianhao", definition: { role: "Protagonist" } },
         ]);
         expect(chapterStoryboardAssets(detail).map((asset) => ({ id: asset.id, type: asset.type, characterVersionId: asset.characterVersionId }))).toEqual([
             { id: "character-1", type: "character", characterVersionId: "character-version-1" },
@@ -48,7 +48,7 @@ describe("章节分镜写入分镜制作", () => {
         ]);
     });
 
-    test("替换确认统计该章会被删除的关联数据", () => {
+    test("Replacement confirmation statistics related data that will be deleted in this chapter", () => {
         expect(chapterStoryboardReplaceImpact(projectDetail(), "chapter-1")).toEqual({
             shotCount: 1,
             revisionCount: 1,
@@ -62,32 +62,32 @@ describe("章节分镜写入分镜制作", () => {
 function storyboardRow(): StoryboardRow {
     return {
         id: "row-1", shotNumber: 1, durationSeconds: 5,
-        plotDescription: "林默推门进入雨夜的旧屋。", dialogue: "林默：有人吗？", characters: [{ characterName: "林默", characterAssetId: "character-1", characterVersionId: "character-version-1" }],
-        narrativeIntent: "建立悬念", viewerPOV: "跟随林默", performanceBlocking: "林默谨慎推门并环顾室内",
-        shotSize: "中景", emotion: "戒备", lightingAndAtmosphere: "冷色月光与室内暖光交界", audioEffects: "雨声与木门摩擦声",
-        camera: "平视，35mm", motion: "缓慢推进", timeBeats: "0-2 秒推门；2-5 秒环顾",
-        imageGenerationPrompt: "雨夜旧屋中的林默", videoMotionPrompt: "林默推门，镜头缓慢推进",
-        mustHave: [], optionalDetails: [], continuityOut: "林默停在门内，右手仍扶着门把", negativePrompt: "画面文字", assetBindings: [{ nodeId: "prop-1", role: "prop", priority: 80 }],
+        plotDescription: "Lin Mo pushed the door open and entered the old house on a rainy night.", dialogue: "Lin Mo: Is there anyone?", characters: [{ characterName: "Lin Mo", characterAssetId: "character-1", characterVersionId: "character-version-1" }],
+        narrativeIntent: "build suspense", viewerPOV: "Follow Lin Mo", performanceBlocking: "Lin Mo opened the door cautiously and looked around the room",
+        shotSize: "medium shot", emotion: "Be alert", lightingAndAtmosphere: "The intersection of cool moonlight and indoor warm light", audioEffects: "The sound of rain and the friction of wooden doors",
+        camera: "Head-up, 35mm", motion: "advance slowly", timeBeats: "0-2 seconds to push the door; 2-5 seconds to look around",
+        imageGenerationPrompt: "Lin Mo in the old house on a rainy night", videoMotionPrompt: "Lin Mo pushed the door open and the camera slowly advanced",
+        mustHave: [], optionalDetails: [], continuityOut: "Lin Mo stopped inside the door, still holding the doorknob with his right hand.", negativePrompt: "Screen text", assetBindings: [{ nodeId: "prop-1", role: "prop", priority: 80 }],
     };
 }
 
 function projectDetail(): ProjectDetail {
     return {
-        project: { id: "project-1", userId: "user-1", name: "雨夜", type: "short_drama", aspectRatio: "16:9", sourceType: "novel", description: "", stylePresetId: "urban-live-action", status: "active", revision: 1, createdAt: "", updatedAt: "" },
+        project: { id: "project-1", userId: "user-1", name: "rainy night", type: "short_drama", aspectRatio: "16:9", sourceType: "novel", description: "", stylePresetId: "urban-live-action", status: "active", revision: 1, createdAt: "", updatedAt: "" },
         units: [], canvases: [], canvasUnitLinks: [], assetFolders: [], workflows: [],
         assets: [
-            { id: "character-1", title: "林默", mediaType: "image", category: "character", status: "ready", primaryVersionId: "asset-version-1", versionCount: 1, usages: [], position: 0, updatedAt: "", character: { versionId: "character-version-1", version: 1, definition: { appearance: "黑色风衣" }, representations: [], visualStatus: "ready", voiceStatus: "missing" } },
-            { id: "prop-1", title: "旧信封", mediaType: "image", category: "prop", status: "ready", primaryVersionId: "asset-version-2", versionCount: 1, usages: [], position: 1, previewText: "泛黄的旧信封", updatedAt: "" },
-            { id: "draft-prop", title: "未完成道具", mediaType: "image", category: "prop", status: "draft", versionCount: 0, usages: [], position: 2, updatedAt: "" },
+            { id: "character-1", title: "Lin Mo", mediaType: "image", category: "character", status: "ready", primaryVersionId: "asset-version-1", versionCount: 1, usages: [], position: 0, updatedAt: "", character: { versionId: "character-version-1", version: 1, definition: { appearance: "Black trench coat" }, representations: [], visualStatus: "ready", voiceStatus: "missing" } },
+            { id: "prop-1", title: "old envelope", mediaType: "image", category: "prop", status: "ready", primaryVersionId: "asset-version-2", versionCount: 1, usages: [], position: 1, previewText: "yellowed old envelope", updatedAt: "" },
+            { id: "draft-prop", title: "Unfinished props", mediaType: "image", category: "prop", status: "draft", versionCount: 0, usages: [], position: 2, updatedAt: "" },
         ],
-        shots: [{ id: "shot-1", projectId: "project-1", unitId: "chapter-1", currentRevisionId: "revision-1", title: "SC.01", description: "旧分镜", position: 0, durationMs: 3000, status: "draft", createdAt: "", updatedAt: "" }],
-        shotRevisions: [{ id: "revision-1", shotId: "shot-1", version: 1, plotDescription: "旧分镜", action: "", dialogue: "", shotSize: "", cameraAngle: "", cameraMovement: "", durationMs: 3000, imagePrompt: "", videoPrompt: "", negativePrompt: "", continuityNotes: "", actionBeatsJson: "[]", createdAt: "" }],
+        shots: [{ id: "shot-1", projectId: "project-1", unitId: "chapter-1", currentRevisionId: "revision-1", title: "SC.01", description: "old storyboard", position: 0, durationMs: 3000, status: "draft", createdAt: "", updatedAt: "" }],
+        shotRevisions: [{ id: "revision-1", shotId: "shot-1", version: 1, plotDescription: "old storyboard", action: "", dialogue: "", shotSize: "", cameraAngle: "", cameraMovement: "", durationMs: 3000, imagePrompt: "", videoPrompt: "", negativePrompt: "", continuityNotes: "", actionBeatsJson: "[]", createdAt: "" }],
         shotArtifacts: [{ id: "artifact-1", projectId: "project-1", unitId: "chapter-1", shotId: "shot-1", type: "storyboard", version: 1, status: "ready", selected: true, metadataJson: "{}", createdAt: "", updatedAt: "" }],
         shotReferences: [{ id: "reference-1", shotId: "shot-1", assetVersionId: "asset-version-1", role: "reference", status: "linked", createdAt: "" }],
         assetCandidates: [
-            { id: "candidate-1", projectId: "project-1", unitId: "chapter-1", shotId: "shot-1", name: "雨伞", category: "prop", status: "pending_confirmation", detailsJson: "{}", createdAt: "", updatedAt: "" },
-            { id: "candidate-character-1", projectId: "project-1", unitId: "chapter-1", name: "张天昊", category: "character", status: "pending_confirmation", detailsJson: JSON.stringify({ role: "主角" }), createdAt: "", updatedAt: "" },
-            { id: "candidate-character-other", projectId: "project-1", unitId: "chapter-2", name: "另一章角色", category: "character", status: "pending_confirmation", detailsJson: "{}", createdAt: "", updatedAt: "" },
+            { id: "candidate-1", projectId: "project-1", unitId: "chapter-1", shotId: "shot-1", name: "umbrella", category: "prop", status: "pending_confirmation", detailsJson: "{}", createdAt: "", updatedAt: "" },
+            { id: "candidate-character-1", projectId: "project-1", unitId: "chapter-1", name: "Zhang Tianhao", category: "character", status: "pending_confirmation", detailsJson: JSON.stringify({ role: "Protagonist" }), createdAt: "", updatedAt: "" },
+            { id: "candidate-character-other", projectId: "project-1", unitId: "chapter-2", name: "Another chapter character", category: "character", status: "pending_confirmation", detailsJson: "{}", createdAt: "", updatedAt: "" },
         ],
     };
 }

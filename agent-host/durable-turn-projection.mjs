@@ -191,9 +191,9 @@ export function publicDurableTurn(active, running = false) {
   // Keep provider detail in the internal record; streams and old history share
   // the same public projection so an upstream body cannot become UI copy.
   if (result.error && ['model_error', 'provider_error'].includes(result.errorReason)) {
-    result.error = '模型没有完成回复。已经完成的操作会保留，请检查结果后再继续。';
+    result.error = 'The model did not complete the reply. Completed operations will be retained, please check the results before continuing.';
   } else if (result.error && result.errorReason === 'turn_interrupted') {
-    result.error = '上一轮执行中断，请核对已落地的改动。';
+    result.error = 'The last round of execution was interrupted, please check the changes that have been implemented.';
   }
   if (running) { delete result.toolCalls; result.status = 'running'; }
   return result;
@@ -210,7 +210,7 @@ export function durableCompletion(settled, assistant, budgetFailure, stopped = f
     return {
       reply: interrupted ? interruptedReply : '',
       cancelled: false,
-      error: String(budgetFailure?.message || settled.detail || (interrupted ? '上一轮执行中断，请核对已落地的改动。' : settled.reason) || 'agent_run_failed'),
+      error: String(budgetFailure?.message || settled.detail || (interrupted ? 'The last round of execution was interrupted, please check the changes that have been implemented.' : settled.reason) || 'agent_run_failed'),
       errorReason: budgetFailure?.reason || (interrupted ? 'turn_interrupted' : settled.reason) || 'agent_run_failed',
     };
   }

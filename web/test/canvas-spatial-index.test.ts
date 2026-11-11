@@ -70,7 +70,7 @@ function buildLargeCanvasFixture(): CanvasNodeData[] {
     return Array.from({ length: 50000 }, (_, index) => ({
         id: `node${index}`,
         type: index < 35000 ? CanvasNodeType.Image : index < 49000 ? CanvasNodeType.Video : CanvasNodeType.Text,
-        title: `节点 ${index}`,
+        title: `node${index}`,
         position: { x: (index % 250) * 360, y: Math.floor(index / 250) * 220 },
         width: 320,
         height: 180,

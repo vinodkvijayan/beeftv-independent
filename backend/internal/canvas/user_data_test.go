@@ -12,7 +12,7 @@ func testUserAssetPayload(kind string, extra map[string]any) map[string]any {
 	payload := map[string]any{
 		"id":       "asset-1",
 		"kind":     kind,
-		"title":    "测试资产",
+		"title":    "Test assets",
 		"coverUrl": "",
 		"tags":     []string{},
 	}
@@ -26,7 +26,7 @@ func testUserAssetPayload(kind string, extra map[string]any) map[string]any {
 	case "model":
 		payload["data"] = map[string]any{"url": "https://example.com/a.glb", "bytes": 1, "mimeType": "model/gltf-binary", "fileName": "a.glb"}
 	case "text":
-		payload["data"] = map[string]any{"content": "正文"}
+		payload["data"] = map[string]any{"content": "Text"}
 	default:
 		payload["data"] = map[string]any{"definition": map[string]any{}}
 	}
@@ -38,7 +38,7 @@ func testUserAssetPayload(kind string, extra map[string]any) map[string]any {
 
 func TestAssetFromJSONAcceptsDeterministicGenerationID(t *testing.T) {
 	id := "generation_" + strings.Repeat("a", 64)
-	raw, err := json.Marshal(testUserAssetPayload("image", map[string]any{"id": id, "title": "生成图片"}))
+	raw, err := json.Marshal(testUserAssetPayload("image", map[string]any{"id": id, "title": "Generate pictures"}))
 	if err != nil {
 		t.Fatalf("marshal asset: %v", err)
 	}
@@ -91,9 +91,9 @@ func TestAssetFromJSONRejectsIncompleteLibraryPayload(t *testing.T) {
 		want    string
 	}{
 		{name: "missing tags", payload: testUserAssetPayload("image", map[string]any{"tags": nil}), want: "tags"},
-		{name: "malformed tags", payload: testUserAssetPayload("image", map[string]any{"tags": []any{"角色", 1}}), want: "tags"},
+		{name: "malformed tags", payload: testUserAssetPayload("image", map[string]any{"tags": []any{"role", 1}}), want: "tags"},
 		{name: "missing data", payload: testUserAssetPayload("image", map[string]any{"data": nil}), want: "data"},
-		{name: "image missing locator", payload: testUserAssetPayload("image", map[string]any{"data": map[string]any{"dataUrl": "", "width": 1, "height": 1, "bytes": 1, "mimeType": "image/png"}}), want: "dataUrl 或 storageKey"},
+		{name: "image missing locator", payload: testUserAssetPayload("image", map[string]any{"data": map[string]any{"dataUrl": "", "width": 1, "height": 1, "bytes": 1, "mimeType": "image/png"}}), want: "dataUrl or storageKey"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -122,7 +122,7 @@ func TestAssetFromJSONRejectsIDOverLimit(t *testing.T) {
 	}
 
 	_, err = AssetFromJSON("user-1", raw)
-	if err == nil || !strings.Contains(err.Error(), "素材 ID 不能超过 80 个字符") {
+	if err == nil || !strings.Contains(err.Error(), "Asset ID cannot exceed 80 characters") {
 		t.Fatalf("assetFromJSON error = %v", err)
 	}
 }
@@ -134,7 +134,7 @@ func TestAssetFromJSONRejectsPrimaryVersionIDOverLimit(t *testing.T) {
 	}
 
 	_, err = AssetFromJSON("user-1", raw)
-	if err == nil || !strings.Contains(err.Error(), "素材主版本 ID 不能超过 36 个字符") {
+	if err == nil || !strings.Contains(err.Error(), "Asset master version ID cannot exceed 36 characters") {
 		t.Fatalf("assetFromJSON error = %v", err)
 	}
 }
@@ -152,7 +152,7 @@ func TestValidateSyncedPayloadAllowsDataURLMentionInErrorMessage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := ValidateSyncedPayload(raw, "画布"); err != nil {
+	if err := ValidateSyncedPayload(raw, "canvas"); err != nil {
 		t.Fatalf("ValidateSyncedPayload() error = %v", err)
 	}
 }
@@ -171,7 +171,7 @@ func TestValidateSyncedPayloadRejectsNestedInlineMedia(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := ValidateSyncedPayload(raw, "画布"); err == nil {
+		if err := ValidateSyncedPayload(raw, "canvas"); err == nil {
 			t.Fatalf("ValidateSyncedPayload(%q) error = nil", content)
 		}
 	}

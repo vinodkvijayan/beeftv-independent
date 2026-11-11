@@ -18,10 +18,10 @@ test("local canvas import restores drawings locally and skips remote sync", () =
     expect(exportSource).toContain("export async function openCanvasArchive");
     expect(exportSource).toContain("preflightCanvasArchive");
     expect(librarySource).toContain("restoreCanvasArchive(file");
-    expect(librarySource).toContain("已导入 ${result.count} 个画布");
+    expect(librarySource).toContain("Imported ${result.count} canvases");
     expect(librarySource).not.toContain("openCanvasArchive(file)");
     expect(restoreSource).toContain("saveCanvasDrawing");
     expect(restoreSource).toContain("syncLocalCanvasProjectToBackend");
     expect(restoreSource).toContain("readLocalCanvasProjectFromBackend");
-    expect(restoreSource).toContain("画布未保存到工作区");
+    expect(restoreSource).toContain("Canvas not saved to workspace");
 });

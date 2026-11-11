@@ -27,7 +27,7 @@ export function spendModelRequest(budget) {
     return {
       allowed: false,
       reason: "turn_request_budget_exhausted",
-      message: `这一轮的模型请求达到上限（${budget.maxRequests}），已停止继续调用；下一轮会重新计数`,
+      message: `The model requests in this round have reached the upper limit (${budget.maxRequests}), has stopped continuing to call; the next round will be counted again`,
     };
   }
   budget.requests += 1;
@@ -40,7 +40,7 @@ export function spendToolStep(budget) {
     return {
       allowed: false,
       reason: "turn_tool_step_budget_exhausted",
-      message: `这一轮的工具步骤达到上限（${budget.maxToolSteps}），已停止继续调用；下一轮会重新计数`,
+      message: `This round of tool steps has reached the upper limit (${budget.maxToolSteps}), has stopped continuing to call; the next round will be counted again`,
     };
   }
   budget.toolSteps += 1;
@@ -62,7 +62,7 @@ export function spendLifetimeRequest(budget) {
     return {
       allowed: false,
       reason: "request_budget_exhausted",
-      message: `模型请求总预算已耗尽（${budget.limit}）；这是显式配置的总量上限`,
+      message: `The total model request budget has been exhausted (${budget.limit}); this is the total upper limit of the explicit configuration`,
     };
   }
   budget.used += 1;

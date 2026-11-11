@@ -77,7 +77,7 @@ func testMediaReviewAudio(t *testing.T, format string) {
 			} `json:"input_audio"`
 			Text string `json:"text"`
 		}
-		if err := json.Unmarshal(body.Messages[1].Content, &parts); err != nil || len(parts) != 2 || parts[0].Type != "input_audio" || parts[0].InputAudio.Format != "wav" || parts[1].Text != "描述实际听到的声音和不确定项" {
+		if err := json.Unmarshal(body.Messages[1].Content, &parts); err != nil || len(parts) != 2 || parts[0].Type != "input_audio" || parts[0].InputAudio.Format != "wav" || parts[1].Text != "Describe actual sounds and uncertainties heard" {
 			t.Error("missing WAND input_audio contract")
 			return
 		}
@@ -105,7 +105,7 @@ func testMediaReviewAudio(t *testing.T, format string) {
 	operations.RegisterDefaultOps(registry)
 	sum := sha256.Sum256(source)
 	params, _ := json.Marshal(map[string]any{"canvasId": canvasID, "nodeId": "audio", "resourceId": resource.ID, "expectedVersion": hex.EncodeToString(sum[:]),
-		"startMs": 200, "endMs": 1200, "mode": "audio", "question": "描述实际听到的声音和不确定项"})
+		"startMs": 200, "endMs": 1200, "mode": "audio", "question": "Describe actual sounds and uncertainties heard"})
 	result, err := registry.Execute(operations.Request{UserID: "local", Op: "media.review", Params: params,
 		Caller: operations.AssistantCaller(&agentops.AssistantScope{CanvasID: canvasID}, true)})
 	if err != nil {
@@ -261,7 +261,7 @@ func TestMediaReviewAudioFailureIsNotRetried(t *testing.T) {
 				t.Fatal(err)
 			}
 			reviewer := svc.BindDomain(nil).(operations.MediaReviewer)
-			result, err := reviewer.ReviewMedia(ctx, operations.MediaPart{MimeType: "audio/wav", Data: media}, "观察音频")
+			result, err := reviewer.ReviewMedia(ctx, operations.MediaPart{MimeType: "audio/wav", Data: media}, "Watch audio")
 			if err == nil || result.Text != "" || calls.Load() != 1 {
 				t.Fatalf("unknown/incomplete result must fail without a retry: calls=%d err=%v", calls.Load(), err)
 			}

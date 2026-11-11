@@ -5,30 +5,30 @@
 // 4. 全片时间线无损区间回插（Timeline v2 切片、原声保留与已有字幕/音轨合并）构建器
 
 export const REPLACEMENT_SCOPES = [
-  { value: "full-person", label: "完整人物（外观+服装）", phrase: "完整人物" },
-  { value: "visible-part", label: "当前可见部分", phrase: "当前可见部分" },
-  { value: "face-hair", label: "脸部和头发", phrase: "脸部和头发" },
-  { value: "clothing", label: "仅服装", phrase: "服装" },
-  { value: "arm-hand", label: "手臂和手部", phrase: "手臂和手部" },
+  { value: "full-person", label: "Complete character (appearance + clothing)", phrase: "complete character" },
+  { value: "visible-part", label: "currently visible part", phrase: "currently visible part" },
+  { value: "face-hair", label: "face and hair", phrase: "face and hair" },
+  { value: "clothing", label: "Clothing only", phrase: "clothing" },
+  { value: "arm-hand", label: "arms and hands", phrase: "arms and hands" },
 ];
 
 export const PERSON_POSITIONS = [
-  { value: "single", label: "单人画面（唯一主角）" },
-  { value: "left", label: "左侧人物（双人/多人左位）" },
-  { value: "center", label: "中间人物（三人/多人中位）" },
-  { value: "right", label: "右侧人物（双人/多人右位）" },
+  { value: "single", label: "Single player screen (sole protagonist)" },
+  { value: "left", label: "The person on the left (two people/multiple people on the left)" },
+  { value: "center", label: "Middle figure (three people/multiple people in the middle)" },
+  { value: "right", label: "The person on the right (double/multiple people on the right)" },
 ];
 
 export const GENDER_HINTS = [
-  { value: "person", label: "人物（不限性别）", noun: "人" },
-  { value: "male", label: "男性角色", noun: "男人" },
-  { value: "female", label: "女性角色", noun: "女人" },
+  { value: "person", label: "Character (regardless of gender)", noun: "people" },
+  { value: "male", label: "male role", noun: "man" },
+  { value: "female", label: "female characters", noun: "woman" },
 ];
 
 export const PROMPT_MODES = [
-  { value: "regular", label: "常规位置描述（推荐）" },
-  { value: "positioning", label: "SVG 定位框辅助（多人同框）" },
-  { value: "manual", label: "自定义提示词" },
+  { value: "regular", label: "General location description (recommended)" },
+  { value: "positioning", label: "SVG positioning frame assistance (multiple people in the same frame)" },
+  { value: "manual", label: "Custom prompt words" },
 ];
 
 export const MARKER_HEX_COLORS = [
@@ -50,7 +50,7 @@ function cleanText(value) {
 }
 
 export function uniqueNodeTitle(baseTitle, existingTitles) {
-  const clean = cleanText(baseTitle) || "节点";
+  const clean = cleanText(baseTitle) || "node";
   const set = existingTitles instanceof Set ? existingTitles : new Set();
   if (!set.has(clean)) {
     set.add(clean);
@@ -80,8 +80,8 @@ export function normalizePosition(position) {
 
 export function normalizeGenderHint(genderHint) {
   const raw = cleanText(genderHint).toLowerCase();
-  if (["male", "man", "男", "男性", "男人"].includes(raw)) return "male";
-  if (["female", "woman", "女", "女性", "女人"].includes(raw)) return "female";
+  if (["male", "man", "male", "male", "man"].includes(raw)) return "male";
+  if (["female", "woman", "female", "women", "woman"].includes(raw)) return "female";
   return "person";
 }
 
@@ -93,17 +93,17 @@ export function normalizePromptMode(mode) {
 
 function genderNounFor(genderHint) {
   const normalized = normalizeGenderHint(genderHint);
-  if (normalized === "male") return "男人";
-  if (normalized === "female") return "女人";
-  return "人";
+  if (normalized === "male") return "man";
+  if (normalized === "female") return "woman";
+  return "people";
 }
 
 function positionPrefixFor(position) {
   const normalized = normalizePosition(position);
-  if (normalized === "left") return "左边的";
-  if (normalized === "center") return "中间的";
-  if (normalized === "right") return "右边的";
-  return "中的";
+  if (normalized === "left") return "left";
+  if (normalized === "center") return "middle";
+  if (normalized === "right") return "right";
+  return "in";
 }
 
 export function describeSourceSubject(
@@ -118,36 +118,36 @@ export function describeSourceSubject(
   if (promptMode === "positioning") {
     const orderText =
       total > 1
-        ? `从左到右第${index + 1}个`
+        ? `From left to right${index + 1}items`
         : entry.position === "left"
-          ? "左侧区域"
+          ? "left area"
           : entry.position === "right"
-            ? "右侧区域"
+            ? "right area"
             : entry.position === "center"
-              ? "中间区域"
-              : "画面中";
+              ? "middle area"
+              : "in the screen";
     if (hasLocationGuideImage) {
-      const detail = customSource ? `（${customSource}，定位图${markerLabel}框）` : `（定位图${markerLabel}框）`;
-      return `中${orderText}${detail}的人物`;
+      const detail = customSource ? `（${customSource}, positioning map${markerLabel}box)` : `(positioning map${markerLabel}box)`;
+      return `Medium${orderText}${detail}characters`;
     }
     const detail = customSource ? `（${customSource}）` : "";
-    return `中${orderText}${detail}的人物`;
+    return `Medium${orderText}${detail}characters`;
   }
   const prefix = positionPrefixFor(entry.position);
   const noun = genderNounFor(entry.genderHint);
   if (customSource) {
     if (
-      customSource.startsWith("左边") ||
-      customSource.startsWith("右边") ||
-      customSource.startsWith("中间") ||
-      customSource.startsWith("从左到右")
+      customSource.startsWith("left") ||
+      customSource.startsWith("right") ||
+      customSource.startsWith("middle") ||
+      customSource.startsWith("from left to right")
     ) {
-      return `中${customSource}`;
+      return `Medium${customSource}`;
     }
     return `${prefix}${customSource}`;
   }
   if (total > 3) {
-    return `从左到右第${index + 1}个${noun}`;
+    return `From left to right${index + 1}items${noun}`;
   }
   return `${prefix}${noun}`;
 }
@@ -263,14 +263,14 @@ export function buildCharacterReplacementPackage(input = {}) {
 
   const bindings = rawPeople.slice(0, 8).map((person, index) => {
     const scope = normalizeReplacementScope(person?.replacementScope ?? input.replacementScope);
-    const scopePhrase = SCOPE_MAP.get(scope) || "完整人物";
+    const scopePhrase = SCOPE_MAP.get(scope) || "complete character";
     const position = normalizePosition(
       person?.position ?? person?.personPosition ?? input.position ?? input.personPosition,
     );
     const genderHint = normalizeGenderHint(person?.genderHint ?? input.genderHint);
     const markerLabel = cleanText(person?.markerLabel) || String.fromCharCode(65 + (index % 26));
     const referenceSlot = Number(person?.referenceSlot) > 1 ? Number(person.referenceSlot) : index + 2;
-    const referenceLabel = `图${referenceSlot}`;
+    const referenceLabel = `Figure${referenceSlot}`;
     const targetDescription = cleanText(person?.targetDescription ?? input.targetDescription);
     const sourceDescription = cleanText(person?.sourceDescription ?? input.sourceDescription);
     const bbox = normalizeBbox(person?.bbox ?? person?.box ?? input.bbox ?? input.box, index, rawPeople.length);
@@ -318,10 +318,10 @@ export function buildCharacterReplacementPackage(input = {}) {
   const lines = [];
   if (hasLocationGuideImage) {
     lines.push(
-      `任务：把图1中指定的人物替换成对应参考图中的人物。图${locationGuideSlot}为人物定位图。`,
+      `Task: Replace the characters specified in Figure 1 with the characters in the corresponding reference picture. Figure${locationGuideSlot}Positioning map for the character.`,
     );
   } else {
-    lines.push("任务：把图1中的对应人物替换成参考图中的人物。");
+    lines.push("Task: Replace the corresponding characters in Figure 1 with the characters in the reference picture.");
   }
 
   for (let i = 0; i < bindings.length; i += 1) {
@@ -335,25 +335,25 @@ export function buildCharacterReplacementPackage(input = {}) {
     );
     const targetDetail = item.targetDescription ? `（${item.targetDescription}）` : "";
     if (item.replacementScope === "full-person") {
-      lines.push(`把图1${subjectText}替换成${item.referenceLabel}中的人物${targetDetail}，包含外观和服装。`);
+      lines.push(`Put Figure 1${subjectText}Replace with${item.referenceLabel}characters in${targetDetail}, including appearance and clothing.`);
     } else {
       lines.push(
-        `把图1${subjectText}的${item.scopePhrase}替换成${item.referenceLabel}中人物${targetDetail}的对应部分。`,
+        `Put Figure 1${subjectText}of${item.scopePhrase}Replace with${item.referenceLabel}characters${targetDetail}corresponding part.`,
       );
     }
   }
 
   if (promptMode === "positioning") {
     lines.push(
-      "去掉画面中的字幕和LOGO。保留原人物的位置、大小、姿态和遮挡关系，除字幕和LOGO外，其余人物及未指定部分保持不变，不补画画外或被遮挡部分。",
+      "Remove subtitles and LOGO from the screen. The position, size, posture and occlusion relationship of the original character are retained. Except for the subtitles and LOGO, the rest of the character and unspecified parts remain unchanged, and no extra painting or occluded parts are added.",
     );
-    lines.push("背景和光线保持不变。");
+    lines.push("The background and lighting remain the same.");
   } else {
     lines.push(
-      "保留原人物的位置、大小、姿态和遮挡关系，除字幕和LOGO外，其余人物及未指定部分保持不变，不补画画外或被遮挡部分。",
+      "The position, size, posture and occlusion relationship of the original character are retained. Except for the subtitles and LOGO, the rest of the character and unspecified parts remain unchanged, and no extra painting or occluded parts are added.",
     );
     if (removeSubtitlesAndLogo) {
-      lines.push("去掉画面字幕和LOGO。");
+      lines.push("Remove subtitles and LOGO from the screen.");
     }
   }
 
@@ -382,7 +382,7 @@ export function compileVideoReplacementPrompt(input = {}) {
   const targetDesc = cleanText(input.targetDescription);
   const extraNotes = cleanText(input.extraNotes);
   const scope = normalizeReplacementScope(input.replacementScope);
-  const scopePhrase = SCOPE_MAP.get(scope) || "完整人物";
+  const scopePhrase = SCOPE_MAP.get(scope) || "complete character";
 
   const subject = describeSourceSubject(
     { position, genderHint, sourceDescription: sourceDesc },
@@ -391,14 +391,14 @@ export function compileVideoReplacementPrompt(input = {}) {
     "regular",
   ).replace(/^中/, "");
 
-  const targetClause = targetDesc ? `参考图中的目标人物（${targetDesc}）` : "参考图中的对应人物";
+  const targetClause = targetDesc ? `Refer to the target person in the picture (${targetDesc}）` : "Refer to the corresponding person in the picture";
   const scopeClause =
     scope === "full-person"
-      ? `将原视频${subject}完整替换为${targetClause}`
-      : `将原视频${subject}的${scopePhrase}替换为${targetClause}的对应部分`;
+      ? `Replace the original video${subject}Completely replace with${targetClause}`
+      : `Replace the original video${subject}of${scopePhrase}Replace with${targetClause}corresponding part of`;
   const extraClause = extraNotes ? `，${extraNotes}` : "";
 
-  return `${scopeClause}${extraClause}，严格保持原视频的镜头运动、人物动作节奏、手持道具、场景光影以及画面中其余人物完全不变。`;
+  return `${scopeClause}${extraClause}, strictly keeping the original video's camera movements, character action rhythm, hand-held props, scene lighting and shadows, and other characters in the picture completely unchanged.`;
 }
 
 export function buildTimelineRangeReplacement({
@@ -412,13 +412,13 @@ export function buildTimelineRangeReplacement({
   const sourceNodeId = cleanText(fullVideoNodeId);
   const totalMs = Math.round(Number(fullDurationMs));
   if (!sourceNodeId) {
-    throw new Error("缺少原全片视频节点 ID（fullVideoNodeId）");
+    throw new Error("The original full video node ID (fullVideoNodeId) is missing");
   }
   if (!Number.isFinite(totalMs) || totalMs <= 0) {
-    throw new Error("原全片视频总时长（fullDurationMs）必须为大于 0 的毫秒整数");
+    throw new Error("The total duration of the original full video (fullDurationMs) must be an integer of milliseconds greater than 0");
   }
   if (!Array.isArray(replacements) || replacements.length === 0) {
-    throw new Error("至少需要提供 1 个替换镜头区间（replacements）");
+    throw new Error("At least 1 replacement lens interval (replacements) needs to be provided");
   }
 
   const normalized = replacements
@@ -428,13 +428,13 @@ export function buildTimelineRangeReplacement({
       const endMs = Math.round(Number(item?.endMs));
       const sourceDurationMs = Math.round(Number(item?.sourceDurationMs));
       if (!nodeId) {
-        throw new Error(`第 ${idx + 1} 个替换区间缺少替换视频节点 ID`);
+        throw new Error(`No.${idx + 1} Replacement intervals are missing replacement video node IDs`);
       }
       if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs < 0 || endMs <= startMs) {
-        throw new Error(`第 ${idx + 1} 个替换区间时间范围无效（${startMs}ms ~ ${endMs}ms）`);
+        throw new Error(`No.${idx + 1} replacement interval time range is invalid (${startMs}ms ~ ${endMs}ms）`);
       }
       if (endMs > totalMs) {
-        throw new Error(`第 ${idx + 1} 个替换区间结束时间（${endMs}ms）超出全片总时长（${totalMs}ms）`);
+        throw new Error(`No.${idx + 1} replacement interval end time (${endMs}ms) exceeds the total duration of the film (${totalMs}ms）`);
       }
       const durationMs = endMs - startMs;
       return {
@@ -451,7 +451,7 @@ export function buildTimelineRangeReplacement({
   for (let i = 1; i < normalized.length; i += 1) {
     if (normalized[i].startMs < normalized[i - 1].endMs) {
       throw new Error(
-        `替换区间不能重叠：区间 ${i}（${normalized[i - 1].startMs}~${normalized[i - 1].endMs}ms）与区间 ${i + 1}（${normalized[i].startMs}~${normalized[i].endMs}ms）冲突`,
+        `Replacement intervals cannot overlap: interval${i}（${normalized[i - 1].startMs}~${normalized[i - 1].endMs}ms) and interval${i + 1}（${normalized[i].startMs}~${normalized[i].endMs}ms) conflict`,
       );
     }
   }
@@ -464,7 +464,7 @@ export function buildTimelineRangeReplacement({
     {
       id: videoTrackId,
       kind: "video",
-      label: "视频主轨",
+      label: "Video main track",
       order: 0,
       visible: true,
       muted: Boolean(keepOriginalAudio),
@@ -519,7 +519,7 @@ export function buildTimelineRangeReplacement({
     tracks.push({
       id: audioTrackId,
       kind: "audio",
-      label: "原片音轨",
+      label: "original film soundtrack",
       order: 1,
       visible: true,
       muted: false,

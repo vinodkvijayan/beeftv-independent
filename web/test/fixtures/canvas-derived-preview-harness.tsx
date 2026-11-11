@@ -13,7 +13,7 @@ URL.createObjectURL = (blob) => { const url = originalCreate(blob); created.push
 URL.revokeObjectURL = (url) => { revoked.push(url); originalRevoke(url); };
 setActiveUserScope("A");
 let writes = 0;
-const initial: CanvasNodeData = { id: "video", type: CanvasNodeType.Video, title: "参考视频", x: 0, y: 0, width: 320, height: 180, metadata: { content: "/red.mp4" } };
+const initial: CanvasNodeData = { id: "video", type: CanvasNodeType.Video, title: "Reference video", x: 0, y: 0, width: 320, height: 180, metadata: { content: "/red.mp4" } };
 function Harness() {
     const [node, setNode] = useState(initial);
     const [visible, setVisible] = useState(true);
@@ -61,6 +61,6 @@ function Harness() {
             return { last, recovered: Boolean(result) };
         },
     } });
-    return <><div style={{ height: 2500 }}>滚动画布</div><CanvasNodeActionContext.Provider value={{ updateMetadata() { writes += 1; } }}><div style={{ width: 320, height: 180 }}>{visible && <InactiveVideoPreview node={node} theme={canvasThemes.dark} onPlay={() => undefined} hoverEnabled={false} />}</div></CanvasNodeActionContext.Provider></>;
+    return <><div style={{ height: 2500 }}>scroll canvas</div><CanvasNodeActionContext.Provider value={{ updateMetadata() { writes += 1; } }}><div style={{ width: 320, height: 180 }}>{visible && <InactiveVideoPreview node={node} theme={canvasThemes.dark} onPlay={() => undefined} hoverEnabled={false} />}</div></CanvasNodeActionContext.Provider></>;
 }
 createRoot(document.getElementById("root")!).render(<Harness />);

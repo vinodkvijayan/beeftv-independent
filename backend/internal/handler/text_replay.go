@@ -119,7 +119,7 @@ func taskTextEventCursor(c *gin.Context) (int64, error) {
 		}
 		value, err := strconv.ParseInt(item.raw, 10, 64)
 		if err != nil || value < 0 {
-			return 0, errors.New("after 或 Last-Event-ID 必须是非负整数")
+			return 0, errors.New("after or Last-Event-ID must be a non-negative integer")
 		}
 		if value > cursor {
 			cursor = value
@@ -167,12 +167,12 @@ func streamTaskTextEvents(c *gin.Context, replayAPI textReplayAPI, userID string
 		case <-pollTicker.C:
 		}
 		if replayAPI == nil {
-			writeTaskTextSSE(c, "error", 0, map[string]string{"message": "任务文本流不可用"})
+			writeTaskTextSSE(c, "error", 0, map[string]string{"message": "Task text stream is not available"})
 			return
 		}
 		next, err := replayAPI.CachedRead(c.Request.Context(), userID, taskID, after)
 		if err != nil {
-			writeTaskTextSSE(c, "error", 0, map[string]string{"message": "任务文本流不可用"})
+			writeTaskTextSSE(c, "error", 0, map[string]string{"message": "Task text stream is not available"})
 			return
 		}
 		if next.Status != lastStatus || next.Stage != lastStage || next.Progress != lastProgress {

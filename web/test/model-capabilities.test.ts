@@ -65,7 +65,7 @@ test("backend-normalized Dreamina profile preserves editing, duration choices, a
 });
 
 test("FullVideo full models accept one or two image references as well as mixed video references", () => {
-    for (const name of ["sd-native-full-2.0", "sd-native-full-2.5", "原生不卡人脸-全参2.0", "原生不卡人脸-全参2.5"]) {
+    for (const name of ["sd-native-full-2.0", "sd-native-full-2.5", "Native face recognition-Full Reference 2.0", "Native face recognition without blocking - full reference 2.5"]) {
         const config = { channels: [{ id: "fullvideo", baseUrl: "https://video.example.com/v1", models: [name], modelProfiles: [{ model: name, capability: "video", protocol: "full-video" }] }] } as AiConfig;
         for (const [imageCount, videoCount] of [[1, 0], [2, 0], [0, 1], [2, 1]]) {
             assert.equal(modelCompatibilityError(config, `fullvideo::${name}`, {

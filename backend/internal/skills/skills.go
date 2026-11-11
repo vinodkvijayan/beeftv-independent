@@ -24,11 +24,11 @@ const (
 )
 
 var skillCategoryLabels = map[string]string{
-	"drama":     "短剧影视",
-	"ecommerce": "电商营销",
-	"creative":  "创意设计",
-	"social":    "社媒内容",
-	"others":    "其他",
+	"drama":     "Short drama film and television",
+	"ecommerce": "E-commerce marketing",
+	"creative":  "creative design",
+	"social":    "social media content",
+	"others":    "Others",
 }
 
 type SkillShowcaseMedia struct {
@@ -352,21 +352,21 @@ func (s *Service) skillItems(userID string, skills []model.Skill, includeInstruc
 func (s *Service) visibleSkill(userID string, id string) (*model.Skill, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return nil, kernel.BadAuthRequest("技能 ID 不能为空")
+		return nil, kernel.BadAuthRequest("Skill ID cannot be empty")
 	}
 	if s == nil || s.repo == nil {
-		return nil, kernel.BadAuthRequest("技能不存在或已删除")
+		return nil, kernel.BadAuthRequest("The skill does not exist or has been deleted")
 	}
 	skill, err := s.repo.Skill(id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, kernel.BadAuthRequest("技能不存在或已删除")
+		return nil, kernel.BadAuthRequest("The skill does not exist or has been deleted")
 	}
 	if err != nil {
 		return nil, err
 	}
 	if skill.IsPrivate && skill.OwnerID != userID {
 		if state, err := s.repo.UserSkillState(userID, id); err != nil || state == nil || (!state.Added && strings.TrimSpace(state.InstalledVersionID) == "") {
-			return nil, kernel.Forbidden("该技能未公开")
+			return nil, kernel.Forbidden("This skill is not public")
 		}
 	}
 	return skill, nil
@@ -378,7 +378,7 @@ func (s *Service) ownedSkill(userID string, id string) (*model.Skill, error) {
 		return nil, err
 	}
 	if skill.OwnerID != userID {
-		return nil, kernel.Forbidden("只有作者可以修改或删除该技能")
+		return nil, kernel.Forbidden("Only the author can modify or delete this skill")
 	}
 	return skill, nil
 }
@@ -432,25 +432,25 @@ func normalizeSkillMutationRequest(req SkillMutationRequest, requireInstruction 
 	req.MarkdownURL = strings.TrimSpace(req.MarkdownURL)
 	req.ExtraInfo = strings.TrimSpace(req.ExtraInfo)
 	if req.SkillName == "" || utf8.RuneCountInString(req.SkillName) > maxSkillNameRunes {
-		return req, "", kernel.BadAuthRequest("技能名称必须为 1-80 个字符")
+		return req, "", kernel.BadAuthRequest("Skill name must be 1-80 characters")
 	}
 	if req.Description == "" || utf8.RuneCountInString(req.Description) > maxSkillDescriptionRunes {
-		return req, "", kernel.BadAuthRequest("技能简介必须为 1-1024 个字符")
+		return req, "", kernel.BadAuthRequest("Skill profile must be 1-1024 characters")
 	}
 	if (requireInstruction && req.Instruction == "") || utf8.RuneCountInString(req.Instruction) > 100000 {
-		return req, "", kernel.BadAuthRequest("技能指令必须为 1-100000 个字符")
+		return req, "", kernel.BadAuthRequest("Skill command must be 1-100000 characters")
 	}
 	if _, ok := skillCategoryLabels[req.Tag]; !ok {
-		return req, "", kernel.BadAuthRequest("请选择有效的技能分类")
+		return req, "", kernel.BadAuthRequest("Please select a valid skill category")
 	}
 	if req.MarkdownURL != "" && !validSkillURL(req.MarkdownURL) {
-		return req, "", kernel.BadAuthRequest("Markdown 地址必须是有效的 HTTP(S) 链接")
+		return req, "", kernel.BadAuthRequest("Markdown address must be a valid HTTP(S) link")
 	}
 	if utf8.RuneCountInString(req.ExtraInfo) > 2000 {
-		return req, "", kernel.BadAuthRequest("补充信息不能超过 2000 个字符")
+		return req, "", kernel.BadAuthRequest("Supplementary information cannot exceed 2000 characters")
 	}
 	if len(req.ShowcaseMedia) > 8 {
-		return req, "", kernel.BadAuthRequest("展示媒体最多添加 8 个")
+		return req, "", kernel.BadAuthRequest("Display media can be added up to 8")
 	}
 	for index := range req.ShowcaseMedia {
 		media := &req.ShowcaseMedia[index]
@@ -458,13 +458,13 @@ func normalizeSkillMutationRequest(req SkillMutationRequest, requireInstruction 
 		media.ShowcaseURI = strings.TrimSpace(media.ShowcaseURI)
 		media.ShowcaseURL = strings.TrimSpace(media.ShowcaseURL)
 		if media.Type != "image" && media.Type != "video" {
-			return req, "", kernel.BadAuthRequest("展示媒体类型仅支持图片或视频")
+			return req, "", kernel.BadAuthRequest("Display media type only supports image or video")
 		}
 		if !validSkillURL(media.ShowcaseURL) {
-			return req, "", kernel.BadAuthRequest("展示媒体必须填写有效的 HTTP(S) 链接")
+			return req, "", kernel.BadAuthRequest("Display media must fill in a valid HTTP(S) link")
 		}
 		if utf8.RuneCountInString(media.ShowcaseURI) > 500 || utf8.RuneCountInString(media.ShowcaseURL) > 2000 {
-			return req, "", kernel.BadAuthRequest("展示媒体地址过长")
+			return req, "", kernel.BadAuthRequest("Display media address is too long")
 		}
 	}
 	mediaJSON, err := json.Marshal(req.ShowcaseMedia)
@@ -497,7 +497,7 @@ func parseShowcaseMedia(raw string) ([]SkillShowcaseMedia, error) {
 	}
 	var items []SkillShowcaseMedia
 	if err := json.Unmarshal([]byte(raw), &items); err != nil {
-		return nil, errors.New("技能展示媒体数据格式错误")
+		return nil, errors.New("Skill display media data format error")
 	}
 	if showcaseMediaHasURL(items) {
 		return items, nil
@@ -508,7 +508,7 @@ func parseShowcaseMedia(raw string) ([]SkillShowcaseMedia, error) {
 		ShowcaseURL string `json:"showcase_url"`
 	}
 	if err := json.Unmarshal([]byte(raw), &legacy); err != nil {
-		return nil, errors.New("技能展示媒体数据格式错误")
+		return nil, errors.New("Skill display media data format error")
 	}
 	converted := make([]SkillShowcaseMedia, 0, len(legacy))
 	for _, item := range legacy {

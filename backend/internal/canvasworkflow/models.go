@@ -45,5 +45,5 @@ func SelectModel(host CompileHost, n Node, recipe *Recipe) (bool, error) {
 		recipe.Request.LogicalModelID = ""
 		return true, nil
 	}
-	return false, BadRequest("请选择当前已启用、类型匹配的模型")
+	return false, BadRequest("Please select a currently enabled model of matching type")
 }

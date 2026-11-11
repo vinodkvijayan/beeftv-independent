@@ -40,20 +40,20 @@ func TestValidatePromptTemplateResultCharacterRootShapes(t *testing.T) {
 		text    string
 		wantErr string
 	}{
-		{name: "标准对象形态", text: `{"characters":[` + characterCardJSON + `]}`},
-		{name: "顶层角色卡数组", text: `[` + characterCardJSON + `]`},
-		{name: "单元素包 characters", text: `[{"characters":[` + characterCardJSON + `]}]`},
-		{name: "多元素各包 characters", text: `[{"characters":[` + characterCardJSON + `]},{"characters":[` + characterCardJSON + `]}]`},
-		{name: "数组外再包一层", text: `[[` + characterCardJSON + `]]`},
-		{name: "数组混入非角色对象", text: `[{"index":1},` + characterCardJSON + `]`},
-		{name: "markdown 代码块包裹数组", text: "```json\n[" + characterCardJSON + "]\n```"},
-		{name: "正文先列角色名数组", text: "本章角色：[\"林夏\",\"陈默\"]\n\n{\"characters\":[" + characterCardJSON + "]}"},
-		{name: "characters 写成以角色名为键的对象", text: `{"characters":{"林夏":` + characterCardJSON + `}}`},
-		{name: "空数组", text: `[]`, wantErr: "没有识别到任何角色"},
-		{name: "不相关数组", text: `["林夏","陈默"]`, wantErr: "没有识别到任何角色"},
-		{name: "角色缺少必填字段", text: `[{"name":"林夏"}]`, wantErr: "第 1 个角色缺少字段 aliases"},
+		{name: "Standard object form", text: `{"characters":[` + characterCardJSON + `]}`},
+		{name: "Top-level character card array", text: `[` + characterCardJSON + `]`},
+		{name: "Single element package characters", text: `[{"characters":[` + characterCardJSON + `]}]`},
+		{name: "Multiple elements in each package characters", text: `[{"characters":[` + characterCardJSON + `]},{"characters":[` + characterCardJSON + `]}]`},
+		{name: "Wrap another layer outside the array", text: `[[` + characterCardJSON + `]]`},
+		{name: "Array mixed with non-role objects", text: `[{"index":1},` + characterCardJSON + `]`},
+		{name: "markdown code block wrapped array", text: "```json\n[" + characterCardJSON + "]\n```"},
+		{name: "The text lists the character name array first", text: "Characters in this chapter: [\"Lin Xia\", \"Chen Mo\"]\n\n{\"characters\":[" + characterCardJSON + "]}"},
+		{name: "characters is written as an object whose key is the character name", text: `{"characters":{"Lin Xia":` + characterCardJSON + `}}`},
+		{name: "empty array", text: `[]`, wantErr: "No role recognized"},
+		{name: "Unrelated array", text: `["林夏","陈默"]`, wantErr: "No role recognized"},
+		{name: "Role is missing a required field", text: `[{"name":"林夏"}]`, wantErr: "Role 1 is missing field aliases"},
 		// characters 位于契约位置时不做元素过滤，缺 name 也要报出具体字段而不是被当成空结果。
-		{name: "契约位置内角色缺少 name", text: `{"characters":[{"role":"女主角"}]}`, wantErr: "第 1 个角色缺少字段 name"},
+		{name: "The character in the contract position is missing a name", text: `{"characters":[{"role":"女主角"}]}`, wantErr: "Role 1 is missing field name"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -84,10 +84,10 @@ func TestValidatePromptTemplateResultScopesCharacterRelaxation(t *testing.T) {
 	if err := ValidatePromptTemplateResult(OperationStoryboardPlan, map[string]interface{}{"text": `[{"name":"林夏"}]`}); err != nil {
 		t.Fatalf("ValidatePromptTemplateResult() error = %v, want nil for non-character JSON operation", err)
 	}
-	if err := ValidatePromptTemplateResult(OperationStoryboardPlan, map[string]interface{}{"text": "完全没有 JSON 内容"}); err == nil {
+	if err := ValidatePromptTemplateResult(OperationStoryboardPlan, map[string]interface{}{"text": "No JSON content at all"}); err == nil {
 		t.Fatal("ValidatePromptTemplateResult() error = nil, want contract error for non-character operation")
 	}
-	err := ValidatePromptTemplateResult(OperationCharacterExtract, map[string]interface{}{"text": "完全没有 JSON 内容"})
+	err := ValidatePromptTemplateResult(OperationCharacterExtract, map[string]interface{}{"text": "No JSON content at all"})
 	if err == nil || !strings.Contains(err.Error(), "受保护 JSON 契约") {
 		t.Fatalf("ValidatePromptTemplateResult() error = %v, want contract error for character extract", err)
 	}

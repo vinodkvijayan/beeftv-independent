@@ -14,7 +14,7 @@ import (
 const (
 	manifestContractStart            = "<!-- BEEFTV_PLUGIN_MANIFEST_START -->"
 	manifestContractEnd              = "<!-- BEEFTV_PLUGIN_MANIFEST_END -->"
-	manifestDocumentationPlaceholder = "<当前插件的完整 documentation，由 README.md 与 docs/interface.md 拼接而成；为避免 JSON 递归，此处不重复展开正文。>"
+	manifestDocumentationPlaceholder = "<The complete documentation of the current plug-in is composed of README.md and docs/interface.md; in order to avoid JSON recursion, the text will not be expanded repeatedly here. >"
 )
 
 func TestOfficialProtocolPackagesAreSelfContainedDeclarativePlugins(t *testing.T) {
@@ -331,7 +331,7 @@ func TestOfficialVideoProfilesPreserveExplicitMediaRoles(t *testing.T) {
 		t.Run(test.providerID, func(t *testing.T) {
 			adapter := officialPackageAdapter(t, test.packageName, test.providerID)
 			spec, err := adapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-				Model: test.model, Prompt: "镜头推进", Duration: 6, AspectRatio: "16:9", Resolution: test.resolution,
+				Model: test.model, Prompt: "camera advance", Duration: 6, AspectRatio: "16:9", Resolution: test.resolution,
 				Images: []MediaReference{
 					{URL: "https://cdn.example/last.png", Role: "last_frame", Order: 2},
 					{URL: "https://cdn.example/first.png", Role: "first_frame", Order: 1},
@@ -412,7 +412,7 @@ func TestNewAPIChannel1AddsSeedanceContentAliasAndParsesDataURL(t *testing.T) {
 func TestOfficialWanProfilesUseMutuallyExclusiveReferenceFields(t *testing.T) {
 	video := officialPackageAdapter(t, "dashscope-wan-video.beeftv-plugin", "dashscope-wan-video")
 	videoSpec, err := video.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "wan2.6-r2v", Prompt: "保持角色一致", Operation: "reference_to_video",
+		Model: "wan2.6-r2v", Prompt: "Keep roles consistent", Operation: "reference_to_video",
 		Images: []MediaReference{
 			{URL: "https://cdn.example/second.png", Role: "subject_reference", Order: 2},
 			{URL: "https://cdn.example/first.png", Role: "reference_image", Order: 1},
@@ -441,7 +441,7 @@ func TestOfficialWanProfilesUseMutuallyExclusiveReferenceFields(t *testing.T) {
 		{name: "multiple", images: []MediaReference{{URL: "https://cdn.example/two.png", Role: "reference_image", Order: 2}, {URL: "https://cdn.example/one.png", Role: "reference_image", Order: 1}}},
 	} {
 		t.Run("wanx-"+test.name, func(t *testing.T) {
-			spec, err := image.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{Model: "wanx2.1-t2i-turbo", Prompt: "角色设定", Images: test.images}})
+			spec, err := image.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{Model: "wanx2.1-t2i-turbo", Prompt: "Character setting", Images: test.images}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -459,7 +459,7 @@ func TestOfficialWanProfilesUseMutuallyExclusiveReferenceFields(t *testing.T) {
 func TestOfficialRollDekWanVideoUsesVideosLifecycle(t *testing.T) {
 	adapter := officialPackageAdapter(t, "rolldek-wan-video.beeftv-plugin", "rolldek-wan-video")
 	request := GenerationRequest{
-		Model: "wan3.0-video-prime-1080p", Prompt: "保持角色一致", Duration: 11, AspectRatio: "16:9", Resolution: "1080p",
+		Model: "wan3.0-video-prime-1080p", Prompt: "Keep roles consistent", Duration: 11, AspectRatio: "16:9", Resolution: "1080p",
 		Images: []MediaReference{{URL: "https://cdn.example/character.png", Role: "reference_image"}},
 		Videos: []MediaReference{{URL: "https://cdn.example/motion.mp4", Role: "reference_video", Metadata: map[string]any{"durationMs": 5250}}},
 		Audios: []MediaReference{{URL: "https://cdn.example/voice.mp3", Role: "reference_audio"}},
@@ -598,12 +598,12 @@ func TestOfficialTextProtocolsDeliverInstructions(t *testing.T) {
 		{name: "anthropic", packageName: "anthropic-messages.beeftv-plugin", providerID: "claude-api", messagesField: "messages", instructionField: "system"},
 		{name: "gemini", packageName: "google-gemini-generate-content.beeftv-plugin", providerID: "gemini-generate-content", messagesField: "contents", instructionField: "systemInstruction"},
 	}
-	const instructions = "只输出一个 JSON 对象"
+	const instructions = "Only output a JSON object"
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			adapter := officialPackageAdapter(t, test.packageName, test.providerID)
 			spec, err := adapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-				Capability: CapabilityText, Model: "model-test", Prompt: "一句话故事", Instructions: instructions,
+				Capability: CapabilityText, Model: "model-test", Prompt: "one sentence story", Instructions: instructions,
 			}})
 			if err != nil {
 				t.Fatal(err)
@@ -860,7 +860,7 @@ func TestOfficialJimengVideoUsesOfficialFramesAspectAndQueryConfig(t *testing.T)
 		frames   float64
 	}{{5, 121}, {10, 241}} {
 		create, err := adapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-			Model: "jimeng_t2v_v30", Prompt: "镜头推进", Duration: test.duration, AspectRatio: "9:16", Resolution: "720p",
+			Model: "jimeng_t2v_v30", Prompt: "camera advance", Duration: test.duration, AspectRatio: "9:16", Resolution: "720p",
 		}})
 		if err != nil {
 			t.Fatal(err)
@@ -880,7 +880,7 @@ func TestOfficialJimengVideoUsesOfficialFramesAspectAndQueryConfig(t *testing.T)
 	}
 	// 官方只提供 5 秒和 10 秒两档，其他秒数取最近一档，不能发出不存在的帧数。
 	nearest, err := adapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "jimeng_t2v_v30", Prompt: "镜头推进", Duration: 6,
+		Model: "jimeng_t2v_v30", Prompt: "camera advance", Duration: 6,
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -893,7 +893,7 @@ func TestOfficialJimengVideoUsesOfficialFramesAspectAndQueryConfig(t *testing.T)
 func TestOfficialJimengVideoSendsReqJSONOnQueryOnly(t *testing.T) {
 	adapter := officialPackageAdapter(t, "volcengine-jimeng-video.beeftv-plugin", "volcengine-jimeng-video")
 	request := GenerationRequest{
-		Model: "jimeng_t2v_v30", Prompt: "镜头推进", Duration: 5,
+		Model: "jimeng_t2v_v30", Prompt: "camera advance", Duration: 5,
 		ProviderOptions: map[string]map[string]any{"volcengine-jimeng-video": {"req_json": `{"return_url":true}`}},
 	}
 	poll, err := adapter.BuildPoll(context.Background(), PollContext{TaskID: "task-1", Model: "jimeng_t2v_v30", Request: request})
@@ -941,7 +941,7 @@ func TestOfficialJimengVideoTreatsCode10000AsSuccess(t *testing.T) {
 	if accepted.Status == StatusFailed || accepted.TaskID != "task-1" {
 		t.Fatalf("code 10000 receipt = %#v", accepted)
 	}
-	failed, err := adapter.ParsePoll(context.Background(), PollContext{TaskID: "task-1"}, []byte(`{"code":100013,"message":"输入图片中存在不合规内容","data":{"status":"failed"}}`))
+	failed, err := adapter.ParsePoll(context.Background(), PollContext{TaskID: "task-1"}, []byte(`{"code":100013,"message":"There is illegal content in the input image","data":{"status":"failed"}}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1042,7 +1042,7 @@ func TestOfficialArkSeedreamParsesB64JSONAsDataURL(t *testing.T) {
 func TestOfficialKlingVideoAndImageFollowOfficialContract(t *testing.T) {
 	videoAdapter := officialPackageAdapter(t, "kling-video.beeftv-plugin", "kling-video")
 	t2v, err := videoAdapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "kling-v2-master", Prompt: "镜头推进", Duration: 5, AspectRatio: "16:9",
+		Model: "kling-v2-master", Prompt: "camera advance", Duration: 5, AspectRatio: "16:9",
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -1052,7 +1052,7 @@ func TestOfficialKlingVideoAndImageFollowOfficialContract(t *testing.T) {
 		t.Fatalf("Kling T2V = %#v, body = %#v", t2v, t2vBody)
 	}
 	i2v, err := videoAdapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "kling-v2-master", Prompt: "镜头推进", Duration: 10,
+		Model: "kling-v2-master", Prompt: "camera advance", Duration: 10,
 		Images: []MediaReference{
 			{URL: "https://cdn.example/first.png", Role: "first_frame", Order: 0},
 			{URL: "https://cdn.example/last.png", Role: "last_frame", Order: 1},
@@ -1075,7 +1075,7 @@ func TestOfficialKlingVideoAndImageFollowOfficialContract(t *testing.T) {
 
 	imageAdapter := officialPackageAdapter(t, "kling-image.beeftv-plugin", "kling-image")
 	imgCreate, err := imageAdapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "kling-v2", Prompt: "电影感海报", ImageCount: 2, AspectRatio: "16:9",
+		Model: "kling-v2", Prompt: "Cinematic poster", ImageCount: 2, AspectRatio: "16:9",
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -1112,7 +1112,7 @@ func TestAgnesVideoPluginsAllowLocalReferenceMediaAndMapUnassignedImage(t *testi
 	}
 	v20 := officialPackageAdapter(t, "agnes-video-v20.beeftv-plugin", "agnes-video-v20")
 	spec, err := v20.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "agnes-video-v2.0", Prompt: "角色转身", Duration: 5, AspectRatio: "16:9", Resolution: "720p",
+		Model: "agnes-video-v2.0", Prompt: "role turn", Duration: 5, AspectRatio: "16:9", Resolution: "720p",
 		Images: []MediaReference{{DataURL: "data:image/png;base64,Zm9v"}},
 	}})
 	if err != nil {
@@ -1127,7 +1127,7 @@ func TestAgnesVideoPluginsAllowLocalReferenceMediaAndMapUnassignedImage(t *testi
 func TestNewAPIVideoGenerationsIncludesSingularAndArrayImageFields(t *testing.T) {
 	adapter := officialPackageAdapter(t, "newapi-video-generations-v1.beeftv-plugin", "newapi-channel-2")
 	spec, err := adapter.BuildCreate(context.Background(), RequestContext{Request: GenerationRequest{
-		Model: "wan3.0-video", Prompt: "镜头拉远", Duration: 5, AspectRatio: "16:9", Resolution: "720p",
+		Model: "wan3.0-video", Prompt: "Zoom out", Duration: 5, AspectRatio: "16:9", Resolution: "720p",
 		Images: []MediaReference{{URL: "https://cdn.example/frame1.png", Role: "first_frame"}},
 	}})
 	if err != nil {

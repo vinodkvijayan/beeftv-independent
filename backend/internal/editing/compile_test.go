@@ -148,9 +148,9 @@ func TestCompileVolumeZeroAndSubtitleSRT(t *testing.T) {
 		Clips: []Clip{
 			clip("v", KindVideo, "v", 0, 6000, "resource:v"),
 			clip("a", KindAudio, "a", 1000, 2000, "resource:a"),
-			{ID: "s", Kind: KindSubtitle, TrackID: "s", DurationMs: 1000, Text: "隐藏"},
-			{ID: "sub-b", Kind: KindSubtitle, TrackID: "v", StartMs: 2000, DurationMs: 1000, Text: "第二条"},
-			{ID: "sub-a", Kind: KindSubtitle, TrackID: "v", StartMs: 0, DurationMs: 1000, Text: "第一条"},
+			{ID: "s", Kind: KindSubtitle, TrackID: "s", DurationMs: 1000, Text: "hide"},
+			{ID: "sub-b", Kind: KindSubtitle, TrackID: "v", StartMs: 2000, DurationMs: 1000, Text: "Article 2"},
+			{ID: "sub-a", Kind: KindSubtitle, TrackID: "v", StartMs: 0, DurationMs: 1000, Text: "Article 1"},
 			{ID: "sub-blank", Kind: KindSubtitle, TrackID: "s", StartMs: 5000, DurationMs: 1000, Text: "   "},
 		},
 	}
@@ -161,7 +161,7 @@ func TestCompileVolumeZeroAndSubtitleSRT(t *testing.T) {
 	if len(plan.Audio) != 1 || !plan.Audio[0].Muted {
 		t.Fatalf("audio %+v", plan.Audio)
 	}
-	want := "1\n00:00:00,000 --> 00:00:01,000\n第一条\n\n2\n00:00:02,000 --> 00:00:03,000\n第二条\n\n"
+	want := "1\n00:00:00,000 --> 00:00:01,000\nArticle 1\n\n2\n00:00:02,000 --> 00:00:03,000\nArticle 2"
 	if plan.SubtitleSRT != want {
 		t.Fatalf("srt=%q want %q", plan.SubtitleSRT, want)
 	}

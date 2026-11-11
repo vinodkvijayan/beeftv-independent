@@ -35,7 +35,7 @@ function historyTask(): GenerationTask {
         id: "task-history",
         type: "canvas_image",
         status: "succeeded",
-        prompt: "历史图片",
+        prompt: "historical pictures",
         resultJson: JSON.stringify({ mode: "image", images: [{ dataUrl: "data:image/png;base64,abc", storageKey: "resource:history" }] }),
         createdAt: "2026-10-01T00:00:00.000Z",
         updatedAt: "2026-10-01T00:00:00.000Z",
@@ -437,7 +437,7 @@ describe("handoff ownership", () => {
         expect(await first).toBe("failed");
         expect(attemptKey).toBe("second");
         expect((errors[0] as Error).message).toBe("sqlite unavailable");
-        expect(CANVAS_HANDOFF_PERSIST_FAILED_MESSAGE).toBe("画布保存失败，请稍后重试");
+        expect(CANVAS_HANDOFF_PERSIST_FAILED_MESSAGE).toBe("Canvas saving failed, please try again later");
     });
 
     test("retry control starts a second persist without remounting, and does not auto-loop the failed request", async () => {

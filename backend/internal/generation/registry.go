@@ -67,15 +67,15 @@ func OfficialDeclarativeVideoInterface(interfaceType string) (string, bool) {
 	case string(model.ChannelInterfaceNewAPIChannel2):
 		return "NewAPI Video Generations", true
 	case "video-generations-json":
-		return "视频生成 JSON", true
+		return "Video generation JSON", true
 	case string(model.ChannelInterfaceNewAPIChannel1):
-		return "NewAPI 媒体任务", true
+		return "NewAPI media tasks", true
 	case string(model.ChannelInterfaceXAIVideo):
 		return "xAI", true
 	case string(model.ChannelInterfaceVolcengineArkVideo), string(model.ChannelInterfaceVolcengineArkAgentPlanVideo):
-		return "火山方舟", true
+		return "Volcano Ark", true
 	case string(model.ChannelInterfaceVolcengineJiMengVideo):
-		return "即梦", true
+		return "a dream", true
 	case string(model.ChannelInterfaceNewAPIVideo):
 		return "OpenAI Videos", true
 	default:
@@ -92,11 +92,11 @@ func OfficialDeclarativeImageInterface(interfaceType string) (string, bool) {
 	case string(model.ChannelInterfaceGrokImage):
 		return "Grok Images", true
 	case string(model.ChannelInterfaceVolcengineArkImage):
-		return "火山方舟图片", true
+		return "Volcano Ark Pictures", true
 	case string(model.ChannelInterfaceVolcengineArkAgentPlanImage):
-		return "火山方舟 Agent Plan 图片", true
+		return "Volcano Ark Agent Plan images", true
 	case string(model.ChannelInterfaceVolcengineJiMengImage):
-		return "即梦图片", true
+		return "Dream pictures", true
 	default:
 		return "", false
 	}
@@ -107,7 +107,7 @@ func OfficialDeclarativeAudioInterface(interfaceType string) (string, bool) {
 	case string(model.ChannelInterfaceOpenAIAudio):
 		return "OpenAI Audio", true
 	case string(model.ChannelInterfaceAsyncAudio):
-		return "异步音频", true
+		return "asynchronous audio", true
 	default:
 		return "", false
 	}
@@ -208,7 +208,7 @@ func OfficialPluginPackageDir() (string, error) {
 	if configured := strings.TrimSpace(os.Getenv("CANVAS_OFFICIAL_PLUGIN_DIR")); configured != "" {
 		info, err := os.Stat(configured)
 		if err != nil || !info.IsDir() {
-			return "", fmt.Errorf("CANVAS_OFFICIAL_PLUGIN_DIR 不是可读目录：%s", configured)
+			return "", fmt.Errorf("CANVAS_OFFICIAL_PLUGIN_DIR is not a readable directory: %s", configured)
 		}
 		return configured, nil
 	}
@@ -257,7 +257,7 @@ func resolveOfficialPluginPackageDir(candidates []string) (string, error) {
 			return candidate, nil
 		}
 	}
-	return "", fmt.Errorf("未找到官方插件目录 plugin-packages；请设置 CANVAS_OFFICIAL_PLUGIN_DIR")
+	return "", fmt.Errorf("Official plug-in directory plugin-packages not found; please set CANVAS_OFFICIAL_PLUGIN_DIR")
 }
 
 func officialBundledPluginDirCandidates(officialPackageDir, pluginName string) []string {

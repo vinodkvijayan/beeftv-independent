@@ -94,10 +94,10 @@ function canvasProject(id: string, folderId: string | undefined, revision: numbe
         id,
         folderId,
         revision,
-        title: "画布",
+        title: "canvas",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
-        nodes: [{ id: "n1", type: "image", title: "镜头1", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "基线" } }],
+        nodes: [{ id: "n1", type: "image", title: "Shot 1", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "baseline" } }],
         connections: [],
         chatSessions: [],
         activeChatId: null,
@@ -176,20 +176,20 @@ describe("canvas folder storage", () => {
         desktopBackend();
         installPendingStore();
         useCanvasStore.setState({
-            folders: [record("legacy", "本地剧集"), record("remote-1", "已同步")],
+            folders: [record("legacy", "local drama"), record("remote-1", "Synced")],
             hydrated: true,
         });
         try {
             await withAdapter(async (config) => {
                 if (String(config.method).toLowerCase() === "get" && String(config.url).includes("/canvas-folders")) {
-                    return envelope({ folders: [record("remote-1", "已同步")] });
+                    return envelope({ folders: [record("remote-1", "Synced")] });
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
                 await hydrateCanvasLibraryFolders();
             });
             const folders = useCanvasStore.getState().folders;
-            expect(folders.find((folder) => folder.id === "legacy")?.name).toBe("本地剧集");
+            expect(folders.find((folder) => folder.id === "legacy")?.name).toBe("local drama");
             expect(folders.find((folder) => folder.id === "legacy")?.unsaved).toBe(true);
             expect(folders.find((folder) => folder.id === "remote-1")?.unsaved).toBeUndefined();
             expect((await peekCanvasFolderPendingForTests("owner-a")).legacy?.kind).toBe("upsert");
@@ -204,9 +204,9 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("legacy", "本地剧集")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("legacy", "local drama")], hydrated: true });
         try {
-            await withAdapter(async () => failure(503, "服务暂时不可用，请稍后重试"), async () => {
+            await withAdapter(async () => failure(503, "The service is temporarily unavailable, please try again later"), async () => {
                 await expect(hydrateCanvasLibraryFolders()).rejects.toThrow(/服务暂时不可用/);
             });
             expect(useCanvasStore.getState().folders.some((folder) => folder.id === "legacy")).toBe(true);
@@ -221,7 +221,7 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("folder-1", "原名")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("folder-1", "original name")], hydrated: true });
         const entered = deferred();
         const gate = deferred();
         const names: string[] = [];
@@ -230,24 +230,24 @@ describe("canvas folder storage", () => {
                 if (String(config.method).toLowerCase() === "put" && String(config.url).includes("/canvas-folders/folder-1")) {
                     const body = requestBody(config) as { folder: { name: string } };
                     names.push(body.folder.name);
-                    if (body.folder.name === "第一次") {
+                    if (body.folder.name === "first time") {
                         entered.resolve();
                         await gate.promise;
-                        return failure(500, "保存失败");
+                        return failure(500, "Save failed");
                     }
                     return envelope({ folder: record("folder-1", body.folder.name, { updatedAt: "2026-10-02T00:00:00.000Z" }) });
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
-                const first = renameCanvasLibraryFolder("folder-1", "第一次");
+                const first = renameCanvasLibraryFolder("folder-1", "first time");
                 await entered.promise;
-                const second = renameCanvasLibraryFolder("folder-1", "第二次");
+                const second = renameCanvasLibraryFolder("folder-1", "second time");
                 gate.resolve();
                 await expect(first).rejects.toThrow(/保存失败/);
                 await second;
-                expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.name).toBe("第二次");
+                expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.name).toBe("second time");
                 expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.unsaved).toBeUndefined();
-                expect(names).toEqual(["第一次", "第二次"]);
+                expect(names).toEqual(["first time", "second time"]);
             });
         } finally {
             restoreWindow();
@@ -260,7 +260,7 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("folder-1", "待删")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("folder-1", "To be deleted")], hydrated: true });
         const entered = deferred();
         const gate = deferred();
         try {
@@ -268,7 +268,7 @@ describe("canvas folder storage", () => {
                 if (String(config.method).toLowerCase() === "get") {
                     entered.resolve();
                     await gate.promise;
-                    return envelope({ folders: [record("folder-1", "待删")] });
+                    return envelope({ folders: [record("folder-1", "To be deleted")] });
                 }
                 if (String(config.method).toLowerCase() === "delete") return envelope({ id: "folder-1" });
                 throw new Error(`unexpected ${config.method} ${config.url}`);
@@ -293,10 +293,10 @@ describe("canvas folder storage", () => {
         desktopBackend();
         installPendingStore();
         try {
-            await withAdapter(async () => failure(500, "文件夹没有保存成功"), async () => {
-                await expect(createCanvasLibraryFolder("新建")).rejects.toThrow(/文件夹没有保存成功/);
+            await withAdapter(async () => failure(500, "The folder was not saved successfully"), async () => {
+                await expect(createCanvasLibraryFolder("New")).rejects.toThrow(/文件夹没有保存成功/);
             });
-            const created = useCanvasStore.getState().folders.find((folder) => folder.name === "新建");
+            const created = useCanvasStore.getState().folders.find((folder) => folder.name === "New");
             expect(created?.unsaved).toBe(true);
             expect(created?.saveError).toMatch(/文件夹没有保存成功/);
         } finally {
@@ -310,7 +310,7 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("legacy", "本地剧集")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("legacy", "local drama")], hydrated: true });
         const methods: string[] = [];
         try {
             await withAdapter(async (config) => {
@@ -333,10 +333,10 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("folder-1", "封面")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("folder-1", "cover")], hydrated: true });
         const cover = `data:image/jpeg;base64,${"A".repeat(6 * 1024 * 1024)}`;
         try {
-            await withAdapter(async () => failure(500, "封面没有保存成功"), async () => {
+            await withAdapter(async () => failure(500, "The cover was not saved successfully"), async () => {
                 await expect(persistCanvasFolderCover("folder-1", cover)).rejects.toThrow(/封面没有保存成功/);
             });
             const pendingKey = scopedStorageKey(CANVAS_FOLDER_PENDING_KEY, "owner-a");
@@ -348,7 +348,7 @@ describe("canvas folder storage", () => {
             installPendingStore();
             useCanvasStore.setState({ folders: [], hydrated: true });
             await withAdapter(async (config) => {
-                if (String(config.method).toLowerCase() === "get") return envelope({ folders: [record("folder-1", "封面")] });
+                if (String(config.method).toLowerCase() === "get") return envelope({ folders: [record("folder-1", "cover")] });
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
                 await hydrateCanvasLibraryFolders();
@@ -366,7 +366,7 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         replaceCanvasFolderPendingStoreForTests(memoryPendingStore(pendingValues, {
-            beforeSet: async () => { throw new Error("存储空间不足"); },
+            beforeSet: async () => { throw new Error("Not enough storage space"); },
         }));
         const puts: string[] = [];
         try {
@@ -374,10 +374,10 @@ describe("canvas folder storage", () => {
                 puts.push(`${String(config.method)} ${String(config.url)}`);
                 return envelope({ folder: record("x", "x") });
             }, async () => {
-                await expect(createCanvasLibraryFolder("新建")).rejects.toThrow(/存储空间不足/);
+                await expect(createCanvasLibraryFolder("New")).rejects.toThrow(/存储空间不足/);
             });
             expect(puts).toEqual([]);
-            expect(useCanvasStore.getState().folders.some((folder) => folder.name === "新建")).toBe(false);
+            expect(useCanvasStore.getState().folders.some((folder) => folder.name === "New")).toBe(false);
         } finally {
             restoreWindow();
             restore();
@@ -390,12 +390,12 @@ describe("canvas folder storage", () => {
         desktopBackend();
         pendingValues.set("owner-a", { broken: true });
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("legacy", "本地剧集")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("legacy", "local drama")], hydrated: true });
         try {
             await withAdapter(async () => envelope({ folders: [] }), async () => {
                 await expect(hydrateCanvasLibraryFolders()).rejects.toBeInstanceOf(FolderPendingUnreadableError);
             });
-            expect(useCanvasStore.getState().folders.find((folder) => folder.id === "legacy")?.name).toBe("本地剧集");
+            expect(useCanvasStore.getState().folders.find((folder) => folder.id === "legacy")?.name).toBe("local drama");
         } finally {
             restoreWindow();
             restore();
@@ -407,22 +407,22 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("folder-1", "原名")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("folder-1", "original name")], hydrated: true });
         const puts: string[] = [];
         try {
             await withAdapter(async (config) => {
                 if (String(config.method).toLowerCase() === "put") {
                     puts.push(String(config.url));
-                    return failure(409, "文件夹已删除，不能重新导入", "failed_precondition");
+                    return failure(409, "The folder has been deleted and cannot be re-imported", "failed_precondition");
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
-                await expect(renameCanvasLibraryFolder("folder-1", "新名")).rejects.toThrow(/未保存的修改还在本机/);
-                await expect(renameCanvasLibraryFolder("folder-1", "再改")).rejects.toThrow(/未保存的修改还在本机/);
+                await expect(renameCanvasLibraryFolder("folder-1", "new name")).rejects.toThrow(/未保存的修改还在本机/);
+                await expect(renameCanvasLibraryFolder("folder-1", "Change again")).rejects.toThrow(/未保存的修改还在本机/);
             });
             expect(puts).toHaveLength(1);
             const folder = useCanvasStore.getState().folders.find((item) => item.id === "folder-1");
-            expect(folder?.name).toBe("再改");
+            expect(folder?.name).toBe("Change again");
             expect(folder?.unsaved).toBe(true);
             expect((await peekCanvasFolderPendingForTests("owner-a"))["folder-1"]?.blockedReimport).toBe(true);
         } finally {
@@ -436,29 +436,29 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("folder-1", "原名")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("folder-1", "original name")], hydrated: true });
         try {
             await withAdapter(async (config) => {
                 if (String(config.method).toLowerCase() === "put") return envelope({});
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
-                await expect(renameCanvasLibraryFolder("folder-1", "空回执")).rejects.toThrow(/文件夹没有保存成功/);
+                await expect(renameCanvasLibraryFolder("folder-1", "Empty receipt")).rejects.toThrow(/文件夹没有保存成功/);
             });
             const emptyReceipt = useCanvasStore.getState().folders.find((item) => item.id === "folder-1");
-            expect(emptyReceipt?.name).toBe("空回执");
+            expect(emptyReceipt?.name).toBe("Empty receipt");
             expect(emptyReceipt?.unsaved).toBe(true);
             expect((await peekCanvasFolderPendingForTests("owner-a"))["folder-1"]?.kind).toBe("upsert");
 
             await withAdapter(async (config) => {
-                if (String(config.method).toLowerCase() === "put") return envelope({ folder: record("other-id", "错身份") });
+                if (String(config.method).toLowerCase() === "put") return envelope({ folder: record("other-id", "mistaken identity") });
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
-                await expect(renameCanvasLibraryFolder("folder-1", "错身份")).rejects.toThrow(/文件夹没有保存成功/);
+                await expect(renameCanvasLibraryFolder("folder-1", "mistaken identity")).rejects.toThrow(/文件夹没有保存成功/);
             });
             const wrongId = useCanvasStore.getState().folders.find((item) => item.id === "folder-1");
-            expect(wrongId?.name).toBe("错身份");
+            expect(wrongId?.name).toBe("mistaken identity");
             expect(wrongId?.unsaved).toBe(true);
-            expect((await peekCanvasFolderPendingForTests("owner-a"))["folder-1"]?.folder?.name).toBe("错身份");
+            expect((await peekCanvasFolderPendingForTests("owner-a"))["folder-1"]?.folder?.name).toBe("mistaken identity");
         } finally {
             restoreWindow();
             restore();
@@ -470,7 +470,7 @@ describe("canvas folder storage", () => {
         const restoreWindow = installWindow();
         desktopBackend();
         installPendingStore();
-        useCanvasStore.setState({ folders: [record("folder-1", "原名")], hydrated: true });
+        useCanvasStore.setState({ folders: [record("folder-1", "original name")], hydrated: true });
         const generations: number[] = [];
         try {
             await withAdapter(async (config) => {
@@ -482,18 +482,18 @@ describe("canvas folder storage", () => {
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
-                await renameCanvasLibraryFolder("folder-1", "第一次");
+                await renameCanvasLibraryFolder("folder-1", "first time");
                 expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.unsaved).toBeUndefined();
                 expect((await peekCanvasFolderPendingForTests("owner-a"))["folder-1"]).toBeUndefined();
                 expect((await peekCanvasFolderPendingHighWaterForTests("owner-a"))["folder-1"]).toBeGreaterThanOrEqual(1);
 
                 resetCanvasFolderStorageForTests();
                 installPendingStore();
-                await renameCanvasLibraryFolder("folder-1", "第二次");
+                await renameCanvasLibraryFolder("folder-1", "second time");
             });
             expect(generations).toEqual([1, 2]);
             expect((await peekCanvasFolderPendingHighWaterForTests("owner-a"))["folder-1"]).toBeGreaterThanOrEqual(2);
-            expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.name).toBe("第二次");
+            expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.name).toBe("second time");
             expect(useCanvasStore.getState().folders.find((folder) => folder.id === "folder-1")?.unsaved).toBeUndefined();
         } finally {
             restoreWindow();
@@ -508,9 +508,9 @@ describe("canvas folder storage", () => {
         installPendingStore();
         stubJournalStorage();
         const clean = canvasProject("c1", "folder-1", 1);
-        const unrelated = canvasProject("c2", "other-folder", 3, { title: "别的画布", nodes: [{ id: "n2", type: "image", title: "别的镜头", position: { x: 1, y: 1 }, width: 320, height: 220, metadata: { prompt: "别的" } }] });
+        const unrelated = canvasProject("c2", "other-folder", 3, { title: "other canvas", nodes: [{ id: "n2", type: "image", title: "Other shots", position: { x: 1, y: 1 }, width: 320, height: 220, metadata: { prompt: "Others" } }] });
         useCanvasStore.setState({
-            folders: [record("folder-1", "待删")],
+            folders: [record("folder-1", "To be deleted")],
             projects: [clean, unrelated],
             hydrated: true,
         });
@@ -548,16 +548,16 @@ describe("canvas folder storage", () => {
         installPendingStore();
         stubJournalStorage();
         const baseline = canvasProject("c1", "folder-1", 1);
-        const localNodes = [{ id: "n-local", type: "image" as const, title: "用户刚改", position: { x: 8, y: 8 }, width: 320, height: 220, metadata: { prompt: "未保存" } }];
+        const localNodes = [{ id: "n-local", type: "image" as const, title: "User just changed", position: { x: 8, y: 8 }, width: 320, height: 220, metadata: { prompt: "not saved" } }];
         const live = { ...baseline, nodes: localNodes };
         useCanvasStore.setState({
-            folders: [record("folder-1", "待删")],
+            folders: [record("folder-1", "To be deleted")],
             projects: [live],
             hydrated: true,
         });
         recordCanvasDocumentBase(baseline, "owner-a");
         const receipt = canvasProject("c1", undefined, 4, {
-            nodes: [{ id: "n-remote", type: "image", title: "服务端改过", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "远端" } }],
+            nodes: [{ id: "n-remote", type: "image", title: "Changed on the server side", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "far end" } }],
         });
         try {
             await withAdapter(async (config) => {

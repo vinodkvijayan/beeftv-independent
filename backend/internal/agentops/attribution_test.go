@@ -19,7 +19,7 @@ func TestStableReplayDoesNotMoveTurnAttribution(t *testing.T) {
 		}
 	}
 	body := map[string]any{"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "稳定身份", "type": "image"}}}
+		"nodes": []any{map[string]any{"title": "stable identity", "type": "image"}}}
 	params := mustRaw(t, body)
 	first, err := h.registry.Execute(agentops.Request{Op: "canvas.nodes.create", OpID: "stable-op-1",
 		UserID: "local", Params: params, TurnID: "aaaabbbb"})
@@ -27,7 +27,7 @@ func TestStableReplayDoesNotMoveTurnAttribution(t *testing.T) {
 		t.Fatal(err)
 	}
 	if first.Replayed {
-		t.Fatal("首次执行不应是回放")
+		t.Fatal("The first execution should not be a replay")
 	}
 	replay, err := h.registry.Execute(agentops.Request{Op: "canvas.nodes.create", OpID: "stable-op-1",
 		UserID: "local", Params: params, TurnID: "ccccdddd"})
@@ -35,10 +35,10 @@ func TestStableReplayDoesNotMoveTurnAttribution(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !replay.Replayed || mustJSON(t, replay.Result) != mustJSON(t, first.Result) {
-		t.Fatal("同一 opId 同 payload 必须回读原结果")
+		t.Fatal("The same opId and the same payload must read back the original results.")
 	}
 	if record := lookupOpRecord(t, h, "stable-op-1"); record.TurnID != "aaaabbbb" {
-		t.Fatalf("重放不能把归属搬到新回合: %q", record.TurnID)
+		t.Fatalf("Replay cannot move ownership to the new round: %q", record.TurnID)
 	}
 }
 
@@ -46,13 +46,13 @@ func TestStableReplayDoesNotMoveTurnAttribution(t *testing.T) {
 func TestExternalWriteHasNoTurnAttribution(t *testing.T) {
 	h := newHarness(t)
 	params := mustRaw(t, map[string]any{"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "外部写入", "type": "image"}}})
+		"nodes": []any{map[string]any{"title": "external write", "type": "image"}}})
 	if _, err := h.registry.Execute(agentops.Request{Op: "canvas.nodes.create", OpID: "external-op-1",
 		UserID: "local", Params: params}); err != nil {
 		t.Fatal(err)
 	}
 	if record := lookupOpRecord(t, h, "external-op-1"); record.TurnID != "" {
-		t.Fatalf("外部写入不应带回合归属: %q", record.TurnID)
+		t.Fatalf("External writes should not take turn ownership: %q", record.TurnID)
 	}
 }
 
@@ -64,15 +64,15 @@ func TestStrictDecodeRejectsUnknownFieldsBeforeWriting(t *testing.T) {
 		build          func() map[string]any
 		field          string
 	}{
-		{"顶层混入未知字段", "canvas.nodes.create", "unknown-top", func() map[string]any {
+		{"Mix in unknown fields at the top level", "canvas.nodes.create", "unknown-top", func() map[string]any {
 			return map[string]any{"canvasId": h.canvasID, "expectedRevision": h.revision,
 				"nodes": []any{map[string]any{"title": "A", "type": "image"}}, "temperature": 0.7}
 		}, "temperature"},
-		{"patch 内混入未知字段", "canvas.node.update", "unknown-patch", func() map[string]any {
+		{"Unknown fields are mixed into the patch", "canvas.node.update", "unknown-patch", func() map[string]any {
 			return map[string]any{"canvasId": h.canvasID, "nodeId": "n1", "expectedRevision": h.revision,
 				"patch": map[string]any{"title": "A", "temperature": 0.7}}
 		}, "temperature"},
-		{"nodes 项内混入未知字段", "canvas.nodes.create", "unknown-node", func() map[string]any {
+		{"Unknown fields are mixed in the nodes item", "canvas.nodes.create", "unknown-node", func() map[string]any {
 			return map[string]any{"canvasId": h.canvasID, "expectedRevision": h.revision,
 				"nodes": []any{map[string]any{"title": "A", "type": "image", "temperature": 0.7}}}
 		}, "temperature"},
@@ -83,16 +83,16 @@ func TestStrictDecodeRejectsUnknownFieldsBeforeWriting(t *testing.T) {
 			_, err := h.registry.Execute(agentops.Request{Op: tc.op, OpID: tc.opID, UserID: "local", Params: mustRaw(t, tc.build())})
 			opErr := agentops.AsError(err)
 			if opErr == nil || opErr.Code != agentops.CodeInvalidArgument || opErr.Reason != "unknown_field" {
-				t.Fatalf("未知字段必须整批拒绝，得到 %v", err)
+				t.Fatalf("Unknown fields must be rejected in batches, resulting in %v", err)
 			}
 			if opErr.Details["field"] != tc.field {
-				t.Fatalf("未知字段名应为 %s，得到 %v", tc.field, opErr.Details["field"])
+				t.Fatalf("The unknown field name should be %s, and got %v", tc.field, opErr.Details["field"])
 			}
 			if after := mustJSON(t, h.canvas(t)); after != before {
-				t.Fatal("被拒绝的请求不能改动画布")
+				t.Fatal("Rejected requests cannot modify the canvas")
 			}
 			if countOpRecords(t, h, tc.opID) != 0 {
-				t.Fatal("被拒绝的请求不能留下幂等记录")
+				t.Fatal("Rejected requests cannot leave idempotent records")
 			}
 		})
 	}
@@ -109,13 +109,13 @@ func TestOperationIDConflictIsExplicit(t *testing.T) {
 	_, err := h.registry.Execute(agentops.Request{Op: "canvas.nodes.create", OpID: "envelope-id", UserID: "local", Params: params})
 	opErr := agentops.AsError(err)
 	if opErr == nil || opErr.Code != agentops.CodeInvalidArgument || opErr.Reason != "operation_id_conflict" {
-		t.Fatalf("两个不一致的幂等身份必须被拒绝，得到 %v", err)
+		t.Fatalf("Two inconsistent idempotent identities must be rejected, resulting in %v", err)
 	}
 	if after := mustJSON(t, h.canvas(t)); after != before {
-		t.Fatal("冲突请求不能改动画布")
+		t.Fatal("Conflicting requests cannot modify the canvas")
 	}
 	if countOpRecords(t, h, "envelope-id") != 0 || countOpRecords(t, h, "schema-id") != 0 {
-		t.Fatal("冲突请求不能落地任何幂等记录")
+		t.Fatal("Conflicting requests cannot be implemented into any idempotent records")
 	}
 
 	// 两边一致时按同一个身份执行并回放。
@@ -128,7 +128,7 @@ func TestOperationIDConflictIsExplicit(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !replay.Replayed || mustJSON(t, replay.Result) != mustJSON(t, first.Result) {
-		t.Fatal("同一个幂等身份的重试必须回读原结果")
+		t.Fatal("Retries with the same idempotent identity must read back the original results.")
 	}
 }
 
@@ -145,7 +145,7 @@ func lookupOpRecord(t *testing.T, h *harness, opID string) model.AgentOpRecord {
 	t.Helper()
 	var record model.AgentOpRecord
 	if err := h.service.Database().Where("user_id = ? AND op_id = ?", "local", opID).First(&record).Error; err != nil {
-		t.Fatalf("读取操作回执失败: %v", err)
+		t.Fatalf("Failed to read operation receipt: %v", err)
 	}
 	return record
 }
@@ -155,7 +155,7 @@ func countOpRecords(t *testing.T, h *harness, opID string) int64 {
 	var count int64
 	if err := h.service.Database().Model(&model.AgentOpRecord{}).Where("user_id = ? AND op_id = ?", "local", opID).
 		Count(&count).Error; err != nil {
-		t.Fatalf("统计操作回执失败: %v", err)
+		t.Fatalf("Statistics operation receipt failed: %v", err)
 	}
 	return count
 }

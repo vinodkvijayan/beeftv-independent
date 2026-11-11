@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-var ErrReadCacheBusy = errors.New("热点读取正在回源，请稍后重试")
-var errReadCacheLoadAborted = errors.New("缓存回源异常中断")
+var ErrReadCacheBusy = errors.New("Hotspot reading is returning to the source, please try again later.")
+var errReadCacheLoadAborted = errors.New("Cache back-to-origin exception interrupt")
 
 // 仅用于可短暂延迟的读投影。限制条目、正文预算和同时回源数；失败短暂冷却，
 // 不返回过期成功值，也不允许大量不同 key 将 singleflight 本身变成无界队列。

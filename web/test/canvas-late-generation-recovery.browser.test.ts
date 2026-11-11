@@ -18,7 +18,7 @@ let canonicalCanvas: Record<string, any> | undefined;
 
 const NOW = "2026-10-15T00:00:00Z";
 const assetFor = (taskId: string) => ({
-    id: `asset-${taskId}`, kind: "video", title: "生成视频", coverUrl: "", tags: [], createdAt: NOW, updatedAt: NOW,
+    id: `asset-${taskId}`, kind: "video", title: "Generate video", coverUrl: "", tags: [], createdAt: NOW, updatedAt: NOW,
     data: { url: `/api/resources/${taskId}-video/file`, storageKey: `resource:${taskId}-video`, width: 320, height: 180, bytes: 1024, mimeType: "video/mp4" },
 });
 const runningTask = (id: string) => ({ id, type: "canvas_video", status: "running", projectId: "canvas-a", prompt: "late", attempts: 1, createdAt: NOW, updatedAt: NOW });
@@ -62,7 +62,7 @@ beforeAll(async () => {
             taskReads.set(id, reads);
             if (id === "late-task") return Response.json({ code: 0, data: reads === 1 ? runningTask(id) : succeededTask(id) });
             if (id === "late-done") return Response.json({ code: 0, data: succeededTask(id) });
-            if (id === "late-failed" || id === "cont-task") return Response.json({ code: 0, data: { ...runningTask(id), status: "failed", error: "上游生成失败" } });
+            if (id === "late-failed" || id === "cont-task") return Response.json({ code: 0, data: { ...runningTask(id), status: "failed", error: "Upstream build failed" } });
             if (id.startsWith("slow-task")) return Response.json({ code: 0, data: slowDone ? succeededTask(id) : runningTask(id) });
             return Response.json({ code: 0, data: { ...runningTask(id), type: "canvas_image" } });
         }
@@ -75,7 +75,7 @@ beforeAll(async () => {
         }
         if (path === "/api/ops/canvas.task.bind") {
             const body = await request.json();
-            if (!canonicalCanvas) return Response.json({ code: 409, msg: "画布尚未保存" }, { status: 409 });
+            if (!canonicalCanvas) return Response.json({ code: 409, msg: "Canvas not saved yet" }, { status: 409 });
             const asset = assetFor(body.params.taskId);
             canonicalCanvas = { ...canonicalCanvas, revision: canonicalCanvas.revision + 1,
                 nodes: canonicalCanvas.nodes.map((node: Record<string, any>) => node.id === body.params.nodeId ? {
@@ -146,7 +146,7 @@ test("an interrupted node without a task that arrives later becomes a clear erro
     await page.evaluate((nodes) => window.lateHarness!.remoteLoad(nodes as never), [lateOrphanNode("node-late-orphan")]);
     await waitUntil("late orphan marked", async () => nodeIn(await snapshot(), "node-late-orphan")?.metadata?.status === "error");
     const orphan = nodeIn(await snapshot(), "node-late-orphan")!;
-    expect(orphan.metadata?.errorDetails).toBe("页面刷新后本地生成已中断，请重新生成。");
+    expect(orphan.metadata?.errorDetails).toBe("The local generation has been interrupted after the page is refreshed, please generate again.");
     expect(requests.filter((request) => request.startsWith("POST "))).toEqual([]);
 }, 15_000);
 
@@ -160,7 +160,7 @@ test("a concurrent task receipt preserves another node's queued recovery update"
     const snap = await snapshot();
     const recovered = nodeIn(snap, "node-recovered");
     expect(recovered?.metadata?.taskStatus).toBe("failed");
-    expect(recovered?.metadata?.errorDetails).toBe("恢复失败");
+    expect(recovered?.metadata?.errorDetails).toBe("Recovery failed");
     expect(nodeIn(snap, "node-cached")?.metadata?.taskStatus).toBe("running");
     expect(snap.store["canvas-a"].find(node => node.id === "node-cached")?.metadata?.taskId).toBe("receipt-task");
     expect(snap.store["canvas-a"].find(node => node.id === "node-cached")?.metadata?.taskStatus).toBe("running");
@@ -168,21 +168,21 @@ test("a concurrent task receipt preserves another node's queued recovery update"
 
 test("late nodes in every recoverable state are reconciled, not only loading ones", async () => {
     await page.evaluate((nodes) => window.lateHarness!.remoteLoad(nodes as never), [
-        { id: "node-late-failed", type: "video", title: "failed", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "error", taskId: "late-failed", taskStatus: "running", errorDetails: "旧的错误" } },
+        { id: "node-late-failed", type: "video", title: "failed", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "error", taskId: "late-failed", taskStatus: "running", errorDetails: "old mistake" } },
         { id: "node-late-empty", type: "video", title: "empty", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "success", taskId: "late-done", taskStatus: "succeeded" } },
         { id: "node-late-continuation", type: "image", title: "continuation", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "success", content: "/api/resources/c/file", storageKey: "resource:c", agentGenerationContinuation: { id: "cont-1", taskId: "cont-task", status: "pending" } } },
-        { id: "node-late-legacy", type: "image", title: "legacy", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "error", errorDetails: "页面刷新后生成已中断，请重新生成。" } },
+        { id: "node-late-legacy", type: "image", title: "legacy", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "error", errorDetails: "The generation was interrupted after the page was refreshed, please regenerate." } },
     ]);
     await waitUntil("all late states reconciled", async () => {
         const snap = await snapshot();
         return nodeIn(snap, "node-late-failed")?.metadata?.taskStatus === "failed"
             && nodeIn(snap, "node-late-empty")?.metadata?.storageKey === "resource:late-done-video"
             && nodeIn(snap, "node-late-continuation")?.metadata?.agentGenerationContinuation?.status === "failed"
-            && nodeIn(snap, "node-late-legacy")?.metadata?.errorDetails === "页面刷新后本地生成已中断，请重新生成。";
+            && nodeIn(snap, "node-late-legacy")?.metadata?.errorDetails === "The local generation has been interrupted after the page is refreshed, please generate again.";
     }, 10_000);
     const snap = await snapshot();
     expect(nodeIn(snap, "node-late-failed")?.metadata?.status).toBe("error");
-    expect(nodeIn(snap, "node-late-failed")?.metadata?.errorDetails).not.toBe("旧的错误");
+    expect(nodeIn(snap, "node-late-failed")?.metadata?.errorDetails).not.toBe("old mistake");
     expect(nodeIn(snap, "node-late-empty")?.metadata?.status).toBe("success");
     expect(nodeIn(snap, "node-late-continuation")?.metadata?.status).toBe("success");
     expect(nodeIn(snap, "node-late-continuation")?.metadata?.storageKey).toBe("resource:c");
@@ -195,7 +195,7 @@ test("nodes merged by a normal refresh are left alone, even with the restore tex
     const refreshed = [
         { id: "node-refresh-loading", type: "image", title: "a", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "loading", prompt: "agent" } },
         { id: "node-refresh-upload", type: "image", title: "b", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { fileUpload: "uploading", fileUploadProgress: 40 } },
-        { id: "node-refresh-marked", type: "image", title: "c", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "loading", errorDetails: "正在从任务中心恢复生成状态..." } },
+        { id: "node-refresh-marked", type: "image", title: "c", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "loading", errorDetails: "Restoring build status from Task Center..." } },
         { id: "node-refresh-task", type: "video", title: "d", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { status: "loading", taskId: "refresh-task", taskStatus: "running" } },
     ];
     await page.evaluate((nodes) => window.lateHarness!.refreshMerge(nodes as never), refreshed);
@@ -248,7 +248,7 @@ test("a batch the user just started keeps its root as is when a later copy is re
     await Bun.sleep(300);
     const snap = await snapshot();
     expect(nodeIn(snap, "batch-root")?.metadata?.status).toBe("loading");
-    expect(nodeIn(snap, "batch-root")?.metadata?.errorDetails).not.toBe("全部图片生成失败");
+    expect(nodeIn(snap, "batch-root")?.metadata?.errorDetails).not.toBe("All images failed to be generated");
     expect(nodeIn(snap, "batch-a")?.metadata?.status).toBe("loading");
     expect(nodeIn(snap, "batch-b")?.metadata?.status).toBe("loading");
 }, 15_000);

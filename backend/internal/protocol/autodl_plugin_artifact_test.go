@@ -42,7 +42,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	create, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_lightx2v_no_pic", Prompt: "a cinematic test", Duration: 3, Resolution: "768P竖", Images: []MediaReference{{URL: "https://cdn.example/reference.png"}},
+		Model: "minimax_h3_lightx2v_no_pic", Prompt: "a cinematic test", Duration: 3, Resolution: "768P vertical", Images: []MediaReference{{URL: "https://cdn.example/reference.png"}},
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +51,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 		t.Fatalf("create spec = %#v", create)
 	}
 	body, ok := create.Body.(map[string]any)
-	if !ok || body["prompt"] != "a cinematic test" || body["duration"] != 3 || body["resolution"] != "768p竖" {
+	if !ok || body["prompt"] != "a cinematic test" || body["duration"] != 3 || body["resolution"] != "768p vertical" {
 		t.Fatalf("create body = %#v", create.Body)
 	}
 	if _, exists := body["ref_image_0"]; exists {
@@ -62,7 +62,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	createV5, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_lightx2v_v5_15s", Prompt: "a cinematic test", Duration: 15, Resolution: "768p竖", Images: []MediaReference{{URL: "https://cdn.example/ref0.png"}, {URL: "https://cdn.example/ref1.png"}},
+		Model: "minimax_h3_lightx2v_v5_15s", Prompt: "a cinematic test", Duration: 15, Resolution: "768p vertical", Images: []MediaReference{{URL: "https://cdn.example/ref0.png"}, {URL: "https://cdn.example/ref1.png"}},
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -76,7 +76,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	createLightX2V, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_lightx2v", Prompt: "a cinematic test", Duration: 5, Resolution: "768p竖", Images: []MediaReference{{URL: "https://cdn.example/first.png"}, {URL: "https://cdn.example/last.png"}},
+		Model: "minimax_h3_lightx2v", Prompt: "a cinematic test", Duration: 5, Resolution: "768p vertical", Images: []MediaReference{{URL: "https://cdn.example/first.png"}, {URL: "https://cdn.example/last.png"}},
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -90,7 +90,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	createImageAudio, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_image_audio_to_video", Prompt: "should be omitted", Duration: 5, Resolution: "768p横",
+		Model: "minimax_h3_image_audio_to_video", Prompt: "should be omitted", Duration: 5, Resolution: "768p horizontal",
 		Images: []MediaReference{{URL: "https://cdn.example/face.png"}},
 		Audios: []MediaReference{{URL: "https://cdn.example/voice.mp3"}},
 	}})
@@ -98,7 +98,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 	bodyImageAudio := createImageAudio.Body.(map[string]any)
-	if bodyImageAudio["ref_image_0"] != "https://cdn.example/face.png" || bodyImageAudio["ref_audio_0"] != "https://cdn.example/voice.mp3" || bodyImageAudio["audio_duration"] != 5 || bodyImageAudio["resolution"] != "768p横" {
+	if bodyImageAudio["ref_image_0"] != "https://cdn.example/face.png" || bodyImageAudio["ref_audio_0"] != "https://cdn.example/voice.mp3" || bodyImageAudio["audio_duration"] != 5 || bodyImageAudio["resolution"] != "768p horizontal" {
 		t.Fatalf("image_audio body = %#v", bodyImageAudio)
 	}
 	if _, exists := bodyImageAudio["prompt"]; exists {
@@ -115,7 +115,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	createAudioToVideoV2, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_image_audio_to_video_v2", Prompt: "cinematic sync", Duration: 8, Resolution: "1080p横",
+		Model: "minimax_h3_image_audio_to_video_v2", Prompt: "cinematic sync", Duration: 8, Resolution: "1080p horizontal",
 		Images: []MediaReference{{URL: "https://cdn.example/img0.png"}, {URL: "https://cdn.example/img1.png"}},
 		Audios: []MediaReference{{URL: "https://cdn.example/aud0.mp3"}, {URL: "https://cdn.example/aud1.mp3"}},
 	}})
@@ -123,7 +123,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 	bodyV2 := createAudioToVideoV2.Body.(map[string]any)
-	if bodyV2["prompt"] != "cinematic sync" || bodyV2["duration"] != 8 || bodyV2["resolution"] != "1080p横" ||
+	if bodyV2["prompt"] != "cinematic sync" || bodyV2["duration"] != 8 || bodyV2["resolution"] != "1080p horizontal" ||
 		bodyV2["ref_image_0"] != "https://cdn.example/img0.png" || bodyV2["ref_image_1"] != "https://cdn.example/img1.png" ||
 		bodyV2["ref_audio_0"] != "https://cdn.example/aud0.mp3" || bodyV2["ref_audio_1"] != "https://cdn.example/aud1.mp3" {
 		t.Fatalf("v2 body = %#v", bodyV2)
@@ -133,14 +133,14 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	createB99001, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_b99_001", Prompt: "a prompt test", Duration: 5, Resolution: "736p竖",
+		Model: "minimax_h3_b99_001", Prompt: "a prompt test", Duration: 5, Resolution: "736p vertical",
 		Images: []MediaReference{{URL: "https://cdn.example/should-be-omitted.png"}},
 	}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	bodyB99001 := createB99001.Body.(map[string]any)
-	if bodyB99001["prompt"] != "a prompt test" || bodyB99001["duration"] != 5 || bodyB99001["resolution"] != "736p竖" {
+	if bodyB99001["prompt"] != "a prompt test" || bodyB99001["duration"] != 5 || bodyB99001["resolution"] != "736p vertical" {
 		t.Fatalf("b99_001 body = %#v", bodyB99001)
 	}
 	if _, exists := bodyB99001["ref_image_0"]; exists {
@@ -151,14 +151,14 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 	}
 
 	createB99002, err := adapter.BuildCreate(context.Background(), RequestContext{BaseURL: "https://autodl.art", Request: GenerationRequest{
-		Model: "minimax_h3_b99_002", Prompt: "first to last", Duration: 6, Resolution: "736p横",
+		Model: "minimax_h3_b99_002", Prompt: "first to last", Duration: 6, Resolution: "736p horizontal",
 		Images: []MediaReference{{URL: "https://cdn.example/f0.png"}, {URL: "https://cdn.example/f1.png"}},
 	}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	bodyB99002 := createB99002.Body.(map[string]any)
-	if bodyB99002["prompt"] != "first to last" || bodyB99002["duration"] != 6 || bodyB99002["resolution"] != "736p横" ||
+	if bodyB99002["prompt"] != "first to last" || bodyB99002["duration"] != 6 || bodyB99002["resolution"] != "736p horizontal" ||
 		bodyB99002["first_frame"] != "https://cdn.example/f0.png" || bodyB99002["last_frame"] != "https://cdn.example/f1.png" {
 		t.Fatalf("b99_002 body = %#v", bodyB99002)
 	}
@@ -190,7 +190,7 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 		t.Fatal(err)
 	}
 	bodyZMU24 := createZMU24.Body.(map[string]any)
-	if bodyZMU24["resolution"] != "480p横" || bodyZMU24["ref_image_0"] != "https://cdn.example/img0.png" {
+	if bodyZMU24["resolution"] != "480p horizontal" || bodyZMU24["ref_image_0"] != "https://cdn.example/img0.png" {
 		t.Fatalf("zm_u24 body = %#v", bodyZMU24)
 	}
 
@@ -234,9 +234,9 @@ func TestAutoDLPluginArtifact(t *testing.T) {
 		}
 		for _, bareRes := range []string{"480p", "720p", "1080p", "1440p", "2160p", "2k", "4k"} {
 			for _, ratio := range []string{"16:9", "9:16", "1:1"} {
-				expectedDir := "竖"
+				expectedDir := "Portrait"
 				if ratio == "16:9" {
-					expectedDir = "横"
+					expectedDir = "Landscape"
 				} else if ratio == "1:1" && hasSquare {
 					expectedDir = "(1:1)"
 				}

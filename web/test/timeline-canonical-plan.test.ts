@@ -4,7 +4,7 @@ import { applySourceFacts, assertCanonicalPlan, canonicalSourceIds } from "../sr
 import { loadEditingPlan } from "./helpers/editing-fixtures";
 
 describe("canonical plan facts", () => {
-    test("applySourceFacts 把无音轨视频改静音，不重排片段", () => {
+    test("applySourceFacts mutes videos without audio tracks without rearranging clips", () => {
         const plan = structuredClone(loadEditingPlan("gap-silent-fade.plan.json"));
         const sourceIds = canonicalSourceIds(plan);
         expect(sourceIds).toEqual(["tone", "silent", "voice"]);
@@ -18,20 +18,20 @@ describe("canonical plan facts", () => {
         expect(plan.segments.map((segment) => segment.kind)).toEqual(["video", "gap", "video"]);
     });
 
-    test("素材时长不足必须失败且不丢弃计划片段", () => {
+    test("Insufficient material duration must fail without discarding planned clips", () => {
         const plan = structuredClone(loadEditingPlan("gap-silent-fade.plan.json"));
         expect(() => applySourceFacts(plan, {
             tone: { hasVideo: true, hasAudio: true, durationMs: 100 },
             silent: { hasVideo: true, hasAudio: false, durationMs: 1000 },
             voice: { hasAudio: true, hasVideo: false, durationMs: 2000 },
-        })).toThrow("素材时长不足");
+        })).toThrow("Insufficient material duration");
         expect(plan.segments).toHaveLength(3);
         expect(plan.audio).toHaveLength(1);
     });
 
-    test("不支持的计划版本必须失败", () => {
+    test("Unsupported plan versions must fail", () => {
         const plan = structuredClone(loadEditingPlan("gap-mix.plan.json"));
         plan.version = 2;
-        expect(() => assertCanonicalPlan(plan)).toThrow("不支持的渲染计划版本");
+        expect(() => assertCanonicalPlan(plan)).toThrow("Unsupported render plan version");
     });
 });

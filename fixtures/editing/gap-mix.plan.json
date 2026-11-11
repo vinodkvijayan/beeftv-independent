@@ -11,7 +11,7 @@
     { "clipId": "voice", "sourceId": "voice", "startMs": 500, "durationMs": 1500, "sourceStartMs": 100, "volume": 0, "fadeInMs": 100, "fadeOutMs": 200 }
   ],
   "subtitles": [
-    { "clipId": "sub", "startMs": 0, "durationMs": 3000, "text": "中文" }
+    { "clipId": "sub", "startMs": 0, "durationMs": 3000, "text": "Chinese" }
   ],
-  "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,000\n中文\n\n"
+  "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,000\nChinese"
 }

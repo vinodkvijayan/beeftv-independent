@@ -281,10 +281,10 @@ func scriptStatusFromResult(res *skills.ScriptRunResult) string {
 
 func ProposeOrRunSkillScript(ctx context.Context, db *gorm.DB, skillSvc *skills.Service, userID, turnID string, req skills.ScriptRunRequest) (any, error) {
 	if skillSvc == nil {
-		return nil, Unsupported("skill_unavailable", "当前工作区无法运行技能脚本")
+		return nil, Unsupported("skill_unavailable", "The skill script cannot be run in the current workspace")
 	}
 	if strings.TrimSpace(turnID) == "" {
-		return nil, PermissionDenied("scope_denied", "技能脚本只能在内置助手对话轮次中发起运行")
+		return nil, PermissionDenied("scope_denied", "Skill scripts can only be initiated during built-in assistant dialogue rounds")
 	}
 	validated, err := skillSvc.ValidateScriptRun(userID, req, "")
 	if err != nil {
@@ -354,30 +354,30 @@ func ProposeOrRunSkillScript(ctx context.Context, db *gorm.DB, skillSvc *skills.
 		"canvasId": proposal.CanvasID,
 		"status":   "requires_confirmation",
 		"proposal": proposal.PublicView(),
-		"message":  "脚本运行提议已提交，等待用户在界面确认后运行。",
+		"message":  "The script running proposal has been submitted and is waiting for the user to confirm it on the interface.",
 	}, nil
 }
 
 func ConfirmSkillScriptProposal(ctx context.Context, db *gorm.DB, skillSvc *skills.Service, userID, turnID, proposalID, canvasID string, alwaysAllowSession bool) (*SkillScriptProposal, *skills.ScriptRunResult, error) {
 	if db == nil || skillSvc == nil {
-		return nil, nil, Unsupported("skill_unavailable", "当前工作区无法运行技能脚本")
+		return nil, nil, Unsupported("skill_unavailable", "The skill script cannot be run in the current workspace")
 	}
 	proposal, err := LookupSkillScriptProposal(db, userID, proposalID)
 	if err != nil {
 		return nil, nil, AsError(err)
 	}
 	if proposal == nil {
-		return nil, nil, NotFound("script_proposal_not_found", "未找到对应的脚本运行提议")
+		return nil, nil, NotFound("script_proposal_not_found", "The corresponding script running proposal was not found")
 	}
 	if strings.TrimSpace(turnID) == "" || proposal.CanvasID != strings.TrimSpace(canvasID) || proposal.TurnID == "" || proposal.TurnID != strings.TrimSpace(turnID) {
-		return nil, nil, PermissionDenied("script_proposal_mismatch", "脚本运行提议不属于当前画布或对话轮次")
+		return nil, nil, PermissionDenied("script_proposal_mismatch", "Script run offer does not belong to current canvas or conversation round")
 	}
 	if (proposal.Status == "completed" || proposal.Status == "failed") && proposal.Result != nil {
 		pub := proposal.PublicView()
 		return &pub, proposal.Result, nil
 	}
 	if proposal.Status == "running" {
-		return nil, nil, Conflict("script_already_running", "该脚本正在运行中", nil)
+		return nil, nil, Conflict("script_already_running", "The script is running", nil)
 	}
 	if proposal.SessionID == "" {
 		proposal.SessionID = lookupTurnSessionID(db, userID, turnID)

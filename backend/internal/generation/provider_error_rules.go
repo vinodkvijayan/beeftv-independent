@@ -21,7 +21,7 @@ var (
 
 func isLocalDiskFullMessage(message string) bool {
 	text := strings.ToLower(message)
-	local := strings.Contains(text, "write local resource") || strings.Contains(text, "生成内容写入资源存储失败") || strings.Contains(text, "database or disk is full") || strings.Contains(text, "本地磁盘空间不足")
+	local := strings.Contains(text, "write local resource") || strings.Contains(text, "Failed to write generated content to resource storage") || strings.Contains(text, "database or disk is full") || strings.Contains(text, "本地磁盘空间不足")
 	full := strings.Contains(text, "no space left on device") || strings.Contains(text, "not enough space on the disk") || strings.Contains(text, "disk full") || strings.Contains(text, "database or disk is full") || strings.Contains(text, "本地磁盘空间不足")
 	return local && full
 }
@@ -56,8 +56,8 @@ func WithConcurrencyFailure(failure Failure) Failure {
 func CircuitOpenFailure() Failure {
 	return normalizeFailure(Failure{
 		Category: CategoryProviderUnavailable,
-		Reason:   "当前渠道连续失败，已暂时熔断",
-		Action:   "请稍后重试",
+		Reason:   "The current channel has failed continuously and has been temporarily disconnected.",
+		Action:   "Please try again later",
 	})
 }
 
@@ -79,7 +79,7 @@ func categoryFromProviderMessage(raw string) (FailureCategory, bool) {
 		aspectRangePattern.MatchString(normalized),
 		pixelRangePattern.MatchString(normalized):
 		return CategoryInvalidParams, true
-	case requestTooLargePattern.MatchString(normalized) || singleFileTooLargePattern.MatchString(normalized) || strings.HasPrefix(normalized, "整次请求的数据量超过接口上限"):
+	case requestTooLargePattern.MatchString(normalized) || singleFileTooLargePattern.MatchString(normalized) || strings.HasPrefix(normalized, "The amount of data requested exceeds the upper limit of the interface"):
 		return CategoryInputTooLarge, true
 	case strings.Contains(normalized, "thinking") && strings.Contains(normalized, "tool_choice"),
 		strings.Contains(normalized, "reasoning") && strings.Contains(normalized, "tool_choice"),
@@ -96,7 +96,7 @@ func categoryFromProviderMessage(raw string) (FailureCategory, bool) {
 		return CategoryThrottled, true
 	case strings.Contains(normalized, "context length") || strings.Contains(normalized, "maximum context") || strings.Contains(normalized, "too many tokens") || strings.Contains(normalized, "max_tokens") || strings.Contains(normalized, "长度") && (strings.Contains(normalized, "最大") || strings.Contains(normalized, "超出")):
 		return CategoryContextTooLong, true
-	case strings.Contains(normalized, "model_not_found") || strings.Contains(normalized, "model not found") || strings.Contains(normalized, "does not exist") && strings.Contains(normalized, "model") || strings.Contains(normalized, "模型不存在") || strings.Contains(normalized, "模型或模型接口不存在") || strings.Contains(normalized, "405 method not allowed") || strings.Contains(normalized, "method not allowed") || strings.Contains(normalized, "http 405") || strings.Contains(normalized, "status 405"):
+	case strings.Contains(normalized, "model_not_found") || strings.Contains(normalized, "model not found") || strings.Contains(normalized, "does not exist") && strings.Contains(normalized, "model") || strings.Contains(normalized, "模型不存在") || strings.Contains(normalized, "Model or model interface does not exist") || strings.Contains(normalized, "405 method not allowed") || strings.Contains(normalized, "method not allowed") || strings.Contains(normalized, "http 405") || strings.Contains(normalized, "status 405"):
 		return CategoryModelMissing, true
 	case strings.Contains(normalized, "invalid api key") || strings.Contains(normalized, "incorrect api key") || strings.Contains(normalized, "authentication") || strings.Contains(normalized, "unauthorized") || strings.Contains(normalized, "鉴权失败"):
 		return CategoryAuth, true
@@ -180,8 +180,8 @@ func specializeModeration(failure *Failure, fields extractedFields) {
 	normalized := strings.ToLower(fields.Message + " " + fields.Code)
 	if (strings.Contains(normalized, "prompt") || strings.Contains(normalized, "提示词")) && (strings.Contains(normalized, "reference image") || strings.Contains(normalized, "input image") || strings.Contains(normalized, "参考")) {
 		failure.Category = CategoryModerationInput
-		failure.Reason = "提示词或参考素材未通过内容安全审核"
-		failure.Action = "请调整提示词或参考素材后重新生成"
+		failure.Reason = "The prompt word or reference material did not pass the content security review"
+		failure.Action = "Please adjust the prompt words or reference materials and regenerate"
 		return
 	}
 	failure.Category = moderationCategoryFromMessage(normalized)
@@ -211,8 +211,8 @@ func specializeThinkingToolChoice(failure *Failure, fields extractedFields) {
 	normalized := strings.ToLower(fields.Message + " " + fields.Code)
 	if ((strings.Contains(normalized, "thinking") || strings.Contains(normalized, "reasoning")) && strings.Contains(normalized, "tool_choice")) || (strings.Contains(normalized, "tool_choice") && (strings.Contains(normalized, "not support") || strings.Contains(normalized, "unsupported"))) {
 		failure.Category = CategoryInvalidParams
-		failure.Reason = "当前模型为思考或推理模式，不支持强制工具调用"
-		failure.Action = "请改用自动工具选择或更换非思考模式模型"
+		failure.Reason = "The current model is in thinking or reasoning mode and does not support forced tool calls."
+		failure.Action = "Please use automatic tools to select or replace non-thinking mode models instead"
 	}
 }
 
@@ -221,20 +221,20 @@ func referenceDurationCopy(text string) (categoryCopy, bool) {
 		return copy, true
 	}
 	// 当前提示写法：哪一项、现在多少、要改到多少，动作沿用后端给出的那句。
-	if m := regexp.MustCompile(`^((?:第 \d+ 段)?(?:参考)?(?:音频|视频)(?:「[^」]*」)?)时长为 (\d+(?:\.\d+)?) 秒[，。]需要改到 ([^；;]+)[；;](.+?)。?$`).FindStringSubmatch(text); len(m) == 5 {
-		return categoryCopy{Reason: fmt.Sprintf("%s时长为 %s 秒", m[1], m[2]), Action: fmt.Sprintf("需要改到 %s；%s", m[3], m[4])}, true
+	if m := regexp.MustCompile(`^((?:paragraph \d+)?(?:reference)?(?:audio|video)(?:『[^』]*』)?)The duration is (\d+(?:\.\d+)?) seconds[,. ] needs to be changed to ([^;;]+)[;;](.+?). ?$`).FindStringSubmatch(text); len(m) == 5 {
+		return categoryCopy{Reason: fmt.Sprintf("%s lasts %s seconds", m[1], m[2]), Action: fmt.Sprintf("Need to be changed to %s; %s", m[3], m[4])}, true
 	}
-	if m := regexp.MustCompile(`^输出时长为 ([\d.]+) 秒[，。]当前模型只支持 ([^；;]+)[；;](.+?)。?$`).FindStringSubmatch(text); len(m) == 4 {
-		return categoryCopy{Reason: fmt.Sprintf("输出时长为 %s 秒", m[1]), Action: fmt.Sprintf("当前模型只支持 %s；%s", m[2], m[3])}, true
+	if m := regexp.MustCompile(`^The output duration is ([\d.]+) seconds[,. ]The current model only supports ([^;;]+)[;;](.+?). ?$`).FindStringSubmatch(text); len(m) == 4 {
+		return categoryCopy{Reason: fmt.Sprintf("The output duration is %s seconds", m[1]), Action: fmt.Sprintf("The current model only supports %s; %s", m[2], m[3])}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) 段参考(音频|视频)时长为 (\d+(?:\.\d+)?) 秒[，。]需要 (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?) 秒`).FindStringSubmatch(text); len(m) == 6 {
-		return categoryCopy{Reason: fmt.Sprintf("第 %s 段参考%s时长为 %s 秒", m[1], m[2], m[3]), Action: fmt.Sprintf("需要 %s–%s 秒；请裁剪或更换这段素材后再提交", m[4], m[5])}, true
+	if m := regexp.MustCompile(`^The (\d+) paragraph reference (audio|video) duration is (\d+(?:\.\d+)?) seconds[,. ] takes (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?) seconds`).FindStringSubmatch(text); len(m) == 6 {
+		return categoryCopy{Reason: fmt.Sprintf("The length of segment %s reference %s is %s seconds.", m[1], m[2], m[3]), Action: fmt.Sprintf("It takes %s–%s seconds; please crop or replace this material before submitting", m[4], m[5])}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) 段参考(音频|视频)的时长无法读取`).FindStringSubmatch(text); len(m) == 3 {
-		return categoryCopy{Reason: fmt.Sprintf("第 %s 段参考%s的时长无法读取", m[1], m[2]), Action: "请重新导入素材后再提交"}, true
+	if m := regexp.MustCompile(`^The duration of paragraph (\d+) reference (audio | video) cannot be read`).FindStringSubmatch(text); len(m) == 3 {
+		return categoryCopy{Reason: fmt.Sprintf("The duration of segment %s reference %s cannot be read.", m[1], m[2]), Action: "Please re-import the material before submitting"}, true
 	}
-	if m := regexp.MustCompile(`^参考素材时长不符合模型要求。请检查每段参考音频和视频，将不符合要求的素材调整为 (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?) 秒`).FindStringSubmatch(text); len(m) == 3 {
-		return categoryCopy{Reason: "参考素材时长不符合模型要求", Action: fmt.Sprintf("请检查每段参考音频和视频，将不符合要求的素材调整为 %s–%s 秒后重新提交", m[1], m[2])}, true
+	if m := regexp.MustCompile(`^The reference material duration does not meet the model requirements. Please check each reference audio and video and adjust the non-compliant material to (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?) seconds`).FindStringSubmatch(text); len(m) == 3 {
+		return categoryCopy{Reason: "The duration of the reference material does not meet the model requirements", Action: fmt.Sprintf("Please check each reference audio and video, adjust the material that does not meet the requirements to %s–%s seconds and resubmit.", m[1], m[2])}, true
 	}
 	return categoryCopy{}, false
 }
@@ -246,22 +246,22 @@ func specializeMediaConstraints(failure *Failure, fields extractedFields) {
 	message := promptEchoPattern.ReplaceAllString(fields.Message, "")
 	if strings.EqualFold(fields.Code, "reference_unavailable") {
 		failure.Category = CategoryInputInaccessible
-		failure.Reason = firstNonEmpty(sanitizeProviderText(message), "参考素材暂时无法读取")
-		failure.Action = "请稍后重试，或重新上传参考素材后再试"
+		failure.Reason = firstNonEmpty(sanitizeProviderText(message), "The reference material cannot be read at the moment.")
+		failure.Action = "Please try again later, or re-upload the reference material and try again"
 		return
 	}
 	if strings.EqualFold(fields.Code, "invalid_upscale_source") {
 		lower := strings.ToLower(message)
 		if strings.Contains(lower, "video") {
 			failure.Category = CategoryInvalidParams
-			failure.Reason = "超分视频素材不符合要求"
-			failure.Action = "请使用 5 分钟以内、200MB 以内的有效 MP4/MOV 视频后重试"
+			failure.Reason = "Super resolution video material does not meet the requirements"
+			failure.Action = "Please try again with a valid MP4/MOV video within 5 minutes and 200MB."
 			return
 		}
 		if strings.Contains(lower, "image") {
 			failure.Category = CategoryInvalidParams
-			failure.Reason = "超分图片素材不符合要求"
-			failure.Action = "请使用 30MB 以内、像素不超过 3200 万的 JPEG/PNG/WebP 图片后重试"
+			failure.Reason = "Super score picture material does not meet the requirements"
+			failure.Action = "Please use a JPEG/PNG/WebP image within 30MB and no more than 32 million pixels and try again."
 			return
 		}
 	}
@@ -294,132 +294,132 @@ func specializeMediaConstraints(failure *Failure, fields extractedFields) {
 	}
 	if match := heightRangePattern.FindStringSubmatch(message); len(match) == 3 {
 		failure.Category = CategoryInvalidParams
-		failure.Reason = "参考素材高度不符合模型要求"
-		failure.Action = fmt.Sprintf("请将高度调整为 %s–%s 像素后重新提交", match[1], match[2])
+		failure.Reason = "The height of the reference material does not meet the model requirements"
+		failure.Action = fmt.Sprintf("Please adjust the height to %s–%s pixels and resubmit.", match[1], match[2])
 		return
 	}
 	if match := widthRangePattern.FindStringSubmatch(message); len(match) == 3 {
 		failure.Category = CategoryInvalidParams
-		failure.Reason = "参考素材宽度不符合模型要求"
-		failure.Action = fmt.Sprintf("请将宽度调整为 %s–%s 像素后重新提交", match[1], match[2])
+		failure.Reason = "The width of the reference material does not meet the model requirements"
+		failure.Action = fmt.Sprintf("Please adjust the width to %s–%s pixels and resubmit.", match[1], match[2])
 		return
 	}
 	if match := aspectRangePattern.FindStringSubmatch(message); len(match) == 3 {
 		failure.Category = CategoryInvalidParams
-		failure.Reason = "参考素材宽高比不符合模型要求"
-		failure.Action = fmt.Sprintf("请将宽高比调整为 %s–%s 后重新提交", match[1], match[2])
+		failure.Reason = "The aspect ratio of the reference material does not meet the model requirements"
+		failure.Action = fmt.Sprintf("Please adjust the aspect ratio to %s–%s and resubmit.", match[1], match[2])
 		return
 	}
 	if match := pixelRangePattern.FindStringSubmatch(message); len(match) == 3 {
 		failure.Category = CategoryInvalidParams
-		failure.Reason = "参考素材像素总量不符合模型要求"
-		failure.Action = fmt.Sprintf("请将参考素材的宽×高调整到 %s–%s 像素；修改生成分辨率不会改变参考素材", match[1], match[2])
+		failure.Reason = "The total number of pixels in the reference material does not meet the model requirements."
+		failure.Action = fmt.Sprintf("Please adjust the width × height of the reference material to %s–%s pixels; modifying the generated resolution will not change the reference material.", match[1], match[2])
 		return
 	}
-	if requestTooLargePattern.MatchString(message) || strings.EqualFold(fields.Code, "video_request_body_too_large") || strings.HasPrefix(message, "整次请求的数据量超过接口上限") {
+	if requestTooLargePattern.MatchString(message) || strings.EqualFold(fields.Code, "video_request_body_too_large") || strings.HasPrefix(message, "The amount of data requested exceeds the upper limit of the interface") {
 		failure.Category = CategoryInputTooLarge
-		failure.Reason = "整次请求的数据量超过接口上限"
-		failure.Action = "请减少参考素材，或改用可公开访问的素材链接后再提交"
+		failure.Reason = "The amount of data requested exceeds the upper limit of the interface"
+		failure.Action = "Please reduce the number of reference materials or use publicly accessible material links before submitting."
 		return
 	}
 	if singleFileTooLargePattern.MatchString(message) {
 		failure.Category = CategoryInputTooLarge
-		failure.Reason = "单个参考文件过大"
-		failure.Action = "请压缩或更换该素材后再提交"
+		failure.Reason = "Single reference file is too large"
+		failure.Action = "Please compress or replace the material before submitting it"
 	}
 }
 
 func referenceMediaConstraintCopy(text string) (categoryCopy, bool) {
-	text = strings.SplitN(strings.TrimSpace(text), "。排查编号：", 2)[0]
+	text = strings.SplitN(strings.TrimSpace(text), ". Check number:", 2)[0]
 	text, _ = stripGatewayRequestIDSuffix(text)
-	if strings.HasPrefix(text, "当前渠道需要在线素材链接：") {
+	if strings.HasPrefix(text, "The current channel requires online material links:") {
 		reason, action, _ := strings.Cut(text, "。")
 		return categoryCopy{Reason: reason, Action: action}, true
 	}
-	if strings.Contains(text, "当前模型协议要求公网素材地址") || strings.Contains(text, "当前 JSON 视频协议的参考素材不能使用内嵌数据") {
-		return categoryCopy{Reason: "当前渠道暂不支持直接使用本地素材", Action: "请使用可访问的 HTTPS 素材链接，或选择支持本地素材的渠道"}, true
+	if strings.Contains(text, "The current model protocol requires public network material address") || strings.Contains(text, "Reference material for the current JSON video protocol cannot use embedded data") {
+		return categoryCopy{Reason: "The current channel does not support the direct use of local materials.", Action: "Please use an accessible HTTPS asset link, or choose a channel that supports local assets"}, true
 	}
-	if strings.HasPrefix(text, "当前渠道暂不支持直接使用本地素材") {
-		return categoryCopy{Reason: "当前渠道暂不支持直接使用本地素材", Action: "请使用可访问的 HTTPS 素材链接，或选择支持本地素材的渠道"}, true
+	if strings.HasPrefix(text, "The current channel does not support the direct use of local materials.") {
+		return categoryCopy{Reason: "The current channel does not support the direct use of local materials.", Action: "Please use an accessible HTTPS asset link, or choose a channel that supports local assets"}, true
 	}
-	if m := regexp.MustCompile(`^(当前模型(?:暂不支持参考(?:图片|图|视频|音频)|(?:最多支持|至少需要) \d+ (?:张|个|段)?参考(?:图片|图|视频|音频)|不支持仅使用参考音频))[，。](请[^\n]+?)[。.]?$`).FindStringSubmatch(text); len(m) == 3 {
+	if m := regexp.MustCompile(`^(Current model (?: Reference (?: Picture | Picture | Video | Audio) | (?: Support at most | At least required) \d+ (?: Zhang | Piece | Segment)? Reference (?: Picture | Picture | Video | Audio) | Only reference audio is not supported))[,. ](Please [^\n]+?)[. .]?$`).FindStringSubmatch(text); len(m) == 3 {
 		return categoryCopy{Reason: m[1], Action: m[2]}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ 个参考视频帧率无法读取)`).FindStringSubmatch(text); len(m) == 2 {
-		return categoryCopy{Reason: m[1], Action: "请重新导出 MP4/MOV 视频后上传，确保文件完整且包含有效的视频轨"}, true
+	if m := regexp.MustCompile(`^(\d+th reference video frame rate cannot be read)`).FindStringSubmatch(text); len(m) == 2 {
+		return categoryCopy{Reason: m[1], Action: "Please re-export the MP4/MOV video before uploading, making sure the file is complete and contains a valid video track"}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ 个参考视频平均帧率为 \d+(?:\.\d+)? FPS)[，。](?:需要 |请将参考视频重新导出为 )(\d+)–(\d+) FPS`).FindStringSubmatch(text); len(m) == 4 {
-		return categoryCopy{Reason: m[1], Action: "请将参考视频重新导出为 " + m[2] + "–" + m[3] + " FPS 后再提交"}, true
+	if m := regexp.MustCompile(`^(The average frame rate of the \d+th reference video is \d+(?:\.\d+)? FPS)[,. ](?:Required | Please re-export the reference video as )(\d+)–(\d+) FPS`).FindStringSubmatch(text); len(m) == 4 {
+		return categoryCopy{Reason: m[1], Action: "Please re-export the reference video as" + m[2] + "–" + m[3] + " Submit after FPS"}, true
 	}
 	if m := regexp.MustCompile(`(?i)^(?:素材转换失败:\s*)?(?:frame rate|framerate|fps) must be between (\d+(?:\.\d+)?)\s*(?:fps)? and (\d+(?:\.\d+)?)[.\s]*$`).FindStringSubmatch(text); len(m) == 3 {
-		return categoryCopy{Reason: "参考视频帧率不符合要求", Action: "请将参考视频重新导出为 " + m[1] + "–" + m[2] + " FPS 后再提交"}, true
+		return categoryCopy{Reason: "The frame rate of the reference video does not meet the requirements", Action: "Please re-export the reference video as" + m[1] + "–" + m[2] + " Submit after FPS"}, true
 	}
-	if strings.HasPrefix(text, "参考视频帧率不符合要求。请将参考视频重新导出为 ") {
+	if strings.HasPrefix(text, "The reference video frame rate does not meet the requirements. Please re-export the reference video as") {
 		parts := strings.SplitN(text, "。", 2)
 		return categoryCopy{Reason: parts[0], Action: parts[1]}, true
 	}
-	if regexp.MustCompile(`(?i)^(?:(?:素材转换失败:\s*)?(?:unsupported (?:video |audio )?codec|(?:video |audio )?codec (?:is )?not supported)[.\s]*$|参考素材编码不受当前模型支持。)`).MatchString(text) {
-		return categoryCopy{Reason: "参考素材编码不受当前模型支持", Action: "请将视频重新导出为常见的 H.264 MP4，音频重新导出为 MP3 或 WAV 后替换素材；只修改文件后缀无效"}, true
+	if regexp.MustCompile(`(?i)^(?:(?:material conversion failed:\s*)?(?:unsupported (?:video |audio )?codec|(?:video |audio )?codec (?:is )?not supported)[.\s]*$|The reference material encoding is not supported by the current model.)`).MatchString(text) {
+		return categoryCopy{Reason: "Reference material encoding is not supported by the current model", Action: "Please re-export the video to the common H.264 MP4 and the audio to MP3 or WAV before replacing the material; just modifying the file suffix will not work."}, true
 	}
-	if regexp.MustCompile(`(?i)^(?:asset (?:is )?(?:not ready|still processing)[.\s]*$|参考素材仍在处理中。)`).MatchString(text) {
-		return categoryCopy{Reason: "参考素材仍在处理中", Action: "请在素材库确认处理完成后再生成，不要重复上传或反复提交"}, true
+	if regexp.MustCompile(`(?i)^(?:asset (?:is )?(?:not ready|still processing)[.\s]*$|The reference material is still being processed.)`).MatchString(text) {
+		return categoryCopy{Reason: "Reference material is still being processed", Action: "Please confirm and process the material library before generating it again. Do not upload or submit repeatedly."}, true
 	}
 	if regexp.MustCompile(`(?i)^(?:asset (?:access denied|permission denied|forbidden)[.\s]*$|无权访问参考素材。)`).MatchString(text) {
-		return categoryCopy{Reason: "无权访问参考素材", Action: "请使用上传该素材的账号与渠道，或重新上传原文件；检查素材权限，无需修改提示词"}, true
+		return categoryCopy{Reason: "No access to reference material", Action: "Please use the account and channel that uploaded the material, or re-upload the original file; check the material permissions, no need to modify the prompt word"}, true
 	}
-	if m := regexp.MustCompile(`^(参考素材像素总量不符合模型要求)。((?:请将参考素材的宽×高调整到) \d+–\d+ 像素[^{}]*)$`).FindStringSubmatch(text); len(m) == 3 {
+	if m := regexp.MustCompile(`^(The total number of pixels in the reference material does not meet the model requirements). ((?: Please adjust the width × height of the reference material to) \d+–\d+ pixels[^{}]*)$`).FindStringSubmatch(text); len(m) == 3 {
 		return categoryCopy{Reason: m[1], Action: m[2]}, true
 	}
 
-	if m := regexp.MustCompile(`^(第 \d+ 个参考视频(?:无法读取|格式或地址不支持|文件过大|尺寸为 \d+×\d+|时长为 \d+(?:\.\d+)? 秒|像素总量为 \d+（\d+×\d+）))[。]([^{}]+)$`).FindStringSubmatch(text); len(m) == 3 {
+	if m := regexp.MustCompile(`^(The \d+th reference video (?:cannot be read|the format or address is not supported|the file is too large|the dimensions are \d+×\d+|the duration is \d+(?:\.\d+)? seconds|the total number of pixels is \d+(\d+×\d+)))[. ]([^{}]+)$`).FindStringSubmatch(text); len(m) == 3 {
 		return categoryCopy{Reason: m[1], Action: m[2]}, true
 	}
 
-	if m := regexp.MustCompile(`^参考素材(宽度|高度|宽高比)不符合模型要求。请将(?:宽度|高度|宽高比)调整为 (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?)( 像素| )后重新提交`).FindStringSubmatch(text); len(m) == 5 {
-		return categoryCopy{Reason: "参考素材" + m[1] + "不符合模型要求", Action: "请将" + m[1] + "调整为 " + m[2] + "–" + m[3] + m[4] + "后重新提交"}, true
+	if m := regexp.MustCompile(`^The reference material (width|height|aspect ratio) does not meet the model requirements. Please adjust (?:width|height|aspect ratio) to (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?)( pixels | ) and resubmit`).FindStringSubmatch(text); len(m) == 5 {
+		return categoryCopy{Reason: "Reference material" + m[1] + "Does not meet model requirements", Action: "please change" + m[1] + "Adjust to" + m[2] + "–" + m[3] + m[4] + "resubmit"}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ 个参考视频时长为 \d+(?:\.\d+)? 秒)，需要 (\d+)–(\d+) 秒`).FindStringSubmatch(text); len(m) == 4 {
-		return categoryCopy{Reason: m[1], Action: "请将这段参考视频裁剪或更换为 " + m[2] + "–" + m[3] + " 秒"}, true
+	if m := regexp.MustCompile(`^(\d+th reference video is \d+(?:\.\d+)? seconds) and takes (\d+)–(\d+) seconds`).FindStringSubmatch(text); len(m) == 4 {
+		return categoryCopy{Reason: m[1], Action: "Please crop or replace this reference video with" + m[2] + "–" + m[3] + " seconds"}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) 个参考视频[：:]?(?:参考视频)?(?:尺寸|时长)?(?:下载失败|无法读取|无法完整读取|数据无法读取|分段读取失败|在读取期间发生变化|时长无法读取|尺寸无法读取)`).FindStringSubmatch(text); len(m) == 2 {
-		return categoryCopy{Reason: "第 " + m[1] + " 个参考视频无法读取", Action: "请检查素材链接，或重新导出 MP4/MOV 文件后导入"}, true
+	if m := regexp.MustCompile(`^The (\d+) reference video[::]?(?:Reference video)?(?:Size|Duration)?(?:Download failed|Cannot read|Cannot read completely|Data cannot be read|Failed to read segmented|Changed during reading|Duration cannot be read|Dimensions cannot be read)`).FindStringSubmatch(text); len(m) == 2 {
+		return categoryCopy{Reason: "No." + m[1] + " reference videos cannot be read", Action: "Please check the material link, or re-export the MP4/MOV file and import it"}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) 个参考视频[：:]?(?:参考视频)?需使用`).FindStringSubmatch(text); len(m) == 2 {
-		return categoryCopy{Reason: "第 " + m[1] + " 个参考视频格式或地址不支持", Action: "请导入 MP4/MOV 文件，或使用可公开访问的 HTTP/HTTPS 视频链接"}, true
+	if m := regexp.MustCompile(`^The (\d+) reference video[::]?(?:reference video)?needs to be used`).FindStringSubmatch(text); len(m) == 2 {
+		return categoryCopy{Reason: "No." + m[1] + " The reference video format or address is not supported", Action: "Please import an MP4/MOV file or use a publicly accessible HTTP/HTTPS video link"}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) 个参考视频[：:]?(?:参考视频)?文件不能超过 (\d+)MB`).FindStringSubmatch(text); len(m) == 3 {
-		return categoryCopy{Reason: "第 " + m[1] + " 个参考视频文件过大", Action: "请压缩至 " + m[2] + "MB 以内或更换素材"}, true
+	if m := regexp.MustCompile(`^The (\d+)th reference video[::]?(?:reference video)?The file cannot exceed (\d+)MB`).FindStringSubmatch(text); len(m) == 3 {
+		return categoryCopy{Reason: "No." + m[1] + " Reference video file is too large", Action: "Please compress to" + m[2] + "Within MB or change the material"}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ 个参考视频尺寸为 \d+×\d+)，需要宽高均在 (\d+)–(\d+) 像素之间`).FindStringSubmatch(text); len(m) == 4 {
-		return categoryCopy{Reason: m[1], Action: "请将这段参考视频的宽和高均调整到 " + m[2] + "–" + m[3] + " 像素"}, true
+	if m := regexp.MustCompile(`^(The \d+th reference video size is \d+×\d+), and the width and height need to be between (\d+)–(\d+) pixels`).FindStringSubmatch(text); len(m) == 4 {
+		return categoryCopy{Reason: m[1], Action: "Please adjust the width and height of this reference video to" + m[2] + "–" + m[3] + " Pixel"}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ (?:张|个|段)参考(?:图|视频|音频)(?:宽度|高度|宽高比|时长)为 \d+(?:\.\d+)?(?: 像素| 秒)?)[，。]需要 ((?:至少|不超过) \d+(?:\.\d+)?(?: 像素| 秒)?)`).FindStringSubmatch(text); len(m) == 3 {
-		action := "请调整尺寸或更换后再提交"
+	if m := regexp.MustCompile(`^(The reference of \d+ (?:Picture|Video|Audio)(?:Width|Height|Aspect Ratio|Duration) is \d+(?:\.\d+)?(?: Pixels|Seconds)?)[,. ]requires ((?:at least | no more than) \d+(?:\.\d+)?(?: pixels | seconds)?)`).FindStringSubmatch(text); len(m) == 3 {
+		action := "Please adjust the size or replace before submitting"
 		if strings.Contains(m[1], "时长") {
-			action = "请裁剪或更换这段素材后再提交"
+			action = "Please crop or replace this material before submitting"
 		}
-		return categoryCopy{Reason: m[1], Action: "需要 " + m[2] + "；" + action}, true
+		return categoryCopy{Reason: m[1], Action: "need" + m[2] + "；" + action}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) (张|个|段)参考(图|视频|音频)(宽度|高度)为 (\d+) 像素[，。]需要 (\d+)–(\d+) 像素`).FindStringSubmatch(text); len(m) == 8 {
-		return categoryCopy{Reason: fmt.Sprintf("第 %s %s参考%s%s为 %s 像素", m[1], m[2], m[3], m[4], m[5]), Action: fmt.Sprintf("需要 %s–%s 像素；请调整尺寸或更换后再提交", m[6], m[7])}, true
+	if m := regexp.MustCompile(`^The (\d+) (piece|section) reference (picture|video|audio) (width|height) is (\d+) pixels[,. ] requires (\d+)–(\d+) pixels`).FindStringSubmatch(text); len(m) == 8 {
+		return categoryCopy{Reason: fmt.Sprintf("The %s %s reference %s%s is the %s pixel", m[1], m[2], m[3], m[4], m[5]), Action: fmt.Sprintf("Requires %s–%s pixels; please resize or replace before submitting", m[6], m[7])}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) (张|个|段)参考(图|视频|音频)宽高比为 (\d+(?:\.\d+)?)[，。]需要 (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?)`).FindStringSubmatch(text); len(m) == 7 {
-		return categoryCopy{Reason: fmt.Sprintf("第 %s %s参考%s宽高比为 %s", m[1], m[2], m[3], m[4]), Action: fmt.Sprintf("需要 %s–%s；请调整尺寸或更换后再提交", m[5], m[6])}, true
+	if m := regexp.MustCompile(`^No. (\d+) (Zhang|Piece|Paragraph) Reference (Picture|Video|Audio) The aspect ratio is (\d+(?:\.\d+)?)[,. ]Requires (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?)`).FindStringSubmatch(text); len(m) == 7 {
+		return categoryCopy{Reason: fmt.Sprintf("The %s %s reference %s aspect ratio is %s", m[1], m[2], m[3], m[4]), Action: fmt.Sprintf("Requires %s–%s; please adjust the size or replace before submitting", m[5], m[6])}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ (?:张|个|段)参考(?:图|视频|音频)像素总量为 \d+（\d+×\d+）)，需要 ([^；]+) 像素`).FindStringSubmatch(text); len(m) == 3 {
-		return categoryCopy{Reason: m[1], Action: fmt.Sprintf("需要 %s 像素；请调整这份素材的尺寸或更换原文件，修改生成分辨率不会改变参考素材", m[2])}, true
+	if m := regexp.MustCompile(`^(The total number of pixels in the reference (?:Picture|Video|Audio) of \d+ (?:Picture|Video|Audio) is \d+ (\d+×\d+)), requiring ([^;]+) pixels`).FindStringSubmatch(text); len(m) == 3 {
+		return categoryCopy{Reason: m[1], Action: fmt.Sprintf("Requires %s pixels; please adjust the size of this material or replace the original file. Modifying the generated resolution will not change the reference material.", m[2])}, true
 	}
-	if m := regexp.MustCompile(`^(第 \d+ 个参考视频尺寸无法读取)`).FindStringSubmatch(text); len(m) == 2 {
-		return categoryCopy{Reason: m[1], Action: "请重新导出 MP4/MOV 后导入"}, true
+	if m := regexp.MustCompile(`^(\d+th reference video size cannot be read)`).FindStringSubmatch(text); len(m) == 2 {
+		return categoryCopy{Reason: m[1], Action: "Please re-export MP4/MOV and then import"}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) (张|个|段)参考(图|视频|音频)像素总量`).FindStringSubmatch(text); len(m) == 4 {
-		return categoryCopy{Reason: fmt.Sprintf("第 %s %s参考%s像素总量不符合当前模型要求", m[1], m[2], m[3]), Action: "请调整尺寸或更换后再提交"}, true
+	if m := regexp.MustCompile(`^No. (\d+) (sheet|piece|segment) reference (picture|video|audio) total pixels`).FindStringSubmatch(text); len(m) == 4 {
+		return categoryCopy{Reason: fmt.Sprintf("The total number of pixels of reference %s %s and %s does not meet the current model requirements.", m[1], m[2], m[3]), Action: "Please adjust the size or replace before submitting"}, true
 	}
-	if m := regexp.MustCompile(`^第 (\d+) (张|个|段)参考(图|视频|音频)文件过大[，。]当前模型单文件上限为 ([^；;]+)`).FindStringSubmatch(text); len(m) == 5 {
-		return categoryCopy{Reason: fmt.Sprintf("第 %s %s参考%s文件过大", m[1], m[2], m[3]), Action: fmt.Sprintf("当前模型单文件上限为 %s；请压缩或更换后再提交", m[4])}, true
+	if m := regexp.MustCompile(`^No. (\d+) (pieces | paragraphs) reference (pictures | video | audio) file is too large [,. ]The current upper limit of a single model file is ([^;;]+)`).FindStringSubmatch(text); len(m) == 5 {
+		return categoryCopy{Reason: fmt.Sprintf("No. %s %s reference %s file is too large", m[1], m[2], m[3]), Action: fmt.Sprintf("The current upper limit of a single model file is %s; please compress or replace it before submitting.", m[4])}, true
 	}
-	if strings.HasPrefix(text, "整次请求的参考素材合计过大") {
-		return categoryCopy{Reason: "整次请求的参考素材合计过大", Action: "请减少素材后再提交"}, true
+	if strings.HasPrefix(text, "The total number of reference materials requested is too large") {
+		return categoryCopy{Reason: "The total number of reference materials requested is too large", Action: "Please reduce the number of materials before submitting"}, true
 	}
 	return categoryCopy{}, false
 }
@@ -441,11 +441,11 @@ func specializeDurationRange(failure *Failure, fields extractedFields) {
 	if minErr != nil || maxErr != nil || minValue < 0 || minValue >= maxValue || maxValue > 86400 {
 		return
 	}
-	failure.Reason = "视频时长不符合模型要求"
-	failure.Action = fmt.Sprintf("请将时长调整为 %s–%s 秒后重试", minimum, maximum)
+	failure.Reason = "The video length does not meet the model requirements"
+	failure.Action = fmt.Sprintf("Please adjust the duration to %s–%s seconds and try again.", minimum, maximum)
 	if strings.Contains(message, "素材") || strings.Contains(strings.ToLower(message), "reference") || strings.Contains(strings.ToLower(message), "audio") {
-		failure.Reason = "参考素材时长不符合模型要求"
-		failure.Action = fmt.Sprintf("请检查每段参考音频和视频，将不符合要求的素材调整为 %s–%s 秒后重新提交", minimum, maximum)
+		failure.Reason = "The duration of the reference material does not meet the model requirements"
+		failure.Action = fmt.Sprintf("Please check each reference audio and video, adjust the material that does not meet the requirements to %s–%s seconds and resubmit.", minimum, maximum)
 	}
 }
 
@@ -458,27 +458,27 @@ func isNetworkText(value string) bool {
 func outboundPolicyCopy(message string) (categoryCopy, bool) {
 	message, _, _ = strings.Cut(strings.TrimSpace(message), "。")
 	switch message {
-	case "不允许访问链路本地、未指定或组播地址":
+	case "Do not allow access to link-local, unspecified, or multicast addresses":
 		return categoryCopy{
-			Reason: "模型服务地址被出站安全策略拦截",
-			Action: "该地址属于链路本地或云主机元数据网段，允许列表也不能放行。请改用回环或局域网地址",
+			Reason: "The model service address is blocked by the outbound security policy",
+			Action: "This address belongs to the link local or cloud host metadata network segment, and the allow list cannot release it. Please use a loopback or LAN address instead",
 		}, true
-	case "不允许访问本机或内网地址", "不允许访问本机、内网或链路本地地址", "不允许访问保留地址或特殊用途地址":
+	case "Access to this machine or intranet address is not allowed", "Access to local machine, intranet or link-local address is not allowed", "Access to reserved or special purpose addresses is not allowed":
 		return categoryCopy{
-			Reason: "模型服务地址被出站安全策略拦截",
-			Action: "请检查渠道的服务地址；如需连接可信的本地或内网服务，请联系管理员仅将该主机加入允许列表后重启服务",
+			Reason: "The model service address is blocked by the outbound security policy",
+			Action: "Please check the service address of the channel; if you need to connect to a trusted local or intranet service, please contact the administrator to only add the host to the allow list and then restart the service.",
 		}, true
-	case "外部服务域名解析失败":
+	case "External service domain name resolution failed":
 		return categoryCopy{
-			Reason: "模型服务域名解析失败",
-			Action: "请检查渠道服务地址中的域名是否正确，并确认运行 BeefTV 的设备能够正常联网和解析该域名",
+			Reason: "Model service domain name resolution failed",
+			Action: "Please check whether the domain name in the channel service address is correct, and confirm that the device running BeefTV can connect to the Internet and resolve the domain name normally",
 		}, true
 	}
 	return categoryCopy{}, false
 }
 
 func isMalformedText(value string) bool {
-	return regexp.MustCompile(`(?i)(?:接口返回非 JSON|没有返回有效 JSON|invalid character|unexpected end of json|<!doctype|<html)`).MatchString(value)
+	return regexp.MustCompile(`(?i)(?: The interface returns non-JSON|No valid JSON is returned|invalid character|unexpected end of json|<!doctype|<html)`).MatchString(value)
 }
 
 func isDownloadText(value string) bool {
@@ -517,10 +517,10 @@ func matchPersistedCategory(text string) FailureCategory {
 	if strings.HasPrefix(text, "当前账号额度不足") {
 		return CategoryQuotaUser
 	}
-	if strings.HasPrefix(text, "提示词或参考素材未通过内容安全审核") {
+	if strings.HasPrefix(text, "The prompt word or reference material did not pass the content security review") {
 		return CategoryModerationInput
 	}
-	if strings.HasPrefix(text, "视频时长不符合模型要求") {
+	if strings.HasPrefix(text, "The video length does not meet the model requirements") {
 		return CategoryInvalidParams
 	}
 	for category, copyText := range categoryCopies {
@@ -534,18 +534,18 @@ func matchPersistedCategory(text string) FailureCategory {
 	if strings.Contains(text, "真人形象") {
 		return CategoryModerationReference
 	}
-	if strings.Contains(text, "不支持强制工具调用") {
+	if strings.Contains(text, "Forced tool calls are not supported") {
 		return CategoryInvalidParams
 	}
-	if strings.Contains(text, "可能仍在服务端执行") || strings.Contains(text, "请勿立即重试") {
+	if strings.Contains(text, "May still be executed on the server side") || strings.Contains(text, "请勿立即重试") {
 		return CategoryTimeout
 	}
 	return CategoryUnknown
 }
 
 var (
-	infrastructureTextPattern    = regexp.MustCompile(`(?i)(?:接口请求失败|Request failed with status code|status(?:[_\s]+code)?\s*[:=]|Bad Gateway|Service Unavailable|Gateway Timeout|upstream_error|素材转换失败:|无可用渠道|暂无可用渠道)`)
-	persistedReferenceItemPrefix = regexp.MustCompile(`^参考(?:图片|图|视频|音频|素材) \d+：`)
+	infrastructureTextPattern    = regexp.MustCompile(`(?i)(?:Interface request failed|Request failed with status code|status(?:[_\s]+code)?\s*[:=]|Bad Gateway|Service Unavailable|Gateway Timeout|upstream_error|Material conversion failed:|No channel available|No channel available yet)`)
+	persistedReferenceItemPrefix = regexp.MustCompile(`^Reference(?:picture|picture|video|audio|material) \d+：`)
 )
 
 func userFacingChineseCopy(raw string) (categoryCopy, bool) {
@@ -562,7 +562,7 @@ func userFacingChineseCopy(raw string) (categoryCopy, bool) {
 	if _, policy := outboundPolicyCopy(trimmed); policy {
 		return categoryCopy{}, false
 	}
-	trimmed = strings.SplitN(trimmed, "。排查编号：", 2)[0]
+	trimmed = strings.SplitN(trimmed, ". Check number:", 2)[0]
 	trimmed, _ = stripGatewayRequestIDSuffix(trimmed)
 	clean := sanitizeProviderText(trimmed)
 	if clean == "" || strings.Contains(clean, "[已隐藏]") || strings.Contains(clean, "[路径已隐藏]") || !looksLikeUserFacingChinese(clean) {
@@ -570,7 +570,7 @@ func userFacingChineseCopy(raw string) (categoryCopy, bool) {
 	}
 	clean = strings.TrimSpace(strings.TrimRight(clean, "。"))
 	switch clean {
-	case "", "请求失败", "操作失败", "生成失败", "任务失败", "已停止", "调用失败", "未知错误", "参数错误", "请求参数错误", "参数无效", "无效参数", "模型服务请求失败":
+	case "", "Request failed", "Operation failed", "Build failed", "Task failed", "Stopped", "call failed", "unknown error", "Parameter error", "Request parameter error", "Invalid parameter", "Invalid parameter", "Model service request failed":
 		return categoryCopy{}, false
 	}
 	if clean == categoryCopies[CategoryUnknown].Reason+"。"+categoryCopies[CategoryUnknown].Action {
@@ -591,9 +591,9 @@ func userFacingChineseCopy(raw string) (categoryCopy, bool) {
 	if reason, action, ok := strings.Cut(clean, "。"); ok && strings.TrimSpace(action) != "" {
 		return categoryCopy{Reason: strings.TrimSpace(reason), Action: strings.TrimSpace(action)}, true
 	}
-	for _, sep := range []string{"，请", "；请"} {
+	for _, sep := range []string{", please", ";please"} {
 		if left, right, ok := strings.Cut(clean, sep); ok && strings.TrimSpace(left) != "" {
-			return categoryCopy{Reason: strings.TrimSpace(left), Action: "请" + strings.TrimSpace(right)}, true
+			return categoryCopy{Reason: strings.TrimSpace(left), Action: "please" + strings.TrimSpace(right)}, true
 		}
 	}
 	return categoryCopy{Reason: clean}, true
@@ -602,18 +602,18 @@ func userFacingChineseCopy(raw string) (categoryCopy, bool) {
 func isActionableParameterCopy(copy categoryCopy) bool {
 	reason := strings.TrimSpace(copy.Reason)
 	action := strings.TrimSpace(copy.Action)
-	for _, prefix := range []string{"请稍后", "请查看", "请先查询", "请联系支持", "请重试", "点击「"} {
+	for _, prefix := range []string{"please wait", "Please check", "Please inquire first", "Please contact support", "Please try again", "Click \""} {
 		if strings.HasPrefix(action, prefix) {
 			return false
 		}
 	}
-	for _, generic := range []string{"生成失败", "请求失败", "操作失败", "任务失败", "调用失败", "模型服务请求失败", "暂时不可用", "服务繁忙", "系统繁忙", "频率", "频繁", "限流", "并发"} {
+	for _, generic := range []string{"Build failed", "Request failed", "Operation failed", "Task failed", "call failed", "Model service request failed", "Temporarily unavailable", "Service is busy", "System is busy", "Frequency", "Frequently", "Current limiting", "Concurrency"} {
 		if strings.Contains(reason, generic) {
 			return false
 		}
 	}
 	hasSubject := false
-	for _, subj := range []string{"模型", "参考", "素材", "图片", "视频", "音频", "首帧", "尾帧", "首尾帧", "文件", "参数", "尺寸", "分辨率", "比例", "时长", "帧率", "编码", "格式", "提示词", "无法识别"} {
+	for _, subj := range []string{"model", "Reference", "Material", "pictures", "video", "Audio", "first frame", "last frame", "First and last frames", "File", "parameters", "Size", "resolution", "Proportion", "duration", "Frame rate", "encoding", "Format", "prompt word", "Unrecognized"} {
 		if strings.Contains(reason, subj) {
 			hasSubject = true
 			break
@@ -622,13 +622,13 @@ func isActionableParameterCopy(copy categoryCopy) bool {
 	if !hasSubject {
 		return false
 	}
-	for _, verb := range []string{"调整", "减少", "更换", "裁剪", "重新导出", "上传", "移除", "修改", "缩短", "压缩", "图片用", "视频用", "音频用"} {
+	for _, verb := range []string{"adjust", "reduce", "Replace", "Crop", "Re-export", "upload", "Remove", "Modify", "shorten", "Compression", "For pictures", "For video", "for audio"} {
 		if strings.Contains(action, verb) {
 			return true
 		}
 	}
 	if action == "" {
-		for _, kw := range []string{"不支持", "仅支持", "只支持", "最多支持", "至少需要", "无法识别文件"} {
+		for _, kw := range []string{"Not supported", "Only supports", "Only supports", "Most supported", "At least required", "File not recognized"} {
 			if strings.Contains(reason, kw) {
 				return true
 			}

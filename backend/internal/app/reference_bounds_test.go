@@ -45,15 +45,15 @@ func TestReferenceDurationIndependentBounds(t *testing.T) {
 		min, max float64
 		want     string
 	}{
-		{16000, 0, 15, "需要改到 15 秒以内；请裁剪或换一段更短的音频后再提交"},
-		{1000, 2, 0, "需要改到 2 秒以上；请换一段更长的音频后再提交"},
+		{16000, 0, 15, "Needs to be changed to within 15 seconds; please crop or change a shorter audio before submitting"},
+		{1000, 2, 0, "Needs to be changed to more than 2 seconds; please change to a longer audio before submitting"},
 		{0, 0, 0, ""}, {15000, 0, 15, ""}, {2000, 2, 0, ""},
 		// 2–15 秒的限制下，过短要换更长、过长要裁短，不能都给同一个建议。
-		{1900, 2, 15, "需要改到 2–15 秒；请换一段更长的音频后再提交"},
-		{16000, 2, 15, "需要改到 2–15 秒；请裁剪或换一段更短的音频后再提交"},
-		{16000, 2, 15, "第 1 段参考音频时长为 16.00 秒"},
+		{1900, 2, 15, "Needs to be changed to 2–15 seconds; please change to a longer audio before submitting"},
+		{16000, 2, 15, "Needs to be changed to 2–15 seconds; please crop or change a shorter audio before submitting"},
+		{16000, 2, 15, "Reference audio length 1 is 16.00 seconds"},
 	} {
-		err := validateReferenceDuration("音频", 0, tc.duration, tc.min, tc.max)
+		err := validateReferenceDuration("Audio", 0, tc.duration, tc.min, tc.max)
 		if tc.want == "" {
 			if err != nil {
 				t.Fatal(err)

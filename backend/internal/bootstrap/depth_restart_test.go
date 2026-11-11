@@ -36,7 +36,7 @@ func TestDesktopRestartPausesOnlyUnfinishedDepthCaptures(t *testing.T) {
 		if err := r.db.First(&task, "id = ?", id).Error; err != nil {
 			t.Fatal(err)
 		}
-		if task.Status != model.TaskStatusFailed || task.Stage != "已暂停，等待手动继续" {
+		if task.Status != model.TaskStatusFailed || task.Stage != "Paused, waiting for manual continuation" {
 			t.Fatalf("restarted depth=%+v", task)
 		}
 		if id == "depth-running" && (task.Attempts != 9 || task.InputJSON != `{"resourceId":"kept"}`) {

@@ -59,7 +59,7 @@ func newAssistantTestEnv(t *testing.T, host func(env *assistantTestEnv) http.Han
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	dataDir := t.TempDir()
@@ -69,8 +69,8 @@ func newAssistantTestEnv(t *testing.T, host func(env *assistantTestEnv) http.Han
 		t.Fatal(err)
 	}
 	canvasID := "assistant-canvas"
-	doc := map[string]any{"id": canvasID, "title": "助手回归", "revision": 0,
-		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "起点", "position": map[string]any{"x": 0, "y": 0}}},
+	doc := map[string]any{"id": canvasID, "title": "Assistant returns", "revision": 0,
+		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "starting point", "position": map[string]any{"x": 0, "y": 0}}},
 		"connections": []any{}}
 	encoded, err := json.Marshal(doc)
 	if err != nil {
@@ -191,7 +191,7 @@ func decodeEnvelope(t *testing.T, recorder *httptest.ResponseRecorder) map[strin
 		Data   map[string]any `json:"data"`
 	}
 	if err := json.Unmarshal(recorder.Body.Bytes(), &envelope); err != nil {
-		t.Fatalf("响应不是信封 JSON: %s", recorder.Body.String())
+		t.Fatalf("Response is not an envelope JSON: %s", recorder.Body.String())
 	}
 	if envelope.Data == nil {
 		envelope.Data = map[string]any{}
@@ -214,11 +214,11 @@ func TestAssistantStatusReportsResolvedModelAndReasons(t *testing.T) {
 	useEnvProvider(t, "chat-completion")
 	data := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/status", ""))
 	if available, _ := data["available"].(bool); !available {
-		t.Fatalf("宿主健康时状态应可用: %#v", data)
+		t.Fatalf("Status should be available when the host is healthy: %#v", data)
 	}
 	modelInfo, _ := data["model"].(map[string]any)
 	if modelInfo["id"] != "MiniMax-M3" {
-		t.Fatalf("状态应带上解析出的模型: %#v", data["model"])
+		t.Fatalf("The status should bring the parsed model: %#v", data["model"])
 	}
 
 	// 模型/凭据没解析出来时，宿主是否健康都不影响结论。
@@ -227,10 +227,10 @@ func TestAssistantStatusReportsResolvedModelAndReasons(t *testing.T) {
 	}
 	data = decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/status", ""))
 	if available, _ := data["available"].(bool); available {
-		t.Fatal("未配置模型时状态不应可用")
+		t.Fatal("Status should not be available when model is not configured")
 	}
 	if data["reason"] != app.AssistantReasonModelNotConfigured {
-		t.Fatalf("reason 应为 %s，得到 %v", app.AssistantReasonModelNotConfigured, data["reason"])
+		t.Fatalf("reason should be %s, get %v", app.AssistantReasonModelNotConfigured, data["reason"])
 	}
 }
 
@@ -241,10 +241,10 @@ func TestAssistantStatusReportsUnreachableHost(t *testing.T) {
 
 	data := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/status", ""))
 	if available, _ := data["available"].(bool); available {
-		t.Fatal("宿主不可达时不应可用")
+		t.Fatal("Should not be available when the host is unreachable")
 	}
 	if data["reason"] != "host_unreachable" && data["reason"] != "host_start_failed" {
-		t.Fatalf("reason 应指向宿主问题，得到 %v", data["reason"])
+		t.Fatalf("reason should point to the host question, getting %v", data["reason"])
 	}
 }
 
@@ -284,7 +284,7 @@ func TestAssistantChatRecordsTurnChangeAndUndoRestoresDocument(t *testing.T) {
 			revision, _ := doc["revision"].(float64)
 			params, _ := json.Marshal(map[string]any{
 				"canvasId": env.canvasID, "expectedRevision": int64(revision),
-				"nodes": []any{map[string]any{"title": "助手节点", "type": "text"}}})
+				"nodes": []any{map[string]any{"title": "Helper node", "type": "text"}}})
 			status, opBody := env.opsRaw("canvas.nodes.create", "host-turn-op-1", captured.TurnID, string(params))
 			if status != http.StatusOK {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -311,7 +311,7 @@ func TestAssistantChatRecordsTurnChangeAndUndoRestoresDocument(t *testing.T) {
 			}
 			w.Header().Set("Content-Type", "application/x-ndjson")
 			_, _ = w.Write([]byte(`{"type":"text_delta","delta":"好"}` + "\n"))
-			line, _ := json.Marshal(map[string]any{"type": "turn_end", "turnId": captured.TurnID, "reply": "好",
+			line, _ := json.Marshal(map[string]any{"type": "turn_end", "turnId": captured.TurnID, "reply": "good",
 				"toolCalls": []any{}, "proposals": []any{},
 				"change": map[string]any{"revisionBefore": captured.RevisionBefore, "revisionAfter": opResult.Data.Result.Revision,
 					"createdNodeIds": createdIDs, "updatedNodeIds": []string{}, "createdEdgeIds": []string{}}})
@@ -321,34 +321,34 @@ func TestAssistantChatRecordsTurnChangeAndUndoRestoresDocument(t *testing.T) {
 	useEnvProvider(t, "chat-completion")
 
 	recorder := env.call(t, http.MethodPost, "/assistant/chat",
-		`{"canvasId":"`+env.canvasID+`","message":"加一个节点","selectedNodeIds":["n1"]}`)
+		`{"canvasId":"`+env.canvasID+`","message":"Add a node","selectedNodeIds":["n1"]}`)
 	if recorder.Code != http.StatusOK {
-		t.Fatalf("对话应成功: %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("The conversation should succeed: %d %s", recorder.Code, recorder.Body.String())
 	}
 	if captured.TurnID == "" {
-		t.Fatal("后端必须生成 turnId 交给宿主")
+		t.Fatal("The backend must generate turnId and give it to the host")
 	}
 	if captured.RevisionBefore == 0 {
-		t.Fatal("后端必须把轮前版本交给宿主")
+		t.Fatal("The backend must deliver the pre-round version to the host")
 	}
 	if !strings.Contains(recorder.Body.String(), `"turn_end"`) {
-		t.Fatalf("流式响应应原样包含 turn_end: %s", recorder.Body.String())
+		t.Fatalf("Streaming responses should contain turn_end: %s as is", recorder.Body.String())
 	}
 
 	owner, _ := env.service.LocalWorkspaceOwner()
 	before := canvasNodeIDs(t, env.service, owner.ID, env.canvasID)
 	if len(before) != 2 {
-		t.Fatalf("这轮应写入了一个节点，得到 %v", before)
+		t.Fatalf("This round should write to a node and get %v", before)
 	}
 
 	undo := decodeEnvelope(t, env.call(t, http.MethodPost, "/assistant/turns/"+captured.TurnID+"/undo",
 		`{"canvasId":"`+env.canvasID+`"}`))
 	revision, _ := undo["revision"].(float64)
 	if int64(revision) <= captured.RevisionBefore {
-		t.Fatalf("撤销必须产生新版本，得到 %v", undo)
+		t.Fatalf("Undoing must produce a new version, resulting in %v", undo)
 	}
 	if after := canvasNodeIDs(t, env.service, owner.ID, env.canvasID); len(after) != 1 || after[0] != "n1" {
-		t.Fatalf("撤销后应回到轮前节点集合，得到 %v", after)
+		t.Fatalf("After revocation, we should return to the set of nodes before the round and get %v", after)
 	}
 	history := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/history?canvasId="+env.canvasID, ""))
 	turns, _ := history["turns"].([]any)
@@ -359,10 +359,10 @@ func TestAssistantChatRecordsTurnChangeAndUndoRestoresDocument(t *testing.T) {
 	// 已撤销的轮次不能再撤一次。
 	recorder = env.call(t, http.MethodPost, "/assistant/turns/"+captured.TurnID+"/undo", `{"canvasId":"`+env.canvasID+`"}`)
 	if recorder.Code != http.StatusConflict {
-		t.Fatalf("重复撤销应是 409，得到 %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("Duplicate undo should be 409, getting %d %s", recorder.Code, recorder.Body.String())
 	}
 	if reason := decodeEnvelope(t, recorder)["__reason"]; reason != app.AssistantTurnReasonAlreadyUndone {
-		t.Fatalf("reason 应为 %s，得到 %v", app.AssistantTurnReasonAlreadyUndone, reason)
+		t.Fatalf("reason should be %s, get %v", app.AssistantTurnReasonAlreadyUndone, reason)
 	}
 }
 
@@ -372,11 +372,11 @@ func TestAssistantUndoRejectsUnknownTurnAndForeignCanvas(t *testing.T) {
 
 	recorder := env.call(t, http.MethodPost, "/assistant/turns/00112233445566/undo", `{"canvasId":"`+env.canvasID+`"}`)
 	if recorder.Code != http.StatusNotFound {
-		t.Fatalf("未知轮次应是 404，得到 %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("Unknown round should be 404, get %d %s", recorder.Code, recorder.Body.String())
 	}
 	recorder = env.call(t, http.MethodPost, "/assistant/turns/00112233445566/undo", `{"canvasId":"not-mine"}`)
 	if recorder.Code != http.StatusNotFound {
-		t.Fatalf("外部画布应是 404，得到 %d", recorder.Code)
+		t.Fatalf("The outer canvas should be 404, getting %d", recorder.Code)
 	}
 }
 
@@ -405,33 +405,33 @@ func TestAssistantSessionsAndHistoryAreProxiedWithScopeCheck(t *testing.T) {
 
 	data := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/sessions?canvasId="+url.QueryEscape(env.canvasID), ""))
 	if data["currentSessionId"] != "s1" {
-		t.Fatalf("会话列表应被解包成契约形状: %#v", data)
+		t.Fatalf("The session list should be unpacked into contract shape: %#v", data)
 	}
 	if list, _ := data["sessions"].([]any); len(list) != 1 {
-		t.Fatalf("会话条目异常: %#v", data["sessions"])
+		t.Fatalf("Session entry exception: %#v", data["sessions"])
 	}
 
 	data = decodeEnvelope(t, env.call(t, http.MethodPost, "/assistant/sessions", `{"canvasId":"`+env.canvasID+`"}`))
 	if data["sessionId"] != "s2" {
-		t.Fatalf("新建会话应回 sessionId: %#v", data)
+		t.Fatalf("A new session should return sessionId: %#v", data)
 	}
 
 	data = decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/history?canvasId="+url.QueryEscape(env.canvasID), ""))
 	turns, _ := data["turns"].([]any)
 	if len(turns) != 1 {
-		t.Fatalf("历史条目异常: %#v", data)
+		t.Fatalf("History entry exception: %#v", data)
 	}
 	turn, _ := turns[0].(map[string]any)
-	if turn["userText"] != "加一个节点" {
-		t.Fatalf("历史必须是用户原文，得到 %v", turn["userText"])
+	if turn["userText"] != "add a node" {
+		t.Fatalf("The history must be the user's original text, get %v", turn["userText"])
 	}
 
 	// 不属于当前工作区的画布不能借会话/历史入口探测宿主。
 	if recorder := env.call(t, http.MethodGet, "/assistant/sessions?canvasId=not-mine", ""); recorder.Code != http.StatusNotFound {
-		t.Fatalf("外部画布应是 404，得到 %d", recorder.Code)
+		t.Fatalf("The outer canvas should be 404, getting %d", recorder.Code)
 	}
 	if env.hostHits["/sessions"] != 2 {
-		t.Fatalf("scope 未通过时不应转发给宿主，命中 %d 次", env.hostHits["/sessions"])
+		t.Fatalf("If the scope fails, it should not be forwarded to the host. Hits %d times", env.hostHits["/sessions"])
 	}
 }
 
@@ -465,21 +465,21 @@ func TestAssistantDeleteSessionProxiesWithScopeCheckAndRejectsBusy(t *testing.T)
 
 	data := decodeEnvelope(t, env.call(t, http.MethodDelete, "/assistant/sessions/durable:11111111-1111-1111-1111-111111111111?canvasId="+url.QueryEscape(env.canvasID), ""))
 	if data["deleted"] != true {
-		t.Fatalf("删除会话应返回 deleted=true: %#v", data)
+		t.Fatalf("Deleting a session should return deleted=true: %#v", data)
 	}
 
 	busy = true
 	busyResp := env.call(t, http.MethodDelete, "/assistant/sessions/durable:11111111-1111-1111-1111-111111111111?canvasId="+url.QueryEscape(env.canvasID), "")
 	if busyResp.Code != http.StatusConflict {
-		t.Fatalf("运行中会话删除应返回 409，得到 %d %s", busyResp.Code, busyResp.Body.String())
+		t.Fatalf("Running session deletion should return 409, resulting in %d %s", busyResp.Code, busyResp.Body.String())
 	}
 	if reason := decodeEnvelope(t, busyResp)["__reason"]; reason != "session_busy" {
-		t.Fatalf("reason 应为 session_busy，得到 %v", reason)
+		t.Fatalf("reason should be session_busy, get %v", reason)
 	}
 
 	foreign := env.call(t, http.MethodDelete, "/assistant/sessions/durable:11111111-1111-1111-1111-111111111111?canvasId=not-mine", "")
 	if foreign.Code != http.StatusNotFound {
-		t.Fatalf("外部画布删除会话应返回 404，得到 %d", foreign.Code)
+		t.Fatalf("External canvas deletion session should return 404, get %d", foreign.Code)
 	}
 }
 
@@ -501,14 +501,14 @@ func TestAssistantStatusBusyOldModelAfterProviderChange(t *testing.T) {
 
 	data := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/status", ""))
 	if available, _ := data["available"].(bool); available {
-		t.Fatalf("忙碌的旧模型不得标成新模型已就绪: %#v", data)
+		t.Fatalf("Busy old models must not be marked as new models are ready: %#v", data)
 	}
 	if data["reason"] != "host_busy" {
-		t.Fatalf("reason 应为 host_busy，得到 %#v", data)
+		t.Fatalf("reason should be host_busy, get %#v", data)
 	}
 	modelInfo, _ := data["model"].(map[string]any)
 	if modelInfo["id"] != "old-model" {
-		t.Fatalf("忙碌时应报告正在跑的旧模型，得到 %#v", data["model"])
+		t.Fatalf("When busy, the old model running should be reported and get %#v", data["model"])
 	}
 }
 
@@ -534,13 +534,13 @@ func TestAssistantStatusUncertainHealthDoesNotRelaunchOnFingerprintChange(t *tes
 
 	data := decodeEnvelope(t, env.callWithTimeout(t, 300*time.Millisecond, http.MethodGet, "/assistant/status", ""))
 	if env.assistantHost.Endpoint() != owned || !env.assistantHost.Running() {
-		t.Fatalf("探测失败不得杀掉自有子进程 endpoint=%q running=%v", env.assistantHost.Endpoint(), env.assistantHost.Running())
+		t.Fatalf("If the detection fails, the own child process must not be killed endpoint=%q running=%v", env.assistantHost.Endpoint(), env.assistantHost.Running())
 	}
 	if available, _ := data["available"].(bool); available {
-		t.Fatalf("健康未知时不得标成已就绪: %#v", data)
+		t.Fatalf("Do not mark ready when health is unknown: %#v", data)
 	}
 	if data["reason"] != "host_starting" && data["reason"] != "host_unreachable" {
-		t.Fatalf("健康未知时应保留子进程并报告未就绪，得到 %#v", data)
+		t.Fatalf("When the health is unknown, the child process should be retained and reported as not ready, resulting in %#v", data)
 	}
 }
 
@@ -563,18 +563,18 @@ func TestAssistantCancelRequiresWriteAndOwnedCanvas(t *testing.T) {
 
 	owned := env.call(t, http.MethodPost, "/assistant/cancel", `{"canvasId":"`+env.canvasID+`"}`)
 	if owned.Code != http.StatusOK {
-		t.Fatalf("拥有的画布取消应转发宿主: %d %s", owned.Code, owned.Body.String())
+		t.Fatalf("Owned canvas cancellation should be forwarded to host: %d %s", owned.Code, owned.Body.String())
 	}
 	if env.hostHits["/cancel"] != 1 {
-		t.Fatalf("拥有的画布应命中宿主一次，得到 %d", env.hostHits["/cancel"])
+		t.Fatalf("The owned canvas should hit the host once, getting %d", env.hostHits["/cancel"])
 	}
 
 	foreign := env.call(t, http.MethodPost, "/assistant/cancel", `{"canvasId":"not-mine"}`)
 	if foreign.Code != http.StatusNotFound {
-		t.Fatalf("外部画布应是 404，得到 %d %s", foreign.Code, foreign.Body.String())
+		t.Fatalf("The outer canvas should be 404, getting %d %s", foreign.Code, foreign.Body.String())
 	}
 	if env.hostHits["/cancel"] != 1 {
-		t.Fatalf("外部画布不得转发给宿主，命中 %d", env.hostHits["/cancel"])
+		t.Fatalf("External canvas must not be forwarded to host, hit %d", env.hostHits["/cancel"])
 	}
 
 	reg, token, err := env.clients.Register("readonly", agentops.ClientReadOnly)
@@ -585,13 +585,13 @@ func TestAssistantCancelRequiresWriteAndOwnedCanvas(t *testing.T) {
 		"X-Beeftv-Client": reg.ID, "Authorization": "Bearer " + token,
 	})
 	if readOnly.Code != http.StatusForbidden {
-		t.Fatalf("只读客户端应是 403，得到 %d %s", readOnly.Code, readOnly.Body.String())
+		t.Fatalf("Read only client should be 403, got %d %s", readOnly.Code, readOnly.Body.String())
 	}
 	if reason := decodeEnvelope(t, readOnly)["__reason"]; reason != "read_only_client" {
-		t.Fatalf("reason 应为 read_only_client，得到 %v", reason)
+		t.Fatalf("reason should be read_only_client, got %v", reason)
 	}
 	if env.hostHits["/cancel"] != 1 {
-		t.Fatalf("只读客户端不得转发给宿主，命中 %d", env.hostHits["/cancel"])
+		t.Fatalf("Read-only clients must not forward to the host, hit %d", env.hostHits["/cancel"])
 	}
 }
 
@@ -610,18 +610,18 @@ func TestAssistantStatusAndProxyIgnoreForeignHostURL(t *testing.T) {
 
 	status := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/status", ""))
 	if available, _ := status["available"].(bool); available {
-		t.Fatalf("不得把环境变量 HOST_URL 当成自有宿主: %#v", status)
+		t.Fatalf("The environment variable HOST_URL must not be regarded as its own host: %#v", status)
 	}
 	chat := env.call(t, http.MethodPost, "/assistant/chat", `{"canvasId":"`+env.canvasID+`","message":"x"}`)
 	if chat.Code != http.StatusServiceUnavailable {
-		t.Fatalf("无自有子进程时对话应 503，得到 %d %s", chat.Code, chat.Body.String())
+		t.Fatalf("When there is no own child process, the dialog should be 503 and get %d %s", chat.Code, chat.Body.String())
 	}
 	cancel := env.call(t, http.MethodPost, "/assistant/cancel", `{"canvasId":"`+env.canvasID+`"}`)
 	if cancel.Code != http.StatusServiceUnavailable {
-		t.Fatalf("无自有子进程时取消应 503，得到 %d %s", cancel.Code, cancel.Body.String())
+		t.Fatalf("When there is no own child process, cancel response 503 and get %d %s", cancel.Code, cancel.Body.String())
 	}
 	if hits != 0 {
-		t.Fatalf("status/chat/cancel 不得打到外部 HOST_URL，hits=%d", hits)
+		t.Fatalf("status/chat/cancel must not hit external HOST_URL, hits=%d", hits)
 	}
 }
 

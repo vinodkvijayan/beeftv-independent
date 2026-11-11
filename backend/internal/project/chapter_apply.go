@@ -91,12 +91,12 @@ func (s *Service) resolveChapterApplySource(userID, projectID, unitID, sourceTas
 	task, err := s.repo.TaskForUser(userID, taskID)
 	if err != nil {
 		if IsNotFound(err) {
-			return chapterApplySource{}, kernel.NotFound("找不到对应的生成任务")
+			return chapterApplySource{}, kernel.NotFound("The corresponding build task cannot be found")
 		}
 		return chapterApplySource{}, err
 	}
 	if task.Status != model.TaskStatusSucceeded {
-		return chapterApplySource{}, kernel.BadAuthRequest("生成尚未完成，不能写入结果")
+		return chapterApplySource{}, kernel.BadAuthRequest("The generation is not yet complete and the results cannot be written")
 	}
 	metadata := generationTaskMetadata(task.InputJSON)
 	taskProjectID := strings.TrimSpace(task.ProjectID)
@@ -104,25 +104,25 @@ func (s *Service) resolveChapterApplySource(userID, projectID, unitID, sourceTas
 		taskProjectID = metadataString(metadata, "domainProjectId")
 	}
 	if taskProjectID != projectID {
-		return chapterApplySource{}, kernel.Forbidden("不能把其他项目的生成结果写入本章")
+		return chapterApplySource{}, kernel.Forbidden("The generated results of other projects cannot be written into this chapter.")
 	}
 	taskChapterID := metadataString(metadata, "chapterId")
 	if taskChapterID == "" {
-		return chapterApplySource{}, kernel.Forbidden("不能把缺少章节身份的生成结果写入本章")
+		return chapterApplySource{}, kernel.Forbidden("Cannot write generated results that lack a chapter identity to this chapter")
 	}
 	if unitID != "" && taskChapterID != unitID {
-		return chapterApplySource{}, kernel.Forbidden("不能把其他章节的生成结果写入本章")
+		return chapterApplySource{}, kernel.Forbidden("The generated results of other chapters cannot be written into this chapter.")
 	}
 	if kind == chapterApplyStoryboard {
 		if metadataString(metadata, "source") != chapterStoryboardTaskSource && strings.TrimSpace(task.Operation) != "storyboard" {
-			return chapterApplySource{}, kernel.Forbidden("不能把其他类型的生成结果写入本章分镜")
+			return chapterApplySource{}, kernel.Forbidden("Other types of generated results cannot be written into the storyboard of this chapter.")
 		}
 	} else if metadataString(metadata, "operation") != chapterCharacterTaskOperation {
-		return chapterApplySource{}, kernel.Forbidden("不能把其他类型的生成结果写入本章资产")
+		return chapterApplySource{}, kernel.Forbidden("Other types of generation results cannot be written to the assets of this chapter.")
 	}
 	encoded, err := json.Marshal(payload)
 	if err != nil {
-		return chapterApplySource{}, kernel.BadAuthRequest("写入内容无法校验")
+		return chapterApplySource{}, kernel.BadAuthRequest("The written content cannot be verified")
 	}
 	op := chapterApplyOp(kind)
 	return chapterApplySource{
@@ -178,7 +178,7 @@ func (s *Service) ChapterApplyReceipts(userID, projectID string, taskIDs []strin
 		}
 		var stored chapterApplyReceipt
 		if json.Unmarshal([]byte(record.ResultJSON), &stored) != nil || stored.TaskID != taskID || stored.UnitID == "" || stored.Kind != kind || stored.ProjectID == "" {
-			return nil, kernel.NewAppError(kernel.CodeInternal, "已保存的写入记录无法读取，请稍后重试")
+			return nil, kernel.NewAppError(kernel.CodeInternal, "The saved write record cannot be read, please try again later.")
 		}
 		if stored.ProjectID != projectID {
 			continue
@@ -223,7 +223,7 @@ func characterApplyPayloadFromRequest(req CreateAssetCandidatesRequest) characte
 func unmarshalChapterApplyReceipt(raw []byte) (chapterApplyReceipt, error) {
 	var stored chapterApplyReceipt
 	if err := json.Unmarshal(raw, &stored); err != nil {
-		return chapterApplyReceipt{}, kernel.NewAppError(kernel.CodeInternal, "已写入回执无法读取")
+		return chapterApplyReceipt{}, kernel.NewAppError(kernel.CodeInternal, "Written receipt cannot be read")
 	}
 	return stored, nil
 }
@@ -231,7 +231,7 @@ func unmarshalChapterApplyReceipt(raw []byte) (chapterApplyReceipt, error) {
 func marshalChapterApplyReceipt(receipt chapterApplyReceipt) ([]byte, error) {
 	encoded, err := json.Marshal(receipt)
 	if err != nil {
-		return nil, kernel.BadAuthRequest("写入回执无法保存")
+		return nil, kernel.BadAuthRequest("Write receipt cannot be saved")
 	}
 	return encoded, nil
 }
@@ -245,7 +245,7 @@ func mapChapterApplyWriteError(err error) error {
 			Status:  kernel.CodeConflict,
 			Code:    kernel.CodeConflict,
 			Reason:  kernel.ReasonProjectUnitShotsChanged,
-			Message: "本章分镜已发生变化，请刷新后重新确认",
+			Message: "The storyboard of this chapter has changed, please refresh and confirm again.",
 			Cause:   err,
 		}
 	}
@@ -254,7 +254,7 @@ func mapChapterApplyWriteError(err error) error {
 			Status:  kernel.CodeConflict,
 			Code:    kernel.CodeConflict,
 			Reason:  kernel.ReasonProjectRevisionConflict,
-			Message: "项目已被其他操作更新，请重新加载后再保存",
+			Message: "The project has been updated by other operations, please reload before saving.",
 			Cause:   err,
 		}
 	}
@@ -271,10 +271,10 @@ func mapChapterApplyOperationsError(err *operations.Error) error {
 	appCode := code
 	switch err.Reason {
 	case "operation_id_reused_with_different_payload":
-		message = "这份结果已经按另一份内容写入，不能再覆盖"
+		message = "This result has been written according to the content of another copy and cannot be overwritten."
 		appCode = kernel.CodeIdempotencyConflict
 	case "operation_in_progress":
-		message = "同一写入正在进行，请稍后重试"
+		message = "The same write is in progress, please try again later"
 	}
 	return &kernel.AppError{
 		Status:  code,

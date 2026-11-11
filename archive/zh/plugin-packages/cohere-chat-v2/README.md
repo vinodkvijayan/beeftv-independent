@@ -1,7 +1,7 @@
 # Cohere Chat v2
 
-该目录是 BeefTV 声明式协议插件源码。后端从生成的 `cohere-chat-v2.beeftv-plugin` 包加载，不依赖系统内置 `host:` 适配器。
+This directory is the BeefTV declarative protocol plug-in source code. The backend is loaded from the generated `cohere-chat-v2.beeftv-plugin` package and does not rely on the system's built-in `host:` adapter.
 
-本插件由 BeefTV Contributors 维护，用于适配 Cohere 相关服务接口；不表示 BeefTV 与该服务商存在隶属、授权或合作关系。
+This plug-in is maintained by BeefTV Contributors and is used to adapt to Cohere related service interfaces; it does not mean that BeefTV has an affiliation, authorization or cooperative relationship with the service provider.
 
-完整接口见 [docs/interface.md](docs/interface.md)。
+See [docs/interface.md](docs/interface.md) for the complete interface.

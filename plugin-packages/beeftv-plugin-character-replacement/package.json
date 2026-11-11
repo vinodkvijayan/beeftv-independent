@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-character-replacement",
   "version": "0.1.5",
-  "description": "AI 角色替换工作室：支持单人/多人精准角色替换、5 档替换范围控制、定位框 SVG 辅助、两阶段关键帧+视频动作替换（Seedream + Seedance 2.5 元素替换）与全片时间线无损回插。",
+  "description": "AI character replacement studio: supports single/multiplayer precise character replacement, 5-stop replacement range control, positioning frame SVG assistance, two-stage keyframe + video action replacement (Seedream + Seedance 2.5 element replacement) and lossless back-insertion of the entire film timeline.",
   "author": "BeefTV",
   "type": "module",
   "license": "Apache-2.0",
@@ -32,7 +32,7 @@
     ]
   },
   "beeftv": {
-    "name": "AI 角色替换工作室",
+    "name": "AI character replacement studio",
     "client": "./client/index.js",
     "surfaces": [
       "node",
@@ -48,8 +48,8 @@
       "canvasNodes": [
         {
           "id": "character-replacement",
-          "label": "角色替换",
-          "defaultTitle": "AI 角色替换",
+          "label": "Role replacement",
+          "defaultTitle": "AI role replacement",
           "defaultSize": {
             "width": 380,
             "height": 460

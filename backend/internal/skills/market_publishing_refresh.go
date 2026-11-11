@@ -19,7 +19,7 @@ func (s *Service) RefreshPublication(ctx context.Context, user, id string) (*Pub
 		return nil, e
 	}
 	if p.SubmissionID == "" {
-		return nil, kernel.BadAuthRequest("请先确认上传文件")
+		return nil, kernel.BadAuthRequest("Please confirm uploading files first")
 	}
 	c, e := marketClient()
 	if e != nil {
@@ -68,21 +68,21 @@ func (s *Service) refreshPublication(ctx context.Context, user string, c *skillh
 	}
 	sum := sha256.Sum256(data)
 	if hex.EncodeToString(sum[:]) != draft.ArchiveSHA256 || int64(len(data)) != draft.ArchiveBytes {
-		return nil, kernel.NewAppError(409, "稿件文件已变化，请重新读取预览")
+		return nil, kernel.NewAppError(409, "The manuscript file has changed, please read the preview again")
 	}
 	archive, e := archiveFromZip(data, "")
 	if e != nil {
 		return nil, e
 	}
 	if archive.ContentHash != draft.ContentHash || len(archive.Files) != len(preview.Files) || preview.Revision != draft.Revision {
-		return nil, kernel.NewAppError(409, "稿件预览已变化，请重新读取")
+		return nil, kernel.NewAppError(409, "The manuscript preview has changed, please read it again")
 	}
 	seen := map[string]bool{}
 	for _, f := range preview.Files {
 		b, ok := archive.Files[f.Path]
 		h := sha256.Sum256(b)
 		if !ok || seen[f.Path] || int64(len(b)) != f.Size || hex.EncodeToString(h[:]) != f.SHA256 {
-			return nil, kernel.NewAppError(409, "稿件预览与文件不一致")
+			return nil, kernel.NewAppError(409, "Manuscript preview is inconsistent with file")
 		}
 		seen[f.Path] = true
 	}

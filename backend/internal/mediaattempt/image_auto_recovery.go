@@ -34,7 +34,7 @@ func (s *Service) StartImageRecoveryPass(ctx context.Context) {
 		defer cancel()
 		if err := s.RecoverFailedImages(bounded, imageRecoveryBatch); err != nil {
 			// 不记录原请求、响应或上游错误正文。
-			_ = s.log("", "", "warn", "图片自动取回暂缓，将稍后再试", "")
+			_ = s.log("", "", "warn", "Automatic image retrieval is on hold and will try again later.", "")
 		}
 	})
 	if !started {
@@ -294,7 +294,7 @@ func (s *Service) FailedImageResultWith(ctx context.Context, task model.Task, se
 	evidence := all[task.ID]
 	attempt, submission := evidence.Attempt, evidence.Submission
 	if (ManagedTaskConnection(task) || (attempt != nil && attempt.ChannelID == beeftv.ChannelID)) && (attempt == nil || submission == nil || attempt.RouteRun != task.RouteRun) {
-		return nil, "", imageRecoveryError{errors.New("原任务查询信息暂不可用，尚未确认结果")}
+		return nil, "", imageRecoveryError{errors.New("The original task query information is temporarily unavailable, and the results have not been confirmed yet.")}
 	}
 	if attempt != nil && submission != nil && attempt.RouteRun == task.RouteRun {
 		row, loadErr := s.repo.ImageSubmission(attempt.ID, task.ID, task.UserID)

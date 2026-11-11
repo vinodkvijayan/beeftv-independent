@@ -156,7 +156,7 @@ func TestSeedanceUploadGateway4xxKeepsUploadDiagnostics(t *testing.T) {
 	for _, stage := range []string{"create", "complete"} {
 		err := &generation.ReferenceUploadError{
 			Meta:       generation.ReferenceUploadMeta{Kind: "image", Index: 2, Stage: stage},
-			HTTPStatus: 400, Code: "video_reference_upload_incomplete", RequestID: "gateway-request-123456", Detail: "请先上传文件",
+			HTTPStatus: 400, Code: "video_reference_upload_incomplete", RequestID: "gateway-request-123456", Detail: "Please upload the file first",
 			Cause: generation.HTTPError{StatusCode: 400},
 		}
 		task := model.Task{}

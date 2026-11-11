@@ -69,13 +69,13 @@ func RegisterAgentClientRoutes(r gin.IRouter, svc ownerCredentialDirs, clients a
 			ApprovalMode string `json:"approvalMode"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is invalid"))
 			return
 		}
 		kind := agentops.NormalizeClientKind(req.Kind)
 		cliPath, available := bundledCLIPath()
 		if !available {
-			failAgentOps(c, agentops.PreconditionFailed("cli_unavailable", "安装文件不完整，无法连接外部工具。请重新下载并完整解压 BeefTV。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("cli_unavailable", "The installation file is incomplete and external tools cannot be connected. Please re-download and fully unzip BeefTV.", nil))
 			return
 		}
 		dataDir, err := filepath.Abs(svc.DataDir())
@@ -122,18 +122,18 @@ func failAgentOps(c *gin.Context, err error) {
 // 外部客户端凭据在这里没有任何作用：它只能操作工作区，不能签发或吊销凭据。
 func requireDesktopUITrust(c *gin.Context, svc ownerCredentialDirs, desktopTrust func(*http.Request) bool) bool {
 	if strings.TrimSpace(c.GetHeader("X-Beeftv-Client")) != "" {
-		fail(c, http.StatusForbidden, app.BadAuthRequest("外部客户端不能管理客户端凭据"))
+		fail(c, http.StatusForbidden, app.BadAuthRequest("External clients cannot manage client credentials"))
 		return false
 	}
 	if !isLoopbackRequest(c.Request) {
-		fail(c, http.StatusForbidden, app.BadAuthRequest("只接受本机同源请求"))
+		fail(c, http.StatusForbidden, app.BadAuthRequest("Only accept local origin requests"))
 		return false
 	}
 	ownerOK := agentops.OwnerTokenMatches(svc.DataDir(), strings.TrimSpace(c.GetHeader("X-Beeftv-Owner")))
 	devBootstrap := strings.TrimSpace(os.Getenv("BEEFTV_UI_BOOTSTRAP")) == "1"
 	desktopShell := desktopTrust != nil && desktopTrust(c.Request)
 	if !ownerOK && !devBootstrap && !desktopShell {
-		fail(c, http.StatusForbidden, app.BadAuthRequest("管理客户端凭据需要 owner 凭据或桌面界面"))
+		fail(c, http.StatusForbidden, app.BadAuthRequest("Managing client credentials requires owner credentials or desktop interface"))
 		return false
 	}
 	return true
@@ -219,22 +219,22 @@ func clientSetup(kind agentops.ClientKind, cliPath, dataDir string, reg agentops
 			" --env BEEFTV_CLIENT_ID=" + shellQuote(reg.ID) +
 			" --env BEEFTV_CLIENT_TOKEN=" + shellQuote(token) +
 			" -- " + shellQuote(launch.Command) + " " + serveArgs
-		return gin.H{"kind": string(kind), "title": "在 Codex 里加上 BeefTV", "command": command}
+		return gin.H{"kind": string(kind), "title": "Add BeefTV to Codex", "command": command}
 	case agentops.ClientKindClaude:
 		command := "claude mcp add beeftv --scope user" +
 			" -e BEEFTV_DATA_DIR=" + shellQuote(dataDir) +
 			" -e BEEFTV_CLIENT_ID=" + shellQuote(reg.ID) +
 			" -e BEEFTV_CLIENT_TOKEN=" + shellQuote(token) +
 			" -- " + shellQuote(launch.Command) + " " + serveArgs
-		return gin.H{"kind": string(kind), "title": "在 Claude Code 里加上 BeefTV", "command": command}
+		return gin.H{"kind": string(kind), "title": "Add BeefTV to Claude Code", "command": command}
 	case agentops.ClientKindClaudeDesktop:
-		return gin.H{"kind": string(kind), "title": "在 Claude Desktop 的开发者设置中编辑配置",
+		return gin.H{"kind": string(kind), "title": "Edit the configuration in the developer settings of Claude Desktop",
 			"json": mcpServersJSON(launch)}
 	case agentops.ClientKindCursor:
-		return gin.H{"kind": string(kind), "title": "把这段写进 ~/.cursor/mcp.json",
+		return gin.H{"kind": string(kind), "title": "Write this paragraph into ~/.cursor/mcp.json",
 			"json": mcpServersJSON(launch)}
 	default:
-		return gin.H{"kind": string(kind), "title": "把这段写进该客户端的 MCP 配置",
+		return gin.H{"kind": string(kind), "title": "Write this paragraph into the MCP configuration of the client",
 			"json": mcpServersJSON(launch)}
 	}
 }

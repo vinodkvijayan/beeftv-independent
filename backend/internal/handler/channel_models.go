@@ -40,7 +40,7 @@ func RegisterChannelModelRoutes(r *gin.RouterGroup, catalogs channelModelCatalog
 		}
 		var input app.ChannelModelsRequest
 		if err := c.ShouldBindJSON(&input); err != nil {
-			fail(c, http.StatusBadRequest, errors.New("模型渠道参数格式错误"))
+			fail(c, http.StatusBadRequest, errors.New("Model channel parameter format error"))
 			return
 		}
 		// handler 不接触上游响应细节，密钥校验和模型目录解析统一收敛到 service。
@@ -64,7 +64,7 @@ func RegisterChannelModelRoutes(r *gin.RouterGroup, catalogs channelModelCatalog
 			Protocols []string `json:"protocols"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil || len(input.Protocols) > 32 {
-			fail(c, http.StatusBadRequest, errors.New("模型渠道参数格式错误"))
+			fail(c, http.StatusBadRequest, errors.New("Model channel parameter format error"))
 			return
 		}
 		ok(c, channelRequestURLs(input.BaseURL, input.APIFormat, input.Protocols))

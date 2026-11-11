@@ -12,10 +12,10 @@ const maxAdminChannelModelImportCount = 500
 
 func SelectCatalogModels(selected []string, catalog []string) ([]string, error) {
 	if len(selected) == 0 {
-		return nil, kernel.BadAuthRequest("请至少选择一个要导入的模型")
+		return nil, kernel.BadAuthRequest("Please select at least one model to import")
 	}
 	if len(selected) > maxAdminChannelModelImportCount {
-		return nil, kernel.BadAuthRequest("单次最多导入 500 个模型")
+		return nil, kernel.BadAuthRequest("Up to 500 models can be imported at a time")
 	}
 	available := make(map[string]string, len(catalog))
 	for _, name := range catalog {
@@ -31,7 +31,7 @@ func SelectCatalogModels(selected []string, catalog []string) ([]string, error) 
 		}
 		canonical, ok := available[key]
 		if !ok {
-			return nil, kernel.BadAuthRequest("所选模型不在上游模型目录中：" + name)
+			return nil, kernel.BadAuthRequest("The selected model is not in the upstream model directory:" + name)
 		}
 		if _, ok := seen[key]; ok {
 			continue
@@ -40,7 +40,7 @@ func SelectCatalogModels(selected []string, catalog []string) ([]string, error) 
 		chosen = append(chosen, canonical)
 	}
 	if len(chosen) == 0 {
-		return nil, kernel.BadAuthRequest("请至少选择一个有效的模型")
+		return nil, kernel.BadAuthRequest("Please select at least one valid model")
 	}
 	return chosen, nil
 }
@@ -142,7 +142,7 @@ func ValidateChannelModelDeleteSelection(ids []string, items []model.ChannelMode
 		}
 	}
 	if found != len(ids) {
-		return kernel.BadAuthRequest("所选渠道模型中存在已删除或不属于当前渠道的记录，请刷新后重试")
+		return kernel.BadAuthRequest("There are records in the selected channel model that have been deleted or do not belong to the current channel. Please refresh and try again.")
 	}
 	return nil
 }
@@ -168,7 +168,7 @@ func PrepareChannelModelSave(channelID, id string, req ChannelModelRequest, mode
 	previousProviderModelKey := ""
 	if strings.TrimSpace(id) != "" {
 		if existing == nil {
-			return nil, nil, kernel.BadAuthRequest("渠道模型不存在")
+			return nil, nil, kernel.BadAuthRequest("Channel model does not exist")
 		}
 		copied := *existing
 		item = &copied

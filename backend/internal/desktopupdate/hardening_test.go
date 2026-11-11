@@ -138,7 +138,7 @@ func TestHelperExitWhileParentAliveMakesInstallRetryable(t *testing.T) {
 	done := make(chan error, 1)
 	e := &Engine{state: UpdateState{Status: StatusInstalling}, helperDone: done}
 	e.monitorHelper()
-	done <- errors.New("等待应用退出超时")
+	done <- errors.New("Timeout waiting for application to exit")
 	deadline := time.Now().Add(time.Second)
 	for e.Status().Status == StatusInstalling && time.Now().Before(deadline) {
 		time.Sleep(time.Millisecond)

@@ -15,7 +15,7 @@ import (
 const managedRecoveryCollectWait = 20 * time.Second
 
 // ErrManagedResubmitted 表示刚用原编号补交了原请求，结果要等下一轮查询。
-var ErrManagedResubmitted = errors.New("已用原编号补交原请求，正在等待结果")
+var ErrManagedResubmitted = errors.New("The original request has been resubmitted with the original number and is waiting for the result.")
 
 // ResolveMissingManagedSubmission 处理「BeefTV 用原 Key 查不到原编号」（beeftv.IsMediaTaskNotFound）。
 // 返回非空 outcome 时，调用方把它写成恢复结论；resubmitted 表示已补交、应尽快再查。
@@ -52,7 +52,7 @@ func (s *Service) ResolveMissingManagedSubmission(ctx context.Context, task mode
 		return "", false, err
 	}
 	if wire.ReplayProtocol != beeftv.MediaProtocolVersion {
-		return "", false, errors.New("原请求不是托管媒体提交，不能补交")
+		return "", false, errors.New("The original request was not submitted by a hosted media and cannot be resubmitted.")
 	}
 	query, managed, err := s.ManagedTaskQuery(ctx, task, row)
 	if err != nil || !managed {

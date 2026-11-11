@@ -7,23 +7,23 @@ import { CanvasNodeType, type CanvasNodeData } from "../src/types/canvas";
 const sourceNode: CanvasNodeData = {
     id: "video-source",
     type: CanvasNodeType.Video,
-    title: "测试视频",
+    title: "Test video",
     position: { x: 100, y: 200 },
     width: 640,
     height: 360,
-    metadata: { workflowKind: "shot", workflowTitle: "镜头 1", shotIndex: 1 },
+    metadata: { workflowKind: "shot", workflowTitle: "Shot 1", shotIndex: 1 },
 };
 
 describe("normalizeVideoFrameTimes", () => {
-    test("按时间排序、去重并限制在可解码范围内", () => {
+    test("Sort by time, deduplicate and limit to decodable range", () => {
         expect(normalizeVideoFrameTimes([1500, 0, 1500.4, -20, 16000, Number.NaN], 15000)).toEqual([0, 1500, 14900]);
     });
 
-    test("视频时长无效时不返回时间点", () => {
+    test("The time point will not be returned when the video duration is invalid.", () => {
         expect(normalizeVideoFrameTimes([0, 1000], 0)).toEqual([]);
     });
 
-    test("未预先记录视频时长时，尾帧预设会在视频解码后自动对齐到真实尾帧", () => {
+    test("When the video duration is not recorded in advance, the end frame preset will automatically align to the real end frame after the video is decoded.", () => {
         const presetTimeMs = resolveVideoFramePresetTimeMs("last", 0, 0);
         expect(presetTimeMs).toBe(Number.MAX_SAFE_INTEGER);
         expect(normalizeVideoFrameTimes([presetTimeMs], 8000)).toEqual([7900]);
@@ -31,14 +31,14 @@ describe("normalizeVideoFrameTimes", () => {
 });
 
 describe("resolveVideoFramePresetTimeMs & videoFrameFetchCredentials", () => {
-    test("支持首帧、当前帧与已知/未知时长的尾帧计算", () => {
+    test("Supports calculation of first frame, current frame and last frame of known/unknown duration", () => {
         expect(resolveVideoFramePresetTimeMs("first", 6000, 2300)).toBe(0);
         expect(resolveVideoFramePresetTimeMs("current", 6000, 2300)).toBe(2300);
         expect(resolveVideoFramePresetTimeMs("last", 6000, 2300)).toBe(5999);
         expect(resolveVideoFramePresetTimeMs("last", 0, 0)).toBe(Number.MAX_SAFE_INTEGER);
     });
 
-    test("区分受保护资源路径与跨源 CDN 直链的凭据策略", () => {
+    test("Credential policies that distinguish protected resource paths from cross-origin CDN direct links", () => {
         expect(videoFrameFetchCredentials("/api/resources/res-123/file")).toBe("include");
         expect(videoFrameFetchCredentials("http://127.0.0.1:8080/api/resources/res-123/file")).toBe("include");
         expect(videoFrameFetchCredentials("blob:http://localhost:5173/abc")).toBe("same-origin");
@@ -46,7 +46,7 @@ describe("resolveVideoFramePresetTimeMs & videoFrameFetchCredentials", () => {
 });
 
 describe("videoFrameSeekSeconds", () => {
-    test("首帧也强制 seek 到可解码时间点，避免缓存视频在 0ms 画出黑帧", () => {
+    test("The first frame is also forced to seek to the decodable time point to prevent the cached video from drawing a black frame at 0ms.", () => {
         expect(videoFrameSeekSeconds(0, 6000)).toBe(0.001);
         expect(videoFrameSeekSeconds(1500, 6000)).toBe(1.5);
         expect(videoFrameSeekSeconds(14900, 15000)).toBe(14.9);
@@ -54,7 +54,7 @@ describe("videoFrameSeekSeconds", () => {
 });
 
 describe("waitForPresentedVideoFrame", () => {
-    test("requestVideoFrameCallback 触发前不允许继续绘制", async () => {
+    test("Do not allow drawing to continue before requestVideoFrameCallback is triggered.", async () => {
         let callback: (() => void) | undefined;
         let resolved = false;
         const video = {
@@ -74,7 +74,7 @@ describe("waitForPresentedVideoFrame", () => {
         expect(resolved).toBe(true);
     });
 
-    test("取帧时主动解码播放，并在视频帧真实呈现后暂停", async () => {
+    test("Actively decode and play when taking frames, and pause after the video frames are actually presented.", async () => {
         const calls: string[] = [];
         let callback: (() => void) | undefined;
         const video = {
@@ -95,7 +95,7 @@ describe("waitForPresentedVideoFrame", () => {
         expect(calls).toEqual(["play", "pause"]);
     });
 
-    test("视频没有真实呈现帧时失败，不把未解码的黑画面作为结果保存", async () => {
+    test("Fails when the video does not actually render the frame, and does not save the undecoded black frame as the result", async () => {
         const video = {
             requestVideoFrameCallback: () => 1,
             cancelVideoFrameCallback: () => undefined,
@@ -103,10 +103,10 @@ describe("waitForPresentedVideoFrame", () => {
             pause: () => undefined,
         } as unknown as HTMLVideoElement;
 
-        await expect(waitForPresentedVideoFrame(video, 1)).rejects.toThrow("视频画面解码超时");
+        await expect(waitForPresentedVideoFrame(video, 1)).rejects.toThrow("Video picture decoding timeout");
     });
 
-    test("seek 到尾帧附近时等待真正呈现的视频帧，不依赖 ended 后的黑画面", async () => {
+    test("When seek reaches near the last frame, it waits for the actually rendered video frame, without relying on the black screen after ended.", async () => {
         const events = new EventTarget();
         let paused = false;
         let framePresented = false;
@@ -134,7 +134,7 @@ describe("waitForPresentedVideoFrame", () => {
         expect(framePresented).toBe(true);
     });
 
-    test("seek 到最后一帧后播放直接触发 ended 且无后续新帧时，若画面已解码则完成取帧", async () => {
+    test("When the playback directly triggers ended after seeking to the last frame and there is no subsequent new frame, if the picture has been decoded, the frame fetching is completed.", async () => {
         const events = new EventTarget();
         let paused = false;
         const video = {
@@ -158,7 +158,7 @@ describe("waitForPresentedVideoFrame", () => {
         expect(paused).toBe(true);
     });
 
-    test("已解码视频若播放推进但未触发呈现回调或 ended，不把偏移时间点的画面当作成功", async () => {
+    test("If the playback of the decoded video advances but does not trigger the rendering callback or ended, the scene at the offset time point will not be regarded as successful.", async () => {
         const events = new EventTarget();
         const video = {
             duration: 15,
@@ -176,10 +176,10 @@ describe("waitForPresentedVideoFrame", () => {
             pause: () => undefined,
         } as unknown as HTMLVideoElement;
 
-        await expect(waitForPresentedVideoFrame(video, 5)).rejects.toThrow("视频画面解码超时");
+        await expect(waitForPresentedVideoFrame(video, 5)).rejects.toThrow("Video picture decoding timeout");
     });
 
-    test("非尾帧时间点（如距结尾 1s）在呈现回调未触发时即便播放到 ended 也不把尾帧冒充为目标帧", async () => {
+    test("At non-last frame time points (such as 1s from the end), when the presentation callback is not triggered, even if the playback reaches ended, the last frame will not be pretended to be the target frame.", async () => {
         const events = new EventTarget();
         const video = {
             duration: 10,
@@ -198,12 +198,12 @@ describe("waitForPresentedVideoFrame", () => {
             pause: () => undefined,
         } as unknown as HTMLVideoElement;
 
-        await expect(waitForPresentedVideoFrame(video, 20)).rejects.toThrow("视频画面解码超时");
+        await expect(waitForPresentedVideoFrame(video, 20)).rejects.toThrow("Video picture decoding timeout");
     });
 });
 
 describe("captureVideoFrames", () => {
-    test("连续截取多个时间点时忽略旧 mediaTime 回调并在结束后移除临时节点", async () => {
+    test("Ignore old mediaTime callbacks when capturing multiple time points in succession and remove temporary nodes after the end", async () => {
         const originalDocument = globalThis.document;
         const originalCreateObjectURL = URL.createObjectURL;
         const originalRevokeObjectURL = URL.revokeObjectURL;
@@ -304,7 +304,7 @@ describe("captureVideoFrames", () => {
 });
 
 describe("buildVideoFrameNodes", () => {
-    test("为每个时间点创建可追溯的图片节点并保持网格布局", () => {
+    test("Create traceable image nodes for each time point and maintain a grid layout", () => {
         const nodes = buildVideoFrameNodes(sourceNode, [
             { timeMs: 0, image: { url: "blob:first", storageKey: "image:first", width: 1280, height: 720, bytes: 10, mimeType: "image/png" } },
             { timeMs: 1500, image: { url: "blob:middle", storageKey: "image:middle", width: 1280, height: 720, bytes: 20, mimeType: "image/png" } },
@@ -312,7 +312,7 @@ describe("buildVideoFrameNodes", () => {
         ]);
 
         expect(nodes).toHaveLength(3);
-        expect(nodes.every((node) => node.type === CanvasNodeType.Image && node.title.startsWith("截图 "))).toBe(true);
+        expect(nodes.every((node) => node.type === CanvasNodeType.Image && node.title.startsWith("screenshot"))).toBe(true);
         expect(new Set(nodes.map((node) => node.id)).size).toBe(3);
         expect(nodes.map((node) => node.metadata?.videoFrameTimeMs)).toEqual([0, 1500, 14999]);
         expect(nodes.every((node) => node.metadata?.videoFrameSourceNodeId === sourceNode.id)).toBe(true);
@@ -322,7 +322,7 @@ describe("buildVideoFrameNodes", () => {
         expect(nodes[2].position.y).toBeGreaterThan(nodes[0].position.y);
     });
 
-    test("重复截取同一视频时把新结果放在已有结果之外", () => {
+    test("When repeatedly capturing the same video, the new results will be placed in addition to the existing results.", () => {
         const frame = { timeMs: 0, image: { url: "blob:first", storageKey: "image:first", width: 1280, height: 720, bytes: 10, mimeType: "image/png" } };
         const first = buildVideoFrameNodes(sourceNode, [frame]);
         const second = buildVideoFrameNodes(sourceNode, [frame], [sourceNode, ...first]);

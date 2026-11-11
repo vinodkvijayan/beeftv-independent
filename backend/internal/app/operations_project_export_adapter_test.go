@@ -29,7 +29,7 @@ func TestCanvasProjectExportUsesSameTransactionAndReusesArchive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc, _ := json.Marshal(map[string]any{"id": "portrait", "title": "雨夜旧书店", "nodes": []any{map[string]any{"metadata": map[string]any{"storageKey": "resource:" + media.ID}}}, "timeline": map[string]any{"output": map[string]any{"width": 720, "height": 1280}}})
+	doc, _ := json.Marshal(map[string]any{"id": "portrait", "title": "Rainy Night Secondhand Bookstore", "nodes": []any{map[string]any{"metadata": map[string]any{"storageKey": "resource:" + media.ID}}}, "timeline": map[string]any{"output": map[string]any{"width": 720, "height": 1280}}})
 	var first *model.Resource
 	for i := 0; i < 2; i++ {
 		err = db.Transaction(func(tx *gorm.DB) error {

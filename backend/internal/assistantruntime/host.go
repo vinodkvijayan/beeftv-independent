@@ -151,7 +151,7 @@ func (h *Host) Start(opsURL, desktopToken string) error {
 // Launch 按已解析的供应商启动；已在跑则是 no-op。调用方负责先检查配置是否存在。
 func (h *Host) Launch(provider assistant.Provider, opsURL, desktopToken string) error {
 	if h == nil {
-		return invalidArg("host_command_missing", "未配置宿主启动命令")
+		return invalidArg("host_command_missing", "Host startup command not configured")
 	}
 	h.lifecycle.Lock()
 	defer h.lifecycle.Unlock()
@@ -161,7 +161,7 @@ func (h *Host) Launch(provider assistant.Provider, opsURL, desktopToken string) 
 func (h *Host) launchLocked(provider assistant.Provider, opsURL, desktopToken string) error {
 	config, configured := h.EffectiveConfig()
 	if !configured || strings.TrimSpace(config.HostCommand) == "" {
-		return invalidArg("host_command_missing", "未配置宿主启动命令")
+		return invalidArg("host_command_missing", "Host startup command not configured")
 	}
 	return h.startOwned(config, provider, opsURL, desktopToken)
 }
@@ -196,15 +196,15 @@ func (h *Host) StopContext(ctx context.Context) error {
 	select {
 	case err := <-done:
 		if err != nil {
-			return fmt.Errorf("停止内置创作助手宿主：%w", err)
+			return fmt.Errorf("Stop the built-in creative assistant host: %w", err)
 		}
 		return nil
 	case <-ctx.Done():
 		err := <-done
 		if err != nil {
-			return fmt.Errorf("停止内置创作助手宿主超时：%w", ctx.Err())
+			return fmt.Errorf("Stop built-in authoring assistant host timeout: %w", ctx.Err())
 		}
-		return fmt.Errorf("停止内置创作助手宿主超时：%w", ctx.Err())
+		return fmt.Errorf("Stop built-in authoring assistant host timeout: %w", ctx.Err())
 	}
 }
 
@@ -213,13 +213,13 @@ func (h *Host) StopContext(ctx context.Context) error {
 // 返回 launched=true 表示这次调用刚拉起进程（界面此时应显示 host_starting）。
 func (h *Host) Ensure(provider assistant.Provider, opsURL, desktopToken string, idle bool) (launched bool, err error) {
 	if h == nil {
-		return false, invalidArg("host_command_missing", "未配置宿主启动命令")
+		return false, invalidArg("host_command_missing", "Host startup command not configured")
 	}
 	h.lifecycle.Lock()
 	defer h.lifecycle.Unlock()
 	config, configured := h.EffectiveConfig()
 	if !configured || strings.TrimSpace(config.HostCommand) == "" {
-		return false, invalidArg("host_command_missing", "未配置宿主启动命令")
+		return false, invalidArg("host_command_missing", "Host startup command not configured")
 	}
 	state := h.proc.state()
 	fingerprint := provider.Fingerprint()
@@ -239,7 +239,7 @@ func (h *Host) Ensure(provider assistant.Provider, opsURL, desktopToken string, 
 
 func (h *Host) startOwned(config HostConfig, provider assistant.Provider, opsURL, desktopToken string) error {
 	if h.closed {
-		return invalidArg("host_stopping", "应用正在退出，不能启动助手宿主")
+		return invalidArg("host_stopping", "The application is exiting and cannot start the assistant host")
 	}
 	return h.proc.startOwned(config, provider.Fingerprint(), h.readyTimeout(), func(port int, nonce, listenFD string) []string {
 		return h.buildEnv(provider, childPin{
@@ -256,13 +256,13 @@ func (h *Host) startOwned(config HostConfig, provider assistant.Provider, opsURL
 // Restart 是「重试」按钮的真实动作：停掉旧进程再按当前配置启动。
 func (h *Host) Restart(provider assistant.Provider, opsURL, desktopToken string) error {
 	if h == nil {
-		return invalidArg("host_command_missing", "未配置宿主启动命令")
+		return invalidArg("host_command_missing", "Host startup command not configured")
 	}
 	h.lifecycle.Lock()
 	defer h.lifecycle.Unlock()
 	config, configured := h.EffectiveConfig()
 	if !configured || strings.TrimSpace(config.HostCommand) == "" {
-		return invalidArg("host_command_missing", "未配置宿主启动命令")
+		return invalidArg("host_command_missing", "Host startup command not configured")
 	}
 	if err := h.proc.stop(); err != nil {
 		return err

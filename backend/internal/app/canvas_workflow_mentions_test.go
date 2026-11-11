@@ -10,13 +10,13 @@ import (
 
 func TestCanvasWorkflowNodeMentionsRoundTripAndMaterialize(t *testing.T) {
 	s, db, d := workflowFixture(t)
-	d.Nodes = append(d.Nodes, cw.Node{ID: "words", Title: "文案", Role: "input", MediaType: "text", Text: "旧文案"})
+	d.Nodes = append(d.Nodes, cw.Node{ID: "words", Title: "copywriting", Role: "input", MediaType: "text", Text: "old copy"})
 	d.Edges = append(d.Edges, cw.Edge{From: "action", To: "gen", ToPort: "referenceVideos", Order: 1}, cw.Edge{From: "words", To: "gen", ToPort: "prompt"})
 	var task model.Task
 	db.First(&task, "id = ?", "original")
 	var input map[string]any
 	json.Unmarshal([]byte(task.InputJSON), &input)
-	input["prompt"] = "背景@[node:action]，动作@[node:depth]，人物@[node:person]，@[node:words]，再次@[node:words]"
+	input["prompt"] = "Background@[node:action], action@[node:depth], character@[node:person], @[node:words], again @[node:words]"
 	input["referenceVideos"] = append(input["referenceVideos"].([]any), map[string]any{"storageKey": "resource:old-action"})
 	raw, _ := json.Marshal(input)
 	db.Model(&task).Update("input_json", string(raw))
@@ -29,7 +29,7 @@ func TestCanvasWorkflowNodeMentionsRoundTripAndMaterialize(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := range editor.Workflow.Definition.Nodes {
-		editor.Workflow.Definition.Nodes[i].Title = "重新命名"
+		editor.Workflow.Definition.Nodes[i].Title = "Rename"
 	}
 	saved, err := s.workflowTemplates().Update("owner", created.ID, cw.UpdateRequest{Name: created.Name, ExpectedRevision: created.Revision, Definition: editor.Workflow.Definition})
 	if err != nil {
@@ -49,12 +49,12 @@ func TestCanvasWorkflowNodeMentionsRoundTripAndMaterialize(t *testing.T) {
 	for _, node := range saved.Definition.Nodes {
 		nodes[node.ID] = node
 	}
-	steps := map[string]*cw.Step{"person": {Status: "succeeded", ResourceID: "new-person"}, "depth": {Status: "succeeded", ResourceID: "new-depth"}, "action": {Status: "succeeded", ResourceID: "old-action"}, "words": {Status: "succeeded", Text: "新文案"}}
+	steps := map[string]*cw.Step{"person": {Status: "succeeded", ResourceID: "new-person"}, "depth": {Status: "succeeded", ResourceID: "new-depth"}, "action": {Status: "succeeded", ResourceID: "old-action"}, "words": {Status: "succeeded", Text: "new copywriting"}}
 	req, err := s.materializeCanvasWorkflowRequest("owner", "mention-proof", recipes["gen"], nodes, steps)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "背景@视频2，动作@视频1，人物@图片1，新文案，再次新文案"
+	want := "Background@video2, action@video1, character@picture1, new copy, new copy again"
 	if req.Prompt != want || req.Input["prompt"] != want {
 		t.Fatalf("prompt=%q want=%q", req.Prompt, want)
 	}

@@ -1,15 +1,15 @@
-# 接口合同
+#Interface contract
 
-创建 `POST /v1/videos`；查询 `GET /v1/videos/{id}`；原片下载 `GET /v1/videos/{id}/download`。凭据仅发往用户配置的 API 地址。
+Create `POST /v1/videos`; query `GET /v1/videos/{id}`; download the original film `GET /v1/videos/{id}/download`. Credentials are only sent to the user-configured API address.
 
-本地参考素材通过 `/v1/media/uploads` 分片上传，完成后核对内容摘要、字节数、类型及真实时长。默认仅接受同域素材；独立素材域名须由用户在连接设置中明确填写。
+Local reference materials are uploaded in parts via `/v1/media/uploads`. After completion, the content summary, number of bytes, type and actual duration are checked. By default, only materials from the same domain are accepted; independent material domain names must be explicitly filled in by the user in the connection settings.
 
-不同服务的同名模型不保证协议一致，请按服务商接口文档选择此协议。
+Models with the same name in different services do not guarantee consistent protocols. Please select this protocol according to the service provider's interface document.
 
 <!-- BEEFTV_PLUGIN_MANIFEST_START -->
-## Manifest 完整接口定义
+## Manifest complete interface definition
 
-以下 JSON 与插件包内实际 `manifest.json` 逐字段一致，覆盖插件身份、权限、配置、鉴权、参数、校验、创建、Agent、查询、取消、结果下载、响应和 Agent 响应映射。`documentation` 字段的值就是当前完整文档；为避免文档在自身内部无限递归，JSON 中仅用等义占位文本表示正文。
+The following JSON is consistent field by field with the actual `manifest.json` in the plug-in package, covering plug-in identity, permissions, configuration, authentication, parameters, verification, creation, Agent, query, cancellation, result download, response and Agent response mapping. The value of the `documentation` field is the current complete document; in order to avoid infinite recursion of the document within itself, only equivalent placeholder text is used to represent the main text in JSON.
 
 ```json
 {

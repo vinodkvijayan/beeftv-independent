@@ -28,7 +28,7 @@ describe("canvas text inline edit and empty card", () => {
         expect(emptyTextBlock).toContain("aria-hidden");
         expect(emptyTextBlock).toContain("canvas-node-text-footer");
         expect(emptyTextBlock).not.toContain("GVLM 3.1");
-        expect(emptyTextBlock).not.toContain("6 积分");
+        expect(emptyTextBlock).not.toContain("6 points");
         expect(emptyTextBlock).not.toContain("node.metadata?.model");
         expect(canvasStylesSource).toMatch(/\.canvas-node-text-footer\s*\{\s*pointer-events: none;/);
     });
@@ -58,7 +58,7 @@ describe("canvas text inline edit and empty card", () => {
         expect(inlineEditBlock).toContain("aria-hidden={!isSelected}");
         expect(inlineEditBlock).toContain("tabIndex={isSelected ? 0 : -1}");
         expect(inlineEditBlock).toContain("pointer-events-auto");
-        expect(inlineEditBlock).toContain('aria-label="放大编辑文本"');
+        expect(inlineEditBlock).toContain('aria-label="Enlarge edit text"');
         expect(inlineEditBlock).toContain("onMouseDown={(event) => event.stopPropagation()}");
         expect(inlineEditBlock).toContain("onPointerDown={(event) => event.stopPropagation()}");
         expect(inlineEditBlock).toContain("onOpenTextEditor?.(data)");
@@ -67,7 +67,7 @@ describe("canvas text inline edit and empty card", () => {
     test("keeps the supported text editing paths besides the hidden inline control", () => {
         expect(nodeSource).toContain("setIsEditingContent(true)");
         expect(nodeSource).toMatch(/if \(readOnly \|\| data\.type !== CanvasNodeType\.Text\) return;[\s\S]*setIsEditingContent\(true\)/);
-        expect(contextMenuSource).toContain('{isText ? <MenuButton icon={<Maximize2 />} label="放大编辑" onClick={() => runAction(onEditText)} /> : null}');
+        expect(contextMenuSource).toContain('{isText ? <MenuButton icon={<Maximize2 />} label="Enlarge for editing" onClick={() => runAction(onEditText)} /> : null}');
         expect(projectSource).toContain("onEditText={openTextNodeEditor}");
         expect(nodeClickSource).toMatch(/node.type === CanvasNodeType.Text\)\s*\{\s*setDialogNodeId\(node.id\)/);
         expect(createNodeSource).toContain("if (canOpenCanvasNodePromptPanel(node) && type !== CanvasNodeType.Text) setDialogNodeId(node.id);");

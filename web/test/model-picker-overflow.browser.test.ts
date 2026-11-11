@@ -18,8 +18,8 @@ afterAll(async () => {
 }, 30_000);
 
 test("model picker keeps a viewport-safe frame and scrolls long brand and model lists internally", async () => {
-    const brands = Array.from({ length: 12 }, (_, index) => `<button class="canvas-model-picker-brand">渠道 ${index + 1}</button>`).join("");
-    const models = Array.from({ length: 20 }, (_, index) => `<button class="canvas-model-picker-option">模型 ${index + 1}</button>`).join("");
+    const brands = Array.from({ length: 12 }, (_, index) => `<button class="canvas-model-picker-brand">Channel${index + 1}</button>`).join("");
+    const models = Array.from({ length: 20 }, (_, index) => `<button class="canvas-model-picker-option">Model${index + 1}</button>`).join("");
     await page.setContent(`
         <style>${css}</style>
         <div class="app-user-workspace">

@@ -132,14 +132,14 @@ func ResolveSeedreamSize(family, raw string, layers bool) (string, error) {
 	}
 	if layers {
 		// 图层拆分只接受档位和 auto，官方不支持显式像素尺寸。
-		return "", fmt.Errorf("Seedream %s 的图层拆分不支持 %s，请改选 %s 档位，或选「跟随原图」", label, size, strings.Join(rule.Tiers, "、"))
+		return "", fmt.Errorf("The layer splitting of Seedream %s does not support %s, please change the %s gear, or select \"Follow the original image\"", label, size, strings.Join(rule.Tiers, "、"))
 	}
 	if isSeedreamTierName(tier) {
-		return "", fmt.Errorf("Seedream %s 没有 %s 档位，请改选 %s，或直接填宽x高像素（例如 %s）", label, size, strings.Join(rule.Tiers, "、"), rule.MinExampleSize)
+		return "", fmt.Errorf("Seedream %s does not have the %s range, please select %s instead, or directly fill in the width x height pixels (for example, %s)", label, size, strings.Join(rule.Tiers, "、"), rule.MinExampleSize)
 	}
 	width, height, ok := parseSeedreamPixelSize(size)
 	if !ok {
-		return "", fmt.Errorf("Seedream %s 看不懂尺寸 %s，请填 %s 档位、16:9 这类画布比例，或宽x高像素（例如 %s）", label, size, strings.Join(rule.Tiers, "、"), rule.MinExampleSize)
+		return "", fmt.Errorf("Seedream %s cannot understand the size %s, please fill in the %s scale, canvas ratio such as 16:9, or width x height pixels (such as %s)", label, size, strings.Join(rule.Tiers, "、"), rule.MinExampleSize)
 	}
 	if err := rule.validatePixels(label, width, height); err != nil {
 		return "", err
@@ -151,26 +151,26 @@ func ResolveSeedreamSize(family, raw string, layers bool) (string, error) {
 // 不抛像素区间、宽高比小数这些内部口径。
 func (r SeedreamSizeRule) validatePixels(label string, width, height int) error {
 	if width <= 0 || height <= 0 {
-		return fmt.Errorf("Seedream %s 的宽和高要填正整数像素，例如 %s", label, r.MinExampleSize)
+		return fmt.Errorf("The width and height of Seedream %s should be filled with integer pixels, such as %s", label, r.MinExampleSize)
 	}
 	ratio := float64(width) / float64(height)
 	// 16:1 与 1:16 对应 seedreamMaxRatio 与 seedreamMinRatio。
 	if ratio < seedreamMinRatio || ratio > seedreamMaxRatio {
-		return fmt.Errorf("Seedream %s 支持最宽 16:1、最窄 1:16 的图片，%dx%d 超出这个范围", label, width, height)
+		return fmt.Errorf("Seedream %s supports the widest 16:1 and the narrowest 1:16 pictures, %dx%d exceeds this range", label, width, height)
 	}
 	pixels := int64(width) * int64(height)
 	if pixels < r.MinPixels {
-		return fmt.Errorf("Seedream %s 的图片至少要 %s（%s），%dx%d 只有 %s", label, r.MinExampleSize, megapixels(r.MinPixels), width, height, megapixels(pixels))
+		return fmt.Errorf("The picture of Seedream %s must be at least %s (%s), %dx%d must only be %s", label, r.MinExampleSize, megapixels(r.MinPixels), width, height, megapixels(pixels))
 	}
 	if pixels > r.MaxPixels {
-		return fmt.Errorf("Seedream %s 的图片最多 %s（%s），%dx%d 有 %s", label, r.MaxExampleSize, megapixels(r.MaxPixels), width, height, megapixels(pixels))
+		return fmt.Errorf("Seedream %s has the most pictures %s (%s), %dx%d has %s", label, r.MaxExampleSize, megapixels(r.MaxPixels), width, height, megapixels(pixels))
 	}
 	return nil
 }
 
 // megapixels 把像素总数讲成「多少万像素」，避免让用户心算六位数。
 func megapixels(pixels int64) string {
-	return strconv.FormatFloat(float64(pixels)/10000, 'f', 0, 64) + " 万像素"
+	return strconv.FormatFloat(float64(pixels)/10000, 'f', 0, 64) + " Megapixel"
 }
 
 func isSeedreamTierName(value string) bool {

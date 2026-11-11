@@ -103,7 +103,7 @@ func TestProjectArchiveRoundTripKeepsPortraitAndEditableSubtitle(t *testing.T) {
 	}
 	doc := read(json.RawMessage(initial))
 	timeline := doc["timeline"].(map[string]any)
-	timeline["clips"].([]any)[1].(map[string]any)["text"] = "总有一页，等你翻开"
+	timeline["clips"].([]any)[1].(map[string]any)["text"] = "There is always a page waiting for you to turn"
 	raw, _ := json.Marshal(doc)
 	// Reopen the saved edited project through the same ZIP format.
 	doc = read(raw)
@@ -116,10 +116,10 @@ func TestProjectArchiveRoundTripKeepsPortraitAndEditableSubtitle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if plan.Output.Width != 720 || plan.Output.Height != 1280 || plan.Output.FPS != 24 || plan.Subtitles[0].Text != "总有一页，等你翻开" {
+	if plan.Output.Width != 720 || plan.Output.Height != 1280 || plan.Output.FPS != 24 || plan.Subtitles[0].Text != "There is always a page waiting for you to turn" {
 		t.Fatalf("edit/reopen lost output or text: %+v", plan)
 	}
-	if project.Tracks[0].Label != "画面" || project.Tracks[0].Order == nil || *project.Tracks[0].Order != 3 || project.Tracks[1].ID != "captions" {
+	if project.Tracks[0].Label != "Picture" || project.Tracks[0].Order == nil || *project.Tracks[0].Order != 3 || project.Tracks[1].ID != "captions" {
 		t.Fatalf("track identity lost %+v", project.Tracks)
 	}
 }

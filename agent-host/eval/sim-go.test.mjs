@@ -24,8 +24,8 @@ import {
 } from './run-eval.mjs';
 import http from 'node:http';
 
-describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
-  test('支持 /api/ops、画布 CRUD、CAS revision 冲突检测与 opId 幂等重放', async () => {
+describe('sim-go memory version Go business authoritative simulator test', () => {
+  test('Supports /api/ops, canvas CRUD, CAS revision conflict detection and opId idempotent replay', async () => {
     const sim = createSimGo({ hostToken: 'secret-token' });
     await sim.listen(0);
     try {
@@ -55,9 +55,9 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
           canvasId: 'canvas-1',
           expectedRevision: 1,
           nodes: [
-            { type: 'script', title: '分镜脚本' },
-            { type: 'image', title: '镜 1 首帧', prompt: '雨夜霓虹街头' },
-            { type: 'video', title: '镜 1 视频', prompt: '镜头缓推' },
+            { type: 'script', title: 'Storyboard' },
+            { type: 'image', title: 'Mirror 1 first frame', prompt: 'Neon street on rainy night' },
+            { type: 'video', title: 'mirror 1 video', prompt: 'Camera slowly zooms in' },
           ],
         },
         'op-create-1',
@@ -73,9 +73,9 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
           canvasId: 'canvas-1',
           expectedRevision: 1,
           nodes: [
-            { type: 'script', title: '分镜脚本' },
-            { type: 'image', title: '镜 1 首帧', prompt: '雨夜霓虹街头' },
-            { type: 'video', title: '镜 1 视频', prompt: '镜头缓推' },
+            { type: 'script', title: 'Storyboard' },
+            { type: 'image', title: 'Mirror 1 first frame', prompt: 'Neon street on rainy night' },
+            { type: 'video', title: 'mirror 1 video', prompt: 'Camera slowly zooms in' },
           ],
         },
         'op-create-1',
@@ -92,7 +92,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
             canvasId: 'canvas-1',
             nodeId: create1.result.created[1].id,
             expectedRevision: 1,
-            patch: { content: '新提示词' },
+            patch: { content: 'new prompt word' },
           },
           'op-stale-1',
         ),
@@ -100,7 +100,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
       expect(sim.counts.revisionConflicts).toBe(1);
 
       // 用户手动编辑模拟推进 revision，随后旧版本写入被拒
-      const afterUserEdit = sim.userEditNode(create1.result.created[1].id, { content: '用户手改提示词' }, 'canvas-1');
+      const afterUserEdit = sim.userEditNode(create1.result.created[1].id, { content: 'User manually changes the prompt word' }, 'canvas-1');
       expect(afterUserEdit.revision).toBe(3);
       expect(sim.counts.userEdits).toBe(1);
     } finally {
@@ -108,7 +108,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     }
   });
 
-  test('分镜行增删改与 imageNodeId/videoNodeId 产出连线绑定一致性', () => {
+  test('The addition, deletion and modification of storyboard rows are consistent with the binding of imageNodeId/videoNodeId output connections.', () => {
     const sim = createSimGo();
     const created = sim.executeOp(
       'canvas.nodes.create',
@@ -116,10 +116,10 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
         canvasId: 'canvas-1',
         expectedRevision: 1,
         nodes: [
-          { type: 'script', title: '分镜脚本' },
-          { type: 'image', title: '镜 1 首帧', prompt: '首帧A' },
-          { type: 'image', title: '镜 1 备选首帧', prompt: '首帧B' },
-          { type: 'video', title: '镜 1 视频', prompt: '视频A' },
+          { type: 'script', title: 'Storyboard' },
+          { type: 'image', title: 'Mirror 1 first frame', prompt: 'First frame A' },
+          { type: 'image', title: 'Mirror 1 alternative first frame', prompt: 'First frame B' },
+          { type: 'video', title: 'mirror 1 video', prompt: 'Video A' },
         ],
       },
       'op-init',
@@ -134,8 +134,8 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
         nodeId: scriptNode.id,
         expectedRevision: 2,
         rows: [
-          { durationSeconds: 5, plotDescription: '第一镜', dialogue: '台词1' },
-          { durationSeconds: 5, plotDescription: '第二镜', dialogue: '台词2' },
+          { durationSeconds: 5, plotDescription: 'first shot', dialogue: 'Line 1' },
+          { durationSeconds: 5, plotDescription: 'second shot', dialogue: 'Line 2' },
         ],
       },
       'op-append',
@@ -192,7 +192,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     expect(remainingRows[0].shotNumber).toBe(1);
   });
 
-  test('分镜提示词同步回执列出连带节点与字段，手改过的节点不列出', () => {
+  test('The storyboard prompt word synchronization receipt lists the associated nodes and fields, and the manually modified nodes are not listed.', () => {
     const sim = createSimGo();
     const canvasId = 'canvas-sync-receipt';
     sim.ensureCanvas(canvasId, {
@@ -200,32 +200,32 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
       revision: 1,
       nodes: [
         {
-          id: 'script', type: 'script', title: '分镜',
+          id: 'script', type: 'script', title: 'Storyboard',
           metadata: { storyboard: { rows: [
-            { id: 'r1', shotNumber: 1, imageGenerationPrompt: '旧首帧', imageNodeId: 'img-1' },
-            { id: 'r2', shotNumber: 2, videoMotionPrompt: '旧视频', videoNodeId: 'vid-1' },
+            { id: 'r1', shotNumber: 1, imageGenerationPrompt: 'old first frame', imageNodeId: 'img-1' },
+            { id: 'r2', shotNumber: 2, videoMotionPrompt: 'old videos', videoNodeId: 'vid-1' },
           ] } },
         },
-        { id: 'img-1', type: 'image', title: '首帧', metadata: { composerContent: '旧首帧', prompt: '旧首帧', status: 'idle' } },
-        { id: 'vid-1', type: 'video', title: '视频', metadata: { composerContent: '用户手改', prompt: '用户手改', status: 'idle' } },
+        { id: 'img-1', type: 'image', title: 'first frame', metadata: { composerContent: 'old first frame', prompt: 'old first frame', status: 'idle' } },
+        { id: 'vid-1', type: 'video', title: 'video', metadata: { composerContent: 'User manual modification', prompt: 'User manual modification', status: 'idle' } },
       ],
       connections: [],
     });
     const result = sim.executeOp('canvas.script.row.update', {
       canvasId, nodeId: 'script', expectedRevision: 1,
       patches: [
-        { rowId: 'r1', imageGenerationPrompt: '新首帧' },
-        { rowId: 'r2', videoMotionPrompt: '新视频' },
+        { rowId: 'r1', imageGenerationPrompt: 'new first frame' },
+        { rowId: 'r2', videoMotionPrompt: 'new video' },
       ],
     }, 'op-sync-receipt').result;
     expect(result.syncedNodeIds).toEqual(['img-1']);
     expect(result.skippedNodeIds).toEqual(['vid-1']);
     expect(result.alsoChanged).toEqual([
-      { nodeId: 'img-1', title: '首帧', fields: ['composerContent', 'prompt'] },
+      { nodeId: 'img-1', title: 'first frame', fields: ['composerContent', 'prompt'] },
     ]);
   });
 
-  test('绑定产物回收其他节点 assetId 时回执列出连带节点', () => {
+  test('When the binding product recycles the assetId of other nodes, the receipt lists the associated nodes.', () => {
     const sim = createSimGo();
     sim.assets.set('asset-ref', {
       id: 'asset-ref', resourceId: 'res-ref',
@@ -254,13 +254,13 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     expect(result.alsoChanged.some((item) => item.nodeId === 'video')).toBe(false);
   });
 
-  test('素材正文没有主资源时不回填 assetId，也不报告变更', () => {
+  test('When there is no main resource in the material body, the assetId will not be backfilled and changes will not be reported.', () => {
     const sim = createSimGo();
     sim.assets.set('asset-empty', { id: 'asset-empty', resourceId: 'res-ref', payloadJson: '{}' });
     sim.ensureCanvas('canvas-empty-asset', {
       id: 'canvas-empty-asset', revision: 1,
       nodes: [
-        { id: 'slot', type: 'image', title: '缺绑定', metadata: {
+        { id: 'slot', type: 'image', title: 'missing binding', metadata: {
           storageKey: 'resource:res-ref',
           content: '/api/resources/res-ref/file',
         } },
@@ -280,7 +280,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     expect(doc.nodes.find((node) => node.id === 'slot').metadata.assetId).toBeUndefined();
   });
 
-  test('资源回填逐项解析 storageKey 与 content，旧路径不遮蔽有效资源', () => {
+  test('Resource backfill analyzes storageKey and content item by item, and old paths do not obscure valid resources.', () => {
     const sim = createSimGo();
     sim.assets.set('asset-legacy', {
       id: 'asset-legacy', resourceId: 'res-legacy',
@@ -289,7 +289,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     sim.ensureCanvas('canvas-legacy-resource', {
       id: 'canvas-legacy-resource', revision: 1,
       nodes: [
-        { id: 'legacy', type: 'image', title: '旧路径节点', metadata: {
+        { id: 'legacy', type: 'image', title: 'old path node', metadata: {
           storageKey: 'legacy/path/not-a-resource',
           content: '/api/resources/res-legacy/file?token=1',
         } },
@@ -305,13 +305,13 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
       canvasId: 'canvas-legacy-resource', taskId: 'task-1', nodeId: 'video', outputIndex: 0,
     }, 'op-legacy-resource').result;
     expect(result.alsoChanged).toEqual([
-      { nodeId: 'legacy', title: '旧路径节点', fields: ['assetId'] },
+      { nodeId: 'legacy', title: 'old path node', fields: ['assetId'] },
     ]);
     const doc = sim.ensureCanvas('canvas-legacy-resource');
     expect(doc.nodes.find((node) => node.id === 'legacy').metadata.assetId).toBe('asset-legacy');
   });
 
-  test('时间线媒体也逐项解析资源来源并回填 assetId', () => {
+  test('Timeline Media also parses resource sources one by one and backfills the assetId.', () => {
     const sim = createSimGo();
     sim.assets.set('asset-timeline', {
       id: 'asset-timeline', resourceId: 'res-timeline',
@@ -338,7 +338,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     expect(doc.timeline.clips[0].directMedia.assetId).toBe('asset-timeline');
   });
 
-  test('已有素材正文合法引用次级资源时不被替换，也不进入 alsoChanged', () => {
+  test('Existing material text that legally references secondary resources will not be replaced and will not enter alsoChanged.', () => {
     const sim = createSimGo();
     sim.assets.set('asset-declared', {
       id: 'asset-declared', resourceId: 'res-main',
@@ -358,12 +358,12 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     sim.ensureCanvas('canvas-secondary-ref', {
       id: 'canvas-secondary-ref', revision: 1,
       nodes: [
-        { id: 'slot', type: 'image', title: '合法次级引用', metadata: {
+        { id: 'slot', type: 'image', title: 'Legal secondary reference', metadata: {
           assetId: 'asset-declared',
           storageKey: 'resource:res-secondary',
           content: '/api/resources/res-secondary/file',
         } },
-        { id: 'missing', type: 'image', title: '待回填', metadata: {
+        { id: 'missing', type: 'image', title: 'To be backfilled', metadata: {
           storageKey: 'resource:res-other',
           content: '/api/resources/res-other/file',
         } },
@@ -379,13 +379,13 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
       canvasId: 'canvas-secondary-ref', taskId: 'task-1', nodeId: 'video', outputIndex: 0,
     }, 'op-secondary-ref').result;
     expect(result.alsoChanged).toEqual([
-      { nodeId: 'missing', title: '待回填', fields: ['assetId'] },
+      { nodeId: 'missing', title: 'To be backfilled', fields: ['assetId'] },
     ]);
     const doc = sim.ensureCanvas('canvas-secondary-ref');
     expect(doc.nodes.find((node) => node.id === 'slot').metadata.assetId).toBe('asset-declared');
   });
 
-  test('绑定和解绑首帧保留同一分镜行的动作演示板连线', () => {
+  test('Bind and unbind the action demo board connection of the same storyboard line in the first frame.', () => {
     const sim = createSimGo();
     const canvasId = 'canvas-action-board';
     sim.ensureCanvas(canvasId, {
@@ -409,7 +409,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
     }
   });
 
-  test('生成提议确认、失败模拟、缺陷画面 media.inspect 及回合撤销 undo', async () => {
+  test('Generate proposal confirmation, failure simulation, defect screen media.inspect and round undo', async () => {
     const sim = createSimGo({ taskDelayMs: 5 });
     await sim.listen(0);
     try {
@@ -420,8 +420,8 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
           canvasId: 'canvas-1',
           expectedRevision: 1,
           nodes: [
-            { type: 'image', title: '镜 1 首帧', prompt: '雨夜侦探特写' },
-            { type: 'image', title: '镜 2 首帧', prompt: '暗巷追逐' },
+            { type: 'image', title: 'Mirror 1 first frame', prompt: 'Rainy night detective close-up' },
+            { type: 'image', title: 'Mirror 2 first frame', prompt: 'Dark alley chase' },
           ],
         },
         'op-c1',
@@ -444,7 +444,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
           canvasId: 'canvas-1',
           kind: 'image',
           nodeIds: [created[0].id, created[1].id],
-          note: '测试提议',
+          note: 'Test proposal',
         },
         'op-prop-1',
         'turn-gen-1',
@@ -452,7 +452,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
       expect(prop.proposalId).toBeTruthy();
 
       // 预设第 1 个节点生成画面带六指缺陷，第 2 个节点生成失败
-      sim.flagNextTaskDefect('右手六指畸形', created[0].id);
+      sim.flagNextTaskDefect('Six-finger deformity of the right hand', created[0].id);
       sim.failNextTask('upstream_timeout', created[1].id);
 
       const tasks = await sim.confirmProposals(prop.proposalId, { delayMs: 5 });
@@ -479,7 +479,7 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
         nodeId: created[0].id,
         expectedVersion: overviewRes.source.version,
       }).result;
-      expect(inspectRes.note).toContain('右手六指畸形');
+      expect(inspectRes.note).toContain('Six-finger deformity of the right hand');
       expect(inspectRes.content.length).toBe(1);
 
       // 受控可恢复错误：即使这次也漏了 expectedVersion，第一次针对目标节点的 inspect 仍返回 stale_media_version
@@ -529,8 +529,8 @@ describe('sim-go 内存版 Go 业务权威模拟器测试', () => {
   });
 });
 
-describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
-  test('--model real 缺少单价或单价为 0 时拒绝启动', () => {
+describe('Budget access control, key desensitization and evaluation configuration verification testing', () => {
+  test('--model real refuses to start when the unit price is missing or the unit price is 0', () => {
     const args = parseCliArgs(['--model', 'real', '--scenario', 'S1', '--budget-cny', '10']);
     expect(() => validateEvalConfig(args, {})).toThrow(/real_mode_price_missing/);
     expect(() =>
@@ -558,7 +558,7 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     expect(valid.priceOutPerMillion).toBe(10);
   });
 
-  test('累计费用超预算上限时立即触发 aborted_budget 熔断并记录 ledger.jsonl', () => {
+  test('When the accumulated expenses exceed the upper limit of the budget, the aborted_budget circuit breaker is immediately triggered and recorded in ledger.jsonl', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-meter-test-'));
     const ledgerPath = path.join(tmpDir, 'ledger.jsonl');
     try {
@@ -593,12 +593,12 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     }
   });
 
-  test('redactSecrets 彻底脱敏环境变量密钥、sk-* 与 Bearer Token', () => {
+  test('redactSecrets completely desensitizes environment variable keys, sk-* and Bearer Token', () => {
     const raw = {
       apiKey: 'sk-live-9876543210abcdef',
       nested: {
         Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
-        note: '调用失败: Bearer secret_token_xyz123 及 key=sk-abcdef1234567890 和 custom-sec-9999',
+        note: 'Call failed: Bearer secret_token_xyz123 and key=sk-abcdef1234567890 and custom-sec-9999',
       },
     };
     const cleaned = redactSecrets(raw, ['custom-sec-9999']);
@@ -611,7 +611,7 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     expect(cleaned.nested.Authorization).toBe('[REDACTED]');
   });
 
-  test('场景选择器与端到端单场景 fake 评测运行通过', async () => {
+  test('Scene selector and end-to-end single scene fake evaluation passed', async () => {
     expect(resolveScenarioList('all').length).toBe(11);
     expect(resolveScenarioList('S1,S3').map((s) => s.code)).toEqual(['S1', 'S3']);
     expect(buildS3SeedCanvas('c-s3').nodes.length).toBe(9);
@@ -634,10 +634,10 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
       expect(td.requestCount).toBe(5);
       expect(td.eliminableRequestCount).toBe(3);
       expect(td.toolSequence).toEqual([
-        'R1:canvas_get[可省]',
+        'R1:canvas_get[can be omitted]',
         'R2:canvas_nodes_create',
-        'R3:canvas_script_rows_append[可省]',
-        'R4:canvas_script_row_update[可省]',
+        'R3:canvas_script_rows_append[can be omitted]',
+        'R4:canvas_script_row_update[can be omitted]',
         'R5:<reply>',
       ]);
       expect(Array.isArray(td.requests)).toBe(true);
@@ -650,7 +650,7 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     }
   });
 
-  test('extractModelRequestTrace 识别工具报错重试、空画布 canvas_get、单独 plan_update 与串行分步改画布', () => {
+  test('extractModelRequestTrace identification tool error retry, empty canvas canvas_get, separate plan_update and serial step-by-step canvas change', () => {
     const sseWithTool = (name, argsObj) =>
       `data: ${JSON.stringify({
         choices: [
@@ -667,8 +667,8 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
       {
         messages: [
           { role: 'system', content: 'sys' },
-          { role: 'user', content: '帮我做两镜短剧' },
-          { role: 'user', content: '<beeftv_studio>\n[制作现场｜画布版本 1]\n概况：画布是空的。\n</beeftv_studio>' },
+          { role: 'user', content: 'Help me do a two-shot skit' },
+          { role: 'user', content: '<beeftv_studio>\n[Production scene｜Canvas version 1]\nOverview: The canvas is empty.\n</beeftv_studio>' },
         ],
       },
       sseWithTool('canvas_get', { canvasId: 'c1' }),
@@ -677,24 +677,24 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     expect(tEmptyGet.trigger).toBe('user_message');
     expect(tEmptyGet.responseTools).toEqual(['canvas_get']);
     expect(tEmptyGet.eliminable).toBe(true);
-    expect(tEmptyGet.eliminableReason).toContain('空画布已有 <beeftv_studio>');
+    expect(tEmptyGet.eliminableReason).toContain('The empty canvas already has <beeftv_studio>');
 
     // 2) 工具报错触发的下一跳重试 -> 可省往返
     const tErrRetry = extractModelRequestTrace(
       {
         messages: [
           { role: 'system', content: 'sys' },
-          { role: 'user', content: '帮我建分镜' },
+          { role: 'user', content: 'Help me create storyboards' },
           {
             role: 'assistant',
             content: '',
             tool_calls: [{ id: 'tc-1', function: { name: 'canvas_script_prepare', arguments: '{}' } }],
           },
           { role: 'tool', tool_call_id: 'tc-1', content: '{"error":"模拟器未实现操作: canvas.script.prepare"}' },
-          { role: 'user', content: '<beeftv_studio>\n概况：画布是空的。\n</beeftv_studio>' },
+          { role: 'user', content: '<beeftv_studio>\nOverview: The canvas is empty.\n</beeftv_studio>' },
         ],
       },
-      sseWithTool('canvas_nodes_create', { nodes: [{ type: 'script', title: '分镜' }] }),
+      sseWithTool('canvas_nodes_create', { nodes: [{ type: 'script', title: 'Storyboard' }] }),
       [],
     );
     expect(tErrRetry.trigger).toBe('tool_error_result');
@@ -704,19 +704,19 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     // 3) 单独调用 plan_update -> 可省往返
     const tPlanOnly = extractModelRequestTrace(
       {
-        messages: [{ role: 'user', content: '开始' }],
+        messages: [{ role: 'user', content: 'start' }],
       },
-      sseWithTool('plan_update', { steps: [{ title: '步骤1', status: 'in_progress' }] }),
+      sseWithTool('plan_update', { steps: [{ title: 'Step 1', status: 'in_progress' }] }),
       [],
     );
     expect(tPlanOnly.eliminable).toBe(true);
-    expect(tPlanOnly.eliminableReason).toContain('单独调用 plan_update');
+    expect(tPlanOnly.eliminableReason).toContain('Call plan_update alone');
 
     // 4) 同轮第二次串行写画布 -> 可省往返
     const tSerialWrite = extractModelRequestTrace(
       {
         messages: [
-          { role: 'user', content: '建分镜' },
+          { role: 'user', content: 'storyboard' },
           {
             role: 'assistant',
             content: '',
@@ -725,11 +725,11 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
           { role: 'tool', tool_call_id: 'tc-2', content: '{"revision":2}' },
         ],
       },
-      sseWithTool('canvas_script_rows_append', { nodeId: 'n1', rows: [{ plotDescription: '镜1' }] }),
+      sseWithTool('canvas_script_rows_append', { nodeId: 'n1', rows: [{ plotDescription: 'Mirror 1' }] }),
       [{ responseTools: ['canvas_nodes_create'] }],
     );
     expect(tSerialWrite.eliminable).toBe(true);
-    expect(tSerialWrite.eliminableReason).toContain('串行分步改画布');
+    expect(tSerialWrite.eliminableReason).toContain('Serial step-by-step canvas modification');
 
     // 5) 真实宿主格式识别：planContinuation、supplementMarker (/steer) 与 <canvas_event>
     const tPlanCont = extractModelRequestTrace(
@@ -737,7 +737,7 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
         messages: [
           {
             role: 'user',
-            content: '计划还没做完。继续做「创建首帧节点」；做完用 plan_update 更新状态。',
+            content: 'The plan is not finished yet. Continue to "Create the first frame node"; when finished, use plan_update to update the status.',
           },
         ],
       },
@@ -759,7 +759,7 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
           { role: 'tool', tool_call_id: 'tc-s1', content: '{"revision":2}' },
           {
             role: 'user',
-            content: [{ type: 'text', text: '[BEEFTV_INPUT:1]' }, { type: 'text', text: '改成赛博朋克 2 镜' }],
+            content: [{ type: 'text', text: '[BEEFTV_INPUT:1]' }, { type: 'text', text: 'Change to Cyberpunk 2 Mirror' }],
           },
         ],
       },
@@ -773,7 +773,7 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
 
     const tWake = extractModelRequestTrace(
       {
-        messages: [{ role: 'user', content: '<canvas_event kind="generation_finished">\n好了\n</canvas_event>' }],
+        messages: [{ role: 'user', content: '<canvas_event kind="generation_finished">\nOK\n</canvas_event>' }],
       },
       sseWithTool('media_overview', { nodeId: 'n1' }),
       [],
@@ -796,14 +796,14 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
           { role: 'tool', tool_call_id: 'tc-p2', content: '{"proposalId":"prop-1"}' },
         ],
       },
-      `data: ${JSON.stringify({ choices: [{ delta: { content: '已发起生成提议' } }] })}\n\ndata: [DONE]\n`,
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'Proposal generation initiated' } }] })}\n\ndata: [DONE]\n`,
       [],
     );
     expect(tPostProposeReply.eliminable).toBe(true);
-    expect(tPostProposeReply.eliminableReason).toContain('terminate 未生效');
+    expect(tPostProposeReply.eliminableReason).toContain('terminate is not effective');
   });
 
-  test('已知自动唤醒缺口不能掩盖首轮失败或完成事件投递失败', () => {
+  test('It is known that automatic wake-up notch cannot cover up first-round failure or completion event delivery failure.', () => {
     const scenario = SCENARIOS.find((item) => item.code === 'S5');
     const simGo = createSimGo();
     scenario.setup(simGo, 'canvas-s5');
@@ -836,15 +836,15 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     expect(summaryWithUnexpectedGap.status).toBe('failed');
   });
 
-  test('全部场景不适用时整体不报 passed，明细显示 N/A 和原因', () => {
-    const reason = '这个场景只适用于外部 Agent（内置助手提交前必须等用户在界面确认）';
+  test('When all scenarios are not applicable, the overall report will not be reported as passed, and N/A and the reason will be displayed in detail.', () => {
+    const reason = 'This scenario only applies to external Agents (the built-in assistant must wait for user confirmation on the interface before submitting)';
     const run = {
       runIndex: 1,
       scenarioId: 'submit-wait-image',
       scenarioCode: 'R1a',
       expectedBaselinePass: true,
       reason,
-      checks: [{ name: 'runner_applicability', passed: true, detail: '这个场景只适用于外部 Agent' }],
+      checks: [{ name: 'runner_applicability', passed: true, detail: 'This scenario only applies to external Agents' }],
       metrics: {
         status: 'not_applicable',
         scenarioId: 'submit-wait-image',
@@ -879,12 +879,12 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
     expect(report.summary.notApplicableRuns).toBe(1);
     const markdown = renderMarkdownReport(report);
     expect(markdown).toContain('| N/A |');
-    expect(markdown).toContain('不适用场景数 | 1');
-    expect(markdown).toContain('只适用于外部 Agent');
+    expect(markdown).toContain('Number of unapplicable scenarios | 1');
+    expect(markdown).toContain('Applies to external agents only');
     expect(markdown).not.toContain('| FAIL |');
   });
 
-  test('事件自动唤醒与用户复查分别计分，技能仅首轮激活后仍进入后续请求', async () => {
+  test('Automatic event awakening and user review are scored separately. Skills only enter subsequent requests after the first round of activation.', async () => {
     const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-eval-truth-'));
     try {
       const { report, markdown } = await runEval({
@@ -905,28 +905,28 @@ describe('预算门禁、密钥脱敏与评测配置校验测试', () => {
       expect(userReview.metrics.turnCount).toBe(2);
       expect(userReview.metrics.mediaInspections).toBe(2); // overview + versioned inspect
       expect(userReview.metrics.unconfirmedGenerationCount).toBe(0);
-      expect(markdown).not.toContain('多轮压缩后技能规则保持率');
+      expect(markdown).not.toContain('Skill rule retention rate after multiple rounds of compression');
     } finally {
       fs.rmSync(outDir, { recursive: true, force: true });
     }
   }, 30_000);
 });
 
-describe('请求归属、原文落盘与场景收尾', () => {
-  test('按缓存亲和键识别请求所属会话', () => {
+describe('Request attribution, original text placement and scene closing', () => {
+  test('Identify the session to which a request belongs by cache affinity key', () => {
     expect(requestSessionKey({ prompt_cache_key: 'durable:a' })).toBe('durable:a');
     expect(requestSessionKey({ metadata: { user_id: 'durable:b' } })).toBe('durable:b');
     expect(requestSessionKey({ messages: [] })).toBe('');
   });
 
-  test('落盘原文只去掉长的内联图片', () => {
+  test('Only long inline images are removed from the original text.', () => {
     const long = `data:image/png;base64,${'A'.repeat(400)}`;
     const out = elideDataUrls({ messages: [{ content: [{ image_url: { url: long } }, { text: 'data:short' }] }] });
     expect(out.messages[0].content[0].image_url.url).toBe(`data:image/png;base64,<${long.length} chars elided>`);
     expect(out.messages[0].content[1].text).toBe('data:short');
   });
 
-  test('助手停下且条件满足才算收尾，否则到上限返回未停下', async () => {
+  test('The assistant stops and the conditions are met before it ends. Otherwise, it returns to the upper limit without stopping.', async () => {
     let polls = 0;
     const server = http.createServer((req, res) => {
       polls += 1;
@@ -946,7 +946,7 @@ describe('请求归属、原文落盘与场景收尾', () => {
     }
   });
 
-  test('宿主不回应时等待也在上限内返回', async () => {
+  test('When the host does not respond, the wait will return within the upper limit.', async () => {
     const server = http.createServer(() => {}); // 接受连接但永不响应
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const startedAt = Date.now();
@@ -960,7 +960,7 @@ describe('请求归属、原文落盘与场景收尾', () => {
     }
   });
 
-  test('请求登记：迟到归回原场景、未知会话单列、在途计数准确、落盘脱敏', () => {
+  test('Request registration: Late return to the original scene, unknown sessions in single queue, accurate in-transit counting, desensitization of placement', () => {
     const requestsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-tracker-'));
     let context = { runIndex: 1, scenarioId: 'S5', turnId: 's5-1' };
     const tracker = createRequestTracker({ requestsDir, getContext: () => context, secrets: ['sk-secret-value-123'] });
@@ -993,7 +993,7 @@ describe('请求归属、原文落盘与场景收尾', () => {
     expect(broken.inflight).toBe(0);
   });
 
-  test('迟到请求不进当前场景证据，也不消费下一场景的改向钩子', async () => {
+  test('Late requests do not enter the current scene evidence and do not consume the redirection hook of the next scene.', async () => {
     const observed = [];
     const steered = [];
     let hook = async ({ reqIndex }) => { steered.push(reqIndex); };
@@ -1011,7 +1011,7 @@ describe('请求归属、原文落盘与场景收尾', () => {
     expect(steered).toEqual([2]);
   });
 
-  test('S7 用节点配置改提示词也算修正，只改其他参数不算', () => {
+  test('S7 Using the node configuration to change the prompt word is also considered a correction, but only changing other parameters does not count.', () => {
     const s7 = SCENARIOS.find((scenario) => scenario.code === 'S7');
     const turnRecords = [{ turnId: 't1' }, { turnId: 't2' }];
     const evaluateWith = (correction) => s7.evaluate({
@@ -1028,40 +1028,40 @@ describe('请求归属、原文落盘与场景收尾', () => {
         ],
       }) },
     }).checks.find((check) => check.name === 'result_inspected_and_prompt_corrected').passed;
-    expect(evaluateWith({ prompt: '手部自然，五根手指' })).toBe(true);
+    expect(evaluateWith({ prompt: 'Natural hands, five fingers' })).toBe(true);
     expect(evaluateWith({ size: '1024x1024' })).toBe(false);
   });
 });
 
-describe('模拟器分镜准备的标题模板与真实后端一致', () => {
+describe('The title template prepared by the simulator storyboard is consistent with the real backend', () => {
   const prepare = (simGo, canvasId, extra) => simGo.executeOp('canvas.script.prepare', {
     canvasId,
     expectedRevision: simGo.ensureCanvas(canvasId).revision,
-    script: { title: `分镜-${crypto.randomUUID()}`, rows: [
-      { plotDescription: '一', imageGenerationPrompt: '一', videoMotionPrompt: '一', durationSeconds: 5 },
-      { plotDescription: '二', imageGenerationPrompt: '二', videoMotionPrompt: '二', durationSeconds: 5 },
+    script: { title: `Storyboard-${crypto.randomUUID()}`, rows: [
+      { plotDescription: 'one', imageGenerationPrompt: 'one', videoMotionPrompt: 'one', durationSeconds: 5 },
+      { plotDescription: 'two', imageGenerationPrompt: 'two', videoMotionPrompt: 'two', durationSeconds: 5 },
     ] },
     ...extra,
   }, crypto.randomUUID(), 'turn-t');
 
-  test('按模板命名，非法模板与重名整批拒绝', () => {
+  test('Name according to the template, illegal templates and duplicate names will be rejected in batches', () => {
     const simGo = createSimGo({ hostToken: 't' });
     const canvasId = 'c-title';
     simGo.ensureCanvas(canvasId);
-    prepare(simGo, canvasId, { image: { model: 'seedream-3.0', title: '镜 {n} 首帧' } });
+    prepare(simGo, canvasId, { image: { model: 'seedream-3.0', title: 'Mirror {n} first frame' } });
     const imageTitles = simGo.ensureCanvas(canvasId).nodes.filter((node) => node.type === 'image').map((node) => node.title);
-    expect(imageTitles).toEqual(['镜 1 首帧', '镜 2 首帧']);
-    for (const title of [null, '镜 首帧', `${'镜'.repeat(38)}{n}`]) {
+    expect(imageTitles).toEqual(['Mirror 1 first frame', 'Mirror 2 first frame']);
+    for (const title of [null, 'mirror first frame', `${'mirror'.repeat(38)}{n}`]) {
       expect(() => prepare(simGo, canvasId, { image: { model: 'seedream-3.0', title } })).toThrow();
     }
     const nodesBefore = simGo.ensureCanvas(canvasId).nodes.length;
-    expect(() => prepare(simGo, canvasId, { image: { model: 'seedream-3.0', title: '镜 {n} 首帧' } })).toThrow();
+    expect(() => prepare(simGo, canvasId, { image: { model: 'seedream-3.0', title: 'Mirror {n} first frame' } })).toThrow();
     expect(() => prepare(simGo, canvasId, {
-      image: { model: 'seedream-3.0', title: '镜 {n}' }, video: { model: 'seedance-1.0', generateAudio: 'false', title: '镜 {n}' },
+      image: { model: 'seedream-3.0', title: 'Mirror {n}' }, video: { model: 'seedance-1.0', generateAudio: 'false', title: 'Mirror {n}' },
     })).toThrow();
     for (const [image, video] of [
-      [{ model: 'seedream-3.0' }, { model: 'seedance-1.0', generateAudio: 'false', title: '镜头 {n} · 首帧' }],
-      [{ model: 'seedream-3.0', title: '镜头 {n} · 视频' }, { model: 'seedance-1.0', generateAudio: 'false' }],
+      [{ model: 'seedream-3.0' }, { model: 'seedance-1.0', generateAudio: 'false', title: 'Lens {n} · First frame' }],
+      [{ model: 'seedream-3.0', title: 'Lens {n} · Video' }, { model: 'seedance-1.0', generateAudio: 'false' }],
     ]) {
       expect(() => prepare(simGo, canvasId, { image, video })).toThrow();
     }
@@ -1069,26 +1069,26 @@ describe('模拟器分镜准备的标题模板与真实后端一致', () => {
   });
 });
 
-describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置能力）', () => {
+describe('Simulator task time consumption and external submission (replacing the pre-capability of scenario R1/R3)', () => {
   const seedParityCanvas = (simGo, canvasId) => simGo.ensureCanvas(canvasId, {
     id: canvasId,
-    title: '任务耗时测试',
+    title: 'Task time-consuming test',
     revision: 1,
     nodes: [
       {
-        id: 'node-image', type: 'image', title: '镜 1 首帧', position: { x: 120, y: 160 }, width: 720, height: 405,
-        metadata: { content: '', prompt: '雨夜街头', composerContent: '雨夜街头', status: 'idle', size: '9:16', count: 1, model: 'seedream-3.0' },
+        id: 'node-image', type: 'image', title: 'Mirror 1 first frame', position: { x: 120, y: 160 }, width: 720, height: 405,
+        metadata: { content: '', prompt: 'rainy night street', composerContent: 'rainy night street', status: 'idle', size: '9:16', count: 1, model: 'seedream-3.0' },
       },
       {
-        id: 'node-video', type: 'video', title: '镜 1 视频', position: { x: 900, y: 160 }, width: 720, height: 405,
-        metadata: { content: '', prompt: '镜头缓推', composerContent: '镜头缓推', status: 'idle', size: '9:16', seconds: '6', model: 'seedance-1.0' },
+        id: 'node-video', type: 'video', title: 'mirror 1 video', position: { x: 900, y: 160 }, width: 720, height: 405,
+        metadata: { content: '', prompt: 'Camera slowly zooms in', composerContent: 'Camera slowly zooms in', status: 'idle', size: '9:16', seconds: '6', model: 'seedance-1.0' },
       },
     ],
     connections: [],
     timeline: null,
   });
 
-  test('setTaskTiming 让内置确认路径异步完成，完成后仍自动写回节点', async () => {
+  test('setTaskTiming allows the built-in confirmation path to be completed asynchronously, and will be automatically written back to the node after completion.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-timing';
     seedParityCanvas(simGo, canvasId);
@@ -1114,7 +1114,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('外部调用方 propose + submit：立即返回 running，产物交付后要再 bind，重复 operationId 不重复计费', async () => {
+  test('External caller propose + submit: Return to running immediately. Bind again after product delivery. Repeated operationId will not be billed again.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-external';
     seedParityCanvas(simGo, canvasId);
@@ -1192,7 +1192,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('外部调用方：成功后同节点重提被拒，失败后可以重提', async () => {
+  test('External caller: After success, the retrieval to the same node will be rejected, but after failure, it can be retrieval.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-external-regen';
     seedParityCanvas(simGo, canvasId);
@@ -1224,7 +1224,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('外部提案指向已有成功任务的节点时，确认不会新建任务', async () => {
+  test('When an external proposal points to a node that already has a successful task, it is confirmed that no new task will be created.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-external-confirm-blocked';
     seedParityCanvas(simGo, canvasId);
@@ -1253,7 +1253,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('未配任务耗时的画布上外部提交也会完成，不会永远 running', async () => {
+  test('External submissions on the canvas that are not allocated with time-consuming tasks will also be completed and will not run forever.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-no-timing';
     seedParityCanvas(simGo, canvasId);
@@ -1272,7 +1272,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('批量提交里后面的节点校验失败时，前面不会留下 running 任务', async () => {
+  test('When subsequent node verification fails in batch submission, no running tasks will be left in front.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-batch-fail';
     seedParityCanvas(simGo, canvasId);
@@ -1288,7 +1288,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('外部 caller 提交后提案已确认并记下任务，运行器再确认不会产生第二个任务', async () => {
+  test('After the external caller is submitted, the proposal is confirmed and the task is recorded, and the runner confirms that no second task will be generated.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-caller-confirm';
     seedParityCanvas(simGo, canvasId);
@@ -1317,7 +1317,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('内置宿主提交必须已有确认过的提案；确认后的重复提交只回读原任务', async () => {
+  test('The built-in host submission must have a confirmed proposal; repeated submission after confirmation will only read back the original task', async () => {
     const simGo = createSimGo({ hostToken: 'host-token' });
     const canvasId = 'canvas-host-submit';
     seedParityCanvas(simGo, canvasId);
@@ -1357,7 +1357,7 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('task.wait 未开启时直接 HTTP 调用也按未知操作拒绝', async () => {
+  test('When task.wait is not enabled, direct HTTP calls are also rejected as unknown operations.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-wait-hidden';
     seedParityCanvas(simGo, canvasId);
@@ -1381,16 +1381,16 @@ describe('模拟器任务耗时与外部提交（替代场景 R1 / R3 的前置�
     await simGo.close();
   });
 
-  test('canvas.script.prepare 单次最多 8 行，第 9 行起必须用 rows.append 追加', async () => {
+  test('canvas.script.prepare can contain up to 8 rows at a time. Rows.append must be used to append rows from the 9th row onwards.', async () => {
     const simGo = createSimGo({});
     const canvasId = 'canvas-rows-limit';
     simGo.ensureCanvas(canvasId);
     simGo.beginTurn({ turnId: 'turn-rows', canvasId, permissionMode: 'canvas' });
-    const row = (n) => ({ plotDescription: `第 ${n} 镜`, imageGenerationPrompt: `第 ${n} 镜首帧`, videoMotionPrompt: `第 ${n} 镜运镜`, durationSeconds: 5 });
+    const row = (n) => ({ plotDescription: `No.${n} mirror`, imageGenerationPrompt: `No.${n} First frame of shot`, videoMotionPrompt: `No.${n} mirror mirror`, durationSeconds: 5 });
     const prepare = (rows, key) => simGo.executeOp('canvas.script.prepare', {
       canvasId,
       expectedRevision: simGo.ensureCanvas(canvasId).revision,
-      script: { title: `分镜-${key}`, rows },
+      script: { title: `Storyboard-${key}`, rows },
     }, `prepare-${key}`, 'turn-rows').result;
 
     expect(() => prepare(Array.from({ length: 9 }, (_, i) => row(i + 1)), 'nine')).toThrow(/1至8行|1\.\.8/);

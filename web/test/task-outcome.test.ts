@@ -72,7 +72,7 @@ describe("task-outcome", () => {
             status: "failed",
             stage: "submission_unknown",
             errorCode: "download_failed",
-            error: "下载超时，结果仍保留在服务器",
+            error: "Download timed out, results remain on server",
             outcome: allowedOutcome,
         };
         expect(readTaskOutcome(taskWithAllowedOutcome)).toEqual(allowedOutcome);
@@ -107,7 +107,7 @@ describe("task-outcome", () => {
             taskStage: "submission_unknown",
             generationSubmissionState: "unknown",
             generationErrorCode: "download_failed",
-            errorDetails: "画布版本冲突，结果未写回",
+            errorDetails: "Canvas version conflict, results not written back",
             taskOutcome: confirmOutcome,
         };
         expect(readNodeTaskOutcome(nodeMetadata)).toEqual(confirmOutcome);
@@ -208,7 +208,7 @@ describe("task-outcome", () => {
         expect(futureCopy).toMatch(/^BeefTV 正在核对上次提交，预计 \d{2}:\d{2} 前有结论$/);
 
         const expiredCopy = formatReconcileDeadlineCopy(expiredIso, nowMs);
-        expect(expiredCopy).toBe("BeefTV 正在核对，已超过预计时间，可联系客服");
+        expect(expiredCopy).toBe("BeefTV is checking. It has exceeded the estimated time. Please contact customer service.");
 
         const confirmUncertain = taskOutcomeCopy(
             {
@@ -218,8 +218,8 @@ describe("task-outcome", () => {
             },
             nowMs,
         );
-        expect(confirmUncertain.reason).toBe("无法确认上次是否已扣费，可先到模型服务后台查看使用记录");
-        expect(confirmUncertain.confirmContent).toContain("重新生成可能会再扣一次");
+        expect(confirmUncertain.reason).toBe("If you cannot confirm whether the fee was deducted last time, you can first go to the model service background to check the usage records.");
+        expect(confirmUncertain.confirmContent).toContain("Regeneration may result in another deduction");
 
         const confirmCharged = taskOutcomeCopy(
             {
@@ -229,7 +229,7 @@ describe("task-outcome", () => {
             },
             nowMs,
         );
-        expect(confirmCharged.reason).toBe("上次已扣费，但结果拿不回，重新生成会再扣一次");
+        expect(confirmCharged.reason).toBe("The fee was deducted last time, but the result cannot be retrieved. It will be deducted again if it is regenerated.");
 
         const forbiddenTokens = [
             "BeefAPI",

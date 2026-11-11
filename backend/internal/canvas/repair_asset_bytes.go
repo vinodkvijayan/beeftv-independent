@@ -39,7 +39,7 @@ func RepairAssetBytes(db *gorm.DB, apply bool) (AssetBytesRepairReport, error) {
 		for {
 			var rows []model.Asset
 			if err := tx.Where("id > ? AND kind IN ?", after, []string{"image", "video", "audio", "model"}).Order("id ASC").Limit(100).Find(&rows).Error; err != nil {
-				return errors.New("读取素材失败，未提交修复")
+				return errors.New("Failed to read material, repair not submitted")
 			}
 			if len(rows) == 0 {
 				return nil
@@ -53,7 +53,7 @@ func RepairAssetBytes(db *gorm.DB, apply bool) (AssetBytesRepairReport, error) {
 				var payload map[string]json.RawMessage
 				var data map[string]json.RawMessage
 				if json.Unmarshal([]byte(asset.PayloadJSON), &payload) != nil || json.Unmarshal(payload["data"], &data) != nil || data == nil {
-					issue("素材 JSON 或 data 无效，需人工核查")
+					issue("The material JSON or data is invalid and requires manual verification.")
 					continue
 				}
 				if assetHasNonNegativeBytes(data) {
@@ -64,17 +64,17 @@ func RepairAssetBytes(db *gorm.DB, apply bool) (AssetBytesRepairReport, error) {
 				_ = json.Unmarshal(data["storageKey"], &key)
 				key = strings.TrimSpace(key)
 				if strings.TrimSpace(asset.UserID) == "" || kind != asset.Kind || !strings.HasPrefix(key, "resource:") || strings.TrimPrefix(key, "resource:") == "" {
-					issue("类型不一致或缺少明确的 resource: 引用，不能推测文件大小")
+					issue("Inconsistent type or lack of explicit resource: reference, cannot infer file size")
 					continue
 				}
 				var resource model.Resource
 				err := tx.Where("id = ? AND user_id = ? AND kind = ? AND status = ? AND size > 0", strings.TrimPrefix(key, "resource:"), asset.UserID, kind, model.ResourceStatusReady).Take(&resource).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					issue("未找到同用户、同类型、就绪且大小已知的资源")
+					issue("No resource with the same user, same type, ready and known size was found")
 					continue
 				}
 				if err != nil {
-					return errors.New("读取资源失败，未提交修复")
+					return errors.New("Failed to read resource, repair not committed")
 				}
 				data["bytes"], err = json.Marshal(resource.Size)
 				if err != nil {
@@ -94,7 +94,7 @@ func RepairAssetBytes(db *gorm.DB, apply bool) (AssetBytesRepairReport, error) {
 					return err
 				}
 				if err := assetlib.ValidateDocument(encoded); err != nil {
-					issue("素材仍有其他合同错误，未修改，请另行核查")
+					issue("There are still other contract errors in the material and have not been modified. Please check separately.")
 					continue
 				}
 				report.Repairable++
@@ -103,10 +103,10 @@ func RepairAssetBytes(db *gorm.DB, apply bool) (AssetBytesRepairReport, error) {
 				}
 				result := tx.Model(&model.Asset{}).Where("id = ? AND user_id = ? AND payload_json = ? AND updated_at = ?", asset.ID, asset.UserID, asset.PayloadJSON, asset.UpdatedAt).Updates(map[string]any{"payload_json": string(encoded), "updated_at": now})
 				if result.Error != nil {
-					return errors.New("更新素材失败，未提交修复")
+					return errors.New("Failed to update the material and did not submit the fix.")
 				}
 				if result.RowsAffected != 1 {
-					return fmt.Errorf("素材 %s 已变化，整批修复回滚，请停止写入后重试", asset.ID)
+					return fmt.Errorf("Material %s has changed. The entire batch of repairs will be rolled back. Please stop writing and try again.", asset.ID)
 				}
 				report.Repaired++
 			}

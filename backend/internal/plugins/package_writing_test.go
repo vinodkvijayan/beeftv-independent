@@ -33,19 +33,19 @@ func TestInstallTellsHowToFixEveryOldManifestField(t *testing.T) {
 		"package.json": `{"name":"beeftv-plugin-old-style","version":"0.1.0","beeftv":{
 			"id":"beeftv-plugin-old-style","apiVersion":"beeftv.plugin/v2","client":"./client/index.js",
 			"canvasNodes":[{"id":"note"}],
-			"contributes":{"skills":["./skills"],"canvasNodes":[{"type":"note","label":"便签","defaultTitle":"便签","defaultWidth":240,"defaultSize":{"width":240,"height":180}}]}}}`,
+			"contributes":{"skills":["./skills"],"canvasNodes":[{"type":"note","label":"note","defaultTitle":"note","defaultWidth":240,"defaultSize":{"width":240,"height":180}}]}}}`,
 	})
 	_, err = svc.InstallPackage(src, "")
 	if err == nil {
 		t.Fatal("old manifest writing was installed")
 	}
 	for _, want := range []string{
-		"beeftv.id：插件 ID 取自 package.json 的 name",
-		"beeftv.apiVersion：不用写",
-		"beeftv.canvasNodes：写在 beeftv.contributes.canvasNodes",
-		"beeftv.contributes.skills：技能写在 package.json 的 pi.skills",
-		"beeftv.contributes.canvasNodes[0].type：节点类型就是 id",
-		"beeftv.contributes.canvasNodes[0].defaultWidth：用 defaultSize",
+		"beeftv.id: The plug-in ID is taken from the name of package.json",
+		"beeftv.apiVersion: No need to write",
+		"beeftv.canvasNodes: written in beeftv.contributes.canvasNodes",
+		"beeftv.contributes.skills: Skills are written in pi.skills of package.json",
+		"beeftv.contributes.canvasNodes[0].type: The node type is id",
+		"beeftv.contributes.canvasNodes[0].defaultWidth: use defaultSize",
 	} {
 		if !strings.Contains(err.Error(), want) {
 			t.Fatalf("error does not say %q:\n%s", want, err)

@@ -159,7 +159,7 @@ func registerUserDataRoutes(r *gin.RouterGroup, owners workspaceOwners, canvasDa
 			CanvasDocumentMB *int64 `json:"canvasDocumentMB"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil || req.CanvasDocumentMB == nil {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("请填写有效的单画布容量上限"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Please fill in the valid maximum capacity of a single canvas"))
 			return
 		}
 		limitMB, err := canvasData.UpdateCanvasDocumentLimitMBBy(user.ID, *req.CanvasDocumentMB)
@@ -198,7 +198,7 @@ func registerUserDataRoutes(r *gin.RouterGroup, owners workspaceOwners, canvasDa
 			var maxErr *http.MaxBytesError
 			if errors.As(err, &maxErr) {
 				// 超 MaxBytesReader 上限时 FormFile 返回英文 http 错误，转成与 service 配额校验一致的中文文案。
-				fail(c, http.StatusBadRequest, fmt.Errorf("单个上传文件必须小于 %dMB", policy.Resource.ResourceUploadMB))
+				fail(c, http.StatusBadRequest, fmt.Errorf("A single uploaded file must be smaller than %dMB", policy.Resource.ResourceUploadMB))
 				return
 			}
 			fail(c, http.StatusBadRequest, err)
@@ -225,11 +225,11 @@ func registerUserDataRoutes(r *gin.RouterGroup, owners workspaceOwners, canvasDa
 			resource, err = resources.EnsureMediaMetadata(c.Request.Context(), user.ID, c.Param("id"))
 			if err != nil {
 				if errors.Is(err, context.Canceled) {
-					writeFailure(c, 499, 499, "request_cancelled", "检查素材已取消")
+					writeFailure(c, 499, 499, "request_cancelled", "Check material canceled")
 					return
 				}
 				if errors.Is(err, context.DeadlineExceeded) {
-					writeFailure(c, http.StatusRequestTimeout, http.StatusRequestTimeout, kernel.ReasonTimeout, "检查素材超时，请重试")
+					writeFailure(c, http.StatusRequestTimeout, http.StatusRequestTimeout, kernel.ReasonTimeout, "Checking material timed out, please try again")
 					return
 				}
 				failService(c, err)
@@ -511,7 +511,7 @@ func registerUserDataRoutes(r *gin.RouterGroup, owners workspaceOwners, canvasDa
 			ID string `json:"id"`
 		}
 		if json.Unmarshal(req.Asset, &identity) != nil || identity.ID != c.Param("id") {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("素材 ID 与请求路径不一致"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("The material ID is inconsistent with the request path"))
 			return
 		}
 		asset, err := canvasData.UpsertUserAsset(user.ID, req.Asset)
@@ -663,7 +663,7 @@ func registerUserDataRoutes(r *gin.RouterGroup, owners workspaceOwners, canvasDa
 			Revision *int64 `json:"revision"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("恢复请求格式错误"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Recovery request format error"))
 			return
 		}
 		project, err := canvasData.RestoreCanvasHistory(user.ID, c.Param("id"), c.Param("snapshotId"), req.Revision)
@@ -696,7 +696,7 @@ func registerUserDataRoutes(r *gin.RouterGroup, owners workspaceOwners, canvasDa
 			ID string `json:"id"`
 		}
 		if json.Unmarshal(req.Project, &identity) != nil || identity.ID != c.Param("id") {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("画布 ID 与请求路径不一致"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Canvas ID does not match request path"))
 			return
 		}
 		var audit struct {

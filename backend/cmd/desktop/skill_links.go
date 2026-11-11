@@ -16,11 +16,11 @@ import (
 func skillLinkRoute(raw string) (string, error) {
 	u, err := url.Parse(raw)
 	if err != nil || len(raw) > 1024 || u.Scheme != "beeftv" || u.Host != "skills" || u.Path != "/install" || u.User != nil || u.Fragment != "" || u.Opaque != "" {
-		return "", fmt.Errorf("技能链接无效")
+		return "", fmt.Errorf("Skill link is invalid")
 	}
 	q, err := url.ParseQuery(u.RawQuery)
 	if err != nil || len(q) != 2 || len(q["id"]) != 1 || len(q["version"]) != 1 || !skillhub.ResourceID.MatchString(q.Get("id")) || !skillhub.ResourceID.MatchString(q.Get("version")) {
-		return "", fmt.Errorf("技能链接必须指定有效的技能和版本")
+		return "", fmt.Errorf("Skill links must specify a valid skill and version")
 	}
 	return "/skills?" + url.Values{"skillId": {q.Get("id")}, "releaseId": {q.Get("version")}}.Encode(), nil
 }
@@ -67,7 +67,7 @@ func validSkillWebsite(raw string) bool {
 
 func (a *DesktopApp) OpenSkillMarketURL(raw string) error {
 	if !validSkillWebsite(raw) {
-		return fmt.Errorf("只能打开 BeefTV 技能页面")
+		return fmt.Errorf("Only the BeefTV skills page can be opened")
 	}
 	ctx, err := a.dialogContext()
 	if err != nil {

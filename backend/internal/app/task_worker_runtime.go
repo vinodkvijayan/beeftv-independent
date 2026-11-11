@@ -58,7 +58,7 @@ type appSlotCoordinator struct{ service *Service }
 
 func (c appSlotCoordinator) AcquireLease(ctx context.Context, scope string, limit int, ttl time.Duration) (taskruntime.SlotLease, bool, error) {
 	if c.service.coordinator == nil {
-		return nil, false, errors.New("运行时协调器未初始化")
+		return nil, false, errors.New("Runtime coordinator not initialized")
 	}
 	return c.service.coordinator.AcquireLease(ctx, scope, limit, ttl)
 }
@@ -116,7 +116,7 @@ func newAppTaskRuntime(w *taskWorkerCoordinator) *taskruntime.Runtime {
 				// describe a recoverable download as a failed generation.
 				return
 			}
-			_ = s.log(task.UserID, task.ID, "error", "后台任务处理失败", generation.DiagnosticSummary(err.Error()))
+			_ = s.log(task.UserID, task.ID, "error", "Background task processing failed", generation.DiagnosticSummary(err.Error()))
 		},
 		Config: taskruntime.Config{
 			WorkerID: s.workerID,

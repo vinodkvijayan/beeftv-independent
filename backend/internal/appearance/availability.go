@@ -46,18 +46,18 @@ func (s *Service) assetAvailable(slot string, resourceID string) bool {
 
 func validateResourceType(slot string, resource *model.Resource) error {
 	if resource == nil || resource.Status != model.ResourceStatusReady {
-		return kernel.BadAuthRequest("外观资源尚未上传完成")
+		return kernel.BadAuthRequest("Appearance resources have not been uploaded yet")
 	}
 	mimeType := strings.ToLower(strings.TrimSpace(strings.Split(resource.MimeType, ";")[0]))
 	allowed := allowedMIMETypes(slot)
 	if _, exists := allowed[mimeType]; !exists {
-		return kernel.BadAuthRequest("外观资源文件类型不受支持")
+		return kernel.BadAuthRequest("Appearance resource file type is not supported")
 	}
 	if slot == AssetVideo && resource.Kind != "video" {
-		return kernel.BadAuthRequest("登录页品牌视频必须是视频资源")
+		return kernel.BadAuthRequest("The landing page brand video must be a video resource")
 	}
 	if slot != AssetVideo && resource.Kind != "image" {
-		return kernel.BadAuthRequest("Logo 和视频封面必须是图片资源")
+		return kernel.BadAuthRequest("Logo and video cover must be image resources")
 	}
 	return nil
 }

@@ -11,7 +11,7 @@
       { "id": "tone", "kind": "video", "nodeId": "tone", "trackId": "v", "startMs": 0, "durationMs": 1000, "volume": 1, "directMedia": { "id": "tone", "kind": "video", "storageKey": "resource:tone" } },
       { "id": "silent", "kind": "video", "nodeId": "silent", "trackId": "v", "startMs": 2000, "durationMs": 1000, "volume": 1, "directMedia": { "id": "silent", "kind": "video", "storageKey": "resource:silent" } },
       { "id": "voice", "kind": "audio", "nodeId": "voice", "trackId": "a", "startMs": 0, "durationMs": 1000, "volume": 1, "fadeInMs": 800, "directMedia": { "id": "voice", "kind": "audio", "storageKey": "resource:voice" } },
-      { "id": "sub", "kind": "subtitle", "nodeId": "sub", "trackId": "s", "startMs": 0, "durationMs": 1000, "text": "中文" }
+      { "id": "sub", "kind": "subtitle", "nodeId": "sub", "trackId": "s", "startMs": 0, "durationMs": 1000, "text": "Chinese" }
     ]
   },
   "sources": [

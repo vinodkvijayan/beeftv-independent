@@ -6,9 +6,9 @@ import type { Skill } from "@/services/api/skills";
 function skill(overrides: Partial<Skill> = {}): Skill {
     return {
         skillId: "skill-1",
-        skillName: "镜头拆解",
-        description: "把文本拆成可执行镜头",
-        instruction: "先读取当前画布，再按镜头顺序创建节点。",
+        skillName: "Lens teardown",
+        description: "Split text into executable shots",
+        instruction: "First read the current canvas, and then create nodes in lens order.",
         versionId: "v1",
         version: "1",
         contentHash: "",
@@ -32,7 +32,7 @@ function skill(overrides: Partial<Skill> = {}): Skill {
         likeCount: 0,
         isLike: false,
         ownerUid: "user-1",
-        effectiveUser: { name: "测试用户", avatarUrl: "", uid: "user-1" },
+        effectiveUser: { name: "test user", avatarUrl: "", uid: "user-1" },
         originalSkillId: null,
         showcaseMedia: [],
         addedCount: 1,
@@ -46,15 +46,15 @@ function skill(overrides: Partial<Skill> = {}): Skill {
 
 describe("canvas skill mentions", () => {
     it("only exposes added skills as composer references", () => {
-        const references = buildSkillMentionReferences([skill(), skill({ skillId: "skill-2", skillName: "未加入", isAdded: false })]);
+        const references = buildSkillMentionReferences([skill(), skill({ skillId: "skill-2", skillName: "Not joined", isAdded: false })]);
         expect(references.map((item) => item.id)).toEqual(["skill:skill-1"]);
         expect(references[0]?.kind).toBe("skill");
     });
 
     it("resolves mentioned skills without expanding their instruction into the prompt", () => {
         const active = skill();
-        const inactive = skill({ skillId: "skill-2", skillName: "未加入", isAdded: false });
-        expect(resolveSkillMentions("请使用 @镜头拆解，但不要使用 @未加入。", [active, inactive]).map((item) => item.skillId)).toEqual(["skill-1"]);
-        expect(resolveSkillMentions("请使用 /镜头拆解 完成任务。", [active, inactive]).map((item) => item.skillId)).toEqual(["skill-1"]);
+        const inactive = skill({ skillId: "skill-2", skillName: "Not joined", isAdded: false });
+        expect(resolveSkillMentions("Please use @shotdisassembled, but do not use @unjoined.", [active, inactive]).map((item) => item.skillId)).toEqual(["skill-1"]);
+        expect(resolveSkillMentions("Please use /Lens Teardown to complete the task.", [active, inactive]).map((item) => item.skillId)).toEqual(["skill-1"]);
     });
 });

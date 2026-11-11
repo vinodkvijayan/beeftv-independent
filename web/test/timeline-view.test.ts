@@ -12,29 +12,29 @@ import type { CanvasNodeData } from "../src/types/canvas";
 
 it("unnamed saved clips show their canvas shot instead of an empty-video or track label", () => {
   const clip: TimelineClip = { id: "clip", nodeId: "shot", kind: "video", trackId: "video-1", startMs: 0, durationMs: 5000 };
-  const nodes = [{ id: "shot", title: "镜头 1 · 视频" }] as CanvasNodeData[];
-  expect(getTimelineClipTitle(clip, nodes)).toBe("镜头 1 · 视频");
-  expect(getTimelineClipTitle({ ...clip, title: "裁剪版本" }, nodes)).toBe("裁剪版本");
-  expect(getTimelineClipTitle({ ...clip, nodeId: "", directMedia: { id: "upload", kind: "video", title: "上传视频" } }, nodes)).toBe("上传视频");
-  expect(getTimelineClipTitle(clip, [])).toBe("视频片段");
+  const nodes = [{ id: "shot", title: "Shot 1 · Video" }] as CanvasNodeData[];
+  expect(getTimelineClipTitle(clip, nodes)).toBe("Shot 1 · Video");
+  expect(getTimelineClipTitle({ ...clip, title: "cropped version" }, nodes)).toBe("cropped version");
+  expect(getTimelineClipTitle({ ...clip, nodeId: "", directMedia: { id: "upload", kind: "video", title: "Upload video" } }, nodes)).toBe("Upload video");
+  expect(getTimelineClipTitle(clip, [])).toBe("video clip");
 });
 
-it("片段存在但视频仍在准备时，预览显示准备中而不是误报无视频片段", () => {
-  expect(getTimelinePreviewPlaceholder({ hasClip: false, hasSource: false, hasVideoUrl: false, failed: false })).toBe("该位置无视频片段");
-  expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: true, hasVideoUrl: false, failed: false })).toBe("正在准备视频");
+it("When a clip exists but the video is still being prepared, the preview shows Preparing instead of falsely reporting no video clip", () => {
+  expect(getTimelinePreviewPlaceholder({ hasClip: false, hasSource: false, hasVideoUrl: false, failed: false })).toBe("There is no video clip at this location");
+  expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: true, hasVideoUrl: false, failed: false })).toBe("Preparing video");
   expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: true, hasVideoUrl: true, failed: false })).toBe("");
-  expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: false, hasVideoUrl: false, failed: false })).toBe("视频暂不可用");
-  expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: true, hasVideoUrl: false, failed: true })).toBe("视频暂不可用");
+  expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: false, hasVideoUrl: false, failed: false })).toBe("Video is not available yet");
+  expect(getTimelinePreviewPlaceholder({ hasClip: true, hasSource: true, hasVideoUrl: false, failed: true })).toBe("Video is not available yet");
 });
 
-describe("timeline-view pxPerMs 独立性", () => {
-  it("pxPerMs 仅由缩放级别决定，不随时长漂移", () => {
+describe("timeline-view pxPerMs independence", () => {
+  it("pxPerMs is determined only by zoom level and does not drift over time", () => {
     expect(getTimelinePxPerMs(1)).toBeCloseTo(0.096, 6);
     expect(getTimelinePxPerMs(2)).toBeCloseTo(0.192, 6);
     expect(getTimelinePxPerMs(1)).toBe(getTimelinePxPerMs(1));
   });
 
-  it("拖动末片段（visualEndMs 增长）时 pxPerMs 保持恒定，轨道随内容等比扩展", () => {
+  it("When dragging the end fragment (visualEndMs grows), pxPerMs remains constant and the track expands proportionally with the content.", () => {
     const pxBefore = getTimelinePxPerMs(1);
     const endBefore = getTimelineVisualEndMs([
       { startMs: 0, durationMs: 1000 },
@@ -54,7 +54,7 @@ describe("timeline-view pxPerMs 独立性", () => {
     expect(deltaPx / pxBefore).toBeCloseTo(deltaPx / pxAfter, 6);
   });
 
-  it("面板公式：轨道宽度随时长等比扩展（pxPerMs 恒定）", () => {
+  it("Panel formula: Track width expands proportionally with length (pxPerMs is constant)", () => {
     // 面板内部公式：trackWidth = max(viewport, ceil(visualEndMs * pxPerMs))
     const pxPerMs = getTimelinePxPerMs(1);
     const trackW = (endMs: number) => Math.max(0, Math.ceil(endMs * pxPerMs));

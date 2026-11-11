@@ -42,7 +42,7 @@ func TestTimelineUpdatePreservesOnlyOmittedValidOutput(t *testing.T) {
 			if (doc.Timeline.Output == nil) != tc.cleared {
 				t.Fatalf("wrong saved output: %+v", doc.Timeline.Output)
 			}
-			if len(doc.Timeline.Tracks) != 2 || doc.Timeline.Tracks[0].ID != "v" || len(doc.Timeline.Clips) != 2 || plan.Subtitles[0].Text != "改过的一句字幕" || doc.Timeline.DurationMs != 1000 {
+			if len(doc.Timeline.Tracks) != 2 || doc.Timeline.Tracks[0].ID != "v" || len(doc.Timeline.Clips) != 2 || plan.Subtitles[0].Text != "A modified subtitle" || doc.Timeline.DurationMs != 1000 {
 				t.Fatal("update merged unrelated old timeline fields")
 			}
 		})

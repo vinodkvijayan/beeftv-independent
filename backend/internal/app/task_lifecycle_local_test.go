@@ -3,7 +3,7 @@ package app
 import "testing"
 
 func TestTaskCancellationPendingRetryMessageIsLocal(t *testing.T) {
-	if got := taskCancellationPendingRetryMessage(); got != "上一次取消请求仍在确认中，请稍后重试" {
+	if got := taskCancellationPendingRetryMessage(); got != "The last cancellation request is still being confirmed, please try again later" {
 		t.Fatalf("local retry message = %q", got)
 	}
 }

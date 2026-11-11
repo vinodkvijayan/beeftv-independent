@@ -92,15 +92,15 @@ func businessFixture(t *testing.T) (*httptest.Server, func() []string) {
 		switch {
 		case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/ops"):
 			_, _ = w.Write([]byte(`{"code":0,"data":{"ops":[
-				{"id":"canvas.get","summary":"读画布","readOnly":true,"params":{"type":"object"}},
-				{"id":"conversation.search","summary":"搜对话","readOnly":true,"params":{"type":"object"}},
-				{"id":"skill.publish.prepare","summary":"发技能","readOnly":true,"params":{"type":"object"}}
+				{"id":"canvas.get","summary":"read canvas","readOnly":true,"params":{"type":"object"}},
+				{"id":"conversation.search","summary":"Search conversation","readOnly":true,"params":{"type":"object"}},
+				{"id":"skill.publish.prepare","summary":"Publish skill","readOnly":true,"params":{"type":"object"}}
 			]}}`))
 		case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/business/tools"):
 			_, _ = w.Write([]byte(`{"code":0,"data":{"tools":[
 				{"id":"business_get_assets","summary":"GET /assets","method":"GET","path":"/assets","readOnly":true,"params":{"type":"object","properties":{}}},
 				{"id":"business_get_asset_folders","summary":"GET /asset-folders","method":"GET","path":"/asset-folders","readOnly":true,"params":{"type":"object","properties":{}}},
-				{"id":"business_delete_assets_id","summary":"删除无业务引用的素材 (DELETE /assets/:id)","method":"DELETE","path":"/assets/:id","readOnly":false,"params":{"type":"object","properties":{}}},
+				{"id":"business_delete_assets_id","summary":"Delete assets without business references (DELETE /assets/:id)","method":"DELETE","path":"/assets/:id","readOnly":false,"params":{"type":"object","properties":{}}},
 				{"id":"business_post_tasks","summary":"POST /tasks","method":"POST","path":"/tasks","readOnly":false,"submitsGeneration":true,"params":{"type":"object","properties":{}}},
 				{"id":"business_get_resources_id_file","summary":"GET /resources/:id/file","method":"GET","path":"/resources/:id/file","readOnly":true,"params":{"type":"object","properties":{}}}
 			]}}`))
@@ -235,7 +235,7 @@ func TestMCPBusinessWritesRequireAndForwardOperationID(t *testing.T) {
 		t.Fatalf("X-Idempotency-Key not forwarded: %#v", got)
 	}
 	submitted, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "business.call", Arguments: map[string]any{"tool": "business_post_tasks", "operationId": "op-task-0001",
-		"body": map[string]any{"type": "image", "prompt": "猫", "input": map[string]any{"metadata": map[string]any{"source": "mcp"}}}}})
+		"body": map[string]any{"type": "image", "prompt": "cat", "input": map[string]any{"metadata": map[string]any{"source": "mcp"}}}}})
 	if err != nil || submitted.IsError {
 		t.Fatalf("task submit failed: %v %s", err, toolText(submitted))
 	}

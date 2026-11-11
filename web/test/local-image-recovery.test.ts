@@ -14,7 +14,7 @@ test("a missing local image never returns an expired object URL as a successful 
     expect(await resolveImageUrl("image:missing", "data:image/png;base64,available")).toBe("data:image/png;base64,available");
 });
 
-test("缩略图与全景背景读取已清理的本地图片时回退而不是抛出", async () => {
+test("Thumbnails and panoramic backgrounds fall back instead of throwing when reading cleaned local images", async () => {
     const read = spyOn(localForageInstance(IMAGE_FILES_STORE_NAME), "getItem").mockResolvedValue(null);
     restores.push(() => read.mockRestore());
     await expect(resolvePreviewImageUrl("image:missing", "blob:http://127.0.0.1:3000/expired")).resolves.toBe("blob:http://127.0.0.1:3000/expired");
@@ -28,8 +28,8 @@ test("an unreadable local reference offers image recovery instead of a network r
     try { await imageToDataUrl({ dataUrl: "blob:http://localhost:3000/expired" }); }
     catch (error) { failure = error; }
     expect(failure).toBeInstanceOf(LocalImageUnavailableError);
-    expect(generationErrorMessage(failure)).toContain("重新上传或重画");
-    expect(generationErrorMessage(failure)).not.toContain("网络连接失败");
+    expect(generationErrorMessage(failure)).toContain("Reupload or redraw");
+    expect(generationErrorMessage(failure)).not.toContain("Network connection failed");
 });
 
 test("HTTP image failures do not get decoded as image bytes", async () => {

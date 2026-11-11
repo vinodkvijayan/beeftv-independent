@@ -23,7 +23,7 @@ func TestAssistantProductionConfirmationReplayAfterClaim(t *testing.T) {
 	if err = json.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
 	}
-	doc["nodes"] = []any{map[string]any{"id": "image", "type": "image", "metadata": map[string]any{"prompt": "雨后的花店", "size": "9:16", "count": 1}}}
+	doc["nodes"] = []any{map[string]any{"id": "image", "type": "image", "metadata": map[string]any{"prompt": "Flower shop after the rain", "size": "9:16", "count": 1}}}
 	doc["connections"] = []any{}
 	raw, _ = json.Marshal(doc)
 	if _, err = svc.UpsertUserCanvasProject("local", raw); err != nil {

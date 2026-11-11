@@ -23,7 +23,7 @@ try {
     page.on("requestfailed", request => console.error("Failed request:", request.url(), request.failure()?.errorText));
     const submissions = [];
     let holdResult = false;
-    const result = { segments: [{ startMs: 250, endMs: 1750, text: "你好，自动字幕" }], language: "zh" };
+    const result = { segments: [{ startMs: 250, endMs: 1750, text: "Hello, automatic subtitles" }], language: "zh" };
     await page.route("**/api/**", async route => {
         const path = new URL(route.request().url()).pathname;
         if (!path.startsWith("/api/")) return route.continue();
@@ -37,44 +37,44 @@ try {
             submissions.push(route.request().postDataJSON());
             return envelope({ id: "transcription-fixture", status: "succeeded", resultJson: JSON.stringify(result) });
         }
-        if (path === "/api/tasks/transcription-fixture") return envelope({ id: "transcription-fixture", status: holdResult ? "running" : "succeeded", stage: "正在转写", resultJson: JSON.stringify(result) });
+        if (path === "/api/tasks/transcription-fixture") return envelope({ id: "transcription-fixture", status: holdResult ? "running" : "succeeded", stage: "Transcribing", resultJson: JSON.stringify(result) });
         return route.fulfill({ status: 500, json: { code: 500, msg: `Unexpected test route ${path}` } });
     });
     await page.goto(`http://127.0.0.1:${address.port}/__transcription_test`);
-    await page.getByRole("toolbar", { name: "节点快捷工具" }).getByRole("button", { name: "字幕", exact: true }).click().catch(async error => { console.error("Toolbar DOM:", await page.locator("body").innerHTML()); throw error; });
+    await page.getByRole("toolbar", { name: "Node shortcut tool" }).getByRole("button", { name: "subtitles", exact: true }).click().catch(async error => { console.error("Toolbar DOM:", await page.locator("body").innerHTML()); throw error; });
     assert.equal(await page.getByTestId("selected-node").textContent(), "video-fixture");
     await page.getByTestId("toolbar-container").evaluate(element => { element.style.width = "380px"; });
-    await page.getByRole("toolbar", { name: "节点快捷工具" }).getByRole("button", { name: "字幕", exact: true }).click();
-    await page.getByRole("button", { name: "读取 BeefTV 转写模型" }).click();
-    await page.getByRole("combobox", { name: "转写模型" }).click();
+    await page.getByRole("toolbar", { name: "Node shortcut tool" }).getByRole("button", { name: "subtitles", exact: true }).click();
+    await page.getByRole("button", { name: "Read the BeefTV transcription model" }).click();
+    await page.getByRole("combobox", { name: "Transcription model" }).click();
     await page.getByText("hy-asr-3.0-preview · BeefTV", { exact: true }).last().click();
     assert.equal(await page.getByText("minimax-speech-2.8-hd", { exact: true }).count(), 0);
-    await page.getByRole("button", { name: "自动转写字幕" }).click();
-    try { await page.getByText("已识别 1 条字幕，可编辑后保存或导出 SRT", { exact: true }).waitFor(); }
+    await page.getByRole("button", { name: "Automatically transcribe subtitles" }).click();
+    try { await page.getByText("1 subtitle has been identified and can be edited and saved or exported as SRT", { exact: true }).waitFor(); }
     catch (error) { console.error("Rendered state:", await page.locator("body").innerText(), "Submissions:", submissions); throw error; }
     const entries = JSON.parse(await page.getByTestId("subtitles").textContent());
-    assert.deepEqual(entries, [{ startMs: 250, endMs: 1750, text: "你好，自动字幕", index: 1 }]);
+    assert.deepEqual(entries, [{ startMs: 250, endMs: 1750, text: "Hello, automatic subtitles", index: 1 }]);
     assert.equal(submissions.length, 1);
     assert.equal(submissions[0].model, "hy-asr-3.0-preview");
     assert.equal(submissions[0].resourceId, "resource-fixture");
     assert.equal(submissions[0].projectId, "project-fixture");
     assert.ok(submissions[0].clientOperationId);
     holdResult = true;
-    await page.getByRole("button", { name: "自动转写字幕" }).click();
-    await page.getByRole("status").filter({ hasText: "正在转写" }).waitFor();
-    await page.getByText("关闭窗口后，转写任务仍会继续，可在任务中心查看。", { exact: true }).waitFor();
-    await page.getByRole("button", { name: "关闭测试窗口" }).click();
+    await page.getByRole("button", { name: "Automatically transcribe subtitles" }).click();
+    await page.getByRole("status").filter({ hasText: "Transcribing" }).waitFor();
+    await page.getByText("After closing the window, the transcription task will still continue and can be viewed in the task center.", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Close test window" }).click();
     await page.waitForFunction(() => document.querySelector('[data-testid="running"]')?.textContent === "false");
-    result.segments[0].text = "关闭后不能写入";
+    result.segments[0].text = "Cannot write after closing";
     holdResult = false;
-    await page.getByRole("button", { name: "重新打开" }).click();
-    assert.equal(await page.getByRole("button", { name: "自动转写字幕" }).isEnabled(), true);
+    await page.getByRole("button", { name: "reopen" }).click();
+    assert.equal(await page.getByRole("button", { name: "Automatically transcribe subtitles" }).isEnabled(), true);
     assert.deepEqual(JSON.parse(await page.getByTestId("subtitles").textContent()), entries);
-    await page.getByRole("button", { name: "关闭测试窗口" }).click();
-    await page.getByRole("button", { name: "切换音视频素材" }).click();
-    await page.getByRole("toolbar", { name: "节点快捷工具" }).getByRole("button", { name: "字幕", exact: true }).click();
+    await page.getByRole("button", { name: "Close test window" }).click();
+    await page.getByRole("button", { name: "Switch audio and video materials" }).click();
+    await page.getByRole("toolbar", { name: "Node shortcut tool" }).getByRole("button", { name: "subtitles", exact: true }).click();
     assert.equal(await page.getByTestId("selected-node").textContent(), "audio-fixture");
-    assert.equal(await page.getByRole("button", { name: "自动转写字幕" }).isVisible(), true);
+    assert.equal(await page.getByRole("button", { name: "Automatically transcribe subtitles" }).isVisible(), true);
     assert.deepEqual(errors, []);
     console.log("PASS: real video/audio CanvasNodeToolbar subtitle button clicks, cloud catalog selection, task submission, timed subtitle attachment, close/reopen; no paid requests");
 } finally {

@@ -5,8 +5,8 @@ import { applyClaySceneMaterials } from "../src/lib/canvas/director/director-cla
 
 const geometry = new PlaneGeometry(1, 1);
 
-describe("导演台白膜材质切换", () => {
-    test("标准材质 mesh 换成 clay，恢复后还原为原材质", () => {
+describe("Director's desk white film material switching", () => {
+    test("The standard material mesh is replaced with clay, and restored to the original material after restoration.", () => {
         const scene = new Scene();
         const original = new MeshStandardMaterial({ color: "#ff0000" });
         const mesh = new Mesh(geometry, original);
@@ -18,7 +18,7 @@ describe("导演台白膜材质切换", () => {
         expect(mesh.material).toBe(original);
     });
 
-    test("带 uniforms 的 shader 材质保持原样（Grid 逐帧崩溃回归）", () => {
+    test("Shader materials with uniforms remain intact (Grid collapses back frame by frame)", () => {
         const scene = new Scene();
         const shader = new ShaderMaterial({ uniforms: { worldCamProjPosition: { value: null } } });
         const grid = new Mesh(geometry, shader);
@@ -29,7 +29,7 @@ describe("导演台白膜材质切换", () => {
         expect(grid.material).toBe(shader);
     });
 
-    test("directorActor mesh 与非 Mesh 对象不受影响", () => {
+    test("directorActor mesh and non-Mesh objects are not affected", () => {
         const scene = new Scene();
         const actorMaterial = new MeshBasicMaterial();
         const actor = new Mesh(geometry, actorMaterial);
@@ -43,7 +43,7 @@ describe("导演台白膜材质切换", () => {
         expect(actor.material).toBe(actorMaterial);
     });
 
-    test("白膜输出保留导演台地板材质，不把环境地面染成白色", () => {
+    test("The white film output retains the director's desk floor material and does not dye the environment floor white.", () => {
         const scene = new Scene();
         const groundMaterial = new MeshStandardMaterial({ color: "#151820" });
         const ground = new Mesh(geometry, groundMaterial);
@@ -60,7 +60,7 @@ describe("导演台白膜材质切换", () => {
         expect(ground.material).toBe(groundMaterial);
     });
 
-    test("材质数组混入 uniforms 材质时整组跳过", () => {
+    test("When the material array is mixed into the uniforms material, the entire group is skipped", () => {
         const scene = new Scene();
         const materials: Material[] = [new MeshStandardMaterial(), new ShaderMaterial({ uniforms: {} })];
         const mesh = new Mesh(geometry, materials);

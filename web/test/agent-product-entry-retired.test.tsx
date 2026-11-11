@@ -92,8 +92,8 @@ function collectSourceFiles(directory: string): string[] {
     });
 }
 
-describe("旧内置 Agent 页面入口退场", () => {
-    test("首页不再提供 Agent 能力入口，手工创作入口仍然指向真实画布路径", () => {
+describe("The old built-in Agent page entrance is retired", () => {
+    test("The home page no longer provides the Agent capability entrance, and the manual creation entrance still points to the real canvas path.", () => {
         const markup = renderToStaticMarkup(
             <MemoryRouter>
                 <HomeDashboard projects={[]} loading={false} error={false} onRetry={() => {}} />
@@ -101,23 +101,23 @@ describe("旧内置 Agent 页面入口退场", () => {
         );
         expect(markup).not.toContain("BeefTV Agent");
         expect(markup).not.toContain('data-mode="agent"');
-        expect(markup).toContain("新建画布创作");
+        expect(markup).toContain("Create a new canvas");
         for (const [label, href] of [
-            ["自由画布", "/canvas?mode=new"],
-            ["视频生成", "/canvas?mode=new&amp;add=video"],
-            ["图片生成", "/canvas?mode=new&amp;add=image"],
-            ["音频生成", "/canvas?mode=new&amp;add=audio"],
+            ["free canvas", "/canvas?mode=new"],
+            ["video generation", "/canvas?mode=new&amp;add=video"],
+            ["Image generation", "/canvas?mode=new&amp;add=image"],
+            ["audio generation", "/canvas?mode=new&amp;add=audio"],
         ] as const) {
             expect(markup).toContain(label);
             expect(markup).toContain(href);
         }
     });
 
-    test("创作页模式切换只剩图片/视频/文本，不再渲染 Agent 模式", () => {
+    test("When switching the creation page mode, only images/videos/texts are left, and Agent mode is no longer rendered.", () => {
         const markup = renderToStaticMarkup(<CreationModeTabs mode="image" onModeChange={() => {}} />);
-        expect(markup).toContain("图片");
-        expect(markup).toContain("视频");
-        expect(markup).toContain("文本");
+        expect(markup).toContain("pictures");
+        expect(markup).toContain("video");
+        expect(markup).toContain("text");
         expect(markup).not.toContain("Agent");
         expect(markup).not.toContain('data-mode="agent"');
         expect(markup).toContain('data-active-mode="image"');
@@ -126,35 +126,35 @@ describe("旧内置 Agent 页面入口退场", () => {
         expect(markup).not.toContain("repeat(4,");
     });
 
-    test("工作区侧栏与顶栏不再出现旧 Agent 文案", () => {
+    test("The old Agent copy no longer appears in the sidebar and topbar of the workspace", () => {
         // 侧栏导航依赖 Vite define（__APP_VERSION__）渲染，因此这里只做文案回归守卫；
         // 真实浏览器验收在实施报告中记录（.local/browser-check/check.mjs）。
         const sidebar = readFileSync(resolve(root, "src/components/layout/workspace-sidebar-nav.tsx"), "utf8");
         expect(sidebar).not.toContain("BeefTV Agent");
         const topBar = readFileSync(resolve(root, "src/components/layout/workspace-top-bar.tsx"), "utf8");
-        expect(topBar).not.toContain("短剧 Agent");
+        expect(topBar).not.toContain("Short drama Agent");
         const projectsPage = readFileSync(resolve(root, "src/pages/projects/index.tsx"), "utf8");
-        expect(projectsPage).not.toContain("短剧 Agent");
+        expect(projectsPage).not.toContain("Short drama Agent");
     });
 
-    test("短剧起步引导不再提供「交给 Agent」路径", () => {
+    test("The skit starting guide no longer provides the \"Leave it to Agent\" path", () => {
         const markup = renderToStaticMarkup(
             <CanvasShortDramaEmptyState onCreatePipeline={() => {}} onStartFreeform={() => {}} onUpload={() => {}} onAddText={() => {}} onAddScript={() => {}} />,
         );
-        expect(markup).toContain("自己创作");
-        expect(markup).toContain("自由空白画布");
-        expect(markup).not.toContain("交给 Agent");
-        expect(markup).not.toContain("一句话生成影视项目");
+        expect(markup).toContain("Create your own");
+        expect(markup).toContain("free blank canvas");
+        expect(markup).not.toContain("Leave it to Agent");
+        expect(markup).not.toContain("Generate film and television projects in one sentence");
         expect(markup).toContain("md:grid-cols-2");
     });
 
-    test("选区工具栏不再暴露发送到 Agent 的工具", () => {
+    test("The selection toolbar no longer exposes tools sent to the Agent", () => {
         const rendered = selectionToolbarTools.map((tool) => `${tool.id}|${typeof tool.label === "string" ? tool.label : ""}`);
         expect(rendered.some((entry) => entry.includes("agent") || entry.includes("Agent"))).toBe(false);
         expect(selectionToolbarTools.map((tool) => tool.id)).toContain("selection-merge-videos");
     });
 
-    test("名字带 agent 但服务保留能力的模块必须留下", () => {
+    test("Modules whose names contain agent but whose service retains capabilities must be left behind", () => {
         // agent-context-budget 约束手工工具生成的请求预算；agent-image-preview
         // 为美术评审提供看图素材。两者与旧内置 Agent 入口无关。
         for (const path of RETAINED_AGENT_NAMED_MODULES) {
@@ -166,7 +166,7 @@ describe("旧内置 Agent 页面入口退场", () => {
         expect(artCritique).toContain("inspectAgentImage");
     });
 
-    test("退场模块在源码中物理缺席且没有残留引用", () => {
+    test("The exit module is physically absent from the source code and has no residual references.", () => {
         for (const path of RETIRED_AGENT_MODULES) {
             expect(existsSync(resolve(root, path))).toBe(false);
         }
@@ -181,7 +181,7 @@ describe("旧内置 Agent 页面入口退场", () => {
         expect(offenders).toEqual([]);
     });
 
-    test("旧 Agent 深链参数在画布页被剥离，不会重新打开已退场的面板", () => {
+    test("The old Agent deep link parameters are stripped off on the canvas page, and the exited panel will not be reopened.", () => {
         const source = readFileSync(resolve(root, "src/pages/canvas/project.tsx"), "utf8");
         expect(source).not.toContain("CanvasCloudAgentPanel");
         expect(source).not.toContain("openAgent");

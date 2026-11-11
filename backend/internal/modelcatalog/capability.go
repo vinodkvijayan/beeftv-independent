@@ -71,18 +71,18 @@ func DecodeModelCapabilityConfig(raw string) (*ModelCapabilityConfig, error) {
 // 目录读取可以选择隔离损坏记录；任务创建等写路径必须把错误向上返回并失败关闭。
 func normalizedChannelModelCapability(channelModel *model.ChannelModel) (*ModelCapabilityConfig, error) {
 	if channelModel == nil {
-		return nil, errors.New("渠道模型为空")
+		return nil, errors.New("Channel model is empty")
 	}
 	capability := normalizeCapability(channelModel.Capability)
 	if capability == "audio" {
 		return nil, nil
 	}
 	if capability != "text" && capability != "image" && capability != "video" {
-		return nil, fmt.Errorf("不支持的渠道模型能力：%s", channelModel.Capability)
+		return nil, fmt.Errorf("Unsupported channel model capabilities: %s", channelModel.Capability)
 	}
 	config, err := DecodeModelCapabilityConfig(channelModel.CapabilityConfigJSON)
 	if err != nil {
-		return nil, fmt.Errorf("解析渠道模型能力配置失败：%w", err)
+		return nil, fmt.Errorf("Analysis channel model capability configuration failed: %w", err)
 	}
 	normalized, err := NormalizeModelCapabilityConfigForModel(capability, string(channelModel.Protocol), kernel.FirstNonEmpty(channelModel.ProviderModelKey, channelModel.ModelKey), config)
 	if err != nil {
@@ -101,7 +101,7 @@ func NormalizeModelCapabilityConfigForModel(capability string, protocol string, 
 	}
 	if capability == "text" {
 		if input == nil || input.Text == nil {
-			return nil, kernel.BadAuthRequest("请配置文本模型能力参数")
+			return nil, kernel.BadAuthRequest("Please configure text model capability parameters")
 		}
 		text := *input.Text
 		if text.Streaming == nil {
@@ -120,7 +120,7 @@ func NormalizeModelCapabilityConfigForModel(capability string, protocol string, 
 	}
 	if capability == "image" {
 		if input == nil || input.Image == nil {
-			return nil, kernel.BadAuthRequest("请配置图片模型能力参数")
+			return nil, kernel.BadAuthRequest("Please configure image model capability parameters")
 		}
 		value := &ModelCapabilityConfig{Version: 1, Image: applyModelSpecificImageCapability(input.Image, protocol, modelName, "")}
 		if err := validateImageCapabilityConfig(value.Image); err != nil {
@@ -129,7 +129,7 @@ func NormalizeModelCapabilityConfigForModel(capability string, protocol string, 
 		return value, nil
 	}
 	if input == nil || input.Video == nil {
-		return nil, kernel.BadAuthRequest("请配置视频模型能力参数")
+		return nil, kernel.BadAuthRequest("Please configure video model capability parameters")
 	}
 	value := &ModelCapabilityConfig{Version: 1, Video: applyModelSpecificVideoCapability(input.Video, protocol, modelName)}
 	if err := validateVideoCapabilityConfig(value.Video); err != nil {
@@ -157,7 +157,7 @@ func NormalizeModelCapabilityDraft(draft ModelCapabilityDraft, workflow ...Workf
 	}
 	if draft.VideoCapabilitiesVersion != nil && strings.TrimSpace(*draft.VideoCapabilitiesVersion) != "" {
 		if draft.CapabilityConfig == nil || draft.CapabilityConfig.Video == nil {
-			return nil, kernel.BadAuthRequest("当前视频模型能力尚未加载，请在设置中刷新模型列表")
+			return nil, kernel.BadAuthRequest("The current video model capability has not been loaded, please refresh the model list in the settings")
 		}
 		if err := validateVideoCapabilityConfig(draft.CapabilityConfig.Video); err != nil {
 			return nil, err
@@ -169,7 +169,7 @@ func NormalizeModelCapabilityDraft(draft ModelCapabilityDraft, workflow ...Workf
 	rawCapability := strings.TrimSpace(kernel.FirstNonEmpty(draft.Capability, draft.Type, draft.Category))
 	capability := normalizeCapability(rawCapability)
 	if rawCapability != "" && capability == "" {
-		return nil, kernel.BadAuthRequest("模型能力类型无效")
+		return nil, kernel.BadAuthRequest("Invalid model capability type")
 	}
 	baseURL := strings.TrimSpace(draft.BaseURL)
 	channelID := strings.TrimSpace(draft.ChannelID)
@@ -317,25 +317,25 @@ func CapabilitySpecFromModelCapabilityConfig(config *ModelCapabilityConfig, capa
 	if config == nil {
 		switch capability {
 		case "text":
-			return spec, kernel.BadAuthRequest("渠道文本模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel text model has not been configured with capability parameters")
 		case "image":
-			return spec, kernel.BadAuthRequest("渠道图片模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel image model has not been configured with capability parameters.")
 		case "video":
-			return spec, kernel.BadAuthRequest("渠道视频模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel video model has not been configured with capability parameters.")
 		default:
-			return spec, kernel.BadAuthRequest("渠道模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel model has not been configured with capability parameters")
 		}
 	}
 	switch capability {
 	case "text":
 		if config.Text == nil {
-			return spec, kernel.BadAuthRequest("渠道文本模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel text model has not been configured with capability parameters")
 		}
 		addInputConstraint(spec.Inputs, "image", 0, config.Text.References.MaxImages)
 		addInputConstraint(spec.Inputs, "video", 0, config.Text.References.MaxVideos)
 	case "image":
 		if config.Image == nil {
-			return spec, kernel.BadAuthRequest("渠道图片模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel image model has not been configured with capability parameters.")
 		}
 		image := config.Image
 		addInputConstraint(spec.Inputs, "image", 0, image.References.MaxImages)
@@ -360,7 +360,7 @@ func CapabilitySpecFromModelCapabilityConfig(config *ModelCapabilityConfig, capa
 		}
 	case "video":
 		if config.Video == nil {
-			return spec, kernel.BadAuthRequest("渠道视频模型尚未配置能力参数")
+			return spec, kernel.BadAuthRequest("The channel video model has not been configured with capability parameters.")
 		}
 		video := config.Video
 		spec.Operations = append([]string(nil), video.Operations...)
@@ -396,7 +396,7 @@ func CapabilitySpecFromModelCapabilityConfig(config *ModelCapabilityConfig, capa
 			spec.Options["videoWatermark"] = boolValues(false)
 		}
 	default:
-		return spec, kernel.BadAuthRequest("未知模型能力类型")
+		return spec, kernel.BadAuthRequest("Unknown model capability type")
 	}
 	return spec, nil
 }
@@ -410,15 +410,15 @@ func addInputConstraint(inputs map[string]InputConstraint, name string, min int,
 
 func validateTextCapabilityConfig(value *TextCapabilityConfig) error {
 	if value.References.PromptMaxChars < 1 || value.References.PromptMaxChars > 1000000 {
-		return kernel.BadAuthRequest("提示词最大字符数必须在 1-1000000 之间")
+		return kernel.BadAuthRequest("The maximum number of characters in the prompt word must be between 1-1000000")
 	}
-	for name, number := range map[string]int{"最大图片引用数": value.References.MaxImages, "最大视频引用数": value.References.MaxVideos} {
+	for name, number := range map[string]int{"Maximum number of image citations": value.References.MaxImages, "Maximum number of video citations": value.References.MaxVideos} {
 		if number < 0 || number > 100 {
-			return kernel.BadAuthRequest(name + "必须在 0-100 之间")
+			return kernel.BadAuthRequest(name + "Must be between 0-100")
 		}
 	}
 	if value.References.MaxImageBytes < 0 || value.References.MaxVideoBytes < 0 {
-		return kernel.BadAuthRequest("引用素材大小限制不能小于 0")
+		return kernel.BadAuthRequest("Reference material size limit cannot be less than 0")
 	}
 	return nil
 }

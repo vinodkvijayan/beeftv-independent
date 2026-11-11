@@ -9,25 +9,25 @@ import (
 )
 
 func TestTaskFailureDiagnosticsPreserveLocalConstraint(t *testing.T) {
-	task := &model.Task{ID: "task-local", Stage: "校验参考图"}
-	captureTaskFailureDiagnostics(task, BadAuthRequest("当前图片模型最多支持 2 张参考图"), "unknown")
+	task := &model.Task{ID: "task-local", Stage: "Calibration reference picture"}
+	captureTaskFailureDiagnostics(task, BadAuthRequest("The current image model supports up to 2 reference images."), "unknown")
 	d := taskSummaryForOutput(*task).FailureDiagnostics
-	if d == nil || d.Source != "local_validation" || d.Summary != "当前图片模型最多支持 2 张参考图" || d.ProviderCode != "" || d.CapturedAt == "" {
+	if d == nil || d.Source != "local_validation" || d.Summary != "The current image model supports up to 2 reference images." || d.ProviderCode != "" || d.CapturedAt == "" {
 		t.Fatalf("diagnostics = %+v", d)
 	}
 }
 
 func TestTaskFailureDiagnosticsDiskFullStage(t *testing.T) {
-	task := &model.Task{ID: "task_12345678", Stage: "处理中"}
-	captureTaskFailureDiagnostics(task, errors.New("生成内容写入资源存储失败：write local resource: no space left on device"), "local_result")
+	task := &model.Task{ID: "task_12345678", Stage: "Processing"}
+	captureTaskFailureDiagnostics(task, errors.New("Failed to write generated content to resource storage: write local resource: no space left on device"), "local_result")
 	d := task.FailureDiagnostics
-	if d == nil || d.Source != "local_result" || d.Stage != "保存生成结果（磁盘空间不足）" || !strings.Contains(d.Summary, "no space left on device") {
+	if d == nil || d.Source != "local_result" || d.Stage != "Save build results (insufficient disk space)" || !strings.Contains(d.Summary, "no space left on device") {
 		t.Fatalf("lost storage stage: %#v", d)
 	}
 }
 
 func TestTaskFailureDiagnosticsPreserveHTTPHeaderAndRedact(t *testing.T) {
-	task := &model.Task{ID: "task-http", Stage: "正在生成"}
+	task := &model.Task{ID: "task-http", Stage: "Generating"}
 	err := providerHTTPError{StatusCode: 400, RequestID: "req-header-123", Body: `{"error":{"code":"invalid_size","param":"size","message":"size must be 1024x1024; Authorization: Bearer PRIVATE credential"}}`}
 	captureTaskFailureDiagnostics(task, err, "unknown")
 	d := taskForOutput(*task).FailureDiagnostics
@@ -40,7 +40,7 @@ func TestTaskFailureDiagnosticsPreserveHTTPHeaderAndRedact(t *testing.T) {
 }
 
 func TestTaskTerminalPersistsDiagnosticBeforeReplacingError(t *testing.T) {
-	task := &model.Task{ID: "task-terminal", Status: model.TaskStatusRunning, Stage: "素材下载"}
+	task := &model.Task{ID: "task-terminal", Status: model.TaskStatusRunning, Stage: "Material download"}
 	repo := &taskTerminalRepositoryStub{task: task}
 	c := newTaskTerminalCoordinatorForTest(repo, &taskTerminalReplayStub{}, &taskTerminalLoggerStub{}, &taskTerminalOutputStub{})
 	err := errors.New("cannot save /Users/private-name/image.png")

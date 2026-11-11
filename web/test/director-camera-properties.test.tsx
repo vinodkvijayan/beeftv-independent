@@ -5,8 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DirectorCameraProperties } from "@/components/canvas/director/director-camera-properties";
 import { createDirectorScene } from "@/lib/canvas/director/director-scene";
 
-describe("导演台摄影机属性预览", () => {
-    test("属性区先展示当前机位的 16:9 预览和 FOV", () => {
+describe("Director's desk camera properties preview", () => {
+    test("The properties area first displays the 16:9 preview and FOV of the current camera position.", () => {
         const scene = createDirectorScene();
         const html = renderToStaticMarkup(createElement(DirectorCameraProperties, {
             scene,
@@ -17,15 +17,15 @@ describe("导演台摄影机属性预览", () => {
             onUpdateCamera: () => {},
             onSelectCamera: () => {},
             onFollowObject: () => {},
-            children: createElement("span", null, "镜头高级参数"),
+            children: createElement("span", null, "Lens advanced parameters"),
         }));
 
-        expect(html).toContain('aria-label="摄影机预览"');
+        expect(html).toContain('aria-label="Camera Preview"');
         expect(html).toContain("FOV 50°");
-        expect(html).toContain('aria-label="放大摄影机预览"');
+        expect(html).toContain('aria-label="Enlarge camera preview"');
     });
 
-    test("播放头位于动画帧时，属性输入和 FOV 徽标显示该帧而非基础机位值", () => {
+    test("When the playhead is at an animation frame, the attribute input and FOV logo show that frame instead of the base camera position value", () => {
         const scene = createDirectorScene();
         const camera = { ...scene.cameras[0], keyframes: [{
             id: "animated-camera", time: 2,
@@ -45,7 +45,7 @@ describe("导演台摄影机属性预览", () => {
         expect(html).toMatch(/aria-label="FOV 数值"[^>]*value="35"/);
     });
 
-    test("参考页逐轴按钮共用向量轨状态：三轴同步标记，视角独立", () => {
+    test("Reference page Axis-by-axis buttons share vector track status: three-axis simultaneous marking, independent viewing angles", () => {
         const scene = createDirectorScene();
         const camera = { ...scene.cameras[0], keyframes: [{
             id: "optics", time: 2, positionKeyed: false,
@@ -65,7 +65,7 @@ describe("导演台摄影机属性预览", () => {
         expect((away.match(/aria-label="当前帧无关键帧"/g) || []).length).toBe(10);
     });
 
-    test("手动坐标模式始终显示由画面注视方向解算的旋转三轴", () => {
+    test("Manual coordinate mode always displays the three axes of rotation calculated from the screen gaze direction.", () => {
         const scene = createDirectorScene();
         const camera = { ...scene.cameras[0],
             transform: { ...scene.cameras[0].transform, position: [0, 1.91, 7.6] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] },

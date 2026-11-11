@@ -45,7 +45,7 @@ function textAsset(id: string, title: string): Asset {
         tags: [],
         category: "other",
         status: "confirmed",
-        source: "手动添加",
+        source: "Add manually",
         data: { content: "hello" },
         createdAt: "2026-10-02T00:00:00.000Z",
         updatedAt: "2026-10-02T00:00:00.000Z",
@@ -102,30 +102,30 @@ describe("asset store durable draft storage", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "第一版",
+                title: "first edition",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "v1" },
             });
             await waitFor(() => draftWrites.length === 1, "first draft setItem");
-            useAssetStore.getState().updateAsset(id, { title: "第二版" });
+            useAssetStore.getState().updateAsset(id, { title: "second edition" });
             await new Promise((resolve) => setTimeout(resolve, 20));
             expect(draftWrites.length).toBe(1);
-            expect(draftWrites[0]?.value).toContain("第一版");
-            expect(draftWrites[0]?.value).not.toContain("第二版");
+            expect(draftWrites[0]?.value).toContain("first edition");
+            expect(draftWrites[0]?.value).not.toContain("second edition");
 
             draftWrites[0]?.resolve();
             await waitFor(() => draftWrites.length === 2, "second draft setItem");
-            expect(draftWrites[1]?.value).toContain("第二版");
+            expect(draftWrites[1]?.value).toContain("second edition");
             draftWrites[1]?.resolve();
             await flushAssetStorePersistence();
 
             const stored = [...memory.entries()].find(([key]) => isDraftsKey(key))?.[1] ?? "";
-            expect(stored).toContain("第二版");
-            expect(JSON.parse(stored).drafts[id].asset.title).toBe("第二版");
+            expect(stored).toContain("second edition");
+            expect(JSON.parse(stored).drafts[id].asset.title).toBe("second edition");
         } finally {
             for (const write of draftWrites) write.resolve();
             getItem.mockRestore();
@@ -154,12 +154,12 @@ describe("asset store durable draft storage", () => {
         try {
             useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "写失败",
+                title: "Write failed",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "x" },
             });
             await expect(flushAssetStorePersistence()).rejects.toThrow("disk full");
@@ -184,18 +184,18 @@ describe("asset store durable draft storage", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "第一版",
+                title: "first edition",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "v1" },
             });
             expect(peekAssetStoreDraft("owner-a", id)?.version).toBe(1);
             await persistWorkspaceAssetChanges();
             expect(peekAssetStoreDraft("owner-a", id)).toBeUndefined();
-            useAssetStore.getState().updateAsset(id, { title: "第二版" });
+            useAssetStore.getState().updateAsset(id, { title: "second edition" });
             const second = peekAssetStoreDraft("owner-a", id);
             expect(second?.version).toBe(2);
             ackAssetStoreDraft(id, 1);
@@ -213,7 +213,7 @@ describe("asset store durable draft storage", () => {
         const memory = new Map<string, string>();
         const entered = deferred();
         const gate = deferred();
-        const stale = textAsset("asset-1", "旧稿");
+        const stale = textAsset("asset-1", "old draft");
         const durable = JSON.stringify({
             drafts: { "asset-1": { kind: "upsert", version: 9, asset: stale } },
             clocks: { "asset-1": 9 },
@@ -239,17 +239,17 @@ describe("asset store durable draft storage", () => {
             unloadAssetStoreDraftsForTests();
             const hydrating = hydrateAssetStoreDrafts("owner-a");
             await entered.promise;
-            useAssetStore.getState().updateAsset("asset-1", { title: "新稿" });
+            useAssetStore.getState().updateAsset("asset-1", { title: "new manuscript" });
             expect(peekAssetStoreDraft("owner-a", "asset-1")?.version).toBe(1);
-            expect(peekAssetStoreDraft("owner-a", "asset-1")?.asset?.title).toBe("新稿");
+            expect(peekAssetStoreDraft("owner-a", "asset-1")?.asset?.title).toBe("new manuscript");
             gate.resolve();
             await hydrating;
-            expect(useAssetStore.getState().assets.find((item) => item.id === "asset-1")?.title).toBe("新稿");
+            expect(useAssetStore.getState().assets.find((item) => item.id === "asset-1")?.title).toBe("new manuscript");
             const merged = peekAssetStoreDraft("owner-a", "asset-1");
-            expect(merged?.asset?.title).toBe("新稿");
+            expect(merged?.asset?.title).toBe("new manuscript");
             expect(merged?.version).toBeGreaterThan(9);
             ackAssetStoreDraft("asset-1", 9);
-            expect(peekAssetStoreDraft("owner-a", "asset-1")?.asset?.title).toBe("新稿");
+            expect(peekAssetStoreDraft("owner-a", "asset-1")?.asset?.title).toBe("new manuscript");
         } finally {
             gate.resolve();
             getItem.mockRestore();

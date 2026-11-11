@@ -4,7 +4,7 @@ import { Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import { directorPanoramaSphere, suspendDirectorPanoramaSphere } from "../src/lib/canvas/director/director-panorama-sphere";
 import { createDirectorScene } from "../src/lib/canvas/director/director-scene";
 
-describe("导演台全景球", () => {
+describe("Director's stage panorama", () => {
     it("keeps defaults and supports old panorama rotation", () => {
         const scene = createDirectorScene();
         expect(directorPanoramaSphere(scene)).toEqual({ radius: 60, rotation: 0 });

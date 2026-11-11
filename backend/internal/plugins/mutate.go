@@ -35,11 +35,11 @@ type stagedMutation struct {
 	liveSwapped  bool
 }
 
-var errPublishInterrupted = errors.New("插件变更已提交，但内存发布未完成")
+var errPublishInterrupted = errors.New("Plugin changes committed, but memory release not completed")
 
 func (c *Runtime) Install(data []byte, fileName string) (View, error) {
 	if c == nil {
-		return View{}, fmt.Errorf("插件运行时未初始化")
+		return View{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	c.beginMutation()
 	defer c.endMutation()
@@ -71,7 +71,7 @@ func (c *Runtime) stageInstallLocked(data []byte, fileName string) (stagedMutati
 	existing, exists := c.plugins[manifest.Metadata.ID]
 	c.mu.RUnlock()
 	if exists && IsBuiltInSource(existing.Source) {
-		return stagedMutation{}, fmt.Errorf("内置插件 %q 不能通过上传覆盖", manifest.Metadata.ID)
+		return stagedMutation{}, fmt.Errorf("Built-in plug-in %q cannot be overwritten by uploading", manifest.Metadata.ID)
 	}
 	manifest.Metadata.Enabled = !exists || existing.Metadata.Enabled
 	manifestData, err := json.Marshal(manifest)
@@ -87,7 +87,7 @@ func (c *Runtime) stageInstallLocked(data []byte, fileName string) (stagedMutati
 	packagePath := filepath.Join(c.packageDir, blobName)
 	createdBlob, err := ensurePluginBlob(packagePath, data)
 	if err != nil {
-		return stagedMutation{}, fmt.Errorf("保存插件包失败：%w", err)
+		return stagedMutation{}, fmt.Errorf("Failed to save plug-in package: %w", err)
 	}
 	stored, err := c.currentRecords()
 	if err != nil {
@@ -142,7 +142,7 @@ func (c *Runtime) stageInstallLocked(data []byte, fileName string) (stagedMutati
 
 func (c *Runtime) commitAndPublish(stage *stagedMutation, extras persistExtras) error {
 	if stage == nil {
-		return errors.New("插件变更未准备")
+		return errors.New("Plugin changes not prepared")
 	}
 	if err := c.persistRecords(stage.nextDisk, extras); err != nil {
 		return err
@@ -182,7 +182,7 @@ func (c *Runtime) commitInstall(stage stagedMutation) {
 
 func (c *Runtime) SetEnabled(id string, enabled bool) (View, error) {
 	if c == nil {
-		return View{}, fmt.Errorf("插件运行时未初始化")
+		return View{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	c.beginMutation()
 	defer c.endMutation()
@@ -216,7 +216,7 @@ func (c *Runtime) stageSetEnabledLocked(id string, enabled bool) (stagedMutation
 	record, ok := c.plugins[strings.TrimSpace(id)]
 	c.mu.RUnlock()
 	if !ok {
-		return stagedMutation{}, fmt.Errorf("插件 %q 不存在", id)
+		return stagedMutation{}, fmt.Errorf("Plug-in %q does not exist", id)
 	}
 	var manifest protocol.Manifest
 	if err := json.Unmarshal(record.Raw, &manifest); err != nil {
@@ -257,7 +257,7 @@ func (c *Runtime) stageSetEnabledLocked(id string, enabled bool) (stagedMutation
 
 func (c *Runtime) SetLoadError(id string, errText string) (View, error) {
 	if c == nil {
-		return View{}, fmt.Errorf("插件运行时未初始化")
+		return View{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	c.beginMutation()
 	defer c.endMutation()
@@ -265,7 +265,7 @@ func (c *Runtime) SetLoadError(id string, errText string) (View, error) {
 	record, ok := c.plugins[strings.TrimSpace(id)]
 	c.mu.RUnlock()
 	if !ok {
-		return View{}, fmt.Errorf("插件 %q 不存在", id)
+		return View{}, fmt.Errorf("Plug-in %q does not exist", id)
 	}
 	stored, err := c.currentRecords()
 	if err != nil {
@@ -301,7 +301,7 @@ func (c *Runtime) SetLoadError(id string, errText string) (View, error) {
 
 func (c *Runtime) Uninstall(id string) error {
 	if c == nil {
-		return fmt.Errorf("插件运行时未初始化")
+		return fmt.Errorf("The plugin is not initialized when running")
 	}
 	c.beginMutation()
 	defer c.endMutation()
@@ -316,7 +316,7 @@ func (c *Runtime) Uninstall(id string) error {
 	if err := c.commitAndPublish(&stage, extras); err != nil {
 		c.abortUncommitted(&stage)
 		if extras.deleteID != "" && !errors.Is(err, errPublishInterrupted) {
-			return fmt.Errorf("清理插件状态：%w", err)
+			return fmt.Errorf("Clean plug-in status: %w", err)
 		}
 		return err
 	}
@@ -329,10 +329,10 @@ func (c *Runtime) stageUninstallLocked(id string) (stagedMutation, error) {
 	record, ok := c.plugins[strings.TrimSpace(id)]
 	c.mu.RUnlock()
 	if !ok {
-		return stagedMutation{}, fmt.Errorf("插件 %q 不存在", id)
+		return stagedMutation{}, fmt.Errorf("Plug-in %q does not exist", id)
 	}
 	if IsBuiltInSource(record.Source) {
-		return stagedMutation{}, fmt.Errorf("内置插件 %q 不能卸载，可停用该插件", id)
+		return stagedMutation{}, fmt.Errorf("The built-in plug-in %q cannot be uninstalled and can be deactivated.", id)
 	}
 	stored, err := c.currentRecords()
 	if err != nil {
@@ -365,7 +365,7 @@ func (c *Runtime) commitUninstall(stage stagedMutation) {
 func viewFromPlugins(plugins map[string]Record, id string) (View, error) {
 	record, ok := plugins[id]
 	if !ok {
-		return View{}, errors.New("插件保存后未加载")
+		return View{}, errors.New("Plugin is not loaded after saving")
 	}
 	return clonePluginView(viewFromRecord(record)), nil
 }

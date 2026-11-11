@@ -28,7 +28,7 @@ func creationTestService(t *testing.T) (*Service, *gorm.DB, string, CreationGuar
 	// Creation approvals protect local model selection and idempotent task admission.
 	s := &Service{repo: repository.New(db), dataDir: t.TempDir(), mode: serviceModeLocal}
 	capabilityConfig := mustEncodeModelCapabilityConfig(t, DefaultModelCapabilityConfigForModel(string(model.ChannelInterfaceChatCompletion), "text-test"))
-	for _, item := range []any{&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "受控测试"}, &model.ChannelModel{ID: "cm", ChannelID: "channel", ModelKey: "text-test", Capability: "text", Protocol: model.ChannelInterfaceChatCompletion, CapabilityConfigJSON: capabilityConfig, Enabled: true}, &model.ChannelModelVariant{ID: "tier", ChannelModelID: "cm", SelectorKey: "{}", SelectorJSON: "{}", Enabled: true}} {
+	for _, item := range []any{&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "controlled testing"}, &model.ChannelModel{ID: "cm", ChannelID: "channel", ModelKey: "text-test", Capability: "text", Protocol: model.ChannelInterfaceChatCompletion, CapabilityConfigJSON: capabilityConfig, Enabled: true}, &model.ChannelModelVariant{ID: "tier", ChannelModelID: "cm", SelectorKey: "{}", SelectorJSON: "{}", Enabled: true}} {
 		if err = db.Create(item).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -44,7 +44,7 @@ func creationTestService(t *testing.T) (*Service, *gorm.DB, string, CreationGuar
 	return s, db, id, CreationGuard{ExecutionEpoch: 1, Owner: "page"}
 }
 func creationTextRequest() CreateTaskRequest {
-	return CreateTaskRequest{Type: "canvas_text", Prompt: "只输出测试", Model: "text-test", Input: map[string]any{"mode": "text", "prompt": "只输出测试", "config": map[string]any{"channelId": "channel", "model": "text-test"}}}
+	return CreateTaskRequest{Type: "canvas_text", Prompt: "Only output tests", Model: "text-test", Input: map[string]any{"mode": "text", "prompt": "Only output tests", "config": map[string]any{"channelId": "channel", "model": "text-test"}}}
 }
 
 func prepareApprovedCreation(t *testing.T, s *Service, id string, guard CreationGuard) *CreationSubmissionOutput {
@@ -244,7 +244,7 @@ func TestCreationConcurrentExecuteCreatesOneTaskAndRollsBack(t *testing.T) {
 
 func TestCreationCanvasScopeAndStableCreate(t *testing.T) {
 	s, _, id, guard := creationTestService(t)
-	ops := []CreationCanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "计划", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "已批准"}}}
+	ops := []CreationCanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "plan", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "Approved"}}}
 	if _, err := s.ChangeCreationRun("user", id, "proposal-approve", CreationRequest{CreationGuard: guard, Revision: 2, ProposalVersion: 1, Proposal: json.RawMessage(`{"title":"计划"}`), Ops: ops}); err != nil {
 		t.Fatal(err)
 	}
@@ -290,12 +290,12 @@ func TestCreationResultWritesOnlyBoundResources(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	before := map[string]any{"prompt": "保留手工提示词"}
+	before := map[string]any{"prompt": "Keep manual prompt words"}
 	after := mergeCreationMaps(before, map[string]any{"content": "/api/resources/output/file", "storageKey": "resource:output", "assetId": "asset-output", "generationTaskId": taskID, "status": "success", "naturalWidth": float64(720)})
 	if err := validateCreationResultMetadata(s.repo, "user", id, "image-node", before, after); err != nil {
 		t.Fatal(err)
 	}
-	after["prompt"] = "覆盖"
+	after["prompt"] = "Cover"
 	if err := validateCreationResultMetadata(s.repo, "user", id, "image-node", before, after); err == nil {
 		t.Fatal("result changed manual prompt")
 	}
@@ -328,10 +328,10 @@ func TestCreationApprovedUpdateDoesNotOverwriteLaterManualEdit(t *testing.T) {
 
 func TestCreationMediaScopeRejectsChangedModelSpecAndReferences(t *testing.T) {
 	now := time.Now()
-	ops := []CreationCanvasOp{{Type: "add_node", ID: "v", NodeType: "video", Metadata: map[string]any{"prompt": "短片", "model": "managed-video", "size": "9:16", "seconds": "15", "referenceNodeIds": []any{"ref"}}}}
+	ops := []CreationCanvasOp{{Type: "add_node", ID: "v", NodeType: "video", Metadata: map[string]any{"prompt": "short film", "model": "managed-video", "size": "9:16", "seconds": "15", "referenceNodeIds": []any{"ref"}}}}
 	b, _ := json.Marshal(ops)
 	run := &model.CreationRun{CanvasID: "canvas", Status: "running", ApprovedProposalVersion: 1, ApprovedProposalHash: "hash", ApprovedOperationsJSON: string(b), ApprovedAt: &now}
-	request := CreateTaskRequest{Type: "canvas_video", ProjectID: "canvas", Prompt: "短片", Model: "managed-video", Input: map[string]any{"nodeId": "v", "config": map[string]any{"size": "9:16", "videoSeconds": "15"}, "referenceImages": []any{map[string]any{"id": "ref"}}}}
+	request := CreateTaskRequest{Type: "canvas_video", ProjectID: "canvas", Prompt: "short film", Model: "managed-video", Input: map[string]any{"nodeId": "v", "config": map[string]any{"size": "9:16", "videoSeconds": "15"}, "referenceImages": []any{map[string]any{"id": "ref"}}}}
 	if err := validateCreationSubmissionScope(run, 1, request); err != nil {
 		t.Fatal(err)
 	}

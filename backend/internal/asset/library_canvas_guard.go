@@ -79,7 +79,7 @@ func (l *Library) GuardReplacementCanvasReferences(userID string, items []model.
 
 func (l *Library) guardCanvasReferences(userID string, items []model.Asset, replacement bool) error {
 	if l == nil || l.repo == nil {
-		return kernel.NewAppError(kernel.CodeInternal, "素材库暂不可用，请稍后重试")
+		return kernel.NewAppError(kernel.CodeInternal, "The material library is temporarily unavailable, please try again later.")
 	}
 	byID := make(map[string]model.Asset, len(items))
 	for _, item := range items {
@@ -89,9 +89,9 @@ func (l *Library) guardCanvasReferences(userID string, items []model.Asset, repl
 	if err != nil {
 		return err
 	}
-	parseMessage := "已有画布媒体数据无法解析，已停止修改素材"
+	parseMessage := "The existing canvas media data cannot be parsed and the material modification has been stopped."
 	if replacement {
-		parseMessage = "已有画布媒体数据无法解析，已停止替换素材库"
+		parseMessage = "The existing canvas media data cannot be parsed, and the replacement of the material library has been stopped."
 	}
 	for _, project := range canvases {
 		references, parseErr := CanvasMediaReferences(json.RawMessage(project.PayloadJSON))
@@ -102,10 +102,10 @@ func (l *Library) guardCanvasReferences(userID string, items []model.Asset, repl
 			if replacement {
 				item, exists := byID[reference.AssetID]
 				if !exists {
-					return kernel.BadAuthRequest("素材仍被画布引用，不能从素材库移除")
+					return kernel.BadAuthRequest("The material is still referenced by the canvas and cannot be removed from the library.")
 				}
 				if !assetKeepsCanvasResource(item.PayloadJSON, reference.ResourceID) {
-					return kernel.BadAuthRequest("画布媒体与替换后的素材库记录不一致")
+					return kernel.BadAuthRequest("The canvas media is inconsistent with the replaced material library record")
 				}
 				continue
 			}
@@ -113,7 +113,7 @@ func (l *Library) guardCanvasReferences(userID string, items []model.Asset, repl
 				continue
 			}
 			if !assetKeepsCanvasResource(items[0].PayloadJSON, reference.ResourceID) {
-				return kernel.BadAuthRequest("素材仍被画布引用，不能替换为其他资源")
+				return kernel.BadAuthRequest("The material is still referenced by the canvas and cannot be replaced with other resources")
 			}
 		}
 	}

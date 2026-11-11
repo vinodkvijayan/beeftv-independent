@@ -20,11 +20,11 @@ type ownerCredentialDirs interface {
 // 统一在这里，避免每个文件各写一份表达式。
 func requireOwner(c *gin.Context, dirs ownerCredentialDirs) bool {
 	if !isLoopbackRequest(c.Request) {
-		fail(c, http.StatusForbidden, app.BadAuthRequest("只接受本机同源请求"))
+		fail(c, http.StatusForbidden, app.BadAuthRequest("Only accept local origin requests"))
 		return false
 	}
 	if !agentops.OwnerTokenMatches(dirs.DataDir(), strings.TrimSpace(c.GetHeader("X-Beeftv-Owner"))) {
-		fail(c, http.StatusForbidden, app.BadAuthRequest("该操作需要 owner 凭据"))
+		fail(c, http.StatusForbidden, app.BadAuthRequest("This operation requires owner credentials"))
 		return false
 	}
 	return true

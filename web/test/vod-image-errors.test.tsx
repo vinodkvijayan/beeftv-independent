@@ -28,10 +28,10 @@ for (const [key, copy] of Object.entries(contract.copies)) {
         expect(html).toContain(copy.action);
         if (copy.uncertain) {
             expect(result.blockAutomaticRetry).toBe(true);
-            expect(html).toContain("查看原任务");
-            expect(html).not.toContain(">重新生成<");
+            expect(html).toContain("View original task");
+            expect(html).not.toContain(">Regenerate<");
             const metadata = { ...canvasGenerationFailureMetadata(error, { prompt: "draw", mode: "image" }), taskStage: "submission_unknown", taskId: "task-vod-123" };
-            const node = { id: "image-vod-123", type: CanvasNodeType.Image, title: "图片", position: { x: 0, y: 0 }, width: 260, height: 260, metadata };
+            const node = { id: "image-vod-123", type: CanvasNodeType.Image, title: "pictures", position: { x: 0, y: 0 }, width: 260, height: 260, metadata };
             const nodeResult = canvasNodeFailureExplanation(node);
             expect(nodeResult.reason).toBe(copy.reason);
             expect(nodeResult.blockAutomaticRetry).toBe(true);

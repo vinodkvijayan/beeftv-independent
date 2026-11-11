@@ -43,11 +43,11 @@ function applyStoryboardDraft(row, draft = {}) {
     if (key === 'durationSeconds') {
       const num = Number(draft[key]);
       if (!Number.isFinite(num) || num < 1 || num > 60) {
-        throw invalidArg('invalid_params', '镜头时长必须为 1 至 60 秒');
+        throw invalidArg('invalid_params', 'Shot duration must be 1 to 60 seconds');
       }
       row.durationSeconds = num;
     } else if (key === 'mustHave' || key === 'optionalDetails') {
-      if (!Array.isArray(draft[key])) throw invalidArg('invalid_params', `${key} 必须是字符串数组`);
+      if (!Array.isArray(draft[key])) throw invalidArg('invalid_params', `${key} Must be a string array`);
       row[key] = draft[key].map((v) => String(v));
     } else {
       row[key] = String(draft[key]);
@@ -64,10 +64,10 @@ function bindStoryboardRowOutput(state, doc, scriptId, row, field, kind, targetI
   if (targetId !== '') {
     const target = (doc.nodes || []).find((n) => n.id === targetId);
     if (!target) {
-      throw notFound('node_not_in_canvas', `${field} 指向的节点不在这个画布: ${targetId}`);
+      throw notFound('node_not_in_canvas', `${field} The pointed node is not in this canvas:${targetId}`);
     }
     if (target.type !== kind) {
-      throw invalidArg('node_kind_mismatch', `${field} 只能绑定 ${kind} 节点，${targetId} 是 ${target.type}`);
+      throw invalidArg('node_kind_mismatch', `${field} Can only be bound${kind} node,${targetId} Yes${target.type}`);
     }
     row[field] = targetId;
   } else {
@@ -115,27 +115,27 @@ export const STORYBOARD_OPS = {
     const nodeId = String(rawParams.nodeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     const drafts = Array.isArray(rawParams.rows) ? rawParams.rows : [];
-    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId 与 nodeId 必填');
+    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId and nodeId are required');
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision <= 0) {
-      throw invalidArg('invalid_params', '写操作必须带上读取时的 expectedRevision');
+      throw invalidArg('invalid_params', 'The write operation must carry the expectedRevision when reading');
     }
     if (drafts.length === 0 || drafts.length > 32) {
-      throw invalidArg('invalid_batch', 'rows 必须是 1..32 项的数组');
+      throw invalidArg('invalid_batch', 'rows must be an array of 1..32 items');
     }
     for (const d of drafts) {
       if (d && ('imageNodeId' in d || 'videoNodeId' in d)) {
-        throw invalidArg('invalid_params', 'append 不接受产出节点绑定，请用 canvas.script.row.update');
+        throw invalidArg('invalid_params', 'append does not accept output node binding, please use canvas.script.row.update');
       }
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_found', `目标节点不存在: ${nodeId}`);
+    if (!node) throw notFound('node_not_found', `The target node does not exist:${nodeId}`);
     if (node.type !== 'script') {
-      throw invalidArg('node_kind_mismatch', `分镜行操作只接受 script 节点，目标节点类型是 ${node.type}`);
+      throw invalidArg('node_kind_mismatch', `The storyboard operation only accepts script nodes, and the target node type is${node.type}`);
     }
     node.metadata ||= {};
     node.metadata.storyboard ||= {
@@ -160,22 +160,22 @@ export const STORYBOARD_OPS = {
     const nodeId = String(rawParams.nodeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     const patches = Array.isArray(rawParams.patches) ? rawParams.patches : [];
-    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId 与 nodeId 必填');
+    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId and nodeId are required');
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision <= 0) {
-      throw invalidArg('invalid_params', '写操作必须带上读取时的 expectedRevision');
+      throw invalidArg('invalid_params', 'The write operation must carry the expectedRevision when reading');
     }
     if (patches.length === 0 || patches.length > 32) {
-      throw invalidArg('invalid_batch', 'patches 必须是 1..32 项的数组');
+      throw invalidArg('invalid_batch', 'patches must be an array of 1..32 items');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_found', `目标节点不存在: ${nodeId}`);
+    if (!node) throw notFound('node_not_found', `The target node does not exist:${nodeId}`);
     if (node.type !== 'script') {
-      throw invalidArg('node_kind_mismatch', `分镜行操作只接受 script 节点，目标节点类型是 ${node.type}`);
+      throw invalidArg('node_kind_mismatch', `The storyboard operation only accepts script nodes, and the target node type is${node.type}`);
     }
     const rows = node.metadata?.storyboard?.rows || [];
     const seenRows = new Set();
@@ -199,13 +199,13 @@ export const STORYBOARD_OPS = {
     };
     for (const patch of patches) {
       const rowId = String(patch?.rowId || '').trim();
-      if (!rowId) throw invalidArg('invalid_params', '每个 patch 都需要 rowId');
-      if (seenRows.has(rowId)) throw invalidArg('duplicate_row_patch', `同一批次内行重复: ${rowId}`);
+      if (!rowId) throw invalidArg('invalid_params', 'Each patch requires rowId');
+      if (seenRows.has(rowId)) throw invalidArg('duplicate_row_patch', `Repeat within the same batch:${rowId}`);
       seenRows.add(rowId);
       const keys = Object.keys(patch).filter((k) => k !== 'rowId' && patch[k] !== undefined);
-      if (keys.length === 0) throw invalidArg('empty_patch', `patch 至少要有一个字段: ${rowId}`);
+      if (keys.length === 0) throw invalidArg('empty_patch', `patch must have at least one field:${rowId}`);
       const row = rows.find((r) => r.id === rowId);
-      if (!row) throw notFound('row_not_found', `分镜行不存在: ${rowId}`);
+      if (!row) throw notFound('row_not_found', `Storyboard line does not exist:${rowId}`);
       const oldImagePrompt = String(row.imageGenerationPrompt || '');
       const oldVideoPrompt = String(row.videoMotionPrompt || '');
       const oldPlot = String(row.plotDescription || '');
@@ -234,7 +234,7 @@ export const STORYBOARD_OPS = {
         const trimmedCurrent = currentDraft.trim();
         let refPrefix = '';
         let bodyDraft = trimmedCurrent;
-        if (trimmedCurrent.startsWith('参考资产：')) {
+        if (trimmedCurrent.startsWith('Reference assets:')) {
           const nl = trimmedCurrent.indexOf('\n');
           if (nl >= 0) {
             refPrefix = trimmedCurrent.slice(0, nl).trim();
@@ -294,25 +294,25 @@ export const STORYBOARD_OPS = {
     const nodeId = String(rawParams.nodeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     const rowIds = Array.isArray(rawParams.rowIds) ? rawParams.rowIds : [];
-    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId 与 nodeId 必填');
+    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId and nodeId are required');
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision <= 0) {
-      throw invalidArg('invalid_params', '写操作必须带上读取时的 expectedRevision');
+      throw invalidArg('invalid_params', 'The write operation must carry the expectedRevision when reading');
     }
     if (rowIds.length === 0 || rowIds.length > 32) {
-      throw invalidArg('invalid_batch', 'rowIds 必须是 1..32 项的数组');
+      throw invalidArg('invalid_batch', 'rowIds must be an array of 1..32 items');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node || node.type !== 'script') throw notFound('node_not_found', `分镜节点不存在: ${nodeId}`);
+    if (!node || node.type !== 'script') throw notFound('node_not_found', `Storyboard node does not exist:${nodeId}`);
     const rows = node.metadata?.storyboard?.rows || [];
     const removeSet = new Set();
     for (const id of rowIds) {
-      if (removeSet.has(id)) throw invalidArg('duplicate_row_id', `同一批次内行重复: ${id}`);
-      if (!rows.some((r) => r.id === id)) throw notFound('row_not_found', `分镜行不存在: ${id}`);
+      if (removeSet.has(id)) throw invalidArg('duplicate_row_id', `Repeat within the same batch:${id}`);
+      if (!rows.some((r) => r.id === id)) throw notFound('row_not_found', `Storyboard line does not exist:${id}`);
       removeSet.add(id);
     }
     const kept = rows.filter((r) => !removeSet.has(r.id));
@@ -341,37 +341,37 @@ export const STORYBOARD_OPS = {
     const videoCfg = rawParams.video && typeof rawParams.video === 'object' ? rawParams.video : null;
     const scriptDraft = rawParams.script && typeof rawParams.script === 'object' ? rawParams.script : null;
     if (!canvasId || !Number.isSafeInteger(expectedRevision) || expectedRevision <= 0 || (!scriptDraft && !nodeId)) {
-      throw invalidArg('invalid_params', '需要画布、分镜节点和当前版本');
+      throw invalidArg('invalid_params', 'Requires canvas, storyboard node and current version');
     }
     if (scriptDraft && (nodeId || rowIds.length > 0 || !String(scriptDraft.title || '').trim() || !Array.isArray(scriptDraft.rows) || scriptDraft.rows.length < 1 || scriptDraft.rows.length > 8)) {
-      throw invalidArg('invalid_params', '新分镜需要名称和1至8行正文，不能同时指定已有分镜');
+      throw invalidArg('invalid_params', 'The new storyboard requires a name and 1 to 8 lines of text. Existing storyboards cannot be specified at the same time.');
     }
     if ((!scriptDraft && rowIds.length < 1) || rowIds.length > 8 || referenceNodeIds.length > 4 || (!scriptDraft && !imageCfg && !videoCfg)) {
-      throw invalidArg('invalid_params', '请选择 1..8 个分镜及图片或视频参数，参考图片最多 4 张');
+      throw invalidArg('invalid_params', 'Please select 1..8 storyboards and picture or video parameters, with a maximum of 4 reference pictures.');
     }
     if (!imageCfg && referenceNodeIds.length > 0) {
-      throw invalidArg('invalid_params', '角色或风格参考用于首帧图片；视频沿用各分镜自己的首帧');
+      throw invalidArg('invalid_params', 'Character or style reference is used for the first frame of the image; the video uses its own first frame for each storyboard');
     }
     const titleTemplates = {};
     for (const [kind, cfg] of [['image', imageCfg], ['video', videoCfg]]) {
       if (!cfg || cfg.title === undefined) continue;
       if (typeof cfg.title !== 'string') {
-        throw invalidArg('invalid_parameter', '草稿标题必须是字符串');
+        throw invalidArg('invalid_parameter', 'Draft title must be a string');
       }
       const template = cfg.title.trim();
       if (!template) continue;
       if (!template.includes('{n}')) {
-        throw invalidArg('invalid_parameter', '草稿标题模板必须包含 {n} 以代表镜号，例如「镜 {n} 首帧」');
+        throw invalidArg('invalid_parameter', 'The draft title template must contain {n} to represent the shot number, for example "shot {n} first frame"');
       }
       if ([...template].length > 40) {
-        throw invalidArg('invalid_parameter', '草稿标题模板最多 40 个字');
+        throw invalidArg('invalid_parameter', 'Draft title template up to 40 words');
       }
       titleTemplates[kind] = template;
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const created = [];
     const createdEdgeIds = [];
@@ -381,7 +381,7 @@ export const STORYBOARD_OPS = {
       const title = String(scriptDraft.title).trim();
       if ((doc.nodes || []).some((n) => String(n.title || '').trim() === title)) {
         state.counts.duplicateNodeAttempts += 1;
-        throw conflict('duplicate_node_title', `标题已存在: ${title}`);
+        throw conflict('duplicate_node_title', `Title already exists:${title}`);
       }
       state.seq.node += 1;
       nodeId = `node-${state.seq.node}`;
@@ -415,7 +415,7 @@ export const STORYBOARD_OPS = {
       created.push({ id: nodeId, title, type: 'script' });
     } else {
       scriptNode = (doc.nodes || []).find((n) => n.id === nodeId && n.type === 'script');
-      if (!scriptNode) throw notFound('node_not_found', `目标节点不存在: ${nodeId}`);
+      if (!scriptNode) throw notFound('node_not_found', `The target node does not exist:${nodeId}`);
     }
     const rows = scriptNode.metadata?.storyboard?.rows || [];
     // 与后端一致：建节点前比较本批全部最终标题，模板标题不能与本批任何标题（含默认标题）
@@ -425,19 +425,19 @@ export const STORYBOARD_OPS = {
       for (const rId of rowIds) {
         const row = rows.find((r) => r.id === rId);
         if (!row) continue;
-        for (const [kind, cfg, label] of [['image', imageCfg, '首帧'], ['video', videoCfg, '视频']]) {
+        for (const [kind, cfg, label] of [['image', imageCfg, 'first frame'], ['video', videoCfg, 'video']]) {
           if (!cfg) continue;
           const template = titleTemplates[kind];
-          const title = (template ? template.replaceAll('{n}', String(row.shotNumber)) : `镜头 ${row.shotNumber} · ${label}`).trim();
+          const title = (template ? template.replaceAll('{n}', String(row.shotNumber)) : `lens${row.shotNumber} · ${label}`).trim();
           batch.push({ title, templated: Boolean(template) });
         }
       }
       const existing = new Set((doc.nodes || []).map((n) => String(n.title || '').trim()).filter(Boolean));
       for (const item of batch.filter((entry) => entry.templated)) {
         if (batch.filter((entry) => entry.title === item.title).length > 1) {
-          throw invalidArg('invalid_params', `同一批次内标题重复: ${item.title}`);
+          throw invalidArg('invalid_params', `Duplicate titles within the same batch:${item.title}`);
         }
-        if (existing.has(item.title)) throw conflict('duplicate_node_title', `标题已存在: ${item.title}`);
+        if (existing.has(item.title)) throw conflict('duplicate_node_title', `Title already exists:${item.title}`);
       }
     }
     let x = 120;
@@ -448,31 +448,31 @@ export const STORYBOARD_OPS = {
     for (let idx = 0; idx < rowIds.length; idx += 1) {
       const rId = rowIds[idx];
       const row = rows.find((r) => r.id === rId);
-      if (!row) throw invalidArg('row_not_found', `分镜不存在或重复: ${rId}`);
+      if (!row) throw invalidArg('row_not_found', `The storyboard does not exist or is duplicated:${rId}`);
       const shot = { rowId: rId };
       if (row.imageNodeId) shot.imageNodeId = row.imageNodeId;
       for (const [kind, cfg, promptField, label] of [
-        ['image', imageCfg, 'imageGenerationPrompt', '首帧'],
-        ['video', videoCfg, 'videoMotionPrompt', '视频'],
+        ['image', imageCfg, 'imageGenerationPrompt', 'first frame'],
+        ['video', videoCfg, 'videoMotionPrompt', 'video'],
       ]) {
         if (!cfg) continue;
         if (row[`${kind}NodeId`]) {
-          throw invalidArg('already_bound', `分镜已有${kind}节点，请修改原节点而不是重复创建`);
+          throw invalidArg('already_bound', `Storyboard already available${kind}Node, please modify the original node instead of re-creating it`);
         }
         if (kind === 'image' && !String(row[promptField] || '').trim() && String(row.plotDescription || '').trim()) {
           row[promptField] = String(row.plotDescription).trim();
         }
         const promptText = String(row[promptField] || '').trim();
-        if (!promptText) throw invalidArg('missing_prompt', `分镜缺少${promptField}`);
+        if (!promptText) throw invalidArg('missing_prompt', `Storyboard missing${promptField}`);
         const choice = resolveGenerationModel(state, kind, String(cfg.model || ''));
         if (choice.kindMismatch || !choice.modelKey) {
-          throw invalidArg('invalid_parameter', '请选择明确的生成模型');
+          throw invalidArg('invalid_parameter', 'Please select an explicit generation model');
         }
         state.seq.node += 1;
         const mId = `node-${state.seq.node}`;
         const title = titleTemplates[kind]
           ? titleTemplates[kind].replaceAll('{n}', String(row.shotNumber))
-          : `镜头 ${row.shotNumber} · ${label}`;
+          : `lens${row.shotNumber} · ${label}`;
         const meta = buildDefaultMetadata(kind, promptText);
         meta.workflowKind = 'shot';
         meta.shotIndex = row.shotNumber;

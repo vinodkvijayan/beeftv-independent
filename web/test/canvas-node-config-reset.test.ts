@@ -9,7 +9,7 @@ function imageNode(metadata: Record<string, unknown> = {}): CanvasNodeData {
     return {
         id: "image-1",
         type: CanvasNodeType.Image,
-        title: "图片",
+        title: "pictures",
         position: { x: 0, y: 0 },
         width: 400,
         height: 400,
@@ -17,8 +17,8 @@ function imageNode(metadata: Record<string, unknown> = {}): CanvasNodeData {
     };
 }
 
-describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
-    test("切换模型标识时清理旧模型的能力档位参数，回落全局配置", () => {
+describe("applyNodeConfigPatch model switching cleanup generation parameters", () => {
+    test("When switching model identifiers, the capability gear parameters of the old model are cleared and the global configuration is restored.", () => {
         const node = imageNode({
             model: "default::gpt-image-2",
             size: "1:1",
@@ -34,7 +34,7 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
         expect(next.metadata?.transparentBackground).toBeUndefined();
     });
 
-    test("视频参数随模型切换一并清理", () => {
+    test("Video parameters are cleared together with model switching", () => {
         const node = imageNode({
             model: "default::seedance-video",
             seconds: "10",
@@ -53,13 +53,13 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
         expect(next.metadata?.returnLastFrame).toBeUndefined();
     });
 
-    test("视频生成配置仅在 480p 时保留 videoDraft 并透传 videoReturnLastFrame", () => {
+    test("Video generation configuration retains videoDraft and passthrough videoReturnLastFrame only at 480p", () => {
         const draft480 = buildGenerationConfig(
             defaultConfig,
             {
                 id: "video-1",
                 type: CanvasNodeType.Video,
-                title: "视频",
+                title: "video",
                 position: { x: 0, y: 0 },
                 width: 400,
                 height: 300,
@@ -79,7 +79,7 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
             {
                 id: "video-2",
                 type: CanvasNodeType.Video,
-                title: "视频",
+                title: "video",
                 position: { x: 0, y: 0 },
                 width: 400,
                 height: 300,
@@ -140,13 +140,13 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
         expect(cap.video?.operations.includes("draft_to_final")).toBe(true);
     });
 
-    test("音频参数随模型切换一并清理", () => {
+    test("Audio parameters are cleared together with model switching", () => {
         const node = imageNode({
             model: "default::tts-1",
             audioVoice: "alloy",
             audioFormat: "mp3",
             audioSpeed: "1.25",
-            audioInstructions: "温暖、自然",
+            audioInstructions: "Warm and natural",
         });
         const next = applyNodeConfigPatch(node, { model: "default::gpt-4o-mini-tts" });
         expect(next.metadata?.audioVoice).toBeUndefined();
@@ -155,7 +155,7 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
         expect(next.metadata?.audioInstructions).toBeUndefined();
     });
 
-    test("同一模型标识的参数调整不受影响", () => {
+    test("Parameter adjustments with the same model identity are not affected", () => {
         const node = imageNode({ model: "default::gpt-image-2", size: "1:1", quality: "high" });
         const next = applyNodeConfigPatch(node, { model: "default::gpt-image-2", quality: "medium" });
         expect(next.metadata?.model).toBe("default::gpt-image-2");
@@ -163,14 +163,14 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
         expect(next.metadata?.size).toBe("1:1");
     });
 
-    test("非模型 patch（仅调整参数）不触发清理", () => {
+    test("Non-model patches (only adjusting parameters) do not trigger cleanup", () => {
         const node = imageNode({ model: "default::gpt-image-2", size: "1:1" });
         const next = applyNodeConfigPatch(node, { size: "16:9" });
         expect(next.metadata?.size).toBe("16:9");
         expect(next.metadata?.model).toBe("default::gpt-image-2");
     });
 
-    test("模型切换时同批显式参数仍优先于清理", () => {
+    test("When switching models, explicit parameters in the same batch still take precedence over cleaning.", () => {
         const node = imageNode({ model: "default::gpt-image-2", size: "1:1", quality: "high" });
         const next = applyNodeConfigPatch(node, { model: "default::grok-imagine-video", size: "16:9" });
         expect(next.metadata?.model).toBe("default::grok-imagine-video");
@@ -178,10 +178,10 @@ describe("applyNodeConfigPatch 模型切换清理生成参数", () => {
         expect(next.metadata?.quality).toBeUndefined();
     });
 
-    test("内容型字段不随模型切换清理", () => {
-        const node = imageNode({ model: "default::gpt-image-2", prompt: "一只猫", composerContent: "生成一只猫" });
+    test("Content fields are not cleaned up with model switching", () => {
+        const node = imageNode({ model: "default::gpt-image-2", prompt: "a cat", composerContent: "generate a cat" });
         const next = applyNodeConfigPatch(node, { model: "default::grok-imagine-video" });
-        expect(next.metadata?.prompt).toBe("一只猫");
-        expect(next.metadata?.composerContent).toBe("生成一只猫");
+        expect(next.metadata?.prompt).toBe("a cat");
+        expect(next.metadata?.composerContent).toBe("generate a cat");
     });
 });

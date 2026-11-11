@@ -1,24 +1,23 @@
-# 实时对话功能组件（第一阶段 MVP）
-本目录实现第一阶段（MVP）：**本地语音录制 + 浏览器语音识别转写**。点击"实时对话"按钮 → 输入行内展开波形录制条 → 停止后自动转写为文字 → 文字填入输入框或直接发送。
+# Real-time conversation function component (first phase MVP)
+This directory implements the first phase (MVP): **Local voice recording + browser voice recognition and transliteration**. Click the "Real-time Chat" button → Expand the waveform recording bar in the input line → Automatically convert it into text after stopping → Fill the text into the input box or send it directly.
 
-## 零配置说明
+## Zero configuration instructions
 
-第一阶段**不接入语音大模型、不依赖后端与 API Key**：录音完成后直接使用浏览器内置 Web Speech API（`SpeechRecognition`）识别，转写全程在前端完成。
+The first stage** does not connect to the large speech model, does not rely on the backend and API Key**: after the recording is completed, the browser's built-in Web Speech API (`SpeechRecognition`) is used for recognition, and the entire transcription process is completed on the front end.
 
-- 支持的浏览器：Chrome / Edge（Chromium 内核）
-- 不支持时录制条内会明确提示，并可取消
-- 识别语言默认 `zh-CN`，见 `useSpeechRecognition` 的 `lang` 参数
+- Supported browsers: Chrome/Edge (Chromium core)
+- If it is not supported, there will be a clear prompt in the recording bar and it can be canceled.
+- The default recognition language is `zh-CN`, see the `lang` parameter of `useSpeechRecognition`
 
 ---
 
-## 组件列表
+## Component list
 
-### 1. `VoiceRecordingButton` - 语音输入按钮
+### 1. `VoiceRecordingButton` - Voice input button
 
-点击后输入行内展开波形录制条（不弹窗），自动开始录音；停止后自动转写并回调文本。使用局部状态，多个输入行可独立使用。
+After clicking, the waveform recording bar will expand in the input line (no pop-up window), and the recording will automatically start; after stopping, the text will be automatically transcribed and recalled. Using local state, multiple input rows can be used independently.
 
-**使用示例：**
-```tsx
+**Usage example:**```tsx
 import { VoiceRecordingButton } from "@/components/conversation/voice-recording-button";
 
 <VoiceRecordingButton
@@ -27,12 +26,11 @@ import { VoiceRecordingButton } from "@/components/conversation/voice-recording-
 />
 ```
 
-### 2. `VoiceRecordingInline` - 内联波形录制条
+### 2. `VoiceRecordingInline` - Inline waveform recording strip
 
-输入行内展示的录制控件：波形动画 + 时长 + 停止/取消按钮；停止后自动转写，失败可重试。`VoiceRecordingButton` 默认使用本组件。
+The recording controls displayed in the input line: waveform animation + duration + stop/cancel button; automatically transcribed after stopping. If failed, you can try again. `VoiceRecordingButton` uses this component by default.
 
-**使用示例：**
-```tsx
+**Usage example:**```tsx
 import { VoiceRecordingInline } from "@/components/conversation/voice-recording-inline";
 
 <VoiceRecordingInline
@@ -41,25 +39,25 @@ import { VoiceRecordingInline } from "@/components/conversation/voice-recording-
 />
 ```
 
-### 3. `AudioWaveform` - 音频波形可视化
+### 3. `AudioWaveform` - Audio waveform visualization
 
-SVG 波形可视化组件，支持实时数据更新。
+SVG waveform visualization component supports real-time data updates.
 
 ---
 
 ## Hook
 
-### `useVoiceRecording` - 语音录制 Hook
+### `useVoiceRecording` - Voice Recording Hook
 
-封装 MediaRecorder API 和 AnalyserNode，提供录制状态、波形数据、控制方法（供波形动画与时长展示）。
+Encapsulates the MediaRecorder API and AnalyserNode, providing recording status, waveform data, and control methods (for waveform animation and duration display).
 
-### `useSpeechRecognition` - 浏览器语音识别 Hook
+### `useSpeechRecognition` - Browser Speech Recognition Hook
 
-封装 Web Speech API（`SpeechRecognition`/`webkitSpeechRecognition`），提供 `start()` / `stop(): Promise<string>` / `cancel()`，返回是否支持、识别错误。转写不依赖后端。
+Encapsulates the Web Speech API (`SpeechRecognition`/`webkitSpeechRecognition`), provides `start()` / `stop(): Promise<string>` / `cancel()`, and returns whether it is supported and recognizes errors. Transcription does not depend on the backend.
 
 ---
 
-## 完整集成示例
+## Complete integration example
 
 ```tsx
 import { useState } from "react";
@@ -84,17 +82,17 @@ function ChatInput() {
 }
 ```
 
-## 接入位置
+## Access location
 
-- 创建页主输入行：`web/src/pages/create/index.tsx`（`CreationComposer` 的 `creation-chat-controls`）
-- 画布：旧内置 Agent 停靠面板已退场，画布侧暂不再接入语音输入
-- 测试页：`web/src/pages/test-voice-recording.tsx`
+- Create page main input row: `web/src/pages/create/index.tsx` (`CreationComposer` of `creation-chat-controls`)
+- Canvas: The old built-in Agent dock panel has been retired, and the canvas side is no longer accessible for voice input.
+- Test page: `web/src/pages/test-voice-recording.tsx`
 
-## 下一步
-- [x] 内联波形录制（不弹窗），停止后自动转写
-- [x] 移除第二阶段实验代码（WebSocket / Realtime API / 旧浮层组件）
-- [x] 移除后端 STT 接口与数据库表（第一阶段不接入语音大模型）
-- [ ] 语音播放功能（TTS）
-- [ ] 语音消息发送和显示
-- [ ] 多模态对话（图片、视频）
-- [ ] 真正实时对话（WebSocket + WebRTC + Realtime API，后续阶段）
+## Next step
+- [x] Inline waveform recording (no pop-up window), automatically transcribed after stopping
+- [x] Remove the second phase experimental code (WebSocket / Realtime API / old floating layer components)
+- [x] Remove the back-end STT interface and database table (the large voice model will not be connected in the first stage)
+- [ ] Voice playback function (TTS)
+- [ ] Voice message sending and display
+- [ ] Multimodal dialogue (pictures, videos)
+- [ ] True real-time conversation (WebSocket + WebRTC + Realtime API, subsequent stages)

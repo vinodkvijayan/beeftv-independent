@@ -169,7 +169,7 @@ func newService(repo *repository.Repository, dataDir string, options serviceOpti
 	var pluginRuntime *pluginRuntime
 	var pluginRuntimeErr error
 	if repo == nil {
-		pluginRuntimeErr = fmt.Errorf("插件状态存储未初始化")
+		pluginRuntimeErr = fmt.Errorf("Plugin state storage is not initialized")
 	} else {
 		pluginRuntime, pluginRuntimeErr = newPluginRuntimeWithReferences(dataDir, plugins.NewRepositoryStore(repo), newPluginReferences(dataDir, repo))
 	}
@@ -274,11 +274,11 @@ func (s *Service) hydrateTaskProviderRequestID(task *model.Task) {
 // 上游请求日志会在任务执行期间更新 provider 状态，终态保存前必须重新合并，避免旧任务对象覆盖可恢复 ID。
 func (s *Service) refreshTaskProviderState(task *model.Task) error {
 	if task == nil || task.ID == "" {
-		return errors.New("任务状态无效")
+		return errors.New("Task status is invalid")
 	}
 	latest, err := s.repo.Task(task.ID)
 	if err != nil {
-		return fmt.Errorf("刷新任务上游状态失败：%w", err)
+		return fmt.Errorf("Failed to refresh task upstream status: %w", err)
 	}
 	if latest.ProviderRequestID != "" {
 		task.ProviderRequestID = latest.ProviderRequestID
@@ -391,7 +391,7 @@ func truncateTaskLogPayload(payload string) string {
 	for end > 0 && !utf8.ValidString(payload[:end]) {
 		end--
 	}
-	return payload[:end] + fmt.Sprintf("\n...（日志内容已截断，原始长度 %d 字符）", len(payload))
+	return payload[:end] + fmt.Sprintf("...(Log content has been truncated, original length %d characters)", len(payload))
 }
 
 func (s *Service) registerActiveTask(id string, cancel context.CancelFunc) {
@@ -451,7 +451,7 @@ func ptr[T any](value T) *T {
 func shortTitle(value string, max int) string {
 	title := strings.TrimSpace(value)
 	if title == "" {
-		title = "影视分镜"
+		title = "Film and television storyboards"
 	}
 	if len([]rune(title)) > max {
 		return string([]rune(title)[:max]) + "..."

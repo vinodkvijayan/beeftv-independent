@@ -23,7 +23,7 @@ func (r *Repository) creationConversationDB(tx *gorm.DB) *gorm.DB {
 func (r *Repository) CreationConversation(tx *gorm.DB, userID, conversationID string) (*model.CreationConversation, error) {
 	db := r.creationConversationDB(tx)
 	if db == nil {
-		return nil, errors.New("创作对话存储不可用")
+		return nil, errors.New("Authoring session storage is unavailable")
 	}
 	var row model.CreationConversation
 	err := db.Where("user_id = ? AND conversation_id = ?", strings.TrimSpace(userID), strings.TrimSpace(conversationID)).First(&row).Error
@@ -36,7 +36,7 @@ func (r *Repository) CreationConversation(tx *gorm.DB, userID, conversationID st
 func (r *Repository) CreationConversationByImportOperation(tx *gorm.DB, userID, operationID string) (*model.CreationConversation, error) {
 	db := r.creationConversationDB(tx)
 	if db == nil {
-		return nil, errors.New("创作对话存储不可用")
+		return nil, errors.New("Authoring session storage is unavailable")
 	}
 	operationID = strings.TrimSpace(operationID)
 	if operationID == "" {
@@ -53,7 +53,7 @@ func (r *Repository) CreationConversationByImportOperation(tx *gorm.DB, userID, 
 func (r *Repository) ListCreationConversations(tx *gorm.DB, userID string) ([]model.CreationConversation, error) {
 	db := r.creationConversationDB(tx)
 	if db == nil {
-		return nil, errors.New("创作对话存储不可用")
+		return nil, errors.New("Authoring session storage is unavailable")
 	}
 	var rows []model.CreationConversation
 	err := db.Where("user_id = ? AND deleted = ?", strings.TrimSpace(userID), false).
@@ -65,7 +65,7 @@ func (r *Repository) ListCreationConversations(tx *gorm.DB, userID string) ([]mo
 func (r *Repository) ListDeletedCreationConversationIDs(tx *gorm.DB, userID string) ([]string, error) {
 	db := r.creationConversationDB(tx)
 	if db == nil {
-		return nil, errors.New("创作对话存储不可用")
+		return nil, errors.New("Authoring session storage is unavailable")
 	}
 	var rows []model.CreationConversation
 	if err := db.Select("conversation_id").
@@ -83,7 +83,7 @@ func (r *Repository) ListDeletedCreationConversationIDs(tx *gorm.DB, userID stri
 func (r *Repository) InsertCreationConversation(tx *gorm.DB, row *model.CreationConversation) (bool, error) {
 	db := r.creationConversationDB(tx)
 	if db == nil {
-		return false, errors.New("创作对话存储不可用")
+		return false, errors.New("Authoring session storage is unavailable")
 	}
 	result := db.Clauses(clause.OnConflict{DoNothing: true}).Create(row)
 	if result.Error != nil {
@@ -95,10 +95,10 @@ func (r *Repository) InsertCreationConversation(tx *gorm.DB, row *model.Creation
 func (r *Repository) CompareAndSwapCreationConversation(tx *gorm.DB, userID, conversationID string, expectedRevision int64, next *model.CreationConversation) (bool, error) {
 	db := r.creationConversationDB(tx)
 	if db == nil {
-		return false, errors.New("创作对话存储不可用")
+		return false, errors.New("Authoring session storage is unavailable")
 	}
 	if next == nil {
-		return false, errors.New("创作对话内容无效")
+		return false, errors.New("Invalid authoring conversation content")
 	}
 	result := db.Model(&model.CreationConversation{}).
 		Where("user_id = ? AND conversation_id = ? AND revision = ?", strings.TrimSpace(userID), strings.TrimSpace(conversationID), expectedRevision).

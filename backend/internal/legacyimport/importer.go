@@ -25,17 +25,17 @@ type Importer struct {
 func (i Importer) Import(source, destination string) (Result, error) {
 	result := Result{Source: source, Target: destination}
 	if source == "" || destination == "" || filepath.Clean(source) == filepath.Clean(destination) {
-		return result, errors.New("旧数据库来源和本地目标必须是不同文件")
+		return result, errors.New("The old database source and local target must be different files")
 	}
 	sourceHash, err := fileHash(source)
 	if err != nil {
-		return result, fmt.Errorf("读取旧数据库: %w", err)
+		return result, fmt.Errorf("Read old database: %w", err)
 	}
 	if destinationHash, hashErr := fileHash(destination); hashErr == nil {
 		if destinationHash == sourceHash {
 			return result, nil
 		}
-		return result, errors.New("本地目标已存在且与旧数据库不同，拒绝覆盖")
+		return result, errors.New("The local target already exists and is different from the old database, overwriting is refused")
 	} else if !errors.Is(hashErr, os.ErrNotExist) {
 		return result, hashErr
 	}
@@ -66,7 +66,7 @@ func (i Importer) Import(source, destination string) (Result, error) {
 	}
 	if i.Validate != nil {
 		if err := i.Validate(tmpPath); err != nil {
-			return result, fmt.Errorf("验证旧数据库副本: %w", err)
+			return result, fmt.Errorf("Verify old database copy: %w", err)
 		}
 	}
 	if err := os.Rename(tmpPath, destination); err != nil {

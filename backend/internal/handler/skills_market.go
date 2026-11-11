@@ -57,7 +57,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			IDs []string `json:"ids"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil {
-			marketReply(c, nil, kernel.BadAuthRequest("请提供技能标识列表"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please provide a list of skill identifiers"))
 			return
 		}
 		marketReply(c, gin.H{"about": domain.MarketPublicAbout(c.Request.Context(), a.IDs)}, nil)
@@ -81,7 +81,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 	m.GET("/releases/:skillId/:releaseId/file", func(c *gin.Context) {
 		offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
 		if err != nil {
-			marketReply(c, nil, kernel.BadAuthRequest("文件读取范围无效"))
+			marketReply(c, nil, kernel.BadAuthRequest("File read range is invalid"))
 			return
 		}
 		value, err := domain.MarketFile(c.Request.Context(), c.Param("skillId"), c.Param("releaseId"), c.Query("path"), offset, 32<<10)
@@ -93,7 +93,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			ReleaseID string `json:"releaseId"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil {
-			marketReply(c, nil, kernel.BadAuthRequest("请选择技能版本"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please select a skill version"))
 			return
 		}
 		v, e := domain.InstallMarket(c.Request.Context(), owner(c), a.SkillID, a.ReleaseID)
@@ -108,7 +108,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			SkillID string `json:"skillId"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil {
-			marketReply(c, nil, kernel.BadAuthRequest("请选择技能"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please select a skill"))
 			return
 		}
 		v, e := domain.ForkMarket(owner(c), a.SkillID)
@@ -120,7 +120,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			VersionID string `json:"versionId"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil {
-			marketReply(c, nil, kernel.BadAuthRequest("请选择要恢复的版本"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please select the version to restore"))
 			return
 		}
 		v, e := domain.RollbackMarket(owner(c), a.SkillID, a.VersionID)
@@ -154,7 +154,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			Metadata     skillhub.Metadata `json:"metadata"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil {
-			marketReply(c, nil, kernel.BadAuthRequest("请填写投稿信息"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please fill in the submission information"))
 			return
 		}
 		var v *skills.PublishPlan
@@ -181,7 +181,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			ArchiveSHA256 string `json:"archiveSha256"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil || !a.Confirmed {
-			marketReply(c, nil, kernel.BadAuthRequest("请先确认本次上传的文件"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please confirm the file uploaded this time first"))
 			return
 		}
 		v, e := domain.PublishUpload(c.Request.Context(), owner(c), c.Param("id"), a.ArchiveSHA256)
@@ -195,7 +195,7 @@ func registerSkillMarketRoutes(r *gin.RouterGroup, owners workspaceOwners, domai
 			PreviewDigest string `json:"previewDigest"`
 		}
 		if e := c.ShouldBindJSON(&a); e != nil || !a.Confirmed {
-			marketReply(c, nil, kernel.BadAuthRequest("请先确认本次公开的内容"))
+			marketReply(c, nil, kernel.BadAuthRequest("Please confirm the content disclosed this time first"))
 			return
 		}
 		v, e := domain.PublishSubmit(c.Request.Context(), owner(c), c.Param("id"), a.Revision, a.PreviewDigest)

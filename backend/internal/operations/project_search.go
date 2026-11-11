@@ -18,7 +18,7 @@ type ProjectSearch interface {
 func CurrentAgentProject(repo *repository.Repository, activeProject func(userID, projectID string) (*model.Project, error), userID, canvasID string) (*model.CanvasProject, error) {
 	current, err := repo.CanvasProjectForUser(userID, canvasID)
 	if err != nil {
-		return nil, kernel.Forbidden("当前画布不存在或不属于当前工作区")
+		return nil, kernel.Forbidden("The current canvas does not exist or does not belong to the current workspace")
 	}
 	if current.ProjectID != "" && activeProject != nil {
 		if _, err := activeProject(userID, current.ProjectID); err != nil {
@@ -34,12 +34,12 @@ func ValidateProjectReference(repo *repository.Repository, activeProject func(us
 		return err
 	}
 	if current.ProjectID == "" {
-		return kernel.Forbidden("当前画布未关联项目，只能使用已引用的资源")
+		return kernel.Forbidden("The current canvas is not associated with a project and can only use referenced resources.")
 	}
 	switch kind {
 	case "asset":
 		if _, err := repo.AssetForUser(userID, id); err != nil {
-			return kernel.Forbidden("素材不属于当前项目")
+			return kernel.Forbidden("The material does not belong to the current project")
 		}
 		linked, err := repo.ProjectAssetLinked(current.ProjectID, id)
 		if err != nil {
@@ -54,7 +54,7 @@ func ValidateProjectReference(repo *repository.Repository, activeProject func(us
 			return nil
 		}
 	}
-	return kernel.Forbidden("资源不属于当前画布的项目")
+	return kernel.Forbidden("The resource does not belong to the project of the current canvas")
 }
 
 func agentAssetSearchItem(raw json.RawMessage) (map[string]any, error) {
@@ -117,7 +117,7 @@ func SearchProject(
 	} else {
 		ids, _ := assistantturns.AssociatedReferences(json.RawMessage(current.PayloadJSON))
 		if len(ids) > 1000 {
-			return nil, kernel.BadAuthRequest("当前画布关联素材过多，请缩小范围")
+			return nil, kernel.BadAuthRequest("There are too many materials associated with the current canvas, please narrow the range.")
 		}
 		for _, id := range ids {
 			asset, err := repo.AssetForUser(userID, id)
@@ -135,7 +135,7 @@ func SearchProject(
 			return nil, err
 		}
 		if len(document.Nodes) > 1000 {
-			return nil, kernel.BadAuthRequest("当前画布节点过多，请缩小范围")
+			return nil, kernel.BadAuthRequest("There are too many nodes in the current canvas, please narrow the range.")
 		}
 		for _, node := range document.Nodes {
 			nodeKind, _ := node["type"].(string)
@@ -178,7 +178,7 @@ func SearchProject(
 func registerProjectSearchOps(r *Registry) {
 	for _, target := range []string{"media", "canvas"} {
 		kind := target
-		r.Register(Op{AssistantCanvas: true, ID: "project." + kind + ".search", Summary: "在当前项目查找媒体或画布", ReadOnly: true, Scope: ScopeCanvas,
+		r.Register(Op{AssistantCanvas: true, ID: "project." + kind + ".search", Summary: "Find media or canvas in current project", ReadOnly: true, Scope: ScopeCanvas,
 			Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"query":{"type":"string"},"kind":{"type":"string","enum":["image","video","audio"]},"page":{"type":"integer"},"pageSize":{"type":"integer"}},"required":["canvasId"]}`),
 			Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 				var args struct {
@@ -192,17 +192,17 @@ func registerProjectSearchOps(r *Registry) {
 					return nil, err
 				}
 				if args.CanvasID == "" || len(args.Query) > 256 || args.Page < 0 || args.Page > 10000 || args.PageSize < 0 || args.PageSize > 20 {
-					return nil, InvalidArg("invalid_project_search", "搜索需要当前画布、有效页码，每页最多20条")
+					return nil, InvalidArg("invalid_project_search", "The search requires the current canvas and valid page number, with a maximum of 20 entries per page.")
 				}
 				if args.Kind != "" && args.Kind != "image" && args.Kind != "video" && args.Kind != "audio" {
-					return nil, InvalidArg("invalid_media_kind", "媒体类型无效")
+					return nil, InvalidArg("invalid_media_kind", "Invalid media type")
 				}
 				if kind == "canvas" && args.Kind != "" {
-					return nil, InvalidArg("unexpected_media_kind", "画布搜索不接收媒体类型")
+					return nil, InvalidArg("unexpected_media_kind", "Canvas search doesn't accept media type")
 				}
 				port, ok := ctx.Domain.(ProjectSearch)
 				if !ok {
-					return nil, Unsupported("project_search_unavailable", "当前工作区无法搜索项目")
+					return nil, Unsupported("project_search_unavailable", "The current workspace cannot search for projects")
 				}
 				page, size := args.Page, args.PageSize
 				if page == 0 {

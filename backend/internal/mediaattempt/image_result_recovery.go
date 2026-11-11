@@ -36,7 +36,7 @@ func (s *Service) RecoverAcceptedImage(task model.Task) (*model.Task, bool, erro
 	if err := s.completion.Save(&task, result, nil, false); err != nil {
 		return nil, true, err
 	}
-	_ = s.log(task.UserID, task.ID, "info", "已从原始成功响应恢复图片，等待取回结果", receipt.ID)
+	_ = s.log(task.UserID, task.ID, "info", "Restored image from original successful response, waiting to get results back", receipt.ID)
 	return s.completion.Present(&task), true, nil
 }
 
@@ -47,7 +47,7 @@ func imageResultFromReceipt(receipt *model.ApiCallLog) ([]byte, bool, error) {
 
 func imageResultFromReceiptContext(ctx context.Context, receipt *model.ApiCallLog) ([]byte, bool, error) {
 	if receipt != nil && (receipt.StatusCode < 200 || (receipt.StatusCode >= 200 && receipt.StatusCode < 300 && (receipt.StatusCode != 200 || receipt.Status != model.ApiCallStatusSucceeded || receipt.APIFormat != "openai" || (!strings.HasSuffix(receipt.Path, "/images/generations") && !strings.HasSuffix(receipt.Path, "/images/edits"))))) {
-		return nil, true, imageRecoveryError{errors.New("创建请求结果未知")}
+		return nil, true, imageRecoveryError{errors.New("Create request result unknown")}
 	}
 	if receipt == nil || receipt.StatusCode < 200 || receipt.StatusCode >= 300 {
 		return nil, false, nil
@@ -66,7 +66,7 @@ func imageResultFromReceiptContext(ctx context.Context, receipt *model.ApiCallLo
 		} `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(receipt.ResponseBody), &body); err != nil || len(body.Data) == 0 || (len(body.Error) > 0 && string(body.Error) != "null") {
-		return nil, true, imageRecoveryError{errors.New("成功回执缺少完整图片结果")}
+		return nil, true, imageRecoveryError{errors.New("Successful receipt missing full image result")}
 	}
 	images := make([]map[string]any, 0, len(body.Data))
 	for _, image := range body.Data {

@@ -50,7 +50,7 @@ func TestCanvasWorkflowCreatesGenerationWithoutSuccessfulSourceTask(t *testing.T
 	if err := s.SaveLocalModelConfig([]byte(config)); err != nil {
 		t.Fatal(err)
 	}
-	d := cw.Definition{Version: 1, Nodes: []cw.Node{{ID: "new-video", Title: "生成视频", Role: "operation", MediaType: "video", OperationID: "generate.video", OperationVersion: 1, Config: map[string]any{"modelOption": "custom::video-model", "prompt": "A landscape", "size": "16:9", "videoSeconds": float64(5)}}}, OutputNodeIDs: []string{"new-video"}}
+	d := cw.Definition{Version: 1, Nodes: []cw.Node{{ID: "new-video", Title: "Generate video", Role: "operation", MediaType: "video", OperationID: "generate.video", OperationVersion: 1, Config: map[string]any{"modelOption": "custom::video-model", "prompt": "A landscape", "size": "16:9", "videoSeconds": float64(5)}}}, OutputNodeIDs: []string{"new-video"}}
 	created, err := s.workflowTemplates().Create("owner", cw.CreateRequest{Name: "New generator", Definition: d})
 	if err != nil {
 		t.Fatal(err)

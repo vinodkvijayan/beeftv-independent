@@ -28,10 +28,10 @@ test("implemented skill route is discoverable while reference experiments remain
 
 test("assistant settings distinguish unavailable client sessions from retryable load errors", () => {
     expect(isAssistantSettingsUnavailableError(new Error(agentAssistantFailureText("forbidden")))).toBe(true);
-    expect(isAssistantSettingsUnavailableError(new ApiError("禁止访问", { status: 403 }))).toBe(true);
-    expect(isAssistantSettingsUnavailableError(new ApiError("只读客户端", { status: 200, reason: "read_only_client" }))).toBe(true);
-    expect(isAssistantSettingsUnavailableError(new ApiError("服务异常", { status: 500 }))).toBe(false);
-    expect(isAssistantSettingsUnavailableError(new Error("网络断开"))).toBe(false);
+    expect(isAssistantSettingsUnavailableError(new ApiError("Forbidden access", { status: 403 }))).toBe(true);
+    expect(isAssistantSettingsUnavailableError(new ApiError("read-only client", { status: 200, reason: "read_only_client" }))).toBe(true);
+    expect(isAssistantSettingsUnavailableError(new ApiError("Service exception", { status: 500 }))).toBe(false);
+    expect(isAssistantSettingsUnavailableError(new Error("Network disconnected"))).toBe(false);
 });
 
 test("public submission requires this preview and a separate user confirmation", () => {
@@ -44,15 +44,15 @@ test("public submission requires this preview and a separate user confirmation",
 });
 
 test("unknown capabilities and publication states never look accepted", () => {
-    expect(requirementLabel("model.audio")).toBe("音频理解模型");
-    expect(requirementLabel("needs secret")).toContain("未确认");
-    expect(publicationStatus("new-unknown-state")).toBe("状态待刷新");
-    expect(publicationStatus("ready_to_submit")).toBe("等待确认发布");
-    expect(publicationStatus("awaiting_submit_confirmation")).toBe("等待确认发布");
-    expect(publicationStatus("published")).toBe("已发布");
-    expect(publicationStatus("rejected")).toBe("需要修改");
-    expect(publicationStatus("submitted")).toBe("状态待刷新");
-    expect(publicationStatus("in_review")).toBe("状态待刷新");
+    expect(requirementLabel("model.audio")).toBe("Audio understanding model");
+    expect(requirementLabel("needs secret")).toContain("Not confirmed");
+    expect(publicationStatus("new-unknown-state")).toBe("Status to be refreshed");
+    expect(publicationStatus("ready_to_submit")).toBe("Awaiting confirmation of release");
+    expect(publicationStatus("awaiting_submit_confirmation")).toBe("Awaiting confirmation of release");
+    expect(publicationStatus("published")).toBe("Published");
+    expect(publicationStatus("rejected")).toBe("Need to modify");
+    expect(publicationStatus("submitted")).toBe("Status to be refreshed");
+    expect(publicationStatus("in_review")).toBe("Status to be refreshed");
 });
 
 test("third-party market skills always ask for risk confirmation while official built-in skills do not", () => {
@@ -68,7 +68,7 @@ test("matches installed GitHub skills against public skill directory items", () 
     expect(
         isPublicMarketSkillInstalled(item, [
             {
-                skillName: "前端设计",
+                skillName: "Front-end design",
                 sourceType: "github",
                 sourceUrl: "https://github.com/anthropics/skills",
                 sourceSubdir: "skills/frontend-design",
@@ -79,7 +79,7 @@ test("matches installed GitHub skills against public skill directory items", () 
     expect(
         isPublicMarketSkillInstalled(item, [
             {
-                skillName: "前端设计",
+                skillName: "Front-end design",
                 sourceType: "github",
                 sourceUrl: "https://github.com/anthropics/skills",
                 sourceSubdir: "skills/frontend-design",
@@ -90,7 +90,7 @@ test("matches installed GitHub skills against public skill directory items", () 
     expect(
         isPublicMarketSkillInstalled(siblingItem, [
             {
-                skillName: "前端设计",
+                skillName: "Front-end design",
                 sourceType: "github",
                 sourceUrl: "https://github.com/anthropics/skills",
                 sourceSubdir: "",

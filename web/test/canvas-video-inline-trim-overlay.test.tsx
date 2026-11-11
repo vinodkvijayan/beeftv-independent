@@ -8,7 +8,7 @@ import { CanvasNodeType, type CanvasNodeData } from "../src/types/canvas";
 const videoNode: CanvasNodeData = {
     id: "video-1",
     type: CanvasNodeType.Video,
-    title: "街采替换",
+    title: "Street picking replacement",
     position: { x: 0, y: 0 },
     width: 720,
     height: 1280,
@@ -22,15 +22,15 @@ describe("CanvasVideoInlineTrim", () => {
         );
 
         expect(html).toContain('role="dialog"');
-        expect(html).toContain('aria-label="视频片段剪辑"');
+        expect(html).toContain('aria-label="Video clip clip"');
         expect(html).toContain('data-video-trim-filmstrip="true"');
-        expect(html).toContain('aria-label="调整片段起点"');
-        expect(html).toContain('aria-label="调整片段终点"');
-        expect(html).toContain('aria-label="取消剪辑"');
-        expect(html).toContain('aria-label="确认剪辑"');
-        expect(html).toContain('aria-label="播放片段预览"');
-        expect(html).not.toContain('aria-label="静音预览"');
-        expect(html).not.toContain('aria-label="关闭循环预览"');
+        expect(html).toContain('aria-label="Adjust fragment starting point"');
+        expect(html).toContain('aria-label="Adjust clip end point"');
+        expect(html).toContain('aria-label="Cancel clipping"');
+        expect(html).toContain('aria-label="Confirm clipping"');
+        expect(html).toContain('aria-label="Play clip preview"');
+        expect(html).not.toContain('aria-label="Silent preview"');
+        expect(html).not.toContain('aria-label="Turn off loop preview"');
         expect(html).toContain("12.00 s");
     });
 
@@ -49,11 +49,11 @@ describe("CanvasVideoInlineTrim", () => {
         const html = renderToStaticMarkup(
             <CanvasVideoInlineTrim node={videoNode} busy={false} onCancel={() => {}} onConfirm={() => {}} />,
         );
-        const timelineGroup = html.split('class="canvas-video-trim-track"')[1]?.split('aria-label="确认剪辑"')[0] || "";
+        const timelineGroup = html.split('class="canvas-video-trim-track"')[1]?.split('aria-label="Confirm clipping"')[0] || "";
 
-        expect(timelineGroup).toContain('aria-label="所选片段时长"');
+        expect(timelineGroup).toContain('aria-label="Selected clip duration"');
         expect(timelineGroup).toContain("12.00 s");
-        expect(html.indexOf('aria-label="所选片段时长"')).toBeLessThan(html.indexOf('aria-label="确认剪辑"'));
+        expect(html.indexOf('aria-label="Selected clip duration"')).toBeLessThan(html.indexOf('aria-label="Confirm clipping"'));
     });
 
     test("renders inside the target node panel and sizes from the rendered video width", () => {
@@ -72,8 +72,8 @@ describe("CanvasVideoInlineTrim", () => {
         expect(html).toContain("canvas-video-trim-overlay");
         expect(html).toContain('style="left:0;top:0;transform:translate3d(');
         expect(html).toContain("width:540px");
-        expect(html).toContain('aria-label="视频片段剪辑"');
-        expect(html).toContain('aria-label="确认剪辑"');
+        expect(html).toContain('aria-label="Video clip clip"');
+        expect(html).toContain('aria-label="Confirm clipping"');
     });
 
     test("raises only the trim overlay above the main dock stacking rule", async () => {

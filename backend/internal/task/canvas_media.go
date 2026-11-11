@@ -14,7 +14,7 @@ type CanvasMediaInput struct {
 
 func (s *Service) CreateCanvasMediaTask(user string, node cw.Node, resourceID, operation string) (*model.Task, error) {
 	if !cw.IsMediaOperation(node.OperationID) {
-		return nil, kernel.BadAuthRequest("不支持的画布媒体处理")
+		return nil, kernel.BadAuthRequest("Unsupported canvas media handling")
 	}
 	if err := cw.ValidateOperation(node); err != nil {
 		return nil, kernel.BadAuthRequest(err.Error())
@@ -24,15 +24,15 @@ func (s *Service) CreateCanvasMediaTask(user string, node cw.Node, resourceID, o
 	}
 	resource, err := s.deps.OwnedMedia.Resource(user, resourceID)
 	if err != nil || resource == nil || resource.Status != model.ResourceStatusReady {
-		return nil, kernel.BadAuthRequest("输入素材不存在或未就绪")
+		return nil, kernel.BadAuthRequest("Input material does not exist or is not ready")
 	}
 	op := cw.OperationByID(node.OperationID)
 	if localasset.NormalizeKind(resource.Kind, resource.MimeType) != op.Inputs[0].MediaType {
-		return nil, kernel.BadAuthRequest("输入素材类型不匹配")
+		return nil, kernel.BadAuthRequest("Input material type does not match")
 	}
 	if node.OperationID == "video.frame" {
 		if seconds, ok := node.Config["seconds"].(float64); ok && resource.DurationMs > 0 && seconds*1000 >= float64(resource.DurationMs) {
-			return nil, kernel.BadAuthRequest("截帧时间需小于视频时长")
+			return nil, kernel.BadAuthRequest("The frame capture time must be less than the video duration")
 		}
 	}
 	if _, _, _, err = cw.MediaCommand(node, resource.Width, resource.Height); err != nil {
@@ -42,5 +42,5 @@ func (s *Service) CreateCanvasMediaTask(user string, node cw.Node, resourceID, o
 	if err != nil {
 		return nil, err
 	}
-	return s.admitSpecialized(user, specializedAdmission{kind: localExecutorKind{Type: model.TaskTypeCanvasMediaTransform, Prompt: op.Name, Provider: "local", Model: "ffmpeg", Stage: "等待本地处理", Log: "画布媒体处理已进入队列"}, input: withClientOperation(input, operation)})
+	return s.admitSpecialized(user, specializedAdmission{kind: localExecutorKind{Type: model.TaskTypeCanvasMediaTransform, Prompt: op.Name, Provider: "local", Model: "ffmpeg", Stage: "Waiting for local processing", Log: "Canvas media processing queued"}, input: withClientOperation(input, operation)})
 }

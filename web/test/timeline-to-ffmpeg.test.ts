@@ -37,8 +37,8 @@ function concatStartOffsetsMs(plan: ReturnType<typeof lowerCanonicalPlan>): numb
     return offsets;
 }
 
-describe("lowerCanonicalPlan 片段与黑场对齐", () => {
-    test("共享 gap-mix 夹具：中间空隙插黑场，配音裁剪/音量/淡化进入 mix", () => {
+describe("lowerCanonicalPlan segments are aligned with the black point", () => {
+    test("Share gap-mix fixture: insert black field in the middle gap, dubbing crop/volume/fade into mix", () => {
         const canonical = loadEditingPlan("gap-mix.plan.json");
         const plan = lowerCanonicalPlan(canonical, [source("node-a"), source("node-b"), source("voice")], { width: 1280, height: 720, fps: 30, outputName: "out.mp4" });
         expect(plan.concatEntries).toEqual(["trim-0.mp4", "gap-1.mp4", "trim-2.mp4"]);
@@ -60,25 +60,25 @@ describe("lowerCanonicalPlan 片段与黑场对齐", () => {
             burnSubtitles: true,
         });
         expect(plan.steps.some((step) => step.kind === "burn")).toBe(true);
-        expect(plan.subtitleSrt).toContain("中文");
+        expect(plan.subtitleSrt).toContain("Chinese");
     });
 
-    test("共享 six-second-mix 夹具：无黑场、concat 顺序=片段顺序", () => {
+    test("Shared six-second-mix fixture: no blackout, concat order=clip order", () => {
         const canonical = loadEditingPlan("six-second-mix.plan.json");
         const plan = lowerCanonicalPlan(canonical, [source("v0"), source("v1"), source("v2"), source("voice"), source("bgm")], { width: 320, height: 180, fps: 30, outputName: "out.mp4" });
         expect(plan.steps.filter((step) => step.kind === "gap")).toHaveLength(0);
         expect(concatTotalSeconds(plan)).toBe(6);
         expect(plan.concatEntries).toEqual(["trim-0.mp4", "trim-1.mp4", "trim-2.mp4"]);
         expect(plan.request.audioClipIds).toEqual(["bgm", "voice"]);
-        expect(plan.subtitleSrt).toContain("中文字幕完整性验证");
+        expect(plan.subtitleSrt).toContain("Chinese subtitle integrity verification");
     });
 
-    test("缺少计划所需媒体源必须明确失败", () => {
+    test("Missing planned media sources required must explicitly fail", () => {
         const canonical = loadEditingPlan("gap-mix.plan.json");
-        expect(() => lowerCanonicalPlan(canonical, [source("node-a")])).toThrow("找不到素材");
+        expect(() => lowerCanonicalPlan(canonical, [source("node-a")])).toThrow("Material not found");
     });
 
-    test("静音独立音轨仍进入 mix，音量为 0", () => {
+    test("Muted independent tracks still go into the mix with a volume of 0", () => {
         const canonical = structuredClone(loadEditingPlan("six-second-mix.plan.json"));
         canonical.audio.find((clip) => clip.clipId === "bgm")!.muted = true;
         const plan = lowerCanonicalPlan(canonical, [source("v0"), source("v1"), source("v2"), source("voice"), source("bgm")]);
@@ -87,7 +87,7 @@ describe("lowerCanonicalPlan 片段与黑场对齐", () => {
         expect(plan.steps.some((step) => step.kind === "mix")).toBe(true);
     });
 
-    test("未探测音轨时保留计划 hasAudio，探测失败才改静音", () => {
+    test("Keep the plan hasAudio when the audio track is not detected, and change the sound to mute when the detection fails.", () => {
         const keepPlan: CanonicalTimelinePlan = {
             version: 1,
             output: { width: 1280, height: 720, fps: 30, sampleRate: 44100, burnSubtitles: false },
@@ -102,7 +102,7 @@ describe("lowerCanonicalPlan 片段与黑场对齐", () => {
         expect(silent.steps.find((step) => step.kind === "trim")!.args.join(" ")).toContain("-map 1:a:0");
     });
 
-    test("图片片段 lowering 使用 -loop 1，不抛错", () => {
+    test("Image fragment lowering uses -loop 1, no error will be thrown", () => {
         const canonical: CanonicalTimelinePlan = {
             version: 1,
             output: { width: 1280, height: 720, fps: 30, sampleRate: 44100, burnSubtitles: false },
@@ -115,7 +115,7 @@ describe("lowerCanonicalPlan 片段与黑场对齐", () => {
             subtitles: [],
         };
         const plan = lowerCanonicalPlan(canonical, [source("v"), { ...source("still"), fileName: "still.png" }]);
-        const image = plan.steps.find((step) => step.description.includes("图片"))!;
+        const image = plan.steps.find((step) => step.description.includes("pictures"))!;
         expect(image.args.slice(0, 4)).toEqual(["-loop", "1", "-t", "1"]);
         const lastInput = image.args.lastIndexOf("-i");
         const outputDuration = image.args.map((arg, index) => (arg === "-t" && index > lastInput ? Number(image.args[index + 1]) : -1)).find((value) => value >= 0);
@@ -124,18 +124,18 @@ describe("lowerCanonicalPlan 片段与黑场对齐", () => {
         expect(image.args.join(" ")).toContain("anullsrc=r=44100:cl=stereo");
     });
 
-    test("执行器不得覆盖计划中的输出尺寸或字幕策略", () => {
+    test("Executors must not override planned output dimensions or subtitle strategies", () => {
         const canonical = loadEditingPlan("gap-mix.plan.json");
         const sources = [source("node-a"), source("node-b"), source("voice")];
-        expect(() => lowerCanonicalPlan(canonical, sources, { width: 1920, height: 1080 })).toThrow("导出尺寸必须与渲染计划一致");
-        expect(() => lowerCanonicalPlan(canonical, sources, { fps: 24 })).toThrow("导出帧率必须与渲染计划一致");
-        expect(() => lowerCanonicalPlan(canonical, sources, { burnSubtitles: false })).toThrow("字幕烧录必须与渲染计划一致");
+        expect(() => lowerCanonicalPlan(canonical, sources, { width: 1920, height: 1080 })).toThrow("Export dimensions must be consistent with the render plan");
+        expect(() => lowerCanonicalPlan(canonical, sources, { fps: 24 })).toThrow("Export frame rate must be consistent with render plan");
+        expect(() => lowerCanonicalPlan(canonical, sources, { burnSubtitles: false })).toThrow("Subtitle burning must be consistent with the rendering plan");
         const matched = lowerCanonicalPlan(canonical, sources, { width: 1280, height: 720, fps: 30, outputName: "out.mp4" });
         expect(matched.finalOutput).toBe("out.mp4");
         expect(matched.steps.find((step) => step.kind === "gap")!.args.join(" ")).toContain("1280x720");
     });
 
-    test("共享 image-gap-sub 夹具：图片输出时长有界，采样率来自计划", () => {
+    test("Share the image-gap-sub fixture: the image output duration is bounded, and the sampling rate comes from the plan", () => {
         const canonical = loadEditingPlan("image-gap-sub.plan.json");
         const plan = lowerCanonicalPlan(canonical, [
             { ...source("still"), fileName: "still.png" },
@@ -153,8 +153,8 @@ describe("lowerCanonicalPlan 片段与黑场对齐", () => {
     });
 });
 
-describe("trim 步骤输出 seek（-ss 在 -i 之后）", () => {
-    test("裁切参数必须把 -ss 放在 -i 之后：输入 seek 会按关键帧对齐导致切点偏移", () => {
+describe("trim step output seek (-ss after -i)", () => {
+    test("The cropping parameter must put -ss after -i: entering seek will align the keyframe and cause the tangent point to shift.", () => {
         const canonical = loadEditingPlan("six-second-mix.plan.json");
         const plan = lowerCanonicalPlan(canonical, [source("v0"), source("v1"), source("v2"), source("voice"), source("bgm")], { width: 320, height: 180, fps: 30, outputName: "out.mp4" });
         const trims = plan.steps.filter((step) => step.kind === "trim");
@@ -168,7 +168,7 @@ describe("trim 步骤输出 seek（-ss 在 -i 之后）", () => {
         }
     });
 
-    test("trim 限制 apad 时长防止尾帧定格，且 concat 与 mix 复用已编码视频流避免冗余 libx264 重编码", () => {
+    test("trim limits the apad duration to prevent the last frame from freezing, and concat and mix multiplex the encoded video stream to avoid redundant libx264 re-encoding", () => {
         const canonical = loadEditingPlan("six-second-mix.plan.json");
         const plan = lowerCanonicalPlan(canonical, [source("v0"), source("v1"), source("v2"), source("voice"), source("bgm")], { width: 320, height: 180, fps: 30, outputName: "out.mp4" });
         const trims = plan.steps.filter((step) => step.kind === "trim");
@@ -194,7 +194,7 @@ describe("trim 步骤输出 seek（-ss 在 -i 之后）", () => {
 });
 
 describe("formatSrtTimestamp", () => {
-    test("SRT 时间码毫秒对齐三位", () => {
+    test("SRT timecode milliseconds aligned to three digits", () => {
         expect(formatSrtTimestamp(3_600_000 + 60_000 + 1_234)).toBe("01:01:01,234");
         expect(formatSrtTimestamp(0)).toBe("00:00:00,000");
     });

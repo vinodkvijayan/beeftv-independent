@@ -242,7 +242,7 @@ func TestGenerationDeliveryReusesWorkflowOutputSlot(t *testing.T) {
 	}
 	assetID := localtask.StableEntityID("asset", "task-workflow")
 	versionID := localtask.OutputVersionID("task-workflow", 0)
-	if err := db.Create(&model.Asset{ID: assetID, UserID: "user-1", Kind: "video", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "镜头产物 · 视频", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.Asset{ID: assetID, UserID: "user-1", Kind: "video", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "Lens products · Video", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Create(&model.AssetVersion{ID: versionID, AssetID: assetID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: "{}", CreatedAt: now, UpdatedAt: now}).Error; err != nil {
@@ -273,7 +273,7 @@ func TestGenerationDeliveryReusesWorkflowOutputSlot(t *testing.T) {
 		t.Fatalf("representations = %d err=%v", representations, err)
 	}
 	var stored model.Asset
-	if err := db.First(&stored, "id = ?", assetID).Error; err != nil || stored.Title != "镜头产物 · 视频" {
+	if err := db.First(&stored, "id = ?", assetID).Error; err != nil || stored.Title != "Lens products · Video" {
 		t.Fatalf("workflow asset overwritten: %#v err=%v", stored, err)
 	}
 }
@@ -313,7 +313,7 @@ func TestGenerationDeliveryLeavesWorkflowSlotForProjectRegistration(t *testing.T
 
 	assetID := localtask.StableEntityID("asset", task.ID)
 	versionID := localtask.OutputVersionID(task.ID, 0)
-	if err := db.Create(&model.Asset{ID: assetID, UserID: "user-1", Kind: "video", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "镜头产物 · 视频", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.Asset{ID: assetID, UserID: "user-1", Kind: "video", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "Lens products · Video", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Create(&model.AssetVersion{ID: versionID, AssetID: assetID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: "{}", CreatedAt: now, UpdatedAt: now}).Error; err != nil {
@@ -469,9 +469,9 @@ func TestGenerationDeliveryConcurrentReplayPreservesEditedMetadata(t *testing.T)
 	}
 	assetID := localtask.MaterializedAssetID(task.ID, 0)
 	if err := db.Model(&model.Asset{}).Where("id = ?", assetID).Updates(map[string]any{
-		"title":        "用户改过的标题",
+		"title":        "Title changed by user",
 		"folder_id":    "folder-user",
-		"payload_json": `{"id":"` + assetID + `","title":"用户改过的标题"}`,
+		"payload_json": `{"id":"` + assetID + `","title":"Title changed by user"}`,
 	}).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -495,7 +495,7 @@ func TestGenerationDeliveryConcurrentReplayPreservesEditedMetadata(t *testing.T)
 	if err := db.First(&stored, "id = ?", assetID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Title != "用户改过的标题" || stored.FolderID != "folder-user" {
+	if stored.Title != "Title changed by user" || stored.FolderID != "folder-user" {
 		t.Fatalf("concurrent replay reset metadata: %#v", stored)
 	}
 	got, err := svc.Task("user-1", task.ID)
@@ -519,7 +519,7 @@ func TestGenerationDeliveryRejectsForeignStableAssetID(t *testing.T) {
 		t.Fatal(err)
 	}
 	assetID := localtask.MaterializedAssetID(task.ID, 0)
-	if err := db.Create(&model.Asset{ID: assetID, UserID: "other-user", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "别人的素材", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.Asset{ID: assetID, UserID: "other-user", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Other people’s material", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := svc.DeliverSucceededTask(task); err != nil {
@@ -533,7 +533,7 @@ func TestGenerationDeliveryRejectsForeignStableAssetID(t *testing.T) {
 		t.Fatalf("foreign collision = %#v", got)
 	}
 	var stored model.Asset
-	if err := db.First(&stored, "id = ?", assetID).Error; err != nil || stored.UserID != "other-user" || stored.Title != "别人的素材" {
+	if err := db.First(&stored, "id = ?", assetID).Error; err != nil || stored.UserID != "other-user" || stored.Title != "Other people’s material" {
 		t.Fatalf("foreign asset mutated: %#v err=%v", stored, err)
 	}
 }
@@ -1142,7 +1142,7 @@ func seedBindExistingTask(t *testing.T, db *gorm.DB, taskID, resourceID string, 
 	}
 	assetID := localtask.MaterializedAssetID(taskID, 0)
 	versionID := localtask.OutputVersionID(taskID, 0)
-	if err := db.Create(&model.Asset{ID: assetID, UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "生成图片", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.Asset{ID: assetID, UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "Generate pictures", PayloadJSON: `{"id":"` + assetID + `"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Create(&model.AssetVersion{ID: versionID, AssetID: assetID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: "{}", CreatedAt: now, UpdatedAt: now}).Error; err != nil {

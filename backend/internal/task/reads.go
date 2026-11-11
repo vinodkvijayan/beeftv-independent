@@ -8,7 +8,7 @@ import (
 
 func (s *Service) Get(userID, id string) (*model.Task, error) {
 	if s.store == nil {
-		return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	if s.deps.Present == nil {
 		return nil, unavailable()
@@ -29,7 +29,7 @@ func (s *Service) FindOperation(userID, projectID, operationID string) (*model.T
 		return nil, err
 	}
 	if projectID == "" || key == "" {
-		return nil, kernel.BadAuthRequest("查询生成任务需要画布和提交标识")
+		return nil, kernel.BadAuthRequest("Query generation tasks require canvas and commit IDs")
 	}
 	if s.store == nil {
 		return nil, unavailable()
@@ -39,7 +39,7 @@ func (s *Service) FindOperation(userID, projectID, operationID string) (*model.T
 		return nil, err
 	}
 	if task == nil || task.ProjectID != projectID {
-		return nil, kernel.NotFound("尚未找到这次提交的任务")
+		return nil, kernel.NotFound("The task submitted for this submission has not been found yet")
 	}
 	s.hydrateProviderRequestID(task)
 	return presentTask(s.deps.Present, *task)
@@ -47,7 +47,7 @@ func (s *Service) FindOperation(userID, projectID, operationID string) (*model.T
 
 func (s *Service) Logs(userID, id string) ([]model.TaskLog, error) {
 	if s.store == nil {
-		return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	if s.deps.Present == nil {
 		return nil, unavailable()
@@ -61,7 +61,7 @@ func (s *Service) Logs(userID, id string) ([]model.TaskLog, error) {
 
 func (s *Service) list(userID string, options ListOptions) ([]Summary, error) {
 	if s.store == nil {
-		return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	if s.deps.Present == nil {
 		return nil, unavailable()

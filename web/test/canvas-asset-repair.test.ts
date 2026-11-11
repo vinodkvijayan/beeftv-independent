@@ -10,7 +10,7 @@ function videoAsset(id: string, storageKey?: string, url = ""): Asset {
     return {
         id,
         kind: "video",
-        title: `素材 ${id}`,
+        title: `Material${id}`,
         coverUrl: "",
         tags: [],
         createdAt: "2026-09-01T00:00:00.000Z",
@@ -23,7 +23,7 @@ function videoNode(id: string, assetId: string | undefined, storageKey: string):
     return {
         id,
         type: CanvasNodeType.Video,
-        title: "镜头",
+        title: "lens",
         position: { x: 0, y: 0 },
         width: 320,
         height: 240,
@@ -34,7 +34,7 @@ function videoNode(id: string, assetId: string | undefined, storageKey: string):
 function project(id: string, nodes: CanvasNodeData[], clips: TimelineClip[] = []): CanvasProject {
     return {
         id,
-        title: `画布 ${id}`,
+        title: `canvas${id}`,
         createdAt: "2026-09-01T00:00:00.000Z",
         updatedAt: "2026-09-01T00:00:00.000Z",
         nodes,
@@ -47,7 +47,7 @@ function project(id: string, nodes: CanvasNodeData[], clips: TimelineClip[] = []
 }
 
 function timelineClip(assetId: string | undefined, storageKey: string): TimelineClip {
-    return { id: "clip-1", kind: "video", directMedia: { id: "media-1", assetId, kind: "video", title: "片段", storageKey } } as TimelineClip;
+    return { id: "clip-1", kind: "video", directMedia: { id: "media-1", assetId, kind: "video", title: "fragment", storageKey } } as TimelineClip;
 }
 
 beforeEach(() => {
@@ -55,8 +55,8 @@ beforeEach(() => {
     useAssetStore.setState({ assets: [] });
 });
 
-describe("repairMissingCanvasAssets 增量会话", () => {
-    test("节点声明不能掩盖素材库的真实绑定，错误配对会被重绑", () => {
+describe("repairMissingCanvasAssets incremental session", () => {
+    test("Node declaration cannot conceal the actual binding of the material library, and incorrect pairing will be re-binded.", () => {
         useAssetStore.setState({ assets: [videoAsset("asset-a", "resource:R1"), videoAsset("asset-c", "resource:R2")] });
         useCanvasStore.setState({ projects: [project("canvas-1", [videoNode("node-1", "asset-a", "resource:R2")])] });
 
@@ -66,7 +66,7 @@ describe("repairMissingCanvasAssets 增量会话", () => {
         expect(useCanvasStore.getState().projects[0].nodes[0].metadata?.assetId).toBe("asset-c");
     });
 
-    test("本地未加载的素材仍按节点声明接受，不会为远端素材分叉新建", () => {
+    test("Materials that are not loaded locally are still accepted according to node declarations, and will not be created for remote material forks.", () => {
         useCanvasStore.setState({ projects: [project("canvas-1", [videoNode("node-1", "remote-only", "resource:R9")])] });
 
         const result = repairMissingCanvasAssets(new Set(["canvas-1"]), true);
@@ -76,8 +76,8 @@ describe("repairMissingCanvasAssets 增量会话", () => {
     });
 });
 
-describe("rebindInconsistentCanvasAssets 强制对齐", () => {
-    test("声明的素材引用了其他资源时重绑到引用同一资源的素材", () => {
+describe("rebindInconsistentCanvasAssets forces alignment", () => {
+    test("When the declared material references other resources, it will be re-bound to the material that references the same resource.", () => {
         useCanvasStore.setState({ projects: [project("canvas-1", [videoNode("node-1", "asset-a", "resource:R2")])] });
 
         const result = rebindInconsistentCanvasAssets([videoAsset("asset-a", "resource:R1"), videoAsset("asset-c", "resource:R2")]);
@@ -86,7 +86,7 @@ describe("rebindInconsistentCanvasAssets 强制对齐", () => {
         expect(useCanvasStore.getState().projects[0].nodes[0].metadata?.assetId).toBe("asset-c");
     });
 
-    test("没有素材引用节点资源时按节点新建素材并重绑", () => {
+    test("When there is no material referencing the node resource, create a new material based on the node and rebind it.", () => {
         useCanvasStore.setState({ projects: [project("canvas-1", [videoNode("node-1", "asset-a", "resource:R2")])] });
 
         const result = rebindInconsistentCanvasAssets([videoAsset("asset-a", "resource:R1")]);
@@ -99,7 +99,7 @@ describe("rebindInconsistentCanvasAssets 强制对齐", () => {
         expect(created && "storageKey" in created.data ? created.data.storageKey : undefined).toBe("resource:R2");
     });
 
-    test("时间线 directMedia 与节点走同一套绑定校验", () => {
+    test("Timeline directMedia and nodes go through the same set of binding verification", () => {
         useCanvasStore.setState({ projects: [project("canvas-1", [], [timelineClip("asset-a", "resource:R2")])] });
 
         const result = rebindInconsistentCanvasAssets([videoAsset("asset-a", "resource:R1"), videoAsset("asset-c", "resource:R2")]);
@@ -108,7 +108,7 @@ describe("rebindInconsistentCanvasAssets 强制对齐", () => {
         expect(useCanvasStore.getState().projects[0].timeline?.clips[0].directMedia?.assetId).toBe("asset-c");
     });
 
-    test("素材以资源文件 URL 引用时与 resource: 前缀归一化匹配", () => {
+    test("When the material is referenced by a resource file URL, it is matched with the resource: prefix normalization", () => {
         useCanvasStore.setState({ projects: [project("canvas-1", [videoNode("node-1", "asset-a", "resource:R2")])] });
 
         const result = rebindInconsistentCanvasAssets([videoAsset("asset-a", undefined, "/api/resources/R2/file")]);
@@ -117,7 +117,7 @@ describe("rebindInconsistentCanvasAssets 强制对齐", () => {
         expect(useCanvasStore.getState().projects[0].nodes[0].metadata?.assetId).toBe("asset-a");
     });
 
-    test("绑定的素材记录缺失（远端已删）时也按节点重建", () => {
+    test("Even if the bound material record is missing (remotely deleted), it will also be rebuilt by node.", () => {
         useCanvasStore.setState({ projects: [project("canvas-1", [videoNode("node-1", "deleted-asset", "resource:R2")])] });
 
         const result = rebindInconsistentCanvasAssets([]);
@@ -129,8 +129,8 @@ describe("rebindInconsistentCanvasAssets 强制对齐", () => {
 });
 
 describe("collectCanvasMediaAssetIds", () => {
-    test("只收集有资源身份的媒体节点与时间线片段声明", () => {
-        const textNode: CanvasNodeData = { id: "node-text", type: CanvasNodeType.Text, title: "文本", position: { x: 0, y: 0 }, width: 200, height: 100, metadata: { content: "正文", assetId: "text-asset" } };
+    test("Only collect media node and timeline segment declarations with resource identities", () => {
+        const textNode: CanvasNodeData = { id: "node-text", type: CanvasNodeType.Text, title: "text", position: { x: 0, y: 0 }, width: 200, height: 100, metadata: { content: "Text", assetId: "text-asset" } };
         const pendingNode = videoNode("node-pending", undefined, "resource:R3");
         const projects = [project("canvas-1", [videoNode("node-1", "asset-a", "resource:R1"), textNode, pendingNode], [timelineClip("asset-b", "resource:R2")])];
 

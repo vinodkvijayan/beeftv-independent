@@ -66,15 +66,15 @@ func registerShotOutput(t *testing.T, svc *Service, projectID, stepID, taskID, u
 
 func TestTwoShotTaskOutputsOutOfOrderKeepRunningAndMonotonicRevision(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	video := workflowStepByKey(t, workflow, "video")
-	first, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "先写的镜头", DurationMs: 3000})
+	first, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Scenes written first", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
-	second, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.02", Description: "后写的镜头", DurationMs: 3000, Position: 1})
+	second, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.02", Description: "Scenes written later", DurationMs: 3000, Position: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,11 +120,11 @@ func TestTwoShotTaskOutputsOutOfOrderKeepRunningAndMonotonicRevision(t *testing.
 
 func TestSameTaskRetryAfterLaterStepStateDoesNotRegress(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	video := workflowStepByKey(t, workflow, "video")
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,11 +165,11 @@ func TestSameTaskRetryAfterLaterStepStateDoesNotRegress(t *testing.T) {
 
 func TestRegisterTaskOutputRollsBackMissingLinkWhenArtifactInsertFails(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	video := workflowStepByKey(t, workflow, "video")
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,16 +208,16 @@ func TestRegisterTaskOutputRollsBackMissingLinkWhenArtifactInsertFails(t *testin
 
 func TestShotEditedWhileOutputArrivesIsHistoricalAndFailsReadinessGate(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	previz := workflowStepByKey(t, workflow, "previz")
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "原画面", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "original screen", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
 	oldRevisionID := shot.CurrentRevisionID
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "改过的画面", DurationMs: 3000}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "changed screen", DurationMs: 3000}); err != nil {
 		t.Fatal(err)
 	}
 	task, resource := createSucceededTask(t, db, "task-previz", "resource-previz", project.ID, "image")
@@ -239,11 +239,11 @@ func TestShotEditedWhileOutputArrivesIsHistoricalAndFailsReadinessGate(t *testin
 
 func TestShotDeletedWhileOutputArrivesDoesNotResurrect(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	video := workflowStepByKey(t, workflow, "video")
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "将被删除", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "will be deleted", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,10 +283,10 @@ func TestShotDeletedWhileOutputArrivesDoesNotResurrect(t *testing.T) {
 
 func TestEmptyShotPointerStillCAS(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	now := time.Now()
-	shot := model.Shot{ID: "shot-empty", ProjectID: project.ID, UnitID: unit.ID, Title: "空指针", Description: "待写入", Status: "draft", CreatedAt: now, UpdatedAt: now}
+	shot := model.Shot{ID: "shot-empty", ProjectID: project.ID, UnitID: unit.ID, Title: "null pointer", Description: "To be written", Status: "draft", CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&shot).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -298,7 +298,7 @@ func TestEmptyShotPointerStillCAS(t *testing.T) {
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var workers sync.WaitGroup
-	for _, plot := range []string{"甲写入", "乙写入"} {
+	for _, plot := range []string{"A writes", "B writes"} {
 		workers.Add(1)
 		go func(plot string) {
 			defer workers.Done()
@@ -331,9 +331,9 @@ func TestEmptyShotPointerStillCAS(t *testing.T) {
 
 func TestEmptyCharacterPointerStillCAS(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	now := time.Now()
-	asset := model.Asset{ID: "asset-empty", UserID: "user-1", Kind: "entity", Category: model.AssetCategoryCharacter, Status: model.AssetVersionStatusDraft, Title: "未定主版本", PayloadJSON: "{}", CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "asset-empty", UserID: "user-1", Kind: "entity", Category: model.AssetCategoryCharacter, Status: model.AssetVersionStatusDraft, Title: "Undecided major version", PayloadJSON: "{}", CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&asset).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -345,7 +345,7 @@ func TestEmptyCharacterPointerStillCAS(t *testing.T) {
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var workers sync.WaitGroup
-	for index, name := range []string{"角色甲", "角色乙"} {
+	for index, name := range []string{"Character A", "Character B"} {
 		workers.Add(1)
 		go func(index int, name string) {
 			defer workers.Done()
@@ -380,11 +380,11 @@ func TestEmptyCharacterPointerStillCAS(t *testing.T) {
 
 func TestSaveShotRechecksUnitInsideTransaction(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	now := time.Now()
-	shot := model.Shot{ID: kernel.NewID(), ProjectID: project.ID, UnitID: unit.ID, Title: "迟到镜头", Description: "画面", Status: "draft", CreatedAt: now, UpdatedAt: now}
-	revision := model.ShotRevision{ID: kernel.NewID(), ShotID: shot.ID, PlotDescription: "画面", DurationMs: 1000, CreatedAt: now}
+	shot := model.Shot{ID: kernel.NewID(), ProjectID: project.ID, UnitID: unit.ID, Title: "late shot", Description: "Picture", Status: "draft", CreatedAt: now, UpdatedAt: now}
+	revision := model.ShotRevision{ID: kernel.NewID(), ShotID: shot.ID, PlotDescription: "Picture", DurationMs: 1000, CreatedAt: now}
 	if err := svc.DeleteProjectUnit("user-1", project.ID, unit.ID); err != nil {
 		t.Fatal(err)
 	}
@@ -402,10 +402,10 @@ func TestSaveShotRechecksUnitInsideTransaction(t *testing.T) {
 
 func TestReplaceShotsRechecksUnitAndVersionInsideTransaction(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	now := time.Now()
-	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategory("prop"), Status: model.AssetVersionStatus("ready"), PrimaryVersionID: "version-1", Title: "道具", CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategory("prop"), Status: model.AssetVersionStatus("ready"), PrimaryVersionID: "version-1", Title: "Props", CreatedAt: now, UpdatedAt: now}
 	version := model.AssetVersion{ID: "version-1", AssetID: asset.ID, Version: 1, Status: model.AssetVersionStatus("ready"), CreatedAt: now, UpdatedAt: now}
 	link := model.ProjectAssetLink{ID: "link-1", ProjectID: project.ID, AssetID: asset.ID, CreatedAt: now}
 	for _, item := range []any{&asset, &version, &link} {
@@ -416,7 +416,7 @@ func TestReplaceShotsRechecksUnitAndVersionInsideTransaction(t *testing.T) {
 	created, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "原分镜", DurationMs: 3000}, AssetVersionIDs: []string{version.ID}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "Original storyboard", DurationMs: 3000}, AssetVersionIDs: []string{version.ID}}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -427,8 +427,8 @@ func TestReplaceShotsRechecksUnitAndVersionInsideTransaction(t *testing.T) {
 	}
 	nextShotID := kernel.NewID()
 	nextRevisionID := kernel.NewID()
-	nextShots := []model.Shot{{ID: nextShotID, ProjectID: project.ID, UnitID: unit.ID, CurrentRevisionID: nextRevisionID, Title: "SC.02", Description: "替换", Position: 0, DurationMs: 3000, Status: "draft", CreatedAt: now, UpdatedAt: now}}
-	nextRevisions := []model.ShotRevision{{ID: nextRevisionID, ShotID: nextShotID, Version: 1, PlotDescription: "替换", DurationMs: 3000, CreatedAt: now}}
+	nextShots := []model.Shot{{ID: nextShotID, ProjectID: project.ID, UnitID: unit.ID, CurrentRevisionID: nextRevisionID, Title: "SC.02", Description: "replace", Position: 0, DurationMs: 3000, Status: "draft", CreatedAt: now, UpdatedAt: now}}
+	nextRevisions := []model.ShotRevision{{ID: nextRevisionID, ShotID: nextShotID, Version: 1, PlotDescription: "replace", DurationMs: 3000, CreatedAt: now}}
 	nextRefs := []model.ShotAssetReference{{ID: kernel.NewID(), ShotID: nextShotID, AssetVersionID: version.ID, Role: "reference", Status: "linked", CreatedAt: now}}
 	pointers := map[string]string{created[0].ID: created[0].CurrentRevisionID}
 	if err := db.Delete(&model.ProjectAssetLink{}, "id = ?", link.ID).Error; err != nil {
@@ -461,12 +461,12 @@ func TestReplaceShotsRechecksUnitAndVersionInsideTransaction(t *testing.T) {
 
 func TestReplaceShotsRejectsInPlaceEditWithCapturedRevision(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	created, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "原画面", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "original screen", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -475,37 +475,37 @@ func TestReplaceShotsRejectsInPlaceEditWithCapturedRevision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "人工改过的画面", DurationMs: 3500}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "Manually modified images", DurationMs: 3500}); err != nil {
 		t.Fatal(err)
 	}
 	_, err = svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{created[0].ID},
 		ExpectedRevision: owned.Revision,
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.99", Description: "整章覆盖", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.99", Description: "Full chapter coverage", DurationMs: 3000}}},
 	})
 	if err == nil {
 		t.Fatal("in-place edit was erased by id-only replace")
 	}
-	if !IsConflict(err) && err.Error() != "本章分镜已发生变化，请刷新后重新确认" {
+	if !IsConflict(err) && err.Error() != "The storyboard of this chapter has changed, please refresh and confirm again." {
 		t.Fatalf("in-place replace conflict = %v", err)
 	}
 	var stored model.Shot
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "人工改过的画面" {
-		t.Fatalf("description = %q, want 人工改过的画面", stored.Description)
+	if stored.Description != "Manually modified images" {
+		t.Fatalf("description = %q, want manually modified screen", stored.Description)
 	}
 }
 
 func TestReplaceShotsPreflightToTxPointerSnapshot(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	created, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "原画面", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "original screen", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -517,14 +517,14 @@ func TestReplaceShotsPreflightToTxPointerSnapshot(t *testing.T) {
 	ids := []string{created[0].ID}
 	pointers := map[string]string{created[0].ID: created[0].CurrentRevisionID}
 	expectedRevision := owned.Revision
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "并发改镜头", DurationMs: 3000}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "Concurrent lens changes", DurationMs: 3000}); err != nil {
 		t.Fatal(err)
 	}
 	now := time.Now()
 	nextShotID := kernel.NewID()
 	nextRevisionID := kernel.NewID()
-	nextShots := []model.Shot{{ID: nextShotID, ProjectID: project.ID, UnitID: unit.ID, CurrentRevisionID: nextRevisionID, Title: "SC.02", Description: "覆盖并发", Status: "draft", DurationMs: 3000, CreatedAt: now, UpdatedAt: now}}
-	nextRevisions := []model.ShotRevision{{ID: nextRevisionID, ShotID: nextShotID, Version: 1, PlotDescription: "覆盖并发", DurationMs: 3000, CreatedAt: now}}
+	nextShots := []model.Shot{{ID: nextShotID, ProjectID: project.ID, UnitID: unit.ID, CurrentRevisionID: nextRevisionID, Title: "SC.02", Description: "Override concurrency", Status: "draft", DurationMs: 3000, CreatedAt: now, UpdatedAt: now}}
+	nextRevisions := []model.ShotRevision{{ID: nextRevisionID, ShotID: nextShotID, Version: 1, PlotDescription: "Override concurrency", DurationMs: 3000, CreatedAt: now}}
 	err = svc.repo.ReplaceProjectUnitShotsActive("user-1", project.ID, unit.ID, nextShots, nextRevisions, nil, ids, pointers, expectedRevision)
 	if !errors.Is(err, repository.ErrProjectUnitShotsChanged) && !errors.Is(err, repository.ErrProjectRevisionConflict) {
 		t.Fatalf("preflight-to-tx replace = %v, want shots changed or revision conflict", err)
@@ -533,24 +533,24 @@ func TestReplaceShotsPreflightToTxPointerSnapshot(t *testing.T) {
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "并发改镜头" {
-		t.Fatalf("description = %q, want 并发改镜头", stored.Description)
+	if stored.Description != "Concurrent lens changes" {
+		t.Fatalf("description = %q, want concurrent camera changes", stored.Description)
 	}
 }
 
 func TestMatchingShotIDsDoNotHideInPlaceContentChange(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	created, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "原画面", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "original screen", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "内容已变", DurationMs: 3000}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "Content has changed", DurationMs: 3000}); err != nil {
 		t.Fatal(err)
 	}
 	owned, err := svc.Owned("user-1", project.ID)
@@ -560,8 +560,8 @@ func TestMatchingShotIDsDoNotHideInPlaceContentChange(t *testing.T) {
 	now := time.Now()
 	nextShotID := kernel.NewID()
 	nextRevisionID := kernel.NewID()
-	nextShots := []model.Shot{{ID: nextShotID, ProjectID: project.ID, UnitID: unit.ID, CurrentRevisionID: nextRevisionID, Title: "SC.02", Description: "用 ID 假装没变", Status: "draft", DurationMs: 3000, CreatedAt: now, UpdatedAt: now}}
-	nextRevisions := []model.ShotRevision{{ID: nextRevisionID, ShotID: nextShotID, Version: 1, PlotDescription: "用 ID 假装没变", DurationMs: 3000, CreatedAt: now}}
+	nextShots := []model.Shot{{ID: nextShotID, ProjectID: project.ID, UnitID: unit.ID, CurrentRevisionID: nextRevisionID, Title: "SC.02", Description: "Use ID to pretend nothing has changed", Status: "draft", DurationMs: 3000, CreatedAt: now, UpdatedAt: now}}
+	nextRevisions := []model.ShotRevision{{ID: nextRevisionID, ShotID: nextShotID, Version: 1, PlotDescription: "Use ID to pretend nothing has changed", DurationMs: 3000, CreatedAt: now}}
 	err = svc.repo.ReplaceProjectUnitShotsActive("user-1", project.ID, unit.ID, nextShots, nextRevisions, nil, []string{created[0].ID}, map[string]string{created[0].ID: created[0].CurrentRevisionID}, owned.Revision)
 	if !errors.Is(err, repository.ErrProjectUnitShotsChanged) {
 		t.Fatalf("id-only content change = %v, want shots changed", err)
@@ -570,35 +570,35 @@ func TestMatchingShotIDsDoNotHideInPlaceContentChange(t *testing.T) {
 
 func TestStaleClientSameShotIDsChangedContentDoesNotMutate(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	created, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "批准时的画面", DurationMs: 3000}}},
+		Shots:            []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.01", Description: "Approval screen", DurationMs: 3000}}},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	approvedRevision := ownedRevision(t, svc, project.ID)
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "镜头已改内容", DurationMs: 3200}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "The content of the shot has been changed", DurationMs: 3200}); err != nil {
 		t.Fatal(err)
 	}
-	overwrite := []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.99", Description: "过期客户端整章覆盖", DurationMs: 3000}}}
+	overwrite := []ReplaceProjectUnitShotInput{{CreateProjectShotRequest: CreateProjectShotRequest{Title: "SC.99", Description: "Expired client full chapter coverage", DurationMs: 3000}}}
 	_, err = svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs: []string{created[0].ID},
 		Shots:           overwrite,
 	})
-	if err == nil || err.Error() != "请刷新后再保存分镜" {
-		t.Fatalf("missing expectedRevision = %v, want 请刷新后再保存分镜", err)
+	if err == nil || err.Error() != "Please refresh and then save the storyboard" {
+		t.Fatalf("missing expectedRevision = %v, want Please refresh and then save the storyboard", err)
 	}
 	_, err = svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{created[0].ID},
 		ExpectedRevision: 0,
 		Shots:            overwrite,
 	})
-	if err == nil || err.Error() != "请刷新后再保存分镜" {
-		t.Fatalf("zero expectedRevision = %v, want 请刷新后再保存分镜", err)
+	if err == nil || err.Error() != "Please refresh and then save the storyboard" {
+		t.Fatalf("zero expectedRevision = %v, want Please refresh and then save the storyboard", err)
 	}
 	_, err = svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{created[0].ID},
@@ -608,15 +608,15 @@ func TestStaleClientSameShotIDsChangedContentDoesNotMutate(t *testing.T) {
 	if err == nil {
 		t.Fatal("stale client with same IDs overwrote changed content")
 	}
-	if !IsConflict(err) && err.Error() != "本章分镜已发生变化，请刷新后重新确认" {
+	if !IsConflict(err) && err.Error() != "The storyboard of this chapter has changed, please refresh and confirm again." {
 		t.Fatalf("stale same-id replace = %v", err)
 	}
 	var stored model.Shot
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "镜头已改内容" {
-		t.Fatalf("description = %q, want 镜头已改内容", stored.Description)
+	if stored.Description != "The content of the shot has been changed" {
+		t.Fatalf("description = %q, want The content of the lens has been changed", stored.Description)
 	}
 	if ownedRevision(t, svc, project.ID) <= approvedRevision {
 		t.Fatalf("in-place edit should have bumped project revision")
@@ -625,7 +625,7 @@ func TestStaleClientSameShotIDsChangedContentDoesNotMutate(t *testing.T) {
 
 func TestUpdateWorkflowStepRechecksStoryGateInsideTransaction(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	story := workflowStepByKey(t, workflow, "story")
@@ -639,7 +639,7 @@ func TestUpdateWorkflowStepRechecksStoryGateInsideTransaction(t *testing.T) {
 	_, err := svc.repo.UpdateWorkflowProgressActive("user-1", project.ID, story.ID, expectedRevision, func(current repository.WorkflowProgressCurrent) (repository.WorkflowProgressPlan, error) {
 		return planWorkflowStepUpdate(time.Now(), UpdateWorkflowStepRequest{Status: string(model.WorkflowStepStatusCompleted)}, current)
 	})
-	if err == nil || err.Error() != "章节正文为空，不能完成剧情阶段" {
+	if err == nil || err.Error() != "The chapter text is empty and the plot stage cannot be completed." {
 		t.Fatalf("story gate after silent source clear = %v", err)
 	}
 	stored, err := svc.repo.WorkflowStepForProject(project.ID, story.ID)
@@ -656,11 +656,11 @@ func TestUpdateWorkflowStepRechecksStoryGateInsideTransaction(t *testing.T) {
 
 func TestUpdateWorkflowStepRechecksSelectedArtifactsInsideTransaction(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	workflow := seedUnitWorkflow(t, svc, project.ID, unit.ID)
 	previz := workflowStepByKey(t, workflow, "previz")
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -673,7 +673,7 @@ func TestUpdateWorkflowStepRechecksSelectedArtifactsInsideTransaction(t *testing
 	_, err = svc.repo.UpdateWorkflowProgressActive("user-1", project.ID, previz.ID, expectedRevision, func(current repository.WorkflowProgressCurrent) (repository.WorkflowProgressPlan, error) {
 		return planWorkflowStepUpdate(time.Now(), UpdateWorkflowStepRequest{Status: string(model.WorkflowStepStatusCompleted)}, current)
 	})
-	if err == nil || err.Error() != "仍有镜头缺少已通过的动作预演，不能完成本阶段" {
+	if err == nil || err.Error() != "There are still shots that lack the approved action preview and this stage cannot be completed." {
 		t.Fatalf("artifact gate after silent unselect = %v", err)
 	}
 	stored, err := svc.repo.WorkflowStepForProject(project.ID, previz.ID)

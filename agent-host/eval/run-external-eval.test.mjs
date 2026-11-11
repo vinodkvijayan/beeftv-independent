@@ -11,7 +11,7 @@ describe('external agent eval driver', () => {
     expect(parseArgs(['--scenario', 'S1,S8', '--runs', '2', '--with-digest', '--out', '/tmp/x'])).toMatchObject({
       scenario: 'S1,S8', runs: 2, withDigest: true, out: '/tmp/x',
     });
-    expect(() => parseArgs(['--model', 'real'])).toThrow('未知参数');
+    expect(() => parseArgs(['--model', 'real'])).toThrow('unknown parameters');
   });
 
   // 和内置评测同一口径：输入 token 含缓存部分，才能直接比较。
@@ -45,8 +45,8 @@ describe('external agent eval driver', () => {
   });
 });
 
-describe('外部测评预算与新报告字段', () => {
-  test('解析 --budget-cny 并拒绝非法值', () => {
+describe('External Assessment Budget and New Reporting Fields', () => {
+  test('Parse --budget-cny and reject illegal values', () => {
     expect(parseArgs(['--scenario', 'S1', '--budget-cny', '1.5'])).toMatchObject({ scenario: 'S1', budgetCny: 1.5 });
     expect(parseArgs(['--budget-cny=2']).budgetCny).toBe(2);
     expect(parseArgs([]).budgetCny).toBeUndefined();
@@ -54,14 +54,14 @@ describe('外部测评预算与新报告字段', () => {
     expect(() => parseArgs(['--budget-cny', '-1'])).toThrow('--budget-cny');
   });
 
-  test('单价从环境读取；缓存价缺失时保留 undefined 以便回退', () => {
+  test('The unit price is read from the environment; if the cached price is missing, undefined is retained for fallback.', () => {
     expect(readEvalPrices({ BEEFTV_EVAL_PRICE_IN: '0.2', BEEFTV_EVAL_PRICE_OUT: '0.8' }))
       .toEqual({ input: 0.2, cache: undefined, output: 0.8 });
     expect(readEvalPrices({ BEEFTV_EVAL_PRICE_IN: '0.2', BEEFTV_EVAL_PRICE_CACHE: '0.004', BEEFTV_EVAL_PRICE_OUT: '0.8' }).cache).toBe(0.004);
     expect(() => readEvalPrices({ BEEFTV_EVAL_PRICE_IN: 'abc' })).toThrow('BEEFTV_EVAL_PRICE_IN');
   });
 
-  test('预算停止在达到上限后锁住，后续场景不会再跑', () => {
+  test('The budget stops being locked after reaching the upper limit, and subsequent scenes will not be run again.', () => {
     const budget = createCnyBudget({ budgetCny: 0.01, priceIn: 1, priceOut: 1 });
     const stop = createBudgetStop(budget);
     expect(stop.shouldStop()).toBe(false);
@@ -71,7 +71,7 @@ describe('外部测评预算与新报告字段', () => {
     expect(createBudgetStop(createCnyBudget({ priceIn: 0, priceOut: 0 })).shouldStop()).toBe(false);
   });
 
-  test('summary 给出每轮平均工具调用、耗时中位数与 p90、按场景完成数', () => {
+  test('summary gives the average tool calls in each round, the median time consumption and p90, and the number of completions by scenario', () => {
     const results = [
       { code: 'S1', status: 'passed', usages: [
         { tokens: { uncachedInput: 100, cacheRead: 900, output: 10 }, numTurns: 2, toolCalls: 1, durationMs: 1000 },
@@ -95,11 +95,11 @@ describe('外部测评预算与新报告字段', () => {
     expect(summary.totalCostCny).toBe(0.0006);
   });
 
-  test('拒绝未知的外部 Agent', async () => {
-    await expect(runExternalEval({ agent: 'nope', scenario: 'S1' })).rejects.toThrow('claude、codex 或 dsh');
+  test('Reject unknown external agents', async () => {
+    await expect(runExternalEval({ agent: 'nope', scenario: 'S1' })).rejects.toThrow('claude, codex or dsh');
   });
 
-  test('用量不完整设了预算时必须停止后续场景；已知部分费用仍然计入预算账本', () => {
+  test('When a budget is set with incomplete usage, subsequent scenarios must be stopped; some known expenses are still included in the budget ledger.', () => {
     const action = usageAccountingAction({ usageIncomplete: true, budgetEnabled: true });
     expect(action).toEqual({ countIncomplete: true, abortScenarios: true });
     expect(usageAccountingAction({ usageIncomplete: true, budgetEnabled: false })).toEqual({ countIncomplete: true, abortScenarios: false });
@@ -111,7 +111,7 @@ describe('外部测评预算与新报告字段', () => {
     expect(budget.spent).toBeCloseTo(0.001, 8);
   });
 
-  test('summary 计数用量不完整轮次和被它中止的场景', () => {
+  test('summary counts incomplete rounds of usage and scenarios aborted by it', () => {
     const results = [
       { code: 'S1', status: 'aborted_usage_incomplete', usages: [{ tokens: { uncachedInput: 0, cacheRead: 0, output: 0, incomplete: true }, usageIncomplete: true }] },
       { code: 'S2', status: 'aborted_usage_incomplete', usages: [] },
@@ -124,7 +124,7 @@ describe('外部测评预算与新报告字段', () => {
     expect(summary.scenarioCompletion.S1).toMatchObject({ abortedUsage: 1 });
   });
 
-  test('外部 CLI 的临时 home 清理后不留目录，也不留 owner token', () => {
+  test('After cleaning the temporary home of the external CLI, no directory will be left, and no owner token will be left.', () => {
     const agent = prepareAgentHome('claude', '/tmp', { BEEFTV_OWNER_TOKEN: 'owner-token' });
     expect(fs.existsSync(agent.home)).toBe(true);
     expect(fs.readFileSync(agent.mcpPath, 'utf8')).toContain('owner-token');
@@ -132,7 +132,7 @@ describe('外部测评预算与新报告字段', () => {
     expect(fs.existsSync(agent.home)).toBe(false);
   });
 
-  test('准备外部 CLI 临时 home 时出错会立刻删掉，含 owner token 的目录不残留', () => {
+  test('If an error occurs when preparing the external CLI temporary home, it will be deleted immediately, and the directory containing the owner token will not remain.', () => {
     const before = new Set(fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith('beeftv-ext-')));
     // BigInt 无法写进 JSON：在 mkdtemp 和技能复制之后、写 mcp.json 时抛错。
     expect(() => prepareAgentHome('claude', '/tmp', { BEEFTV_OWNER_TOKEN: 'owner-token', BAD: 1n })).toThrow();
@@ -141,7 +141,7 @@ describe('外部测评预算与新报告字段', () => {
     expect(leaked).toEqual([]);
   });
 
-  test('百分位为空时返回 0', () => {
+  test('Returns 0 if percentile is empty', () => {
     expect(percentile([], 0.5)).toBe(0);
     expect(percentile([5, 1, 3], 0.5)).toBe(3);
     expect(percentile([5, 1, 3], 0.9)).toBe(5);

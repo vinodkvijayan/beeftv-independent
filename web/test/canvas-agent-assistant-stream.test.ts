@@ -90,19 +90,19 @@ afterEach(() => {
     if (previousDesktopToken === undefined) delete apiClient.defaults.headers.common["X-Desktop-Token"];
 });
 
-const TURN_END = JSON.stringify({ type: "turn_end", reply: "完成", toolCalls: [], error: null, cancelled: false });
+const TURN_END = JSON.stringify({ type: "turn_end", reply: "Done", toolCalls: [], error: null, cancelled: false });
 
-describe("创作助手回合流边界", () => {
-    test("已失效的生成确认返回明确提示，普通可用提案不受影响", async () => {
+describe("Authoring Assistant Turn Flow Boundary", () => {
+    test("Expired generation confirmation returns a clear prompt, and generally available proposals are not affected.", async () => {
         // Establish the UI session before replacing the proposal endpoint response.
         sessionResponse = () => new Response(JSON.stringify({ data: { token: "ui-token", expiresAt: new Date(Date.now() + 1_800_000).toISOString() } }));
         await ensureAgentUiSession();
         httpPostSpy.mockRejectedValueOnce(new ApiError("internal detail", { status: 409, reason: "continuation_intent_changed" }));
-        expect(await confirmAssistantProposalRunnable("old", "gp-old", "canvas")).toBe("已失效，请让助手重新提出生成方案。");
+        expect(await confirmAssistantProposalRunnable("old", "gp-old", "canvas")).toBe("It has expired. Please ask the assistant to propose a new generation plan.");
         httpPostSpy.mockResolvedValueOnce({ runnable: true } as never);
         expect(await confirmAssistantProposalRunnable("current", "gp-current", "canvas")).toBeNull();
     });
-    test("确认运行技能脚本使用长超时（1830s），不被 4 秒默认 JSON 超时中断", async () => {
+    test("Confirm that running skill scripts uses a long timeout (1830s) and is not interrupted by the 4 second default JSON timeout", async () => {
         sessionResponse = () => new Response(JSON.stringify({ data: { token: "ui-token", expiresAt: new Date(Date.now() + 1_800_000).toISOString() } }));
         await ensureAgentUiSession();
         let capturedUrl = "";
@@ -120,45 +120,45 @@ describe("创作助手回合流边界", () => {
         expect(capturedConfig?.timeout).toBe(1_830_000);
         expect((capturedConfig?.headers as Record<string, string>)?.["X-Beeftv-Ui-Session"]).toBe("ui-token");
     });
-    test("交接会话身份在 observer_error 和断流前交给界面，不能冒充回合完成", async () => {
+    test("The handover session identity is handed over to the interface before observer_error and disconnection, and the round cannot be pretended to be completed.", async () => {
         let sessionId = "legacy-session";
         let ended = false;
         chatResponse = () => chatResponseOf([
             JSON.stringify({ type: "session", sessionId: "durable:successor" }) + "\n",
             JSON.stringify({ type: "observer_error", reason: "interrupted" }) + "\n",
         ]);
-        await expect(streamAgentChat("c1", "继续", {
+        await expect(streamAgentChat("c1", "continue", {
             onSession: value => { sessionId = value; },
             onTurnEnd: () => { ended = true; },
         })).rejects.toThrow(AGENT_STREAM_INCOMPLETE_MESSAGE);
         expect(sessionId).toBe("durable:successor");
         expect(ended).toBe(false);
     });
-    test("observer_error 说明只是观察断开，界面据此改为读取结果，而不是当成断流失败", async () => {
+    test("observer_error indicates that it is just observing the disconnection, and the interface changes to read the result instead of treating it as a disconnection failure.", async () => {
         chatResponse = () => chatResponseOf([
             JSON.stringify({ type: "session", sessionId: "durable:s1" }) + "\n",
-            JSON.stringify({ type: "text_delta", delta: "已开始" }) + "\n",
+            JSON.stringify({ type: "text_delta", delta: "Started" }) + "\n",
             JSON.stringify({ type: "observer_error", reason: "interrupted" }) + "\n",
         ]);
-        const error = await streamAgentChat("c1", "继续", {}).catch((caught: unknown) => caught);
+        const error = await streamAgentChat("c1", "continue", {}).catch((caught: unknown) => caught);
         expect(error).toBeInstanceOf(AgentStreamDetachedError);
         expect((error as InstanceType<typeof AgentStreamDetachedError>).reason).toBe("interrupted");
         expect((error as Error).message).toBe(AGENT_STREAM_INCOMPLETE_MESSAGE);
-        chatResponse = () => chatResponseOf([JSON.stringify({ type: "text_delta", delta: "半截" }) + "\n"]);
-        const cut = await streamAgentChat("c1", "继续", {}).catch((caught: unknown) => caught);
+        chatResponse = () => chatResponseOf([JSON.stringify({ type: "text_delta", delta: "half" }) + "\n"]);
+        const cut = await streamAgentChat("c1", "continue", {}).catch((caught: unknown) => caught);
         expect(cut).toBeInstanceOf(Error);
         expect(cut).not.toBeInstanceOf(AgentStreamDetachedError);
     });
-    test("运行中补充只发文字和当前会话，不创建新回合或附加素材", async () => {
-        await steerAgentChat("c1", "s1", "结尾换成蛋糕");
+    test("Running supplements only send text and the current conversation, and do not create new rounds or additional materials.", async () => {
+        await steerAgentChat("c1", "s1", "End with cake");
         const calls = requests.filter(item => item.url.includes("/assistant/steer"));
         expect(calls).toHaveLength(1);
-        expect(JSON.parse(calls[0]!.body)).toEqual({ canvasId: "c1", sessionId: "s1", message: "结尾换成蛋糕" });
+        expect(JSON.parse(calls[0]!.body)).toEqual({ canvasId: "c1", sessionId: "s1", message: "End with cake" });
         expect(requests.some(item => item.url.includes("/assistant/chat"))).toBe(false);
     });
-    test("附件和技能只发送保存后的描述，chat 与 steer 不携带本地预览或内容", async () => {
-        const attachment = { resourceId: "r1", assetId: "a1", kind: "image" as const, name: "参考.png", mimeType: "image/png", bytes: 100, purpose: "style" as const, dataUrl: "data:image/png;base64,DO_NOT_SEND", file: "local-file" };
-        const skill = { skillId: "s1", versionId: "v1", contentHash: "a".repeat(64), skillName: "分镜", version: "1" };
+    test("Attachments and skills only send the saved description, chat and steer do not carry local preview or content", async () => {
+        const attachment = { resourceId: "r1", assetId: "a1", kind: "image" as const, name: "Reference.png", mimeType: "image/png", bytes: 100, purpose: "style" as const, dataUrl: "data:image/png;base64,DO_NOT_SEND", file: "local-file" };
+        const skill = { skillId: "s1", versionId: "v1", contentHash: "a".repeat(64), skillName: "Storyboard", version: "1" };
         chatResponse = () => chatResponseOf([`${TURN_END}\n`]);
         await streamAgentChat("c1", "", {}, { attachments: [attachment], skills: [skill], references: [{ kind: "asset", id: "a1" }] });
         const body = JSON.parse(requests.find(item => item.url.includes("/assistant/chat"))!.body);
@@ -169,7 +169,7 @@ describe("创作助手回合流边界", () => {
         expect(supplement.attachments).toEqual(body.attachments); expect(supplement.skills).toEqual(body.skills); expect(supplement.references).toEqual(body.references);
     });
 
-    test("补充要求只有明确收到才报告成功，拒绝或断线不自动重发", async () => {
+    test("Supplementary requests will be reported as successful only if they are clearly received, and will not be automatically resent if rejected or disconnected.", async () => {
         for (const response of [
             () => new Response(JSON.stringify({ code: 409, reason: "session_not_running" }), { status: 409 }),
             () => new Response(JSON.stringify({ code: 0, data: {} }), { status: 200 }),
@@ -177,11 +177,11 @@ describe("创作助手回合流边界", () => {
         ]) {
             requests.length = 0;
             steerResponse = response;
-            await expect(steerAgentChat("c1", "s1", "只改结尾")).rejects.toThrow();
+            await expect(steerAgentChat("c1", "s1", "Only change the ending")).rejects.toThrow();
             expect(requests.filter(item => item.url.includes("/assistant/steer"))).toHaveLength(1);
         }
     });
-    test("临近30分钟过期前续签，并发调用共用一次签发", async () => {
+    test("Renew before expiration in 30 minutes, concurrent calls share one issuance", async () => {
         let now = Date.parse("2026-10-02T00:00:00Z");
         const clock = spyOn(Date, "now").mockImplementation(() => now);
         let issued = 0;
@@ -196,18 +196,18 @@ describe("创作助手回合流边界", () => {
         } finally { clock.mockRestore(); }
     });
 
-    test("reset 后旧签发不能回写或返回旧凭据", async () => {
+    test("After reset, the old issuance cannot be written back or the old credentials can be returned.", async () => {
         let issued = 0;
         sessionResponse = () => new Response(JSON.stringify({ data: { token: `token-${++issued}`, expiresAt: new Date(Date.now() + 1_800_000).toISOString() } }));
         const stale = ensureAgentUiSession().catch((error: Error) => error);
         resetAgentUiSession();
         expect(await ensureAgentUiSession()).toBe("token-2");
         expect(await stale).toBeInstanceOf(Error);
-        expect((await stale as Error).message).toContain("当前页面会话已更新");
+        expect((await stale as Error).message).toContain("The current page session has been updated");
         expect(await ensureAgentUiSession()).toBe("token-2");
     });
 
-    test("明确的403接纳拒绝清除旧凭据但绝不自动重放消息", async () => {
+    test("Explicit 403 Acceptance Rejection clears old credentials but never automatically replays the message", async () => {
         let issued = 0;
         sessionResponse = () => new Response(JSON.stringify({ data: { token: `token-${++issued}`, expiresAt: new Date(Date.now() + 1_800_000).toISOString() } }));
         chatResponse = () => new Response(JSON.stringify({ reason: "unauthenticated" }), { status: 403, headers: { "X-Beeftv-Turn-Admission": "rejected" } });
@@ -216,13 +216,13 @@ describe("创作助手回合流边界", () => {
         expect(await ensureAgentUiSession()).toBe("token-2");
     });
 
-    test("签发失败没有发送chat，按未接纳处理", async () => {
+    test("The issuance failed and no chat was sent, so it will be treated as not accepted.", async () => {
         sessionResponse = () => new Response("", { status: 403 });
         await expect(streamAgentChat("c1", "hi", {})).rejects.toBeInstanceOf(AgentChatNotAdmittedError);
         expect(requests).toHaveLength(0);
     });
 
-    test("旧请求延迟返回403不会清除已经续签的新凭据", async () => {
+    test("Delayed return of 403 for old requests will not clear new credentials that have been renewed", async () => {
         let issued = 0;
         sessionResponse = () => new Response(JSON.stringify({ data: { token: `token-${++issued}`, expiresAt: new Date(Date.now() + 1_800_000).toISOString() } }));
         let rejectResponse!: (response: Response) => void;
@@ -242,7 +242,7 @@ describe("创作助手回合流边界", () => {
         expect(issued).toBe(2);
     });
 
-    test("没有明确拒绝标记的HTTP错误和已接纳断流继续视为结果未知", async () => {
+    test("HTTP errors without an explicit reject tag and accepted disconnections continue to be treated as unknown.", async () => {
         for (const admission of [null, "unknown", "admitted"]) {
             chatResponse = () => new Response(JSON.stringify({ reason: "host_unreachable" }), { status: 503, headers: admission ? { "X-Beeftv-Turn-Admission": admission } : {} });
             const error = await streamAgentChat("c1", "hi", {}).catch((e: unknown) => e);
@@ -254,7 +254,7 @@ describe("创作助手回合流边界", () => {
         expect(error).not.toBeInstanceOf(AgentChatNotAdmittedError);
         expect(requests.filter((r) => r.url.endsWith("/chat"))).toHaveLength(4);
     });
-	 test("对话和取消连接当前桌面运行时地址", async () => {
+	 test("Conversation and disconnection of the current desktop runtime address", async () => {
 		chatResponse = () => chatResponseOf([TURN_END + "\n"]);
 		await streamAgentChat("canvas-1", "test", {});
 		await cancelAgentChat("canvas-1");
@@ -263,8 +263,8 @@ describe("创作助手回合流边界", () => {
 			"http://127.0.0.1:54321/api/assistant/cancel",
 		]);
 	 });
-    test("分片切割（含跨行与多字节中文）仍能完整取回增量与最终回合", async () => {
-        const line = JSON.stringify({ type: "text_delta", delta: "雨夜巷口" }) + "\n";
+    test("Fragment cutting (including cross-line and multi-byte Chinese) can still fully retrieve the increment and final round", async () => {
+        const line = JSON.stringify({ type: "text_delta", delta: "Rainy night alley" }) + "\n";
         const bytes = new TextEncoder().encode(line + TURN_END + "\n");
         // 在每个字节边界切一刀：任何依赖「一次读到整行」的实现都会露馅，
         // 同时覆盖中文被切断在多字节序列中间的情况。
@@ -276,27 +276,27 @@ describe("创作助手回合流边界", () => {
         let ended = 0;
         await streamAgentChat("c1", "hi", { onDelta: (delta) => deltas.push(delta), onTurnEnd: () => { ended += 1; } });
 
-        expect(deltas.join("")).toBe("雨夜巷口");
+        expect(deltas.join("")).toBe("Rainy night alley");
         expect(ended).toBe(1);
     });
 
-    test("最后一行没有换行符也要处理（不能丢尾部）", async () => {
-        chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "text_delta", delta: "尾" })}\n`, TURN_END]);
+    test("The last line must be processed even if there is no newline character (the tail cannot be lost)", async () => {
+        chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "text_delta", delta: "tail" })}\n`, TURN_END]);
 
         const deltas: string[] = [];
         let reply = "";
         await streamAgentChat("c1", "hi", { onDelta: (delta) => deltas.push(delta), onTurnEnd: (end) => { reply = end.reply; } });
 
-        expect(deltas.join("")).toBe("尾");
-        expect(reply).toBe("完成");
+        expect(deltas.join("")).toBe("tail");
+        expect(reply).toBe("Done");
     });
 
-    test("文字快照替换旧片段，计划在 turn_end 前立即交付且可清空", async () => {
-        const plan = { goal: "生成并检查首帧", items: [{ id: "s1", title: "首帧", status: "doing" }], done: 0, total: 1, updatedAt: "now" };
+    test("Text snapshot replaces the old fragment, is scheduled to be delivered immediately before turn_end and can be cleared", async () => {
+        const plan = { goal: "Generate and check first frame", items: [{ id: "s1", title: "first frame", status: "doing" }], done: 0, total: 1, updatedAt: "now" };
         chatResponse = () => chatResponseOf([
-            JSON.stringify({ type: "text_snapshot", text: "开头中段" }) + "\n",
+            JSON.stringify({ type: "text_snapshot", text: "Beginning and middle section" }) + "\n",
             JSON.stringify({ type: "plan", plan }) + "\n",
-            JSON.stringify({ type: "text_snapshot", text: "开头中段尾部" }) + "\n",
+            JSON.stringify({ type: "text_snapshot", text: "Beginning, middle and end" }) + "\n",
             JSON.stringify({ type: "plan", plan: null }) + "\n", TURN_END,
         ]);
         const observed: unknown[] = [];
@@ -306,27 +306,27 @@ describe("创作助手回合流边界", () => {
             onPlan: value => observed.push(value),
             onTurnEnd: () => observed.push("end"),
         });
-        expect(text).toBe("开头中段尾部");
+        expect(text).toBe("Beginning, middle and end");
         expect(observed).toEqual([plan, null, "end"]);
     });
 
-    test("流结束但没有最终回合事件 → 显式未完成错误，不当成功", async () => {
-        chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "text_delta", delta: "半截" })}\n`]);
+    test("Stream ended but no final turn event → explicit incomplete error, improper success", async () => {
+        chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "text_delta", delta: "half" })}\n`]);
 
         await expect(streamAgentChat("c1", "hi", { onDelta: () => {} })).rejects.toThrow(AGENT_STREAM_INCOMPLETE_MESSAGE);
     });
 
-    test("损坏的 JSON 行 → 显式未完成错误，不再被 continue 吞掉", async () => {
+    test("Corrupted JSON lines → explicit incomplete errors, no longer swallowed by continue", async () => {
         chatResponse = () => chatResponseOf(["{ this is not json }\n", `${TURN_END}\n`]);
 
         await expect(streamAgentChat("c1", "hi", {})).rejects.toThrow(AGENT_STREAM_INCOMPLETE_MESSAGE);
     });
 
-    test("中途断流（reader 抛错）向上抛出，不当作正常结束", async () => {
+    test("The flow is interrupted midway (reader throws an error) and is thrown upward. It is not regarded as a normal end.", async () => {
         const encoder = new TextEncoder();
         chatResponse = () => new Response(new ReadableStream({
             start(controller) {
-                controller.enqueue(encoder.encode(`${JSON.stringify({ type: "text_delta", delta: "半" })}\n`));
+                controller.enqueue(encoder.encode(`${JSON.stringify({ type: "text_delta", delta: "half" })}\n`));
                 controller.error(new Error("network down"));
             },
         }), { status: 200 });
@@ -334,13 +334,13 @@ describe("创作助手回合流边界", () => {
         await expect(streamAgentChat("c1", "hi", {})).rejects.toThrow("network down");
     });
 
-    test("宿主返回 error 的回合 → 用户可见失败，且不泄露实现者术语", async () => {
+    test("round in which the host returns error → user-visible failure without revealing implementer terminology", async () => {
         chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "turn_end", reply: "", toolCalls: [], error: "TypeError: x is not a function", cancelled: false })}\n`]);
 
-        await expect(streamAgentChat("c1", "hi", {})).rejects.toThrow("这一回合没有完成，请再试一次");
+        await expect(streamAgentChat("c1", "hi", {})).rejects.toThrow("This round was not completed, please try again");
     });
 
-    test("lifecycle 事件不会把回合当成结束，agent_end 也不结算", async () => {
+    test("The lifecycle event will not regard the round as the end, nor will the agent_end be settled.", async () => {
         const lifecycle = JSON.stringify({ type: "lifecycle", phase: "compaction", reason: "threshold" });
         const agentEnd = JSON.stringify({ type: "agent_end", willRetry: false, messages: [] });
         chatResponse = () => chatResponseOf([`${lifecycle}\n`, `${agentEnd}\n`]);
@@ -351,8 +351,8 @@ describe("创作助手回合流边界", () => {
         expect(phases).toEqual(["compaction"]);
     });
 
-    test("cancelled 回合按正常结束处理", async () => {
-        chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "turn_end", reply: "已停止", toolCalls: [], error: null, cancelled: true })}\n`]);
+    test("canceled The round ends normally.", async () => {
+        chatResponse = () => chatResponseOf([`${JSON.stringify({ type: "turn_end", reply: "Stopped", toolCalls: [], error: null, cancelled: true })}\n`]);
 
         let cancelled = false;
         await streamAgentChat("c1", "hi", { onTurnEnd: (end) => { cancelled = end.cancelled; } });
@@ -360,39 +360,39 @@ describe("创作助手回合流边界", () => {
         expect(cancelled).toBe(true);
     });
 
-    test("停止失败（404 会话不存在）必须抛出，不能当成已停止", async () => {
+    test("Stop failure (404 Session does not exist) must be thrown and cannot be regarded as stopped.", async () => {
         cancelResponse = () => new Response(JSON.stringify({ code: 404, reason: "session_not_found" }), { status: 404 });
 
         await expect(cancelAgentChat("c1")).rejects.toThrow();
     });
 
-    test("停止返回业务失败（HTTP 202 但 code 非 0）也要抛出", async () => {
+    test("Stop returning business failure (HTTP 202 but code is non-0) and also throw it", async () => {
         cancelResponse = () => new Response(JSON.stringify({ code: 500, reason: "internal_error" }), { status: 202 });
 
         await expect(cancelAgentChat("c1")).rejects.toThrow();
     });
 
-    test("停止成功时不抛错", async () => {
+    test("Don’t throw an error when stopping successfully", async () => {
         await expect(cancelAgentChat("c1")).resolves.toBeUndefined();
     });
 
-    test("停止指向这一次发送：带上会话和请求标识，并读回这条请求的停止结果", async () => {
+    test("Stop pointing to this send: bring the session and request identifier, and read back the stop result of this request", async () => {
         cancelResponse = () => new Response(JSON.stringify({ code: 0, data: { accepted: true, state: "pending" } }), { status: 200 });
         await expect(cancelAgentChat("c1", { sessionId: "durable:s1", requestId: "req-1" })).resolves.toBe("pending");
         expect(JSON.parse(requests.at(-1)!.body)).toEqual({ canvasId: "c1", sessionId: "durable:s1", requestId: "req-1" });
     });
 
-    test("每次发送都带上自己的请求标识", async () => {
+    test("Each time you send it, bring your own request ID.", async () => {
         chatResponse = () => chatResponseOf([TURN_END + "\n"]);
         await streamAgentChat("c1", "hi", {}, { requestId: "req-2" });
         expect(JSON.parse(requests.find((request) => request.url.endsWith("/chat"))!.body).requestId).toBe("req-2");
     });
 
-    test("最终回合带回 turnId、改动清单与生成提议", async () => {
+    test("The final round brings back the turnId, change list and generated proposal", async () => {
         const end = {
             type: "turn_end",
             turnId: "turn-7",
-            reply: "已经建好三个镜头",
+            reply: "Three lenses have been built",
             toolCalls: [{ toolCallId: "t1", tool: "canvas.nodes.create" }],
             change: { revisionBefore: 4, revisionAfter: 5, createdNodeIds: ["n1", "n2", "n3"], updatedNodeIds: [], createdEdgeIds: ["e1", "e2"] },
             proposals: [{ proposalId: "p1", kind: "image", nodeIds: ["n1"], model: "seedream-4", modelKey: "ch::seedream-4" }],
@@ -410,7 +410,7 @@ describe("创作助手回合流边界", () => {
         expect(received!.proposals).toEqual(end.proposals);
     });
 
-    test("旧格式（没有 turnId / change / proposals）仍然按成功结束", async () => {
+    test("Old format (without turnId/change/proposals) still ends on success", async () => {
         chatResponse = () => chatResponseOf([`${TURN_END}\n`]);
         let received: Record<string, unknown> | null = null;
         await streamAgentChat("c1", "hi", { onTurnEnd: (value) => { received = value as unknown as Record<string, unknown>; } });
@@ -418,12 +418,12 @@ describe("创作助手回合流边界", () => {
         expect(received!.change).toBeUndefined();
     });
 
-    test("会话不是当前会话时给出可操作的一句话", async () => {
+    test("Give an actionable sentence when the session is not the current one", async () => {
         chatResponse = () => new Response(JSON.stringify({ code: 409, reason: "session_not_current" }), { status: 409 });
-        await expect(streamAgentChat("c1", "hi", {}, { sessionId: "stale" })).rejects.toThrow("你已经换到别的对话了，请重新发送这条消息");
+        await expect(streamAgentChat("c1", "hi", {}, { sessionId: "stale" })).rejects.toThrow("You have switched to another conversation, please resend this message");
     });
 
-    test("指定会话时才把 sessionId 放进请求体", async () => {
+    test("Only put the sessionId into the request body when specifying a session.", async () => {
         chatResponse = () => chatResponseOf([`${TURN_END}\n`]);
         await streamAgentChat("c1", "hi", {}, { sessionId: "s-1", selectedNodeIds: ["n1"] });
         const chat = requests.find((item) => item.url.includes("/assistant/chat"));
@@ -435,19 +435,19 @@ describe("创作助手回合流边界", () => {
         expect(JSON.parse(plain!.body)).toEqual({ canvasId: "c1", message: "hi", selectedNodeIds: [], permissionMode: "canvas" });
     });
 
-    test("每次新回合冻结明确权限，补充不能发送更改权限字段", async () => {
+    test("Explicit permissions are frozen for each new round, adding that changes to permission fields cannot be sent", async () => {
         chatResponse = () => chatResponseOf([`${TURN_END}\n`]);
         for (const permissionMode of ["read-only", "canvas", "full-access"] as const) {
             await streamAgentChat("c1", "hi", {}, { permissionMode });
             expect(JSON.parse(requests.filter(item => item.url.includes("/assistant/chat")).at(-1)!.body).permissionMode).toBe(permissionMode);
         }
-        await steerAgentChat("c1", "s1", "补充", { permissionMode: "full-access" } as any);
-        expect(JSON.parse(requests.find(item => item.url.includes("/assistant/steer"))!.body)).toEqual({ canvasId: "c1", sessionId: "s1", message: "补充" });
+        await steerAgentChat("c1", "s1", "supplement", { permissionMode: "full-access" } as any);
+        expect(JSON.parse(requests.find(item => item.url.includes("/assistant/steer"))!.body)).toEqual({ canvasId: "c1", sessionId: "s1", message: "supplement" });
     });
 });
 
-describe("撤销失败原因", () => {
-    test("三种 409 各自可分辨，未知原因归到 unknown", () => {
+describe("Reason for undo failure", () => {
+    test("Each of the three types of 409 can be distinguished, and the unknown cause is classified into unknown", () => {
         // 必须用同一个 ApiError 类，instanceof 才会命中（这里复用真实 API 错误类）。
         const failure = (reason?: string) => new ApiError("failed", { status: 409, reason });
         expect(assistantUndoFailure(failure("canvas_changed_since_turn"))).toBe("canvas_changed");

@@ -29,7 +29,7 @@ func archiveFromMarkdown(data []byte, fallbackName string, fallbackDescription s
 
 func archiveFromMarkdownWithFiles(data []byte, fallbackName string, fallbackDescription string, extraFiles map[string][]byte) (skillPackageArchive, error) {
 	if len(data) == 0 || len(data) > maxSkillPackageBytes || !utf8.Valid(data) {
-		return skillPackageArchive{}, kernel.BadAuthRequest("Markdown 文件为空、过大或不是 UTF-8")
+		return skillPackageArchive{}, kernel.BadAuthRequest("Markdown file is empty, too large, or not UTF-8")
 	}
 	metadata := parseSkillPackageMetadata(data)
 	if metadata.Name == "" {
@@ -52,7 +52,7 @@ func archiveFromMarkdownWithFiles(data []byte, fallbackName string, fallbackDesc
 func archiveFromZip(data []byte, subdir string) (skillPackageArchive, error) {
 	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
-		return skillPackageArchive{}, kernel.BadAuthRequest("ZIP 文件无法解析")
+		return skillPackageArchive{}, kernel.BadAuthRequest("ZIP file cannot be parsed")
 	}
 	raw := make(map[string][]byte)
 	var total int64
@@ -61,7 +61,7 @@ func archiveFromZip(data []byte, subdir string) (skillPackageArchive, error) {
 			continue
 		}
 		if entry.Mode()&os.ModeSymlink != 0 || !entry.Mode().IsRegular() {
-			return skillPackageArchive{}, kernel.BadAuthRequest("技能包不能包含软链接或特殊文件")
+			return skillPackageArchive{}, kernel.BadAuthRequest("Skill packs cannot contain soft links or special files")
 		}
 		entryPath, err := normalizeSkillPath(entry.Name)
 		if err != nil {
@@ -71,7 +71,7 @@ func archiveFromZip(data []byte, subdir string) (skillPackageArchive, error) {
 			continue
 		}
 		if _, exists := raw[entryPath]; exists {
-			return skillPackageArchive{}, kernel.BadAuthRequest("技能包包含重复文件路径")
+			return skillPackageArchive{}, kernel.BadAuthRequest("Skill pack contains duplicate file paths")
 		}
 		// 声明的大小可能是假的，按实际读到的字节数算总量。
 		file, err := entry.Open()
@@ -102,7 +102,7 @@ func archiveFromZip(data []byte, subdir string) (skillPackageArchive, error) {
 
 func normalizeSkillArchiveRoot(raw map[string][]byte, subdir string) (map[string][]byte, error) {
 	if len(raw) == 0 {
-		return nil, kernel.BadAuthRequest("技能包为空")
+		return nil, kernel.BadAuthRequest("Skill pack is empty")
 	}
 	paths := sortedSkillPaths(raw)
 	firstParts := strings.SplitN(paths[0], "/", 2)
@@ -166,7 +166,7 @@ func normalizeSkillArchiveRoot(raw map[string][]byte, subdir string) (map[string
 			}
 		}
 		if len(filtered) == 0 {
-			return nil, kernel.BadAuthRequest("GitHub 子目录不存在或为空")
+			return nil, kernel.BadAuthRequest("GitHub subdirectory does not exist or is empty")
 		}
 		raw = filtered
 	}
@@ -181,10 +181,10 @@ func normalizeSkillArchiveRoot(raw map[string][]byte, subdir string) (map[string
 		}
 	}
 	if len(skillRoots) == 0 {
-		return nil, kernel.BadAuthRequest("技能包中缺少 SKILL.md")
+		return nil, kernel.BadAuthRequest("SKILL.md is missing from the skill pack")
 	}
 	if len(skillRoots) > 1 {
-		return nil, kernel.BadAuthRequest("技能包包含多个 SKILL.md，请指定单个技能目录")
+		return nil, kernel.BadAuthRequest("The skill package contains multiple SKILL.md, please specify a single skill directory")
 	}
 	root := skillRoots[0]
 	files := make(map[string][]byte)
@@ -220,16 +220,16 @@ func matchSkillSubdirBySkillID(raw map[string][]byte, skillID string) string {
 
 func finalizeSkillArchive(files map[string][]byte, metadata skillPackageMetadata) (skillPackageArchive, error) {
 	if _, ok := files["SKILL.md"]; !ok {
-		return skillPackageArchive{}, kernel.BadAuthRequest("技能包入口必须是 SKILL.md")
+		return skillPackageArchive{}, kernel.BadAuthRequest("The skill package entry must be SKILL.md")
 	}
 	if metadata.Name == "" {
-		return skillPackageArchive{}, kernel.BadAuthRequest("SKILL.md 缺少 name，且无法从标题推断")
+		return skillPackageArchive{}, kernel.BadAuthRequest("SKILL.md is missing name and cannot be inferred from the title")
 	}
 	if metadata.Description == "" {
-		return skillPackageArchive{}, kernel.BadAuthRequest("SKILL.md 缺少 description，且无法从正文推断")
+		return skillPackageArchive{}, kernel.BadAuthRequest("SKILL.md lacks description and cannot be inferred from the text")
 	}
 	if utf8.RuneCountInString(metadata.Name) > maxSkillNameRunes {
-		return skillPackageArchive{}, kernel.BadAuthRequest("技能名称超过长度限制")
+		return skillPackageArchive{}, kernel.BadAuthRequest("Skill name exceeds length limit")
 	}
 	metadata.Description = fitRunes(metadata.Description, maxSkillDescriptionRunes)
 	hash := sha256.New()
@@ -280,7 +280,7 @@ func parseSkillPackageMetadata(data []byte) skillPackageMetadata {
 }
 
 func errSkillPackageTooLarge() error {
-	return kernel.BadAuthRequest("技能包解压后不能超过 200MB")
+	return kernel.BadAuthRequest("The skill pack cannot exceed 200MB after decompression.")
 }
 
 // fitRunes 把超长文本截到上限以内（省略号也算在内），截完不会再被打包校验判为超长。

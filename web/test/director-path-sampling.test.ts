@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import { resampleDirectorGroundPath } from "@/lib/canvas/director/director-path-sampling";
 
-describe("导演台轨迹固定十点采样", () => {
-    test("短于 0.5 米的路线也有十个等比例控制点", () => {
+describe("Fixed ten-point sampling of the director's desk trajectory", () => {
+    test("Routes shorter than 0.5 meters also have ten proportional control points", () => {
         const points = resampleDirectorGroundPath([{ x: 0, z: 0 }, { x: 0.2, z: 0 }]);
 
         expect(points).toHaveLength(10);
@@ -13,7 +13,7 @@ describe("导演台轨迹固定十点采样", () => {
         });
     });
 
-    test("折线路径按总弧长等分十点，并保留起点和终点", () => {
+    test("The polyline path is divided into ten equal points according to the total arc length, and the starting point and end point are retained.", () => {
         const points = resampleDirectorGroundPath([{ x: 0, z: 0 }, { x: 1, z: 0 }, { x: 1, z: 1 }]);
 
         expect(points).toHaveLength(10);

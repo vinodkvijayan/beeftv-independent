@@ -10,32 +10,32 @@ import (
 
 func ExpandCanonicalAgentRequest(source *CanonicalAgentRequest, config Config, declarative bool) (*AgentToolRequests, error) {
 	if len(source.Messages) == 0 {
-		return nil, errors.New("画布 Agent 请求缺少会话内容")
+		return nil, errors.New("Canvas Agent request missing session content")
 	}
 	for _, message := range source.Messages {
 		if stringField(message, "type") == "function_call" {
 			if stringField(message, "call_id") == "" || stringField(message, "name") == "" {
-				return nil, errors.New("画布 Agent 工具调用缺少标识或名称")
+				return nil, errors.New("Canvas Agent tool call is missing ID or name")
 			}
 			if _, ok := message["arguments"].(string); !ok {
-				return nil, errors.New("画布 Agent 工具调用参数无效")
+				return nil, errors.New("Canvas Agent tool call parameter is invalid")
 			}
 			continue
 		}
 		if stringField(message, "type") != "" {
-			return nil, errors.New("画布 Agent 会话条目类型无效")
+			return nil, errors.New("Canvas Agent session entry type is invalid")
 		}
 		switch stringField(message, "role") {
 		case "system", "user", "assistant":
 		case "tool":
 			if stringField(message, "tool_call_id") == "" {
-				return nil, errors.New("画布 Agent 工具结果缺少调用标识")
+				return nil, errors.New("Canvas Agent tool results missing call ID")
 			}
 			if _, ok := message["content"].(string); !ok {
-				return nil, errors.New("画布 Agent 工具结果内容无效")
+				return nil, errors.New("Canvas Agent tool result content is invalid")
 			}
 		default:
-			return nil, errors.New("画布 Agent 会话角色无效")
+			return nil, errors.New("Canvas Agent session role is invalid")
 		}
 		if err := ValidateCanonicalAgentContent(message["content"]); err != nil {
 			return nil, err
@@ -44,20 +44,20 @@ func ExpandCanonicalAgentRequest(source *CanonicalAgentRequest, config Config, d
 	for _, tool := range source.Tools {
 		function, ok := tool["function"].(map[string]interface{})
 		if !ok || stringField(function, "name") == "" {
-			return nil, errors.New("画布 Agent 工具定义缺少名称")
+			return nil, errors.New("Canvas Agent tool definition missing name")
 		}
 	}
 	switch choice := source.ToolChoice.(type) {
 	case string:
 		if choice != "auto" && choice != "required" {
-			return nil, errors.New("画布 Agent 工具选择无效")
+			return nil, errors.New("Canvas Agent tool selection is invalid")
 		}
 	case map[string]interface{}:
 		if stringField(choice, "type") != "function" || stringField(choice, "name") == "" {
-			return nil, errors.New("画布 Agent 工具选择缺少名称")
+			return nil, errors.New("Canvas Agent tool selection missing name")
 		}
 	default:
-		return nil, errors.New("画布 Agent 请求缺少工具选择")
+		return nil, errors.New("Canvas Agent request missing tool selection")
 	}
 	messages := source.Messages
 	if prompt := strings.TrimSpace(source.SystemPrompt); prompt != "" {
@@ -341,25 +341,25 @@ func ValidateCanonicalAgentContent(content interface{}) error {
 	}
 	parts, ok := content.([]interface{})
 	if !ok {
-		return errors.New("画布 Agent 消息内容无效")
+		return errors.New("Canvas Agent message content is invalid")
 	}
 	for _, value := range parts {
 		part, _ := value.(map[string]interface{})
 		switch kind := stringField(part, "type"); kind {
 		case "text":
 			if _, ok := part["text"].(string); !ok {
-				return errors.New("画布 Agent 文本内容无效")
+				return errors.New("Canvas Agent text content is invalid")
 			}
 		case "image_url", "file_url":
 			file, _ := part[kind].(map[string]interface{})
 			if stringField(file, "url") == "" {
-				return errors.New("画布 Agent 素材地址为空")
+				return errors.New("Canvas Agent material address is empty")
 			}
 			if kind == "file_url" && (stringField(file, "name") == "" || stringField(file, "mimeType") == "") {
-				return errors.New("画布 Agent 文件缺少名称或类型")
+				return errors.New("Canvas Agent file is missing name or type")
 			}
 		default:
-			return errors.New("画布 Agent 消息内容类型无效")
+			return errors.New("Canvas Agent message content type is invalid")
 		}
 	}
 	return nil

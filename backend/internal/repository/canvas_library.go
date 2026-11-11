@@ -218,10 +218,10 @@ func (r *Repository) CanvasLibraryResourceReferences(userID string, resourceIDs 
 		for _, drawing := range drawings {
 			title := drawing.CanvasID + "/" + drawing.DrawingID
 			if drawing.PreviewResourceID != "" {
-				refs = append(refs, ResourceDirectReference{Kind: "画板预览", ID: drawing.DrawingID, Title: title, ResourceID: drawing.PreviewResourceID})
+				refs = append(refs, ResourceDirectReference{Kind: "Artboard preview", ID: drawing.DrawingID, Title: title, ResourceID: drawing.PreviewResourceID})
 			}
 			if drawing.RenderResourceID != "" {
-				refs = append(refs, ResourceDirectReference{Kind: "画板成品", ID: drawing.DrawingID, Title: title, ResourceID: drawing.RenderResourceID})
+				refs = append(refs, ResourceDirectReference{Kind: "Finished drawing board", ID: drawing.DrawingID, Title: title, ResourceID: drawing.RenderResourceID})
 			}
 		}
 	}
@@ -233,7 +233,7 @@ func (r *Repository) CanvasLibraryResourceReferences(userID string, resourceIDs 
 			return nil, err
 		}
 		for _, folder := range folders {
-			refs = append(refs, ResourceDirectReference{Kind: "画布文件夹封面", ID: folder.ID, Title: folder.Name, ResourceID: folder.CoverResourceID})
+			refs = append(refs, ResourceDirectReference{Kind: "canvas folder cover", ID: folder.ID, Title: folder.Name, ResourceID: folder.CoverResourceID})
 		}
 	}
 	return refs, nil

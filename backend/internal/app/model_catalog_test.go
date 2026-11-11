@@ -20,8 +20,8 @@ func TestModelCatalogAlwaysSerializesCollectionsAsArrays(t *testing.T) {
 		frontendEnabled bool
 		wantSource      string
 	}{
-		{name: "空的前台模型目录", frontendEnabled: true, wantSource: "frontend"},
-		{name: "空的系统渠道目录", frontendEnabled: false, wantSource: "system"},
+		{name: "Empty front-end model directory", frontendEnabled: true, wantSource: "frontend"},
+		{name: "Empty system channel directory", frontendEnabled: false, wantSource: "system"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			svc, db := newModelCatalogTestService(t)
@@ -50,7 +50,7 @@ func TestModelCatalogAlwaysSerializesCollectionsAsArrays(t *testing.T) {
 			for _, key := range []string{"models", "channels"} {
 				raw, present := payload[key]
 				if !present || string(raw) == "null" {
-					t.Fatalf("%s 集合没有序列化成数组：%s", key, encoded)
+					t.Fatalf("%s collection is not serialized into an array: %s", key, encoded)
 				}
 			}
 		})

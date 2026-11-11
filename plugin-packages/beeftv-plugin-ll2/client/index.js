@@ -45,7 +45,7 @@ export const LL2_PRESET_MODELS = [
   {
     model: "deepseek-v4.1-flash",
     displayName: "DeepSeek V4.1 Flash",
-    family: "DeepSeek 文本",
+    family: "DeepSeek text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -258,8 +258,8 @@ export const LL2_PRESET_MODELS = [
   },
   {
     model: "auto-hd",
-    displayName: "Auto HD 视频超分",
-    family: "Auto HD 超分",
+    displayName: "Auto HD video super score",
+    family: "Auto HD super score",
     capability: "video",
     protocol: "ll2-auto-hd-video",
     endpoint: "POST /hd/tasks",
@@ -425,7 +425,7 @@ function createLL2SettingsPanel(host) {
     );
     const [statusMessage, setStatusMessage] = React.useState(
       existingChannel?.hasApiKey || existingChannel?.apiKey
-        ? `已连接「${existingChannel.name}」渠道（已启用 ${existingChannel.models?.length || 0} 个模型）`
+        ? `Connected "${existingChannel.name}” channel (enabled${existingChannel.models?.length || 0} model)`
         : "",
     );
     const [errorMessage, setErrorMessage] = React.useState("");
@@ -442,7 +442,7 @@ function createLL2SettingsPanel(host) {
       const trimmedKey = apiKey.trim();
       const trimmedUrl = baseUrl.trim().replace(/\/+$/, "") || DEFAULT_BASE_URL;
       if (!trimmedKey) {
-        setErrorMessage("请先填写 LL2 API Key");
+        setErrorMessage("Please fill in the LL2 API Key first");
         return;
       }
       setCatalogChecking(true);
@@ -469,7 +469,7 @@ function createLL2SettingsPanel(host) {
           const data = await resp.json().catch(() => ({}));
           if (!resp.ok || (typeof data?.code === "number" && data.code !== 0)) {
             throw new Error(
-              data?.msg || data?.error || `读取在线目录失败（HTTP ${resp.status}）`,
+              data?.msg || data?.error || `Failed to read online directory (HTTP${resp.status}）`,
             );
           }
           const rawModels = Array.isArray(data?.data?.models)
@@ -482,9 +482,9 @@ function createLL2SettingsPanel(host) {
             .filter(Boolean);
         }
         setOnlineModels(ids);
-        setStatusMessage(`在线目录验证成功：共发现 ${ids.length} 个上游模型`);
+        setStatusMessage(`Online catalog verification successful: total found${ids.length} upstream models`);
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : "读取在线目录失败");
+        setErrorMessage(err instanceof Error ? err.message : "Failed to read online directory");
       } finally {
         setCatalogChecking(false);
       }
@@ -494,11 +494,11 @@ function createLL2SettingsPanel(host) {
       const trimmedKey = apiKey.trim();
       const trimmedUrl = baseUrl.trim().replace(/\/+$/, "") || DEFAULT_BASE_URL;
       if (!trimmedKey) {
-        setErrorMessage("请填写有效的 LL2 API Key（sk-...）");
+        setErrorMessage("Please fill in a valid LL2 API Key (sk-...)");
         return;
       }
       if (!selectedModels.length) {
-        setErrorMessage("请至少勾选 1 个要同步的模型");
+        setErrorMessage("Please check at least 1 model to be synchronized");
         return;
       }
       setSaving(true);
@@ -516,16 +516,16 @@ function createLL2SettingsPanel(host) {
           selectedModels,
         });
         if (!host?.channels?.upsert) {
-          throw new Error("当前宿主版本不支持同步模型渠道");
+          throw new Error("The current host version does not support synchronized model channels");
         }
         await host.channels.upsert(channel);
         setSynced(true);
         setStatusMessage(
-          `已将「${LL2_CHANNEL_NAME}」与 ${channel.models.length} 个模型同步至「设置 -> 模型服务」！`,
+          `Already "${LL2_CHANNEL_NAME}” with${channel.models.length} Synchronize each model to "Settings -> Model Service"!`,
         );
-        host?.ui?.notify?.("LL2 渠道与模型已同步至模型服务", "success");
+        host?.ui?.notify?.("LL2 channels and models have been synchronized to the model service", "success");
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : "保存并同步渠道失败");
+        setErrorMessage(err instanceof Error ? err.message : "Saving and syncing channels failed");
       } finally {
         setSaving(false);
       }
@@ -567,7 +567,7 @@ function createLL2SettingsPanel(host) {
           h(
             "div",
             { style: { fontWeight: 600, fontSize: "14px" } },
-            "LL2 (DMC) 算力与视频渠道 · BYOK 一键接入",
+            "LL2 (DMC) computing power and video channel · BYOK one-click access",
           ),
           h(
             "span",
@@ -581,7 +581,7 @@ function createLL2SettingsPanel(host) {
                 fontWeight: 600,
               },
             },
-            "官方内置插件",
+            "Official built-in plug-in",
           ),
         ),
         h(
@@ -594,7 +594,7 @@ function createLL2SettingsPanel(host) {
               lineHeight: 1.6,
             },
           },
-          "只需填写一个 LL2 API Key，即可一键配置 DeepSeek V4.1、Seedance 2.0、Vidu Q3、MiniMax H3、Super Vega 1.0 与 Auto HD 视频超分共 6 套模型协议，不改动 BeefTV 原有默认模型配置。",
+          "Just fill in an LL2 API Key and you can configure a total of 6 sets of model protocols for DeepSeek V4.1, Seedance 2.0, Vidu Q3, MiniMax H3, Super Vega 1.0 and Auto HD video super-resolution with one click, without changing BeefTV’s original default model configuration.",
         ),
       ),
 
@@ -617,7 +617,7 @@ function createLL2SettingsPanel(host) {
               htmlFor: "ll2-plugin-base-url",
               style: { fontSize: "12px", fontWeight: 600 },
             },
-            "接口地址 (Base URL)",
+            "Interface address (Base URL)",
           ),
           h("input", {
             id: "ll2-plugin-base-url",
@@ -681,7 +681,7 @@ function createLL2SettingsPanel(host) {
                   cursor: "pointer",
                 },
               },
-              showKey ? "隐藏" : "显示",
+              showKey ? "hide" : "show",
             ),
             h(
               "button",
@@ -700,7 +700,7 @@ function createLL2SettingsPanel(host) {
                   cursor: catalogChecking ? "wait" : "pointer",
                 },
               },
-              catalogChecking ? "验证中..." : "验证在线目录",
+              catalogChecking ? "Verifying..." : "Verify online catalog",
             ),
           ),
         ),
@@ -728,7 +728,7 @@ function createLL2SettingsPanel(host) {
           h(
             "span",
             { style: { fontSize: "12px", fontWeight: 600 } },
-            `预置协议模型（已选 ${selectedModels.length} / ${LL2_PRESET_MODELS.length}）`,
+            `Preset protocol model (selected${selectedModels.length} / ${LL2_PRESET_MODELS.length}）`,
           ),
           h(
             "button",
@@ -748,7 +748,7 @@ function createLL2SettingsPanel(host) {
                 cursor: "pointer",
               },
             },
-            selectedModels.length === LL2_PRESET_MODELS.length ? "取消全选" : "全选模型",
+            selectedModels.length === LL2_PRESET_MODELS.length ? "Deselect all" : "Select all models",
           ),
         ),
         h(
@@ -820,7 +820,7 @@ function createLL2SettingsPanel(host) {
                         color: item.capability === "text" ? "#2563eb" : "#7c3aed",
                       },
                     },
-                    item.capability === "text" ? "文本" : "视频",
+                    item.capability === "text" ? "text" : "video",
                   ),
                 ),
                 h(
@@ -841,7 +841,7 @@ function createLL2SettingsPanel(host) {
                   ? h(
                       "div",
                       { style: { fontSize: "10px", color: "#059669", marginTop: "2px" } },
-                      "● 上游目录已确认在线",
+                      "● The upstream directory has been confirmed online",
                     )
                   : null,
               ),
@@ -904,7 +904,7 @@ function createLL2SettingsPanel(host) {
                       whiteSpace: "nowrap",
                     },
                   },
-                  "前往模型服务查看与测试 →",
+                  "Go to the model service to view and test →",
                 )
               : null,
           )
@@ -938,7 +938,7 @@ function createLL2SettingsPanel(host) {
               cursor: saving ? "wait" : "pointer",
             },
           },
-          saving ? "同步中..." : "一键保存并同步到模型服务",
+          saving ? "Syncing..." : "Save and sync to model service with one click",
         ),
       ),
     );
@@ -949,7 +949,7 @@ export function activate(host) {
   const SettingsPanel = createLL2SettingsPanel(host);
   const dispose = host.contribute("app.settings", {
     id: "ll2-settings",
-    label: "LL2 算力与视频渠道",
+    label: "LL2 computing power and video channels",
     component: SettingsPanel,
   });
   return () => {

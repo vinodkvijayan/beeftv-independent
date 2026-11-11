@@ -25,7 +25,7 @@ func TestImageGatewayPreparationFailureDoesNotBecomeUnknownOrResend(t *testing.T
 		t.Fatalf("calls=%d err=%v", calls, err)
 	}
 	failure := classifyTaskFailure(err)
-	if failure.Uncertain || failure.Retryable || !failure.BlocksAutomaticRetry() || failure.Category != generation.CategoryProviderUnavailable || failure.Action != "请稍后重试" {
+	if failure.Uncertain || failure.Retryable || !failure.BlocksAutomaticRetry() || failure.Category != generation.CategoryProviderUnavailable || failure.Action != "Please try again later" {
 		t.Fatalf("preparation failure misclassified: %#v", failure)
 	}
 	attempt, readErr := s.repo.LatestRouteAttempt(task.ID)
@@ -67,11 +67,11 @@ func TestImageGatewayPreparationFailureDoesNotBecomeUnknownOrResend(t *testing.T
 }
 
 func TestStoredReferencePreparationRetryStillHonorsUnknownStageAndReceipt(t *testing.T) {
-	const message = "参考素材上传失败，本次尚未开始生成。请检查对象存储配置和公开读取权限后重试。"
+	const message = "The reference material upload failed and the generation has not started yet. Please check the object storage configuration and public read permissions and try again."
 	for _, state := range []string{"preparation", "unknown-stage", "unknown-receipt"} {
 		t.Run(state, func(t *testing.T) {
 			s, db, task, row, _ := imageSubmissionFixture(t, false)
-			task.Status, task.Error, task.Stage = model.TaskStatusFailed, message, "参考素材上传失败"
+			task.Status, task.Error, task.Stage = model.TaskStatusFailed, message, "Reference material upload failed"
 			attempt, err := s.repo.LatestRouteAttempt(task.ID)
 			if err != nil {
 				t.Fatal(err)

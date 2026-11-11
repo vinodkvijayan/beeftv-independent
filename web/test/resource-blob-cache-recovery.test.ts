@@ -7,7 +7,7 @@ import { cacheResourceObjectUrl, getCachedResourceBlob, getCachedResourceObjectU
 const originalAdapter = apiClient.defaults.adapter;
 afterEach(() => { apiClient.defaults.adapter = originalAdapter; installLocalForageStoreFactoryForTests(); });
 
-test("缓存读写失败仍能通过鉴权接口拉取图片，并在会话内复用", async () => {
+test("Even if cache read and write fails, images can still be pulled through the authentication interface and reused within the session.", async () => {
     installLocalForageStoreFactoryForTests(() => ({
         ready: async () => undefined,
         getItem: async () => { throw new Error("IndexedDB broken"); },
@@ -31,7 +31,7 @@ test("缓存读写失败仍能通过鉴权接口拉取图片，并在会话内�
     expect(requests).toBe(1);
 });
 
-test("首次资源请求失败后能重新下载，不缓存失败结果", async () => {
+test("After the first resource request fails, it can be downloaded again without caching the failed result.", async () => {
     installLocalForageStoreFactoryForTests(() => ({ ready: async () => undefined, getItem: async () => null, setItem: async (_key: string, value: unknown) => value, keys: async () => [], iterate: async () => undefined }) as unknown as LocalForage);
     let requests = 0;
     apiClient.defaults.adapter = async (config) => {
@@ -43,7 +43,7 @@ test("首次资源请求失败后能重新下载，不缓存失败结果", async
     expect(requests).toBe(2);
 });
 
-test("解码失败后的显式重试绕过已发布的坏 Blob 和持久缓存", async () => {
+test("Explicit retry after decoding failure bypasses published bad blobs and persistent cache", async () => {
     const stored = new Map<string, unknown>();
     installLocalForageStoreFactoryForTests(() => ({ ready: async () => undefined, getItem: async (key: string) => stored.get(key) || null, setItem: async (key: string, value: unknown) => { stored.set(key, value); return value; }, keys: async () => [], iterate: async () => undefined }) as unknown as LocalForage);
     let requests = 0;
@@ -64,7 +64,7 @@ function deferred<T>() {
     return { promise, resolve };
 }
 
-test("多节点同时恢复同一大素材时，只从 IndexedDB 读取一次原始 Blob", async () => {
+test("When multiple nodes restore the same large material at the same time, the original Blob is only read once from IndexedDB.", async () => {
     const gate = deferred<Blob>();
     const blob = new Blob(["unchanged-original-media"], { type: "image/png" });
     let reads = 0;
@@ -92,7 +92,7 @@ test("多节点同时恢复同一大素材时，只从 IndexedDB 读取一次原
     expect((await Promise.all(references)).every((value) => value === blob)).toBe(true);
 });
 
-test("IndexedDB 写入挂起不阻塞下载槽位，且生成前 getCachedResourceBlob 优先于排队中的画布缩略图下载", async () => {
+test("IndexedDB write suspension does not block download slots, and getCachedResourceBlob takes precedence over queued canvas thumbnail downloads before generation.", async () => {
     const stalledSetItem = deferred<void>();
     installLocalForageStoreFactoryForTests(() => ({
         ready: async () => undefined,

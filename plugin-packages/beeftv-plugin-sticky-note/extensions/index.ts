@@ -21,11 +21,11 @@ async function resolveCanvasRevision(
     .map((part) => ("text" in part && part.text ? part.text : ""))
     .join("");
   if (read.isError) {
-    throw new Error(`读取画布失败：${readText}`);
+    throw new Error(`Failed to read canvas:${readText}`);
   }
   const revision = Number(/"revision"\s*:\s*(\d+)/.exec(readText)?.[1]);
   if (!Number.isSafeInteger(revision)) {
-    throw new Error("没有拿到画布版本号");
+    throw new Error("Didn't get the canvas version number");
   }
   return revision;
 }
@@ -33,22 +33,22 @@ async function resolveCanvasRevision(
 export default function registerStickyNoteExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "sticky_note_create",
-    label: "新建便签",
+    label: "Create new note",
     description:
-      "在当前画布上创建一张便签卡片（sticky-note 节点）。当用户要求记录待办、贴便签或整理要点时使用。",
+      "Create a sticky-note card (sticky-note node) on the current canvas. Use it when users ask to record to-dos, post notes, or organize key points.",
     parameters: Type.Object({
-      title: Type.Optional(Type.String({ description: "便签标题（4 到 12 个字概括要点）" })),
-      text: Type.Optional(Type.String({ description: "便签正文内容" })),
-      content: Type.Optional(Type.String({ description: "便签正文内容（与 text 等价）" })),
-      color: Type.Optional(Type.String({ description: "便签配色：amber | mint | sky | rose" })),
+      title: Type.Optional(Type.String({ description: "Note title (4 to 12 words summarizing key points)" })),
+      text: Type.Optional(Type.String({ description: "Note text content" })),
+      content: Type.Optional(Type.String({ description: "The text content of the note (equivalent to text)" })),
+      color: Type.Optional(Type.String({ description: "Note color: amber | mint | sky | rose" })),
       expectedRevision: Type.Optional(
-        Type.Number({ description: "画布期望版本号（未传时自动读取）" }),
+        Type.Number({ description: "Canvas expected version number (automatically read if not passed)" }),
       ),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const revision = await resolveCanvasRevision(ctx, params.expectedRevision);
-      const bodyText = String(params.text || params.content || params.title || "新建便签").trim();
-      const titleText = String(params.title || bodyText.slice(0, 12) || "便签").trim();
+      const bodyText = String(params.text || params.content || params.title || "Create new note").trim();
+      const titleText = String(params.title || bodyText.slice(0, 12) || "Notes").trim();
       const color = String(params.color || "amber").trim() || "amber";
       const created = await ctx.executeTool("canvas_nodes_create", {
         expectedRevision: revision,
@@ -68,13 +68,13 @@ export default function registerStickyNoteExtension(pi: ExtensionAPI) {
         .map((part) => ("text" in part && part.text ? part.text : ""))
         .join("");
       if (created.isError) {
-        throw new Error(`创建便签失败：${createdText}`);
+        throw new Error(`Failed to create note:${createdText}`);
       }
       return {
         content: [
           {
             type: "text",
-            text: `已创建便签「${titleText}」`,
+            text: `Note "Created"${titleText}」`,
           },
         ],
         details: {
@@ -89,14 +89,14 @@ export default function registerStickyNoteExtension(pi: ExtensionAPI) {
 
   pi.registerTool({
     name: "sticky_note_update",
-    label: "修改便签",
-    description: "按节点 ID 更新画布上已有便签的标题或正文内容。",
+    label: "Modify note",
+    description: "Update the title or body content of an existing sticky note on the canvas by node ID.",
     parameters: Type.Object({
-      nodeId: Type.String({ description: "要修改的便签节点 ID" }),
-      title: Type.Optional(Type.String({ description: "新的便签标题" })),
-      text: Type.Optional(Type.String({ description: "新的便签正文内容" })),
+      nodeId: Type.String({ description: "The ID of the sticky note node to be modified" }),
+      title: Type.Optional(Type.String({ description: "New note title" })),
+      text: Type.Optional(Type.String({ description: "New note text content" })),
       expectedRevision: Type.Optional(
-        Type.Number({ description: "画布期望版本号（未传时自动读取）" }),
+        Type.Number({ description: "Canvas expected version number (automatically read if not passed)" }),
       ),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
@@ -109,7 +109,7 @@ export default function registerStickyNoteExtension(pi: ExtensionAPI) {
         patch.content = `📌 ${params.text}`;
       }
       if (Object.keys(patch).length === 0) {
-        throw new Error("至少需要传入 title 或 text 之一");
+        throw new Error("At least one of title or text needs to be passed in");
       }
       const updated = await ctx.executeTool("canvas_node_update", {
         nodeId: params.nodeId,
@@ -120,13 +120,13 @@ export default function registerStickyNoteExtension(pi: ExtensionAPI) {
         .map((part) => ("text" in part && part.text ? part.text : ""))
         .join("");
       if (updated.isError) {
-        throw new Error(`更新便签失败：${updatedText}`);
+        throw new Error(`Failed to update note:${updatedText}`);
       }
       return {
         content: [
           {
             type: "text",
-            text: `已更新便签节点 ${params.nodeId}`,
+            text: `Note node updated${params.nodeId}`,
           },
         ],
         details: {

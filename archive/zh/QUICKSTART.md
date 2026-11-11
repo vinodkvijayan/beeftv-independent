@@ -1,61 +1,61 @@
-# BeefTV 本地桌面版快速开始
+#BeefTV Local Desktop Version Quick Start
 
-BeefTV 桌面版是无需登录的本地优先工作区。项目、画布、素材、任务记录和模型配置默认保存在本机；只有执行生成时，才会按你配置的渠道请求外部模型服务。
+BeefTV Desktop is a local-first workspace that requires no login. Projects, canvases, materials, task records, and model configurations are saved locally by default; only when generating is executed, external model services will be requested through the channels you configured.
 
-## 下载与首次打开
+## Download and first open
 
-从 [官方发布页](https://github.com/glanderness/BeefTV/releases/latest) 下载对应系统的安装包。Mac 的 Apple 芯片选择 `darwin-arm64`，Intel 芯片选择 `darwin-amd64`；解压后将 `BeefTV.app` 放入「应用程序」。
+Download the installation package corresponding to the system from [Official Release Page](https://github.com/glanderness/BeefTV/releases/latest)). For Mac, choose `darwin-arm64` for Apple chip and `darwin-amd64` for Intel chip; unzip and put `BeefTV.app` into "Application".
 
-目前 Mac 版本尚未完成 Apple 开发者签名和公证。首次打开时，如果提示「Apple 无法验证 BeefTV.app 是否包含恶意软件」，请先确认安装包来自官方发布页，再打开「系统设置 → 隐私与安全性」，找到 BeefTV 并点击「仍要打开」，按系统提示确认。受组织管理的 Mac 可能需要联系管理员。
+The Mac version has not yet been signed and notarized by Apple developers. When you open it for the first time, if it prompts "Apple cannot verify whether BeefTV.app contains malware", please first confirm that the installation package comes from the official release page, then open "System Settings → Privacy and Security", find BeefTV and click "Open Anyway", follow the system prompts to confirm. Macs that are managed by an organization may need to contact their administrator.
 
-这是 macOS 对未公证应用的检查，换一个下载地址不会消除它。无需关闭整个系统的安全检查。具体操作见 [Apple 的打开应用说明](https://support.apple.com/zh-cn/102445)。
+This is a macOS check for unnotarized apps, and changing the download address will not eliminate it. No need to shut down the entire system's security checks. For specific operations, see [Apple’s instructions for opening an app](https://support.apple.com/zh-cn/102445)。
 
-已经能正常打开的旧版本，可在应用内检查更新；更新器会校验更新清单签名和安装包哈希。这些校验不等于 Apple 公证。
+For older versions that can be opened normally, you can check for updates within the app; the updater will verify the update manifest signature and installation package hash. These verifications are not equivalent to Apple notarization.
 
-## 构建桌面版
+## Build desktop version
 
-环境要求：Go 1.25、Bun，以及 Wails 所需的系统组件。
+Environment requirements: Go 1.25, Bun, and system components required by Wails.
 
-在仓库根目录执行：
+Execute in the warehouse root directory:
 
 ```bash
 BEEFTV_GO_DIR=/path/to/go ./scripts/build-beeftv-release.sh
 ```
 
-macOS 应用输出到 `backend/cmd/desktop/build/bin/BeefTV.app`。
+macOS apps output to `backend/cmd/desktop/build/bin/BeefTV.app`.
 
-Windows amd64 必须在 Windows 本机构建（需要 PATH 中的 Go、Bun，以及编译 go-sqlite3 的 GCC）：
+Windows amd64 must be built natively on Windows (requires Go, Bun in PATH, and GCC to compile go-sqlite3):
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-beeftv-windows-release.ps1
 ```
 
-输出为 `backend\cmd\desktop\build\bin\BeefTV.exe`，官方插件在旁边的 `plugin-packages\`。前提与数据目录见 `docs/desktop-release.md`。
+The output is `backend\cmd\desktop\build\bin\BeefTV.exe`, with the official plugin next to `plugin-packages\`. See `docs/desktop-release.md` for prerequisites and data list.
 
-首次打开后直接进入本地工作区，不需要注册或登录。
+After opening it for the first time, you will directly enter the local workspace, no registration or login is required.
 
-## 配置模型
+## Configure model
 
-打开“模型配置”。BeefTV 官方算力使用「连接 BeefTV」，在系统浏览器中完成授权后即可拉取模型。其他渠道仍填写 Base URL 和密钥。密钥保存在本地工作区，不会写入画布、素材或任务列表。
+Open "Model Configuration". BeefTV official computing power uses "Connect BeefTV", and you can pull the model after completing authorization in the system browser. Other channels still fill in the Base URL and key. The key is saved locally in the workspace and is not written to the canvas, assets, or task list.
 
-模型请求可能访问外部供应商，但 BeefTV 不会把项目数据同步到 SaaS 存储。素材会先写入本地资源目录，再作为本地资源引用提交给模型渠道。
+Model requests may access external providers, but BeefTV does not sync project data to SaaS storage. The materials will be written to the local resource directory first, and then submitted to the model channel as a local resource reference.
 
-## 本地开发与验证
+## Local development and verification
 
-需要同时调试前后端时，可参考 `scripts/beeftv-shared-dev.sh`。验证本地发行边界：
+When you need to debug the front and back ends at the same time, please refer to `scripts/beeftv-shared-dev.sh`. Verify local distribution boundaries:
 
 ```bash
 BEEFTV_GO_DIR=/path/to/go ./scripts/verify-beeftv-local-release.sh
 ```
 
-## 用命令行批量操作
+## Batch operations using the command line
 
-安装包自带 `beeftv` 命令行工具，可以直接用 shell 脚本批量读取和整理画布、素材与任务，不需要经过助手，也不需要启动 MCP 服务。macOS 的路径是 `/Applications/BeefTV.app/Contents/MacOS/cli/beeftv`，Windows 是 `BeefTV.exe` 同级的 `cli\beeftv.exe`。
+The installation package comes with the `beeftv` command line tool, which can directly use shell scripts to read and organize canvases, materials, and tasks in batches without going through an assistant or starting the MCP service. The path for macOS is `/Applications/BeefTV.app/Contents/MacOS/cli/beeftv`, and for Windows it is `cli\beeftv.exe`, which is the same level as `BeefTV.exe`.
 
-在侧栏的「BeefTV MCP」页选一个工具并「生成连接配置」，配置里已经包含 `BEEFTV_DATA_DIR`、`BEEFTV_CLIENT_ID` 与 `BEEFTV_CLIENT_TOKEN`，把它们抽出来放进环境变量即可；只读凭据只能读。纯命令行批量跑不需要启动 MCP。完整用法见 [beeftv 命令行基础使用](docs/content/docs/backend/beeftv-cli.mdx)。
+Select a tool on the "BeefTV MCP" page in the sidebar and "Generate Connection Configuration". The configuration already contains `BEEFTV_DATA_DIR`, `BEEFTV_CLIENT_ID` and `BEEFTV_CLIENT_TOKEN`. Just extract them and put them into environment variables; read-only credentials can only be read. Pure command line batch running does not require starting MCP. For complete usage, see [Basic usage of beeftv command line](docs/content/docs/backend/beeftv-cli.mdx).
 
-## 数据位置与备份
+## Data location and backup
 
-桌面运行时会在本地工作区保存 SQLite 数据库、资源文件、模型配置和迁移备份。升级迁移前会自动创建数据库备份；如需迁移或恢复，请先退出 BeefTV 并完整复制工作区数据目录。
+The desktop runtime saves backups of SQLite databases, resource files, model configurations, and migrations in the local workspace. A database backup will be automatically created before upgrading and migrating; if you need to migrate or restore, please exit BeefTV and completely copy the workspace data directory.
 
-登录、云存储、团队同步和计费不属于 BeefTV 本地版。以本地能力契约、精简 schema 和发行门禁为准，详见 `docs/local-first-architecture.md`。
+Login, cloud storage, team sync and billing are not part of BeefTV local. Subject to local capability contract, streamlined schema and release access control, see `docs/local-first-architecture.md` for details.

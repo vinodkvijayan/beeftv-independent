@@ -33,9 +33,9 @@ func newProjectWorkbenchReadTestService(t *testing.T) (*Service, *gorm.DB) {
 func TestProjectUnitWorkspaceResolvesHistoricalVisualAndCurrentCharacterVoice(t *testing.T) {
 	service, db := newProjectWorkbenchReadTestService(t)
 	project := seedWorkbenchProject(t, db)
-	unit := model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "第一章", Status: model.ProjectUnitStatusReady}
+	unit := model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "Chapter 1", Status: model.ProjectUnitStatusReady}
 	asset := model.Asset{
-		ID: "character-1", UserID: "user-1", Title: "张天昊", Kind: "entity", Category: model.AssetCategoryCharacter,
+		ID: "character-1", UserID: "user-1", Title: "Zhang Tianhao", Kind: "entity", Category: model.AssetCategoryCharacter,
 		Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: "character-v2", PayloadJSON: `{}`,
 	}
 	seed := []any{
@@ -46,8 +46,8 @@ func TestProjectUnitWorkspaceResolvesHistoricalVisualAndCurrentCharacterVoice(t 
 		&model.AssetVersion{ID: "character-v2", AssetID: asset.ID, Version: 2, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: `{"voiceLanguage":"普通话","voiceAge":"青年男性","voiceTimbre":"略带疲惫和震惊"}`},
 		&model.AssetRepresentation{ID: "representation-v1", TaskID: "visual-v1", AssetVersionID: "character-v1", ResourceID: "character-image-v1", MediaType: "image/png", Role: "primary"},
 		&model.AssetRepresentation{ID: "representation-v2", TaskID: "visual-v2", AssetVersionID: "character-v2", ResourceID: "character-image-v2", MediaType: "image/png", Role: "primary"},
-		&model.VoiceProfile{ID: "voice-1", UserID: "user-1", Name: "张天昊声音", Provider: "custom", VoiceKey: "voice-1", Language: "普通话", Timbre: "青年男声", SampleResourceID: "voice-sample-1", Status: "active", CompatibleModelsJSON: `[]`},
-		&model.CharacterVoiceBinding{ID: "binding-1", AssetVersionID: "character-v2", VoiceProfileID: "voice-1", Instructions: "内心独白语气"},
+		&model.VoiceProfile{ID: "voice-1", UserID: "user-1", Name: "Zhang Tianhao's voice", Provider: "custom", VoiceKey: "voice-1", Language: "mandarin", Timbre: "young male voice", SampleResourceID: "voice-sample-1", Status: "active", CompatibleModelsJSON: `[]`},
+		&model.CharacterVoiceBinding{ID: "binding-1", AssetVersionID: "character-v2", VoiceProfileID: "voice-1", Instructions: "inner monologue tone"},
 		&model.Shot{ID: "shot-1", ProjectID: project.ID, UnitID: unit.ID, Position: 0},
 		&model.ShotAssetReference{ID: "reference-1", ShotID: "shot-1", AssetVersionID: "character-v1", Role: "reference", Status: "linked"},
 	}
@@ -71,14 +71,14 @@ func TestProjectUnitWorkspaceResolvesHistoricalVisualAndCurrentCharacterVoice(t 
 	if reference.Asset.Character == nil || reference.Asset.Character.VersionID != "character-v2" || reference.Asset.Character.Voice == nil {
 		t.Fatalf("current character card not resolved: %+v", reference.Asset.Character)
 	}
-	if reference.Asset.Character.Voice.Profile.SampleResourceID != "voice-sample-1" || reference.Asset.Character.Voice.Instructions != "内心独白语气" {
+	if reference.Asset.Character.Voice.Profile.SampleResourceID != "voice-sample-1" || reference.Asset.Character.Voice.Instructions != "inner monologue tone" {
 		t.Fatalf("current character voice not resolved: %+v", reference.Asset.Character.Voice)
 	}
 }
 
 func seedWorkbenchProject(t *testing.T, db *gorm.DB) model.Project {
 	t.Helper()
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "长篇短剧", Status: model.ProjectStatusActive}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "long short play", Status: model.ProjectStatusActive}
 	if err := db.Create(&project).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func TestProjectOverviewUsesAggregatesWithoutLoadingProjectCollections(t *testin
 		if index < 3 {
 			status = model.ProjectUnitStatusCompleted
 		}
-		unit := model.ProjectUnit{ID: fmt.Sprintf("unit-%02d", index), ProjectID: project.ID, Title: fmt.Sprintf("第%d章", index+1), Position: index, WordCount: 1200, Status: status}
+		unit := model.ProjectUnit{ID: fmt.Sprintf("unit-%02d", index), ProjectID: project.ID, Title: fmt.Sprintf("Chapter %d", index+1), Position: index, WordCount: 1200, Status: status}
 		if err := db.Create(&unit).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -151,10 +151,10 @@ func TestProjectOverviewCountsSucceededTimelineRenders(t *testing.T) {
 func TestProjectUnitWorkspaceIsolatesShotsAndBoundAssetsByUnit(t *testing.T) {
 	service, db := newProjectWorkbenchReadTestService(t)
 	project := seedWorkbenchProject(t, db)
-	unit1 := model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "第一章", Status: model.ProjectUnitStatusReady}
-	unit2 := model.ProjectUnit{ID: "unit-2", ProjectID: project.ID, Title: "第二章", Position: 1, Status: model.ProjectUnitStatusReady}
-	asset1 := model.Asset{ID: "asset-1", UserID: "user-1", Title: "角色甲", Kind: "image", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed}
-	asset2 := model.Asset{ID: "asset-2", UserID: "user-1", Title: "角色乙", Kind: "image", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed}
+	unit1 := model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "Chapter 1", Status: model.ProjectUnitStatusReady}
+	unit2 := model.ProjectUnit{ID: "unit-2", ProjectID: project.ID, Title: "Chapter 2", Position: 1, Status: model.ProjectUnitStatusReady}
+	asset1 := model.Asset{ID: "asset-1", UserID: "user-1", Title: "Character A", Kind: "image", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed}
+	asset2 := model.Asset{ID: "asset-2", UserID: "user-1", Title: "Character B", Kind: "image", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed}
 	seed := []any{
 		&unit1, &unit2, &asset1, &asset2,
 		&model.AssetVersion{ID: "version-1", AssetID: asset1.ID, Version: 1, Status: model.AssetVersionStatusConfirmed},
@@ -169,8 +169,8 @@ func TestProjectUnitWorkspaceIsolatesShotsAndBoundAssetsByUnit(t *testing.T) {
 		&model.ShotArtifact{ID: "artifact-2", ProjectID: project.ID, UnitID: unit2.ID, ShotID: "shot-2", Version: 1},
 		&model.ShotAssetReference{ID: "reference-1", ShotID: "shot-1", AssetVersionID: "version-1", Status: "linked"},
 		&model.ShotAssetReference{ID: "reference-2", ShotID: "shot-2", AssetVersionID: "version-2", Status: "linked"},
-		&model.ProjectAssetCandidate{ID: "candidate-1", ProjectID: project.ID, UnitID: unit1.ID, Name: "甲"},
-		&model.ProjectAssetCandidate{ID: "candidate-2", ProjectID: project.ID, UnitID: unit2.ID, Name: "乙"},
+		&model.ProjectAssetCandidate{ID: "candidate-1", ProjectID: project.ID, UnitID: unit1.ID, Name: "A"},
+		&model.ProjectAssetCandidate{ID: "candidate-2", ProjectID: project.ID, UnitID: unit2.ID, Name: "B"},
 	}
 	for _, item := range seed {
 		if err := db.Create(item).Error; err != nil {
@@ -195,7 +195,7 @@ func TestProjectUnitWorkspaceIsolatesShotsAndBoundAssetsByUnit(t *testing.T) {
 func TestProjectCanvasesPageReturnsLinksOnlyForCurrentPage(t *testing.T) {
 	service, db := newProjectWorkbenchReadTestService(t)
 	project := seedWorkbenchProject(t, db)
-	if err := db.Create(&model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "第一章"}).Error; err != nil {
+	if err := db.Create(&model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "Chapter 1"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	now := time.Now()
@@ -240,7 +240,7 @@ func TestProjectAssetsPagePaginatesAndReturnsFacets(t *testing.T) {
 			category = model.AssetCategoryCharacter
 			folderID = "folder-a"
 		}
-		asset := model.Asset{ID: fmt.Sprintf("asset-%d", index), UserID: "user-1", Title: fmt.Sprintf("资产%d", index), Kind: "image", Category: category, Status: model.AssetVersionStatusConfirmed}
+		asset := model.Asset{ID: fmt.Sprintf("asset-%d", index), UserID: "user-1", Title: fmt.Sprintf("Asset%d", index), Kind: "image", Category: category, Status: model.AssetVersionStatusConfirmed}
 		if err := db.Create(&asset).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -264,14 +264,14 @@ func TestProjectAssetCandidatesPageSearchesNamesWithinFilters(t *testing.T) {
 	service, db := newProjectWorkbenchReadTestService(t)
 	project := seedWorkbenchProject(t, db)
 	candidates := []model.ProjectAssetCandidate{
-		{ID: "candidate-1", ProjectID: project.ID, UnitID: "unit-1", Name: "红色雨伞", Category: model.AssetCategoryProp, Status: "pending_confirmation"},
-		{ID: "candidate-2", ProjectID: project.ID, UnitID: "unit-1", Name: "蓝色雨衣", Category: model.AssetCategoryProp, Status: "pending_confirmation"},
-		{ID: "candidate-3", ProjectID: project.ID, UnitID: "unit-2", Name: "红色雨伞场景", Category: model.AssetCategoryEnvironment, Status: "pending_confirmation"},
+		{ID: "candidate-1", ProjectID: project.ID, UnitID: "unit-1", Name: "red umbrella", Category: model.AssetCategoryProp, Status: "pending_confirmation"},
+		{ID: "candidate-2", ProjectID: project.ID, UnitID: "unit-1", Name: "blue raincoat", Category: model.AssetCategoryProp, Status: "pending_confirmation"},
+		{ID: "candidate-3", ProjectID: project.ID, UnitID: "unit-2", Name: "red umbrella scene", Category: model.AssetCategoryEnvironment, Status: "pending_confirmation"},
 	}
 	if err := db.Create(&candidates).Error; err != nil {
 		t.Fatal(err)
 	}
-	page, err := service.ProjectService().ProjectAssetCandidatesPage("user-1", project.ID, 1, 20, "unit-1", "pending_confirmation", "prop", "雨伞")
+	page, err := service.ProjectService().ProjectAssetCandidatesPage("user-1", project.ID, 1, 20, "unit-1", "pending_confirmation", "prop", "umbrella")
 	if err != nil {
 		t.Fatal(err)
 	}

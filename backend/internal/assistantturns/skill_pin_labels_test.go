@@ -11,7 +11,7 @@ import (
 
 func TestTurnSkillPinLabelsPersistIntoHistory(t *testing.T) {
 	fx := openTurnFixture(t)
-	pin := skills.Pin{SkillID: "selected", VersionID: "v1", ContentHash: strings.Repeat("b", 64), SkillName: "短剧资产分批流程", Version: "1"}
+	pin := skills.Pin{SkillID: "selected", VersionID: "v1", ContentHash: strings.Repeat("b", 64), SkillName: "Short drama asset batching process", Version: "1"}
 	turnID := "aaaabbbbccccdddd"
 	if _, err := fx.turns.Begin(fx.userID, fx.canvasID, turnID, assistantturns.Input{SkillPins: []skills.Pin{pin}}); err != nil {
 		t.Fatal(err)
@@ -22,7 +22,7 @@ func TestTurnSkillPinLabelsPersistIntoHistory(t *testing.T) {
 		t.Fatalf("history must return the stored name and version: %+v %v", state, err)
 	}
 	renamed := pin
-	renamed.SkillName = "改名后的技能"
+	renamed.SkillName = "Skills after renaming"
 	if _, err := reopened.Begin(fx.userID, fx.canvasID, turnID, assistantturns.Input{SkillPins: []skills.Pin{renamed}}); err != nil {
 		t.Fatalf("a renamed label is still the same pinned package on replay: %v", err)
 	}

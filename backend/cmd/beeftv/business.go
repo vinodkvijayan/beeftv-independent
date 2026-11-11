@@ -145,7 +145,7 @@ func (c *client) callBusiness(ctx context.Context, tool businessTool, args busin
 	}
 	base := c.currentBaseURL()
 	if base == "" {
-		return nil, &cliError{code: exitTransportFailure, reason: "runtime_not_found", msg: "未发现运行中的 BeefTV 工作区，请先打开 BeefTV"}
+		return nil, &cliError{code: exitTransportFailure, reason: "runtime_not_found", msg: "No running BeefTV workspace found, please open BeefTV first"}
 	}
 	req, err := http.NewRequestWithContext(ctx, tool.Method, base+path, reader)
 	if err != nil {
@@ -229,7 +229,7 @@ func runBusiness(c *client, args []string) error {
 	}
 	if flagID := strings.TrimSpace(*operationID); flagID != "" {
 		if input.OperationID != "" && input.OperationID != flagID {
-			return &cliError{code: exitBadRequest, reason: "operation_id_conflict", msg: "--operation-id 与 --params 里的 operationId 不一致"}
+			return &cliError{code: exitBadRequest, reason: "operation_id_conflict", msg: "--operation-id is inconsistent with the operationId in --params"}
 		}
 		input.OperationID = flagID
 	}
@@ -256,7 +256,7 @@ func runBusiness(c *client, args []string) error {
 			// Scripts may upload or edit without a key, but a paid submission
 			// retried without one would create and charge a second task.
 			if tool.SubmitsGeneration && strings.TrimSpace(input.OperationID) == "" {
-				return &cliError{code: exitBadRequest, reason: "missing_operation_id", msg: "提交生成会扣费，必须用 --operation-id 提供幂等键，重试时复用同一个值"}
+				return &cliError{code: exitBadRequest, reason: "missing_operation_id", msg: "Fees will be deducted when submitting the generation. You must use --operation-id to provide an idempotent key. The same value will be reused when retrying."}
 			}
 			result, err := c.callBusiness(context.Background(), tool, input)
 			if err != nil {
@@ -330,7 +330,7 @@ func requireBusinessOperationID(tool businessTool, args businessArgs) error {
 	if tool.ReadOnly || strings.TrimSpace(args.OperationID) != "" {
 		return nil
 	}
-	return &cliError{code: exitBadRequest, reason: "missing_operation_id", msg: "写接口必须在参数里提供 operationId，并在重试时复用同一个值"}
+	return &cliError{code: exitBadRequest, reason: "missing_operation_id", msg: "The write interface must provide the operationId in the parameter and reuse the same value when retrying."}
 }
 
 // businessToolContent returns image and audio file responses as MCP content
@@ -379,10 +379,10 @@ func registerBusinessGateway(server *mcp.Server, c *client, tools []businessTool
 		return 0
 	}
 	listSchema := map[string]any{"type": "object", "properties": map[string]any{
-		"query":    map[string]any{"type": "string", "description": "按 ID、说明或路径里的关键字筛选，例如 assets、folders、timeline"},
-		"readOnly": map[string]any{"type": "boolean", "description": "true 只列只读接口，false 只列写接口；不填列全部"},
+		"query":    map[string]any{"type": "string", "description": "Filter by ID, description or keywords in the path, such as assets, folders, timeline"},
+		"readOnly": map[string]any{"type": "boolean", "description": "true only lists read-only interfaces, false only lists write-only interfaces; do not fill in all"},
 	}, "additionalProperties": false}
-	server.AddTool(&mcp.Tool{Name: "business.list", Description: "列出 BeefTV 本地工作区的底层业务接口（素材库、文件夹、项目、任务、时间线、设置等），返回接口 ID、说明、方法、路径和参数结构。画布、素材、媒体、技能操作已有专门工具，覆盖不到时再用这里找接口，然后用 business.call 调用。", InputSchema: listSchema, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true}},
+	server.AddTool(&mcp.Tool{Name: "business.list", Description: "List the underlying business interfaces of the BeefTV local workspace (material library, folders, projects, tasks, timelines, settings, etc.) and return the interface ID, description, method, path and parameter structure. There are special tools for canvas, material, media, and skill operations. If they are not covered, use here to find the interface, and then use business.call to call it.", InputSchema: listSchema, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true}},
 		func(_ context.Context, request *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			var filter struct {
 				Query    string `json:"query"`
@@ -414,19 +414,19 @@ func registerBusinessGateway(server *mcp.Server, c *client, tools []businessTool
 			return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: string(encoded)}}}, nil
 		})
 	callSchema := map[string]any{"type": "object", "properties": map[string]any{
-		"tool":     map[string]any{"type": "string", "description": "business.list 返回的接口 ID"},
-		"path":     map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string"}, "description": "路径参数，如 {\"id\": \"...\"}"},
+		"tool":     map[string]any{"type": "string", "description": "The interface ID returned by business.list"},
+		"path":     map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string"}, "description": "Path parameters, such as {\"id\": \"...\"}"},
 		"query":    map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string"}},
-		"body":     map[string]any{"description": "JSON 请求体"},
-		"filePath": map[string]any{"type": "string", "description": "上传接口要读的本机文件，由本命令行读取，受外部 Agent 的文件权限约束"},
-		"file": map[string]any{"type": "object", "description": "直接传文件内容（base64），与 filePath 二选一", "properties": map[string]any{
-			"name": map[string]any{"type": "string"}, "mimeType": map[string]any{"type": "string"}, "data": map[string]any{"type": "string", "description": "base64 编码的文件内容"},
+		"body":     map[string]any{"description": "JSON request body"},
+		"filePath": map[string]any{"type": "string", "description": "The local file to be read by the upload interface is read by this command line and is subject to the file permissions of the external Agent."},
+		"file": map[string]any{"type": "object", "description": "Directly transfer file content (base64), choose one from filePath", "properties": map[string]any{
+			"name": map[string]any{"type": "string"}, "mimeType": map[string]any{"type": "string"}, "data": map[string]any{"type": "string", "description": "base64 encoded file content"},
 		}, "required": []string{"name", "data"}},
-		"operationId": map[string]any{"type": "string", "description": "写接口必填的稳定幂等键（8–128 位字母、数字或 :_-），重试同一操作时复用同一个值；提交生成任务时同时作为任务的 clientOperationId"},
+		"operationId": map[string]any{"type": "string", "description": "Write the stable idempotent key (8-128 letters, numbers or :_-) required for the interface, reuse the same value when retrying the same operation; also serve as the clientOperationId of the task when submitting the generated task"},
 	}, "required": []string{"tool"}, "additionalProperties": false}
-	description := "调用 business.list 找到的底层业务接口。写接口必须带 operationId；写接口会真实修改工作区，提交生成的接口按所选渠道计费，执行前由你（外部调用方）向用户确认。"
+	description := "Call business.list to find the underlying business interface. The writing interface must have an operationId; writing the interface will actually modify the workspace. Submitting the generated interface will be billed according to the selected channel, and you (the external caller) will confirm it with the user before execution."
 	if readOnly {
-		description = "调用 business.list 找到的只读底层业务接口。"
+		description = "The read-only underlying business interface found by calling business.list."
 	}
 	server.AddTool(&mcp.Tool{Name: "business.call", Description: description, InputSchema: callSchema, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: readOnly}},
 		func(ctx context.Context, request *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -449,7 +449,7 @@ func registerBusinessGateway(server *mcp.Server, c *client, tools []businessTool
 			}
 			tool, ok := byID[strings.TrimSpace(call.Tool)]
 			if !ok {
-				return toolError(&cliError{code: exitNotFound, reason: "unknown_business_tool", msg: "没有这个底层接口，请先用 business.list 查找：" + call.Tool}), nil
+				return toolError(&cliError{code: exitNotFound, reason: "unknown_business_tool", msg: "If there is no such underlying interface, please use business.list to find it first:" + call.Tool}), nil
 			}
 			if err := requireBusinessOperationID(tool, args); err != nil {
 				return toolError(err), nil
@@ -469,7 +469,7 @@ func registerBusinessGateway(server *mcp.Server, c *client, tools []businessTool
 // submission would otherwise create a second task. An explicit value in the
 // body wins; a different explicit value is rejected rather than overwritten.
 func withTaskClientOperationID(body json.RawMessage, operationID string) (json.RawMessage, error) {
-	invalid := &cliError{code: exitBadRequest, reason: "invalid_body", msg: "提交任务的 body 必须是 JSON 对象，input 和 input.metadata 也必须是对象"}
+	invalid := &cliError{code: exitBadRequest, reason: "invalid_body", msg: "The body of the submitted task must be a JSON object, and input and input.metadata must also be objects."}
 	var request map[string]any
 	if trimmed := bytes.TrimSpace(body); len(trimmed) > 0 && json.Unmarshal(trimmed, &request) != nil {
 		return nil, invalid
@@ -489,7 +489,7 @@ func withTaskClientOperationID(body json.RawMessage, operationID string) (json.R
 	case existing == "":
 		metadata["clientOperationId"] = operationID
 	case existing != operationID:
-		return nil, &cliError{code: exitBadRequest, reason: "operation_id_conflict", msg: "operationId 与 body.input.metadata.clientOperationId 不一致"}
+		return nil, &cliError{code: exitBadRequest, reason: "operation_id_conflict", msg: "operationId is inconsistent with body.input.metadata.clientOperationId"}
 	}
 	input["metadata"] = metadata
 	request["input"] = input

@@ -72,11 +72,11 @@ export function loadOperationDescriptors() {
       if (itemProps) {
         itemProps.imageNodeId ||= {
           type: 'string',
-          description: '把同一画布的 image 节点绑定为本行首帧图片；空字符串解除绑定。本行只保留一条指向它的产出连线',
+          description: 'Bind the image node of the same canvas to the first frame of the row; empty string to unbind. The bank retains only one output connection pointing to it',
         };
         itemProps.videoNodeId ||= {
           type: 'string',
-          description: '把同一画布的 video 节点绑定为本行镜头视频；空字符串解除绑定。本行只保留一条指向它的产出连线',
+          description: 'Bind the video node of the same canvas to the lens video of this row; an empty string unbinds it. The bank retains only one output connection pointing to it',
         };
       }
     }
@@ -85,8 +85,8 @@ export function loadOperationDescriptors() {
         type: 'object',
         additionalProperties: false,
         properties: {
-          id: { type: 'string', description: '精确技能 id' },
-          q: { type: 'string', description: '按名称或说明搜索' },
+          id: { type: 'string', description: 'Exact skill id' },
+          q: { type: 'string', description: 'Search by name or description' },
           offset: { type: 'integer', minimum: 0 },
           limit: { type: 'integer', minimum: 1, maximum: 50 },
         },
@@ -101,16 +101,16 @@ export function loadOperationDescriptors() {
 export function createTaskWaitDescriptor() {
   return {
     id: 'task.wait',
-    summary: '等待生成任务完成；超时返回 pending 和原 taskId，不返回错误',
+    summary: 'Wait for the generation task to be completed; when timeout returns pending and the original taskId, no error is returned',
     readOnly: true,
     scope: 'workspaceRead',
     params: {
       type: 'object',
       properties: {
-        taskId: { type: 'string', description: '单个任务 ID' },
-        taskIds: { type: 'array', items: { type: 'string' }, description: '最多 8 个任务 ID' },
+        taskId: { type: 'string', description: 'Individual task ID' },
+        taskIds: { type: 'array', items: { type: 'string' }, description: 'Up to 8 task IDs' },
         canvasId: { type: 'string' },
-        nodeId: { type: 'string', description: '可选：同时回读产物是否已绑到这个节点' },
+        nodeId: { type: 'string', description: 'Optional: Read back whether the product has been bound to this node at the same time' },
         timeoutMs: { type: 'integer', minimum: 0, maximum: 25000 },
       },
     },

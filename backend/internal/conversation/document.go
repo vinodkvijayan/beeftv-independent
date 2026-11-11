@@ -37,18 +37,18 @@ type normalizedDocument struct {
 
 func NormalizeDocument(expectedID string, raw json.RawMessage) (normalizedDocument, error) {
 	if len(bytesTrimSpace(raw)) == 0 {
-		return normalizedDocument{}, errInvalid("缺少对话内容")
+		return normalizedDocument{}, errInvalid("Missing dialogue content")
 	}
 	if len(raw) > maxDocumentBytes*2 {
-		return normalizedDocument{}, errInvalid("对话内容过大")
+		return normalizedDocument{}, errInvalid("Conversation content is too large")
 	}
 	var payload any
 	if err := json.Unmarshal(raw, &payload); err != nil {
-		return normalizedDocument{}, errInvalid("对话内容不是有效 JSON")
+		return normalizedDocument{}, errInvalid("Conversation content is not valid JSON")
 	}
 	object, ok := payload.(map[string]any)
 	if !ok {
-		return normalizedDocument{}, errInvalid("对话内容必须是对象")
+		return normalizedDocument{}, errInvalid("The conversation content must be an object")
 	}
 	cleaned, err := sanitizeValue(object)
 	if err != nil {
@@ -56,15 +56,15 @@ func NormalizeDocument(expectedID string, raw json.RawMessage) (normalizedDocume
 	}
 	doc, ok := cleaned.(map[string]any)
 	if !ok {
-		return normalizedDocument{}, errInvalid("对话内容必须是对象")
+		return normalizedDocument{}, errInvalid("The conversation content must be an object")
 	}
-	id, err := requiredID(doc["id"], "对话")
+	id, err := requiredID(doc["id"], "dialogue")
 	if err != nil {
 		return normalizedDocument{}, err
 	}
 	expectedID = strings.TrimSpace(expectedID)
 	if expectedID != "" && expectedID != id {
-		return normalizedDocument{}, errInvalid("对话标识与路径不一致")
+		return normalizedDocument{}, errInvalid("The conversation identifier is inconsistent with the path")
 	}
 	doc["id"] = id
 	title, err := optionalTitle(doc["title"])
@@ -74,7 +74,7 @@ func NormalizeDocument(expectedID string, raw json.RawMessage) (normalizedDocume
 	doc["title"] = title
 	if canvasID, exists := doc["canvasId"]; exists && canvasID != nil {
 		if text, ok := canvasID.(string); !ok || strings.TrimSpace(text) != "" {
-			normalizedCanvas, canvasErr := requiredID(canvasID, "画布")
+			normalizedCanvas, canvasErr := requiredID(canvasID, "canvas")
 			if canvasErr != nil {
 				return normalizedDocument{}, canvasErr
 			}
@@ -88,10 +88,10 @@ func NormalizeDocument(expectedID string, raw json.RawMessage) (normalizedDocume
 	doc["messages"] = messages
 	encoded, err := json.Marshal(doc)
 	if err != nil {
-		return normalizedDocument{}, errInvalid("对话内容无法保存")
+		return normalizedDocument{}, errInvalid("Conversation content cannot be saved")
 	}
 	if len(encoded) > maxDocumentBytes {
-		return normalizedDocument{}, errInvalid("对话内容过大")
+		return normalizedDocument{}, errInvalid("Conversation content is too large")
 	}
 	return normalizedDocument{id: id, raw: encoded}, nil
 }
@@ -107,21 +107,21 @@ func normalizeMessages(value any) ([]any, error) {
 	}
 	list, ok := value.([]any)
 	if !ok {
-		return nil, errInvalid("消息列表无效")
+		return nil, errInvalid("Message list is invalid")
 	}
 	out := make([]any, 0, len(list))
 	seen := make(map[string]struct{}, len(list))
 	for _, item := range list {
 		message, ok := item.(map[string]any)
 		if !ok {
-			return nil, errInvalid("消息必须是对象")
+			return nil, errInvalid("Message must be an object")
 		}
-		id, err := requiredID(message["id"], "消息")
+		id, err := requiredID(message["id"], "news")
 		if err != nil {
 			return nil, err
 		}
 		if _, exists := seen[id]; exists {
-			return nil, errInvalid("消息标识重复")
+			return nil, errInvalid("Duplicate message ID")
 		}
 		seen[id] = struct{}{}
 		message["id"] = id
@@ -140,7 +140,7 @@ func normalizeMessages(value any) ([]any, error) {
 			}
 		}
 		if taskIDs, exists := message["taskIds"]; exists && taskIDs != nil {
-			normalizedTasks, taskErr := normalizeIDList(taskIDs, "任务")
+			normalizedTasks, taskErr := normalizeIDList(taskIDs, "Task")
 			if taskErr != nil {
 				return nil, taskErr
 			}
@@ -154,14 +154,14 @@ func normalizeMessages(value any) ([]any, error) {
 func requiredID(value any, label string) (string, error) {
 	text, ok := value.(string)
 	if !ok {
-		return "", errInvalid(label + "标识无效")
+		return "", errInvalid(label + "Invalid ID")
 	}
 	text = strings.TrimSpace(text)
 	if text == "" {
-		return "", errInvalid("缺少" + label + "标识")
+		return "", errInvalid("missing" + label + "logo")
 	}
 	if utf8.RuneCountInString(text) > maxIDLength || !idPattern.MatchString(text) {
-		return "", errInvalid(label + "标识无效")
+		return "", errInvalid(label + "Invalid ID")
 	}
 	return text, nil
 }
@@ -169,11 +169,11 @@ func requiredID(value any, label string) (string, error) {
 func requiredRole(value any) (string, error) {
 	role, ok := value.(string)
 	if !ok {
-		return "", errInvalid("消息角色无效")
+		return "", errInvalid("Message role is invalid")
 	}
 	role = strings.TrimSpace(role)
 	if role != "user" && role != "assistant" {
-		return "", errInvalid("消息角色无效")
+		return "", errInvalid("Message role is invalid")
 	}
 	return role, nil
 }
@@ -181,26 +181,26 @@ func requiredRole(value any) (string, error) {
 func requiredMode(value any) (string, error) {
 	mode, ok := value.(string)
 	if !ok {
-		return "", errInvalid("对话模式无效")
+		return "", errInvalid("Conversation mode is invalid")
 	}
 	mode = strings.TrimSpace(mode)
 	if mode != "text" && mode != "image" && mode != "video" {
-		return "", errInvalid("对话模式无效")
+		return "", errInvalid("Conversation mode is invalid")
 	}
 	return mode, nil
 }
 
 func optionalTitle(value any) (string, error) {
 	if value == nil {
-		return "新创作", nil
+		return "new creation", nil
 	}
 	title, ok := value.(string)
 	if !ok {
-		return "", errInvalid("对话标题无效")
+		return "", errInvalid("Conversation title is invalid")
 	}
 	title = strings.TrimSpace(title)
 	if title == "" {
-		return "新创作", nil
+		return "new creation", nil
 	}
 	runes := []rune(title)
 	if len(runes) > maxTitleLength {
@@ -212,7 +212,7 @@ func optionalTitle(value any) (string, error) {
 func normalizeIDList(value any, label string) ([]any, error) {
 	list, ok := value.([]any)
 	if !ok {
-		return nil, errInvalid(label + "列表无效")
+		return nil, errInvalid(label + "Invalid list")
 	}
 	out := make([]any, 0, len(list))
 	seen := make(map[string]struct{}, len(list))
@@ -240,7 +240,7 @@ func sanitizeValueAt(value any, key string) (any, error) {
 		out := make(map[string]any, len(typed))
 		for childKey, item := range typed {
 			if isCredentialKey(childKey) {
-				return nil, errInvalid("对话内容不能包含凭据")
+				return nil, errInvalid("Conversation content cannot contain credentials")
 			}
 			cleaned, err := sanitizeValueAt(item, childKey)
 			if err != nil {
@@ -286,7 +286,7 @@ func sanitizeAttachmentList(list []any) ([]any, error) {
 	for _, item := range list {
 		object, ok := item.(map[string]any)
 		if !ok {
-			return nil, errInvalid("附件必须是对象")
+			return nil, errInvalid("Attachment must be an object")
 		}
 		cleaned, err := sanitizeAttachment(object)
 		if err != nil {
@@ -302,11 +302,11 @@ func sanitizeAttachment(object map[string]any) (map[string]any, error) {
 	out := make(map[string]any, len(object))
 	for key, item := range object {
 		if isCredentialKey(key) {
-			return nil, errInvalid("对话内容不能包含凭据")
+			return nil, errInvalid("Conversation content cannot contain credentials")
 		}
 		if text, ok := item.(string); ok && isMediaURLKey(key) && isTempMediaBlob(text) {
 			if storageKey == "" {
-				return nil, errInvalid("附件没有可恢复的存储引用")
+				return nil, errInvalid("Attachment has no recoverable storage reference")
 			}
 			continue
 		}
@@ -428,7 +428,7 @@ func containsString(values []string, want string) bool {
 func decodeObject(raw json.RawMessage) (map[string]any, error) {
 	var object map[string]any
 	if err := json.Unmarshal(raw, &object); err != nil {
-		return nil, errInvalid("对话内容不是有效 JSON")
+		return nil, errInvalid("Conversation content is not valid JSON")
 	}
 	return object, nil
 }

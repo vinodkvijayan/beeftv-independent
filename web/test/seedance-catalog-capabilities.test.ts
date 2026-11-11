@@ -84,8 +84,8 @@ test("fresh generic OpenAI catalog entries retain real portrait quotes through r
     }
     const missingPrice = applyFetchedChannelModelCatalog(refreshed, { models: catalog.map((item) => item.id), catalog: catalog.map((item) => ({ ...item, videoPricing: null })) });
     const unavailable = normalizeConfigSnapshot({ config: { ...defaultConfig, channels: [missingPrice] } }).config;
-    expect(portraitGenerationError(unavailable, "beeftv::seedance-2.0-portrait")).toContain("价格暂不可用");
-    expect(portraitGenerationError(unavailable, "beeftv::seedance-2.5-portrait")).toContain("价格暂不可用");
+    expect(portraitGenerationError(unavailable, "beeftv::seedance-2.0-portrait")).toContain("Price is not available yet");
+    expect(portraitGenerationError(unavailable, "beeftv::seedance-2.5-portrait")).toContain("Price is not available yet");
     expect(portraitGenerationError(unavailable, "beeftv::seedance-2.0-fast")).toBe("");
 });
 
@@ -272,7 +272,7 @@ test("native Ark Seedance 2.x uses the documented 407696 pixel floor from backen
         "ark::seedance-2.0",
     ).video!;
     expect(profile.references.minVideoPixels).toBe(407696);
-    const video = (width: number, height: number) => ({ id: "vid", name: "视频", type: "video/mp4", url: "https://example.com/v.mp4", width, height, durationMs: 3000, bytes: 1 });
+    const video = (width: number, height: number) => ({ id: "vid", name: "video", type: "video/mp4", url: "https://example.com/v.mp4", width, height, durationMs: 3000, bytes: 1 });
 });
 
 test("custom pixel restrictions stay in place for non-Ark channels", () => {
@@ -282,7 +282,7 @@ test("custom pixel restrictions stay in place for non-Ark channels", () => {
         "custom::seedance-2.0",
     ).video!;
     expect(profile.references.minVideoPixels).toBe(500000);
-    const video = (width: number, height: number) => ({ id: "vid", name: "视频", type: "video/mp4", url: "https://example.com/v.mp4", width, height, durationMs: 3000, bytes: 1 });
+    const video = (width: number, height: number) => ({ id: "vid", name: "video", type: "video/mp4", url: "https://example.com/v.mp4", width, height, durationMs: 3000, bytes: 1 });
 });
 
 test("direct OpenAI catalog fetch keeps BeefTV video capability fields", async () => {
@@ -315,7 +315,7 @@ test("Auto duration survives shared normalization and config hydration", async (
     const { normalizeVideoDuration } = await import("../src/lib/video-generation-options");
     const { videoSecondsLabel } = await import("../src/components/video-settings-panel");
     expect(normalizeVideoDuration(-1)).toBe("-1");
-    expect(videoSecondsLabel("-1")).toBe("自动");
+    expect(videoSecondsLabel("-1")).toBe("automatic");
     expect(normalizeConfigSnapshot({ config: { ...defaultConfig, videoSeconds: "-1" } }).config.videoSeconds).toBe("-1");
 });
 

@@ -130,7 +130,7 @@ func (r *Repository) CompleteTextReplayTask(userID string, taskID string, result
 	result := r.db.Model(&model.Task{}).
 		Where("id = ? AND user_id = ? AND status = ?", taskID, userID, model.TaskStatusTextReplay).
 		Updates(map[string]any{
-			"status": model.TaskStatusSucceeded, "stage": "已完成", "progress": 100,
+			"status": model.TaskStatusSucceeded, "stage": "Completed", "progress": 100,
 			"result_json": resultJSON, "text_draft": "",
 			"error": "", "completed_at": &now,
 			"lease_owner": "", "lease_expires_at": nil, "updated_at": now,

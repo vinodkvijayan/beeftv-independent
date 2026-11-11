@@ -7,14 +7,14 @@ import { defaultConfig } from "@/stores/use-config-store";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData } from "@/types/canvas";
 
 const nodes: CanvasNodeData[] = [
-    { id: "text-a", type: CanvasNodeType.Text, title: "文本 A", position: { x: 0, y: 0 }, width: 320, height: 180 },
-    { id: "text-b", type: CanvasNodeType.Text, title: "文本 B", position: { x: 0, y: 220 }, width: 320, height: 180 },
-    { id: "image-a", type: CanvasNodeType.Image, title: "图片 A", position: { x: 0, y: 440 }, width: 320, height: 180 },
-    { id: "image-b", type: CanvasNodeType.Image, title: "图片 B", position: { x: 0, y: 660 }, width: 320, height: 180 },
-    { id: "script", type: CanvasNodeType.Script, title: "分镜脚本", position: { x: 520, y: 0 }, width: 640, height: 520, metadata: { storyboard: { rows: [{ id: "row-1", shotNumber: 1, durationSeconds: 6, plotDescription: "", dialogue: "", characters: [], narrativeIntent: "", viewerPOV: "", performanceBlocking: "", shotSize: "", emotion: "", lightingAndAtmosphere: "", audioEffects: "", camera: "", motion: "", timeBeats: "", imageGenerationPrompt: "", videoMotionPrompt: "", mustHave: [], optionalDetails: [], continuityOut: "", negativePrompt: "", assetBindings: [], status: "idle" }] } } },
-    { id: "config", type: CanvasNodeType.Config, title: "图片配置", position: { x: 520, y: 560 }, width: 360, height: 420, metadata: { generationMode: "image" } },
-    { id: "frame", type: CanvasNodeType.Frame, title: "背板", position: { x: 0, y: 680 }, width: 500, height: 500 },
-    { id: "batch-table", type: CanvasNodeType.BatchTable, title: "批量创作表", position: { x: 1000, y: 0 }, width: 900, height: 520 },
+    { id: "text-a", type: CanvasNodeType.Text, title: "Text A", position: { x: 0, y: 0 }, width: 320, height: 180 },
+    { id: "text-b", type: CanvasNodeType.Text, title: "Text B", position: { x: 0, y: 220 }, width: 320, height: 180 },
+    { id: "image-a", type: CanvasNodeType.Image, title: "Image A", position: { x: 0, y: 440 }, width: 320, height: 180 },
+    { id: "image-b", type: CanvasNodeType.Image, title: "Picture B", position: { x: 0, y: 660 }, width: 320, height: 180 },
+    { id: "script", type: CanvasNodeType.Script, title: "Storyboard", position: { x: 520, y: 0 }, width: 640, height: 520, metadata: { storyboard: { rows: [{ id: "row-1", shotNumber: 1, durationSeconds: 6, plotDescription: "", dialogue: "", characters: [], narrativeIntent: "", viewerPOV: "", performanceBlocking: "", shotSize: "", emotion: "", lightingAndAtmosphere: "", audioEffects: "", camera: "", motion: "", timeBeats: "", imageGenerationPrompt: "", videoMotionPrompt: "", mustHave: [], optionalDetails: [], continuityOut: "", negativePrompt: "", assetBindings: [], status: "idle" }] } } },
+    { id: "config", type: CanvasNodeType.Config, title: "Picture configuration", position: { x: 520, y: 560 }, width: 360, height: 420, metadata: { generationMode: "image" } },
+    { id: "frame", type: CanvasNodeType.Frame, title: "backplane", position: { x: 0, y: 680 }, width: 500, height: 500 },
+    { id: "batch-table", type: CanvasNodeType.BatchTable, title: "Batch creation table", position: { x: 1000, y: 0 }, width: 900, height: 520 },
 ];
 
 const baseConfig = { ...defaultConfig };
@@ -22,7 +22,7 @@ const baseConfig = { ...defaultConfig };
 describe("planBatchConnections", () => {
     it("only accepts image inputs for the batch creation table", () => {
         expect(canvasConnectionError(baseConfig, nodes, [], { fromNodeId: "image-a", toNodeId: "batch-table" })).toBe("");
-        expect(canvasConnectionError(baseConfig, nodes, [], { fromNodeId: "text-a", toNodeId: "batch-table" })).toContain("批量创作表节点只接受图片输入");
+        expect(canvasConnectionError(baseConfig, nodes, [], { fromNodeId: "text-a", toNodeId: "batch-table" })).toContain("The batch creation table node only accepts image input");
     });
 
     it("plans all legal source nodes and preserves the target handle", () => {
@@ -67,7 +67,7 @@ describe("planBatchConnections", () => {
         });
 
         expect(result.connected).toEqual(["text-a"]);
-        expect(result.skipped).toEqual([{ nodeId: "frame", reason: "背板不能作为连接源" }]);
+        expect(result.skipped).toEqual([{ nodeId: "frame", reason: "The backplane cannot be used as a connection source" }]);
     });
 
     it("keeps every legal graph edge when a newly created node exceeds provider reference capacity", () => {
@@ -90,7 +90,7 @@ describe("planBatchConnections", () => {
         const result = planBatchConnections({
             sourceNodeIds: ["image-a", "image-b"],
             targetNodeId: "new-image",
-            nodes: [...nodes, { id: "new-image", type: CanvasNodeType.Image, title: "新图片", position: { x: 1200, y: 0 }, width: 320, height: 180 }],
+            nodes: [...nodes, { id: "new-image", type: CanvasNodeType.Image, title: "new pictures", position: { x: 1200, y: 0 }, width: 320, height: 180 }],
             connections: [],
             config: constrainedConfig,
             allowCapacityOverflow: true,

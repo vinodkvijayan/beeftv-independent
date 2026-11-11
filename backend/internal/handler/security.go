@@ -46,31 +46,31 @@ func authorizeCustomRelay(method string, target *url.URL, apiFormat string, cont
 	}
 	query, err := url.ParseQuery(target.RawQuery)
 	if err != nil {
-		return errors.New("自定义渠道查询参数无效")
+		return errors.New("Invalid custom channel query parameters")
 	}
 	for key := range query {
 		switch strings.ToLower(strings.TrimSpace(key)) {
 		case "key", "api_key", "access_token", "token":
-			return errors.New("自定义渠道地址不允许在查询参数中携带密钥")
+			return errors.New("Custom channel addresses do not allow keys to be carried in query parameters")
 		}
 	}
 
 	apiFormat = strings.ToLower(strings.TrimSpace(apiFormat))
 	if apiFormat != "openai" && apiFormat != "gemini" && apiFormat != "claude" {
-		return errors.New("自定义渠道调用格式无效")
+		return errors.New("The custom channel call format is invalid")
 	}
 	if method == http.MethodGet {
 		if apiFormat == "openai" && requestPath == "/agnesapi" {
 			if len(query) == 2 && len(query["video_id"]) == 1 && len(query["model_name"]) == 1 && strings.TrimSpace(query.Get("video_id")) != "" && strings.TrimSpace(query.Get("model_name")) != "" {
 				return nil
 			}
-			return errors.New("Agnes 视频查询必须提供 video_id 和 model_name")
+			return errors.New("Agnes video query must provide video_id and model_name")
 		}
 		if customNovitaTaskResultPath.MatchString(requestPath) {
 			if len(query) == 1 && len(query["task_id"]) == 1 && strings.TrimSpace(query.Get("task_id")) != "" {
 				return nil
 			}
-			return errors.New("自定义渠道不允许访问该上游接口")
+			return errors.New("Custom channels do not allow access to the upstream interface")
 		}
 		allowed := requestPath == "/models" || strings.HasSuffix(requestPath, "/models")
 		if apiFormat == "openai" {
@@ -79,36 +79,36 @@ func authorizeCustomRelay(method string, target *url.URL, apiFormat string, cont
 			allowed = allowed || customGeminiOperationPath.MatchString(requestPath)
 		}
 		if len(query) != 0 || !allowed {
-			return errors.New("自定义渠道不允许访问该上游接口")
+			return errors.New("Custom channels do not allow access to the upstream interface")
 		}
 		return nil
 	}
 	if method != http.MethodPost {
-		return errors.New("自定义渠道不允许使用该请求方法")
+		return errors.New("This request method is not allowed for custom channels")
 	}
 	mediaType, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
-		return errors.New("自定义渠道生成请求类型无效")
+		return errors.New("Invalid custom channel build request type")
 	}
 	if apiFormat == "openai" {
 		multipartAllowed := mediaType == "multipart/form-data" && (strings.HasSuffix(requestPath, "/images/edits") || strings.HasSuffix(requestPath, "/videos"))
 		jsonAllowed := mediaType == "application/json" && (strings.HasSuffix(requestPath, "/responses") || strings.HasSuffix(requestPath, "/chat/completions") || strings.HasSuffix(requestPath, "/images/generations") || strings.HasSuffix(requestPath, "/images/edits") || strings.HasSuffix(requestPath, "/audio/speech") || strings.HasSuffix(requestPath, "/video/generations") || strings.HasSuffix(requestPath, "/videos/generations") || strings.HasSuffix(requestPath, "/videos") || strings.HasSuffix(requestPath, "/contents/generations/tasks") || strings.HasSuffix(requestPath, "/video/create") || strings.HasSuffix(requestPath, "/v2/video_generation"))
 		if len(query) != 0 || (!multipartAllowed && !jsonAllowed) {
-			return errors.New("自定义渠道不允许访问该上游接口")
+			return errors.New("Custom channels do not allow access to the upstream interface")
 		}
 		return nil
 	}
 	if apiFormat == "claude" {
 		if mediaType != "application/json" || !strings.HasSuffix(requestPath, "/messages") {
-			return errors.New("Claude 自定义渠道只允许 application/json 的 /messages 请求")
+			return errors.New("Claude custom channel only allows /messages requests for application/json")
 		}
 		return nil
 	}
 	if mediaType != "application/json" {
-		return errors.New("Gemini 自定义渠道生成请求必须使用 application/json")
+		return errors.New("Gemini custom channel generation requests must use application/json")
 	}
 	if !customGeminiRelayPath.MatchString(requestPath) {
-		return errors.New("自定义渠道不允许访问该上游接口")
+		return errors.New("Custom channels do not allow access to the upstream interface")
 	}
 	if len(query) == 0 {
 		return nil
@@ -116,20 +116,20 @@ func authorizeCustomRelay(method string, target *url.URL, apiFormat string, cont
 	if len(query) == 1 && len(query["alt"]) == 1 && query.Get("alt") == "sse" && strings.HasSuffix(requestPath, ":streamGenerateContent") {
 		return nil
 	}
-	return errors.New("自定义渠道不允许使用该查询参数")
+	return errors.New("This query parameter is not allowed in custom channels")
 }
 
 func normalizedCustomRelayPath(value string) (string, error) {
 	if len(value) > 2048 {
-		return "", errors.New("自定义渠道请求路径过长")
+		return "", errors.New("Custom channel request path is too long")
 	}
 	decoded, err := url.PathUnescape(value)
 	if err != nil || strings.Contains(decoded, "\\") || strings.Contains(decoded, "\x00") {
-		return "", errors.New("自定义渠道请求路径无效")
+		return "", errors.New("The custom channel request path is invalid")
 	}
 	cleaned := path.Clean("/" + strings.TrimPrefix(decoded, "/"))
 	if cleaned != decoded && cleaned != "/"+strings.TrimPrefix(decoded, "/") {
-		return "", errors.New("自定义渠道请求路径无效")
+		return "", errors.New("The custom channel request path is invalid")
 	}
 	return cleaned, nil
 }
@@ -137,12 +137,12 @@ func normalizedCustomRelayPath(value string) (string, error) {
 func enforceRateLimit(c *gin.Context, key string, limit int, window time.Duration) bool {
 	dependencies, ok := runtimeDependencies(c)
 	if !ok || dependencies.RequestCoordinator == nil {
-		fail(c, http.StatusServiceUnavailable, errors.New("请求协调器尚未初始化"))
+		fail(c, http.StatusServiceUnavailable, errors.New("The request coordinator has not been initialized yet"))
 		return false
 	}
 	allowed, err := dependencies.RequestCoordinator.AllowRequest(c.Request.Context(), key, limit, window)
 	if err != nil {
-		fail(c, http.StatusServiceUnavailable, errors.New("请求协调服务暂时不可用"))
+		fail(c, http.StatusServiceUnavailable, errors.New("The request coordination service is temporarily unavailable"))
 		return false
 	}
 	if allowed {
@@ -151,7 +151,7 @@ func enforceRateLimit(c *gin.Context, key string, limit int, window time.Duratio
 	wait := dependencies.RequestCoordinator.RequestRetryAfter(c.Request.Context(), key, window)
 	seconds := max(1, int((wait+time.Second-1)/time.Second))
 	c.Header("Retry-After", strconv.Itoa(seconds))
-	failService(c, app.RateLimited(fmt.Sprintf("请求次数已达上限，请在 %d 秒后重试", seconds)))
+	failService(c, app.RateLimited(fmt.Sprintf("The number of requests has reached the upper limit, please try again in %d seconds.", seconds)))
 	return false
 }
 
@@ -182,15 +182,15 @@ func authorizeSystemProxy(channel *model.ModelChannel, protocol model.ChannelInt
 			return nil
 		}
 		if method != http.MethodPost || requestPath != "/videos" {
-			return errors.New("系统渠道不允许访问该上游接口")
+			return errors.New("The system channel does not allow access to the upstream interface")
 		}
 		mediaType, _, err := mime.ParseMediaType(contentType)
 		if err != nil || mediaType != "application/json" {
-			return errors.New("Agnes 视频生成请求必须使用 application/json")
+			return errors.New("Agnes video generation requests must use application/json")
 		}
 		modelName := proxyRequestModel(contentType, body)
 		if modelName == "" || !channelAllowsModel(channel, modelName) {
-			return errors.New("当前系统渠道未授权该模型")
+			return errors.New("The model is not authorized by the current system channel")
 		}
 		return nil
 	}
@@ -199,38 +199,38 @@ func authorizeSystemProxy(channel *model.ModelChannel, protocol model.ChannelInt
 			return nil
 		}
 		if method != http.MethodPost || requestPath != "/v2/video_generation" {
-			return errors.New("系统渠道不允许访问该上游接口")
+			return errors.New("The system channel does not allow access to the upstream interface")
 		}
 		mediaType, _, err := mime.ParseMediaType(contentType)
 		if err != nil || mediaType != "application/json" {
-			return errors.New("MiniMax 视频生成请求必须使用 application/json")
+			return errors.New("MiniMax video generation requests must use application/json")
 		}
 		modelName := proxyRequestModel(contentType, body)
 		if modelName == "" || !channelAllowsModel(channel, modelName) {
-			return errors.New("当前系统渠道未授权该模型")
+			return errors.New("The model is not authorized by the current system channel")
 		}
 		return nil
 	}
 	if protocol == model.ChannelInterfaceGeminiVeo || protocol == model.ChannelInterfaceGeminiImage {
 		matches := geminiGeneratePath.FindStringSubmatch(requestPath)
 		if method != http.MethodPost || len(matches) != 3 {
-			return errors.New("系统渠道不允许访问该上游接口")
+			return errors.New("The system channel does not allow access to the upstream interface")
 		}
 		modelName, err := url.PathUnescape(matches[1])
 		if err != nil || !channelAllowsModel(channel, modelName) {
-			return errors.New("当前系统渠道未授权该模型")
+			return errors.New("The model is not authorized by the current system channel")
 		}
 		return nil
 	}
 	if method != http.MethodPost || !openAIPostEndpoints[requestPath] {
-		return errors.New("系统渠道不允许访问该上游接口")
+		return errors.New("The system channel does not allow access to the upstream interface")
 	}
 	if protocol != "" && !interfaceAllowsProxyPath(protocol, requestPath) {
-		return errors.New("当前接口类型不允许访问该上游接口")
+		return errors.New("The current interface type does not allow access to the upstream interface")
 	}
 	modelName := proxyRequestModel(contentType, body)
 	if modelName == "" || !channelAllowsModel(channel, modelName) {
-		return errors.New("当前系统渠道未授权该模型")
+		return errors.New("The model is not authorized by the current system channel")
 	}
 	return nil
 }
@@ -259,11 +259,11 @@ func interfaceAllowsProxyPath(interfaceType model.ChannelInterfaceType, requestP
 func normalizedProxyPath(value string) (string, error) {
 	decoded, err := url.PathUnescape(value)
 	if err != nil || strings.Contains(decoded, "\\") || strings.Contains(decoded, "\x00") {
-		return "", errors.New("系统渠道请求路径无效")
+		return "", errors.New("System channel request path is invalid")
 	}
 	cleaned := path.Clean("/" + strings.TrimPrefix(decoded, "/"))
 	if cleaned != decoded && cleaned != "/"+strings.TrimPrefix(decoded, "/") {
-		return "", errors.New("系统渠道请求路径无效")
+		return "", errors.New("System channel request path is invalid")
 	}
 	return cleaned, nil
 }

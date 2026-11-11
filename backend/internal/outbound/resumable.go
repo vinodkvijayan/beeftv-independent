@@ -19,10 +19,10 @@ import (
 
 // ErrResourceTooLarge marks a download that exceeded the caller's hard byte cap.
 // It is non-retryable so the caller can map it to the product size-limit copy.
-var ErrResourceTooLarge = errors.New("远程资源超过大小上限")
+var ErrResourceTooLarge = errors.New("Remote resource exceeds size limit")
 
 // ErrResumeRestart means cached bytes no longer match the current response.
-var ErrResumeRestart = errors.New("远程资源需要重新完整下载")
+var ErrResumeRestart = errors.New("Remote resources need to be downloaded completely again")
 
 // ResumableOptions configures DownloadResumable. There is deliberately no total
 // timeout here: the caller owns the overall delivery deadline through ctx.
@@ -84,13 +84,13 @@ type resumableSidecar struct {
 func DownloadResumable(ctx context.Context, rawURL string, opts ResumableOptions) (ResumableResult, error) {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
-		return ResumableResult{}, fmt.Errorf("外部资源地址无效")
+		return ResumableResult{}, fmt.Errorf("The external resource address is invalid")
 	}
 	if strings.TrimSpace(opts.PartialPath) == "" {
-		return ResumableResult{}, errors.New("下载缓存路径未配置")
+		return ResumableResult{}, errors.New("Download cache path is not configured")
 	}
 	if opts.MaxBytes <= 0 {
-		return ResumableResult{}, errors.New("下载大小上限未配置")
+		return ResumableResult{}, errors.New("Maximum download size is not configured")
 	}
 	attempts := opts.Attempts
 	if attempts <= 0 {
@@ -133,7 +133,7 @@ func DownloadResumable(ctx context.Context, rawURL string, opts ResumableOptions
 		lastErr = err
 	}
 	if lastErr == nil {
-		lastErr = errors.New("远程资源下载失败")
+		lastErr = errors.New("Remote resource download failed")
 	}
 	return ResumableResult{}, lastErr
 }
@@ -185,7 +185,7 @@ func downloadResumableAttempt(ctx context.Context, parsed *url.URL, opts Resumab
 	attemptCtx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 	headerTimer := time.AfterFunc(headerTimeout, func() {
-		cancel(fmt.Errorf("等待下载响应超时：%w", context.DeadlineExceeded))
+		cancel(fmt.Errorf("Timeout waiting for download response: %w", context.DeadlineExceeded))
 	})
 
 	request, err := http.NewRequestWithContext(attemptCtx, http.MethodGet, parsed.String(), nil)
@@ -251,30 +251,30 @@ func downloadResumableAttempt(ctx context.Context, parsed *url.URL, opts Resumab
 	case http.StatusPartialContent:
 		if offset > 0 && sidecar != nil && strongResumableETag(sidecar.ETag) && response.Header.Get("ETag") != sidecar.ETag {
 			removeResumablePartial(opts.PartialPath)
-			return ResumableResult{}, true, fmt.Errorf("%w：标识已变化", ErrResumeRestart)
+			return ResumableResult{}, true, fmt.Errorf("%w: The logo has changed", ErrResumeRestart)
 		}
 		start, contentTotal, ok := parseContentRange(response.Header.Get("Content-Range"))
 		if !ok || start != offset {
 			removeResumablePartial(opts.PartialPath)
-			return ResumableResult{}, true, fmt.Errorf("%w：断点位置不匹配", ErrResumeRestart)
+			return ResumableResult{}, true, fmt.Errorf("%w: Breakpoint location does not match", ErrResumeRestart)
 		}
 		// A known total that no longer matches means the remote object changed
 		// size under the same validator; appending would corrupt the artifact.
 		if sidecar != nil && sidecar.Total >= 0 && contentTotal >= 0 && sidecar.Total != contentTotal {
 			removeResumablePartial(opts.PartialPath)
-			return ResumableResult{}, true, fmt.Errorf("%w：总大小已变化", ErrResumeRestart)
+			return ResumableResult{}, true, fmt.Errorf("%w: Total size has changed", ErrResumeRestart)
 		}
 		total = contentTotal
 	default:
 		if retryableHTTPStatus(response.StatusCode) {
-			return ResumableResult{}, true, &HTTPStatusError{StatusCode: response.StatusCode, Message: fmt.Sprintf("远程资源下载失败：%s", response.Status)}
+			return ResumableResult{}, true, &HTTPStatusError{StatusCode: response.StatusCode, Message: fmt.Sprintf("Remote resource download failed: %s", response.Status)}
 		}
 		// Expired signed links may later be refreshed for the same artifact.
 		// Keep bytes, but require source/validator checks before any reuse.
 		if response.StatusCode != http.StatusUnauthorized && response.StatusCode != http.StatusForbidden {
 			removeResumablePartial(opts.PartialPath)
 		}
-		return ResumableResult{}, false, &HTTPStatusError{StatusCode: response.StatusCode, Message: fmt.Sprintf("远程资源下载失败：%s", response.Status)}
+		return ResumableResult{}, false, &HTTPStatusError{StatusCode: response.StatusCode, Message: fmt.Sprintf("Remote resource download failed: %s", response.Status)}
 	}
 	pending.Total = total
 	if total >= 0 && total >= opts.MaxBytes {
@@ -306,7 +306,7 @@ func downloadResumableAttempt(ctx context.Context, parsed *url.URL, opts Resumab
 	emitter.emit(offset, total, "downloading", true)
 
 	idleTimer := time.AfterFunc(idleTimeout, func() {
-		cancel(fmt.Errorf("下载长时间没有收到数据：%w", context.DeadlineExceeded))
+		cancel(fmt.Errorf("No data received after downloading for a long time: %w", context.DeadlineExceeded))
 	})
 	defer idleTimer.Stop()
 	reader := &idleResetReader{body: response.Body, timer: idleTimer, idle: idleTimeout}

@@ -4,11 +4,11 @@ import { assistantModelOptions } from "../src/lib/assistant-model";
 import { groupModelsByDisplayName } from "../src/lib/model-selection";
 import { createModelChannel, defaultConfig, filterModelsByCapability, modelDisplayName, normalizeConfigSnapshot, resolveModelChannel } from "../src/stores/use-config-store";
 
-test("默认模型下拉在上万模型的单渠道下仍能快速生成选项", () => {
+test("The default model drop-down can still quickly generate options under a single channel with tens of thousands of models.", () => {
     const models = Array.from({ length: 10_000 }, (_, index) => `chat-model-${index}`);
     const channel = createModelChannel({
         id: "studio",
-        name: "工作室渠道",
+        name: "studio channels",
         baseUrl: "https://api.example.com",
         apiKey: "synthetic-key",
         models,

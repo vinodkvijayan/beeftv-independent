@@ -252,7 +252,7 @@ describe("persistOwnedCanvasMediaNodes interior ownership", () => {
                 },
                 error: (text) => { errors.push(text); },
             }))).rejects.toThrow("flush failed");
-            expect(errors).toEqual(["媒体结果已生成，但本地画布保存失败：flush failed"]);
+            expect(errors).toEqual(["Media results were generated, but local canvas save failed: flush failed"]);
         } finally {
             restore();
         }
@@ -457,7 +457,7 @@ describe("owned canvas persist and recover callbacks", () => {
         const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
         Object.defineProperty(globalThis, "window", { configurable: true, value: { setTimeout: (callback: () => void) => { queueMicrotask(callback); return 0; }, clearTimeout: () => {} } });
         const restore = switchScope("owner-a");
-        const node = depthNode("depth-1", { status: "error", errorDetails: "任务执行超时，请稍后重试" });
+        const node = depthNode("depth-1", { status: "error", errorDetails: "Task execution timed out, please try again later" });
         const nodesRef = { current: [node] };
         const states: string[] = [];
         let queries = 0;
@@ -466,14 +466,14 @@ describe("owned canvas persist and recover callbacks", () => {
                 expect(config.method).toBe("get");
                 expect(config.url).toBe("/tasks/depth-task");
                 queries++;
-                return envelope(generationTask({ id: "depth-task", provider: "local", model: "video-depth-anything-small", status: queries === 1 ? "running" : "failed", stage: queries === 1 ? "分析视频" : "深度处理失败", error: queries === 1 ? undefined : "curl: (28) Connection timed out" }));
+                return envelope(generationTask({ id: "depth-task", provider: "local", model: "video-depth-anything-small", status: queries === 1 ? "running" : "failed", stage: queries === 1 ? "Analyze video" : "Depth processing failed", error: queries === 1 ? undefined : "curl: (28) Connection timed out" }));
             }, async () => {
                 await recoverOwnedDepthCaptureNode({ node, nodesRef,
                     session: beginLocalExecutorSession("proj-a", { controller: new AbortController(), getLiveProjectId: () => "proj-a" }),
                     setNodes: updater => { nodesRef.current = updater(nodesRef.current); states.push(nodesRef.current[0]?.metadata?.status || ""); },
                 }, async () => { throw new Error("failed task must not bind"); });
                 expect(states).toContain("loading");
-                expect(nodesRef.current[0]?.metadata).toMatchObject({ status: "error", taskId: "depth-task", taskStatus: "failed", taskStage: "深度处理失败", taskProvider: "local", errorDetails: "curl: (28) Connection timed out", taskClientOperationTerminal: true });
+                expect(nodesRef.current[0]?.metadata).toMatchObject({ status: "error", taskId: "depth-task", taskStatus: "failed", taskStage: "Depth processing failed", taskProvider: "local", errorDetails: "curl: (28) Connection timed out", taskClientOperationTerminal: true });
             });
         } finally {
             restore();
@@ -485,7 +485,7 @@ describe("owned canvas persist and recover callbacks", () => {
         const restore = switchScope("owner-a");
         const node = depthNode("depth-1");
         node.metadata = { ...node.metadata, status: "error", taskStatus: "failed" };
-        const nodesRef = { current: [{ ...node, title: "用户改名", position: { x: 99, y: 88 } }] };
+        const nodesRef = { current: [{ ...node, title: "User name change", position: { x: 99, y: 88 } }] };
         const methods: string[] = [];
         let binds = 0;
         try {
@@ -501,7 +501,7 @@ describe("owned canvas persist and recover callbacks", () => {
                 const bind: Parameters<typeof recoverOwnedDepthCaptureNode>[1] = async args => {
                     binds++;
                     expect(args.task.id).toBe("depth-task");
-                    expect(args.nodesRef.current[0]?.title).toBe("用户改名");
+                    expect(args.nodesRef.current[0]?.title).toBe("User name change");
                     if (binds === 1) throw new Error("canvas conflict");
                     args.setNodes(current => current.map(item => ({ ...item, metadata: { ...item.metadata, status: "success", storageKey: "resource:depth-out" } })));
                 };

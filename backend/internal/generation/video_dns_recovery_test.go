@@ -148,7 +148,7 @@ func TestVideoPollRecoversRealDNSFailureWithoutResubmission(t *testing.T) {
 	if len(seen) != 2 {
 		t.Fatalf("query observations=%d, want two", len(seen))
 	}
-	if seen[0].Dispatched || seen[0].TransportPhase != "dns" || !seen[1].Dispatched || len(stages) != 1 || stages[0] != "正在查询上游任务" {
+	if seen[0].Dispatched || seen[0].TransportPhase != "dns" || !seen[1].Dispatched || len(stages) != 1 || stages[0] != "Querying upstream tasks" {
 		t.Fatalf("query phase or dispatch evidence lost: observations=%d stages=%q first=%t/%s second=%t/%s", len(seen), stages, seen[0].Dispatched, seen[0].TransportPhase, seen[len(seen)-1].Dispatched, seen[len(seen)-1].TransportPhase)
 	}
 	if strings.Contains(firstError.Error(), "owned-dns-recovery") {

@@ -53,7 +53,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// === 视频生成模型 ===
 		{
 			ID:                     "happyhorse-1.1-t2v",
-			DisplayName:            "HappyHorse 1.1 文生视频",
+			DisplayName:            "HappyHorse 1.1 Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -66,7 +66,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "happyhorse-1.1-i2v",
-			DisplayName:            "HappyHorse 1.1 图生视频",
+			DisplayName:            "HappyHorse 1.1 Tusheng Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -79,7 +79,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "happyhorse-1.1-r2v",
-			DisplayName:            "HappyHorse 1.1 参考视频生成",
+			DisplayName:            "HappyHorse 1.1 reference video generation",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -92,7 +92,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "happyhorse-1.0-video-edit",
-			DisplayName:            "HappyHorse 1.0 视频编辑",
+			DisplayName:            "HappyHorse 1.0 Video Editor",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -107,7 +107,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// Wan 系列视频生成模型
 		{
 			ID:                     "wan2.7-t2v-2026-06-12",
-			DisplayName:            "万相 2.7 文生视频",
+			DisplayName:            "Wanxiang 2.7 Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -120,7 +120,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "wan2.7-i2v-2026-04-25",
-			DisplayName:            "万相 2.7 图生视频",
+			DisplayName:            "Wanxiang 2.7 Tusheng Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -133,7 +133,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "wan2.7-r2v-2026-06-12",
-			DisplayName:            "万相 2.7 参考视频生成",
+			DisplayName:            "Wanxiang 2.7 reference video generation",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -148,7 +148,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// Kling（可灵）系列视频生成模型
 		{
 			ID:                     "kling/kling-v3-omni-video-generation",
-			DisplayName:            "可灵 V3 Omni 视频生成",
+			DisplayName:            "KeLing V3 Omni video generation",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -163,7 +163,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "kling/kling-v3-video-generation",
-			DisplayName:            "可灵 V3 视频生成",
+			DisplayName:            "KeLing V3 video generation",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -180,7 +180,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// PixVerse（爱诗）系列 - 文生视频
 		{
 			ID:                     "pixverse/pixverse-c1-t2v",
-			DisplayName:            "爱诗 C1 文生视频",
+			DisplayName:            "Love Poetry C1 Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -195,7 +195,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "pixverse/pixverse-v6-t2v",
-			DisplayName:            "爱诗 V6 文生视频",
+			DisplayName:            "Love Poetry V6 Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -210,7 +210,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "pixverse/pixverse-v5.6-t2v",
-			DisplayName:            "爱诗 V5.6 文生视频",
+			DisplayName:            "Love Poetry V5.6 Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -226,7 +226,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// PixVerse（爱诗）系列 - 图生视频
 		{
 			ID:                     "pixverse/pixverse-c1-it2v",
-			DisplayName:            "爱诗 C1 图生视频",
+			DisplayName:            "Love Poetry C1 Tusheng Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -240,7 +240,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "pixverse/pixverse-v6-it2v",
-			DisplayName:            "爱诗 V6 图生视频",
+			DisplayName:            "Aishi V6 Tusheng Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -254,7 +254,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "pixverse/pixverse-v5.6-it2v",
-			DisplayName:            "爱诗 V5.6 图生视频",
+			DisplayName:            "Aishi V5.6 Tusheng Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -269,7 +269,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// Vidu 系列视频生成模型
 		{
 			ID:                     "vidu/viduq3-pro_text2video",
-			DisplayName:            "Vidu Q3 Pro 文生视频",
+			DisplayName:            "Vidu Q3 Pro Vidu Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -284,7 +284,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "vidu/viduq3-turbo_text2video",
-			DisplayName:            "Vidu Q3 Turbo 文生视频",
+			DisplayName:            "Vidu Q3 Turbo Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -299,7 +299,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "vidu/viduq2_text2video",
-			DisplayName:            "Vidu Q2 文生视频",
+			DisplayName:            "Vidu Q2 Vincent Video",
 			Provider:               "bailian",
 			Capability:             []string{"video"},
 			SupportedEndpointTypes: []string{"video"},
@@ -316,7 +316,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		// === 图像生成模型（补充）===
 		{
 			ID:                     "qwen-image-3.0-pro",
-			DisplayName:            "通义千问图像 3.0 Pro",
+			DisplayName:            "Tongyi Qianwen Image 3.0 Pro",
 			Provider:               "bailian",
 			Capability:             []string{"image"},
 			SupportedEndpointTypes: []string{"image"},
@@ -328,7 +328,7 @@ func (d *Discovery) getExtendedModels() []provider.Model {
 		},
 		{
 			ID:                     "wan2.7-image-pro",
-			DisplayName:            "万相图像 2.7 Pro",
+			DisplayName:            "Wanxiang Image 2.7 Pro",
 			Provider:               "bailian",
 			Capability:             []string{"image"},
 			SupportedEndpointTypes: []string{"image"},

@@ -10,12 +10,12 @@ function makeProject(): TimelineProject {
     return {
         version: 2,
         tracks: [
-            { id: "video-1", kind: "video", label: "视频 1", order: 0 },
-            { id: "subtitle-1", kind: "subtitle", label: "字幕 1", order: 1 },
+            { id: "video-1", kind: "video", label: "Video 1", order: 0 },
+            { id: "subtitle-1", kind: "subtitle", label: "subtitles 1", order: 1 },
         ],
         clips: [
             { id: "clip-a", kind: "video", nodeId: "node-a", trackId: "video-1", startMs: 0, durationMs: 5000, sourceStartMs: 0, sourceDurationMs: 10000 },
-            { id: "sub-1", kind: "subtitle", nodeId: "node-a", trackId: "subtitle-1", startMs: 500, durationMs: 2000, subtitleEntryIndex: 0, text: "你好" },
+            { id: "sub-1", kind: "subtitle", nodeId: "node-a", trackId: "subtitle-1", startMs: 500, durationMs: 2000, subtitleEntryIndex: 0, text: "hello" },
         ],
         durationMs: 5000,
     };

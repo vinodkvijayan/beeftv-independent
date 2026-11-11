@@ -27,14 +27,14 @@ describe("desktop update UI contract", () => {
         expect(sidebar).toContain("app-workspace-sidebar-footer");
         expect(account).toContain("AppChangelogButton");
         expect(account).toContain("showVersion");
-        expect(changelog).toContain("查看更新日志");
+        expect(changelog).toContain("View changelog");
         expect(shell).toContain("useDesktopUpdateBootstrap");
         expect(update).toContain("AppChangelogButton");
         expect(update).toContain("showVersion");
         expect(update).toContain("updater.downloadAndInstall()");
         expect(update).toContain("AppModal");
-        expect(update).toContain("仍然更新");
-        expect(update).toContain("尚未保存的修改可能丢失");
+        expect(update).toContain("Still updated");
+        expect(update).toContain("Unsaved changes may be lost");
         expect(update).toContain("updater.check()");
         expect(update).toContain('aria-live="polite"');
         expect(update).toContain("desktopUpdateDetailLabel");
@@ -42,7 +42,7 @@ describe("desktop update UI contract", () => {
         expect(update).toContain('role="progressbar"');
         expect(update).toContain("useReducedMotion");
         expect(update).not.toContain("Modal.confirm");
-        expect(update).not.toContain("所有修改已保存");
+        expect(update).not.toContain("All changes saved");
         expect(update).not.toContain("github.com");
         expect(update).not.toContain("desktop-update.json");
         expect(update).not.toContain("Wails");

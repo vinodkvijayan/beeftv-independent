@@ -43,7 +43,7 @@ func newHarness(t *testing.T) *harness {
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	service := app.NewLocal(repository.New(db), t.TempDir())
@@ -51,12 +51,12 @@ func newHarness(t *testing.T) *harness {
 	operations.RegisterDefaultOps(registry)
 	canvasID := "ops-canvas"
 	encoded, err := json.Marshal(map[string]any{
-		"id": canvasID, "title": "操作层画布", "revision": 0,
+		"id": canvasID, "title": "Operation layer canvas", "revision": 0,
 		"nodes": []any{
-			map[string]any{"id": "n1", "type": "image", "title": "镜头1", "position": map[string]any{"x": 1, "y": 1},
-				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "原始"}},
-			map[string]any{"id": "n2", "type": "image", "title": "镜头2", "position": map[string]any{"x": 2, "y": 2},
-				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "原始2"}},
+			map[string]any{"id": "n1", "type": "image", "title": "Shot 1", "position": map[string]any{"x": 1, "y": 1},
+				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "original"}},
+			map[string]any{"id": "n2", "type": "image", "title": "Shot 2", "position": map[string]any{"x": 2, "y": 2},
+				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "original 2"}},
 		},
 		"connections": []any{},
 	})
@@ -114,7 +114,7 @@ func opErr(t *testing.T, err error) *operations.Error {
 	t.Helper()
 	var typed *operations.Error
 	if !errors.As(err, &typed) {
-		t.Fatalf("期望结构化操作错误，得到 %v", err)
+		t.Fatalf("Expected structured operation error, got %v", err)
 	}
 	return typed
 }
@@ -134,17 +134,17 @@ func TestSameWriteOperationAcrossManualAssistantExternal(t *testing.T) {
 			revision := h.revisionNow(t)
 			result, err := h.execute(t, item.caller, "canvas.nodes.create", "create-"+item.name, map[string]any{
 				"canvasId": h.canvasID, "expectedRevision": revision,
-				"nodes": []any{map[string]any{"title": "由" + item.name + "创建", "type": "image"}},
+				"nodes": []any{map[string]any{"title": "by" + item.name + "Create", "type": "image"}},
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
 			if result.Replayed || result.Caller != item.caller.Kind || result.Revision == 0 || result.OpID != "create-"+item.name {
-				t.Fatalf("信封异常: %#v", result)
+				t.Fatalf("Envelope exception: %#v", result)
 			}
 			receipt := result.Receipt("")
 			if receipt.OperationID != result.OpID || receipt.Revision != result.Revision || receipt.Caller != item.caller.Kind {
-				t.Fatalf("回执异常: %#v", receipt)
+				t.Fatalf("Exception in receipt: %#v", receipt)
 			}
 		})
 	}
@@ -154,7 +154,7 @@ func TestReplayAndConflictAreSharedAcrossCallers(t *testing.T) {
 	h := newHarness(t)
 	params := map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "共享幂等", "type": "image"}},
+		"nodes": []any{map[string]any{"title": "Shared idempotence", "type": "image"}},
 	}
 	first, err := h.execute(t, operations.ManualCaller(false), "canvas.nodes.create", "shared-op", params)
 	if err != nil {
@@ -164,21 +164,21 @@ func TestReplayAndConflictAreSharedAcrossCallers(t *testing.T) {
 	for _, caller := range []operations.Caller{h.assistant(), operations.ExternalCaller(false), operations.ManualCaller(false)} {
 		replay, err := h.execute(t, caller, "canvas.nodes.create", "shared-op", params)
 		if err != nil {
-			t.Fatalf("%s 回放失败: %v", caller.Kind, err)
+			t.Fatalf("%s playback failed: %v", caller.Kind, err)
 		}
 		if !replay.Replayed || replay.Revision != first.Revision {
-			t.Fatalf("%s 必须回读原结果: %#v", caller.Kind, replay)
+			t.Fatalf("%s must read back the original result: %#v", caller.Kind, replay)
 		}
 	}
 	if h.revisionNow(t) != before {
-		t.Fatal("回放推进了画布版本")
+		t.Fatal("Playback advances canvas version")
 	}
 	_, err = h.execute(t, operations.ExternalCaller(false), "canvas.nodes.create", "shared-op", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "不同内容", "type": "image"}},
+		"nodes": []any{map[string]any{"title": "different content", "type": "image"}},
 	})
 	if got := opErr(t, err); got.Code != operations.CodeConflict || got.Reason != "operation_id_reused_with_different_payload" {
-		t.Fatalf("不同 payload 应为冲突，得到 %v", err)
+		t.Fatalf("Different payloads should conflict and get %v", err)
 	}
 }
 
@@ -186,7 +186,7 @@ func TestAuthorizationHappensBeforeReplay(t *testing.T) {
 	h := newHarness(t)
 	params := map[string]any{
 		"canvasId": h.canvasID, "nodeId": "n1", "expectedRevision": h.revision,
-		"patch": map[string]any{"title": "已提交标题"},
+		"patch": map[string]any{"title": "Title submitted"},
 	}
 	first, err := h.execute(t, operations.ManualCaller(false), "canvas.node.update", "auth-before-replay", params)
 	if err != nil {
@@ -195,19 +195,19 @@ func TestAuthorizationHappensBeforeReplay(t *testing.T) {
 	before := h.revisionNow(t)
 	_, err = h.execute(t, operations.ExternalCaller(true), "canvas.node.update", "auth-before-replay", params)
 	if got := opErr(t, err); got.Code != operations.CodeReadOnly || got.Reason != "read_only_client" {
-		t.Fatalf("只读回放应在授权阶段被拒: %v", err)
+		t.Fatalf("Read-only playback should be rejected during authorization phase: %v", err)
 	}
 	foreign := operations.AssistantCaller(&agentops.AssistantScope{CanvasID: "other-canvas"}, false)
 	_, err = h.execute(t, foreign, "canvas.node.update", "auth-before-replay", params)
 	if got := opErr(t, err); got.Code != operations.CodePermissionDenied || got.Reason != "scope_denied" {
-		t.Fatalf("越界助手回放应在授权阶段被拒: %v", err)
+		t.Fatalf("Out-of-bounds assistant playback should be rejected during authorization phase: %v", err)
 	}
 	if h.revisionNow(t) != before {
-		t.Fatal("被拒绝的回放改动画布")
+		t.Fatal("Rejected replay change canvas")
 	}
 	replay, err := h.execute(t, operations.ManualCaller(false), "canvas.node.update", "auth-before-replay", params)
 	if err != nil || !replay.Replayed || replay.Revision != first.Revision {
-		t.Fatalf("授权通过后仍应回放: %#v %v", replay, err)
+		t.Fatalf("Playback should still be performed after authorization is passed: %#v %v", replay, err)
 	}
 }
 
@@ -217,19 +217,19 @@ func TestAssistantCannotUseWorkspaceWideOps(t *testing.T) {
 	for _, descriptor := range h.registry.List(h.assistant()) {
 		visible[descriptor.ID] = true
 		if !descriptor.ReadOnly && jsonContains(descriptor.Params, "operationId") {
-			t.Fatalf("助手 schema 不应要求模型填写 operationId: %s", descriptor.ID)
+			t.Fatalf("The helper schema should not require the model to fill in operationId: %s", descriptor.ID)
 		}
 	}
 	if visible["asset.list"] || visible["canvas.search"] {
-		t.Fatalf("助手看到了工作区级操作: %v", visible)
+		t.Fatalf("The assistant saw the workspace level operation: %v", visible)
 	}
 	_, err := h.execute(t, h.assistant(), "asset.list", "", map[string]any{})
 	if got := opErr(t, err); got.Code != operations.CodePermissionDenied {
-		t.Fatalf("助手执行 asset.list 应被拒: %v", err)
+		t.Fatalf("Assistant execution asset.list should be rejected: %v", err)
 	}
 	manual := h.registry.List(operations.ManualCaller(false))
 	if len(manual) != 44 {
-		t.Fatalf("手工 UI 应看到完整 44 项能力: %d", len(manual))
+		t.Fatalf("The manual UI should see the full 44 capabilities: %d", len(manual))
 	}
 	foundDocumentCommit := false
 	for _, descriptor := range manual {
@@ -238,10 +238,10 @@ func TestAssistantCannotUseWorkspaceWideOps(t *testing.T) {
 		}
 	}
 	if !foundDocumentCommit {
-		t.Fatal("手工 UI 必须看到 canvas.document.commit")
+		t.Fatal("Manual UI must see canvas.document.commit")
 	}
 	if len(manual) <= len(visible) {
-		t.Fatalf("手工 UI 应看到完整能力: %d <= %d", len(manual), len(visible))
+		t.Fatalf("Manual UI should see full capabilities: %d <= %d", len(manual), len(visible))
 	}
 	foundOperationID := false
 	for _, descriptor := range manual {
@@ -250,7 +250,7 @@ func TestAssistantCannotUseWorkspaceWideOps(t *testing.T) {
 		}
 	}
 	if !foundOperationID {
-		t.Fatal("手工 UI 的写操作 schema 必须带 operationId")
+		t.Fatal("Manual UI write operation schema must contain operationId")
 	}
 }
 
@@ -258,21 +258,21 @@ func TestFailedWriteDoesNotLeaveReceipt(t *testing.T) {
 	h := newHarness(t)
 	_, err := h.execute(t, operations.ManualCaller(false), "canvas.nodes.create", "failed-write", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revision + 99,
-		"nodes": []any{map[string]any{"title": "不应落盘", "type": "image"}},
+		"nodes": []any{map[string]any{"title": "Should not place the order", "type": "image"}},
 	})
 	if err == nil {
-		t.Fatal("过期 revision 必须失败")
+		t.Fatal("Expired revisions must fail")
 	}
 	before := h.revisionNow(t)
 	retry, replayErr := h.execute(t, operations.ExternalCaller(false), "canvas.nodes.create", "failed-write", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": before,
-		"nodes": []any{map[string]any{"title": "失败后重试", "type": "image"}},
+		"nodes": []any{map[string]any{"title": "Try again after failure", "type": "image"}},
 	})
 	if replayErr != nil {
-		t.Fatalf("失败写入不应留下回执: %v", replayErr)
+		t.Fatalf("Failed writes should not leave a receipt: %v", replayErr)
 	}
 	if retry.Replayed {
-		t.Fatal("失败后的同 operationId 不应是回放")
+		t.Fatal("The same operationId after failure should not be the playback")
 	}
 }
 
@@ -282,7 +282,7 @@ func TestPaidProposeRejectsIdempotencyKey(t *testing.T) {
 		"canvasId": h.canvasID, "nodeIds": []any{"n1"}, "kind": "image",
 	})
 	if got := opErr(t, err); got.Reason != "unexpected_op_id" {
-		t.Fatalf("只读提议不应接受 opId: %v", err)
+		t.Fatalf("Read-only proposals should not be accepted opId: %v", err)
 	}
 }
 

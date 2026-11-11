@@ -87,35 +87,35 @@ func (d Descriptor) AllowsInput(kind string) bool {
 
 func (d Descriptor) ValidatePatch(patch map[string]any) error {
 	if !d.CanUpdate {
-		return fmt.Errorf("%s 节点不支持更新", d.Label)
+		return fmt.Errorf("%s node does not support update", d.Label)
 	}
 	if len(patch) == 0 {
-		return fmt.Errorf("%s 节点更新内容不能为空", d.Label)
+		return fmt.Errorf("%s node update content cannot be empty", d.Label)
 	}
 	for key, value := range patch {
 		field, allowed := d.PatchFields[key]
 		if !allowed {
-			return fmt.Errorf("%s 节点不支持更新字段 %s", d.Label, key)
+			return fmt.Errorf("%s node does not support update field %s", d.Label, key)
 		}
 		switch field.Kind {
 		case "string":
 			text, ok := value.(string)
 			if !ok {
-				return fmt.Errorf("%s 字段 %s 必须是字符串", d.Label, key)
+				return fmt.Errorf("%s field %s must be a string", d.Label, key)
 			}
 			if field.MaxRunes > 0 && len([]rune(text)) > field.MaxRunes {
-				return fmt.Errorf("%s 字段 %s 超出长度限制", d.Label, key)
+				return fmt.Errorf("%s field %s exceeds length limit", d.Label, key)
 			}
 		case "number":
 			if _, ok := value.(float64); !ok {
-				return fmt.Errorf("%s 字段 %s 必须是数字", d.Label, key)
+				return fmt.Errorf("%s field %s must be a number", d.Label, key)
 			}
 		case "boolean":
 			if _, ok := value.(bool); !ok {
-				return fmt.Errorf("%s 字段 %s 必须是布尔值", d.Label, key)
+				return fmt.Errorf("%s field %s must be a Boolean value", d.Label, key)
 			}
 		default:
-			return fmt.Errorf("%s 字段 %s 的类型契约无效", d.Label, key)
+			return fmt.Errorf("The type contract of %s field %s is invalid.", d.Label, key)
 		}
 	}
 	return nil
@@ -144,10 +144,10 @@ func (d Descriptor) ApplyPatch(node map[string]any, patch map[string]any) error 
 
 func (d Descriptor) ValidateConnection(fromKind string) error {
 	if !d.Connection.CanTarget {
-		return fmt.Errorf("%s 节点不能接收参考输入", d.Label)
+		return fmt.Errorf("%s node cannot receive reference input", d.Label)
 	}
 	if !d.AllowsInput(fromKind) {
-		return fmt.Errorf("%s生成节点不接受%s输入", d.Label, inputKindLabel(fromKind))
+		return fmt.Errorf("%s generation node does not accept %s input", d.Label, inputKindLabel(fromKind))
 	}
 	return nil
 }
@@ -155,13 +155,13 @@ func (d Descriptor) ValidateConnection(fromKind string) error {
 func inputKindLabel(kind string) string {
 	switch kind {
 	case "image":
-		return "图片"
+		return "pictures"
 	case "video":
-		return "视频"
+		return "video"
 	case "audio":
-		return "音频"
+		return "Audio"
 	default:
-		return "文本"
+		return "text"
 	}
 }
 

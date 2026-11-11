@@ -38,9 +38,9 @@ func resolveBaseURL() (string, string) {
 		return base, "BEEFTV_BASE_URL"
 	}
 	if info, found := runtimeinfo.Discover(""); found {
-		return info.BaseURL, "运行中的桌面工作区"
+		return info.BaseURL, "Desktop workspace in action"
 	}
-	return "", "未发现运行中的工作区"
+	return "", "No running workspace found"
 }
 
 // 退出码：机器可读的失败分类，stderr 输出诊断，stdout 只放业务结果。
@@ -100,14 +100,14 @@ func validateBaseURL(base string) error {
 		return nil
 	}
 	if parseErr != nil || (parsedBase.Scheme != "http" && parsedBase.Scheme != "https") {
-		return &cliError{code: exitUsage, reason: "invalid_base_url", msg: "工作区地址不是合法 URL"}
+		return &cliError{code: exitUsage, reason: "invalid_base_url", msg: "The workspace address is not a valid URL"}
 	}
 	if parsedBase.User != nil {
-		return &cliError{code: exitUsage, reason: "credentials_in_url", msg: "拒绝对带凭据的 URL 发请求"}
+		return &cliError{code: exitUsage, reason: "credentials_in_url", msg: "Deny requests to URLs with credentials"}
 	}
 	host := parsedBase.Hostname()
 	if host != "127.0.0.1" && host != "localhost" && host != "::1" {
-		return &cliError{code: exitUsage, reason: "base_url_not_local", msg: "首版仅支持连接本机工作区，拒绝 " + host}
+		return &cliError{code: exitUsage, reason: "base_url_not_local", msg: "The first version only supports connecting to the local workspace and refuses" + host}
 	}
 	return nil
 }
@@ -164,7 +164,7 @@ func (c *client) currentBaseURL() string {
 func (c *client) do(ctx context.Context, method, path string, body any) (json.RawMessage, error) {
 	base := c.currentBaseURL()
 	if base == "" {
-		return nil, &cliError{code: exitTransportFailure, reason: "runtime_not_found", msg: "未发现运行中的 BeefTV 工作区。请先打开 BeefTV；若使用自定义目录，请检查 BEEFTV_DATA_DIR；独立服务请显式设置 BEEFTV_BASE_URL"}
+		return nil, &cliError{code: exitTransportFailure, reason: "runtime_not_found", msg: "No running BeefTV workspace found. Please open BeefTV first; if using a custom directory, please check BEEFTV_DATA_DIR; for independent services, please explicitly set BEEFTV_BASE_URL"}
 	}
 	var payload io.Reader
 	if body != nil {
@@ -191,7 +191,7 @@ func (c *client) do(ctx context.Context, method, path string, body any) (json.Ra
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return nil, &cliError{code: exitTransportFailure, reason: "transport_failed", msg: fmt.Sprintf("无法连接本地工作区 %s：%v", base, err)}
+		return nil, &cliError{code: exitTransportFailure, reason: "transport_failed", msg: fmt.Sprintf("Unable to connect to local workspace %s: %v", base, err)}
 	}
 	defer resp.Body.Close()
 	// 单段媒体最多 8 MiB，转成 base64 加上 JSON 约 11 MiB；上限要能放下一整段，超出时明确报错，不截断后再解析失败。
@@ -200,7 +200,7 @@ func (c *client) do(ctx context.Context, method, path string, body any) (json.Ra
 		return nil, &cliError{code: exitTransportFailure, reason: "read_failed", msg: readErr.Error()}
 	}
 	if len(raw) > maxWorkspaceResponseBytes {
-		return nil, &cliError{code: exitInternal, reason: "response_too_large", msg: "工作区返回的结果超过 24 MiB，请缩小媒体检查区间或减少检查模式"}
+		return nil, &cliError{code: exitInternal, reason: "response_too_large", msg: "The result returned by the workspace exceeds 24 MiB, please reduce the media check interval or reduce the check mode"}
 	}
 	if resp.StatusCode == http.StatusOK {
 		var envelope struct {
@@ -344,7 +344,7 @@ func asCLIError(err error, target **cliError) bool {
 func run(args []string) error {
 	if len(args) == 0 {
 		usage()
-		return &cliError{code: exitUsage, reason: "missing_command", msg: "需要一个子命令"}
+		return &cliError{code: exitUsage, reason: "missing_command", msg: "requires a subcommand"}
 	}
 	// 顶层 --help/-h 与各子命令一致：打印用法后正常退出。
 	if args[0] == "--help" || args[0] == "-h" || args[0] == "help" {
@@ -370,8 +370,8 @@ func run(args []string) error {
 			return runOpsCall(c, args[2:])
 		}
 		fs := flag.NewFlagSet("ops", flag.ContinueOnError)
-		readOnly := fs.Bool("read-only", false, "只列出只读操作")
-		jsonOut := fs.Bool("json", false, "输出 JSON")
+		readOnly := fs.Bool("read-only", false, "List only read-only operations")
+		jsonOut := fs.Bool("json", false, "Output JSON")
 		if err := fs.Parse(args[1:]); err != nil {
 			return flagError(err)
 		}
@@ -412,16 +412,16 @@ func run(args []string) error {
 		return runBusiness(c, args[1:])
 	default:
 		usage()
-		return &cliError{code: exitUsage, reason: "unknown_command", msg: "未知子命令: " + args[0]}
+		return &cliError{code: exitUsage, reason: "unknown_command", msg: "Unknown subcommand:" + args[0]}
 	}
 }
 
 func usage() {
-	fmt.Fprint(os.Stderr, `beeftv — BeefTV 业务操作命令行（连接正在运行的本地工作区）
+	fmt.Fprint(os.Stderr, `beeftv — BeefTV business operation command line (connect to a running local workspace)
 
-  beeftv skills help  （远程技能市场，无需运行桌面应用）
-  beeftv diagnostics analyze --file <diagnostics.zip>  （离线分析，无需运行桌面应用）
-  beeftv plugin validate|try <插件目录>  （离线检查接口插件、预览将发出的请求，无需运行桌面应用）
+beeftv skills help (remote skills marketplace, no need to run desktop app)
+beeftv diagnostics analyze --file <diagnostics.zip> (offline analysis, no need to run desktop application)
+beeftv plugin validate|try <plugin directory> (offline check interface plug-in, preview the requests that will be made, without running the desktop application)
   beeftv ops [--read-only] [--json]
   beeftv ops call <operation> --params '<json>' [--operation-id <id>] [--json]
   beeftv business discover
@@ -443,24 +443,24 @@ func usage() {
   beeftv client register --label <label> [--kind codex|claude|cursor|other] [--mode read-only|read-write] [--approval ask|caller|auto]
   beeftv mcp serve [--read-only] [--all-business-tools]
 
-连接哪个工作区：不设 BEEFTV_BASE_URL 时自动连正在运行的 BeefTV 桌面应用，端口是动态的。
-BEEFTV_DATA_DIR 可以指向非默认数据目录。Windows 从用户目录下 .beeftv/runtime 读取对应
-工作区的运行信息，其他平台读取数据目录里的 runtime.json。升级后请重新打开 BeefTV。
+Which workspace to connect to: When BEEFTV_BASE_URL is not set, it will automatically connect to the running BeefTV desktop application, and the port is dynamic.
+BEEFTV_DATA_DIR can point to a non-default data directory. Windows reads the corresponding value from .beeftv/runtime in the user directory
+For the running information of the workspace, other platforms read runtime.json in the data directory. Please reopen BeefTV after upgrading.
 
-凭据：在 BeefTV 的设置里新建一个客户端，把它给出的 BEEFTV_CLIENT_ID 与 BEEFTV_CLIENT_TOKEN
-填进环境变量即可，不需要桌面令牌。一键接入改用 BEEFTV_CLIENT_TOKEN_FILE 指向 BeefTV 数据目录里的
-凭据文件，令牌不会出现在进程参数里；两者都给时以文件为准，文件不存在或为空按未授权处理。
-新连接默认开放全部业务工具，操作审批由外部 Agent 管理。
-MCP 默认只列出画布、素材、媒体与技能操作，底层业务接口通过 business.list 查找、business.call 调用；
-需要把每个底层接口单独列成工具时加 --all-business-tools（或设 BEEFTV_MCP_ALL_BUSINESS_TOOLS=1）。
-历史只读凭据继续保持只读；CLI 仍支持显式签发只读凭据。
+Credentials: Create a new client in BeefTV settings and match the BEEFTV_CLIENT_ID given by it with BEEFTV_CLIENT_TOKEN
+Just fill in the environment variables, no desktop token is required. For one-click access, use BEEFTV_CLIENT_TOKEN_FILE to point to the BeefTV data directory.
+The credential file and token will not appear in the process parameters; when both are given, the file will prevail. If the file does not exist or is empty, it will be treated as unauthorized.
+All business tools are open by default for new connections, and operation approval is managed by an external agent.
+By default, MCP only lists canvas, materials, media and skill operations, and the underlying business interface is searched through business.list and called through business.call;
+When you need to list each underlying interface as a separate tool, add --all-business-tools (or set BEEFTV_MCP_ALL_BUSINESS_TOOLS=1).
+Historical read-only credentials continue to remain read-only; the CLI still supports explicit issuance of read-only credentials.
 
-写操作必须带幂等键（CLI 的 --op-id / --operation-id，MCP 工具参数里的 operationId）：重试同一操作要复用同一个值。
-business call 提交生成（会扣费）时 --operation-id 必填，并作为任务的 clientOperationId。
+Write operations must have idempotent keys (CLI's --op-id / --operation-id, operationId in MCP tool parameters): retrying the same operation requires reusing the same value.
+--operation-id is required when business call is submitted for generation (fees will be deducted) and used as the clientOperationId of the task.
 
-环境变量：BEEFTV_BASE_URL、BEEFTV_DATA_DIR、BEEFTV_CLIENT_ID、BEEFTV_CLIENT_TOKEN、BEEFTV_CLIENT_TOKEN_FILE、
-BEEFTV_OWNER_TOKEN（owner 可信通道）、BEEFTV_DESKTOP_TOKEN（桌面自身调用）
-退出码：0 成功；2 用法；3 未找到；4 冲突；5 前置条件；6 只读/未授权；7 不支持；8 参数；9 连接失败；1 内部
+Environment variables: BEEFTV_BASE_URL, BEEFTV_DATA_DIR, BEEFTV_CLIENT_ID, BEEFTV_CLIENT_TOKEN, BEEFTV_CLIENT_TOKEN_FILE,
+BEEFTV_OWNER_TOKEN (owner trusted channel), BEEFTV_DESKTOP_TOKEN (called by the desktop itself)
+Exit codes: 0 success; 2 usage; 3 not found; 4 conflict; 5 precondition; 6 read-only/unauthorized; 7 not supported; 8 parameters; 9 connection failed; 1 internal
 `)
 }
 
@@ -475,20 +475,20 @@ func emitJSON(value any) error {
 
 func runCanvas(c *client, args []string) error {
 	if len(args) == 0 {
-		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "canvas 需要 create|get|search|node|nodes|edge"}
+		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "canvas requires create|get|search|node|nodes|edge"}
 	}
 	switch args[0] {
 	case "create":
 		return runCanvasCreate(c, args[1:])
 	case "get":
 		fs := flag.NewFlagSet("canvas get", flag.ContinueOnError)
-		canvasID := fs.String("canvas", "", "画布 ID")
-		jsonOut := fs.Bool("json", false, "输出 JSON")
+		canvasID := fs.String("canvas", "", "Canvas ID")
+		jsonOut := fs.Bool("json", false, "Output JSON")
 		if err := fs.Parse(args[1:]); err != nil {
 			return flagError(err)
 		}
 		if *canvasID == "" {
-			return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas 必填"}
+			return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas required"}
 		}
 		raw, err := c.callOp("canvas.get", "", mustJSON(map[string]any{"canvasId": *canvasID}))
 		if err != nil {
@@ -497,10 +497,10 @@ func runCanvas(c *client, args []string) error {
 		return printResult(raw, *jsonOut)
 	case "search":
 		fs := flag.NewFlagSet("canvas search", flag.ContinueOnError)
-		query := fs.String("query", "", "搜索关键字")
-		page := fs.Int("page", 1, "页码")
-		pageSize := fs.Int("page-size", 20, "每页数量")
-		jsonOut := fs.Bool("json", false, "输出 JSON")
+		query := fs.String("query", "", "Search keywords")
+		page := fs.Int("page", 1, "Page number")
+		pageSize := fs.Int("page-size", 20, "Quantity per page")
+		jsonOut := fs.Bool("json", false, "Output JSON")
 		if err := fs.Parse(args[1:]); err != nil {
 			return flagError(err)
 		}
@@ -525,7 +525,7 @@ func runCanvas(c *client, args []string) error {
 		}
 		return runCanvasEdgeCreate(c, args[2:])
 	default:
-		return &cliError{code: exitUsage, reason: "unknown_subcommand", msg: "未知 canvas 子命令: " + args[0]}
+		return &cliError{code: exitUsage, reason: "unknown_subcommand", msg: "Unknown canvas subcommand:" + args[0]}
 	}
 }
 
@@ -533,11 +533,11 @@ func runCanvas(c *client, args []string) error {
 func requireVerb(group string, args []string, verb string) error {
 	if len(args) < 2 {
 		return &cliError{code: exitUsage, reason: "missing_subcommand",
-			msg: fmt.Sprintf("canvas %s 需要子命令 %s", group, verb)}
+			msg: fmt.Sprintf("canvas %s requires subcommand %s", group, verb)}
 	}
 	if args[1] != verb {
 		return &cliError{code: exitUsage, reason: "unknown_subcommand",
-			msg: fmt.Sprintf("未知的 canvas %s 子命令 %q（只支持 %s）", group, args[1], verb)}
+			msg: fmt.Sprintf("Unknown canvas %s subcommand %q (only supports %s)", group, args[1], verb)}
 	}
 	return nil
 }
@@ -553,17 +553,17 @@ func flagError(err error) error {
 
 func runCanvasCreate(c *client, args []string) error {
 	fs := flag.NewFlagSet("canvas create", flag.ContinueOnError)
-	canvasID := fs.String("canvas", "", "可选自定义画布 ID")
-	title := fs.String("title", "", "画布标题（默认：未命名画布）")
-	projectID := fs.String("project", "", "可选关联项目 ID")
-	folderID := fs.String("folder", "", "可选画布文件夹 ID")
-	opID := fs.String("op-id", "", "幂等键（必填）")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	canvasID := fs.String("canvas", "", "Optional custom canvas ID")
+	title := fs.String("title", "", "Canvas title (default: unnamed canvas)")
+	projectID := fs.String("project", "", "Optional associated project ID")
+	folderID := fs.String("folder", "", "Optional canvas folder ID")
+	opID := fs.String("op-id", "", "Idempotent key (required)")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args); err != nil {
 		return flagError(err)
 	}
 	if *opID == "" {
-		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--op-id 必填"}
+		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--op-id required"}
 	}
 	params := map[string]any{}
 	if *canvasID != "" {
@@ -587,19 +587,19 @@ func runCanvasCreate(c *client, args []string) error {
 
 func runCanvasNodeUpdate(c *client, args []string) error {
 	fs := flag.NewFlagSet("canvas node update", flag.ContinueOnError)
-	canvasID := fs.String("canvas", "", "画布 ID")
-	nodeID := fs.String("node", "", "节点 ID")
-	revision := fs.Int64("expected-revision", 0, "读取画布时的 revision（必填）")
-	title := fs.String("title", "", "新标题")
-	prompt := fs.String("prompt", "", "新的生成提示词")
-	content := fs.String("content", "", "新的内容")
-	opID := fs.String("op-id", "", "幂等键（必填）")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	canvasID := fs.String("canvas", "", "Canvas ID")
+	nodeID := fs.String("node", "", "Node ID")
+	revision := fs.Int64("expected-revision", 0, "Revision when reading the canvas (required)")
+	title := fs.String("title", "", "new title")
+	prompt := fs.String("prompt", "", "New generation prompt words")
+	content := fs.String("content", "", "new content")
+	opID := fs.String("op-id", "", "Idempotent key (required)")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args); err != nil {
 		return flagError(err)
 	}
 	if *canvasID == "" || *nodeID == "" || *opID == "" || *revision <= 0 {
-		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas/--node/--op-id/--expected-revision 均为必填"}
+		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas/--node/--op-id/--expected-revision are all required"}
 	}
 	patch := map[string]any{}
 	// 用「flags 是否出现」判断是否传参：显式传空串是清空语义，不允许用非空值猜测。
@@ -614,7 +614,7 @@ func runCanvasNodeUpdate(c *client, args []string) error {
 		}
 	})
 	if len(patch) == 0 {
-		return &cliError{code: exitUsage, reason: "empty_patch", msg: "至少要给出 --title/--prompt/--content 之一"}
+		return &cliError{code: exitUsage, reason: "empty_patch", msg: "At least one of --title/--prompt/--content must be given"}
 	}
 	raw, err := c.callOp("canvas.node.update", *opID, mustJSON(map[string]any{
 		"canvasId": *canvasID, "nodeId": *nodeID, "expectedRevision": *revision, "patch": patch}))
@@ -626,23 +626,23 @@ func runCanvasNodeUpdate(c *client, args []string) error {
 
 func runCanvasNodesCreate(c *client, args []string) error {
 	fs := flag.NewFlagSet("canvas nodes create", flag.ContinueOnError)
-	canvasID := fs.String("canvas", "", "画布 ID")
-	revision := fs.Int64("expected-revision", 0, "读取画布时的 revision（必填）")
-	opID := fs.String("op-id", "", "幂等键（必填）")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	canvasID := fs.String("canvas", "", "Canvas ID")
+	revision := fs.Int64("expected-revision", 0, "Revision when reading the canvas (required)")
+	opID := fs.String("op-id", "", "Idempotent key (required)")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	var specs stringList
-	fs.Var(&specs, "node", "节点，格式 title:type[:prompt]，可重复")
+	fs.Var(&specs, "node", "Node, format title:type[:prompt], repeatable")
 	if err := fs.Parse(args); err != nil {
 		return flagError(err)
 	}
 	if *canvasID == "" || *opID == "" || *revision <= 0 || len(specs) == 0 {
-		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas/--op-id/--expected-revision/--node 必填"}
+		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas/--op-id/--expected-revision/--node required"}
 	}
 	nodes := make([]map[string]any, 0, len(specs))
 	for _, spec := range specs {
 		parts := strings.SplitN(spec, ":", 3)
 		if len(parts) < 2 {
-			return &cliError{code: exitUsage, reason: "bad_node_spec", msg: "节点格式应为 title:type[:prompt]：" + spec}
+			return &cliError{code: exitUsage, reason: "bad_node_spec", msg: "The node format should be title:type[:prompt]:" + spec}
 		}
 		node := map[string]any{"title": parts[0], "type": parts[1]}
 		if len(parts) == 3 {
@@ -660,17 +660,17 @@ func runCanvasNodesCreate(c *client, args []string) error {
 
 func runCanvasEdgeCreate(c *client, args []string) error {
 	fs := flag.NewFlagSet("canvas edge create", flag.ContinueOnError)
-	canvasID := fs.String("canvas", "", "画布 ID")
-	from := fs.String("from", "", "起点节点 ID")
-	to := fs.String("to", "", "终点节点 ID")
-	revision := fs.Int64("expected-revision", 0, "读取画布时的 revision（必填）")
-	opID := fs.String("op-id", "", "幂等键（必填）")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	canvasID := fs.String("canvas", "", "Canvas ID")
+	from := fs.String("from", "", "Starting node ID")
+	to := fs.String("to", "", "End node ID")
+	revision := fs.Int64("expected-revision", 0, "Revision when reading the canvas (required)")
+	opID := fs.String("op-id", "", "Idempotent key (required)")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args); err != nil {
 		return flagError(err)
 	}
 	if *canvasID == "" || *from == "" || *to == "" || *opID == "" || *revision <= 0 {
-		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas/--from/--to/--op-id/--expected-revision 必填"}
+		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas/--from/--to/--op-id/--expected-revision required"}
 	}
 	raw, err := c.callOp("canvas.edge.create", *opID, mustJSON(map[string]any{
 		"canvasId": *canvasID, "fromNodeId": *from, "toNodeId": *to, "expectedRevision": *revision}))
@@ -682,20 +682,20 @@ func runCanvasEdgeCreate(c *client, args []string) error {
 
 func runAsset(c *client, args []string) error {
 	if len(args) == 0 {
-		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "asset 需要 list|get"}
+		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "asset requires list|get"}
 	}
 	switch args[0] {
 	case "list":
 		fs := flag.NewFlagSet("asset list", flag.ContinueOnError)
-		query := fs.String("query", "", "搜索关键字")
-		kind := fs.String("kind", "", "素材类型")
-		favorite := fs.Bool("favorite", false, "只列出收藏")
-		recent := fs.Bool("recent", false, "只列出最近使用")
-		project := fs.String("project", "", "项目来源")
-		generated := fs.Bool("generated", false, "只列出生成历史")
-		page := fs.Int("page", 1, "页码")
-		pageSize := fs.Int("page-size", 40, "每页数量")
-		jsonOut := fs.Bool("json", false, "输出 JSON")
+		query := fs.String("query", "", "Search keywords")
+		kind := fs.String("kind", "", "Material type")
+		favorite := fs.Bool("favorite", false, "List only favorites")
+		recent := fs.Bool("recent", false, "List only recently used")
+		project := fs.String("project", "", "Project source")
+		generated := fs.Bool("generated", false, "List only build history")
+		page := fs.Int("page", 1, "Page number")
+		pageSize := fs.Int("page-size", 40, "Quantity per page")
+		jsonOut := fs.Bool("json", false, "Output JSON")
 		if err := fs.Parse(args[1:]); err != nil {
 			return flagError(err)
 		}
@@ -709,13 +709,13 @@ func runAsset(c *client, args []string) error {
 		return printResult(raw, *jsonOut)
 	case "get":
 		fs := flag.NewFlagSet("asset get", flag.ContinueOnError)
-		assetID := fs.String("asset", "", "素材 ID")
-		jsonOut := fs.Bool("json", false, "输出 JSON")
+		assetID := fs.String("asset", "", "Material ID")
+		jsonOut := fs.Bool("json", false, "Output JSON")
 		if err := fs.Parse(args[1:]); err != nil {
 			return flagError(err)
 		}
 		if *assetID == "" {
-			return &cliError{code: exitUsage, reason: "missing_flag", msg: "--asset 必填"}
+			return &cliError{code: exitUsage, reason: "missing_flag", msg: "--asset required"}
 		}
 		raw, err := c.callOp("asset.get", "", mustJSON(map[string]any{"assetId": *assetID}))
 		if err != nil {
@@ -723,22 +723,22 @@ func runAsset(c *client, args []string) error {
 		}
 		return printResult(raw, *jsonOut)
 	default:
-		return &cliError{code: exitUsage, reason: "unknown_subcommand", msg: "未知 asset 子命令: " + args[0]}
+		return &cliError{code: exitUsage, reason: "unknown_subcommand", msg: "Unknown asset subcommand:" + args[0]}
 	}
 }
 
 func runTask(c *client, args []string) error {
 	if len(args) == 0 || args[0] != "get" {
-		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "task 需要 get"}
+		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "task requires get"}
 	}
 	fs := flag.NewFlagSet("task get", flag.ContinueOnError)
-	taskID := fs.String("task", "", "任务 ID")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	taskID := fs.String("task", "", "Task ID")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args[1:]); err != nil {
 		return flagError(err)
 	}
 	if *taskID == "" {
-		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--task 必填"}
+		return &cliError{code: exitUsage, reason: "missing_flag", msg: "--task required"}
 	}
 	raw, err := c.callOp("task.get", "", mustJSON(map[string]any{"taskId": *taskID}))
 	if err != nil {
@@ -749,14 +749,14 @@ func runTask(c *client, args []string) error {
 
 func runClient(c *client, args []string) error {
 	if len(args) == 0 || args[0] != "register" {
-		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "client 需要 register"}
+		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "client needs to register"}
 	}
 	fs := flag.NewFlagSet("client register", flag.ContinueOnError)
-	label := fs.String("label", "", "客户端名称")
-	mode := fs.String("mode", "read-write", "read-only 或 read-write")
-	approval := fs.String("approval", "caller", "生成审批模式：ask（每次问我）、caller（调用方自己批）或 auto（自动）")
-	kind := fs.String("kind", "other", "codex、claude、cursor 或 other")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	label := fs.String("label", "", "client name")
+	mode := fs.String("mode", "read-write", "read-only or read-write")
+	approval := fs.String("approval", "caller", "Generate approval mode: ask (ask me every time), caller (caller approves by himself) or auto (automatic)")
+	kind := fs.String("kind", "other", "codex, claude, cursor or other")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args[1:]); err != nil {
 		return flagError(err)
 	}
@@ -799,28 +799,28 @@ func runApprove(c *client, args []string) error {
 		arg := strings.TrimSpace(args[i])
 		switch {
 		case arg == "--help" || arg == "-h":
-			fmt.Fprintln(os.Stderr, "用法: beeftv approve <proposalId> [--json]")
+			fmt.Fprintln(os.Stderr, "Usage: beeftv approve <proposalId> [--json]")
 			return nil
 		case arg == "--json" || arg == "-json":
 			jsonOut = true
 		case arg == "--proposal" || arg == "-proposal":
 			if i+1 >= len(args) {
-				return &cliError{code: exitUsage, reason: "missing_flag", msg: "--proposal 需要参数"}
+				return &cliError{code: exitUsage, reason: "missing_flag", msg: "--proposal requires parameters"}
 			}
 			i++
 			proposalID = strings.TrimSpace(args[i])
 		case strings.HasPrefix(arg, "--proposal="):
 			proposalID = strings.TrimSpace(strings.TrimPrefix(arg, "--proposal="))
 		case strings.HasPrefix(arg, "-"):
-			return &cliError{code: exitUsage, reason: "bad_flags", msg: "未知参数: " + arg}
+			return &cliError{code: exitUsage, reason: "bad_flags", msg: "Unknown parameters:" + arg}
 		case proposalID == "":
 			proposalID = arg
 		default:
-			return &cliError{code: exitUsage, reason: "bad_flags", msg: "多余的参数: " + arg}
+			return &cliError{code: exitUsage, reason: "bad_flags", msg: "Extra parameters:" + arg}
 		}
 	}
 	if proposalID == "" {
-		return &cliError{code: exitUsage, reason: "missing_flag", msg: "请提供生成单编号：beeftv approve <proposalId>"}
+		return &cliError{code: exitUsage, reason: "missing_flag", msg: "Please provide the ticket number: beeftv approve <proposalId>"}
 	}
 	c.ensureLocalOwnerToken()
 	raw, err := c.do(context.Background(), http.MethodPost, "/ops/orders/"+url.PathEscape(proposalID)+"/approve", map[string]any{})
@@ -832,8 +832,8 @@ func runApprove(c *client, args []string) error {
 
 func runOrders(c *client, args []string) error {
 	fs := flag.NewFlagSet("orders", flag.ContinueOnError)
-	canvasID := fs.String("canvas", "", "按画布 ID 过滤")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	canvasID := fs.String("canvas", "", "Filter by canvas ID")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args); err != nil {
 		return flagError(err)
 	}
@@ -851,8 +851,8 @@ func runOrders(c *client, args []string) error {
 
 func runExternalWrites(c *client, args []string) error {
 	fs := flag.NewFlagSet("writes", flag.ContinueOnError)
-	canvasID := fs.String("canvas", "", "按画布 ID 过滤")
-	jsonOut := fs.Bool("json", false, "输出 JSON")
+	canvasID := fs.String("canvas", "", "Filter by canvas ID")
+	jsonOut := fs.Bool("json", false, "Output JSON")
 	if err := fs.Parse(args); err != nil {
 		return flagError(err)
 	}
@@ -876,13 +876,13 @@ func runUndoExternalWrite(c *client, args []string) error {
 		arg := strings.TrimSpace(args[i])
 		switch {
 		case arg == "--help" || arg == "-h":
-			fmt.Fprintln(os.Stderr, "用法: beeftv undo <opId|latest> [--canvas <id>] [--json]")
+			fmt.Fprintln(os.Stderr, "Usage: beeftv undo <opId|latest> [--canvas <id>] [--json]")
 			return nil
 		case arg == "--json" || arg == "-json":
 			jsonOut = true
 		case arg == "--canvas" || arg == "-canvas":
 			if i+1 >= len(args) {
-				return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas 需要参数"}
+				return &cliError{code: exitUsage, reason: "missing_flag", msg: "--canvas requires parameters"}
 			}
 			i++
 			canvasID = strings.TrimSpace(args[i])
@@ -890,25 +890,25 @@ func runUndoExternalWrite(c *client, args []string) error {
 			canvasID = strings.TrimSpace(strings.TrimPrefix(arg, "--canvas="))
 		case arg == "--op-id" || arg == "-op-id":
 			if i+1 >= len(args) {
-				return &cliError{code: exitUsage, reason: "missing_flag", msg: "--op-id 需要参数"}
+				return &cliError{code: exitUsage, reason: "missing_flag", msg: "--op-id requires parameters"}
 			}
 			i++
 			opID = strings.TrimSpace(args[i])
 		case strings.HasPrefix(arg, "--op-id="):
 			opID = strings.TrimSpace(strings.TrimPrefix(arg, "--op-id="))
 		case strings.HasPrefix(arg, "-"):
-			return &cliError{code: exitUsage, reason: "bad_flags", msg: "未知参数: " + arg}
+			return &cliError{code: exitUsage, reason: "bad_flags", msg: "Unknown parameters:" + arg}
 		case opID == "":
 			opID = arg
 		default:
-			return &cliError{code: exitUsage, reason: "bad_flags", msg: "多余的参数: " + arg}
+			return &cliError{code: exitUsage, reason: "bad_flags", msg: "Extra parameters:" + arg}
 		}
 	}
 	if opID == "" {
 		if canvasID != "" {
 			opID = "latest"
 		} else {
-			return &cliError{code: exitUsage, reason: "missing_flag", msg: "请提供写入 opId 或 --canvas：beeftv undo <opId> [--canvas <id>]"}
+			return &cliError{code: exitUsage, reason: "missing_flag", msg: "Please provide write opId or --canvas: beeftv undo <opId> [--canvas <id>]"}
 		}
 	}
 	c.ensureLocalOwnerToken()
@@ -921,11 +921,11 @@ func runUndoExternalWrite(c *client, args []string) error {
 
 func runMCP(c *client, args []string) error {
 	if len(args) == 0 || args[0] != "serve" {
-		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "mcp 需要 serve"}
+		return &cliError{code: exitUsage, reason: "missing_subcommand", msg: "mcp requires serve"}
 	}
 	fs := flag.NewFlagSet("mcp serve", flag.ContinueOnError)
-	readOnly := fs.Bool("read-only", false, "只暴露只读工具")
-	allBusiness := fs.Bool("all-business-tools", os.Getenv("BEEFTV_MCP_ALL_BUSINESS_TOOLS") == "1", "把每个底层业务接口注册成单独的工具（默认只给 business.list / business.call 两个入口）")
+	readOnly := fs.Bool("read-only", false, "Expose only read-only tools")
+	allBusiness := fs.Bool("all-business-tools", os.Getenv("BEEFTV_MCP_ALL_BUSINESS_TOOLS") == "1", "Register each underlying business interface as a separate tool (only two entries are given to business.list / business.call by default)")
 	if err := fs.Parse(args[1:]); err != nil {
 		return flagError(err)
 	}
@@ -936,7 +936,7 @@ func runMCP(c *client, args []string) error {
 	timedOut := errors.Is(startupCtx.Err(), context.DeadlineExceeded)
 	cancel()
 	if timedOut {
-		return &cliError{code: exitTransportFailure, reason: "mcp_startup_timeout", msg: "连接 BeefTV 工作区超过 5 秒，请确认 BeefTV 已启动且工作区可以访问"}
+		return &cliError{code: exitTransportFailure, reason: "mcp_startup_timeout", msg: "It takes more than 5 seconds to connect to the BeefTV workspace, please confirm that BeefTV is started and the workspace is accessible"}
 	}
 	if err != nil {
 		return err
@@ -988,7 +988,7 @@ func runMCP(c *client, args []string) error {
 					requestID = strings.TrimSpace(value)
 					if requestID == "" {
 						return toolError(&cliError{code: exitBadRequest, reason: "missing_operation_id",
-							msg: "写操作必须在参数里提供 operationId，并在重试时复用同一个值"}), nil
+							msg: "Write operations must provide the operationId in the parameter and reuse the same value when retrying"}), nil
 					}
 				}
 				delete(args, "operationId")
@@ -1005,7 +1005,7 @@ func runMCP(c *client, args []string) error {
 			})
 	}
 	_, baseSource := resolveBaseURL()
-	fmt.Fprintf(os.Stderr, "beeftv mcp serve: %d 个工具，base=%s（%s），client=%s\n", registeredTools, c.currentBaseURL(), baseSource, orNone(c.clientID))
+	fmt.Fprintf(os.Stderr, "beeftv mcp serve: %d tools, base=%s (%s), client=%s", registeredTools, c.currentBaseURL(), baseSource, orNone(c.clientID))
 	return server.Run(ctx, &mcp.StdioTransport{})
 }
 
@@ -1015,7 +1015,7 @@ func isDefaultMCPOperation(id string) bool {
 
 func orNone(value string) string {
 	if value == "" {
-		return "(未登记的本机调用)"
+		return "(unregistered native call)"
 	}
 	return value
 }

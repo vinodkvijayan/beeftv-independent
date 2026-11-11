@@ -13,7 +13,7 @@ function sourceFiles(dir: string): string[] {
 }
 
 // 「滚轮操作」只是一个 prop：页面里任何一块画布漏传，用户切换后那块画布仍按「自动」走。
-test("页面里每一块 InfiniteCanvas 都接收滚轮操作设置", () => {
+test("Each InfiniteCanvas on the page receives wheel operation settings", () => {
     const usages = sourceFiles(pagesDir).flatMap((file) => {
         const source = readFileSync(file, "utf8");
         return [...source.matchAll(/<InfiniteCanvas\b([\s\S]*?)>/g)].map((match) => ({ file, props: match[1] }));

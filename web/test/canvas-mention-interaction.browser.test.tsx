@@ -138,7 +138,7 @@ test("Scenario 1: Personal asset library navigation, back button, selection and 
     expect(await menu.isVisible()).toBe(true);
 
     // 1. 点击素材分类文件夹
-    const materialFolder = menu.locator(".canvas-resource-mention-folder", { hasText: "个人资产库" });
+    const materialFolder = menu.locator(".canvas-resource-mention-folder", { hasText: "Personal asset library" });
     await materialFolder.waitFor({ state: "visible", timeout: 5000 });
     await materialFolder.click();
 
@@ -149,19 +149,19 @@ test("Scenario 1: Personal asset library navigation, back button, selection and 
     // 3. 点击返回按钮
     const backBtn = menu.locator(".canvas-resource-mention-back");
     await backBtn.waitFor({ state: "visible", timeout: 5000 });
-    expect(await backBtn.innerText()).toContain("个人资产库");
+    expect(await backBtn.innerText()).toContain("Personal asset library");
     await backBtn.click();
     await page.waitForTimeout(200);
     expect(await menu.isVisible()).toBe(true);
 
     // 4. 点击道具分类文件夹
-    const propFolder = menu.locator(".canvas-resource-mention-folder", { hasText: "个人资产库" });
+    const propFolder = menu.locator(".canvas-resource-mention-folder", { hasText: "Personal asset library" });
     await propFolder.waitFor({ state: "visible", timeout: 5000 });
     await propFolder.click();
     await page.waitForTimeout(200);
 
     // 5. 点击道具钥匙项
-    const propItem = menu.locator(".canvas-resource-mention-item", { hasText: "道具钥匙" });
+    const propItem = menu.locator(".canvas-resource-mention-item", { hasText: "prop key" });
     await propItem.waitFor({ state: "visible", timeout: 5000 });
     await propItem.click();
 
@@ -185,14 +185,14 @@ test("Scenario 2: Primary menu nodes and skill buttons direct selection", async 
     await menu.waitFor({ state: "visible", timeout: 5000 });
 
     // 1. 选择画布节点（音频节点 1）
-    const nodeItem = menu.locator(".canvas-resource-mention-item", { hasText: "音频节点 1" });
+    const nodeItem = menu.locator(".canvas-resource-mention-item", { hasText: "Audio node 1" });
     await nodeItem.waitFor({ state: "visible", timeout: 5000 });
     await nodeItem.click();
 
     await menu.waitFor({ state: "hidden", timeout: 5000 });
     let promptText = await page.locator("#rich-prompt-display").innerText();
     expect(promptText).toContain("@[node:node-1]");
-    expect(await input.locator(".canvas-resource-inline-mention").innerText()).toContain("音频节点 1");
+    expect(await input.locator(".canvas-resource-inline-mention").innerText()).toContain("Audio node 1");
 
     // 2. 选择技能库（智能分镜技能）
     // Reference insertion restores the caret on the next animation frame.
@@ -204,7 +204,7 @@ test("Scenario 2: Primary menu nodes and skill buttons direct selection", async 
     await input.pressSequentially(" and skill: @");
     await menu.waitFor({ state: "visible", timeout: 5000 });
 
-    const skillItem = menu.locator(".canvas-resource-mention-item", { hasText: "智能分镜技能" });
+    const skillItem = menu.locator(".canvas-resource-mention-item", { hasText: "Intelligent storyboard skills" });
     await skillItem.waitFor({ state: "visible", timeout: 5000 });
     await skillItem.click();
 
@@ -214,7 +214,7 @@ test("Scenario 2: Primary menu nodes and skill buttons direct selection", async 
 
     // 检查富文本 DOM 中是否渲染了带有 is-skill 的 chip
     const skillChip = input.locator(".canvas-resource-inline-mention.is-skill");
-    expect(await skillChip.innerText()).toContain("智能分镜技能");
+    expect(await skillChip.innerText()).toContain("Intelligent storyboard skills");
 }, 30000);
 
 test("Scenario 3: Search filter and keyboard navigation (ArrowDown, ArrowUp, Enter)", async () => {
@@ -227,9 +227,9 @@ test("Scenario 3: Search filter and keyboard navigation (ArrowDown, ArrowUp, Ent
 
     // 1. 搜索框输入 "生成"
     const searchInput = menu.locator(".canvas-resource-mention-search input");
-    await searchInput.fill("生成");
+    await searchInput.fill("generate");
 
-    const item = menu.locator(".canvas-resource-mention-item", { hasText: "生成图片" });
+    const item = menu.locator(".canvas-resource-mention-item", { hasText: "Generate pictures" });
     await item.waitFor({ state: "visible", timeout: 5000 });
 
     // 2. 按 ArrowDown 键激活高亮
@@ -253,9 +253,9 @@ test("Scenario 4: Search input Tab key completion", async () => {
     await menu.waitFor({ state: "visible", timeout: 5000 });
 
     const searchInput = menu.locator(".canvas-resource-mention-search input");
-    await searchInput.fill("道具");
+    await searchInput.fill("Props");
 
-    const charItem = menu.locator(".canvas-resource-mention-item", { hasText: "道具钥匙" });
+    const charItem = menu.locator(".canvas-resource-mention-item", { hasText: "prop key" });
     await charItem.waitFor({ state: "visible", timeout: 5000 });
 
     // 按 Tab 键选中
@@ -356,7 +356,7 @@ test("expanded modal allows pointer selection of references and image/video para
     for (const layer of [1200, 2400]) {
         await page.selectOption("#modal-layer", String(layer));
         await page.locator("#open-expanded").click();
-        const dialog = page.getByRole("dialog", { name: "放大提示词" });
+        const dialog = page.getByRole("dialog", { name: "Enlarge prompt word" });
         await dialog.waitFor({ state: "visible" });
         const editor = dialog.getByRole("textbox", { name: "expanded-editor" });
         // Clicking waits for modal motion to settle; fill only waits for visibility/editability.
@@ -368,8 +368,8 @@ test("expanded modal allows pointer selection of references and image/video para
             throw new Error(`${error.message} editor=${await editor.innerText()} focused=${await editor.evaluate(element => document.activeElement === element)}`);
         });
         expect(await menu.evaluate((element) => Number(getComputedStyle(element).zIndex))).toBeGreaterThan(layer);
-        await menu.locator(".canvas-resource-mention-folder", { hasText: "个人资产库" }).click();
-        await menu.locator(".canvas-resource-mention-item", { hasText: "道具钥匙" }).click();
+        await menu.locator(".canvas-resource-mention-folder", { hasText: "Personal asset library" }).click();
+        await menu.locator(".canvas-resource-mention-item", { hasText: "prop key" }).click();
         await menu.waitFor({ state: "hidden" });
         expect(await page.locator("#expanded-prompt").textContent()).toContain("@[asset:asset-prop-1]");
 
@@ -383,64 +383,64 @@ test("expanded modal allows pointer selection of references and image/video para
         await dialog.locator('[data-testid="video-settings"] button').click();
         await settings.waitFor({ state: "visible" });
         expect(await settings.evaluate((element) => Number(getComputedStyle(element).zIndex))).toBeGreaterThan(layer);
-        await settings.getByRole("spinbutton", { name: "视频时长（秒）" }).fill("8");
-        await settings.getByRole("spinbutton", { name: "视频时长（秒）" }).press("Enter");
+        await settings.getByRole("spinbutton", { name: "Video duration (seconds)" }).fill("8");
+        await settings.getByRole("spinbutton", { name: "Video duration (seconds)" }).press("Enter");
         expect(await page.locator("#parameter-update").textContent()).toBe("video:videoSeconds:8");
         await dialog.getByRole("button", { name: "Close", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
     }
 }, 30000);
 
-test("Scenario 9: 手动 @ 选中角色时保留提示词里写的角色名", async () => {
+test("Scenario 9: Manual @ keep the character name written in the prompt word when selecting the character", async () => {
     const input = page.getByRole("textbox", { name: "rich-editor" });
     await clearRichEditor(page, input);
-    await input.pressSequentially("镜头一：@唐妙菱");
+    await input.pressSequentially("Shot 1: @ Tangmiaoling");
 
     const menu = page.locator("[data-canvas-resource-mention-menu]");
     await menu.waitFor({ state: "visible", timeout: 5000 });
 
-    const characterItem = menu.locator(".canvas-resource-mention-item", { hasText: "唐妙菱" });
+    const characterItem = menu.locator(".canvas-resource-mention-item", { hasText: "Tang Miaoling" });
     await characterItem.waitFor({ state: "visible", timeout: 5000 });
     await characterItem.click();
 
     await menu.waitFor({ state: "hidden", timeout: 5000 });
     const promptText = (await page.locator("#rich-prompt-display").innerText()).trim();
     // 角色名保留在提示词里，引用追加在后面，而不是把角色名替换成引用
-    expect(promptText).toBe("RichPrompt: 镜头一：唐妙菱 @[node:node-char-1]");
-    expect(promptText.split("唐妙菱").length - 1).toBe(1);
+    expect(promptText).toBe("RichPrompt: Shot 1: Tang Miaoling @[node:node-char-1]");
+    expect(promptText.split("Tang Miaoling").length - 1).toBe(1);
 }, 30000);
 
-test("Scenario 10: 按 Tab 补全角色引用时保留角色名", async () => {
+test("Scenario 10: Preserve character name when tab completing character references", async () => {
     const input = page.getByRole("textbox", { name: "rich-editor" });
     await clearRichEditor(page, input);
-    await input.pressSequentially("镜头二：@唐妙菱");
+    await input.pressSequentially("Lens 2: @ Tangmiaoling");
 
     const menu = page.locator("[data-canvas-resource-mention-menu]");
     await menu.waitFor({ state: "visible", timeout: 5000 });
 
-    const characterItem = menu.locator(".canvas-resource-mention-item", { hasText: "唐妙菱" });
+    const characterItem = menu.locator(".canvas-resource-mention-item", { hasText: "Tang Miaoling" });
     await characterItem.waitFor({ state: "visible", timeout: 5000 });
 
     await input.press("Tab");
 
     await menu.waitFor({ state: "hidden", timeout: 5000 });
     const promptText = (await page.locator("#rich-prompt-display").innerText()).trim();
-    expect(promptText).toBe("RichPrompt: 镜头二：唐妙菱 @[node:node-char-1]");
-    expect(promptText.split("唐妙菱").length - 1).toBe(1);
+    expect(promptText).toBe("RichPrompt: Shot 2: Tang Miaoling @[node:node-char-1]");
+    expect(promptText.split("Tang Miaoling").length - 1).toBe(1);
 }, 30000);
 
-test("Scenario 11: 输入角色名按 Tab 自动补全引用时保留角色名", async () => {
+test("Scenario 11: Enter the character name and press Tab to automatically complete the reference and keep the character name.", async () => {
     const input = page.getByRole("textbox", { name: "autolink-editor" });
     await clearRichEditor(page, input);
-    await input.pressSequentially("唐妙菱");
+    await input.pressSequentially("Tang Miaoling");
 
-    const autoLinkHint = page.getByRole("button", { name: "引用唐妙菱" });
+    const autoLinkHint = page.getByRole("button", { name: "Quoting Tang Miaoling" });
     await autoLinkHint.waitFor({ state: "visible", timeout: 5000 });
 
     await input.press("Tab");
     await autoLinkHint.waitFor({ state: "hidden", timeout: 5000 });
 
     const promptText = (await page.locator("#autolink-prompt-display").innerText()).trim();
-    expect(promptText).toBe("AutoLinkPrompt: 唐妙菱 @[node:node-char-1]");
-    expect(promptText.split("唐妙菱").length - 1).toBe(1);
+    expect(promptText).toBe("AutoLinkPrompt: Tang Miaoling @[node:node-char-1]");
+    expect(promptText.split("Tang Miaoling").length - 1).toBe(1);
 }, 30000);

@@ -49,7 +49,7 @@ func configureStartupWindow(opts *options.App) {
 	opts.OnDomReady = func(ctx context.Context) {
 		firstNavigation.Do(func() {
 			if err := fitStartupWindow(className); err != nil {
-				wailsruntime.LogWarningf(ctx, "无法调整启动窗口: %v", err)
+				wailsruntime.LogWarningf(ctx, "Unable to adjust startup window: %v", err)
 			}
 			wailsruntime.WindowShow(ctx)
 		})
@@ -63,7 +63,7 @@ func fitStartupWindow(className string) error {
 	}
 	hwnd, _, _ := findStartupWindow.Call(uintptr(unsafe.Pointer(class)), 0)
 	if hwnd == 0 {
-		return fmt.Errorf("找不到主窗口")
+		return fmt.Errorf("Main window not found")
 	}
 	if err := setStartupThreadDPI.Find(); err != nil {
 		return err
@@ -73,18 +73,18 @@ func fitStartupWindow(className string) error {
 	defer runtime.UnlockOSThread()
 	previousDPI, _, err := setStartupThreadDPI.Call(perMonitorAwareDPI)
 	if previousDPI == 0 {
-		return fmt.Errorf("读取物理像素坐标: %w", err)
+		return fmt.Errorf("Read physical pixel coordinates: %w", err)
 	}
 	defer setStartupThreadDPI.Call(previousDPI)
 
 	monitor, _, _ := monitorForStartupWindow.Call(hwnd, monitorDefaultNearest)
 	info := startupMonitorInfo{size: uint32(unsafe.Sizeof(startupMonitorInfo{}))}
 	if ok, _, err := getStartupMonitorInfo.Call(monitor, uintptr(unsafe.Pointer(&info))); ok == 0 {
-		return fmt.Errorf("读取显示器工作区: %w", err)
+		return fmt.Errorf("Read display workspace: %w", err)
 	}
 	var current startupWindowRect
 	if ok, _, err := getStartupWindowRect.Call(hwnd, uintptr(unsafe.Pointer(&current))); ok == 0 {
-		return fmt.Errorf("读取窗口位置: %w", err)
+		return fmt.Errorf("Read window position: %w", err)
 	}
 	next := fitRectToWorkArea(current, info.work)
 	if next == current {
@@ -92,7 +92,7 @@ func fitStartupWindow(className string) error {
 	}
 	if ok, _, err := setStartupWindowPos.Call(hwnd, 0, uintptr(next.left), uintptr(next.top),
 		uintptr(next.right-next.left), uintptr(next.bottom-next.top), startupNoZOrder|startupNoActivate); ok == 0 {
-		return fmt.Errorf("设置窗口大小与位置: %w", err)
+		return fmt.Errorf("Set window size and position: %w", err)
 	}
 	return nil
 }

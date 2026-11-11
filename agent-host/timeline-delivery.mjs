@@ -11,16 +11,16 @@ export function timelineDeliveryTool(tools) {
     ...updateTool.parameters,
     properties: {
       ...updateTool.parameters.properties,
-      timeline: { type: 'object', description: '同 canvas_timeline_deliver.timeline' },
+      timeline: { type: 'object', description: 'Same as canvas_timeline_deliver.timeline' },
     },
   };
   timelineSchema.properties.clips.items.properties.lines = {
     type: 'array', minItems: 1, maxItems: 8, items: { type: 'string' },
-    description: '多行字幕数组（优先于 text）',
+    description: 'Multi-line subtitle array (priority over text)',
   };
   return {
     name: 'canvas_timeline_deliver', label: 'canvas.timeline.deliver', readOnly: false, replay: 'safe',
-    description: '一次完成时间线保存、本地渲染、创建成片节点绑定与导出工程 ZIP；局部重生成传 refreshNodeIds',
+    description: 'Complete timeline saving, local rendering, creation of slice node binding and export of project ZIP in one go; partial regeneration and upload of refreshNodeIds',
     parameters: {
       type: 'object', additionalProperties: false,
       properties: {
@@ -34,7 +34,7 @@ export function timelineDeliveryTool(tools) {
       required: ['expectedRevision'],
     },
     execute: async (_id, args, signal, api) => {
-      if (args.timeline !== undefined && args.refreshNodeIds !== undefined) throw new Error('invalid_params: timeline 与 refreshNodeIds 二选一');
+      if (args.timeline !== undefined && args.refreshNodeIds !== undefined) throw new Error('invalid_params: Choose one of timeline and refreshNodeIds');
       const receipts = {};
       const canvas = args.canvasId === undefined ? {} : { canvasId: args.canvasId };
       let step;
@@ -46,7 +46,7 @@ export function timelineDeliveryTool(tools) {
         if (stage) await api.reportProgress?.({ stage });
         const reply = await api.executeTool(byOperation.get(operation).name, { ...canvas, ...params }, { key });
         if (reply.isError) {
-          const error = new Error(reply.diagnostics?.map(item => item.message || '').filter(Boolean).join('; ') || '业务步骤失败');
+          const error = new Error(reply.diagnostics?.map(item => item.message || '').filter(Boolean).join('; ') || 'Business step failed');
           error.deliveryStep = true;
           error.details = reply.structuredOutput;
           throw error;
@@ -76,7 +76,7 @@ export function timelineDeliveryTool(tools) {
         }
         const rendered = await call('canvas.timeline.render', { expectedRevision: revision, ...(args.options ? { options: args.options } : {}) }, 'render');
         if (rendered.status !== 'succeeded') {
-          return response({ ...rendered, failedStep: 'canvas.timeline.render', note: '保留原任务；查询该任务，不重新渲染。' }, ['failed', 'cancelled'].includes(rendered.status));
+          return response({ ...rendered, failedStep: 'canvas.timeline.render', note: 'Keep the original task; query the task without re-rendering.' }, ['failed', 'cancelled'].includes(rendered.status));
         }
         // Reading names does not rebase over an edit made while rendering:
         // creation still checks the exact saved revision this render used.
@@ -94,7 +94,7 @@ export function timelineDeliveryTool(tools) {
           }
           offset = current.readView.nodeIndexPage.nextOffset;
         } while (Number.isSafeInteger(offset));
-        const requestedTitle = String(args.title || '').trim() || '成片';
+        const requestedTitle = String(args.title || '').trim() || 'Completed film';
         let title = requestedTitle;
         for (let index = 2; names.has(title); index++) {
           const suffix = ` · ${index}`;
@@ -109,12 +109,12 @@ export function timelineDeliveryTool(tools) {
         const project = await call('canvas.project.export', { expectedRevision: bound.revision }, 'project');
         return response({ status: 'delivered', canvasId: bound.canvasId, revision: bound.revision, nodeId,
           taskId: rendered.taskId, project, local: true, charged: false,
-          note: '视频和可编辑工程已保存；尚须读取成片检查实际画面、声音及字幕。' });
+          note: 'The video and editable projects have been saved; the finished film still needs to be loaded to check the actual images, sounds and subtitles.' });
       } catch (error) {
         if (signal?.aborted || !error.deliveryStep) throw error;
         return response({ status: 'incomplete', failedStep: step, error: error.message, details: error.details,
           taskId: receipts.render?.taskId, nodeId: receipts.node?.created?.[0]?.id,
-          note: '已完成步骤和原任务保留；只继续失败步骤，不重复生成或渲染。' }, true);
+          note: 'Completed steps and original tasks are retained; only failed steps are continued without repeated generation or rendering.' }, true);
       }
     },
   };

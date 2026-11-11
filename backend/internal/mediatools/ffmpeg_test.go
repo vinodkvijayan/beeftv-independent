@@ -7,7 +7,7 @@ import (
 )
 
 func TestBundledFFmpegRelocationAndCLI(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "中文 install with spaces")
+	root := filepath.Join(t.TempDir(), "Chinese install with spaces")
 	want := filepath.Join(root, "media-runtime", "ffmpeg.exe")
 	if err := os.MkdirAll(filepath.Dir(want), 0o755); err != nil {
 		t.Fatal(err)
@@ -32,7 +32,7 @@ func TestExplicitFFmpegOverrideDoesNotFallBack(t *testing.T) {
 }
 
 func TestNestedFFmpegWinsOverPreservedStandaloneRuntime(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "中文 install with spaces")
+	root := filepath.Join(t.TempDir(), "Chinese install with spaces")
 	legacy := filepath.Join(root, "media-runtime", "ffmpeg.exe")
 	want := filepath.Join(root, "agent-host", "media-runtime", "ffmpeg.exe")
 	for _, file := range []string{legacy, want} {

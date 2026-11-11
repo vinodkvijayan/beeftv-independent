@@ -5,7 +5,7 @@ import { createDirectorScene } from "../src/lib/canvas/director/director-scene";
 import type { DirectorScene, DirectorShot } from "../src/types/director";
 
 function scene(shots?: DirectorShot[]): DirectorScene {
-    const base = createDirectorScene("镜头 1");
+    const base = createDirectorScene("Shot 1");
     return shots ? { ...base, shots, activeShotId: shots[0]?.id || base.activeShotId } : base;
 }
 
@@ -14,8 +14,8 @@ function reader(nodes: Record<string, string | undefined>): DirectorNodeContentR
     return (nodeId) => (nodeId ? nodes[nodeId] : undefined);
 }
 
-describe("预览来源优先级", () => {
-    test("持久化导演封面优先于旧项目的独立图片节点预览", () => {
+describe("Preview source priority", () => {
+    test("Persistent Director Cover takes precedence over independent image node previews for older projects", () => {
         const current = scene();
         expect(resolveDirectorPreviewSource({
             scene: current,
@@ -26,7 +26,7 @@ describe("预览来源优先级", () => {
         })).toEqual({ kind: "image", url: "https://assets.example/new-cover.png" });
     });
 
-    test("封面尚未解析或只有空白时回落到旧预览", () => {
+    test("Fallback to old preview when cover is not yet parsed or is only blank", () => {
         const current = scene();
         expect(resolveDirectorPreviewSource({
             scene: current, shot: current.shots[0], coverUrl: "  ", previewNodeId: "legacy",
@@ -34,7 +34,7 @@ describe("预览来源优先级", () => {
         })).toEqual({ kind: "image", url: "https://assets.example/legacy.png" });
     });
 
-    test("新封面地址失败后回落到仍有效的旧预览", () => {
+    test("Fallback to still valid old preview after new cover address fails", () => {
         const current = scene();
         expect(resolveDirectorPreviewSource({
             scene: current, shot: current.shots[0], coverUrl: "https://assets.example/broken.png",
@@ -43,7 +43,7 @@ describe("预览来源优先级", () => {
         })).toEqual({ kind: "image", url: "https://assets.example/legacy.png" });
     });
 
-    test("metadata preview 优先于 shot fallback", () => {
+    test("metadata preview takes precedence over shot fallback", () => {
         const current = scene();
         const shot = { ...current.shots[0], previewNodeId: "from-shot" };
         const source = resolveDirectorPreviewSource({
@@ -55,7 +55,7 @@ describe("预览来源优先级", () => {
         expect(source).toEqual({ kind: "image", url: "data:image/png;base64,META" });
     });
 
-    test("metadata 缺失时回落到 shot.previewNodeId", () => {
+    test("Fall back to shot.previewNodeId when metadata is missing", () => {
         const current = scene();
         const shot = { ...current.shots[0], previewNodeId: "from-shot" };
         const source = resolveDirectorPreviewSource({
@@ -67,7 +67,7 @@ describe("预览来源优先级", () => {
         expect(source).toEqual({ kind: "image", url: "data:image/png;base64,SHOT" });
     });
 
-    test("metadata 指向的节点已删除时回落到 shot", () => {
+    test("Fall back to shot when the node pointed to by metadata has been deleted", () => {
         const current = scene();
         const shot = { ...current.shots[0], previewNodeId: "from-shot" };
         const source = resolveDirectorPreviewSource({
@@ -79,7 +79,7 @@ describe("预览来源优先级", () => {
         expect(source).toEqual({ kind: "image", url: "data:image/png;base64,SHOT" });
     });
 
-    test("节点已删除且无 shot 预览时为空态，绝不产出 image", () => {
+    test("The node has been deleted and has no shot. It is empty when previewing and will never produce an image.", () => {
         const current = scene();
         const source = resolveDirectorPreviewSource({
             scene: current,
@@ -90,7 +90,7 @@ describe("预览来源优先级", () => {
         expect(source).toEqual({ kind: "empty" });
     });
 
-    test("空白/纯空格正文安全落空", () => {
+    test("Empty/plain space body safety fails", () => {
         const current = scene();
         const shot = { ...current.shots[0], previewNodeId: "blank-shot" };
         expect(
@@ -103,7 +103,7 @@ describe("预览来源优先级", () => {
         ).toEqual({ kind: "empty" });
     });
 
-    test("首尾空白被剥离，URL 不会畸形地进入 <img src>", () => {
+    test("Leading and trailing whitespace is stripped, and the URL will not enter <img src> malformedly.", () => {
         const current = scene();
         expect(
             resolveDirectorPreviewSource({
@@ -115,7 +115,7 @@ describe("预览来源优先级", () => {
         ).toEqual({ kind: "image", url: "data:image/png;base64,PADDED" });
     });
 
-    test("shot 回落路径同样剥离首尾空白", () => {
+    test("The shot fallback path also strips the leading and trailing blanks", () => {
         const current = scene();
         const shot = { ...current.shots[0], previewNodeId: "padded-shot" };
         expect(
@@ -128,7 +128,7 @@ describe("预览来源优先级", () => {
         ).toEqual({ kind: "image", url: "https://cdn.example/preview.png" });
     });
 
-    test("仅有空白的正文仍然落空，不因 trim 变成空字符串 URL", () => {
+    test("The text with only blank space is still empty and does not become an empty string URL due to trim.", () => {
         const current = scene();
         const source = resolveDirectorPreviewSource({
             scene: current,
@@ -140,11 +140,11 @@ describe("预览来源优先级", () => {
         expect(source).not.toHaveProperty("url");
     });
 
-    test("scene 为 null 时是准备态而不是空态", () => {
+    test("When scene is null, it is in a ready state instead of an empty state.", () => {
         expect(resolveDirectorPreviewSource({ scene: null, shot: undefined, previewNodeId: undefined, readNodeContent: reader({}) })).toEqual({ kind: "loading" });
     });
 
-    test("scene 为 null 但已有真实预览时仍优先显示图", () => {
+    test("When scene is null but there is a real preview, the image will still be displayed first.", () => {
         expect(
             resolveDirectorPreviewSource({
                 scene: null,
@@ -155,12 +155,12 @@ describe("预览来源优先级", () => {
         ).toEqual({ kind: "image", url: "data:image/png;base64,META" });
     });
 
-    test("有场景但从未回写构图时是诚实空态", () => {
+    test("Having a scene but never writing back the composition is an honest and empty state", () => {
         const current = scene();
         expect(resolveDirectorPreviewSource({ scene: current, shot: current.shots[0], previewNodeId: undefined, readNodeContent: reader({}) })).toEqual({ kind: "empty" });
     });
 
-    test("Apply 写入 metadata 后由空态转为 image", () => {
+    test("After Apply writes metadata, it changes from empty to image.", () => {
         const current = scene();
         const before = resolveDirectorPreviewSource({ scene: current, shot: current.shots[0], previewNodeId: undefined, readNodeContent: reader({}) });
         expect(before).toEqual({ kind: "empty" });
@@ -174,27 +174,27 @@ describe("预览来源优先级", () => {
     });
 });
 
-describe("加载失败门控", () => {
+describe("Loading failure gate", () => {
     const image = { kind: "image", url: "data:image/png;base64,A" } as const;
 
-    test("失败 URL 与当前 URL 一致时立即变空态", () => {
+    test("The failed URL will become empty immediately when it is consistent with the current URL.", () => {
         expect(gateDirectorPreviewFailure(image, image.url)).toEqual({ kind: "empty" });
     });
 
-    test("URL 变化后自动恢复，无需清理布尔标记", () => {
+    test("Automatically restores after URL changes, no need to clean up Boolean tags", () => {
         expect(gateDirectorPreviewFailure({ kind: "image", url: "data:image/png;base64,B" }, image.url)).toEqual({ kind: "image", url: "data:image/png;base64,B" });
     });
 
-    test("无失败记录时原样通过", () => {
+    test("Pass as is if there is no failure record", () => {
         expect(gateDirectorPreviewFailure(image, null)).toBe(image);
     });
 
-    test("非 image 来源不受门控影响", () => {
+    test("Non-image sources are not affected by gating", () => {
         expect(gateDirectorPreviewFailure({ kind: "loading" }, image.url)).toEqual({ kind: "loading" });
         expect(gateDirectorPreviewFailure({ kind: "empty" }, image.url)).toEqual({ kind: "empty" });
     });
 
-    test("失败后 Apply 出新图仍能显示（同一次会话内）", () => {
+    test("After the failure of Apply, the new image can still be displayed (within the same session)", () => {
         const next = resolveDirectorPreviewSource({
             scene: scene(),
             shot: undefined,
@@ -205,25 +205,25 @@ describe("加载失败门控", () => {
     });
 });
 
-describe("当前镜头解析", () => {
-    test("优先 metadata 指定的 shot", () => {
+describe("Current lens analysis", () => {
+    test("Prioritize the shot specified by metadata", () => {
         const first = createDirectorScene("s").shots[0];
-        const second: DirectorShot = { ...first, id: "shot-2", name: "镜头 2", previewNodeId: "p2" };
+        const second: DirectorShot = { ...first, id: "shot-2", name: "Shot 2", previewNodeId: "p2" };
         const current = scene([first, second]);
         expect(resolveDirectorActiveShot(current, "shot-2")?.id).toBe("shot-2");
     });
 
-    test("metadata 未指定或未命中时退回第一个 shot", () => {
+    test("Returns the first shot if metadata is not specified or misses", () => {
         const current = scene();
         expect(resolveDirectorActiveShot(current, undefined)?.id).toBe(current.shots[0].id);
         expect(resolveDirectorActiveShot(current, "missing")?.id).toBe(current.shots[0].id);
     });
 
-    test("scene 为 null 时没有镜头", () => {
+    test("When scene is null there is no camera", () => {
         expect(resolveDirectorActiveShot(null, "shot-1")).toBeUndefined();
     });
 
-    test("指定 shot 的 previewNodeId 参与回落，而不是第一个 shot 的", () => {
+    test("Specify the shot's previewNodeId to participate in the fallback, not the first shot's", () => {
         const first = { ...createDirectorScene("s").shots[0], previewNodeId: "p1" };
         const second: DirectorShot = { ...first, id: "shot-2", previewNodeId: "p2" };
         const current = scene([first, second]);

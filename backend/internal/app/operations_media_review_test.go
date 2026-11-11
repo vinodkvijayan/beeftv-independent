@@ -47,7 +47,7 @@ func TestMediaReviewProviderSendsRealVideoOnceAndRejectsIncompleteResponses(t *t
 				json.NewEncoder(w).Encode(map[string]any{"id": "req-1", "model": "wand-vega-vl-1.0-flash", "usage": map[string]int{"prompt_tokens": 123, "completion_tokens": 24}, "choices": []any{map[string]any{"message": map[string]string{"content": text}, "finish_reason": finish}}})
 			}))
 			defer server.Close()
-			result, err := reviewMediaWithProvider(context.Background(), AssistantProvider{BaseURL: server.URL + "/v1", APIKey: "fixture-key", Model: "wand-vega-vl-1.0-flash"}, operations.MediaPart{MimeType: "video/mp4", Data: media}, "观察物体数量")
+			result, err := reviewMediaWithProvider(context.Background(), AssistantProvider{BaseURL: server.URL + "/v1", APIKey: "fixture-key", Model: "wand-vega-vl-1.0-flash"}, operations.MediaPart{MimeType: "video/mp4", Data: media}, "number of observed objects")
 			if calls != 1 {
 				t.Fatalf("inference retried %d times", calls)
 			}
@@ -92,7 +92,7 @@ func TestMediaReviewReadsSavedSelectionAndNeverFallsBackToMainModel(t *testing.T
 		if err := store.SaveLocalModelConfig(body); err != nil {
 			t.Fatal(err)
 		}
-		_, err := session.ReviewMedia(context.Background(), operations.MediaPart{MimeType: "video/mp4", Data: base64.StdEncoding.EncodeToString([]byte("fixture"))}, "观察视频")
+		_, err := session.ReviewMedia(context.Background(), operations.MediaPart{MimeType: "video/mp4", Data: base64.StdEncoding.EncodeToString([]byte("fixture"))}, "Watch video")
 		if (selection == "" || strings.HasPrefix(selection, "missing::")) != (err != nil) {
 			t.Fatalf("selection result %q: %v", selection, err)
 		}

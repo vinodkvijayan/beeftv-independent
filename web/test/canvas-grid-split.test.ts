@@ -47,7 +47,7 @@ describe("canvas-grid-split", () => {
                 data: {
                     id: "split-cell-0-1",
                     type: CanvasNodeType.Image,
-                    title: "图片 · 宫格 1-2",
+                    title: "Picture · Gongge 1-2",
                     position: { x: 688, y: 0 },
                     width: 592,
                     height: 432,

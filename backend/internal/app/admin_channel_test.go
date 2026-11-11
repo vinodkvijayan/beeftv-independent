@@ -19,7 +19,7 @@ import (
 
 func TestChannelFromRequestStoresConnectionWithoutDefaultProtocol(t *testing.T) {
 	channel, err := channelFromRequest(ChannelRequest{
-		Name:             "混合模型渠道",
+		Name:             "Mixed model channels",
 		BaseURL:          "https://8.8.8.8/v1",
 		APIKey:           "access-key",
 		SecretKey:        "secret-key",
@@ -88,8 +88,8 @@ func TestDuplicateSystemChannelCopiesSecretsModelsAndVariants(t *testing.T) {
 		UserID:           admin.ID,
 		Scope:            model.ChannelScopeSystem,
 		Enabled:          false,
-		Name:             "方舟视频",
-		PublicAlias:      "视频主链路",
+		Name:             "Ark video",
+		PublicAlias:      "Video main link",
 		BaseURL:          "https://example.com/v1",
 		APIKey:           "source-key",
 		SecretKey:        "source-secret",
@@ -137,7 +137,7 @@ func TestDuplicateSystemChannelCopiesSecretsModelsAndVariants(t *testing.T) {
 	if err != nil {
 		t.Fatalf("DuplicateSystemChannel() error = %v", err)
 	}
-	if copied.Name != "方舟视频 - 副本" || copied.PublicAlias != source.PublicAlias || copied.Enabled != source.Enabled {
+	if copied.Name != "Ark Video - Copy" || copied.PublicAlias != source.PublicAlias || copied.Enabled != source.Enabled {
 		t.Fatalf("copied channel summary = %#v", copied)
 	}
 	var stored model.ModelChannel
@@ -327,7 +327,7 @@ func TestImportAdminChannelModelsRejectsUnknownSelection(t *testing.T) {
 
 	_, err := svc.ImportAdminChannelModels(context.Background(), admin, channel.ID, []string{"not-in-catalog"})
 	var authErr *AuthError
-	if !errors.As(err, &authErr) || authErr.Message != "所选模型不在上游模型目录中：not-in-catalog" {
+	if !errors.As(err, &authErr) || authErr.Message != "The selected model is not in the upstream model catalog: not-in-catalog" {
 		t.Fatalf("ImportAdminChannelModels() error = %#v", err)
 	}
 	var count int64
@@ -356,7 +356,7 @@ func TestSaveAdminChannelModelRejectsActiveDuplicateKey(t *testing.T) {
 	enabled := true
 	_, err := svc.SaveAdminChannelModel(admin, channel.ID, items[0].ID, ChannelModelRequest{ModelKey: "model-b", DisplayName: "Duplicate", Capability: "text", Protocol: string(model.ChannelInterfaceChatCompletion), Enabled: &enabled})
 	var authErr *AuthError
-	if !errors.As(err, &authErr) || authErr.Status != http.StatusBadRequest || authErr.Message != "该渠道已存在模型 model-b，请直接编辑已有模型" {
+	if !errors.As(err, &authErr) || authErr.Status != http.StatusBadRequest || authErr.Message != "Model model-b already exists in this channel, please edit the existing model directly." {
 		t.Fatalf("SaveAdminChannelModel() error = %#v", err)
 	}
 }
@@ -432,7 +432,7 @@ func TestDeleteAdminChannelModelsRejectsWholeSelectionWhenOneModelIsInUse(t *tes
 
 	deleted, err := svc.DeleteAdminChannelModels(admin, channel.ID, []string{"model-a", "model-b"})
 	var authErr *AuthError
-	if !errors.As(err, &authErr) || authErr.Message != "所选渠道模型中有模型仍被前台模型供应线路或进行中任务使用，本次未删除任何模型" {
+	if !errors.As(err, &authErr) || authErr.Message != "Some of the selected channel models are still used by front-end model supply lines or ongoing tasks. No models have been deleted this time." {
 		t.Fatalf("DeleteAdminChannelModels() deleted = %d, error = %#v", deleted, err)
 	}
 	var active int64
@@ -522,11 +522,11 @@ func TestResolveProviderConfigRejectsHostileUpstreamKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err := svc.resolveProviderConfig(providerConfig{ChannelID: channel.ID, ChannelModelKey: item.ModelKey, Model: "gpt-4"})
-	if err == nil || !strings.Contains(err.Error(), "系统渠道模型标识不一致") {
+	if err == nil || !strings.Contains(err.Error(), "System channel model identification is inconsistent") {
 		t.Fatalf("hostile model error = %v", err)
 	}
 	_, err = svc.resolveProviderConfig(providerConfig{ChannelID: channel.ID, ChannelModelKey: item.ModelKey, Model: item.ModelKey, ProviderModelKey: "other-upstream"})
-	if err == nil || !strings.Contains(err.Error(), "系统渠道模型标识不一致") {
+	if err == nil || !strings.Contains(err.Error(), "System channel model identification is inconsistent") {
 		t.Fatalf("hostile provider key error = %v", err)
 	}
 }

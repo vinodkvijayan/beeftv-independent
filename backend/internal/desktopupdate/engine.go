@@ -174,7 +174,7 @@ func NewWithOptions(opts Options) *Engine {
 		parsedKey, keyErr := ParsePublicKey(key)
 		if err != nil || keyErr != nil {
 			engine.enabled = false
-			engine.state.Error = "更新配置无效。"
+			engine.state.Error = "Invalid update configuration."
 		} else {
 			engine.enabled = true
 			engine.feedURL = normalized
@@ -188,7 +188,7 @@ func NewWithOptions(opts Options) *Engine {
 	}
 	if opts.PackageManaged {
 		engine.enabled = false
-		engine.state.Error = "请下载新版 DEB 安装包更新。"
+		engine.state.Error = "Please download the new DEB installation package update."
 	}
 	status := StatusIdle
 	if !engine.enabled {
@@ -221,7 +221,7 @@ func (e *Engine) CheckForUpdate(ctx context.Context) (UpdateState, error) {
 		return e.snapshot(), ErrDisabled
 	}
 	if e.platform == "" {
-		e.fail("当前系统不支持自动更新。")
+		e.fail("The current system does not support automatic updates.")
 		return e.snapshot(), ErrUnsupported
 	}
 	e.set(func(state *UpdateState) {
@@ -236,7 +236,7 @@ func (e *Engine) CheckForUpdate(ctx context.Context) (UpdateState, error) {
 	}
 	cmp, err := compareStable(e.currentVersion, payload.Version)
 	if err != nil {
-		e.fail("更新版本号无效。")
+		e.fail("The update version number is invalid.")
 		return e.snapshot(), err
 	}
 	if cmp > 0 {
@@ -330,7 +330,7 @@ func (e *Engine) DownloadUpdate(ctx context.Context) (UpdateState, error) {
 	})
 	stageRoot, err := e.prepareStaging(verified.payload.Version)
 	if err != nil {
-		e.fail("无法准备下载目录。")
+		e.fail("Unable to prepare download directory.")
 		return e.snapshot(), err
 	}
 	stagingAccepted := false
@@ -458,7 +458,7 @@ func (e *Engine) InstallUpdate(ctx context.Context) error {
 			e.killHelper()
 			e.logf("install quit failed: %v", err)
 			e.set(func(state *UpdateState) { state.InstallPrepared = false })
-			e.fail("应用无法退出，已取消安装。")
+			e.fail("The application cannot be exited and the installation has been cancelled.")
 			return err
 		}
 	}
@@ -499,7 +499,7 @@ func (e *Engine) monitorHelper() {
 				if e.state.Status == StatusInstalling {
 					e.state.Status = StatusError
 					e.state.InstallPrepared = false
-					e.state.Error = "应用未能退出或安装程序已停止，请重试更新。"
+					e.state.Error = "The app failed to exit or the installer has stopped. Please try the update again."
 				}
 			}
 		}()
@@ -592,7 +592,7 @@ func publicError(err error) string {
 	case isError(err, ErrTimeout):
 		return ErrTimeout.Error()
 	case isError(err, ErrInvalidSignature), isError(err, ErrTampered):
-		return "更新文件损坏或被篡改。"
+		return "The update file is corrupted or tampered with."
 	case isError(err, ErrWrongPlatform):
 		return ErrWrongPlatform.Error()
 	case isError(err, ErrInvalidArchive):
@@ -616,7 +616,7 @@ func publicError(err error) string {
 				return msg
 			}
 		}
-		return "无法完成更新，请稍后重试。"
+		return "Unable to complete update, please try again later."
 	}
 }
 

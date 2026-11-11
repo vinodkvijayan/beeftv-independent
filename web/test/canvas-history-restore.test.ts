@@ -70,7 +70,7 @@ mock.module("@/services/api/request", () => ({
             server.posts.push({ path, revision: body?.revision });
             if (server.restore?.transport) throw new TypeError("Failed to fetch");
             if (server.restore?.status) {
-                throw new ApiError("云端画布已有更新，已停止覆盖；请保留本地草稿并加载最新版本", {
+                throw new ApiError("The cloud canvas has been updated and coverage has stopped; please keep the local draft and load the latest version", {
                     status: server.restore.status,
                     reason: "stale_revision",
                 });
@@ -79,7 +79,7 @@ mock.module("@/services/api/request", () => ({
             return {
                 project: {
                     id: "c1",
-                    title: "已恢复",
+                    title: "Restored",
                     createdAt: "2026-01-01T00:00:00.000Z",
                     updatedAt: "2026-01-01T00:00:00.000Z",
                     revision: (body?.revision ?? 0) + 1,
@@ -137,7 +137,7 @@ async function seedLive(doc: ReturnType<typeof canvas>, inFlight = false) {
             ? {
                 operationId: "op-old",
                 expectedRevision: 9,
-                payload: { canvasId: "c1", expectedRevision: 9, document: canvas("生成中", 9) },
+                payload: { canvasId: "c1", expectedRevision: 9, document: canvas("Generating", 9) },
             }
             : null,
     });
@@ -155,7 +155,7 @@ beforeEach(() => {
     setCanvasProjectionStoreFlushForTest(async () => {});
     activeScope = "guest";
     server.revision = 21;
-    server.document = canvas("当前稿", 21);
+    server.document = canvas("current draft", 21);
     server.posts = [];
     server.gets = [];
     server.restore = null;
@@ -164,19 +164,19 @@ beforeEach(() => {
     server.postStarted = 0;
     useSyncProgressStore.getState().clearAll();
     clearCanvasExternalRevisionConflict("guest", "c1");
-    useCanvasStore.setState({ projects: [canvas("当前稿", 21) as never] });
-    recordCanvasDocumentBase(canvas("当前稿", 21) as never);
+    useCanvasStore.setState({ projects: [canvas("current draft", 21) as never] });
+    recordCanvasDocumentBase(canvas("current draft", 21) as never);
 });
 
 describe("restoreLocalCanvasProjectFromHistory", () => {
-    test("成功恢复：POST CAS 后读取新版本并写入 journal", async () => {
-        const current = canvas("当前稿", 21, { metadata: { status: "loading" } });
+    test("Successful recovery: read new version after POST CAS and write to journal", async () => {
+        const current = canvas("current draft", 21, { metadata: { status: "loading" } });
         await seedLive(current, true);
-        const restored = canvas("三节点", 22, { metadata: { status: "success", content: "/api/resources/r1/file" } });
+        const restored = canvas("Three nodes", 22, { metadata: { status: "success", content: "/api/resources/r1/file" } });
         restored.nodes = [
             restored.nodes[0],
-            { id: "n2", type: "image", title: "露营桌", position: { x: 1, y: 0 }, width: 320, height: 220, metadata: {} },
-            { id: "n3", type: "video", title: "湖畔横移", position: { x: 2, y: 0 }, width: 320, height: 220, metadata: {} },
+            { id: "n2", type: "image", title: "camping table", position: { x: 1, y: 0 }, width: 320, height: 220, metadata: {} },
+            { id: "n3", type: "video", title: "Lakeside traverse", position: { x: 2, y: 0 }, width: 320, height: 220, metadata: {} },
         ] as never;
         server.getAfterRestore = restored;
 
@@ -185,51 +185,51 @@ describe("restoreLocalCanvasProjectFromHistory", () => {
         expect(server.posts).toEqual([{ path: "/canvas-projects/c1/history/snap-14/restore", revision: 21 }]);
         expect(server.gets).toEqual(["/canvas-projects/c1"]);
         expect(project.revision).toBe(22);
-        expect(project.title).toBe("三节点");
+        expect(project.title).toBe("Three nodes");
         expect(project.nodes).toHaveLength(3);
-        expect(useCanvasStore.getState().projects[0].title).toBe("三节点");
+        expect(useCanvasStore.getState().projects[0].title).toBe("Three nodes");
         expect(useCanvasStore.getState().projects[0].revision).toBe(22);
         const journal = await loadCanvasOperationJournal("c1");
         expect(journal.confirmedRevision).toBe(22);
-        expect(journal.confirmedSnapshot?.title).toBe("三节点");
+        expect(journal.confirmedSnapshot?.title).toBe("Three nodes");
         expect(journal.inFlight).toBeNull();
         expect(journal.pendingProjection).toBeNull();
         expect(canvasDocumentBase("c1")?.revision).toBe(22);
     });
 
-    test("409 抛错、不打开当前稿、保留本地编辑", async () => {
-        const current = canvas("未保存的标题", 21);
+    test("409 error, do not open the current draft, keep local editing", async () => {
+        const current = canvas("Unsaved title", 21);
         await seedLive(current);
         server.restore = { status: 409 };
 
         await expect(restoreLocalCanvasProjectFromHistory("c1", { snapshotId: "snap-14", revision: 21 }))
-            .rejects.toThrow("当前画布已有更新，这次没有恢复。请重新打开版本记录后再试。");
+            .rejects.toThrow("The current canvas has been updated and will not be restored this time. Please reopen version records and try again.");
 
         expect(server.posts).toHaveLength(1);
         expect(server.gets).toEqual([]);
-        expect(useCanvasStore.getState().projects[0].title).toBe("未保存的标题");
+        expect(useCanvasStore.getState().projects[0].title).toBe("Unsaved title");
         expect((await loadCanvasOperationJournal("c1")).confirmedRevision).toBe(21);
     });
 
-    test("缺少 snapshotId 或 revision 时不发恢复请求", async () => {
-        await seedLive(canvas("当前稿", 21));
+    test("No recovery request is sent when snapshotId or revision is missing", async () => {
+        await seedLive(canvas("current draft", 21));
 
         await expect(restoreLocalCanvasProjectFromHistory("c1", { snapshotId: "  ", revision: 21 }))
-            .rejects.toThrow("历史版本不存在或已过期，请刷新历史列表");
+            .rejects.toThrow("The historical version does not exist or has expired. Please refresh the history list.");
         await expect(restoreLocalCanvasProjectFromHistory("c1", { snapshotId: "snap-14", revision: 1.5 }))
-            .rejects.toThrow("请先刷新画布版本再恢复");
+            .rejects.toThrow("Please refresh the canvas version before restoring");
 
         expect(server.posts).toEqual([]);
         expect(server.gets).toEqual([]);
-        expect(useCanvasStore.getState().projects[0].title).toBe("当前稿");
+        expect(useCanvasStore.getState().projects[0].title).toBe("current draft");
     });
 
-    test("回执 revision 未前进时不把当前稿当成恢复成功", async () => {
-        await seedLive(canvas("当前稿", 21));
+    test("Receipt If the revision has not been forwarded, the current revision will not be regarded as a successful recovery.", async () => {
+        await seedLive(canvas("current draft", 21));
         server.restore = {
             project: {
                 id: "c1",
-                title: "当前稿",
+                title: "current draft",
                 createdAt: "2026-01-01T00:00:00.000Z",
                 updatedAt: "2026-01-01T00:00:00.000Z",
                 revision: 21,
@@ -237,32 +237,32 @@ describe("restoreLocalCanvasProjectFromHistory", () => {
         };
 
         await expect(restoreLocalCanvasProjectFromHistory("c1", { snapshotId: "snap-14", revision: 21 }))
-            .rejects.toThrow("恢复没有完成，画布内容没有被替换。");
+            .rejects.toThrow("The restore was not completed and the canvas contents were not replaced.");
 
         expect(server.gets).toEqual([]);
-        expect(useCanvasStore.getState().projects[0].title).toBe("当前稿");
+        expect(useCanvasStore.getState().projects[0].title).toBe("current draft");
     });
 
-    test("POST 成功但随后读到的 revision 与回执不一致时失败", async () => {
-        await seedLive(canvas("当前稿", 21));
-        server.getAfterRestore = canvas("当前稿", 21);
+    test("POST succeeds but fails when the revision read subsequently is inconsistent with the receipt", async () => {
+        await seedLive(canvas("current draft", 21));
+        server.getAfterRestore = canvas("current draft", 21);
 
         await expect(restoreLocalCanvasProjectFromHistory("c1", { snapshotId: "snap-14", revision: 21 }))
-            .rejects.toThrow("恢复后没有读到新版本，请重试。");
+            .rejects.toThrow("No new version was read after recovery, please try again.");
 
         expect(server.posts).toHaveLength(1);
         expect(server.gets).toEqual(["/canvas-projects/c1"]);
-        expect(useCanvasStore.getState().projects[0].title).toBe("当前稿");
+        expect(useCanvasStore.getState().projects[0].title).toBe("current draft");
         expect(peekCanvasOperationJournal("c1")?.confirmedRevision).toBe(21);
     });
 
-    test("openLocalCanvasProjectFromBackend 失败时仍可能退回当前稿；恢复路径不得走这条", async () => {
-        await seedLive(canvas("当前稿", 21));
+    test("When openLocalCanvasProjectFromBackend fails, it may still return to the current draft; the recovery path must not be taken this way", async () => {
+        await seedLive(canvas("current draft", 21));
         server.restore = { transport: true };
         await expect(restoreLocalCanvasProjectFromHistory("c1", { snapshotId: "snap-14", revision: 21 }))
             .rejects.toBeInstanceOf(TypeError);
         const opened = await openLocalCanvasProjectFromBackend("c1");
-        expect(opened?.title).toBe("当前稿");
-        expect(useCanvasStore.getState().projects[0].title).toBe("当前稿");
+        expect(opened?.title).toBe("current draft");
+        expect(useCanvasStore.getState().projects[0].title).toBe("current draft");
     });
 });

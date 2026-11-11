@@ -97,7 +97,7 @@ type AppearanceSkinTheme struct {
 
 func DefaultSkinThemes() []AppearanceSkinTheme {
 	classic := defaultClassicAppearanceSkin()
-	studio := CloneSkin(classic, "studio-indigo", "青瓷工作室", "雾白青瓷 · 珊瑚点睛")
+	studio := CloneSkin(classic, "studio-indigo", "celadon studio", "Matte white celadon · Coral finishing touch")
 	studio.Tokens.Light = tintAppearanceSkinMode(studio.Tokens.Light, appearanceSkinPalette{
 		canvas: "#f6f8f9", surface: "#ffffff", subtle: "#edf4f3", raised: "#d7e8e5", overlay: "#ffffff", text: "#142026", muted: "#607079", border: "#d5e0e2",
 		primary: "#087f76", primaryHover: "#076d66", primaryActive: "#095c57", primaryForeground: "#ffffff", selected: "#dff4f0", selectedHover: "#ccebe6", selectedActive: "#b9e3dd", selectedForeground: "#075f59", info: "#dd7a38",
@@ -114,7 +114,7 @@ func DefaultSkinThemes() []AppearanceSkinTheme {
 	})
 	studio.Tokens.Components = appearanceSkinComponentPreset(8, 8, 14, 14, 10, 5)
 
-	warm := CloneSkin(classic, "warm-persimmon", "暖柿纸境", "米纸暖棕 · 柿橙强调")
+	warm := CloneSkin(classic, "warm-persimmon", "Warm persimmon paper environment", "Rice paper warm brown · persimmon orange accent")
 	warm.Tokens.Light = tintAppearanceSkinMode(warm.Tokens.Light, appearanceSkinPalette{
 		canvas: "#fbf7f2", surface: "#fffdf9", subtle: "#f6ebe3", raised: "#ead2c2", overlay: "#fffdf9", text: "#35261f", muted: "#806b61", border: "#e5d6cb",
 		primary: "#b94f2f", primaryHover: "#9e4128", primaryActive: "#843621", primaryForeground: "#fffaf6", selected: "#f8e0cf", selectedHover: "#f1d1bb", selectedActive: "#e9c1a6", selectedForeground: "#8c3d25", info: "#c58a3b",
@@ -131,7 +131,7 @@ func DefaultSkinThemes() []AppearanceSkinTheme {
 	})
 	warm.Tokens.Components = appearanceSkinComponentPreset(10, 10, 16, 18, 12, 5)
 
-	violet := CloneSkin(classic, "brand-violet", "霓光紫境", "冷白雾紫 · 夜幕电光")
+	violet := CloneSkin(classic, "brand-violet", "neon purple realm", "Cold white mist purple·night electric light")
 	violet.Tokens.Light = tintAppearanceSkinMode(violet.Tokens.Light, appearanceSkinPalette{
 		canvas: "#f8f7fc", surface: "#ffffff", subtle: "#f0eefb", raised: "#dfd9f5", overlay: "#ffffff", text: "#211b35", muted: "#716a86", border: "#ddd8ec",
 		primary: "#6656d9", primaryHover: "#5847c7", primaryActive: "#4939b2", primaryForeground: "#ffffff", selected: "#ebe8ff", selectedHover: "#ded9ff", selectedActive: "#d0c9ff", selectedForeground: "#4f3fb5", info: "#8f61e8",
@@ -153,7 +153,7 @@ func DefaultSkinThemes() []AppearanceSkinTheme {
 
 func defaultClassicAppearanceSkin() AppearanceSkinTheme {
 	return AppearanceSkinTheme{
-		ID: "classic", Name: "经典黑白", Description: "项目原始样式 · 不可修改", Locked: true,
+		ID: "classic", Name: "classic black and white", Description: "Project original style · cannot be modified", Locked: true,
 		Tokens: AppearanceSkinTokens{
 			Light: AppearanceSkinModeTokens{
 				Canvas: "#ffffff", Surface: "#ffffff", SurfaceSubtle: "#f7f7f7", SurfaceRaised: "#ececec", Overlay: "#ffffff", Text: "#171717", TextMuted: "#737373", Border: "#e5e5e5",

@@ -8,10 +8,10 @@ describe("backend API request error semantics", () => {
     });
 
     test("preserves business code and reason from a non-zero envelope", async () => {
-        const thrown = await request(Promise.resolve({ data: { code: 40901, data: null, msg: "任务状态已变化", reason: "conflict" }, status: 200 })).catch((error) => error);
+        const thrown = await request(Promise.resolve({ data: { code: 40901, data: null, msg: "Task status has changed", reason: "conflict" }, status: 200 })).catch((error) => error);
 
         expect(thrown).toBeInstanceOf(ApiError);
-        expect(thrown).toMatchObject({ name: "ApiError", status: 200, code: 40901, reason: "conflict", message: "任务状态已变化", retryable: false });
+        expect(thrown).toMatchObject({ name: "ApiError", status: 200, code: 40901, reason: "conflict", message: "Task status has changed", retryable: false });
     });
 
     test("preserves HTTP status, backend code and retryability", async () => {
@@ -20,14 +20,14 @@ describe("backend API request error semantics", () => {
             message: "Request failed with status code 429",
             response: {
                 status: 429,
-                data: { code: 42901, data: null, msg: "请求过于频繁，请稍后重试", reason: "rate_limited" },
+                data: { code: 42901, data: null, msg: "The request is too frequent, please try again later.", reason: "rate_limited" },
                 headers: { "retry-after": "60" },
             },
         };
         const thrown = await request(Promise.reject(axiosError)).catch((error) => error);
 
         expect(thrown).toBeInstanceOf(ApiError);
-        expect(thrown).toMatchObject({ status: 429, code: 42901, reason: "rate_limited", message: "请求过于频繁，请稍后重试", retryable: true, retryAfterMs: 60_000 });
+        expect(thrown).toMatchObject({ status: 429, code: 42901, reason: "rate_limited", message: "The request is too frequent, please try again later.", retryable: true, retryAfterMs: 60_000 });
         expect(thrown.cause).toBe(axiosError);
     });
 
@@ -40,7 +40,7 @@ describe("backend API request error semantics", () => {
         const thrown = await request(Promise.reject(axiosError)).catch((error) => error);
 
         expect(thrown).toBeInstanceOf(ApiError);
-        expect(thrown).toMatchObject({ status: 502, message: "后端服务暂时不可用，请稍后重试", retryable: true });
+        expect(thrown).toMatchObject({ status: 502, message: "The backend service is temporarily unavailable, please try again later.", retryable: true });
     });
 
     test("http.get unwraps the same backend envelope", async () => {
@@ -60,14 +60,14 @@ describe("backend API request error semantics", () => {
     test("http.get preserves a non-zero envelope as ApiError", async () => {
         const original = apiClient.request;
         apiClient.request = (async () => ({
-            data: { code: 40901, data: null, msg: "任务状态已变化" },
+            data: { code: 40901, data: null, msg: "Task status has changed" },
             status: 200,
             headers: {},
         })) as typeof apiClient.request;
         try {
             const thrown = await http.get("/probe").catch((error) => error);
             expect(thrown).toBeInstanceOf(ApiError);
-            expect(thrown).toMatchObject({ status: 200, code: 40901, message: "任务状态已变化" });
+            expect(thrown).toMatchObject({ status: 200, code: 40901, message: "Task status has changed" });
         } finally {
             apiClient.request = original;
         }
@@ -75,7 +75,7 @@ describe("backend API request error semantics", () => {
 
     test("quota exceeded is not retryable", async () => {
         const thrown = await request(Promise.resolve({
-            data: { code: 40301, data: null, msg: "账号素材数量已达到 100 个上限", reason: "quota_exceeded" },
+            data: { code: 40301, data: null, msg: "The number of account materials has reached the upper limit of 100", reason: "quota_exceeded" },
             status: 403,
         })).catch((error) => error);
 
@@ -86,7 +86,7 @@ describe("backend API request error semantics", () => {
     test("converts Axios cancellation to AbortError", async () => {
         const thrown = await request(Promise.reject({ __CANCEL__: true, code: "ERR_CANCELED" })).catch((error) => error);
 
-        expect(thrown).toMatchObject({ name: "AbortError", message: "请求已取消" });
+        expect(thrown).toMatchObject({ name: "AbortError", message: "Request canceled" });
     });
 });
 
@@ -99,7 +99,7 @@ describe("backend API list query params", () => {
             folderId: "folder-1",
             mediaType: "image",
             unitId: "unit-1",
-            q: "夜戏",
+            q: "night show",
         }));
 
         expect(query.get("page")).toBe("2");
@@ -108,7 +108,7 @@ describe("backend API list query params", () => {
         expect(query.get("folderId")).toBe("folder-1");
         expect(query.get("mediaType")).toBe("image");
         expect(query.get("unitId")).toBe("unit-1");
-        expect(query.get("q")).toBe("夜戏");
+        expect(query.get("q")).toBe("night show");
         expect(query.has("page_size")).toBe(false);
         expect(query.has("project_id")).toBe(false);
         expect(query.has("folder_id")).toBe(false);

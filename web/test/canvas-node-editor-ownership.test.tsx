@@ -45,7 +45,7 @@ function mountEditor(canvasId = "canvas-a") {
     function Harness() {
         editor = useCanvasNodeEditor({ pageUi,
             canvasId,
-            canvasTitle: "画布",
+            canvasTitle: "canvas",
             domainProjectId: "project-a",
             nodesRef,
             setNodes: (value) => {
@@ -119,7 +119,7 @@ test("unconfirmed save keeps a recoverable draft assetId", async () => {
 
 test("ordinary save error while still owned does not write assetId", async () => {
     const restore = switchScope("owner-a");
-    const ensure = spyOn(assetSync, "ensureCanvasNodeAsset").mockRejectedValue(new Error("素材库不可用"));
+    const ensure = spyOn(assetSync, "ensureCanvasNodeAsset").mockRejectedValue(new Error("Library is not available"));
     try {
         const { editor, nodesRef } = mountEditor();
         await editor.saveNodeAsset(nodesRef.current[0]!);

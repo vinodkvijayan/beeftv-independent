@@ -59,7 +59,7 @@ export async function probeMediaDurationMs(file: File): Promise<number | undefin
     record({ phase: "enter", step: "probe", name: file.name });
     await waitIfHeld("probe");
     const api = doubles();
-    if (api.fail.probe) throw new Error("媒体元数据读取失败");
+    if (api.fail.probe) throw new Error("Media metadata read failed");
     record({ phase: "write", step: "probe", name: file.name, durationMs: api.durationMs });
     return api.durationMs;
 }
@@ -92,8 +92,8 @@ export async function uploadResourceFile(
     });
     const api = doubles();
     if (api.fail.upload) {
-        const error = new Error("网络中断") as Error & { response?: { data?: { msg?: string } } };
-        error.response = { data: { msg: "网络中断" } };
+        const error = new Error("Network outage") as Error & { response?: { data?: { msg?: string } } };
+        error.response = { data: { msg: "Network outage" } };
         throw error;
     }
     api.resourceSeq += 1;
@@ -111,7 +111,7 @@ export async function uploadResourceFile(
             publicUrl: "",
             mimeType: file.type || "application/octet-stream",
             size: file.size,
-            error: "转码失败",
+            error: "Transcoding failed",
             createdAt: "",
             updatedAt: "",
         };
@@ -151,9 +151,9 @@ export function linkProjectAsset(
         const api = doubles();
         if (api.fail.linkOnce) {
             api.fail.linkOnce = false;
-            throw new Error("挂载失败");
+            throw new Error("Mount failed");
         }
-        if (api.fail.link) throw new Error("挂载失败");
+        if (api.fail.link) throw new Error("Mount failed");
         record({
             phase: "write",
             step: "link",

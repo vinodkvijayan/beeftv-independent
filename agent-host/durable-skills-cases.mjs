@@ -19,9 +19,9 @@ const batches = { skillId: 'batches', versionId: 'v1', contentHash: hash('a') };
 const landscape = { skillId: 'landscape', versionId: 'v1', contentHash: hash('b') };
 const catalogOnly = { skillId: 'catalog-only', versionId: 'v3', contentHash: hash('c') };
 const bodies = {
-  batches: { name: '短剧资产分批', description: '先出角色，再出场景', instruction: '第一步：只做 4 张竖版角色图，做完停下等确认。第二步：场景图。' },
-  landscape: { name: '横版改写', description: '改为横版', instruction: '所有画面改为 16:9 横版。' },
-  'catalog-only': { name: '采访切片', description: '保留采访原话', instruction: '按原话切出三个镜头。' },
+  batches: { name: 'Short drama assets in batches', description: 'Come out with the characters first, then the scenes', instruction: 'Step 1: Make only 4 vertical character pictures, stop and wait for confirmation. Step 2: Scene graph.' },
+  landscape: { name: 'Horizontal version rewritten', description: 'Change to landscape version', instruction: 'All screens are changed to 16:9 landscape format.' },
+  'catalog-only': { name: 'interview slices', description: 'Keep the original words of the interview', instruction: 'Cut out three shots according to the original words.' },
 };
 const resourceFor = (pin) => ({ pin, ...bodies[pin.skillId], version: pin.versionId.slice(1), files: [], unsupportedCapabilities: [] });
 
@@ -77,7 +77,7 @@ test('active rules survive restart; fresh reselect re-reads while the same reque
   try {
     fixture = await skillFixture(directory);
     const entry = await fixture.store.createSession('canvas');
-    const first = await fixture.store.submit(entry, { turnId: 'turn-1', content: '按技能做角色图', userText: '按技能做角色图', skills: [{ ...batches, skillName: '短剧资产分批' }] });
+    const first = await fixture.store.submit(entry, { turnId: 'turn-1', content: 'Make a character map based on skills', userText: 'Make a character map based on skills', skills: [{ ...batches, skillName: 'Short drama assets in batches' }] });
     assert.equal((await fixture.store.wait(entry, first)).error, null);
     const one = fixture.payloads.at(-1);
     assert.match(userText(one), /<skill name="短剧资产分批" version="1" skillId="batches"/);
@@ -86,34 +86,34 @@ test('active rules survive restart; fresh reselect re-reads while the same reque
     assert.match(systemText(one), /<instructions>[\s\S]*<beeftv_skill_catalog>[\s\S]*<available_skills>[\s\S]*<id>catalog-only<\/id>/);
     assert(fixture.reads.length>=3,'selection, section and dispatch each validate the pin');
     const beforeRetry=fixture.reads.length;
-    const retry=await fixture.store.submit(entry,{turnId:'turn-1',content:'按技能做角色图',userText:'按技能做角色图',skills:[batches]});
+    const retry=await fixture.store.submit(entry,{turnId:'turn-1',content:'Make a character map based on skills',userText:'Make a character map based on skills',skills:[batches]});
     assert.equal(retry.id,first.id);assert.equal(fixture.reads.length,beforeRetry);
-    await assert.rejects(fixture.store.submit(entry,{turnId:'turn-1',content:'按技能做角色图',userText:'按技能做角色图',skills:[landscape]}),/submission_request_conflict/);
+    await assert.rejects(fixture.store.submit(entry,{turnId:'turn-1',content:'Make a character map based on skills',userText:'Make a character map based on skills',skills:[landscape]}),/submission_request_conflict/);
 
     const second = await fixture.store.submit(entry, { turnId: 'turn-2', content: 'A', userText: 'A' });
     assert.equal((await fixture.store.wait(entry, second)).error, null);
     const two = fixture.payloads.at(-1);
     const all = JSON.stringify(two.messages);
     assert(!all.includes('Removed system prompt section'), all);
-    assert.equal(count(userText(two), '第一步：只做 4 张竖版角色图'), 1);
+    assert.equal(count(userText(two), 'Step 1: Make only 4 vertical character pictures'), 1);
     assert.equal(systemText(two), systemText(one), 'system prompt must stay byte-stable between turns');
     assert(fixture.reads.length>beforeRetry,'continue revalidates active resources');
 
     const history = await fixture.store.history('canvas', entry.sessionId);
-    assert.deepEqual(history.turns.map((turn) => turn.userText), ['按技能做角色图', 'A']);
+    assert.deepEqual(history.turns.map((turn) => turn.userText), ['Make a character map based on skills', 'A']);
     assert(!JSON.stringify(history).includes('<skill'), 'history must show only the user text');
     assert.equal(history.turns[0].skills[0].skillId, 'batches');
     const listed = await fixture.store.listCanvasSessions('canvas');
-    assert.equal(listed[0].title, '按技能做角色图');
+    assert.equal(listed[0].title, 'Make a character map based on skills');
 
     await fixture.close();
     fixture = await skillFixture(directory);
     const restored = await fixture.store.ensureSession('canvas', entry.sessionId);
-    const third = await fixture.store.submit(restored, { turnId: 'turn-3', content: '重新选了同一个技能', userText: '重新选了同一个技能', skills: [batches] });
+    const third = await fixture.store.submit(restored, { turnId: 'turn-3', content: 'Selected the same skill again', userText: 'Selected the same skill again', skills: [batches] });
     assert.equal((await fixture.store.wait(restored, third)).error, null);
     const three = fixture.payloads.at(-1);
     assert(fixture.reads.length>=3, 'reselect re-reads after restart');
-    assert.equal(count(userText(three), '第一步：只做 4 张竖版角色图'), 2, 'fresh explicit request expands the pin again');
+    assert.equal(count(userText(three), 'Step 1: Make only 4 vertical character pictures'), 2, 'fresh explicit request expands the pin again');
     assert(!JSON.stringify(three.messages).includes('Removed system prompt section'));
   } finally { await fixture?.close(); fs.rmSync(directory, { recursive: true, force: true }); }
 });
@@ -126,18 +126,18 @@ test('a skill selected with a supplement joins the transcript once', { timeout: 
   try {
     fixture = await skillFixture(directory, { gate: async (_body, index) => { if (index === 1) { arrived(); await held; } } });
     const entry = await fixture.store.createSession('canvas');
-    const submission = await fixture.store.submit(entry, { turnId: 'turn-1', content: '做角色图', userText: '做角色图' });
+    const submission = await fixture.store.submit(entry, { turnId: 'turn-1', content: 'Make character diagrams', userText: 'Make character diagrams' });
     await first;
-    await fixture.store.supplement(entry, { requestId: 'wide', content: '改成横版', input: { message: '改成横版', attachments: [], skills: [landscape] } });
-    await assert.rejects(fixture.store.supplement(entry,{requestId:'wide',content:'改成横版',input:{message:'改成横版',skills:[batches]}}),/submission_request_conflict/);
+    await fixture.store.supplement(entry, { requestId: 'wide', content: 'Change to horizontal version', input: { message: 'Change to horizontal version', attachments: [], skills: [landscape] } });
+    await assert.rejects(fixture.store.supplement(entry,{requestId:'wide',content:'Change to horizontal version',input:{message:'Change to horizontal version',skills:[batches]}}),/submission_request_conflict/);
     // A retried identical supplement is accepted without loading again.
-    await fixture.store.supplement(entry, { requestId: 'wide', content: '改成横版', input: { message: '改成横版', attachments: [], skills: [landscape] } });
+    await fixture.store.supplement(entry, { requestId: 'wide', content: 'Change to horizontal version', input: { message: 'Change to horizontal version', attachments: [], skills: [landscape] } });
     release();
     const record = await fixture.store.wait(entry, submission);
     assert.equal(record.error, null);
-    assert.deepEqual(record.supplements, ['改成横版']);
+    assert.deepEqual(record.supplements, ['Change to horizontal version']);
     const last = fixture.payloads.at(-1);
-    assert.equal(count(userText(last), '所有画面改为 16:9 横版。'), 1);
+    assert.equal(count(userText(last), 'All screens are changed to 16:9 landscape format.'), 1);
     assert.match(userText(last), /<\/skill>\n\n改成横版/);
     assert(fixture.reads.length>=3);
     assert(!JSON.stringify(record).includes('<skill'));
@@ -151,7 +151,7 @@ test('recovering revalidates active resources but reuses the single stored expan
   try {
     fixture = await skillFixture(directory, { gate: async () => { arrived(); await new Promise(() => {}); } });
     const entry = await fixture.store.createSession('canvas');
-    await fixture.store.submit(entry, { turnId: 'turn-1', content: '做角色图', userText: '做角色图', skills: [batches] });
+    await fixture.store.submit(entry, { turnId: 'turn-1', content: 'Make character diagrams', userText: 'Make character diagrams', skills: [batches] });
     await first;
     assert(fixture.reads.length>=3);
     await fixture.close();
@@ -161,8 +161,8 @@ test('recovering revalidates active resources but reuses the single stored expan
     const record = await fixture.store.wait(restored, submission);
     assert.equal(record.error, null, JSON.stringify(record));
     assert(fixture.reads.length>=1, 'recovery validates active package before dispatch');
-    assert.equal(count(userText(fixture.payloads.at(-1)), '第一步：只做 4 张竖版角色图'), 1);
-    assert.equal(record.userText, '做角色图');
+    assert.equal(count(userText(fixture.payloads.at(-1)), 'Step 1: Make only 4 vertical character pictures'), 1);
+    assert.equal(record.userText, 'Make character diagrams');
   } finally { await fixture?.close(); fs.rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -173,7 +173,7 @@ test('skill_load loads an advertised skill into the transcript and records it', 
   try {
     fixture = await skillFixture(directory, { contextValidation:change=>changes.push(change), script: (body) => body.messages.some((m) => m.role === 'tool') ? null : { name: 'skill_load', args: { id: 'catalog-only' } } });
     const entry = await fixture.store.createSession('canvas');
-    const first = await fixture.store.submit(entry, { turnId: 'turn-1', content: '帮我切采访', userText: '帮我切采访' });
+    const first = await fixture.store.submit(entry, { turnId: 'turn-1', content: 'Cut the interview for me', userText: 'Cut the interview for me' });
     assert.equal((await fixture.store.wait(entry, first)).error, null);
     assert.equal(changes[0].origin,'skill_load','only the actual runtime tool marks a skill load');
     assert(fixture.payloads[0].tools.some((tool) => tool.function?.name === 'skill_load'));
@@ -182,47 +182,47 @@ test('skill_load loads an advertised skill into the transcript and records it', 
     assert(fixture.reads.every(read=>read.pin.skillId==='catalog-only'));
     const readCount=fixture.reads.length;
     // A fresh explicit selection re-reads the same fixed version.
-    const second = await fixture.store.submit(entry, { turnId: 'turn-2', content: '继续', userText: '继续', skills: [catalogOnly] });
+    const second = await fixture.store.submit(entry, { turnId: 'turn-2', content: 'continue', userText: 'continue', skills: [catalogOnly] });
     assert.equal((await fixture.store.wait(entry, second)).error, null);
     assert.equal(changes.at(-1).origin,undefined,'explicit user selection is not a runtime load');
     assert(fixture.reads.length>readCount);
-    assert.equal(count(userText(fixture.payloads.at(-1)), '按原话切出三个镜头。'), 1);
+    assert.equal(count(userText(fixture.payloads.at(-1)), 'Cut out three shots according to the original words.'), 1);
   } finally { await fixture?.close(); fs.rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('lossy official compaction keeps active rules; clear retains history and new_scope resets only model-visible history', {timeout:60000},async()=>{
   const directory=temp('compaction');let fixture;
   try {
-    fixture=await skillFixture(directory,{lossy:true,script:(_body,index)=>index===1?{name:'plan_update',args:{goal:'OLD_SCOPE_CASTLE',items:[{id:'old',title:'搭建城堡',status:'needs_user'}]}}:null});const entry=await fixture.store.createSession('canvas');
+    fixture=await skillFixture(directory,{lossy:true,script:(_body,index)=>index===1?{name:'plan_update',args:{goal:'OLD_SCOPE_CASTLE',items:[{id:'old',title:'Build a castle',status:'needs_user'}]}}:null});const entry=await fixture.store.createSession('canvas');
     const turn=async(id,content,selected=[])=>{
       const submission=await fixture.store.submit(entry,{turnId:id,content,userText:content,skills:selected});
       const record=await fixture.store.wait(entry,submission);assert.equal(record.error,null,JSON.stringify(record));
       return fixture.payloads.at(-1);
     };
-    await turn('one','先做角色',[batches]);
+    await turn('one','Do the role first',[batches]);
     assert.equal((await fixture.store.history('canvas',entry.sessionId)).plan.goal,'OLD_SCOPE_CASTLE');
     await turn('two','padding '.repeat(800));await turn('three','more '.repeat(800));
     const task=await entry.root.compact(undefined,CTX);
     assert.equal((await entry.harness.waitForTask(task,CTX)).state.outcome.status,'completed');
-    const after=await turn('four','继续');assert.match(userText(after),/第一步：只做 4 张竖版角色图/);assert.match(userText(after),/OLD_SCOPE_CASTLE/);
+    const after=await turn('four','continue');assert.match(userText(after),/第一步：只做 4 张竖版角色图/);assert.match(userText(after),/OLD_SCOPE_CASTLE/);
     let current=await fixture.store.skillContext(entry);
     const cleared=await fixture.store.changeSkillContext(entry,{action:'clear',expectedRevision:current.revision,requestId:'clear'});
     assert.equal(cleared.activePins.length,0);assert.equal(cleared.scopeId,current.scopeId);
     // Explicitly reselect leaves an old instruction in transcript before clear.
-    await turn('five','再次选择',[batches]);current=await fixture.store.skillContext(entry);
+    await turn('five','Select again',[batches]);current=await fixture.store.skillContext(entry);
     await fixture.store.changeSkillContext(entry,{action:'clear',expectedRevision:current.revision,requestId:'clear-again'});
-    const clearPayload=await turn('six','继续说');assert.match(JSON.stringify(clearPayload.messages),/第一步：只做 4 张竖版角色图/);
+    const clearPayload=await turn('six','continue');assert.match(JSON.stringify(clearPayload.messages),/第一步：只做 4 张竖版角色图/);
     current=await fixture.store.skillContext(entry);
     const request={action:'new_scope',expectedRevision:current.revision,requestId:'independent'};
     const fresh=await fixture.store.changeSkillContext(entry,request);
     assert.notEqual(fresh.scopeId,current.scopeId);assert.equal(fresh.lifecycle,'active');
-    const clean=await turn('seven','独立任务只说你好');assert.doesNotMatch(JSON.stringify(clean.messages),/第一步：只做 4 张竖版角色图/);
+    const clean=await turn('seven','Independent tasks: just say hello');assert.doesNotMatch(JSON.stringify(clean.messages),/第一步：只做 4 张竖版角色图/);
     assert.doesNotMatch(JSON.stringify(clean.messages),/OLD_SCOPE_CASTLE/);
     assert.equal((await fixture.store.history('canvas',entry.sessionId)).plan,undefined,'independent task has no previous plan');
     assert.equal((await fixture.store.history('canvas',entry.sessionId)).turns.length,7,'reset must preserve display history');
     // Replaying an old reset request must not cut the new task's later messages.
     await fixture.store.changeSkillContext(entry,request);
-    const repeated=await turn('eight','延续刚才任务');assert.match(userText(repeated),/独立任务只说你好/);
+    const repeated=await turn('eight','Continue the previous task');assert.match(userText(repeated),/独立任务只说你好/);
   }finally{await fixture?.close();fs.rmSync(directory,{recursive:true,force:true});}
 });
 
@@ -233,11 +233,11 @@ test('Stop during skill loading leaves the previous active choice intact', {time
     fixture=await skillFixture(directory,{versionGate:pin=>pin.skillId==='batches'?(arrived(),held.then(()=>resourceFor(pin))):undefined});
     const entry=await fixture.store.createSession('canvas');
     await fixture.store.changeSkillContext(entry,{action:'activate',pins:[landscape],expectedRevision:0,requestId:'previous'});
-    const pending=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'用分批技能',skills:[batches]});
+    const pending=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'Use batching skills',skills:[batches]});
     await reading;await fixture.store.cancelRequest('canvas',entry.sessionId,'stopped');release();
     assert.equal(await pending,null);assert.equal(fixture.payloads.length,0);
     assert.deepEqual((await fixture.store.skillContext(entry)).activePins,[landscape]);
-    const next=await fixture.store.submit(entry,{turnId:'next',content:'继续'});await fixture.store.wait(entry,next);
+    const next=await fixture.store.submit(entry,{turnId:'next',content:'continue'});await fixture.store.wait(entry,next);
     assert.match(userText(fixture.payloads.at(-1)),/16:9 横版/);
     assert.doesNotMatch(JSON.stringify(fixture.payloads.at(-1).messages),/第一步：只做 4 张竖版角色图/);
   } finally {release?.();await fixture?.close();fs.rmSync(directory,{recursive:true,force:true});}
@@ -254,7 +254,7 @@ for (const mode of ['stop','restart','newer-choice']) test(`unsubmitted skill ac
     }});
     const entry=await fixture.store.createSession('canvas');
     await fixture.store.changeSkillContext(entry,{action:'activate',pins:[landscape],expectedRevision:0,requestId:'previous'});
-    const pending=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'用分批技能',skills:[batches]});
+    const pending=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'Use batching skills',skills:[batches]});
     // Handle an expected simulated transport failure before releasing the gate.
     const outcome=pending.then(value=>({value}),error=>({error}));
     await activated;
@@ -275,7 +275,7 @@ for (const mode of ['stop','restart','newer-choice']) test(`unsubmitted skill ac
     assert.deepEqual((await fixture.store.skillContext(restored)).activePins,mode==='newer-choice'?[catalogOnly]:[landscape]);
     const history=await fixture.store.history('canvas',entry.sessionId);
     assert.equal(history.turns.length,1);assert.equal(history.turns[0].cancelled,true);
-    assert.equal(await fixture.store.submit(restored,{turnId:'stopped',requestId:'stopped',content:'用分批技能',skills:[batches]}),null);
+    assert.equal(await fixture.store.submit(restored,{turnId:'stopped',requestId:'stopped',content:'Use batching skills',skills:[batches]}),null);
   } finally {release?.();await fixture?.close();fs.rmSync(directory,{recursive:true,force:true});}
 });
 
@@ -290,7 +290,7 @@ test('Stop settles a rejected selection without activating it or losing the prev
     }});
     const entry=await fixture.store.createSession('canvas');
     await fixture.store.changeSkillContext(entry,{action:'activate',pins:[landscape],expectedRevision:0,requestId:'previous'});
-    const outcome=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'用分批技能',skills:[batches]}).catch(error=>error);
+    const outcome=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'Use batching skills',skills:[batches]}).catch(error=>error);
     await validating;await fixture.store.cancelRequest('canvas',entry.sessionId,'stopped');release();
     assert.equal((await outcome).reason,'skill_context_pin_unavailable');
     await fixture.store.recover(entry);
@@ -309,7 +309,7 @@ test('failed official admit can stop after Go closed the turn and restore its pr
     const entry=await fixture.store.createSession('canvas');
     await fixture.store.changeSkillContext(entry,{action:'activate',pins:[landscape],expectedRevision:0,requestId:'previous'});
     entry.root.submit=async()=>{arrived();await held;throw Error('official admit rejected');};
-    const outcome=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'用分批技能',skills:[batches]}).then(value=>({value}),error=>({error}));
+    const outcome=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'Use batching skills',skills:[batches]}).then(value=>({value}),error=>({error}));
     await admitting;
     assert.equal((await fixture.store.cancelRequest('canvas',entry.sessionId,'stopped')).state,'running');
     assert.equal(await fixture.store.fenceStop(entry,'stopped'),'stopped');
@@ -338,7 +338,7 @@ for (const mode of ['revoked','unavailable']) test(`Stop restores valid prior pi
     });
     const entry=await fixture.store.createSession('canvas');
     await fixture.store.changeSkillContext(entry,{action:'activate',pins:[landscape,catalogOnly],expectedRevision:0,requestId:'previous'});
-    const outcome=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'用分批技能',skills:[batches]}).then(value=>({value}),error=>({error}));
+    const outcome=fixture.store.submit(entry,{turnId:'stopped',requestId:'stopped',content:'Use batching skills',skills:[batches]}).then(value=>({value}),error=>({error}));
     await activated;invalid=true;await fixture.store.cancelRequest('canvas',entry.sessionId,'stopped');release();
     const result=await outcome;
     if(mode==='unavailable'){
@@ -357,11 +357,11 @@ for (const mode of ['revoked','unavailable']) test(`Stop restores valid prior pi
 test('skill_load can resolve the exact installed id beyond the fifty-item prompt catalog', {timeout:60000},async()=>{
   const directory=temp('catalog-pages');let fixture;
   const late={skillId:'late-skill',versionId:'v1',contentHash:hash('d')};
-  bodies['late-skill']={name:'第六十一个技能',description:'late method',instruction:'LATE_PIN_RULE'};
+  bodies['late-skill']={name:'Sixty-one skills',description:'late method',instruction:'LATE_PIN_RULE'};
   try {
     const catalogItems=[...Array.from({length:60},(_,i)=>({skillId:`padding-${i}`,versionId:'v1',contentHash:hash('e')})),late];
     fixture=await skillFixture(directory,{catalogItems,script:body=>body.messages.some(m=>m.role==='tool')?null:{name:'skill_load',args:{id:late.skillId}}});
-    const entry=await fixture.store.createSession('canvas');const submission=await fixture.store.submit(entry,{turnId:'one',content:'加载 late-skill'});
+    const entry=await fixture.store.createSession('canvas');const submission=await fixture.store.submit(entry,{turnId:'one',content:'Load late-skill'});
     assert.equal((await fixture.store.wait(entry,submission)).error,null);
     assert(fixture.catalogs.some(query=>query.id===late.skillId),'missing id must query Go before truncation');
     assert.match(systemText(fixture.payloads[0]),/共安装 61 个技能/);
@@ -375,9 +375,9 @@ test('missing or disabled active package fails before dispatch and clear still w
     try{
       fixture=await skillFixture(directory,{versionGate:pin=>{if(!revoked)return;if(reason==='hash_mismatch')return {...resourceFor(pin),pin:{...pin,contentHash:hash('f')}};throw Object.assign(Error(reason),{reason});}});
       const entry=await fixture.store.createSession('canvas');
-      let submission=await fixture.store.submit(entry,{turnId:'one',content:'先选技能',skills:[batches]});
+      let submission=await fixture.store.submit(entry,{turnId:'one',content:'Choose skills first',skills:[batches]});
       assert.equal((await fixture.store.wait(entry,submission)).error,null);const calls=fixture.payloads.length;
-      revoked=true;submission=await fixture.store.submit(entry,{turnId:'two',content:'继续'});
+      revoked=true;submission=await fixture.store.submit(entry,{turnId:'two',content:'continue'});
       const failed=await fixture.store.wait(entry,submission);assert(failed.error);assert.equal(failed.errorReason,reason==='hash_mismatch'?'skill_version_unavailable':reason);assert.equal(fixture.payloads.length,calls,`${reason}: stale section must not reach provider`);
       const current=await fixture.store.skillContext(entry);
       const cleared=await fixture.store.changeSkillContext(entry,{action:'clear',expectedRevision:current.revision,requestId:'clear'});assert.equal(cleared.activePins.length,0);
@@ -467,20 +467,20 @@ test('thinking level defaults to low, honours the env, and reaches existing conv
     delete process.env.BEEFTV_AGENT_THINKING;
     fixture = await skillFixture(directory);
     const entry = await fixture.store.createSession('canvas');
-    const first = await fixture.store.submit(entry, { turnId: 'turn-1', content: '你好', userText: '你好' });
+    const first = await fixture.store.submit(entry, { turnId: 'turn-1', content: 'hello', userText: 'hello' });
     assert.equal((await fixture.store.wait(entry, first)).error, null);
     assert.equal(fixture.payloads.at(-1).reasoning_effort, 'low');
     await fixture.close();
     fixture = await skillFixture(directory, { thinkingLevel: 'off' });
     const off = await fixture.store.ensureSession('canvas', entry.sessionId);
-    const second = await fixture.store.submit(off, { turnId: 'turn-2', content: '再来', userText: '再来' });
+    const second = await fixture.store.submit(off, { turnId: 'turn-2', content: 'Come again', userText: 'Come again' });
     assert.equal((await fixture.store.wait(off, second)).error, null);
     assert.equal(fixture.payloads.at(-1).reasoning_effort, undefined);
     await fixture.close();
     process.env.BEEFTV_AGENT_THINKING = 'medium';
     fixture = await skillFixture(directory);
     const medium = await fixture.store.ensureSession('canvas', entry.sessionId);
-    const third = await fixture.store.submit(medium, { turnId: 'turn-3', content: '继续', userText: '继续' });
+    const third = await fixture.store.submit(medium, { turnId: 'turn-3', content: 'continue', userText: 'continue' });
     assert.equal((await fixture.store.wait(medium, third)).error, null);
     assert.equal(fixture.payloads.at(-1).reasoning_effort, 'medium');
   } finally {

@@ -123,7 +123,7 @@ func (s *Service) EnsureSkillPackages() error {
 		}
 		archive, err := archiveFromMarkdownWithFiles([]byte(skill.Instruction), skill.Name, skill.Description, extraFiles)
 		if err != nil {
-			return fmt.Errorf("迁移技能 %s 文件包失败: %w", skill.ID, err)
+			return fmt.Errorf("Migration skill %s file package failed: %w", skill.ID, err)
 		}
 		if skill.CurrentVersionID != "" && skill.ContentHash == archive.ContentHash {
 			continue
@@ -133,7 +133,7 @@ func (s *Service) EnsureSkillPackages() error {
 			sourceType = "markdown"
 		}
 		if err := s.addSkillArchiveVersion(skill, archive, sourceType, "", "", "", "", false); err != nil {
-			return fmt.Errorf("保存技能 %s 文件包失败: %w", skill.ID, err)
+			return fmt.Errorf("Failed to save skill %s file package: %w", skill.ID, err)
 		}
 	}
 	if err := s.ensureDefaultAddedBuiltinSkills(); err != nil {
@@ -207,10 +207,10 @@ func (s *Service) InstallSkillUpload(userID string, sourceType string, header *m
 		}
 	}
 	if sourceType != "markdown" && sourceType != "zip" {
-		return nil, kernel.BadAuthRequest("技能文件仅支持 Markdown 或 ZIP")
+		return nil, kernel.BadAuthRequest("Skill files only support Markdown or ZIP")
 	}
 	if header == nil || header.Size <= 0 || header.Size > maxSkillPackageBytes {
-		return nil, kernel.BadAuthRequest("技能文件大小必须在 1B-200MB 之间")
+		return nil, kernel.BadAuthRequest("Skill file size must be between 1B-200MB")
 	}
 	file, err := header.Open()
 	if err != nil {
@@ -247,7 +247,7 @@ func (s *Service) InstallGitHubSkill(userID string, req SkillGitHubInstallReques
 		if errors.As(err, &appErr) {
 			return nil, err
 		}
-		return nil, kernel.WrapAppError(http.StatusBadGateway, "GitHub 技能读取失败，请检查仓库地址和网络", err)
+		return nil, kernel.WrapAppError(http.StatusBadGateway, "GitHub skill reading failed, please check the warehouse address and network", err)
 	}
 	return s.createSkillFromArchive(userID, archive, SkillInstallRequest{Tag: req.Tag, IsPrivate: req.IsPrivate}, "github", canonicalURL, resolvedRef, spec.Subdir, commit, req.AutoUpdate)
 }
@@ -258,14 +258,14 @@ func (s *Service) SyncGitHubSkill(userID string, skillID string) (*SkillItem, er
 		return nil, err
 	}
 	if skill.SourceType != "github" {
-		return nil, kernel.BadAuthRequest("只有 GitHub 技能可以同步")
+		return nil, kernel.BadAuthRequest("Only GitHub skills can be synced")
 	}
 	if err := s.syncGitHubSkill(skill); err != nil {
 		var appErr *kernel.AppError
 		if errors.As(err, &appErr) {
 			return nil, err
 		}
-		return nil, kernel.WrapAppError(http.StatusBadGateway, "GitHub 技能同步失败，请稍后重试", err)
+		return nil, kernel.WrapAppError(http.StatusBadGateway, "GitHub skill synchronization failed, please try again later.", err)
 	}
 	return s.SkillDetail(userID, skill.ID)
 }
@@ -382,10 +382,10 @@ func (s *Service) createSkillFromArchive(userID string, archive skillPackageArch
 		description = archive.Metadata.Description
 	}
 	if utf8.RuneCountInString(name) == 0 || utf8.RuneCountInString(name) > maxSkillNameRunes {
-		return nil, kernel.BadAuthRequest("技能名称必须为 1-80 个字符")
+		return nil, kernel.BadAuthRequest("Skill name must be 1-80 characters")
 	}
 	if utf8.RuneCountInString(description) == 0 {
-		return nil, kernel.BadAuthRequest("技能简介不能为空")
+		return nil, kernel.BadAuthRequest("Skill introduction cannot be empty")
 	}
 	description = fitRunes(description, maxSkillDescriptionRunes)
 	tag := strings.TrimSpace(req.Tag)
@@ -544,7 +544,7 @@ func (s *Service) SkillPackageFile(userID string, skillID string, filePath strin
 		return &SkillPackageFileContent{File: skillFileItem(*file), Binary: true}, nil
 	}
 	if len(content) > maxSkillPreviewBytes {
-		return nil, kernel.BadAuthRequest("文件超过 512KB，请下载后查看")
+		return nil, kernel.BadAuthRequest("The file exceeds 512KB, please download and view it")
 	}
 	return &SkillPackageFileContent{File: skillFileItem(*file), Content: string(content)}, nil
 }
@@ -592,7 +592,7 @@ func (s *Service) SearchSkillPackage(userID string, skillID string, query string
 	}
 	query = strings.TrimSpace(query)
 	if query == "" || utf8.RuneCountInString(query) > 120 {
-		return nil, kernel.BadAuthRequest("搜索关键词必须为 1-120 个字符")
+		return nil, kernel.BadAuthRequest("Search keyword must be 1-120 characters")
 	}
 	version, err := s.repo.SkillVersion(skill.CurrentVersionID)
 	if err != nil {
@@ -648,7 +648,7 @@ func (s *Service) readSkillPackageFile(userID string, skillID string, filePath s
 		content, err := s.readSkillArchiveEntry(version, filePath)
 		return skill, version, &files[index], content, err
 	}
-	return nil, nil, nil, nil, kernel.BadAuthRequest("技能文件不存在")
+	return nil, nil, nil, nil, kernel.BadAuthRequest("Skill file does not exist")
 }
 
 func (s *Service) readSkillArchiveEntry(version *model.SkillVersion, filePath string) ([]byte, error) {
@@ -669,20 +669,20 @@ func (s *Service) readSkillArchiveEntry(version *model.SkillVersion, filePath st
 		defer file.Close()
 		return io.ReadAll(io.LimitReader(file, maxSkillPackageBytes+1))
 	}
-	return nil, kernel.BadAuthRequest("技能文件不存在")
+	return nil, kernel.BadAuthRequest("Skill file does not exist")
 }
 
 func normalizeSkillPath(value string) (string, error) {
 	value = strings.ReplaceAll(strings.TrimSpace(value), "\\", "/")
 	if value == "" || strings.ContainsRune(value, 0) || strings.HasPrefix(value, "/") {
-		return "", kernel.BadAuthRequest("技能文件路径无效")
+		return "", kernel.BadAuthRequest("Skill file path is invalid")
 	}
 	clean := path.Clean(value)
 	if clean == "." || clean == ".." || strings.HasPrefix(clean, "../") || strings.Contains(clean, "/../") || strings.HasPrefix(clean, ".git/") || clean == ".git" {
-		return "", kernel.BadAuthRequest("技能文件路径越界或包含禁止目录")
+		return "", kernel.BadAuthRequest("The skill file path is out of bounds or contains a prohibited directory")
 	}
 	if utf8.RuneCountInString(clean) > 1000 {
-		return "", kernel.BadAuthRequest("技能文件路径过长")
+		return "", kernel.BadAuthRequest("Skill file path is too long")
 	}
 	return clean, nil
 }

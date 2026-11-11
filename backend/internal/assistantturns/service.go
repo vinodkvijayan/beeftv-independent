@@ -73,7 +73,7 @@ func (s *Service) persist(tx *gorm.DB, rec Record) error {
 }
 
 func beginCollision() *Error {
-	return &Error{Reason: ReasonIDCollision, Message: "同一轮次标识已用于不同的范围或身份"}
+	return &Error{Reason: ReasonIDCollision, Message: "The same round ID has been used for different scopes or identities"}
 }
 
 // Begin captures the pre-turn canvas document and verified references.
@@ -82,7 +82,7 @@ func beginCollision() *Error {
 // are read-only migration inputs; this method never writes them.
 func (s *Service) Begin(userID, canvasID, turnID string, input Input) (int64, error) {
 	if len(input.SkillPins) > 4 {
-		return 0, errors.New("每轮最多选择 4 个技能")
+		return 0, errors.New("Choose up to 4 skills per round")
 	}
 	seenSkill := map[string]bool{}
 	for _, pin := range input.SkillPins {
@@ -90,7 +90,7 @@ func (s *Service) Begin(userID, canvasID, turnID string, input Input) (int64, er
 			return 0, err
 		}
 		if seenSkill[pin.SkillID] {
-			return 0, errors.New("技能版本选择重复")
+			return 0, errors.New("Duplicate skill version selection")
 		}
 		seenSkill[pin.SkillID] = true
 	}
@@ -102,14 +102,14 @@ func (s *Service) Begin(userID, canvasID, turnID string, input Input) (int64, er
 		return 0, errInvalidID()
 	}
 	if s.canvas == nil {
-		return 0, errors.New("画布存储不可用")
+		return 0, errors.New("Canvas storage is not available")
 	}
 	if !s.storeReady() {
 		return 0, storeUnavailable()
 	}
 	var rec Record
 	if !ValidMode(input.PermissionMode) {
-		return 0, &Error{Reason: "invalid_permission_mode", Message: "助手权限无效"}
+		return 0, &Error{Reason: "invalid_permission_mode", Message: "Assistant permission is invalid"}
 	}
 	err := s.store.DB().Transaction(func(tx *gorm.DB) error {
 		existing, found, resolveErr := s.resolveIdentity(tx, id)
@@ -225,7 +225,7 @@ func (s *Service) ScopeForHost(userID, turnID string) (Scope, bool, error) {
 			TaskIDs  []string `json:"taskIds"`
 		}
 		if json.Unmarshal([]byte(receipt.ResultJSON), &result) != nil {
-			return Scope{}, false, errors.New("本地渲染回执损坏")
+			return Scope{}, false, errors.New("Corrupted local render receipt")
 		}
 		if (result.CanvasID == rec.CanvasID || Mode(rec.PermissionMode) == PermissionFullAccess) && strings.TrimSpace(result.TaskID) != "" {
 			taskIDs = append(taskIDs, result.TaskID)
@@ -250,7 +250,7 @@ func (s *Service) ScopeForHost(userID, turnID string) (Scope, bool, error) {
 				return Scope{}, false, decodeErr
 			}
 			if current.Lifecycle != "active" {
-				return Scope{}, false, contextError("skill_scope_reset_pending", "独立任务正在准备")
+				return Scope{}, false, contextError("skill_scope_reset_pending", "Independent mission is being prepared")
 			}
 			activePins = current.ActivePins
 		} else if !errors.Is(queryErr, gorm.ErrRecordNotFound) {
@@ -426,7 +426,7 @@ func (s *Service) CheckProposalRunnable(userID, canvasID, turnID string) error {
 		return errNotFound()
 	}
 	if rec.Undone {
-		return &Error{Reason: ReasonUndone, Message: "这一轮已撤销，不会生成。"}
+		return &Error{Reason: ReasonUndone, Message: "This round has been undone and will not be generated."}
 	}
 	if rec.ContinuationInvalidated {
 		return continuationError("intent_changed")
@@ -449,7 +449,7 @@ func (s *Service) Undone(userID, canvasID, turnID string) bool {
 // ChangeFromReceipts is the receipt reconstruction used by Finalize and Undo.
 func (s *Service) ChangeFromReceipts(rec Record) (*Change, error) {
 	if strings.TrimSpace(rec.TurnID) == "" {
-		return nil, errors.New("助手操作回执不可用，已保留撤销快照")
+		return nil, errors.New("Assistant operation receipt is not available, undo snapshot has been retained")
 	}
 	if !s.storeReady() {
 		return nil, storeUnavailable()
@@ -495,7 +495,7 @@ func (s *Service) VerifyOpenTurnInTx(tx *gorm.DB, userID, turnID, canvasID strin
 		return nil
 	}
 	if tx == nil {
-		return errors.New("助手回合校验必须在操作事务内执行")
+		return errors.New("Assistant turn verification must be performed within an operational transaction")
 	}
 	if err := requireActor(userID, canvasID); err != nil {
 		return err
@@ -512,7 +512,7 @@ func (s *Service) VerifyOpenTurnInTx(tx *gorm.DB, userID, turnID, canvasID strin
 		return err
 	}
 	if Mode(rec.PermissionMode) == PermissionReadOnly {
-		return &Error{Reason: "scope_denied", Message: "本轮助手只能读取"}
+		return &Error{Reason: "scope_denied", Message: "This round of assistants can only read"}
 	}
 	if rec.CanvasSnapshots == nil {
 		rec.CanvasSnapshots = map[string]CanvasSnapshot{}

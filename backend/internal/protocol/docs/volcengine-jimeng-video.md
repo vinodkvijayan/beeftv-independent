@@ -1,24 +1,24 @@
-# 即梦官方视频异步 API
+# Jimeng official video asynchronous API
 
-即梦视频插件使用 `CVSync2AsyncSubmitTask` 创建、`CVSync2AsyncGetResult` 查询，并由渠道的火山 AK/SK 实现完成签名。创建与查询均为 POST，模型能力键通过 `req_key` 传递。
+The Dream video plug-in uses `CVSync2AsyncSubmitTask` to create, `CVSync2AsyncGetResult` to query, and is signed by the channel's Volcano AK/SK implementation. Both creation and query are POST, and the model capability key is passed through `req_key`.
 
-## 接口与签名
+## Interface and signature
 
 {{OPERATIONS}}
 
-这两个名称是视觉服务 Action，实际 URL、Query、Region、Service、时间戳和签名头必须按火山官方签名规范生成。把 AK/SK 放入 JSON 或浏览器会造成密钥泄漏。
+These two names are visual service Actions. The actual URL, Query, Region, Service, timestamp and signature header must be generated according to the official signature specification of Volcano. Putting AK/SK into JSON or the browser will leak the key.
 
-## 模型、版本与素材限制
+## Model, version and material restrictions
 
-`req_key` 必须是账户已开通的即梦视频能力键。每个版本对首帧/尾帧、参考图数量、时长、比例和分辨率的约束不同；插件不维护一张可能过期的模型表。当前只映射参考图片，不发送参考视频、音频、生成音频或水印。
+`req_key` must be the dream video capability key for which the account has been activated. Each version has different constraints on the first frame/last frame, number of reference images, duration, scale and resolution; the plug-in does not maintain a model table that may expire. Currently only reference images are mapped, no reference video, audio, generated audio or watermarks are sent.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-基础请求包含 `req_key`、`prompt`、可选 `image_urls`。`extra` 可透传并覆盖 `req_key`、`prompt`、`image_urls`、`duration`、`ratio`、`resolution`，适合管理员按已确认的官方版本补参数。
+Basic requests include `req_key`, `prompt`, and optionally `image_urls`. `extra` can transparently transmit and cover `req_key`, `prompt`, `image_urls`, `duration`, `ratio`, and `resolution`. It is suitable for administrators to fill in parameters according to the confirmed official version.
 
-## 创建任务正文
+## Create task body
 
 ```json
 {
@@ -31,25 +31,25 @@
 }
 ```
 
-创建响应：
+Create response:
 
 ```json
 {"data":{"task_id":"task_xxx"}}
 ```
 
-查询正文：
+Query text:
 
 ```json
 {"req_key":"YOUR_JIMENG_VIDEO_REQ_KEY","task_id":"task_xxx"}
 ```
 
-## 轮询、结果与失败
+## Polling, results and failures
 
-轮询响应由统一异步 parser 读取状态和视频 URL。查询必须继续携带创建时的模型 `req_key`，不能只传任务 ID。签名时间偏差、Region 错误、能力未开通、素材 URL 失效、参数不匹配和审核均会失败。当前没有取消接口，失败后的额度处理以官方账务为准。
+The poll response is read by a unified async parser that reads the status and video URL. The query must continue to carry the model `req_key` when it was created, and cannot only pass the task ID. Signing time deviation, Region error, unactivated capabilities, invalid material URL, parameter mismatch, and audit will all fail. There is currently no cancellation interface, and the quota processing after failure shall be subject to the official accounts.
 
-## 官方资料
+## Official information
 
-- [火山引擎视觉智能开放平台](https://www.volcengine.com/docs/85621)
-- [火山引擎 API 签名方法](https://www.volcengine.com/docs/6369/67269)
+- [Volcano Engine Vision Intelligent Open Platform](https://www.volcengine.com/docs/85621)
+- [Volcano Engine API Signature Method](https://www.volcengine.com/docs/6369/67269)
 
 {{CONTRACT}}

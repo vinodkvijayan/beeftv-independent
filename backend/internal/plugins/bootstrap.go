@@ -44,7 +44,7 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 	byID := make(map[string]RegistryRecord, len(stored))
 	for _, record := range stored {
 		if _, exists := byID[record.ID]; exists {
-			return nil, fmt.Errorf("插件 registry 记录 ID %q 重复", record.ID)
+			return nil, fmt.Errorf("Plug-in registry record ID %q is duplicated", record.ID)
 		}
 		byID[record.ID] = record
 	}
@@ -54,7 +54,7 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 	}
 	entries, err := os.ReadDir(officialDir)
 	if err != nil {
-		return nil, fmt.Errorf("读取官方插件目录失败：%w", err)
+		return nil, fmt.Errorf("Failed to read official plug-in directory: %w", err)
 	}
 	builtInIDs := make(map[string]struct{}, len(entries)+2)
 	// IDs the shipped packages resolve, aliases included. A removed package
@@ -70,21 +70,21 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 		}
 		packageData, err := os.ReadFile(filepath.Join(officialDir, entry.Name()))
 		if err != nil {
-			return nil, fmt.Errorf("读取官方插件包 %s：%w", entry.Name(), err)
+			return nil, fmt.Errorf("Read the official plug-in package %s: %w", entry.Name(), err)
 		}
 		pkg, err := parseOfficialPluginPackage(packageData)
 		if err != nil {
-			return nil, fmt.Errorf("校验官方插件包 %s：%w", entry.Name(), err)
+			return nil, fmt.Errorf("Verify official plug-in package %s: %w", entry.Name(), err)
 		}
 		if _, err := protocol.LoadInstalledProviders(pkg.ManifestRaw); err != nil {
-			return nil, fmt.Errorf("加载官方插件 %q：%w", pkg.Manifest.Metadata.ID, err)
+			return nil, fmt.Errorf("Load the official plug-in %q: %w", pkg.Manifest.Metadata.ID, err)
 		}
 		for resolvable := range resolvableProviderIDs(pkg.ManifestRaw) {
 			shippedResolvable[resolvable] = pkg.Manifest.Metadata.ID
 		}
 		id := pkg.Manifest.Metadata.ID
 		if _, duplicate := builtInIDs[id]; duplicate {
-			return nil, fmt.Errorf("官方插件 ID %q 重复", id)
+			return nil, fmt.Errorf("Official plugin ID %q Duplicate", id)
 		}
 		builtInIDs[id] = struct{}{}
 		manifest := pkg.Manifest
@@ -97,7 +97,7 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 		}
 		manifestData, err := json.Marshal(manifest)
 		if err != nil {
-			return nil, fmt.Errorf("编码官方插件 %q：%w", id, err)
+			return nil, fmt.Errorf("Coding official plug-in %q: %w", id, err)
 		}
 		hash := pluginHash(packageData)
 		packageName := hash + protocol.PluginPackageExtension
@@ -119,7 +119,7 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 			continue
 		}
 		if _, err := ensurePluginBlob(filepath.Join(c.packageDir, packageName), packageData); err != nil {
-			return nil, fmt.Errorf("缓存官方插件 %q：%w", id, err)
+			return nil, fmt.Errorf("Cache official plug-in %q: %w", id, err)
 		}
 		byID[id] = next
 	}
@@ -130,14 +130,14 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 		}
 		pkg, err := protocol.ParsePluginPackageDir(pkgRoot)
 		if err != nil {
-			return nil, fmt.Errorf("校验官方插件目录 %s：%w", builtinName, err)
+			return nil, fmt.Errorf("Verify official plug-in directory %s: %w", builtinName, err)
 		}
 		if _, err := protocol.LoadInstalledProviders(pkg.ManifestRaw); err != nil {
-			return nil, fmt.Errorf("加载官方插件 %q：%w", pkg.Manifest.Metadata.ID, err)
+			return nil, fmt.Errorf("Load the official plug-in %q: %w", pkg.Manifest.Metadata.ID, err)
 		}
 		id := pkg.Manifest.Metadata.ID
 		if _, duplicate := builtInIDs[id]; duplicate {
-			return nil, fmt.Errorf("官方插件 ID %q 重复", id)
+			return nil, fmt.Errorf("Official plugin ID %q Duplicate", id)
 		}
 		builtInIDs[id] = struct{}{}
 		manifest := pkg.Manifest
@@ -150,7 +150,7 @@ func (c *Runtime) reconcileBuiltIns(stored []RegistryRecord) ([]RegistryRecord, 
 		}
 		manifestData, err := json.Marshal(manifest)
 		if err != nil {
-			return nil, fmt.Errorf("编码官方插件包 %q：%w", id, err)
+			return nil, fmt.Errorf("Coding official plug-in package %q: %w", id, err)
 		}
 		now := time.Now().UTC()
 		next := RegistryRecord{

@@ -84,8 +84,8 @@ func TestDocumentReferencesResourcesUsesExactResourceID(t *testing.T) {
 
 func TestResourceOccupiedMessageNamesBusinessRecord(t *testing.T) {
 	message := resourceOccupiedMessage([]resourceUsage{
-		{Kind: "画布", ID: "canvas-1", Title: "广告分镜"},
-		{Kind: "画布", ID: "canvas-1", Title: "广告分镜"},
+		{Kind: "canvas", ID: "canvas-1", Title: "Advertising storyboard"},
+		{Kind: "canvas", ID: "canvas-1", Title: "Advertising storyboard"},
 	})
 	if !strings.Contains(message, "画布「广告分镜」") || !strings.Contains(message, "解除引用") {
 		t.Fatalf("message = %q", message)
@@ -167,8 +167,8 @@ func TestDeleteAssetDatabaseFailureLeavesPhysicalObjectAndNoOutbox(t *testing.T)
 func TestDeleteAssetKeepsResourceSharedByIndependentAsset(t *testing.T) {
 	svc, db, _ := newResourceDeletionTestService(t)
 	resource := model.Resource{ID: "resource-shared", UserID: "user-1", Provider: "local", ObjectKey: "users/user-1/image/shared.png", Status: model.ResourceStatusReady}
-	target := model.Asset{ID: "asset-target", UserID: "user-1", Title: "待删除素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-shared"}}`}
-	independent := model.Asset{ID: "asset-independent", UserID: "user-1", Title: "生成图片", PayloadJSON: `{"data":{"storageKey":"resource:resource-shared"}}`}
+	target := model.Asset{ID: "asset-target", UserID: "user-1", Title: "Material to be deleted", PayloadJSON: `{"data":{"storageKey":"resource:resource-shared"}}`}
+	independent := model.Asset{ID: "asset-independent", UserID: "user-1", Title: "Generate pictures", PayloadJSON: `{"data":{"storageKey":"resource:resource-shared"}}`}
 	for _, item := range []any{&resource, &target, &independent} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -200,8 +200,8 @@ func TestDeleteAssetKeepsResourceSharedByIndependentAsset(t *testing.T) {
 func TestDeleteAssetKeepsLiveCanvasResourceReference(t *testing.T) {
 	svc, db, _ := newResourceDeletionTestService(t)
 	resource := model.Resource{ID: "resource-canvas", UserID: "user-1", Provider: "local", ObjectKey: "users/user-1/image/canvas.png", Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-canvas", UserID: "user-1", Title: "画布素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-canvas"}}`}
-	canvas := model.CanvasProject{ID: "canvas-live", UserID: "user-1", Title: "仍在使用的画布", PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-canvas"}}]}`}
+	asset := model.Asset{ID: "asset-canvas", UserID: "user-1", Title: "Canvas material", PayloadJSON: `{"data":{"storageKey":"resource:resource-canvas"}}`}
+	canvas := model.CanvasProject{ID: "canvas-live", UserID: "user-1", Title: "canvas still in use", PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-canvas"}}]}`}
 	for _, item := range []any{&resource, &asset, &canvas} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -245,8 +245,8 @@ func TestDeleteGeneratedAssetTaskReferences(t *testing.T) {
 			svc, db, _ := newResourceDeletionTestService(t)
 			payload := `{"url":"/api/resources/generated-resource/file"}`
 			resource := model.Resource{ID: "generated-resource", UserID: "user-1", Provider: "unsupported-test-provider", ObjectKey: "generated.png", Status: model.ResourceStatusReady}
-			asset := model.Asset{ID: "generated-asset", UserID: "user-1", Title: "生成图片", PayloadJSON: payload}
-			task := model.Task{ID: "generation-task", UserID: "user-1", Prompt: "生成图片", Status: tc.status, InputJSON: `{}`, ResultJSON: payload}
+			asset := model.Asset{ID: "generated-asset", UserID: "user-1", Title: "Generate pictures", PayloadJSON: payload}
+			task := model.Task{ID: "generation-task", UserID: "user-1", Prompt: "Generate pictures", Status: tc.status, InputJSON: `{}`, ResultJSON: payload}
 			if tc.input {
 				task.InputJSON = payload
 			}
@@ -255,7 +255,7 @@ func TestDeleteGeneratedAssetTaskReferences(t *testing.T) {
 				&model.Result{ID: "generation-result", UserID: "user-1", TaskID: task.ID, URL: "/api/resources/generated-resource/file", Payload: payload},
 			}
 			if tc.canvas {
-				items = append(items, &model.CanvasProject{ID: "canvas", UserID: "user-1", Title: "使用中的画布", PayloadJSON: payload})
+				items = append(items, &model.CanvasProject{ID: "canvas", UserID: "user-1", Title: "Canvas in use", PayloadJSON: payload})
 			}
 			for _, item := range items {
 				if err := db.Create(item).Error; err != nil {
@@ -337,12 +337,12 @@ func TestExpiredArchivedAssetCleanupRetainsCanvasMedia(t *testing.T) {
 		ObjectKey: "users/user-1/image/expired.png", Status: model.ResourceStatusReady,
 	}
 	asset := model.Asset{
-		ID: "asset-expired-archive", UserID: "user-1", Title: "过期回收站素材",
+		ID: "asset-expired-archive", UserID: "user-1", Title: "Expired recycle bin materials",
 		Status: model.AssetVersionStatusArchived, PayloadJSON: `{"data":{"storageKey":"resource:resource-expired-archive"}}`,
 		CreatedAt: old, UpdatedAt: old,
 	}
 	canvas := model.CanvasProject{
-		ID: "canvas-expired-archive", UserID: "user-1", Title: "仍引用回收站素材的画布",
+		ID: "canvas-expired-archive", UserID: "user-1", Title: "Canvas still referencing recycle bin material",
 		PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-expired-archive"}}]}`,
 	}
 	for _, item := range []any{&resource, &asset, &canvas} {
@@ -400,7 +400,7 @@ func TestDetachedResourceCleanupRemovesOrphanAndKeepsAssetBackedResource(t *test
 		CreatedAt: old, UpdatedAt: old,
 	}
 	asset := model.Asset{
-		ID: "asset-backed", UserID: "user-1", Title: "素材库图片",
+		ID: "asset-backed", UserID: "user-1", Title: "Stock image",
 		PayloadJSON: `{"data":{"storageKey":"resource:resource-backed"}}`, CreatedAt: old, UpdatedAt: old,
 	}
 	for _, item := range []any{&orphan, &backed, &asset} {

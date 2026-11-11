@@ -26,31 +26,31 @@ function writeLegacySession(legacy, canvasId, sessionId, messages = []) {
   }
   if (messages.length > 0) {
     rows.push({ type: 'custom', id: 'turn-old', parentId, timestamp, customType: TURN_ENTRY_TYPE,
-      data: { turnId: 'turn-legacy', userText: messages[0].text, reply: '旧回执', toolCalls: [], proposals: [], error: null, cancelled: false, createdAt: timestamp } });
+      data: { turnId: 'turn-legacy', userText: messages[0].text, reply: 'old receipt', toolCalls: [], proposals: [], error: null, cancelled: false, createdAt: timestamp } });
   }
   writeFileSync(file, rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
   return file;
 }
 
-describe('旧 JSONL 会话只读历史', () => {
-  test('读取升级前 JSONL v3 的用户消息和 BeefTV 轮次，不改会话身份', () => {
+describe('Old JSONL session read-only history', () => {
+  test('Read user messages and BeefTV rounds from JSONL v3 before upgrade without changing session identity', () => {
     const { root, legacy } = scratchHistory();
     try {
       const canvasId = 'legacy-v3';
       const sessionId = 'legacy-pi-0871-session';
-      writeLegacySession(legacy, canvasId, sessionId, [{ role: 'user', text: '旧会话原话' }, { role: 'assistant', text: '旧回执' }]);
+      writeLegacySession(legacy, canvasId, sessionId, [{ role: 'user', text: 'Original words from old conversation' }, { role: 'assistant', text: 'old receipt' }]);
       legacy.writeCurrentSessionId(canvasId, sessionId);
       expect(legacy.readCurrentSessionId(canvasId)).toBe(sessionId);
       const opened = legacy.openLegacySession(canvasId, sessionId);
       expect(opened.manager.getSessionId()).toBe(sessionId);
-      expect(legacy.turnEntries(opened.manager)[0].reply).toBe('旧回执');
-      expect(opened.manager.buildSessionContext().messages[0].content[0].text).toBe('旧会话原话');
+      expect(legacy.turnEntries(opened.manager)[0].reply).toBe('old receipt');
+      expect(opened.manager.buildSessionContext().messages[0].content[0].text).toBe('Original words from old conversation');
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
   });
 
-  test('openLegacySession 找不到会话时抛 session_not_found', () => {
+  test('openLegacySession throws session_not_found when the session cannot be found.', () => {
     const { root, legacy } = scratchHistory();
     try {
       expect(() => legacy.openLegacySession('missing-canvas', 'no-such-session')).toThrow(/session_not_found/);
@@ -59,7 +59,7 @@ describe('旧 JSONL 会话只读历史', () => {
     }
   });
 
-  test('current.json 是目录时读取抛 session_pointer_failed', () => {
+  test('When current.json is a directory, session_pointer_failed is thrown when reading', () => {
     const { root, legacy } = scratchHistory();
     try {
       mkdirSync(legacy.currentSessionPointerPath('bad-pointer'), { recursive: true });
@@ -69,7 +69,7 @@ describe('旧 JSONL 会话只读历史', () => {
     }
   });
 
-  test('current.json 内容损坏时读取抛 session_pointer_failed', () => {
+  test('When the content of current.json is damaged, session_pointer_failed is thrown when reading.', () => {
     const { root, legacy } = scratchHistory();
     try {
       writeFileSync(legacy.currentSessionPointerPath('bad-json'), '{');
@@ -79,24 +79,24 @@ describe('旧 JSONL 会话只读历史', () => {
     }
   });
 
-  test('listCanvasSessions 列出旧会话的标题与轮次', async () => {
+  test('listCanvasSessions lists the titles and turns of old sessions', async () => {
     const { root, legacy } = scratchHistory();
     try {
-      writeLegacySession(legacy, 'list-canvas', 'legacy-list-session', [{ role: 'user', text: '列表标题' }, { role: 'assistant', text: '回执' }]);
+      writeLegacySession(legacy, 'list-canvas', 'legacy-list-session', [{ role: 'user', text: 'list title' }, { role: 'assistant', text: 'return receipt' }]);
       const list = await legacy.listCanvasSessions('list-canvas');
       expect(list).toHaveLength(1);
       expect(list[0].sessionId).toBe('legacy-list-session');
-      expect(list[0].title).toBe('列表标题');
+      expect(list[0].title).toBe('list title');
       expect(list[0].turnCount).toBe(1);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
   });
 
-  test('deleteSession 删除旧会话文件并清理 current.json，找不到时抛 session_not_found', async () => {
+  test('deleteSession deletes the old session file and cleans current.json, and throws session_not_found when it is not found.', async () => {
     const { root, legacy } = scratchHistory();
     try {
-      writeLegacySession(legacy, 'delete-canvas', 'legacy-del-session', [{ role: 'user', text: '要删的会话' }, { role: 'assistant', text: '回执' }]);
+      writeLegacySession(legacy, 'delete-canvas', 'legacy-del-session', [{ role: 'user', text: 'Conversation to be deleted' }, { role: 'assistant', text: 'return receipt' }]);
       legacy.writeCurrentSessionId('delete-canvas', 'legacy-del-session');
       const result = legacy.deleteSession('delete-canvas', 'legacy-del-session');
       expect(result.deleted).toBe(true);
@@ -110,24 +110,24 @@ describe('旧 JSONL 会话只读历史', () => {
   });
 });
 
-describe('旧会话 → Durable 交接说明', () => {
-  test('readHandoffNote 包含旧会话最近的 user/assistant 文本', () => {
+describe('Old Session → Durable Handover Instructions', () => {
+  test('readHandoffNote contains the most recent user/assistant text from the old session', () => {
     const { root, legacy } = scratchHistory();
     try {
       writeLegacySession(legacy, 'handoff-canvas', 'legacy-handoff-session', [
-        { role: 'user', text: '旧会话的第一句原话' },
-        { role: 'assistant', text: '旧会话的第一条回执' },
+        { role: 'user', text: 'The first original sentence of the old conversation' },
+        { role: 'assistant', text: 'First receipt from old conversation' },
       ]);
       const note = legacy.readHandoffNote('handoff-canvas', 'legacy-handoff-session');
       expect(note.startsWith(HANDOFF_HEADER)).toBe(true);
-      expect(note).toContain('用户：旧会话的第一句原话');
-      expect(note).toContain('助手：旧会话的第一条回执');
+      expect(note).toContain('User: the first original sentence of the old conversation');
+      expect(note).toContain('Assistant: First receipt for old conversation');
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
   });
 
-  test('readHandoffNote 找不到旧会话时返回空说明', () => {
+  test('readHandoffNote returns an empty note when the old session cannot be found', () => {
     const { root, legacy } = scratchHistory();
     try {
       expect(legacy.readHandoffNote('no-canvas', 'no-session')).toBe('');
@@ -137,17 +137,17 @@ describe('旧会话 → Durable 交接说明', () => {
     }
   });
 
-  test('handoffNote 只保留最近 20 条消息', () => {
-    const messages = Array.from({ length: 30 }, (_, index) => ({ role: index % 2 ? 'assistant' : 'user', text: `第${index}条` }));
+  test('handoffNote only keeps the latest 20 messages', () => {
+    const messages = Array.from({ length: 30 }, (_, index) => ({ role: index % 2 ? 'assistant' : 'user', text: `No.${index}items` }));
     const note = handoffNote(messages);
-    expect(note).toContain('第29条');
-    expect(note).toContain('第10条');
-    expect(note).not.toContain('第9条');
+    expect(note).toContain('Article 29');
+    expect(note).toContain('Article 10');
+    expect(note).not.toContain('Article 9');
     const lines = note.split('\n').slice(1);
     expect(lines).toHaveLength(HANDOFF_MESSAGE_LIMIT);
   });
 
-  test('handoffNote 总长截断到约 8000 字符并保留最新内容', () => {
+  test('The total length of handoffNote is truncated to approximately 8000 characters and the latest content is retained.', () => {
     const messages = Array.from({ length: 20 }, (_, index) => ({ role: index % 2 ? 'assistant' : 'user', text: `${index}`.padEnd(900, 'x') }));
     const note = handoffNote(messages);
     const body = note.split('\n').slice(1).join('\n');
@@ -156,14 +156,14 @@ describe('旧会话 → Durable 交接说明', () => {
     expect(note).not.toContain('0' + 'x'.repeat(800));
   });
 
-  test('单条消息本身超限时截断该条，不整体丢弃', () => {
+  test('When a single message exceeds the limit, it will be truncated and not discarded as a whole.', () => {
     const note = handoffNote([{ role: 'user', text: 'y'.repeat(20000) }]);
     const body = note.split('\n').slice(1).join('\n');
     expect(body.length).toBeLessThanOrEqual(HANDOFF_CHAR_LIMIT);
-    expect(body.startsWith('用户：yyy')).toBe(true);
+    expect(body.startsWith('User:yyy')).toBe(true);
   });
 
-  test('没有 user/assistant 文本时不生成交接说明', () => {
+  test('Handover instructions are not generated without user/assistant text', () => {
     expect(handoffNote([])).toBe('');
     expect(handoffNote([{ role: 'user', text: '' }])).toBe('');
   });

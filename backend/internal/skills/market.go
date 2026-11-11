@@ -80,7 +80,7 @@ func (s *Service) MarketCatalog(ctx context.Context, q string, page, size int) (
 }
 func (s *Service) MarketRelease(ctx context.Context, id, version string) (*skillhub.Release, error) {
 	if !marketResourceID.MatchString(id) || !marketResourceID.MatchString(version) {
-		return nil, kernel.BadAuthRequest("技能版本地址无效")
+		return nil, kernel.BadAuthRequest("The skill version address is invalid")
 	}
 	if rel, _, ok := s.findBuiltinMarketRelease(id, version); ok {
 		populateReleaseCompatibility(rel)
@@ -93,7 +93,7 @@ func (s *Service) MarketRelease(ctx context.Context, id, version string) (*skill
 	var result skillhub.Release
 	e = c.JSON(ctx, "GET", "skills/"+id+"/releases/"+version, "", "", nil, &result)
 	if e == nil && (result.SkillID != id || result.ReleaseID != version) {
-		return nil, kernel.BadAuthRequest("技能市场返回了其他版本")
+		return nil, kernel.BadAuthRequest("Skill Market returns with additional versions")
 	}
 	if e == nil {
 		e = skillhub.VerifyRelease(&result)
@@ -119,12 +119,12 @@ func populateReleaseCompatibility(r *skillhub.Release) {
 	for _, required := range r.Requirements {
 		if required != "beeftv.canvas" && required != "model.image" && required != "model.video" && required != "model.audio" {
 			status = "unsupported"
-			reasons = appendUniqueReason(reasons, "当前工作区尚未验证技能要求的能力："+required)
+			reasons = appendUniqueReason(reasons, "The current workspace has not yet verified the competencies required for the skills:"+required)
 		}
 	}
 	if !marketClientCompatible(buildinfo.Current().Version, r.MinClientVersion) {
 		status = "unsupported"
-		reasons = appendUniqueReason(reasons, "请先更新 BeefTV，再安装这个技能")
+		reasons = appendUniqueReason(reasons, "Please update BeefTV first before installing this skill")
 	}
 	if status == "unsupported" || len(reasons) > 0 || r.Compatibility != nil {
 		r.Compatibility = &skillhub.Compatibility{Status: status, Reasons: reasons}
@@ -153,7 +153,7 @@ func (s *Service) InstallMarket(ctx context.Context, user, id, version string) (
 		return nil, e
 	}
 	if !marketClientCompatible(buildinfo.Current().Version, r.MinClientVersion) {
-		return nil, kernel.BadAuthRequest("请先更新 BeefTV，再安装这个技能")
+		return nil, kernel.BadAuthRequest("Please update BeefTV first before installing this skill")
 	}
 	c, e := marketClient()
 	if e != nil {
@@ -165,21 +165,21 @@ func (s *Service) InstallMarket(ctx context.Context, user, id, version string) (
 	}
 	sum := sha256.Sum256(data)
 	if hex.EncodeToString(sum[:]) != r.ArchiveSHA256 || int64(len(data)) != r.ArchiveBytes {
-		return nil, kernel.NewAppError(409, "下载包校验失败，原有技能未改变")
+		return nil, kernel.NewAppError(409, "The download package verification failed and the original skills have not changed.")
 	}
 	a, e := archiveFromZip(data, "")
 	if e != nil {
 		return nil, e
 	}
 	if a.ContentHash != r.ContentHash || len(a.Files) != len(r.Files) {
-		return nil, kernel.NewAppError(409, "技能内容与发布版本不一致")
+		return nil, kernel.NewAppError(409, "Skill content is inconsistent with the released version")
 	}
 	seen := map[string]bool{}
 	for _, f := range r.Files {
 		b, ok := a.Files[f.Path]
 		h := sha256.Sum256(b)
 		if !ok || seen[f.Path] || int64(len(b)) != f.Size || hex.EncodeToString(h[:]) != f.SHA256 {
-			return nil, kernel.NewAppError(409, "技能文件清单校验失败")
+			return nil, kernel.NewAppError(409, "Skill file list verification failed")
 		}
 		seen[f.Path] = true
 	}
@@ -201,7 +201,7 @@ func (s *Service) InstallMarket(ctx context.Context, user, id, version string) (
 	}
 	// A locally edited copy is a user's draft, never an update target.
 	if old.SourceType != "market" {
-		return nil, kernel.NewAppError(409, "本地修改已保留为草稿，请安装为新技能")
+		return nil, kernel.NewAppError(409, "Local modifications have been retained as drafts, please install them as new skills")
 	}
 	old.Instruction = string(a.Files["SKILL.md"])
 	old.Name = r.Name
@@ -218,7 +218,7 @@ func (s *Service) MarketVersions(user, id string) (any, error) {
 		return nil, e
 	}
 	if sk.OwnerID != user {
-		return nil, kernel.Forbidden("只能管理自己的技能版本")
+		return nil, kernel.Forbidden("You can only manage your own skill version")
 	}
 	return s.repo.SkillVersions(id)
 }
@@ -230,11 +230,11 @@ func (s *Service) RollbackMarket(user, id, version string) (*SkillItem, error) {
 		return nil, e
 	}
 	if sk.OwnerID != user {
-		return nil, kernel.Forbidden("只能管理自己的技能版本")
+		return nil, kernel.Forbidden("You can only manage your own skill version")
 	}
 	v, e := s.repo.SkillVersion(version)
 	if e != nil || v.SkillID != id {
-		return nil, kernel.BadAuthRequest("技能版本不存在")
+		return nil, kernel.BadAuthRequest("Skill version does not exist")
 	}
 	pin := Pin{SkillID: id, VersionID: version, ContentHash: v.ContentHash}
 	resource, e := s.AgentVersion(user, pin)
@@ -286,7 +286,7 @@ func (s *Service) ForkMarket(user, id string) (*SkillItem, error) {
 	if len([]rune(name)) > 72 {
 		name = string([]rune(name)[:72])
 	}
-	return s.createSkillFromArchive(user, a, SkillInstallRequest{Name: name + " · 我的改写", Description: source.Description, Tag: source.Tag, IsPrivate: true}, "markdown", source.SourceURL, "", "", "", false)
+	return s.createSkillFromArchive(user, a, SkillInstallRequest{Name: name + " · My rewriting", Description: source.Description, Tag: source.Tag, IsPrivate: true}, "markdown", source.SourceURL, "", "", "", false)
 }
 
 func marketClientCompatible(current, minimum string) bool {

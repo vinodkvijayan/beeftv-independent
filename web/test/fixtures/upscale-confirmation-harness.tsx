@@ -18,7 +18,7 @@ useConfigStore.setState(state => ({ config: { ...state.config, channels: [create
 
 function Harness() {
     const [nodes, setNodes] = useState<CanvasNodeData[]>([
-        { id: "source", title: "原图", type: CanvasNodeType.Image, position: { x: 0, y: 0 }, width: 100, height: 100, metadata: { status: "success", storageKey: "resource:owned-source", naturalWidth: 100, naturalHeight: 100 } },
+        { id: "source", title: "Original picture", type: CanvasNodeType.Image, position: { x: 0, y: 0 }, width: 100, height: 100, metadata: { status: "success", storageKey: "resource:owned-source", naturalWidth: 100, naturalHeight: 100 } },
         { id: "processor", type: CanvasNodeType.Upscale, position: { x: 200, y: 0 }, width: 360, height: 200, metadata: { upscale: createDefaultUpscaleSettings() } },
     ]);
     const [connections, setConnections] = useState<CanvasConnection[]>([{ id: "edge", fromNodeId: "source", toNodeId: "processor" }]);

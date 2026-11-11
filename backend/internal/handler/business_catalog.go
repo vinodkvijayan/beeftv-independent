@@ -89,7 +89,7 @@ func NewBusinessCatalog(routes gin.RoutesInfo) *BusinessCatalog {
 		if t.Method == "POST" && (t.Path == "/tasks" || t.Path == "/tasks/:id/retry" || t.Path == "/creation-runs/:id/execute") {
 			t.SubmitsGeneration = true
 			t.Cost = "selected-channel"
-			t.Summary += "；提交生成，按所选渠道计费，由外部调用方审批"
+			t.Summary += ";Submit for generation, billed according to the selected channel, and approved by the external caller"
 		}
 	}
 	return c

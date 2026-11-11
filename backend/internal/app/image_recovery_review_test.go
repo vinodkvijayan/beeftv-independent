@@ -33,7 +33,7 @@ func TestImageReceiptRecoveryConclusionUsesHTTPStatus(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := imageReceiptConclusion(tc.status, tc.body); got != tc.want {
-				t.Fatalf("结论=%q want=%q", got, tc.want)
+				t.Fatalf("conclusion=%q want=%q", got, tc.want)
 			}
 		})
 	}
@@ -69,7 +69,7 @@ func TestAutomaticImageRecoveryTemporaryReceiptKeepsSameKeyRecovery(t *testing.T
 					sends++
 					body, readErr := io.ReadAll(req.Body)
 					if readErr != nil || string(body) != string(original) || req.URL.String() != wire.URL || req.Header.Get("Idempotency-Key") != wire.Header.Get("Idempotency-Key") || req.Header.Get("Authorization") != wire.Header.Get("Authorization") {
-						t.Error("临时回执后的取回改变了原身份、原键或原请求")
+						t.Error("Retrieval after temporary receipt changes the original identity, original key or original request")
 					}
 					if pass == 2 {
 						return []byte(`{"data":[{"url":"https://example.invalid/recovered.png"}]}`), "application/json", nil
@@ -78,7 +78,7 @@ func TestAutomaticImageRecoveryTemporaryReceiptKeepsSameKeyRecovery(t *testing.T
 				})
 				if pass == 2 {
 					if err != nil || outcome != "" || len(result) == 0 {
-						t.Fatalf("临时故障后未能取回: outcome=%q err=%v", outcome, err)
+						t.Fatalf("Failed to retrieve after temporary failure: outcome=%q err=%v", outcome, err)
 					}
 					if err := s.saveTaskCompletionWithinStorageQuota(&task, result, nil, false); err != nil {
 						t.Fatal(err)
@@ -86,12 +86,12 @@ func TestAutomaticImageRecoveryTemporaryReceiptKeepsSameKeyRecovery(t *testing.T
 					continue
 				}
 				if err == nil || outcome != "" || len(result) != 0 {
-					t.Fatalf("临时回执误判为终态: pass=%d sends=%d outcome=%q err=%v", pass, sends, outcome, err)
+					t.Fatalf("The temporary receipt is misjudged as final: pass=%d sends=%d outcome=%q err=%v", pass, sends, outcome, err)
 				}
 			}
 			stored, err := s.repo.Task(task.ID)
 			if err != nil || sends != 3 || stored.RecoveryOutcome != nil || stored.Status != model.TaskStatusSucceeded || stored.RouteRun != task.RouteRun {
-				t.Fatalf("原任务停止恢复: sends=%d task=%+v err=%v", sends, stored, err)
+				t.Fatalf("The original task stops and resumes: sends=%d task=%+v err=%v", sends, stored, err)
 			}
 		})
 	}
@@ -127,7 +127,7 @@ func TestTaskOutcomeReadsNeverLoadFrozenImageRequest(t *testing.T) {
 		queries.Add(1)
 		selectSQL := strings.SplitN(strings.ToLower(tx.Statement.SQL.String()), " from ", 2)[0]
 		if strings.Contains(selectSQL, "request_cipher") || strings.HasSuffix(selectSQL, "*") {
-			t.Error("任务读取查询了完整冻结请求，而不是小字段")
+			t.Error("Task read queries full freeze request, not small fields")
 		}
 	}); err != nil {
 		t.Fatal(err)
@@ -140,7 +140,7 @@ func TestTaskOutcomeReadsNeverLoadFrozenImageRequest(t *testing.T) {
 		{"list", func() error {
 			items, err := s.Tasks(task.UserID, 100)
 			if err == nil && len(items) != 2 {
-				t.Errorf("未覆盖两项批量读取: %d", len(items))
+				t.Errorf("Two batch reads not covered: %d", len(items))
 			}
 			return err
 		}},
@@ -161,7 +161,7 @@ func TestTaskOutcomeReadsNeverLoadFrozenImageRequest(t *testing.T) {
 					want = 1 // 两个任务也只有一次小字段提交证据查询。
 				}
 				if queries.Load() != want {
-					t.Fatalf("提交证据查询数=%d want=%d", queries.Load(), want)
+					t.Fatalf("Submit evidence query number=%d want=%d", queries.Load(), want)
 				}
 			})
 		}

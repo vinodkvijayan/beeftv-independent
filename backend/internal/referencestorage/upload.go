@@ -21,7 +21,7 @@ import (
 
 func Upload(ctx context.Context, config Config, path string, observers ...func(int64, int64, string)) (string, error) {
 	if !config.Enabled {
-		return "", errors.New("尚未启用参考素材对象存储")
+		return "", errors.New("Reference material object storage has not been enabled")
 	}
 	if err := config.Validate(); err != nil {
 		return "", err
@@ -76,15 +76,15 @@ func upload(ctx context.Context, config Config, path string, client *http.Client
 	request.URL.Opaque = "//" + request.URL.Host + request.URL.EscapedPath()
 	credentials := aws.Credentials{AccessKeyID: config.AccessKeyID, SecretAccessKey: config.SecretAccessKey}
 	if err = v4.NewSigner().SignHTTP(ctx, credentials, request, digest, "s3", config.Region, time.Now(), func(options *v4.SignerOptions) { options.DisableURIPathEscaping = true }); err != nil {
-		return "", errors.New("对象存储请求签名失败")
+		return "", errors.New("Object storage request signature failed")
 	}
 	response, err := client.Do(request)
 	if err != nil {
-		return "", errors.New("对象存储上传失败，请检查端点和网络")
+		return "", errors.New("Object storage upload failed, please check the endpoint and network")
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return "", fmt.Errorf("对象存储拒绝上传（HTTP %d），请检查区域、密钥和存储桶权限", response.StatusCode)
+		return "", fmt.Errorf("Object Storage refused upload (HTTP %d), please check zone, key and bucket permissions", response.StatusCode)
 	}
 	observe(stat.Size(), "processing")
 	publicURL, err := url.JoinPath(config.PublicBaseURL, key)
@@ -99,18 +99,18 @@ func upload(ctx context.Context, config Config, path string, client *http.Client
 	probe.Header.Set("Range", "bytes=0-511")
 	check, err := client.Do(probe)
 	if err != nil {
-		return "", errors.New("素材已上传，但公网地址无法访问，请检查公开读取设置")
+		return "", errors.New("The material has been uploaded, but the public address cannot be accessed. Please check the public read settings.")
 	}
 	defer check.Body.Close()
 	if check.StatusCode != http.StatusOK && check.StatusCode != http.StatusPartialContent {
-		return "", fmt.Errorf("素材已上传，但公网地址不可读取（HTTP %d），请检查公开读取设置", check.StatusCode)
+		return "", fmt.Errorf("The material has been uploaded, but the public address cannot be read (HTTP %d). Please check the public read settings.", check.StatusCode)
 	}
 	first := make([]byte, n)
 	if n == 0 {
-		return "", errors.New("参考素材文件为空")
+		return "", errors.New("The reference material file is empty")
 	}
 	if _, err := io.ReadFull(check.Body, first); err != nil || !bytes.Equal(first, sample[:n]) {
-		return "", errors.New("公网地址未返回上传的素材，请检查地址与存储桶的对应关系")
+		return "", errors.New("The public network address did not return the uploaded material. Please check the correspondence between the address and the bucket.")
 	}
 	return publicURL, nil
 }

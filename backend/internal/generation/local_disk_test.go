@@ -8,7 +8,7 @@ import (
 
 func TestLocalDiskFullSurvivesDeliveryClassification(t *testing.T) {
 	for _, raw := range []string{
-		`生成内容写入资源存储失败：write local resource: write C:\Users\private\video: There is not enough space on the disk`,
+		`Failed to write generated content to resource storage: write local resource: write C:\Users\private\video: There is not enough space on the disk`,
 		`write local resource: write /home/private/video: no space left on device`,
 		`database or disk is full`,
 	} {
@@ -26,7 +26,7 @@ func TestLocalDiskFullSurvivesDeliveryClassification(t *testing.T) {
 			t.Fatal("upstream disk mistaken for local disk")
 		}
 	}
-	if generation.ClassifyAppError(500, 500, "local_disk_full", "本地磁盘空间不足，无法保存数据").Category != generation.CategoryLocalDiskFull {
+	if generation.ClassifyAppError(500, 500, "local_disk_full", "Insufficient local disk space to save data").Category != generation.CategoryLocalDiskFull {
 		t.Fatal("local API reason lost")
 	}
 }

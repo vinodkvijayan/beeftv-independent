@@ -14,14 +14,14 @@ const recoverable: Array<[string, CanvasNodeData]> = [
     ["failed with a task", node("error-task", { status: "error", taskId: "t2", taskStatus: "failed" })],
     ["succeeded without content", node("empty", { status: "success", taskId: "t3", taskStatus: "succeeded" })],
     ["pending agent continuation", node("continuation", { status: "success", content: "/c", agentGenerationContinuation: { id: "c", taskId: "t4", status: "pending" } })],
-    ["older interrupted node", node("legacy", { status: "error", errorDetails: "页面刷新后生成已中断，请重新生成。" })],
+    ["older interrupted node", node("legacy", { status: "error", errorDetails: "The generation was interrupted after the page was refreshed, please regenerate." })],
 ];
 const settled: Array<[string, CanvasNodeData]> = [
     ["result target no longer accepts the task", node("target-unavailable", { status: "error", taskId: "t-unavailable", taskStatus: "succeeded", generationErrorCode: "result_target_unavailable" })],
     ["finished with content", node("done", { status: "success", taskId: "t5", taskStatus: "succeeded", content: "/x", storageKey: "resource:x" })],
     ["upload in progress", node("upload", { fileUpload: "uploading", fileUploadProgress: 30 })],
     ["aggregate batch root", node("root", { status: "loading", isBatchRoot: true, batchChildIds: ["a", "b"] })],
-    ["plain error without a task", node("plain-error", { status: "error", errorDetails: "生成失败" })],
+    ["plain error without a task", node("plain-error", { status: "error", errorDetails: "Build failed" })],
     ["no metadata", node("empty-meta")],
 ];
 
@@ -36,7 +36,7 @@ test("restoring a snapshot hands exactly the recoverable nodes to recovery", () 
     const restored = resetInterruptedGeneration([...recoverable, ...settled].map(([, item]) => item));
     for (const item of restored) expect(isGenerationRecoveryRestored(item)).toBe(canvasNodeNeedsGenerationRecovery(item));
     // The visible restore text stays as before; it is not the control signal.
-    expect(restored.find((item) => item.id === "loading")?.metadata?.errorDetails).toBe("正在从任务中心恢复生成状态...");
+    expect(restored.find((item) => item.id === "loading")?.metadata?.errorDetails).toBe("Restoring build status from Task Center...");
 });
 
 test("the restore record survives the load normalization and is handed out once, in every copy", () => {

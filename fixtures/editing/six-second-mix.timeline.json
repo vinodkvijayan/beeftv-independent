@@ -14,7 +14,7 @@
       { "id": "v2", "kind": "video", "nodeId": "v2", "trackId": "video", "startMs": 4000, "durationMs": 2000, "volume": 1, "directMedia": { "id": "v2", "kind": "video", "storageKey": "resource:v2" } },
       { "id": "voice", "kind": "audio", "nodeId": "voice", "trackId": "voice", "startMs": 1000, "durationMs": 2000, "sourceStartMs": 500, "volume": 1, "directMedia": { "id": "voice", "kind": "audio", "storageKey": "resource:voice" } },
       { "id": "bgm", "kind": "audio", "nodeId": "bgm", "trackId": "bgm", "startMs": 0, "durationMs": 6000, "volume": 0.2, "directMedia": { "id": "bgm", "kind": "audio", "storageKey": "resource:bgm" } },
-      { "id": "sub", "kind": "subtitle", "nodeId": "sub", "trackId": "subtitle", "startMs": 500, "durationMs": 5000, "text": "中文字幕完整性验证" }
+      { "id": "sub", "kind": "subtitle", "nodeId": "sub", "trackId": "subtitle", "startMs": 500, "durationMs": 5000, "text": "Chinese subtitle integrity verification" }
     ]
   },
   "sources": [

@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { chapterStoryboardApprovalSnapshot, chapterStoryboardRecoveryDecision, chapterTaskIdentity } from "@/pages/projects/detail/project-chapter-ai";
 import type { GenerationTask } from "@/services/api/task-center";
 
-describe("章节生成任务刷新恢复", () => {
-    test("优先从任务列表的安全客户端上下文识别章节与操作", () => {
+describe("Chapter generation task refresh recovery", () => {
+    test("Prioritize identifying chapters and actions from the security client context of the task list", () => {
         expect(chapterTaskIdentity(task({
             clientContext: {
                 domainProjectId: "project-1",
@@ -14,7 +14,7 @@ describe("章节生成任务刷新恢复", () => {
         }))).toEqual({ chapterId: "chapter-1", kind: "characters" });
     });
 
-    test("任务详情可从脱敏输入 metadata 恢复分镜操作", () => {
+    test("Task details can be used to restore the storyboarding operation from the desensitized input metadata.", () => {
         expect(chapterTaskIdentity(task({
             inputJson: JSON.stringify({
                 metadata: {
@@ -26,13 +26,13 @@ describe("章节生成任务刷新恢复", () => {
         }))).toEqual({ chapterId: "chapter-2", kind: "storyboard" });
     });
 
-    test("无关、缺少章节或损坏的任务输入不会关联章节按钮", () => {
+    test("Irrelevant, missing chapters, or corrupted quest inputs will not have chapter buttons associated with them", () => {
         expect(chapterTaskIdentity(task({ inputJson: "{" }))).toBeNull();
         expect(chapterTaskIdentity(task({ inputJson: JSON.stringify({ metadata: { operation: "chapter_character_breakdown" } }) }))).toBeNull();
         expect(chapterTaskIdentity(task({ inputJson: JSON.stringify({ metadata: { chapterId: "chapter-1", operation: "other" } }) }))).toBeNull();
     });
 
-    test("从任务输入读取原批准快照，拒绝用当前页面版本顶上", () => {
+    test("Read the original approval snapshot from the task input and reject it with the current page version on top", () => {
         const current = { revision: 9, shotIds: ["shot-a"] };
         const snapshot = chapterStoryboardApprovalSnapshot(JSON.stringify({
             metadata: {
@@ -47,12 +47,12 @@ describe("章节生成任务刷新恢复", () => {
         expect(snapshot).not.toEqual(current);
     });
 
-    test("刷新后按真实回执分类：已写入跳过，未写入进入核对", () => {
+    test("After refreshing, the real receipts are classified: skipped if written, enter verification if not written", () => {
         expect(chapterStoryboardRecoveryDecision({ alreadyApplied: true })).toEqual({ action: "skip" });
         expect(chapterStoryboardRecoveryDecision({ alreadyApplied: false })).toEqual({ action: "review" });
     });
 
-    test("未写入结果即使仍有原批准快照也不会自动写入", () => {
+    test("Unwritten results will not be automatically written even if the original approved snapshot is still available", () => {
         const snapshot = chapterStoryboardApprovalSnapshot(JSON.stringify({
             metadata: {
                 source: "short-drama-chapter-storyboard",
@@ -64,7 +64,7 @@ describe("章节生成任务刷新恢复", () => {
         expect(chapterStoryboardRecoveryDecision({ alreadyApplied: false })).toEqual({ action: "review" });
     });
 
-    test("恢复路径使用任务身份与冻结快照，不靠时间戳猜测", async () => {
+    test("The recovery path uses task identity and frozen snapshots instead of guessing based on timestamps.", async () => {
         const source = await Bun.file(new URL("../src/pages/projects/detail/chapters.tsx", import.meta.url)).text();
         const helper = await Bun.file(new URL("../src/pages/projects/detail/project-chapter-ai.ts", import.meta.url)).text();
         const createStoryboard = source.slice(source.indexOf("const createStoryboard"));
@@ -75,7 +75,7 @@ describe("章节生成任务刷新恢复", () => {
         expect(source).toContain("listChapterApplyReceipts");
         expect(source).toContain("sourceTaskId");
         expect(source).toContain("queryGenerationTask(task.id)");
-        expect(source).toContain("核对后写入");
+        expect(source).toContain("Write after checking");
         expect(createStoryboard.indexOf("const approvedRevision")).toBeLessThan(createStoryboard.indexOf("confirmStoryboardReplacement"));
         expect(applyRecovery.indexOf("const reviewedRevision")).toBeLessThan(applyRecovery.indexOf("confirmRecoveredStoryboardWrite"));
         expect(source).not.toContain("chapterTaskResultAlreadyApplied");
@@ -84,9 +84,9 @@ describe("章节生成任务刷新恢复", () => {
         expect(source).toContain("error.reason === \"project_unit_shots_changed\"");
         expect(source).toContain("error.reason === \"project_revision_conflict\"");
         expect(source).not.toContain('error.reason === "conflict"');
-        expect(source).not.toContain("本章分镜已发生变化，请刷新后重新确认");
-        expect(source).not.toContain("项目已被其他操作更新，请重新加载后再保存");
-        expect(source).not.toContain("刷新前生成的分镜还在");
+        expect(source).not.toContain("The storyboard of this chapter has changed, please refresh and confirm again.");
+        expect(source).not.toContain("The project has been updated by other operations, please reload before saving.");
+        expect(source).not.toContain("The storyboards generated before refreshing are still there");
     });
 });
 

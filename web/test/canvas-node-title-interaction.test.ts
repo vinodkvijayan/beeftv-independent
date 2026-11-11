@@ -18,7 +18,7 @@ describe("canvas node title interaction", () => {
         expect(nodeSource).toContain('disabled={!onDragStart || Boolean(node.metadata?.locked)}');
         expect(nodeSource).toContain('onDragStart?.(event)');
         expect(nodeSource).toContain('event.currentTarget.setPointerCapture(event.pointerId)');
-        expect(nodeSource).toContain('拖动此处移动节点；点击名称可重命名');
+        expect(nodeSource).toContain('Drag here to move the node; click on the name to rename it');
         expect(nodeSource).toContain('onClick={onEdit}');
     });
     test("keeps the toolbar hover bridge from intercepting the external title", () => {

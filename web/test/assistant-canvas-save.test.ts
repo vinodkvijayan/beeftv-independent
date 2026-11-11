@@ -25,5 +25,5 @@ test("assistant admission waits for the backend save acknowledgement", async () 
 
 test("an editor change still unconfirmed after saving blocks assistant admission", async () => {
     rejected = true; release();
-    await expect(saveCanvasForAssistant("canvas")).rejects.toThrow("画布还有未保存的修改");
+    await expect(saveCanvasForAssistant("canvas")).rejects.toThrow("The canvas has unsaved changes");
 });

@@ -12,7 +12,7 @@ func validateDesktopArgs(args []string) error {
 		arg := args[i]
 		if arg == "--data-dir" {
 			if i+1 == len(args) {
-				return fmt.Errorf("--data-dir 需要明确的绝对目录")
+				return fmt.Errorf("--data-dir requires an explicit absolute directory")
 			}
 			if _, err := explicitDesktopDataDir(args[i+1]); err != nil {
 				return err
@@ -28,9 +28,9 @@ func validateDesktopArgs(args []string) error {
 		}
 		switch arg {
 		case "--harness-attach-only":
-			return fmt.Errorf("--harness-attach-only 需要同时指定 --harness-runtime")
+			return fmt.Errorf("--harness-attach-only needs to be specified at the same time --harness-runtime")
 		case "mcp", "ops", "canvas", "asset", "task", "client", "help", "--help", "-h", "--version", "--json", "-json":
-			return fmt.Errorf("此程序是 BeefTV 桌面应用。CLI/MCP 请使用 beeftv 命令行程序；在 BeefTV 设置中重新复制客户端配置")
+			return fmt.Errorf("This program is the BeefTV desktop application. CLI/MCP Please use the beeftv command line program; re-copy the client configuration in BeefTV settings")
 		}
 		// Cocoa also accepts preference overrides as flag/value pairs.
 		if (strings.HasPrefix(arg, "-NS") || strings.HasPrefix(arg, "-Apple")) && i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
@@ -38,7 +38,7 @@ func validateDesktopArgs(args []string) error {
 			continue
 		}
 		if !strings.HasPrefix(arg, "-") {
-			return fmt.Errorf("BeefTV 桌面应用不支持命令 %q；CLI/MCP 请使用 beeftv 命令行程序", arg)
+			return fmt.Errorf("BeefTV desktop application does not support command %q; CLI/MCP please use beeftv command line program", arg)
 		}
 	}
 	return nil

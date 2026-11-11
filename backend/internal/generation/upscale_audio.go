@@ -32,7 +32,7 @@ func ValidateUpscaleVideoSource(ctx context.Context, data []byte) error {
 		return err
 	}
 	if !facts.HasVideo || facts.DurationMs <= 0 || facts.DurationMs > 300_000 || !strings.Contains(","+facts.FormatName+",", ",mov,") && !strings.Contains(","+facts.FormatName+",", ",mp4,") {
-		return errors.New("超分视频须为不超过 5 分钟的 MP4 或 MOV")
+		return errors.New("Super resolution videos must be MP4 or MOV no longer than 5 minutes")
 	}
 	if facts.HasAudio {
 		_, err = mediatools.ResolveFFmpeg()
@@ -63,7 +63,7 @@ func PreserveUpscaleAudio(ctx context.Context, source, output []byte) ([]byte, e
 		return nil, err
 	}
 	if !outputFacts.HasVideo || outputFacts.DurationMs <= 0 {
-		return nil, errors.New("超分结果没有有效的视频画面")
+		return nil, errors.New("Super score result does not have valid video footage")
 	}
 	if !sourceFacts.HasAudio || outputFacts.HasAudio {
 		return output, nil
@@ -76,7 +76,7 @@ func PreserveUpscaleAudio(ctx context.Context, source, output []byte) ([]byte, e
 	cmd := exec.CommandContext(ctx, bin, "-nostdin", "-v", "error", "-protocol_whitelist", "file,pipe", "-i", outputPath, "-protocol_whitelist", "file,pipe", "-i", sourcePath, "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-t", strconv.FormatFloat(float64(outputFacts.DurationMs)/1000, 'f', 3, 64), "-movflags", "+faststart", result)
 	mediatools.HideConsole(cmd)
 	if err := cmd.Run(); err != nil {
-		return nil, errors.New("原视频音轨补回失败，请取回原任务结果重试")
+		return nil, errors.New("The original video audio track failed to be restored. Please retrieve the original task results and try again.")
 	}
 	info, err := os.Stat(result)
 	if err != nil {
@@ -90,11 +90,11 @@ func PreserveUpscaleAudio(ctx context.Context, source, output []byte) ([]byte, e
 		}
 	}
 	if info.Size() > limit {
-		return nil, errors.New("补回音轨后的视频超过资源大小限制")
+		return nil, errors.New("The video after adding the audio track exceeds the resource size limit")
 	}
 	facts, err := mediatools.ProbeLocal(ctx, result)
 	if err != nil || !facts.HasVideo || !facts.HasAudio {
-		return nil, errors.New("补回音轨后的视频校验失败")
+		return nil, errors.New("Video verification failed after adding the audio track")
 	}
 	return os.ReadFile(result)
 }

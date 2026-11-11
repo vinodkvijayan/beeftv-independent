@@ -155,7 +155,7 @@ describe("canvas clipboard keeps paste while focus sits on canvas controls", () 
     test("Ctrl/Cmd+V pastes when focus is on a canvas control button", async () => {
         const button = new FakeElement("BUTTON", ["[data-canvas-no-zoom]"]);
         activeElement = button;
-        const result = paste(button, "操作说明");
+        const result = paste(button, "Operating Instructions");
         await flush();
         expect(result.defaultPrevented).toBe(true);
         expect(state.pasteSystem).toBe(1);
@@ -164,7 +164,7 @@ describe("canvas clipboard keeps paste while focus sits on canvas controls", () 
     test("Ctrl/Cmd+V pastes when focus is on a node toolbar button", async () => {
         const button = new FakeElement("BUTTON", [".canvas-node-toolbar"]);
         activeElement = button;
-        const result = paste(button, "操作说明");
+        const result = paste(button, "Operating Instructions");
         await flush();
         expect(result.defaultPrevented).toBe(true);
         expect(state.pasteSystem).toBe(1);
@@ -173,7 +173,7 @@ describe("canvas clipboard keeps paste while focus sits on canvas controls", () 
     test("canvas does not take the paste while focus is in a text field", async () => {
         const input = new FakeInput("INPUT");
         activeElement = input;
-        const result = paste(input, "文本");
+        const result = paste(input, "text");
         await flush();
         expect(result.defaultPrevented).toBe(false);
         expect(state.pasteSystem).toBe(0);
@@ -182,7 +182,7 @@ describe("canvas clipboard keeps paste while focus sits on canvas controls", () 
     test("real overlays still keep their own paste", async () => {
         const modalButton = new FakeElement("BUTTON", [".ant-modal-wrap"]);
         activeElement = modalButton;
-        const result = paste(modalButton, "操作说明");
+        const result = paste(modalButton, "Operating Instructions");
         await flush();
         expect(result.defaultPrevented).toBe(false);
         expect(state.pasteSystem).toBe(0);

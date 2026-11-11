@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 
 import { restoreDirectorPlaybackOnEnd, waitForDirectorCaptureCamera } from "../src/lib/canvas/director/director-output-camera";
 
-test("关闭录制同步归还播放状态，旧录制迟到的 finally 不覆盖重开会话", () => {
+test("Close the recording and return the playback status synchronously. The old recording that is late will not be overwritten by the finally restart session.", () => {
     const controller = new AbortController();
     let state = { playing: false, playhead: 3, viewMode: "free" };
     const initial = state;
@@ -17,7 +17,7 @@ test("关闭录制同步归还播放状态，旧录制迟到的 finally 不覆�
     expect(restores).toBe(1);
 });
 
-test("输出须等活动机位接管渲染并稳定一帧才开始录制", async () => {
+test("The output must wait for the active camera to take over rendering and stabilize for one frame before starting recording.", async () => {
     let camera: "free" | "camera" | null = "free";
     let frames = 0;
     await waitForDirectorCaptureCamera(() => camera, async () => {
@@ -27,8 +27,8 @@ test("输出须等活动机位接管渲染并稳定一帧才开始录制", async
     expect(frames).toBe(3);
 });
 
-test("无有效机位时不录制导演观察视角", async () => {
+test("The director's perspective will not be recorded when there is no valid camera position.", async () => {
     let frames = 0;
-    await expect(waitForDirectorCaptureCamera(() => "free", async () => { frames += 1; }, 3)).rejects.toThrow("没有可用机位");
+    await expect(waitForDirectorCaptureCamera(() => "free", async () => { frames += 1; }, 3)).rejects.toThrow("No seats available");
     expect(frames).toBe(3);
 });

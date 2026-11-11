@@ -181,12 +181,12 @@ export function createCnyBudget({ budgetCny, priceIn, priceCache, priceOut } = {
       spent: 0, reached: () => false, addCost: () => 0,
     };
   }
-  if (!Number.isFinite(Number(budgetCny)) || Number(budgetCny) <= 0) throw new Error(`--budget-cny 必须是大于 0 的数字，收到: ${budgetCny}`);
+  if (!Number.isFinite(Number(budgetCny)) || Number(budgetCny) <= 0) throw new Error(`--budget-cny must be a number greater than 0, received:${budgetCny}`);
   if (!Number.isFinite(input) || input <= 0 || !Number.isFinite(output) || output <= 0) {
-    throw new Error('budget_price_missing: 设置了 --budget-cny 时必须配置大于 0 的 BEEFTV_EVAL_PRICE_IN 与 BEEFTV_EVAL_PRICE_OUT（元/百万 token），拒绝按 0 单价计算');
+    throw new Error('budget_price_missing: When --budget-cny is set, BEEFTV_EVAL_PRICE_IN and BEEFTV_EVAL_PRICE_OUT greater than 0 (yuan/million tokens) must be configured, and the unit price calculation of 0 is refused.');
   }
   if (!Number.isFinite(cache) || cache <= 0) {
-    throw new Error('budget_price_missing: BEEFTV_EVAL_PRICE_CACHE 必须大于 0（元/百万 token），缺省时沿用 BEEFTV_EVAL_PRICE_IN');
+    throw new Error('budget_price_missing: BEEFTV_EVAL_PRICE_CACHE must be greater than 0 (yuan/million tokens). By default, BEEFTV_EVAL_PRICE_IN is used.');
   }
   const limit = Number(budgetCny);
   let spent = 0;

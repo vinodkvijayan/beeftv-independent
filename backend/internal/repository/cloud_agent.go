@@ -99,7 +99,7 @@ func (r *Repository) MarkCloudAgentCanvasMutationUndone(userID, runID, mutationI
 // can no longer be decoded; leaving such a run in running would make the
 // scheduler retry it forever.
 func (r *Repository) MarkCloudAgentFailed(userID, id string, revision int64, message ...string) error {
-	detail := "Agent 运行状态损坏，本轮已停止"
+	detail := "The running status of Agent is damaged and this round has been stopped."
 	if len(message) > 0 {
 		detail = message[0]
 	}

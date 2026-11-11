@@ -24,11 +24,11 @@ test("mounting an assistant storyboard does not write its default height; editin
     const page = await browser.newPage({ viewport: { width: 1440, height: 992 } });
     try {
         await page.goto(server.url + "?node");
-        const input = page.getByRole("textbox", { name: "分镜剧情与项目设定" });
+        const input = page.getByRole("textbox", { name: "Storyboard plot and project setting" });
         await input.waitFor();
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         expect(await page.getByTestId("height-writes").textContent()).toBe("0");
-        await input.fill(Array.from({ length: 12 }, (_, i) => `第${i + 1}段：夜雨里的一家咖啡馆。`).join("\n"));
+        await input.fill(Array.from({ length: 12 }, (_, i) => `No.${i + 1}Section: A cafe in the rainy night.`).join("\n"));
         await page.waitForFunction(() => Number(document.querySelector('[data-testid="height-writes"]')?.textContent) > 0);
     } finally { await page.close(); }
 }, 15000);

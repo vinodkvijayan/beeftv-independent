@@ -94,12 +94,12 @@ test.skipIf(process.env.BEEFTV_NATIVE_FFMPEG_TEST !== "1")("native FFmpeg: share
         try {
             const page = await browser.newPage();
             await page.addScriptTag({ content: `window.rasterize = ${rasterizeTimelineSubtitle.toString()}` });
-            const png = await page.evaluate(async () => Array.from(await (window as any).rasterize("中文字幕完整性验证", 320, 180)));
+            const png = await page.evaluate(async () => Array.from(await (window as any).rasterize("Chinese subtitle integrity verification", 320, 180)));
             writeFileSync(join(dir, "subtitle.png"), Buffer.from(png as number[]));
-            const glyphs = await page.evaluate(async () => [Array.from(await (window as any).rasterize("中文", 320, 180)), Array.from(await (window as any).rasterize("测试", 320, 180))]);
+            const glyphs = await page.evaluate(async () => [Array.from(await (window as any).rasterize("Chinese", 320, 180)), Array.from(await (window as any).rasterize("test", 320, 180))]);
             expect(glyphs[0]).not.toEqual(glyphs[1]);
             const bounds = await page.evaluate(async () => {
-                const bytes = new Uint8Array(await (window as any).rasterize("新的一天，从一口热面包开始。", 720, 1280));
+                const bytes = new Uint8Array(await (window as any).rasterize("A new day starts with a bite of warm bread.", 720, 1280));
                 const picture = await createImageBitmap(new Blob([bytes], { type: "image/png" }));
                 const canvas = document.createElement("canvas"); canvas.width = 720; canvas.height = 1280;
                 const ctx = canvas.getContext("2d")!; ctx.drawImage(picture, 0, 0); picture.close();

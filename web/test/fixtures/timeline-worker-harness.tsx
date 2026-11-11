@@ -16,8 +16,8 @@ const project: TimelineProject = {
 };
 project.clips.push({ id: "voice", nodeId: "voice", trackId: "voice", kind: "audio", startMs: 1000, durationMs: 2000, sourceStartMs: 500, directMedia: { id: "voice", title: "voice", kind: "audio", url: "/fixtures/voice.wav" } });
 project.clips.push({ id: "bgm", nodeId: "bgm", trackId: "bgm", kind: "audio", startMs: 0, durationMs: 6000, volume: 0.2, directMedia: { id: "bgm", title: "bgm", kind: "audio", url: "/fixtures/bgm.wav" } });
-project.clips.push({ id: "sub", nodeId: "sub", trackId: "subtitle", kind: "subtitle", startMs: 500, durationMs: 5000, text: params.has("longSubtitle") ? "中文字幕".repeat(1000) : "中文字幕完整性验证" });
-const node = { id: "v0", type: "video", title: "Worker真实成片", metadata: {}, x: 0, y: 0, width: 320, height: 180 } as CanvasNodeData;
+project.clips.push({ id: "sub", nodeId: "sub", trackId: "subtitle", kind: "subtitle", startMs: 500, durationMs: 5000, text: params.has("longSubtitle") ? "Chinese subtitles".repeat(1000) : "Chinese subtitle integrity verification" });
+const node = { id: "v0", type: "video", title: "Worker is a real movie", metadata: {}, x: 0, y: 0, width: 320, height: 180 } as CanvasNodeData;
 const store = createEditorStore();
 store.getState().load(project);
 const root = createRoot(document.getElementById("root")!);

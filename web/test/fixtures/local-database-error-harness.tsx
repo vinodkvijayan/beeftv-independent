@@ -15,11 +15,11 @@ function Harness() {
         }
     };
     return <main>
-        <button onClick={() => void submit()}>提交测试任务</button>
-        {failure ? <section aria-label="生成错误" data-category={failure.category}>
+        <button onClick={() => void submit()}>Submit test task</button>
+        {failure ? <section aria-label="generate error" data-category={failure.category}>
             <GenerationFailureNotice explanation={failure} onRetry={() => setRetries((value) => value + 1)} />
         </section> : null}
-        <output aria-label="重试次数">{retries}</output>
+        <output aria-label="Number of retries">{retries}</output>
     </main>;
 }
 

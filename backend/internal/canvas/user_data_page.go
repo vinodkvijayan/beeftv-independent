@@ -36,7 +36,7 @@ func (s *Service) UserCanvasProjectsPage(userID string, page int, pageSize int, 
 		page = 1
 	}
 	if page > 1000000 {
-		return CanvasLibraryPage{}, kernel.BadAuthRequest("页码超出范围")
+		return CanvasLibraryPage{}, kernel.BadAuthRequest("Page number out of range")
 	}
 	if pageSize < 1 {
 		pageSize = 40

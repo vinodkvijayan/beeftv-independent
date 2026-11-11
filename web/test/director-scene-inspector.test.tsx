@@ -4,28 +4,28 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DirectorSceneInspector } from "@/components/canvas/director/director-scene-inspector";
 import { createDirectorSceneFromTemplate } from "@/lib/canvas/director/director-templates";
 
-describe("导演台场景属性", () => {
-    test("场景页提供可辨识的天空、光照和网格控件", () => {
+describe("Director's desk scene properties", () => {
+    test("Scene page provides recognizable sky, lighting and grid controls", () => {
         const markup = renderToStaticMarkup(<DirectorSceneInspector scene={createDirectorSceneFromTemplate("empty")} onChange={() => {}} />);
-        expect(markup).toContain("3D场景");
-        expect(markup).toContain("天空颜色");
-        expect(markup).toContain("环境亮度");
-        expect(markup).toContain("显示网格");
-        expect(markup).toContain('aria-label="显示网格"');
-        expect(markup).toContain('aria-label="显示地面"');
-        expect(markup).toContain('aria-label="地面透明度"');
-        expect(markup).toContain('aria-label="地面高度"');
-        expect(markup).toContain('aria-label="场景缩放"');
+        expect(markup).toContain("3D scene");
+        expect(markup).toContain("sky color");
+        expect(markup).toContain("ambient brightness");
+        expect(markup).toContain("show grid");
+        expect(markup).toContain('aria-label="Show grid"');
+        expect(markup).toContain('aria-label="Show ground"');
+        expect(markup).toContain('aria-label="Ground transparency"');
+        expect(markup).toContain('aria-label="ground height"');
+        expect(markup).toContain('aria-label="Scene zoom"');
         for (const axis of ["X", "Y", "Z"]) {
-            expect(markup).toContain(`aria-label="场景平移${axis}"`);
-            expect(markup).toContain(`aria-label="场景旋转${axis}"`);
+            expect(markup).toContain(`aria-label="Scene pan${axis}"`);
+            expect(markup).toContain(`aria-label="Scene rotation${axis}"`);
         }
-        expect(markup.indexOf('aria-label="场景变换"')).toBeLessThan(markup.indexOf('aria-label="全景背景"'));
-        expect(markup).toContain('aria-label="角色标签"');
-        expect(markup.indexOf('aria-label="角色标签"')).toBeGreaterThan(markup.indexOf('aria-label="全景球"'));
+        expect(markup.indexOf('aria-label="Scene change"')).toBeLessThan(markup.indexOf('aria-label="Panoramic background"'));
+        expect(markup).toContain('aria-label="role label"');
+        expect(markup.indexOf('aria-label="role label"')).toBeGreaterThan(markup.indexOf('aria-label="Panorama Sphere"'));
     });
 
-    test("旧场景默认显示角色标签，新场景可显式关闭", () => {
+    test("Character labels are displayed by default in old scenes and can be explicitly turned off in new scenes.", () => {
         const scene = createDirectorSceneFromTemplate("empty");
         delete scene.labelsVisible;
         const legacy = renderToStaticMarkup(<DirectorSceneInspector scene={scene} onChange={() => {}} />);
@@ -34,7 +34,7 @@ describe("导演台场景属性", () => {
         expect(hidden).toMatch(/<button(?=[^>]*aria-label="角色标签")(?=[^>]*aria-checked="false")[^>]*>/);
     });
 
-    test("场景标题后直接是变换控件，天空颜色可从色块或十六进制输入", () => {
+    test("Directly after the scene title are the transform controls, and the sky color can be entered from the color block or hexadecimal", () => {
         const scene = createDirectorSceneFromTemplate("empty");
         scene.background = "#060608";
         const markup = renderToStaticMarkup(<DirectorSceneInspector scene={scene} onChange={() => {}} />);

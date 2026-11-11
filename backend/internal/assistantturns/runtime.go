@@ -60,7 +60,7 @@ func (s *Service) Extend(userID, canvasID, turnID string, input Input) error {
 			return errNotFound()
 		}
 		if input.PermissionMode != "" && Mode(input.PermissionMode) != Mode(rec.PermissionMode) {
-			return &Error{Reason: "permission_mode_frozen", Message: "执行中不能修改助手权限"}
+			return &Error{Reason: "permission_mode_frozen", Message: "Assistant permissions cannot be modified during execution"}
 		}
 		rec.ReferencedAssetIDs = uniqueSorted(append(rec.ReferencedAssetIDs, input.AssetIDs...))
 		rec.ReferencedCanvasIDs = uniqueSorted(append(rec.ReferencedCanvasIDs, input.CanvasIDs...))
@@ -69,7 +69,7 @@ func (s *Service) Extend(userID, canvasID, turnID string, input Input) error {
 			for _, existing := range rec.SkillPins {
 				if existing.SkillID == pin.SkillID {
 					if existing.Identity() != pin.Identity() {
-						return &Error{Reason: "skill_version_conflict", Message: "执行中不能替换同一技能的版本，请在新对话中选择"}
+						return &Error{Reason: "skill_version_conflict", Message: "Versions of the same skill cannot be replaced during execution, please select in a new conversation"}
 					}
 					found = true
 				}
@@ -79,7 +79,7 @@ func (s *Service) Extend(userID, canvasID, turnID string, input Input) error {
 			}
 		}
 		if len(rec.SkillPins) > 4 {
-			return &Error{Reason: "skill_selection_limit", Message: "一轮最多使用 4 个技能"}
+			return &Error{Reason: "skill_selection_limit", Message: "Use up to 4 skills in one round"}
 		}
 		rec.SkillPins = SortedSkillPins(rec.SkillPins)
 		return s.persist(tx, rec)

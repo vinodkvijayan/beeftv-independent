@@ -55,9 +55,9 @@ describe("generation progress display", () => {
     });
 
     test("elapsed time reads as minutes and seconds", () => {
-        expect(formatGenerationElapsed(-5)).toBe("0秒");
-        expect(formatGenerationElapsed(42_000)).toBe("42秒");
-        expect(formatGenerationElapsed(192_000)).toBe("3分12秒");
-        expect(formatGenerationElapsed(3_900_000)).toBe("1时5分");
+        expect(formatGenerationElapsed(-5)).toBe("0 seconds");
+        expect(formatGenerationElapsed(42_000)).toBe("42 seconds");
+        expect(formatGenerationElapsed(192_000)).toBe("3 minutes and 12 seconds");
+        expect(formatGenerationElapsed(3_900_000)).toBe("1 hour 5 minutes");
     });
 });

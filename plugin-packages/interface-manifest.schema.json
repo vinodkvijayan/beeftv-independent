@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://beeftv.app/schemas/interface-manifest.schema.json",
-  "title": "BeefTV 接口插件 manifest",
-  "description": "描述一个模型服务的请求格式：怎么发请求、怎么查进度、怎么取结果。完整校验以 `beeftv plugin validate` 为准，这份 schema 用于编辑器提示。",
+  "title": "BeefTV interface plug-in manifest",
+  "description": "Describe the request format of a model service: how to send a request, how to check the progress, and how to get the results. The complete verification is based on `beeftv plugin validate`. This schema is used for editor prompts.",
   "type": "object",
   "required": ["apiVersion", "id", "name", "version", "contributes"],
   "properties": {
     "$schema": { "type": "string" },
-    "apiVersion": { "enum": ["beeftv.plugin/v1", "beeftv.plugin/v2", "beeftv.plugin/v3"], "description": "用到 variables、defaultPathPrefix 或图片流响应时要写 v3。" },
-    "id": { "$ref": "#/$defs/identifier", "description": "插件 ID，小写字母、数字、- _ .，不超过 96 个字符。" },
+    "apiVersion": { "enum": ["beeftv.plugin/v1", "beeftv.plugin/v2", "beeftv.plugin/v3"], "description": "When using variables, defaultPathPrefix or image stream response, write v3." },
+    "id": { "$ref": "#/$defs/identifier", "description": "Plugin ID, lowercase letters, numbers, - _ ., no more than 96 characters." },
     "name": { "type": "string", "minLength": 1, "maxLength": 160 },
     "version": { "type": "string", "minLength": 1 },
     "author": { "type": "string", "maxLength": 120 },
@@ -51,8 +51,8 @@
       "type": "object",
       "required": ["method"],
       "properties": {
-        "method": { "type": "string", "description": "GET、POST 等。" },
-        "path": { "type": "string", "description": "请求路径，如 /v1/chat/completions；可用 {{model}}、{{taskId}}。" },
+        "method": { "type": "string", "description": "GET, POST, etc." },
+        "path": { "type": "string", "description": "Request path, such as /v1/chat/completions; available {{model}}, {{taskId}}." },
         "pathTemplate": {},
         "defaultPathPrefix": { "type": "string" },
         "originPath": { "type": "boolean" },
@@ -60,7 +60,7 @@
         "contentTypeTemplate": {},
         "headers": { "type": "object" },
         "query": { "type": "object" },
-        "body": { "description": "请求体模板，用 $ref、$coalesce、$map 等表达式取统一请求里的字段。" },
+        "body": { "description": "Request body template, use $ref, $coalesce, $map and other expressions to get the fields in the unified request." },
         "fields": { "type": "object" },
         "files": { "type": "array" }
       }
@@ -69,12 +69,12 @@
       "type": "object",
       "required": ["id", "label", "capabilities", "scopes"],
       "properties": {
-        "id": { "$ref": "#/$defs/identifier", "description": "接口 ID，模型设置里保存的就是它。" },
+        "id": { "$ref": "#/$defs/identifier", "description": "The interface ID is what is saved in the model settings." },
         "label": { "type": "string", "minLength": 1 },
-        "legacyAliases": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "description": "这个接口以前用过的 ID。已保存的模型写着旧 ID 时仍会用到这里，旧命名空间下的 providerOptions 也照样生效。" },
+        "legacyAliases": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "description": "The ID previously used by this interface. Saved models with old IDs will still be used here, and providerOptions under the old namespace will still take effect." },
         "presets": {
           "type": "array",
-          "description": "说同一种接口的服务商。用户在「选择服务商」里一键带出名字和地址。",
+          "description": "Service providers that speak the same interface. Users can bring up their name and address in \"Select Service Provider\" with one click.",
           "items": {
             "type": "object",
             "required": ["id", "label", "baseUrl"],
@@ -88,12 +88,12 @@
         },
         "capabilities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/capability" } },
         "scopes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/scope" } },
-        "baseUrl": { "type": "string", "description": "默认服务地址；用户可在连接里改。" },
+        "baseUrl": { "type": "string", "description": "Default service address; users can change it in the connection." },
         "requiresPublicMediaUrls": { "type": "boolean" },
         "mediaTransport": { "type": "object", "additionalProperties": { "type": "string" } },
         "mediaUpload": {
           "type": "object",
-          "description": "服务商自带的参考素材上传接口。配置后，本地或内联参考素材会先上传到此接口换取在线 URL 再提交生成请求。",
+          "description": "The reference material upload interface provided by the service provider. After configuration, local or inline reference materials will be uploaded to this interface first in exchange for an online URL before submitting a generation request.",
           "properties": {
             "url": { "type": "string" },
             "path": { "type": "string" },
@@ -109,7 +109,7 @@
         "auth": {
           "type": "object",
           "properties": {
-            "type": { "type": "string", "description": "bearer、header、query、basic、none，或厂商签名方式。" },
+            "type": { "type": "string", "description": "bearer, header, query, basic, none, or manufacturer signature method." },
             "field": { "type": "string" },
             "secretField": { "type": "string" },
             "header": { "type": "string" },
@@ -122,7 +122,7 @@
         },
         "parameters": {
           "type": "array",
-          "description": "写给读插件的人看的参数说明，BeefTV 不读取。",
+          "description": "Parameter description written for people who read the plug-in, BeefTV does not read it.",
           "items": { "$ref": "#/$defs/parameter" }
         },
         "validations": {
@@ -135,9 +135,9 @@
         "poll": { "$ref": "#/$defs/operation" },
         "cancel": { "$ref": "#/$defs/operation" },
         "result": { "$ref": "#/$defs/operation" },
-        "response": { "type": "object", "description": "从上游响应里取任务号、状态、文本或媒体地址。" },
+        "response": { "type": "object", "description": "Get the task number, status, text or media address from the upstream response." },
         "agentResponse": { "type": "object" },
-        "module": { "type": "string", "description": "插件包里实现 submit/query 的 JS 文件；写了它就不写 create 和 poll。" }
+        "module": { "type": "string", "description": "The JS file that implements submit/query in the plug-in package; when it is written, create and poll are not written." }
       },
       "additionalProperties": false
     },

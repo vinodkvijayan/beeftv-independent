@@ -34,20 +34,20 @@ test("shot generation submits historical character image, current voice and asse
         assets: [
             {
                 id: "character-1",
-                title: "张天昊",
+                title: "Zhang Tianhao",
                 category: "character",
                 mediaType: "image",
                 primaryVersionId: "character-version-2",
                 character: {
                     versionId: "character-version-2",
-                    definition: { voiceLanguage: "普通话", voiceAge: "青年男性", voiceTimbre: "略带疲惫和震惊" },
+                    definition: { voiceLanguage: "mandarin", voiceAge: "young male", voiceTimbre: "Slightly tired and shocked" },
                     representations: [{ id: "representation-1", resourceId: "character-image-1", mediaType: "image/png", role: "primary" }],
-                    voice: { profile: { sampleResourceId: "character-audio-1", language: "普通话", timbre: "沉稳" }, instructions: "内心独白语气" },
+                    voice: { profile: { sampleResourceId: "character-audio-1", language: "mandarin", timbre: "Calm" }, instructions: "inner monologue tone" },
                 },
             },
             {
                 id: "scene-1",
-                title: "坑底场景",
+                title: "Scene at the bottom of the pit",
                 category: "environment",
                 mediaType: "image",
                 primaryVersionId: "scene-version-1",
@@ -61,15 +61,15 @@ test("shot generation submits historical character image, current voice and asse
                 status: "linked",
                 asset: {
                     id: "character-1",
-                    title: "张天昊",
+                    title: "Zhang Tianhao",
                     category: "character",
                     mediaType: "entity",
                     primaryVersionId: "character-version-2",
                     character: {
                         versionId: "character-version-2",
-                        definition: { voiceLanguage: "普通话", voiceAge: "青年男性", voiceTimbre: "略带疲惫和震惊" },
+                        definition: { voiceLanguage: "mandarin", voiceAge: "young male", voiceTimbre: "Slightly tired and shocked" },
                         representations: [{ id: "representation-2", resourceId: "character-image-2", mediaType: "image/png", role: "primary" }],
-                        voice: { profile: { sampleResourceId: "character-audio-1", language: "普通话", timbre: "沉稳" }, instructions: "内心独白语气" },
+                        voice: { profile: { sampleResourceId: "character-audio-1", language: "mandarin", timbre: "Calm" }, instructions: "inner monologue tone" },
                     },
                 },
                 referencedVersion: {
@@ -84,18 +84,18 @@ test("shot generation submits historical character image, current voice and asse
     } as ProjectDetail;
 
     const context = buildShotAssetReferenceContext(detail, "shot-1");
-    const prompt = resolveShotAssetMentionPrompt("张天昊在 @[asset:scene-1] 睁开眼睛", context, { dialogue: "我穿越了？瓦西国张家废柴少主？" });
+    const prompt = resolveShotAssetMentionPrompt("Zhang Tianhao opens his eyes @[asset:scene-1]", context, { dialogue: "Have I traveled through time? The good-for-nothing young master of the Zhang family in Wasi country?" });
 
     expect(context.referenceImages).toHaveLength(2);
     expect(context.referenceImages[0]?.storageKey).toBe("resource:character-image-1");
     expect(context.referenceAudios).toHaveLength(1);
     expect(context.referenceAudios[0]?.storageKey).toBe("resource:character-audio-1");
     expect(context.resolvedCharacterVersions).toEqual([{ assetId: "character-1", versionId: "character-version-1" }]);
-    expect(prompt).toContain("张天昊在 图片2 睁开眼睛");
-    expect(prompt).toContain("- 张天昊：人物参考：图片1；声音参考：音频1");
-    expect(prompt).toContain("声音画像：普通话；青年男性；略带疲惫和震惊；内心独白语气");
-    expect(prompt).toContain("镜头台词：我穿越了？瓦西国张家废柴少主？");
-    expect(prompt).toContain("- 坑底场景：场景参考：图片2");
+    expect(prompt).toContain("Zhang Tianhao in Picture 2 Open your eyes");
+    expect(prompt).toContain("- Zhang Tianhao: Character reference: Picture 1; Sound reference: Audio 1");
+    expect(prompt).toContain("Voice portrait: Mandarin; young male; slightly tired and shocked; inner monologue tone");
+    expect(prompt).toContain("Scene lines: Have I traveled through time? The good-for-nothing young master of the Zhang family in Wasi country?");
+    expect(prompt).toContain("- Scene at the bottom of the pit: Scene reference: Picture 2");
 
     let createdInput: Parameters<GenerationTaskDependencies["createTask"]>[0] | undefined;
     const task = {
@@ -134,7 +134,7 @@ test("shot generation submits historical character image, current voice and asse
         browserBlob.mockRestore();
     }
 
-    expect(createdInput?.prompt).toContain("【资产参考】");
+    expect(createdInput?.prompt).toContain("【Asset Reference】");
     expect(createdInput?.input.referenceImages.map((reference) => reference.storageKey)).toEqual(["resource:character-image-1", "resource:scene-image-1"]);
     expect(createdInput?.input.referenceAudios.map((reference) => reference.storageKey)).toEqual(["resource:character-audio-1"]);
     expect(createdInput?.input.referenceAudios[0]?.durationMs).toBe(2500);
@@ -146,7 +146,7 @@ test("background generation submission returns after task creation without waiti
         id: "task-1",
         type: "canvas_video",
         status: "queued",
-        prompt: "角色表演",
+        prompt: "role play",
         attempts: 0,
         createdAt: "2026-08-30T00:00:00.000Z",
         updatedAt: "2026-08-30T00:00:00.000Z",
@@ -165,7 +165,7 @@ test("background generation submission returns after task creation without waiti
     const submitted = await submitBackendGenerationTask({
         projectId: "project-1",
         mode: "video",
-        prompt: "角色表演",
+        prompt: "role play",
         config: videoTaskConfig(),
         metadata: { shotId: "shot-1", videoEditOperation: "reference_to_video" },
     }, dependencies);

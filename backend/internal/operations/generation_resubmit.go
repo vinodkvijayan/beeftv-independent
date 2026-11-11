@@ -66,7 +66,7 @@ func ReleaseFailedGenerationNodes(domain Domain, tx *gorm.DB, userID, canvasID s
 			}
 			details["taskOutcome"] = projection.Outcome
 		}
-		return PreconditionFailed("generation_task_exists", "节点已关联生成任务，请先查询原任务；需要另做一份时请新建节点", details)
+		return PreconditionFailed("generation_task_exists", "The node has been associated to generate a task. Please query the original task first; please create a new node when you need to make another one.", details)
 	}
 	if !released {
 		return nil

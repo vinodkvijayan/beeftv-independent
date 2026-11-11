@@ -11,7 +11,7 @@ if [ -x "$HERE/runtime/bin/node" ]; then
 elif command -v node >/dev/null 2>&1; then
   NODE_BIN=$(command -v node)
 else
-  echo "agent-host: 未找到 Node 运行时（包内 runtime/bin/node 与 PATH 都没有）" >&2
+  echo "agent-host: Node runtime not found (neither runtime/bin/node nor PATH in the package)" >&2
   exit 2
 fi
 

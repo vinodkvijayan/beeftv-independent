@@ -5,26 +5,26 @@ import { normalizeQuality, resolveRequestSize, validateImageSize } from "../src/
 import { ChannelResponseError } from "../src/services/api/channel-transport";
 
 describe("image api contracts", () => {
-    test("规范化质量和尺寸，拒绝超出边界的图像", () => {
+    test("Normalize quality and size, reject images out of bounds", () => {
         expect(normalizeQuality("1k")).toBe("low");
         expect(normalizeQuality("2k")).toBe("medium");
         expect(normalizeQuality("4k")).toBe("high");
         expect(resolveRequestSize("medium", "16:9")).toMatch(/^\d+x\d+$/);
         expect(resolveRequestSize("medium", "9:16")).toMatch(/^\d+x\d+$/);
-        expect(() => validateImageSize(1025, 1024)).toThrow("16 的倍数");
-        expect(() => validateImageSize(3072, 1008)).toThrow("宽高比");
-        expect(() => validateImageSize(3840, 2176)).toThrow("总像素");
+        expect(() => validateImageSize(1025, 1024)).toThrow("Multiples of 16");
+        expect(() => validateImageSize(3072, 1008)).toThrow("aspect ratio");
+        expect(() => validateImageSize(3840, 2176)).toThrow("total pixels");
     });
 
-    test("解包 b64_json、url 和业务错误", () => {
+    test("Unpacking b64_json, url and business errors", () => {
         expect(parseImagePayload({ data: [{ b64_json: "abc" }, { url: "https://example.com/image.png" }] })).toEqual([
             { id: expect.any(String), dataUrl: "data:image/png;base64,abc" },
             { id: expect.any(String), dataUrl: "https://example.com/image.png" },
         ]);
-        expect(() => parseImagePayload({ data: [] })).toThrow("接口没有返回图片");
+        expect(() => parseImagePayload({ data: [] })).toThrow("The interface does not return pictures");
         // A provider quota error does not identify whose balance is insufficient.
         try {
-            parseImagePayload({ code: 1001, msg: "额度不足" });
+            parseImagePayload({ code: 1001, msg: "Insufficient quota" });
             throw new Error("accepted quota failure");
         } catch (error) {
             expect(error).toBeInstanceOf(ChannelResponseError);
@@ -33,7 +33,7 @@ describe("image api contracts", () => {
         }
     });
 
-    test("统一解析 Responses、Chat Completions 和 Gemini 工具调用", () => {
+    test("Unified parsing of Responses, Chat Completions and Gemini tool calls", () => {
         expect(
             parseToolResponse({
                 output: [{ type: "function_call", call_id: "call-1", name: "search", arguments: '{"q":"canvas"}' }],
@@ -60,7 +60,7 @@ describe("image api contracts", () => {
         ).toMatchObject({ reasoning: "thinking", toolCalls: [{ id: "call-3", thoughtSignature: "sig", function: { name: "search", arguments: '{"q":"canvas"}' } }] });
     });
 
-    test("SSE 增量解析保留正文、reasoning 和工具调用", () => {
+    test("SSE incremental parsing preserves body, reasoning, and tool calls", () => {
         const responseState = { buffer: "", text: "", reasoning: "" };
         consumeResponseStreamText(responseState, 'data: {"type":"response.output_text.delta","delta":"hel"}\n\n');
         consumeResponseStreamText(responseState, 'data: {"type":"response.reasoning.delta","delta":"why"}\n\n');

@@ -111,25 +111,25 @@ func mediaParams() []Parameter {
 
 func videoParams() []Parameter {
 	return []Parameter{
-		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "上游模型标识。"},
-		{Name: "prompt", Type: "string", Required: true, Mapping: "prompt", Description: "视频生成提示词。"},
-		{Name: "images", Type: "media[]", Mapping: "provider-specific", Description: "参考图片，由协议适配器转换为上游要求的 URL、Data URL 或 multipart 文件。"},
-		{Name: "videos", Type: "media[]", Mapping: "provider-specific", Description: "参考视频；仅在上游协议支持时发送。"},
-		{Name: "audios", Type: "media[]", Mapping: "provider-specific", Description: "参考音频或声音；仅在上游协议支持时发送。"},
-		{Name: "duration", Type: "integer", Mapping: "provider-specific", Description: "视频时长，单位由上游协议决定。"},
-		{Name: "aspectRatio", Type: "string", Mapping: "provider-specific", Description: "画幅比例或上游尺寸字段。"},
-		{Name: "resolution", Type: "string", Mapping: "provider-specific", Description: "输出分辨率档位。"},
-		{Name: "generateAudio", Type: "boolean", Mapping: "provider-specific", Description: "是否同时生成音频。"},
-		{Name: "watermark", Type: "boolean", Mapping: "provider-specific", Description: "是否添加水印。"},
+		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Upstream model identifier."},
+		{Name: "prompt", Type: "string", Required: true, Mapping: "prompt", Description: "Video generation prompt words."},
+		{Name: "images", Type: "media[]", Mapping: "provider-specific", Description: "Reference image, converted by the protocol adapter to the URL, Data URL, or multipart file required by the upstream."},
+		{Name: "videos", Type: "media[]", Mapping: "provider-specific", Description: "Reference video; only sent if supported by upstream protocol."},
+		{Name: "audios", Type: "media[]", Mapping: "provider-specific", Description: "Reference audio or sound; only sent if supported by the upstream protocol."},
+		{Name: "duration", Type: "integer", Mapping: "provider-specific", Description: "Video duration, the unit is determined by the upstream protocol."},
+		{Name: "aspectRatio", Type: "string", Mapping: "provider-specific", Description: "Aspect ratio or upstream size field."},
+		{Name: "resolution", Type: "string", Mapping: "provider-specific", Description: "Output resolution level."},
+		{Name: "generateAudio", Type: "boolean", Mapping: "provider-specific", Description: "Whether to generate audio at the same time."},
+		{Name: "watermark", Type: "boolean", Mapping: "provider-specific", Description: "Whether to add watermark."},
 	}
 }
 
 func openAIChatAdapter() Adapter {
 	info := metadata("chat-completion", "OpenAI Chat Completions", "OpenAI", CapabilityText, "POST /v1/chat/completions", "", "application/json")
 	info.Parameters = []Parameter{
-		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "上游模型标识。"},
-		{Name: "prompt", Type: "string", Required: true, Mapping: "messages[0].content", Description: "默认转换为一条 user message；extra.messages 可替换完整消息数组。"},
-		{Name: "stream", Type: "boolean", Mapping: "stream", Description: "是否请求流式响应。"},
+		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Upstream model identifier."},
+		{Name: "prompt", Type: "string", Required: true, Mapping: "messages[0].content", Description: "Converted to a user message by default; extra.messages can replace the complete message array."},
+		{Name: "stream", Type: "boolean", Mapping: "stream", Description: "Whether to request a streaming response."},
 	}
 	return builtinAdapter{info: info,
 		create: func(r GenerationRequest) (RequestSpec, error) {
@@ -144,9 +144,9 @@ func openAIChatAdapter() Adapter {
 func openAIResponsesAdapter() Adapter {
 	info := metadata("openai-response", "OpenAI Responses", "OpenAI", CapabilityText, "POST /v1/responses", "", "application/json")
 	info.Parameters = []Parameter{
-		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "上游模型标识。"},
-		{Name: "prompt", Type: "string", Required: true, Mapping: "input", Description: "默认作为 input 字符串；extra.input 可提供结构化输入。"},
-		{Name: "stream", Type: "boolean", Mapping: "stream", Description: "是否请求流式响应。"},
+		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Upstream model identifier."},
+		{Name: "prompt", Type: "string", Required: true, Mapping: "input", Description: "Defaults to an input string; extra.input provides structured input."},
+		{Name: "stream", Type: "boolean", Mapping: "stream", Description: "Whether to request a streaming response."},
 	}
 	return builtinAdapter{info: info,
 		create: func(r GenerationRequest) (RequestSpec, error) {
@@ -162,9 +162,9 @@ func openAIResponsesAdapter() Adapter {
 func claudeAdapter() Adapter {
 	info := metadata("claude-api", "Claude API", "Anthropic", CapabilityText, "POST /v1/messages", "", "application/json")
 	info.Parameters = []Parameter{
-		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Anthropic 模型标识。"},
-		{Name: "prompt", Type: "string", Required: true, Mapping: "messages[0].content", Description: "默认转换为一条 user message；extra.messages 可替换完整消息数组。"},
-		{Name: "stream", Type: "boolean", Mapping: "stream", Description: "是否请求流式响应。"},
+		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Anthropic model identifier."},
+		{Name: "prompt", Type: "string", Required: true, Mapping: "messages[0].content", Description: "Converted to a user message by default; extra.messages can replace the complete message array."},
+		{Name: "stream", Type: "boolean", Mapping: "stream", Description: "Whether to request a streaming response."},
 	}
 	info.LegacyAliases = []string{"anthropic-messages", "claude-messages"}
 	return builtinAdapter{info: info,
@@ -200,16 +200,16 @@ func openAIVideosAdapter() Adapter {
 
 func openAIVideoParams() []Parameter {
 	return []Parameter{
-		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Sora 等视频模型标识。"},
-		{Name: "prompt", Type: "string", Required: true, Mapping: "prompt", Description: "视频生成提示词。"},
-		{Name: "images", Type: "media[]", Mapping: "input_reference", Description: "可选参考图，作为 multipart 文件上传到 input_reference。"},
-		{Name: "duration", Type: "integer", Mapping: "seconds", Description: "视频时长，单位为秒。"},
-		{Name: "aspectRatio", Type: "string", Mapping: "size", Description: "视频尺寸，例如 1280x720；该协议使用 size 而不是独立的 aspect_ratio。"},
-		{Name: "videos", Type: "media[]", Mapping: "unsupported", Description: "OpenAI Videos 当前适配器不发送参考视频。"},
-		{Name: "audios", Type: "media[]", Mapping: "unsupported", Description: "OpenAI Videos 当前适配器不发送参考音频。"},
-		{Name: "resolution", Type: "string", Mapping: "unsupported", Description: "分辨率通过 size 表达。"},
-		{Name: "generateAudio", Type: "boolean", Mapping: "unsupported", Description: "当前适配器不额外发送该字段。"},
-		{Name: "watermark", Type: "boolean", Mapping: "unsupported", Description: "当前适配器不额外发送该字段。"},
+		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Sora et al video model logo."},
+		{Name: "prompt", Type: "string", Required: true, Mapping: "prompt", Description: "Video generation prompt words."},
+		{Name: "images", Type: "media[]", Mapping: "input_reference", Description: "Optional reference image, uploaded as a multipart file to input_reference."},
+		{Name: "duration", Type: "integer", Mapping: "seconds", Description: "Video duration, in seconds."},
+		{Name: "aspectRatio", Type: "string", Mapping: "size", Description: "Video size, such as 1280x720; this protocol uses size instead of a separate aspect_ratio."},
+		{Name: "videos", Type: "media[]", Mapping: "unsupported", Description: "OpenAI Videos current adapter does not send reference video."},
+		{Name: "audios", Type: "media[]", Mapping: "unsupported", Description: "OpenAI Videos current adapter does not send reference audio."},
+		{Name: "resolution", Type: "string", Mapping: "unsupported", Description: "Resolution is expressed through size."},
+		{Name: "generateAudio", Type: "boolean", Mapping: "unsupported", Description: "The current adapter does not send this field additionally."},
+		{Name: "watermark", Type: "boolean", Mapping: "unsupported", Description: "The current adapter does not send this field additionally."},
 	}
 }
 
@@ -251,7 +251,7 @@ func newAPIVideosAdapter() Adapter {
 }
 
 func newAPIChannel1Adapter() Adapter {
-	info := metadata("newapi-channel-1", "NewAPI 媒体任务", "NewAPI", CapabilityVideo, "POST /v1/videos", "GET /v1/videos/{task_id}", "application/json")
+	info := metadata("newapi-channel-1", "NewAPI media tasks", "NewAPI", CapabilityVideo, "POST /v1/videos", "GET /v1/videos/{task_id}", "application/json")
 	info.Parameters = videoParams()
 	return videoAdapter(info, func(r GenerationRequest) (RequestSpec, error) {
 		media := make([]map[string]string, 0, len(r.Images)+len(r.Videos)+len(r.Audios))
@@ -277,16 +277,16 @@ func newAPIChannel1Adapter() Adapter {
 }
 
 func xAIVideosAdapter() Adapter {
-	info := metadata("xai-video", "xAI 官方视频", "xAI", CapabilityVideo, "POST /v1/videos/generations", "GET /v1/videos/{request_id}", "application/json")
+	info := metadata("xai-video", "xAI official video", "xAI", CapabilityVideo, "POST /v1/videos/generations", "GET /v1/videos/{request_id}", "application/json")
 	info.Parameters = videoParams()
 	return videoAdapter(info, func(r GenerationRequest) (RequestSpec, error) {
 		body := map[string]any{"model": r.Model, "prompt": r.Prompt, "duration": defaultInt(r.Duration, 6), "aspect_ratio": defaultValue(r.AspectRatio, "16:9"), "resolution": defaultValue(r.Resolution, "720p")}
 		frameImages, referenceImages, unspecifiedImages := splitVideoImages(r.Images)
 		if len(frameImages) > 0 && len(referenceImages) > 0 {
-			return RequestSpec{}, fmt.Errorf("xAI 视频协议不能同时混用首尾帧和角色参考图")
+			return RequestSpec{}, fmt.Errorf("The xAI video protocol cannot mix first and last frames and character reference images at the same time")
 		}
 		if len(frameImages) > 1 {
-			return RequestSpec{}, fmt.Errorf("xAI 视频协议最多支持 1 张起始图，不支持尾帧输入")
+			return RequestSpec{}, fmt.Errorf("The xAI video protocol supports up to 1 starting picture and does not support last frame input.")
 		}
 		if len(frameImages) == 1 {
 			body["image"] = map[string]any{"url": mediaValue(frameImages[0])}
@@ -310,14 +310,14 @@ func xAIVideosAdapter() Adapter {
 }
 
 func arkVideosAdapter() Adapter {
-	info := metadata("volcengine-ark-video", "火山方舟视频", "Volcengine Ark", CapabilityVideo, "POST /api/v3/contents/generations/tasks", "GET /api/v3/contents/generations/tasks/{task_id}", "application/json")
+	info := metadata("volcengine-ark-video", "Volcano Ark Video", "Volcengine Ark", CapabilityVideo, "POST /api/v3/contents/generations/tasks", "GET /api/v3/contents/generations/tasks/{task_id}", "application/json")
 	info.Parameters = videoParams()
 	return videoAdapter(info, func(r GenerationRequest) (RequestSpec, error) {
 		if len(r.Images) > 9 || len(r.Videos) > 3 || len(r.Audios) > 3 {
-			return RequestSpec{}, fmt.Errorf("火山方舟全模态参考最多支持 9 张图片、3 个视频和 3 个音频")
+			return RequestSpec{}, fmt.Errorf("Volcano Ark full-modal reference supports up to 9 pictures, 3 videos and 3 audios")
 		}
 		if len(r.Audios) > 0 && len(r.Images) == 0 && len(r.Videos) == 0 {
-			return RequestSpec{}, fmt.Errorf("火山方舟全模态参考不支持纯音频或文本+音频，请同时添加参考图片或参考视频")
+			return RequestSpec{}, fmt.Errorf("Volcano Ark full-modal reference does not support pure audio or text + audio, please also add reference pictures or reference videos")
 		}
 		content := []any{map[string]any{"type": "text", "text": r.Prompt}}
 		for _, image := range r.Images {
@@ -341,7 +341,7 @@ func arkVideosAdapter() Adapter {
 }
 
 func jimengVideosAdapter() Adapter {
-	info := metadata("volcengine-jimeng-video", "即梦官方视频", "Volcengine Jimeng", CapabilityVideo, "POST CVSync2AsyncSubmitTask", "POST CVSync2AsyncGetResult", "application/json + AK/SK signature")
+	info := metadata("volcengine-jimeng-video", "Jimeng official video", "Volcengine Jimeng", CapabilityVideo, "POST CVSync2AsyncSubmitTask", "POST CVSync2AsyncGetResult", "application/json + AK/SK signature")
 	info.Parameters = videoParams()
 	return videoAdapterWithPoll(info, func(r GenerationRequest) (RequestSpec, error) {
 		body := map[string]any{"req_key": r.Model, "prompt": r.Prompt}
@@ -360,7 +360,7 @@ func geminiVeoAdapter() Adapter {
 	info.Parameters = videoParams()
 	create := func(r GenerationRequest) (RequestSpec, error) {
 		if hasVideoImageRole(r.Images, "reference_image") {
-			return RequestSpec{}, fmt.Errorf("Gemini Veo 当前不支持角色或风格参考图生视频，请改用支持 reference_to_video 的模型")
+			return RequestSpec{}, fmt.Errorf("Gemini Veo currently does not support character or style reference to video, please use a model that supports reference_to_video instead.")
 		}
 		instance := map[string]any{"prompt": r.Prompt}
 		if len(r.Images) > 0 {
@@ -381,11 +381,11 @@ func geminiVeoAdapter() Adapter {
 }
 
 func novitaVideosAdapter() Adapter {
-	info := metadata("novita-video", "Novita 视频", "Novita", CapabilityVideo, "POST /v3/video/create", "GET /v3/async/task-result?task_id={id}", "application/json")
+	info := metadata("novita-video", "Novita videos", "Novita", CapabilityVideo, "POST /v3/video/create", "GET /v3/async/task-result?task_id={id}", "application/json")
 	info.Parameters = videoParams()
 	return videoAdapter(info, func(r GenerationRequest) (RequestSpec, error) {
 		if hasVideoImageRole(r.Images, "reference_image") {
-			return RequestSpec{}, fmt.Errorf("Novita 视频当前不支持角色或风格参考图生视频，请改用支持 reference_to_video 的模型")
+			return RequestSpec{}, fmt.Errorf("Novita Video currently does not support role or style reference to video, please use a model that supports reference_to_video instead")
 		}
 		body := map[string]any{"model_name": r.Model, "prompt": r.Prompt, "duration": defaultInt(r.Duration, 5), "aspect_ratio": defaultValue(r.AspectRatio, "16:9")}
 		if len(r.Images) > 0 {
@@ -396,7 +396,7 @@ func novitaVideosAdapter() Adapter {
 }
 
 func miniMaxVideosAdapter() Adapter {
-	info := metadata("minimax-video", "MiniMax 视频", "MiniMax", CapabilityVideo, "POST /v2/video_generation", "GET /v2/query/video_generation/{task_id}", "application/json")
+	info := metadata("minimax-video", "MiniMax Video", "MiniMax", CapabilityVideo, "POST /v2/video_generation", "GET /v2/query/video_generation/{task_id}", "application/json")
 	info.Parameters = videoParams()
 	return videoAdapter(info, func(r GenerationRequest) (RequestSpec, error) {
 		content := []any{map[string]any{"type": "text", "text": r.Prompt}}
@@ -416,20 +416,20 @@ func miniMaxVideosAdapter() Adapter {
 }
 
 func agnesAdapter() Adapter {
-	info := metadata("agnes-video", "Agnes 视频", "Agnes AI", CapabilityVideo, "POST /v1/videos", "GET /agnesapi?video_id={id}&model_name={model}", "application/json")
+	info := metadata("agnes-video", "Agnes videos", "Agnes AI", CapabilityVideo, "POST /v1/videos", "GET /agnesapi?video_id={id}&model_name={model}", "application/json")
 	info.Version = "1.2.0"
-	info.Description = "Agnes AI 官方异步视频协议，支持 Agnes Video V2.0、2.5 与 2.5 Flash。"
+	info.Description = "Agnes AI official asynchronous video protocol supports Agnes Video V2.0, 2.5 and 2.5 Flash."
 	info.RequiresPublicMediaURLs = true
 	info.MediaTransport = map[string]string{"image": "inline", "video": "url", "audio": "url"}
 	info.Parameters = []Parameter{
-		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "官方模型 ID：agnes-video-v2.0、agnes-video-2.5 或 agnes-video-2.5-flash。"},
-		{Name: "prompt", Type: "string", Required: true, Mapping: "prompt", Description: "视频生成提示词。"},
-		{Name: "images", Type: "media[]", Mapping: "first_frame/last_frame/images/image/extra_body.image", Description: "2.5 系列按 mode 映射为关键帧或参考图；V2.0 映射为 image 或关键帧数组。"},
-		{Name: "videos", Type: "media[]", Mapping: "videos", Description: "仅 Agnes Video 2.5 reference 模式支持，Flash 与 V2.0 不支持。"},
-		{Name: "audios", Type: "media[]", Mapping: "audios", Description: "Agnes Video 2.5 系列 reference 模式支持。"},
-		{Name: "duration", Type: "integer", Mapping: "seconds/num_frames", Description: "2.5 系列映射为字符串 seconds；V2.0 按帧率换算 num_frames。"},
-		{Name: "aspectRatio", Type: "string", Values: []string{"21:9", "16:9", "4:3", "1:1", "3:4", "9:16"}, Mapping: "aspect_ratio", Description: "2.5 系列画幅比例；历史像素尺寸会在插件边界转换为对应比例。"},
-		{Name: "resolution", Type: "string", Values: []string{"720P", "960P", "2K"}, Mapping: "size", Description: "通用层分辨率档位，映射为 Agnes 的 size；Flash 固定 720P。"},
+		{Name: "model", Type: "string", Required: true, Mapping: "model", Description: "Official model ID: agnes-video-v2.0, agnes-video-2.5 or agnes-video-2.5-flash."},
+		{Name: "prompt", Type: "string", Required: true, Mapping: "prompt", Description: "Video generation prompt words."},
+		{Name: "images", Type: "media[]", Mapping: "first_frame/last_frame/images/image/extra_body.image", Description: "The 2.5 series is mapped to keyframes or reference images according to mode; the V2.0 series is mapped to image or keyframe array."},
+		{Name: "videos", Type: "media[]", Mapping: "videos", Description: "Only Agnes Video 2.5 reference mode supports it, Flash and V2.0 do not support it."},
+		{Name: "audios", Type: "media[]", Mapping: "audios", Description: "Agnes Video 2.5 series reference mode support."},
+		{Name: "duration", Type: "integer", Mapping: "seconds/num_frames", Description: "The 2.5 series is mapped to the string seconds; V2.0 converts num_frames according to the frame rate."},
+		{Name: "aspectRatio", Type: "string", Values: []string{"21:9", "16:9", "4:3", "1:1", "3:4", "9:16"}, Mapping: "aspect_ratio", Description: "2.5 series aspect ratio; historical pixel sizes will be converted to the corresponding ratio at the plug-in boundary."},
+		{Name: "resolution", Type: "string", Values: []string{"720P", "960P", "2K"}, Mapping: "size", Description: "Universal layer resolution gear, mapped to the size of Agnes; Flash is fixed at 720P."},
 	}
 	return builtinAdapter{
 		info:        info,
@@ -466,14 +466,14 @@ func buildAgnesCreate(r GenerationRequest) (RequestSpec, error) {
 		}
 		return jsonSpec(http.MethodPost, "/v1/videos", body), nil
 	default:
-		return RequestSpec{}, fmt.Errorf("Agnes 不支持模型 %q", model)
+		return RequestSpec{}, fmt.Errorf("Agnes does not support model %q", model)
 	}
 }
 
 func buildAgnesV25Body(r GenerationRequest) (map[string]any, error) {
 	frameImages, referenceImages, _ := splitVideoImages(r.Images)
 	if len(frameImages) > 0 && (len(referenceImages) > 0 || len(r.Videos)+len(r.Audios) > 0) {
-		return nil, fmt.Errorf("Agnes 2.5 不能同时混用首尾帧和角色、视频或音频参考素材")
+		return nil, fmt.Errorf("Agnes 2.5 cannot mix first and last frames with character, video or audio reference material at the same time")
 	}
 	mode := firstString(r.Extra, "mode")
 	if mode == "" {
@@ -498,7 +498,7 @@ func buildAgnesV25Body(r GenerationRequest) (map[string]any, error) {
 		}
 	}
 	if mode != "text" && mode != "keyframe" && mode != "reference" {
-		return nil, fmt.Errorf("Agnes 2.5 mode 必须是 text、keyframe 或 reference")
+		return nil, fmt.Errorf("Agnes 2.5 mode must be text, keyframe or reference")
 	}
 	seconds := defaultInt(r.Duration, 5)
 	size, err := normalizeAgnesV25Resolution(defaultValue(r.Resolution, firstString(r.Extra, "size")))
@@ -511,16 +511,16 @@ func buildAgnesV25Body(r GenerationRequest) (map[string]any, error) {
 	}
 	if r.Model == "agnes-video-2.5-flash" {
 		if size != "720P" {
-			return nil, fmt.Errorf("Agnes Video 2.5 Flash 仅支持 720P")
+			return nil, fmt.Errorf("Agnes Video 2.5 Flash only supports 720P")
 		}
 		if len(r.Images) > 5 {
-			return nil, fmt.Errorf("Agnes Video 2.5 Flash 最多支持 5 张参考图")
+			return nil, fmt.Errorf("Agnes Video 2.5 Flash supports up to 5 reference pictures")
 		}
 		if len(r.Videos) > 0 {
-			return nil, fmt.Errorf("Agnes Video 2.5 Flash 不支持参考视频")
+			return nil, fmt.Errorf("Agnes Video 2.5 Flash does not support reference videos")
 		}
 	} else if size != "720P" && size != "960P" && size != "2K" {
-		return nil, fmt.Errorf("Agnes Video 2.5 size 必须是 720P、960P 或 2K")
+		return nil, fmt.Errorf("Agnes Video 2.5 size must be 720P, 960P or 2K")
 	}
 	body := map[string]any{
 		"model":        r.Model,
@@ -537,19 +537,19 @@ func buildAgnesV25Body(r GenerationRequest) (map[string]any, error) {
 	switch mode {
 	case "text":
 		if len(r.Images)+len(r.Videos)+len(r.Audios) > 0 {
-			return nil, fmt.Errorf("Agnes 2.5 text 模式不接受参考媒体")
+			return nil, fmt.Errorf("Agnes 2.5 text mode does not accept reference media")
 		}
 	case "keyframe":
 		if len(r.Images) == 0 || len(r.Images) > 2 || len(r.Videos)+len(r.Audios) > 0 {
-			return nil, fmt.Errorf("Agnes 2.5 keyframe 模式需要 1 到 2 张图片，且不接受音视频参考")
+			return nil, fmt.Errorf("Agnes 2.5 keyframe mode requires 1 to 2 pictures and does not accept audio and video references")
 		}
 		_, referenceImages, _ := splitVideoImages(r.Images)
 		if len(referenceImages) > 0 {
-			return nil, fmt.Errorf("Agnes 2.5 keyframe 模式不能混用角色或风格参考图")
+			return nil, fmt.Errorf("Agnes 2.5 keyframe mode cannot mix character or style reference images")
 		}
 		frameImages := orderedFrameImages(r.Images)
 		if len(frameImages) == 0 {
-			return nil, fmt.Errorf("Agnes 2.5 keyframe 模式缺少首帧图片")
+			return nil, fmt.Errorf("Agnes 2.5 keyframe mode lacks the first frame image")
 		}
 		body["first_frame"] = mediaValue(frameImages[0])
 		if len(frameImages) > 1 {
@@ -557,7 +557,7 @@ func buildAgnesV25Body(r GenerationRequest) (map[string]any, error) {
 		}
 	case "reference":
 		if len(r.Images)+len(r.Videos)+len(r.Audios) == 0 {
-			return nil, fmt.Errorf("Agnes 2.5 reference 模式至少需要一种参考媒体")
+			return nil, fmt.Errorf("Agnes 2.5 reference mode requires at least one reference media")
 		}
 		if len(r.Images) > 0 {
 			body["images"] = mediaValues(r.Images)
@@ -585,7 +585,7 @@ func normalizeAgnesV25Resolution(value string) (string, error) {
 	case "2k", "1440", "1440p":
 		return "2K", nil
 	default:
-		return "", fmt.Errorf("Agnes Video 2.5 分辨率必须是 720P、960P 或 2K")
+		return "", fmt.Errorf("Agnes Video 2.5 resolution must be 720P, 960P or 2K")
 	}
 }
 
@@ -615,16 +615,16 @@ func normalizeAgnesV25AspectRatio(value string) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("Agnes Video 2.5 画幅必须是 21:9、16:9、4:3、1:1、3:4 或 9:16")
+	return "", fmt.Errorf("Agnes Video 2.5 must be 21:9, 16:9, 4:3, 1:1, 3:4 or 9:16")
 }
 
 func buildAgnesV20Body(r GenerationRequest) (map[string]any, error) {
 	if len(r.Videos)+len(r.Audios) > 0 {
-		return nil, fmt.Errorf("Agnes Video V2.0 不支持参考视频或音频")
+		return nil, fmt.Errorf("Agnes Video V2.0 does not support reference video or audio")
 	}
 	_, referenceImages, _ := splitVideoImages(r.Images)
 	if r.Operation == "reference_to_video" || len(referenceImages) > 0 {
-		return nil, fmt.Errorf("Agnes Video V2.0 不支持角色或风格参考图模式，请改用 Agnes Video 2.5")
+		return nil, fmt.Errorf("Agnes Video V2.0 does not support character or style reference image mode, please use Agnes Video 2.5 instead")
 	}
 	body := map[string]any{"model": r.Model, "prompt": r.Prompt}
 	mergeExtra(body, r.Extra, "mode", "width", "height", "num_frames", "frame_rate", "num_inference_steps", "seed", "negative_prompt")
@@ -670,7 +670,7 @@ func buildAgnesV20Body(r GenerationRequest) (map[string]any, error) {
 func parseAgnesCreate(payload map[string]any) (CreateResult, error) {
 	id := firstString(payload, "video_id", "task_id", "id")
 	if id == "" {
-		return CreateResult{}, fmt.Errorf("Agnes 创建响应没有 video_id")
+		return CreateResult{}, fmt.Errorf("Agnes creates response without video_id")
 	}
 	status := normalizeStatus(firstString(payload, "status"))
 	if status == "" {
@@ -690,7 +690,7 @@ func parseAgnesPoll(c PollContext, payload map[string]any) (PollResult, error) {
 		message = defaultValue(firstString(failure, "message", "detail", "code"), message)
 	}
 	if status == StatusFailed {
-		return PollResult{TaskID: id, Status: status, Message: defaultValue(message, "Agnes 视频生成失败")}, nil
+		return PollResult{TaskID: id, Status: status, Message: defaultValue(message, "Agnes video generation failed")}, nil
 	}
 	if status != StatusSucceeded {
 		return PollResult{TaskID: id, Status: status, Message: message}, nil
@@ -701,7 +701,7 @@ func parseAgnesPoll(c PollContext, payload map[string]any) (PollResult, error) {
 		videoURL = firstString(payload, "url")
 	}
 	if videoURL == "" {
-		return PollResult{}, fmt.Errorf("Agnes 完成响应没有返回视频 URL")
+		return PollResult{}, fmt.Errorf("Agnes completion response does not return video URL")
 	}
 	return PollResult{TaskID: id, Status: status, Result: &Result{Videos: []MediaReference{{URL: videoURL, Kind: string(CapabilityVideo)}}}}, nil
 }

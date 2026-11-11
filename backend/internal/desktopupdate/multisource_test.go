@@ -114,7 +114,7 @@ func newMultiSourceFixture(t *testing.T, cfg multiSourceConfig) *multiSourceFixt
 				Schema:  payloadSchemaV2,
 				Version: "v2.1.0",
 				Commit:  strings.Repeat("b", 40),
-				Notes:   "v2.1.0 国内源与 R2 双源自动回退",
+				Notes:   "v2.1.0 Domestic source and R2 dual source automatic fallback",
 				Platforms: map[string]PlatformArtifact{
 					"darwin-arm64": {
 						URLs:   []string{cnbZipURL, r2ZipURL},

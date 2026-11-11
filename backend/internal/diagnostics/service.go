@@ -106,7 +106,7 @@ func (s *Service) Export(userID string, req ExportRequest) (*Bundle, error) {
 		return nil, err
 	}
 	if len(data) > maxBundleBytes {
-		return nil, kernel.BadAuthRequest("诊断包超过 10 MB，请缩短时间范围后重试")
+		return nil, kernel.BadAuthRequest("The diagnostic package exceeds 10 MB, please shorten the time range and try again")
 	}
 	fileName := fmt.Sprintf("%s-diagnostics-%s-%s.zip", brandSlug, s.now().UTC().Format("20060102-150405"), bundleID)
 	return &Bundle{BundleID: bundleID, FileName: fileName, Data: data}, nil
@@ -114,7 +114,7 @@ func (s *Service) Export(userID string, req ExportRequest) (*Bundle, error) {
 
 func (s *Service) collect(userID string, req ExportRequest) (*collection, error) {
 	if s == nil || s.store == nil || strings.TrimSpace(userID) == "" {
-		return nil, kernel.Unauthorized("本地工作区尚未初始化")
+		return nil, kernel.Unauthorized("The local workspace has not been initialized yet")
 	}
 	window, err := s.normalizeWindow(req.From, req.To)
 	if err != nil {
@@ -123,28 +123,28 @@ func (s *Service) collect(userID string, req ExportRequest) (*collection, error)
 	taskID := strings.TrimSpace(req.TaskID)
 	projectID := strings.TrimSpace(req.ProjectID)
 	if len(taskID) > 96 || len(projectID) > 96 {
-		return nil, kernel.BadAuthRequest("诊断上下文无效")
+		return nil, kernel.BadAuthRequest("Invalid diagnostic context")
 	}
 	if taskID != "" {
 		task, taskErr := s.store.TaskForUser(userID, taskID)
 		if errors.Is(taskErr, gorm.ErrRecordNotFound) {
-			return nil, kernel.BadAuthRequest("任务不存在或无权访问")
+			return nil, kernel.BadAuthRequest("Task does not exist or does not have access rights")
 		}
 		if taskErr != nil {
 			return nil, taskErr
 		}
 		if task == nil {
-			return nil, kernel.BadAuthRequest("任务不存在或无权访问")
+			return nil, kernel.BadAuthRequest("Task does not exist or does not have access rights")
 		}
 		if projectID != "" && task.ProjectID != projectID {
-			return nil, kernel.BadAuthRequest("任务不属于当前项目")
+			return nil, kernel.BadAuthRequest("The task does not belong to the current project")
 		}
 		if projectID == "" {
 			projectID = task.ProjectID
 		}
 	} else if projectID != "" {
 		if canvas, err := s.store.CanvasProjectForUser(userID, projectID); err != nil || canvas == nil {
-			return nil, kernel.BadAuthRequest("画布不存在或无权访问")
+			return nil, kernel.BadAuthRequest("Canvas does not exist or does not have access")
 		}
 	}
 	tasks, tasksErr := s.store.DiagnosticTasks(userID, window.From, window.To, taskID, projectID)
@@ -272,13 +272,13 @@ func (s *Service) normalizeWindow(fromRaw string, toRaw string) (timeWindow, err
 	if strings.TrimSpace(fromRaw) != "" {
 		from, err = time.Parse(time.RFC3339Nano, strings.TrimSpace(fromRaw))
 		if err != nil {
-			return timeWindow{}, kernel.BadAuthRequest("诊断开始时间格式无效")
+			return timeWindow{}, kernel.BadAuthRequest("Invalid diagnostic start time format")
 		}
 	}
 	if strings.TrimSpace(toRaw) != "" {
 		to, err = time.Parse(time.RFC3339Nano, strings.TrimSpace(toRaw))
 		if err != nil {
-			return timeWindow{}, kernel.BadAuthRequest("诊断结束时间格式无效")
+			return timeWindow{}, kernel.BadAuthRequest("Diagnostic end time format is invalid")
 		}
 	}
 	from, to = from.UTC(), to.UTC()
@@ -286,10 +286,10 @@ func (s *Service) normalizeWindow(fromRaw string, toRaw string) (timeWindow, err
 		to = now
 	}
 	if !to.After(from) {
-		return timeWindow{}, kernel.BadAuthRequest("诊断时间范围无效")
+		return timeWindow{}, kernel.BadAuthRequest("Invalid diagnostic time range")
 	}
 	if to.Sub(from) > maxWindow {
-		return timeWindow{}, kernel.BadAuthRequest("诊断时间范围不能超过 24 小时")
+		return timeWindow{}, kernel.BadAuthRequest("Diagnosis time frame cannot exceed 24 hours")
 	}
 	return timeWindow{From: from, To: to}, nil
 }

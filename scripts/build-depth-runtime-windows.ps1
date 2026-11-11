@@ -8,10 +8,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 if ($env:OS -ne "Windows_NT" -or -not [Environment]::Is64BitProcess) {
-    throw "Windows 深度运行包必须在 64 位 Windows 上构建"
+    throw "Windows deep run packages must be built on 64-bit Windows"
 }
 foreach ($tool in @("uv", "git")) {
-    if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw "构建缺少 $tool" }
+    if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw "Build is missing $tool" }
 }
 $ffmpegSource = (Resolve-Path -LiteralPath $FFmpegDir).Path
 $media = & (Join-Path $PSScriptRoot "assert-media-runtime-windows.ps1") -Runtime $ffmpegSource
@@ -24,9 +24,9 @@ $destination = (New-Item -ItemType Directory -Path $OutputDir -Force).FullName
 New-Item -ItemType Directory -Path $runtime -Force | Out-Null
 try {
     & uv python install 3.11
-    if ($LASTEXITCODE -ne 0) { throw "安装固定 Python 3.11 失败" }
+    if ($LASTEXITCODE -ne 0) { throw "Installation of fixed Python 3.11 failed" }
     $managedPython = (& uv python find 3.11 --managed-python).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $managedPython)) { throw "找不到 uv 管理的 Windows Python 3.11" }
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $managedPython)) { throw "Windows Python 3.11 not found for uv management" }
     $pythonRoot = Split-Path -Parent $managedPython
     $pythonStage = Join-Path $runtime ".python"
     Copy-Item -LiteralPath $pythonRoot -Destination $pythonStage -Recurse -Force
@@ -40,7 +40,7 @@ try {
         "einops==0.8.1", "tqdm==4.67.1"
     )
     & uv pip install --python $python --target $sitePackages --torch-backend=$backend @packages
-    if ($LASTEXITCODE -ne 0) { throw "$Variant 依赖安装失败" }
+    if ($LASTEXITCODE -ne 0) { throw "$Variant dependency installation failed" }
 
     $workerDir = Join-Path $runtime "worker"
     New-Item -ItemType Directory -Path $workerDir -Force | Out-Null
@@ -53,14 +53,14 @@ try {
 
     $sourceRepo = Join-Path $scratch "vda-source"
     & git clone --filter=blob:none --no-checkout https://github.com/DepthAnything/Video-Depth-Anything.git $sourceRepo
-    if ($LASTEXITCODE -ne 0) { throw "拉取固定 VDA 源码失败" }
+    if ($LASTEXITCODE -ne 0) { throw "Failed to pull fixed VDA source code" }
     & git -C $sourceRepo checkout $commit
     if ($LASTEXITCODE -ne 0 -or (& git -C $sourceRepo rev-parse HEAD).Trim() -ne $commit) {
-        throw "VDA 源码提交校验失败"
+        throw "VDA source code submission verification failed"
     }
     $sourceArchive = Join-Path $scratch "vda-source.zip"
     & git -C $sourceRepo archive --format=zip --output=$sourceArchive $commit
-    if ($LASTEXITCODE -ne 0) { throw "归档 VDA 源码失败" }
+    if ($LASTEXITCODE -ne 0) { throw "Failed to archive VDA source code" }
     Expand-Archive -LiteralPath $sourceArchive -DestinationPath (Join-Path $runtime "vda")
     Set-Content -LiteralPath (Join-Path $runtime "VDA_COMMIT") -Value $commit -Encoding Ascii
     if (Test-Path -LiteralPath (Join-Path $sourceRepo "LICENSE")) {
@@ -68,16 +68,16 @@ try {
     }
 
     # A copied interpreter must still import its packages after relocation.
-    $relocated = Join-Path $scratch "中文 path\runtime"
+    $relocated = Join-Path $scratch "Chinese path\runtime"
     New-Item -ItemType Directory -Path (Split-Path -Parent $relocated) -Force | Out-Null
     Move-Item -LiteralPath $runtime -Destination $relocated
     & (Join-Path $PSScriptRoot "test-depth-runtime-windows.ps1") -Variant $Variant -RuntimeRoot $relocated
-    if ($LASTEXITCODE -ne 0) { throw "运行包搬移自检失败" }
+    if ($LASTEXITCODE -ne 0) { throw "Failed to run package move self-test" }
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $name = "beeftv-depth-runtime-v1-windows-amd64-$Variant.zip"
     $archivePath = Join-Path $destination $name
-    if (Test-Path -LiteralPath $archivePath) { throw "目标运行包已存在，拒绝覆盖: $archivePath" }
+    if (Test-Path -LiteralPath $archivePath) { throw "The target runtime package already exists and overwriting is refused: $archivePath" }
     [System.IO.Compression.ZipFile]::CreateFromDirectory($relocated, $archivePath)
     # Verify the final ZIP, including its receipt, before computing or publishing metadata.
     $media = & (Join-Path $PSScriptRoot "assert-media-runtime-windows.ps1") -DepthArchive $archivePath
@@ -113,7 +113,7 @@ try {
                     $remaining = [Math]::Min($partLimit, $inputStream.Length - $inputStream.Position)
                     while ($remaining -gt 0) {
                         $count = $inputStream.Read($buffer, 0, [int][Math]::Min($buffer.Length, $remaining))
-                        if ($count -le 0) { throw "分割 CUDA 运行包时过早到达文件结尾" }
+                        if ($count -le 0) { throw "End of file reached prematurely when splitting CUDA run package" }
                         $outputStream.Write($buffer, 0, $count)
                         $remaining -= $count
                     }

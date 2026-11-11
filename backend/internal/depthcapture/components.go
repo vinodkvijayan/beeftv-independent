@@ -109,7 +109,7 @@ func (s *Service) StartComponentDownload(ctx context.Context) (ComponentState, e
 	s.componentMu.Lock()
 	defer s.componentMu.Unlock()
 	if s.componentClosed {
-		return s.componentState, errors.New("工作区正在关闭，请稍后再下载")
+		return s.componentState, errors.New("The workspace is closing, please download again later")
 	}
 	if s.componentCancel != nil {
 		return s.componentState, nil
@@ -153,10 +153,10 @@ func (s *Service) StartComponentDownload(ctx context.Context) (ComponentState, e
 			s.componentState.Error = ""
 		} else if downloadCtx.Err() != nil {
 			s.componentState.Status = "paused"
-			s.componentState.Error = "下载已暂停，已下载的文件会保留。点击继续下载即可续传。"
+			s.componentState.Error = "Download has been paused, downloaded files will be retained. Click Continue Download to resume the download."
 		} else if installErr != nil {
 			s.componentState.Status = "error"
-			s.componentState.Error = fmt.Sprintf("组件安装未完成：%v", installErr)
+			s.componentState.Error = fmt.Sprintf("Component installation is not completed: %v", installErr)
 		}
 		close(done)
 	}()

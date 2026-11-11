@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { withCanvasWheelHarness, wheelNodeGeometry } from "./helpers/canvas-wheel-harness";
 
-test("缩放提交保持节点几何，中键平移保持光标反馈且释放后恢复命中", async () => {
+test("Zoom commit maintains node geometry, middle-click pan maintains cursor feedback and restores hit after release", async () => {
     await withCanvasWheelHarness(async (page) => {
         for (const deltaY of [-120, -80, 100, 60]) {
             const measured = await page.evaluate(async (delta) => {

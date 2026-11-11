@@ -35,17 +35,17 @@ func (s *Service) assistantConfig() (assistantConfigSnapshot, error) {
 	}
 	effective, _, err := store.LoadEffectiveModelConfig()
 	if err != nil {
-		return snapshot, assistantUnavailable(AssistantReasonModelNotConfigured, "本地模型配置不可读")
+		return snapshot, assistantUnavailable(AssistantReasonModelNotConfigured, "Local model configuration is not readable")
 	}
 	body, err := json.Marshal(effective.Config)
 	if err != nil {
 		return snapshot, err
 	}
 	if len(body) == 0 {
-		return snapshot, assistantUnavailable(AssistantReasonModelNotConfigured, "本地模型配置为空")
+		return snapshot, assistantUnavailable(AssistantReasonModelNotConfigured, "Local model configuration is empty")
 	}
 	if err := json.Unmarshal(body, &snapshot); err != nil {
-		return snapshot, assistantUnavailable(AssistantReasonModelNotConfigured, "本地模型配置无法解析")
+		return snapshot, assistantUnavailable(AssistantReasonModelNotConfigured, "Local model configuration cannot be resolved")
 	}
 	snapshot.Revision = effective.Revision
 	return snapshot, nil

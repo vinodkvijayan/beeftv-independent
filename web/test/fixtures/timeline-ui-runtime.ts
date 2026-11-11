@@ -11,10 +11,10 @@ export const receipt = {
 export function exportTimelineToMp4(_project: TimelineProject, sources: TimelineRenderSource[], options: { signal?: AbortSignal }) {
     receipt.local.push(sources);
     return new Promise<Blob>((_resolve, reject) => {
-        receipt.failLocal = () => reject(new Error("字幕烧录失败，未导出无字幕成片"));
+        receipt.failLocal = () => reject(new Error("Subtitle burning failed and the film without subtitles was not exported."));
         options.signal?.addEventListener("abort", () => {
             receipt.aborted++;
-            reject(new DOMException("导出已取消", "AbortError"));
+            reject(new DOMException("Export canceled", "AbortError"));
         }, { once: true });
     });
 }
@@ -39,11 +39,11 @@ export async function createTimelineRenderTask(input: { timeline: TimelineProjec
     return { id: "render-fixture" };
 }
 export async function createTimelineTranscriptionTask() {
-    throw new Error("渲染界面验收不应提交转写任务");
+    throw new Error("Transcription tasks should not be submitted for rendering interface acceptance");
 }
 export function waitForGenerationTask() {
     return new Promise((_resolve, reject) => {
-        receipt.failRemote = () => reject(new Error("服务端字幕字体缺失，渲染失败"));
+        receipt.failRemote = () => reject(new Error("The server-side subtitle font is missing and rendering fails."));
     });
 }
 export function saveAs() { receipt.downloads++; }

@@ -46,7 +46,7 @@ func HandleHelperCommand(args []string) (bool, error) {
 		return false, nil
 	}
 	if requestPath == "" {
-		return true, fmt.Errorf("缺少更新请求文件")
+		return true, fmt.Errorf("Missing update request file")
 	}
 	return true, RunHelperRequestFile(requestPath)
 }
@@ -66,11 +66,11 @@ func helperRequestArg(args []string) (string, bool) {
 func RunHelperRequestFile(requestPath string) error {
 	data, err := os.ReadFile(requestPath)
 	if err != nil {
-		return fmt.Errorf("读取更新请求失败: %w", err)
+		return fmt.Errorf("Read update request failed: %w", err)
 	}
 	var req HelperRequest
 	if err := json.Unmarshal(data, &req); err != nil {
-		return fmt.Errorf("更新请求无效")
+		return fmt.Errorf("Invalid update request")
 	}
 	return RunHelperRequest(req)
 }
@@ -106,7 +106,7 @@ func RunHelperRequest(req HelperRequest) error {
 	}
 	unlock, err := lockInstall(filepath.Join(filepath.Dir(req.TargetPath), ".BeefTV.update.lock"))
 	if err != nil {
-		result.Error = "已有更新正在安装"
+		result.Error = "Updates are being installed"
 		return err
 	}
 	releaseLock = unlock
@@ -161,13 +161,13 @@ func RunHelperRequest(req HelperRequest) error {
 
 func validateHelperRequest(req HelperRequest) error {
 	if req.Schema != helperRequestSchema {
-		return fmt.Errorf("更新请求版本不支持")
+		return fmt.Errorf("The update request version is not supported")
 	}
 	if req.ParentPID <= 0 {
-		return fmt.Errorf("更新请求缺少进程信息")
+		return fmt.Errorf("Update request missing process information")
 	}
 	if !filepath.IsAbs(req.TargetPath) || !filepath.IsAbs(req.StagedPath) || !filepath.IsAbs(req.BackupPath) {
-		return fmt.Errorf("更新路径无效")
+		return fmt.Errorf("Invalid update path")
 	}
 	if err := validateExtractedLayout(req.StagedPath, req.Platform); err != nil {
 		return err
@@ -175,15 +175,15 @@ func validateHelperRequest(req HelperRequest) error {
 	switch {
 	case strings.HasPrefix(req.Platform, "darwin"):
 		if filepath.Base(req.TargetPath) != appBundleName {
-			return fmt.Errorf("当前应用包名称不支持自动更新")
+			return fmt.Errorf("The current application package name does not support automatic updates")
 		}
 	case strings.HasPrefix(req.Platform, "windows"):
 		if filepath.Base(req.TargetPath) != windowsExeName {
-			return fmt.Errorf("当前应用名称不支持自动更新")
+			return fmt.Errorf("The current application name does not support automatic updates")
 		}
 	case req.Platform == "linux-amd64":
 		if filepath.Base(req.TargetPath) != linuxBundleName {
-			return fmt.Errorf("当前应用包名称不支持自动更新")
+			return fmt.Errorf("The current application package name does not support automatic updates")
 		}
 	default:
 		return ErrUnsupported
@@ -218,7 +218,7 @@ func (e *Engine) prepareAndStartHelper(ctx context.Context, staged *stagedUpdate
 			return err
 		}
 		if withinRoot(installRoot, dataDir) || withinRoot(dataDir, installRoot) {
-			return fmt.Errorf("数据目录与程序目录重叠，请先将数据移到独立目录")
+			return fmt.Errorf("The data directory overlaps with the program directory. Please move the data to a separate directory first.")
 		}
 	}
 	parentPID := e.parentPID
@@ -389,7 +389,7 @@ func waitForPrepared(ctx context.Context, path string, timeout time.Duration) er
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	return fmt.Errorf("安装准备超时")
+	return fmt.Errorf("Installation preparation timed out")
 }
 
 func copyFile(src, dst string) error {

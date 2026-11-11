@@ -1,8 +1,8 @@
-# 火山方舟图片生成
+# Volcano Ark image generation
 
-本插件面向火山方舟 Ark 图片生成 JSON 接口。提示词直接发送，参考图数组映射到 `image`，连续生成和水印参数可从模型扩展字段透传。
+This plug-in generates a JSON interface for Ark images. The prompt words are sent directly, the reference image array is mapped to `image`, and the continuous generation and watermark parameters can be transparently transmitted from the model extension field.
 
-## 接口、鉴权与区域
+## Interfaces, Authentication and Zones
 
 {{OPERATIONS}}
 
@@ -12,19 +12,19 @@ Authorization: Bearer <ARK_API_KEY>
 Content-Type: application/json
 ```
 
-Base URL、鉴权方式和可用模型受火山方舟控制台、区域与接入方式影响。若使用 AK/SK 签名网关，应由渠道层完成签名，不能把 Secret Key 写入插件文档或浏览器。
+Base URL, authentication method and available models are affected by the Volcano Ark console, region and access method. If AK/SK signature gateway is used, the signature should be completed by the channel layer, and the Secret Key cannot be written into the plug-in document or browser.
 
-## 模型与支持边界
+## Model and support boundaries
 
-模型 ID、尺寸范围与能力以火山方舟控制台为准。
+Model ID, size range and capabilities are based on the Volcano Ark console.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-当前实现：`aspectRatio -> size`，所有 `images -> image[]`；`extra` 可透传 `size`、`sequential_image_generation`、`sequential_image_generation_options`、`watermark`。`imageCount`、`quality` 与 `resolution` 没有通用映射，必须按模型接口另行适配。
+Current implementation: `aspectRatio -> size`, all `images -> image[]`; `extra` can transparently transmit `size`, `sequential_image_generation`, `sequential_image_generation_options`, `watermark`. `imageCount`, `quality` and `resolution` have no universal mapping and must be adapted separately according to the model interface.
 
-## 文生图示例
+## Vincent diagram example
 
 ```bash
 curl "{channel_base_url}/api/v3/images/generations" \
@@ -38,7 +38,7 @@ curl "{channel_base_url}/api/v3/images/generations" \
   }'
 ```
 
-## 参考图示例
+## Reference picture example
 
 ```json
 {
@@ -49,13 +49,13 @@ curl "{channel_base_url}/api/v3/images/generations" \
 }
 ```
 
-## 响应解析与限制
+## Response parsing and restrictions
 
-响应按 `data[]` 图片数组解析，元素需包含 `url`、`b64_json` 或 `data`。当前插件没有为 Ark 特有错误码、任务模式或内容过滤结果做专属解包；渠道返回非兼容结构时会明确失败。模型尺寸、参考图数量、序列图上限、水印和计费以控制台当前模型说明为准，不能从插件默认值推断。
+The response is parsed as a `data[]` image array, and the elements must contain `url`, `b64_json` or `data`. The current plug-in does not do exclusive unpacking for Ark-specific error codes, task modes, or content filtering results; channels will explicitly fail when returning incompatible structures. Model size, number of reference drawings, upper limit of sequence diagrams, watermarks and billing are based on the current model description in the console and cannot be inferred from the plug-in default values.
 
-## 官方资料
+## Official information
 
-- [火山方舟视觉模型 API 文档](https://www.volcengine.com/docs/82379)
-- [火山方舟 API 接入与鉴权文档](https://www.volcengine.com/docs/82379/1263279)
+- [Volcano Ark Visual Model API Document](https://www.volcengine.com/docs/82379)
+- [Volcano Ark API Access and Authentication Document](https://www.volcengine.com/docs/82379/1263279)
 
 {{CONTRACT}}

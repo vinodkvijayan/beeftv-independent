@@ -67,7 +67,7 @@ func SaveDocumentWithHistoryAndAssets(repo *repository.Repository, before *model
 }
 
 func canvasRevisionConflict() error {
-	return kernel.NewAppError(http.StatusConflict, "云端画布已有更新，已停止覆盖；请保留本地草稿并加载最新版本")
+	return kernel.NewAppError(http.StatusConflict, "The cloud canvas has been updated and coverage has stopped; please keep the local draft and load the latest version")
 }
 
 type CanvasHistoryList struct {
@@ -78,7 +78,7 @@ type CanvasHistoryList struct {
 func (s *Service) scopedCanvasHistoryProject(userID string, canvasID string) (*model.CanvasProject, error) {
 	project, err := s.repo.CanvasProjectMetadata(userID, strings.TrimSpace(canvasID))
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, kernel.NewAppError(http.StatusNotFound, "画布不存在或无权访问")
+		return nil, kernel.NewAppError(http.StatusNotFound, "Canvas does not exist or does not have access")
 	}
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (s *Service) CanvasHistorySnapshot(userID string, canvasID, snapshotID stri
 	}
 	item, err := s.repo.CanvasSnapshot(project.UserID, project.ID, snapshotID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, kernel.NewAppError(http.StatusNotFound, "历史版本不存在或已过期，请刷新历史列表")
+		return nil, kernel.NewAppError(http.StatusNotFound, "The historical version does not exist or has expired. Please refresh the history list.")
 	}
 	if err != nil || item == nil {
 		return item, err
@@ -119,7 +119,7 @@ func (s *Service) CanvasHistorySnapshot(userID string, canvasID, snapshotID stri
 
 func (s *Service) RestoreCanvasHistory(userID string, canvasID, snapshotID string, revision *int64) (UserDataSummary, error) {
 	if revision == nil {
-		return UserDataSummary{}, kernel.NewAppError(http.StatusPreconditionRequired, "请先刷新画布版本再恢复")
+		return UserDataSummary{}, kernel.NewAppError(http.StatusPreconditionRequired, "Please refresh the canvas version before restoring")
 	}
 	current, err := s.scopedCanvasHistoryProject(userID, canvasID)
 	if err != nil {
@@ -223,7 +223,7 @@ func canvasProjectPayload(project model.CanvasProject) (json.RawMessage, error) 
 		return nil, err
 	}
 	if payload == nil {
-		return nil, kernel.BadAuthRequest("画布数据格式错误")
+		return nil, kernel.BadAuthRequest("Canvas data format error")
 	}
 	ensureCanvasGraphArrays(payload)
 	for key, value := range map[string]any{"id": project.ID, "title": project.Title, "projectId": project.ProjectID, "folderId": project.LibraryFolderID, "revision": project.Revision, "createdAt": project.CreatedAt, "updatedAt": project.UpdatedAt} {

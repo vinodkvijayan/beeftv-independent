@@ -23,7 +23,7 @@ func TestCreateAssetFolderRejectsConcurrentDuplicateName(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			<-start
-			_, createErr := lib.CreateAssetFolder("owner", CreateAssetFolderRequest{Name: "灵感"})
+			_, createErr := lib.CreateAssetFolder("owner", CreateAssetFolderRequest{Name: "inspiration"})
 			errorsCh <- createErr
 		}()
 	}
@@ -36,7 +36,7 @@ func TestCreateAssetFolderRejectsConcurrentDuplicateName(t *testing.T) {
 			success++
 			continue
 		}
-		if strings.Contains(err.Error(), "已存在同名素材分类") {
+		if strings.Contains(err.Error(), "A material category with the same name already exists") {
 			conflict++
 			continue
 		}
@@ -49,7 +49,7 @@ func TestCreateAssetFolderRejectsConcurrentDuplicateName(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(folders) != 1 || folders[0].Name != "灵感" {
+	if len(folders) != 1 || folders[0].Name != "inspiration" {
 		t.Fatalf("folders = %#v", folders)
 	}
 }
@@ -57,11 +57,11 @@ func TestCreateAssetFolderRejectsConcurrentDuplicateName(t *testing.T) {
 func TestCreateAssetFolderMapsUniqueConstraint(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
-	if err := db.Create(&model.AssetFolder{ID: "folder-existing", UserID: "owner", Name: "灵感", NameKey: "灵感", CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.AssetFolder{ID: "folder-existing", UserID: "owner", Name: "inspiration", NameKey: "inspiration", CreatedAt: now, UpdatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
-	_, err := lib.CreateAssetFolder("owner", CreateAssetFolderRequest{Name: "灵感"})
-	if err == nil || !strings.Contains(err.Error(), "已存在同名素材分类") {
+	_, err := lib.CreateAssetFolder("owner", CreateAssetFolderRequest{Name: "inspiration"})
+	if err == nil || !strings.Contains(err.Error(), "A material category with the same name already exists") {
 		t.Fatalf("error = %v", err)
 	}
 }
@@ -69,8 +69,8 @@ func TestCreateAssetFolderMapsUniqueConstraint(t *testing.T) {
 func TestMoveUserAssetsRejectsDeletedFolderInSameTransaction(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
-	folder := model.AssetFolder{ID: "folder-1", UserID: "owner", Name: "灵感", NameKey: "灵感", Position: 0, CreatedAt: now, UpdatedAt: now}
-	item := model.Asset{ID: "asset-1", UserID: "owner", FolderID: "", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1","kind":"image","title":"海边","coverUrl":"","tags":[],"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now}
+	folder := model.AssetFolder{ID: "folder-1", UserID: "owner", Name: "inspiration", NameKey: "inspiration", Position: 0, CreatedAt: now, UpdatedAt: now}
+	item := model.Asset{ID: "asset-1", UserID: "owner", FolderID: "", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1","kind":"image","title":"Seaside","coverUrl":"","tags":[],"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&folder).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestMoveUserAssetsRejectsDeletedFolderInSameTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	err := lib.MoveUserAssetsToFolder("owner", MoveUserAssetsRequest{AssetIDs: []string{"asset-1"}, FolderID: folder.ID})
-	if err == nil || !strings.Contains(err.Error(), "目标素材分类不存在") {
+	if err == nil || !strings.Contains(err.Error(), "The target material category does not exist") {
 		t.Fatalf("move error = %v", err)
 	}
 	stored, err := lib.repo.AssetForUser("owner", "asset-1")
@@ -96,8 +96,8 @@ func TestMoveUserAssetsRejectsDeletedFolderInSameTransaction(t *testing.T) {
 func TestMoveUserAssetsConcurrentWithFolderDeleteStaysConsistent(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
-	folder := model.AssetFolder{ID: "folder-race", UserID: "owner", Name: "灵感", NameKey: "灵感", Position: 0, CreatedAt: now, UpdatedAt: now}
-	item := model.Asset{ID: "asset-race", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-race","kind":"image","title":"海边","coverUrl":"","tags":[],"source":"生成任务","data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now}
+	folder := model.AssetFolder{ID: "folder-race", UserID: "owner", Name: "inspiration", NameKey: "inspiration", Position: 0, CreatedAt: now, UpdatedAt: now}
+	item := model.Asset{ID: "asset-race", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-race","kind":"image","title":"Seaside","coverUrl":"","tags":[],"source":"Generate Task","data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&folder).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +135,7 @@ func TestMoveUserAssetsConcurrentWithFolderDeleteStaysConsistent(t *testing.T) {
 
 func TestUpdateAssetFolderMapsMissingRecord(t *testing.T) {
 	lib, _ := newLibraryFixture(t)
-	_, err := lib.UpdateAssetFolder("owner", "missing", UpdateAssetFolderRequest{Name: "新名称"})
+	_, err := lib.UpdateAssetFolder("owner", "missing", UpdateAssetFolderRequest{Name: "new name"})
 	var appErr *kernel.AppError
 	if !errors.As(err, &appErr) || !strings.Contains(err.Error(), "素材分类不存在") {
 		t.Fatalf("error = %v", err)
@@ -145,10 +145,10 @@ func TestUpdateAssetFolderMapsMissingRecord(t *testing.T) {
 func TestMoveUserAssetsRejectsForeignAsset(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
-	folder := model.AssetFolder{ID: "folder-1", UserID: "owner", Name: "灵感", NameKey: "灵感", CreatedAt: now, UpdatedAt: now}
+	folder := model.AssetFolder{ID: "folder-1", UserID: "owner", Name: "inspiration", NameKey: "inspiration", CreatedAt: now, UpdatedAt: now}
 	assets := []model.Asset{
-		{ID: "asset-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1"}`, CreatedAt: now, UpdatedAt: now},
-		{ID: "asset-2", UserID: "other", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "他人", PayloadJSON: `{"id":"asset-2"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-2", UserID: "other", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "others", PayloadJSON: `{"id":"asset-2"}`, CreatedAt: now, UpdatedAt: now},
 	}
 	if err := db.Create(&folder).Error; err != nil {
 		t.Fatal(err)
@@ -159,7 +159,7 @@ func TestMoveUserAssetsRejectsForeignAsset(t *testing.T) {
 		}
 	}
 	err := lib.MoveUserAssetsToFolder("owner", MoveUserAssetsRequest{AssetIDs: []string{"asset-1", "asset-2"}, FolderID: folder.ID})
-	if err == nil || !strings.Contains(err.Error(), "部分素材不存在或不属于当前用户") {
+	if err == nil || !strings.Contains(err.Error(), "Some materials do not exist or do not belong to the current user") {
 		t.Fatalf("error = %v", err)
 	}
 	stored, err := lib.repo.AssetForUser("owner", "asset-1")

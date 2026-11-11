@@ -3,7 +3,7 @@ import { explainGenerationError, generationFailureMetadata } from "@/lib/generat
 import { ChannelResponseError } from "@/services/api/channel-transport";
 
 test("browser rejection retains its original classification and normalized copy", () => {
-    for (const message of ["invalid api key", "too many requests", "第 1 个参考视频超过 50MB", "video duration must be between 2 and 12 seconds", "Failed to fetch", "insufficient quota"]) {
+    for (const message of ["invalid api key", "too many requests", "1st reference video is over 50MB", "video duration must be between 2 and 12 seconds", "Failed to fetch", "insufficient quota"]) {
         const payload = { error: { message } };
         const first = explainGenerationError({ status: 400, data: payload });
         const error = new ChannelResponseError(payload, 400);

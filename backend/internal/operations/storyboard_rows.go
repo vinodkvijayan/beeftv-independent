@@ -40,7 +40,7 @@ func storyboardRowsAppendSchema() json.RawMessage {
 		"type": "array",
 		"items": map[string]any{
 			"type":        "object",
-			"description": "行ID与镜号由服务端分配",
+			"description": "Row ID and mirror number are assigned by the server",
 			"properties":  storyboardRowFieldSchemas,
 		},
 	}, []string{"rows"})
@@ -53,8 +53,8 @@ func storyboardRowUpdateSchema() json.RawMessage {
 			"type": "object",
 			"properties": func() map[string]any {
 				properties := map[string]any{"rowId": map[string]any{"type": "string"},
-					"imageNodeId": map[string]any{"type": "string", "description": "绑定图片节点；空串解绑"},
-					"videoNodeId": map[string]any{"type": "string", "description": "绑定视频节点；空串解绑"},
+					"imageNodeId": map[string]any{"type": "string", "description": "Bind picture node; empty string to unbind"},
+					"videoNodeId": map[string]any{"type": "string", "description": "Bind video node; empty string to unbind"},
 				}
 				for name, schema := range storyboardRowFieldSchemas {
 					properties[name] = schema
@@ -84,7 +84,7 @@ func opStoryboardRowsAppend(ctx *Context, params json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || strings.TrimSpace(args.NodeID) == "" {
-		return nil, InvalidArg("invalid_params", "canvasId 与 nodeId 必填")
+		return nil, InvalidArg("invalid_params", "canvasId and nodeId are required")
 	}
 	_, created, err := ctx.Domain.AppendUserCanvasStoryboardRows(ctx.UserID, args.CanvasID, args.NodeID, args.Rows, args.ExpectedRevision)
 	if err != nil {
@@ -106,7 +106,7 @@ func opStoryboardRowUpdate(ctx *Context, params json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || strings.TrimSpace(args.NodeID) == "" {
-		return nil, InvalidArg("invalid_params", "canvasId 与 nodeId 必填")
+		return nil, InvalidArg("invalid_params", "canvasId and nodeId are required")
 	}
 	_, update, err := ctx.Domain.UpdateUserCanvasStoryboardRows(ctx.UserID, args.CanvasID, args.NodeID, args.Patches, args.ExpectedRevision)
 	if err != nil {
@@ -134,7 +134,7 @@ func opStoryboardRowRemove(ctx *Context, params json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || strings.TrimSpace(args.NodeID) == "" {
-		return nil, InvalidArg("invalid_params", "canvasId 与 nodeId 必填")
+		return nil, InvalidArg("invalid_params", "canvasId and nodeId are required")
 	}
 	before, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
 	if err != nil {

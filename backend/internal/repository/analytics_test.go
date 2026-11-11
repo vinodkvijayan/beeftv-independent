@@ -80,14 +80,14 @@ func TestQueryAPICallLogsSearchesFailureFields(t *testing.T) {
 		RequestKind: "create",
 		Status:      model.ApiCallStatusFailed,
 		ErrorCode:   "request_not_sent",
-		Error:       "模型服务拒绝了请求，请检查模型和参数；上游：invalid parameter: size",
+		Error:       "The model service rejected the request, please check the model and parameters; upstream: invalid parameter: size",
 		CreatedAt:   now,
 	}
 	if err := db.Create(&item).Error; err != nil {
 		t.Fatal(err)
 	}
 	repo := New(db)
-	for _, keyword := range []string{"模型服务拒绝", "invalid parameter", "request_not_sent"} {
+	for _, keyword := range []string{"Model service denied", "invalid parameter", "request_not_sent"} {
 		logs, total, err := repo.QueryAPICallLogs(APICallLogFilter{
 			AnalyticsFilter: AnalyticsFilter{From: now.Add(-time.Hour), To: now.Add(time.Hour)},
 			Keyword:         keyword,

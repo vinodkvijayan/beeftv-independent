@@ -12,7 +12,7 @@ test("preparation timeout releases the lock and late reads cannot submit", async
         await waitForCanvasPreparation(() => read, new AbortController().signal, 5);
         submits++;
     });
-    await expect(first).rejects.toThrow("尚未提交生成任务");
+    await expect(first).rejects.toThrow("No build tasks have been submitted yet");
     expect(locks.size).toBe(0);
     await runCanvasGenerationSubmissionOnce(locks, "node", async () => { submits++; });
     resolveRead("late");
@@ -50,7 +50,7 @@ test("routine background polling requests never evict generation action or error
         code: "generation_submit_started",
         reason: "validation",
         canvasId: "canvas_1",
-        message: "画布生成提交：generation_submit_started (mode=video model=beeftv::kling-video-v3)",
+        message: "Canvas generation submission: generation_submit_started (mode=video model=beeftv::kling-video-v3)",
     });
     recordDiagnosticEvent({
         level: "error",
@@ -58,7 +58,7 @@ test("routine background polling requests never evict generation action or error
         code: "generation_preflight_failed",
         reason: "references",
         canvasId: "canvas_1",
-        message: "画布生成提交：generation_preflight_failed (mode=video model=beeftv::kling-video-v3 refs=i:2,v:1,a:0,c:0 当前模型无法支持这组输入和参数：最多支持 1 张参考图)",
+        message: "Canvas generation submission: generation_preflight_failed (mode=video model=beeftv::kling-video-v3 refs=i:2,v:1,a:0,c:0 The current model cannot support this set of inputs and parameters: up to 1 reference image is supported)",
     });
     for (let i = 0; i < 600; i++) {
         recordDiagnosticEvent({
@@ -72,7 +72,7 @@ test("routine background polling requests never evict generation action or error
     const events = getClientDiagnosticEvents();
     expect(events.length).toBe(500);
     expect(events.some((e) => e.code === "generation_submit_started")).toBe(true);
-    expect(events.some((e) => e.code === "generation_preflight_failed" && e.message.includes("最多支持 1 张参考图"))).toBe(true);
+    expect(events.some((e) => e.code === "generation_preflight_failed" && e.message.includes("Supports up to 1 reference image"))).toBe(true);
 });
 
 test("real generation hook handles preparation, cancellation and retry without paid calls", async () => {

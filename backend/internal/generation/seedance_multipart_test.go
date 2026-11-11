@@ -158,7 +158,7 @@ func TestSeedanceMultipartProgressResumesAtAcknowledgedBytes(t *testing.T) {
 	defer server.Close()
 	port := &referenceProgressRecorder{}
 	ctx := WithRuntime(context.Background(), Runtime{ReferenceProgress: port, Endpoints: Endpoints{BeefTVVideoBaseURL: server.URL}})
-	ctx, reporter := beginReferenceProgress(ctx, "参考图片 1", int64(len(data)))
+	ctx, reporter := beginReferenceProgress(ctx, "Reference picture 1", int64(len(data)))
 	// The previous attempt sent half of the last part without a receipt.
 	reporter.report("transferring", (5<<20)+50)
 	session := BeefTVSeedanceUploadSession{Ticket: "owned-ticket", Multipart: &BeefTVSeedanceMultipartPlan{
@@ -251,7 +251,7 @@ func TestSeedanceMultipartReceivedPartsWaitForConfirmation(t *testing.T) {
 	defer server.Close()
 	port := &referenceProgressRecorder{}
 	ctx := WithRuntime(context.Background(), Runtime{ReferenceProgress: port, Endpoints: Endpoints{BeefTVVideoBaseURL: server.URL}})
-	ctx, reporter = beginReferenceProgress(ctx, "参考图片 1", 100)
+	ctx, reporter = beginReferenceProgress(ctx, "Reference picture 1", 100)
 	session := BeefTVSeedanceUploadSession{Ticket: "owned-ticket", Multipart: &BeefTVSeedanceMultipartPlan{
 		PartBytes: 5 << 20, Parts: []BeefTVSeedanceUploadPart{{Number: 1, Bytes: 100, Received: true}},
 	}}

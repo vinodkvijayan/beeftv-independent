@@ -58,12 +58,12 @@ func TestExecuteReferenceStages(t *testing.T) {
 		want                                                              []string
 		wantError                                                         bool
 	}{
-		{name: "reference", reference: true, want: []string{"正在准备参考素材", "hydrate", "hydrate/upload", "正在提交生成任务", "submit"}},
+		{name: "reference", reference: true, want: []string{"Preparing reference materials", "hydrate", "hydrate/upload", "Submitting build task", "submit"}},
 		{name: "no reference", want: []string{"hydrate/upload", "submit"}},
 		{name: "resume", reference: true, resumed: true, want: []string{"submit"}},
-		{name: "preparation failure", reference: true, failPreparation: true, want: []string{"正在准备参考素材", "hydrate", "hydrate/upload"}, wantError: true},
-		{name: "cancel preparation", reference: true, cancelPreparation: true, want: []string{"正在准备参考素材", "hydrate", "hydrate/upload"}, wantError: true},
-		{name: "lost lease", reference: true, failStage: true, want: []string{"正在准备参考素材"}, wantError: true},
+		{name: "preparation failure", reference: true, failPreparation: true, want: []string{"Preparing reference materials", "hydrate", "hydrate/upload"}, wantError: true},
+		{name: "cancel preparation", reference: true, cancelPreparation: true, want: []string{"Preparing reference materials", "hydrate", "hydrate/upload"}, wantError: true},
+		{name: "lost lease", reference: true, failStage: true, want: []string{"Preparing reference materials"}, wantError: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Setenv("CANVAS_ALLOW_PRIVATE_UPSTREAMS", "true")
@@ -119,7 +119,7 @@ func TestVideoWithoutReferencesReportsSubmissionBeforeDispatch(t *testing.T) {
 		r.Stages = stageRecorder{events: &events, err: stageErr}
 	})
 	_, err := Execute(WithRuntime(context.Background(), runtime), Input{Mode: "video", Prompt: "owned fixture", Config: Config{BaseURL: "https://example.com", APIKey: "owned-test", Model: "video"}})
-	if !errors.Is(err, stageErr) || !reflect.DeepEqual(events, []string{"正在提交生成任务"}) {
+	if !errors.Is(err, stageErr) || !reflect.DeepEqual(events, []string{"Submitting build task"}) {
 		t.Fatalf("video dispatch began without a submission stage: %v / %v", events, err)
 	}
 }

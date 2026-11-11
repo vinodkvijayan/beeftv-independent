@@ -38,7 +38,7 @@ describe("LibTV canvas navigation dock", () => {
 
         expect(command.kind).toBe("command");
         expect(command.id).toBe("tool-canvas-mode-trigger");
-        expect(command.label).toBe("抓手工具");
+        expect(command.label).toBe("Gripper tool");
         expect(command.active).toBe(true);
         expect(command.expands).toBe(true);
     });
@@ -49,8 +49,8 @@ describe("LibTV canvas navigation dock", () => {
         );
 
         expect(html).toContain('role="menu"');
-        expect(html).toContain("移动");
-        expect(html).toContain("抓手工具");
+        expect(html).toContain("move");
+        expect(html).toContain("Gripper tool");
         expect(html).toContain(">V<");
         expect(html).toContain(">H<");
         expect(html).toContain('aria-checked="true"');

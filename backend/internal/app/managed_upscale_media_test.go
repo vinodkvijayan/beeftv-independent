@@ -74,7 +74,7 @@ func TestManagedUpscaleOpaqueModelOwnsSingleTicketAndSavedResult(t *testing.T) {
 	svc, db := newManagedImageDirectService(t, filepath.Join(t.TempDir(), "workspace.db"), dir)
 	defer closeDB(t, db)
 	source := seedManagedImageLocalResource(t, svc, "source", data)
-	input := generation.Input{Mode: "image", Prompt: "AI 超分", Upscale: &generation.UpscaleOptions{Factor: 2}, ReferenceImages: []generation.Media{source}, Config: generation.Config{CredentialRef: beeftv.CredentialRef, MediaProtocolVersion: beeftv.MediaProtocolVersion, BaseURL: server.URL, APIKey: "private", Model: "opaque-upscale-2030"}}
+	input := generation.Input{Mode: "image", Prompt: "AI super score", Upscale: &generation.UpscaleOptions{Factor: 2}, ReferenceImages: []generation.Media{source}, Config: generation.Config{CredentialRef: beeftv.CredentialRef, MediaProtocolVersion: beeftv.MediaProtocolVersion, BaseURL: server.URL, APIKey: "private", Model: "opaque-upscale-2030"}}
 	raw, _ := json.Marshal(input)
 	expires := time.Now().Add(time.Hour)
 	task := model.Task{ID: "original-upscale", UserID: "user-1", Type: "canvas_image", Operation: "media.upscale.topaz", Status: model.TaskStatusRunning, InputJSON: string(raw), LeaseOwner: "worker", LeaseExpiresAt: &expires}

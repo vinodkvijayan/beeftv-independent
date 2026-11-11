@@ -27,7 +27,7 @@ useUserStore.setState({
     user: {
         id: "owner-a",
         username: "remote-user",
-        displayName: "账号 A",
+        displayName: "Account A",
         role: "user",
         status: "active",
     },
@@ -78,17 +78,17 @@ function Harness() {
                 remoteLibrary
                 items={[]}
                 mediaKinds={["image", "video", "audio", "text"]}
-                categoryLabels={{ all: "全部素材", image: "图片" }}
-                eyebrow="账号世代夹具"
-                title="素材选择"
-                confirmLabel={() => "确认选用"}
-                emptyTitle="没有可引用的素材"
-                emptyDescription="当前账号还没有素材。"
+                categoryLabels={{ all: "All materials", image: "pictures" }}
+                eyebrow="Account generation fixture"
+                title="Material selection"
+                confirmLabel={() => "Confirm selection"}
+                emptyTitle="No material to cite"
+                emptyDescription="There are no materials in the current account."
                 onClose={() => setPickerOpen(false)}
                 onConfirm={async (ids: string[]) => {
                     await http.post("/harness/confirm", { ids });
                     harnessWindow.__assetViewHarness!.writes.push("confirm");
-                    message.success("已加入项目");
+                    message.success("Already joined the project");
                 }}
             />
         </>

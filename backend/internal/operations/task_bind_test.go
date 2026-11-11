@@ -18,7 +18,7 @@ import (
 
 func TestCanvasTaskBindAppliesReceiptInSameTransaction(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-bind-ok", "node-bind", "镜头原名", 11, 22)
+	task := h.seedReadyCanvasImageTask(t, "task-bind-ok", "node-bind", "Lens original name", 11, 22)
 	pending := h.node(t, "node-bind")
 	nodeMeta(pending)["taskStage"] = "delivery_timed_out"
 	h.replaceNode(t, "node-bind", pending)
@@ -41,7 +41,7 @@ func TestCanvasTaskBindAppliesReceiptInSameTransaction(t *testing.T) {
 		t.Fatal("first bind missing canonical canvas")
 	}
 	node := h.node(t, "node-bind")
-	if title, _ := node["title"].(string); title != "镜头原名" {
+	if title, _ := node["title"].(string); title != "Lens original name" {
 		t.Fatalf("title overwritten: %#v", node)
 	}
 	position, _ := node["position"].(map[string]any)
@@ -65,14 +65,14 @@ func TestCanvasTaskBindAppliesReceiptInSameTransaction(t *testing.T) {
 
 func TestCanvasTaskBindReplayReturnsCurrentProjection(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-bind-replay", "node-replay", "原标题", 1, 1)
+	task := h.seedReadyCanvasImageTask(t, "task-bind-replay", "node-replay", "original title", 1, 1)
 	first, err := h.bindTask(t, task.ID, "node-replay", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = h.execute(t, operations.ManualCaller(false), "canvas.node.update", "rename-after-bind", map[string]any{
 		"canvasId": h.canvasID, "nodeId": "node-replay", "expectedRevision": first.Revision,
-		"patch": map[string]any{"title": "绑定后改名"},
+		"patch": map[string]any{"title": "Change name after binding"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func TestCanvasTaskBindReplayReturnsCurrentProjection(t *testing.T) {
 	}
 	payload, _ := replay.Result.(map[string]any)
 	node, _ := payload["node"].(map[string]any)
-	if title, _ := node["title"].(string); title != "绑定后改名" {
+	if title, _ := node["title"].(string); title != "Change name after binding" {
 		t.Fatalf("replay projection title = %#v", node)
 	}
 	position, _ := node["position"].(map[string]any)
@@ -107,7 +107,7 @@ func TestCanvasTaskBindReplayReturnsCurrentProjection(t *testing.T) {
 
 func TestCanvasTaskBindReplayIgnoresJSONKeyOrder(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-bind-key-order", "node-key-order", "键序", 3, 4)
+	task := h.seedReadyCanvasImageTask(t, "task-bind-key-order", "node-key-order", "key sequence", 3, 4)
 	first, err := h.bindTask(t, task.ID, "node-key-order", 0)
 	if err != nil {
 		t.Fatal(err)
@@ -136,7 +136,7 @@ func TestCanvasTaskBindReplayIgnoresJSONKeyOrder(t *testing.T) {
 
 func TestCanvasTaskBindRejectsDifferentCanvasSameEffectKey(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-bind-canvas-conflict", "node-canvas-conflict", "冲突", 5, 6)
+	task := h.seedReadyCanvasImageTask(t, "task-bind-canvas-conflict", "node-canvas-conflict", "conflict", 5, 6)
 	if _, err := h.bindTask(t, task.ID, "node-canvas-conflict", 0); err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func TestCanvasTaskBindRejectsDifferentCanvasSameEffectKey(t *testing.T) {
 
 func TestCanvasTaskBindReplayAcceptsLegacyRawPayloadHash(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-bind-legacy-hash", "node-legacy-hash", "旧哈希", 7, 8)
+	task := h.seedReadyCanvasImageTask(t, "task-bind-legacy-hash", "node-legacy-hash", "old hash", 7, 8)
 	if _, err := h.bindTask(t, task.ID, "node-legacy-hash", 0); err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestCanvasTaskBindReplayAcceptsLegacyRawPayloadHash(t *testing.T) {
 
 func TestCanvasTaskBindReplayProjectsReplacedDeletedAndManualEdit(t *testing.T) {
 	h := newHarness(t)
-	taskA := h.seedReadyCanvasImageTask(t, "task-bind-a", "node-shared", "任务A", 2, 3)
+	taskA := h.seedReadyCanvasImageTask(t, "task-bind-a", "node-shared", "Task A", 2, 3)
 	first, err := h.bindTask(t, taskA.ID, "node-shared", 0)
 	if err != nil {
 		t.Fatal(err)
@@ -183,7 +183,7 @@ func TestCanvasTaskBindReplayProjectsReplacedDeletedAndManualEdit(t *testing.T) 
 
 	edited := h.node(t, "node-shared")
 	editMeta := nodeMeta(edited)
-	editMeta["content"] = "手工改过的旁白"
+	editMeta["content"] = "Narration edited by hand"
 	edited["metadata"] = editMeta
 	h.replaceNode(t, "node-shared", edited)
 	sameTaskReplay, err := h.bindTask(t, taskA.ID, "node-shared", 0)
@@ -194,18 +194,18 @@ func TestCanvasTaskBindReplayProjectsReplacedDeletedAndManualEdit(t *testing.T) 
 	if status, _ := samePayload["bindingStatus"].(string); status != "bound" {
 		t.Fatalf("manual edit bindingStatus = %#v", samePayload["bindingStatus"])
 	}
-	if content, _ := samePayload["content"].(string); content != "手工改过的旁白" {
+	if content, _ := samePayload["content"].(string); content != "Narration edited by hand" {
 		t.Fatalf("manual edit current content = %#v", samePayload["content"])
 	}
 	historical, _ := samePayload["historical"].(map[string]any)
 	if content, _ := historical["content"].(string); content != originalContent {
 		t.Fatalf("historical content lost = %#v want %q", historical, originalContent)
 	}
-	if h.nodeMetaString(t, "node-shared", "content") != "手工改过的旁白" {
+	if h.nodeMetaString(t, "node-shared", "content") != "Narration edited by hand" {
 		t.Fatal("replay restored the original bind content")
 	}
 
-	taskB := h.seedReadyCanvasImageTask(t, "task-bind-b", "node-shared-b", "任务B", 8, 9)
+	taskB := h.seedReadyCanvasImageTask(t, "task-bind-b", "node-shared-b", "Task B", 8, 9)
 	if _, err := h.bindTask(t, taskB.ID, "node-shared-b", 0); err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +266,7 @@ func TestCanvasTaskBindReplayProjectsReplacedDeletedAndManualEdit(t *testing.T) 
 
 func TestCanvasTaskBindConcurrentConsumersDoNotDuplicate(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-bind-race", "node-race", "并发", 3, 4)
+	task := h.seedReadyCanvasImageTask(t, "task-bind-race", "node-race", "Concurrency", 3, 4)
 	opID := localtask.AttachNodeEffectKey(task.ID, "node-race", 0)
 	var wg sync.WaitGroup
 	errs := make(chan error, 2)
@@ -311,7 +311,7 @@ func TestCanvasTaskBindConcurrentConsumersDoNotDuplicate(t *testing.T) {
 
 func TestCanvasTaskBindRejectsDeletedWrongOwnerAndNewerTaskNode(t *testing.T) {
 	h := newHarness(t)
-	deleted := h.seedReadyCanvasImageTask(t, "task-deleted", "node-deleted", "将被删除", 1, 1)
+	deleted := h.seedReadyCanvasImageTask(t, "task-deleted", "node-deleted", "will be deleted", 1, 1)
 	h.deleteNode(t, "node-deleted")
 	_, err := h.bindTask(t, deleted.ID, "node-deleted", 0)
 	if got := opErr(t, err); got.Reason != "node_deleted" {
@@ -321,7 +321,7 @@ func TestCanvasTaskBindRejectsDeletedWrongOwnerAndNewerTaskNode(t *testing.T) {
 		t.Fatal("deleted node was recreated")
 	}
 
-	foreign := h.seedReadyCanvasImageTask(t, "task-foreign", "node-foreign", "别人的", 1, 1)
+	foreign := h.seedReadyCanvasImageTask(t, "task-foreign", "node-foreign", "someone else's", 1, 1)
 	_, err = h.registry.Execute(operations.Request{
 		Op: "canvas.task.bind", OpID: localtask.AttachNodeEffectKey(foreign.ID, "node-foreign", 0),
 		UserID: "other-user", Caller: operations.ManualCaller(false),
@@ -331,7 +331,7 @@ func TestCanvasTaskBindRejectsDeletedWrongOwnerAndNewerTaskNode(t *testing.T) {
 		t.Fatalf("wrong owner = %v", err)
 	}
 
-	stale := h.seedReadyCanvasImageTask(t, "task-old", "node-stale", "旧任务", 1, 1)
+	stale := h.seedReadyCanvasImageTask(t, "task-old", "node-stale", "old tasks", 1, 1)
 	newer := h.node(t, "node-stale")
 	meta := nodeMeta(newer)
 	meta["taskId"] = "task-newer"
@@ -364,7 +364,7 @@ func TestCanvasTaskBindRejectsDeletedWrongOwnerAndNewerTaskNode(t *testing.T) {
 
 func TestCanvasTaskBindRejectsClientResultPayload(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-client-url", "node-client", "节点", 1, 1)
+	task := h.seedReadyCanvasImageTask(t, "task-client-url", "node-client", "node", 1, 1)
 	_, err := h.execute(t, operations.ManualCaller(false), "canvas.task.bind", localtask.AttachNodeEffectKey(task.ID, "node-client", 0), map[string]any{
 		"canvasId": h.canvasID, "taskId": task.ID, "nodeId": "node-client", "outputIndex": 0,
 		"resultUrl": "https://example.invalid/paid-retry.png",
@@ -376,7 +376,7 @@ func TestCanvasTaskBindRejectsClientResultPayload(t *testing.T) {
 
 func TestCanvasTaskBindTextUsesReceiptTransaction(t *testing.T) {
 	h := newHarness(t)
-	h.addNode(t, "node-text", "text", "旁白", map[string]any{"taskId": "task-text", "status": "loading", "storyboard": map[string]any{"visibleColumns": []any{"action"}, "referenceNodeIds": []any{"n1"}}})
+	h.addNode(t, "node-text", "text", "narration", map[string]any{"taskId": "task-text", "status": "loading", "storyboard": map[string]any{"visibleColumns": []any{"action"}, "referenceNodeIds": []any{"n1"}}})
 	now := time.Now()
 	task := model.Task{
 		ID: "task-text", UserID: h.userID, ProjectID: h.canvasID, Type: "canvas_text",
@@ -397,7 +397,7 @@ func TestCanvasTaskBindTextUsesReceiptTransaction(t *testing.T) {
 	}
 	meta := h.node(t, "node-text")
 	metadata := nodeMeta(meta)
-	if metadata["content"] != "成片旁白" || metadata["status"] != "success" {
+	if metadata["content"] != "Narration of the finished film" || metadata["status"] != "success" {
 		t.Fatalf("text node = %#v", metadata)
 	}
 	board, _ := metadata["storyboard"].(map[string]any)
@@ -411,7 +411,7 @@ func TestCanvasTaskBindTextUsesReceiptTransaction(t *testing.T) {
 
 func TestCanvasTaskBindSQLiteFailureBeforePatchLeavesAsset(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-fail-patch", "node-fail-patch", "失败前", 1, 1)
+	task := h.seedReadyCanvasImageTask(t, "task-fail-patch", "node-fail-patch", "before failure", 1, 1)
 	assetID := localtask.MaterializedAssetID(task.ID, 0)
 	db := h.service.Database()
 	if err := db.Callback().Update().Before("gorm:update").Register("bind_fail_before_patch", func(tx *gorm.DB) {
@@ -439,7 +439,7 @@ func TestCanvasTaskBindSQLiteFailureBeforePatchLeavesAsset(t *testing.T) {
 
 func TestCanvasTaskBindSQLiteFailureAfterPatchRollsBackReceipt(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-fail-receipt", "node-fail-receipt", "失败后", 1, 1)
+	task := h.seedReadyCanvasImageTask(t, "task-fail-receipt", "node-fail-receipt", "after failure", 1, 1)
 	assetID := localtask.MaterializedAssetID(task.ID, 0)
 	db := h.service.Database()
 	if err := db.Callback().Update().Before("gorm:update").Register("bind_fail_after_patch", func(tx *gorm.DB) {
@@ -468,7 +468,7 @@ func TestCanvasTaskBindSQLiteFailureAfterPatchRollsBackReceipt(t *testing.T) {
 func TestCanvasTaskBindClosedUIAndRestartUseSameOperation(t *testing.T) {
 	h := newHarness(t)
 	now := time.Now()
-	h.addNode(t, "node-bg", "image", "后台绑定", map[string]any{"taskId": "task-bg", "status": "loading"})
+	h.addNode(t, "node-bg", "image", "Background binding", map[string]any{"taskId": "task-bg", "status": "loading"})
 	if err := h.service.Database().Create(&model.Resource{
 		ID: "res-bg", UserID: h.userID, Kind: "image", Status: model.ResourceStatusReady,
 		MimeType: "image/png", Size: 8, Width: 16, Height: 16, CreatedAt: now, UpdatedAt: now,
@@ -504,7 +504,7 @@ func TestCanvasTaskBindClosedUIAndRestartUseSameOperation(t *testing.T) {
 
 func TestCanvasTaskBindRecoversWhenNodeAppearsAfterDeliver(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-later-node", "node-later", "后出现的节点", 5, 6)
+	task := h.seedReadyCanvasImageTask(t, "task-later-node", "node-later", "Nodes that appear after", 5, 6)
 	if h.nodeMetaString(t, "node-later", "status") == "success" {
 		t.Fatal("deliver without the node must not recreate or bind it")
 	}
@@ -514,7 +514,7 @@ func TestCanvasTaskBindRecoversWhenNodeAppearsAfterDeliver(t *testing.T) {
 	if h.nodeMetaString(t, "node-later", "status") != "success" {
 		t.Fatal("restart recovery did not bind the original node after it reappeared")
 	}
-	if title, _ := h.node(t, "node-later")["title"].(string); title != "后出现的节点" {
+	if title, _ := h.node(t, "node-later")["title"].(string); title != "Nodes that appear after" {
 		t.Fatal("restart recovery overwrote the manual title")
 	}
 	if h.receiptCount(t, localtask.AttachNodeEffectKey(task.ID, "node-later", 0)) != 1 {
@@ -527,7 +527,7 @@ func TestCanvasTaskBindRecoversWhenNodeAppearsAfterDeliver(t *testing.T) {
 
 func TestCanvasTaskBindReplayThrowsOnUnreadableCanvasAndKeepsReceipt(t *testing.T) {
 	h := newHarness(t)
-	task := h.seedReadyCanvasImageTask(t, "task-unreadable-canvas", "node-unreadable", "损坏投影", 4, 5)
+	task := h.seedReadyCanvasImageTask(t, "task-unreadable-canvas", "node-unreadable", "Damage projection", 4, 5)
 	first, err := h.bindTask(t, task.ID, "node-unreadable", 0)
 	if err != nil {
 		t.Fatal(err)
@@ -556,7 +556,7 @@ func TestCanvasTaskBindReplayThrowsOnUnreadableCanvasAndKeepsReceipt(t *testing.
 
 func TestCanvasTaskBindUnreadableOutputIsNotReady(t *testing.T) {
 	h := newHarness(t)
-	h.addNode(t, "node-bad", "image", "坏结果", map[string]any{"taskId": "task-bad", "status": "loading"})
+	h.addNode(t, "node-bad", "image", "bad results", map[string]any{"taskId": "task-bad", "status": "loading"})
 	now := time.Now()
 	task := model.Task{
 		ID: "task-bad", UserID: h.userID, ProjectID: h.canvasID, Type: "canvas_image",
@@ -603,7 +603,7 @@ func (h *harness) seedReadyCanvasImageTask(t *testing.T, taskID, nodeID, title s
 	if err := h.service.DeliverSucceededTask(task); err != nil {
 		t.Fatal(err)
 	}
-	h.addNode(t, nodeID, "image", title, map[string]any{"taskId": taskID, "status": "loading", "prompt": "猫"})
+	h.addNode(t, nodeID, "image", title, map[string]any{"taskId": taskID, "status": "loading", "prompt": "cat"})
 	moved := h.node(t, nodeID)
 	moved["position"] = map[string]any{"x": x, "y": y}
 	h.replaceNode(t, nodeID, moved)

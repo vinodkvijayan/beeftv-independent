@@ -44,7 +44,7 @@ func TestNormalizeChannelModelContractRejectsUnknownProtocol(t *testing.T) {
 	_, _, _, _, err := NormalizeChannelModelContract(lookup, &model.ModelChannel{}, ChannelModelRequest{
 		ModelKey: "x", Capability: "image", Protocol: "not-a-protocol",
 	})
-	if err == nil || !strings.Contains(err.Error(), "请选择有效的模型请求协议") {
+	if err == nil || !strings.Contains(err.Error(), "Please select a valid model request protocol") {
 		t.Fatalf("unknown protocol should fail closed, got %v", err)
 	}
 }
@@ -76,7 +76,7 @@ func TestCredentialAbsenceDoesNotLeakSecret(t *testing.T) {
 	snapshot := AssistantConfigSnapshot{
 		AssistantModel: "custom::chat-x",
 		Channels: []AssistantChannel{{
-			ID: "custom", Name: "自建", Enabled: true, BaseURL: "https://relay.example.com",
+			ID: "custom", Name: "Self-built", Enabled: true, BaseURL: "https://relay.example.com",
 			ModelProfiles: []AssistantModelProfile{{Capability: "text", Model: "chat-x", Protocol: "chat-completion"}},
 		}},
 	}
@@ -84,7 +84,7 @@ func TestCredentialAbsenceDoesNotLeakSecret(t *testing.T) {
 	if err == nil {
 		t.Fatal("missing credential should fail")
 	}
-	if !strings.Contains(err.Error(), "该渠道还没有可用的密钥") {
+	if !strings.Contains(err.Error(), "There is no key available for this channel yet") {
 		t.Fatalf("user-facing error = %v", err)
 	}
 	if strings.Contains(err.Error(), "sk-") || strings.Contains(err.Error(), "secret") {

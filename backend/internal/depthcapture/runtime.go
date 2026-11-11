@@ -28,7 +28,7 @@ func (s *Service) resolveRuntime(ctx context.Context, task *model.Task, platform
 	installation, ensureErr := s.ensure(ctx, options)
 	if ensureErr != nil {
 		if variant == "cpu" && ensureErr == depthruntime.ErrNotInstalled {
-			return "", "", "", errors.New("当前需要 CPU 深度捕捉组件，请在存储设置中确认下载后重试")
+			return "", "", "", errors.New("The CPU depth capture component is currently required, please confirm the download in the storage settings and try again.")
 		}
 		return "", "", "", ensureErr
 	}

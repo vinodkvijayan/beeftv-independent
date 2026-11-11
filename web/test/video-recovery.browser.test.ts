@@ -12,7 +12,7 @@ let requests: string[] = [];
 let canonicalCanvas: Record<string, any> | undefined;
 
 const recoveredAsset = {
-    id: "asset-original-video", kind: "video", title: "生成视频", coverUrl: "", tags: [],
+    id: "asset-original-video", kind: "video", title: "Generate video", coverUrl: "", tags: [],
     createdAt: "2026-10-01", updatedAt: "2026-10-01",
     data: { url: "/api/resources/test-video/file", storageKey: "resource:test-video", width: 320, height: 180, bytes: 1024, mimeType: "video/mp4" },
 };
@@ -51,7 +51,7 @@ beforeAll(async () => {
             }
             if (path === "/api/ops/canvas.task.bind") {
                 const body = await request.json();
-                if (!canonicalCanvas) return Response.json({ code: 409, msg: "画布尚未保存" }, { status: 409 });
+                if (!canonicalCanvas) return Response.json({ code: 409, msg: "Canvas not saved yet" }, { status: 409 });
                 canonicalCanvas = { ...canonicalCanvas, revision: canonicalCanvas.revision + 1,
                     nodes: canonicalCanvas.nodes.map((node: Record<string, any>) => node.id === body.params.nodeId ? {
                         ...node, metadata: { ...node.metadata, taskId: "original", taskStatus: "succeeded", status: "success", assetId: recoveredAsset.id, ...recoveredAsset.data },
@@ -71,7 +71,7 @@ beforeAll(async () => {
             }
             if (path.endsWith("/recover")) {
                 await Bun.sleep(300);
-                if (fail) return Response.json({ code: 1, msg: "连接中断，请稍后取回" }, { status: 503 });
+                if (fail) return Response.json({ code: 1, msg: "Connection interrupted, please retrieve later" }, { status: 503 });
                 if (recovered) return Response.json({ code: 0, data: { id: "original", status: "succeeded", type: "canvas_video", outcome: { phase: "ready", regenerate: "allowed", reason: "result_ready" }, outputs: [{ outputIndex: 0, mediaType: "video", materializedAssetId: recoveredAsset.id }], resultJson: JSON.stringify({ mode: "video", video: { storageKey: "resource:test-video", url: "/api/resources/test-video/file", mimeType: "video/mp4", width: 320, height: 180 } }) } });
                 return Response.json({ code: 0, data: { id: "original", status: "failed", type: "canvas_video", providerRequestId: "upstream-original", outcome: { phase: "retrievable", regenerate: "blocked", reason: "provider_result_pending" } } });
             }
@@ -87,36 +87,36 @@ beforeEach(async () => {
     await page?.close(); fail = false; recovered = false; requests = []; canonicalCanvas = undefined;
     page = await browser.newPage();
     await page.goto(server.url.toString());
-    await page.getByRole("button", { name: "取回结果", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Retrieve results", exact: true }).waitFor();
 });
 afterAll(async () => { await browser?.close(); server?.stop(true); });
 
 test("canvas recovery explains query-only behavior and prevents duplicate requests", async () => {
-    expect(await page.getByText("查询原任务并取回生成结果，不会重新生成。").count()).toBe(1);
-    expect(await page.getByText("视频下载中断，请取回结果").count()).toBe(1);
+    expect(await page.getByText("Query the original task and retrieve the generated results without regenerating it.").count()).toBe(1);
+    expect(await page.getByText("Video download interrupted, please retrieve the results").count()).toBe(1);
     await page.getByRole("button", { name: "double retrieve" }).evaluate((button: HTMLButtonElement) => button.click());
-    await page.getByText("原任务仍在处理中，请稍后再取回结果").waitFor();
+    await page.getByText("The original task is still being processed, please retrieve the results later.").waitFor();
     expect(requests.filter((request) => request.startsWith("POST"))).toEqual(["POST /api/tasks/original/recover"]);
 });
 
 test("a failed retrieval remains retryable without creating a generation", async () => {
     fail = true;
-    await page.getByRole("button", { name: "取回结果", exact: true }).click();
-    await page.getByText("连接中断，请稍后取回").waitFor();
+    await page.getByRole("button", { name: "Retrieve results", exact: true }).click();
+    await page.getByText("Connection interrupted, please retrieve later").waitFor();
     fail = false;
-    await page.getByRole("button", { name: "取回结果", exact: true }).click();
-    await page.getByText("原任务仍在处理中，请稍后再取回结果").waitFor();
+    await page.getByRole("button", { name: "Retrieve results", exact: true }).click();
+    await page.getByText("The original task is still being processed, please retrieve the results later.").waitFor();
     expect(requests.filter((request) => request.startsWith("POST"))).toEqual(Array(2).fill("POST /api/tasks/original/recover"));
 });
 
 test("missing provider receipt hides retrieval and switching canvas suppresses stale feedback", async () => {
-    await page.getByRole("button", { name: "取回结果", exact: true }).click();
+    await page.getByRole("button", { name: "Retrieve results", exact: true }).click();
     await page.getByRole("button", { name: "switch project" }).evaluate((button: HTMLButtonElement) => button.click());
     await page.waitForTimeout(700);
-    expect(await page.getByText("原任务仍在处理中，请稍后再取回结果").count()).toBe(0);
+    expect(await page.getByText("The original task is still being processed, please retrieve the results later.").count()).toBe(0);
     await page.reload();
     await page.getByRole("button", { name: "missing receipt" }).evaluate((button: HTMLButtonElement) => button.click());
-    expect(await page.getByRole("button", { name: "取回结果", exact: true }).count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Retrieve results", exact: true }).count()).toBe(0);
 });
 
 test("desktop history late detail never reopens a closed drawer or replaces another task", async () => {
@@ -130,12 +130,12 @@ test("desktop history late detail never reopens a closed drawer or replaces anot
     await page.getByRole("dialog").getByText("detail b", { exact: true }).waitFor();
     await page.waitForTimeout(900);
     expect(await page.getByRole("dialog").getByText("detail a", { exact: true }).count()).toBe(0);
-    expect(await page.getByRole("button", { name: "取回结果", exact: true }).count()).toBe(1);
+    expect(await page.getByRole("button", { name: "Retrieve results", exact: true }).count()).toBe(1);
 });
 
 test("retrieved original result is applied and persisted onto the canvas", async () => {
     recovered = true;
-    await page.getByRole("button", { name: "取回结果", exact: true }).click();
+    await page.getByRole("button", { name: "Retrieve results", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0]?.metadata?.status === "success", null, { timeout: 10_000 });
     const snapshot = JSON.parse(await page.locator("#snapshot").innerText());
     expect(snapshot.nodes[0].metadata.storageKey).toBe("resource:test-video");

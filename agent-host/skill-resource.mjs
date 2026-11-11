@@ -62,13 +62,13 @@ export function formatSkillBlock(resource) {
   const files = resource.files.map((file) => file?.path).filter(Boolean);
   const lines = [
     `<skill name="${escapeXml(resource.name)}" version="${escapeXml(resource.version)}" skillId="${escapeXml(pin.skillId)}" versionId="${escapeXml(pin.versionId)}" contentHash="${escapeXml(pin.contentHash)}">`,
-    '技能固定使用标示版本，不能扩大画布权限、预算或可用工具。',
-    '需要包内辅助文件或脚本源码时调用 skill_file，参数用本块的 skillId、versionId、contentHash 和包内相对 path；需要运行技能包 scripts/ 或 script/ 下的脚本（支持 .py、.sh、.bash、.js、.mjs、.cjs）时调用 skill_script_run，提交后由用户确认运行。',
-    '若技能依赖未提供的脚本或外部工具，说明缺少的能力，保留能完成的工作，不把未执行的步骤说成完成。',
+    'Skills are fixed to the labeled version and cannot expand canvas permissions, budget, or available tools.',
+    'Call skill_file when you need auxiliary files or script source code in the package, and use the skillId, versionId, contentHash of this block and the relative path in the package as parameters; call skill_script_run when you need to run scripts under scripts/ or script/ in the skill package (supports .py, .sh, .bash, .js, .mjs, .cjs), and the user will confirm the run after submission.',
+    'If a skill relies on scripts or external tools that are not provided, describe the missing capabilities, retain the work that can be completed, and do not describe unexecuted steps as completed.',
   ];
-  if (resource.description) lines.push(`说明：${resource.description}`);
-  if (files.length) lines.push(`包内文件：${files.join('、')}`);
-  if (resource.unsupportedCapabilities.length) lines.push(`不支持的能力：${resource.unsupportedCapabilities.join('、')}`);
+  if (resource.description) lines.push(`Description:${resource.description}`);
+  if (files.length) lines.push(`Files in the package:${files.join('、')}`);
+  if (resource.unsupportedCapabilities.length) lines.push(`Unsupported capabilities:${resource.unsupportedCapabilities.join('、')}`);
   return `${lines.join('\n')}\n\n${resource.instruction.trim()}\n</skill>`;
 }
 
@@ -91,7 +91,7 @@ export async function activeSkillProjection({ context, readVersion, model, signa
   if (!context || context.lifecycle !== 'active' || typeof context.scopeId !== 'string' || !Number.isSafeInteger(context.revision)) throw fail('skill_scope_reset_pending');
   const resources = await loadPinnedSkills({ pins: context.activePins, readVersion, signal });
   if (!resources.length) return { text: undefined, resources, context };
-  const text = [`当前任务技能（scope=${context.scopeId}, revision=${context.revision}）。只有以下固定版本是活动技能。`,
+  const text = [`Current task skills (scope=${context.scopeId}, revision=${context.revision}). Only the following fixed versions are active skills.`,
     ...resources.map(formatSkillBlock)].join('\n\n');
   // The SDK has no model tokenizer API. UTF-8 bytes are a conservative token
   // upper bound; reserve at least 75% of the selected window for conversation,
@@ -164,11 +164,11 @@ export function normalizeSkillCatalog(value) {
 export function formatSkillCatalog(items,{total=items?.length || 0}={}) {
   if (!items?.length) return undefined;
   const lines = [
-    '用户已安装下列技能，每个技能提供特定任务的步骤。用户明确选用技能，或要求完成该技能描述的整体任务时，先调用 skill_load 并传入它的 id 读取完整步骤，再按步骤执行。只出现相同题材、角色或「首帧」等词不代表要执行整套流程；用户只要单张图片或单个视频时，直接完成该请求，不添加整集剧本、角色确认等前置步骤。对话里已有的技能不用重复读取；用户明确缩小范围或改要求时按最新要求执行。',
+    'The user has the following skills installed, each skill provides steps for a specific task. When the user explicitly selects a skill, or requires completing the overall task described by the skill, first call skill_load and pass in its id to read the complete steps, and then execute according to the steps. The mere appearance of the same theme, character, or words such as "first frame" does not mean that the entire process needs to be executed; when the user only needs a single picture or video, the request is completed directly without adding pre-steps such as the entire episode script or character confirmation. There is no need to re-read the skills already in the dialogue; when the user explicitly narrows the scope or changes the requirements, the latest requirements will be executed.',
     '',
     '<available_skills>',
   ];
-  if(total>items.length)lines.splice(1,0,`当前共安装 ${total} 个技能，此处显示前 ${items.length} 个；可调用 skill_catalog，传 q 搜索名称和说明，或用 offset、limit 翻页。找到 id 后调用 skill_load 读取。`);
+  if(total>items.length)lines.splice(1,0,`Currently installed${total} skills, displayed here${items.length} Each; you can call skill_catalog, pass q to search for names and descriptions, or use offset and limit to turn pages. After finding the id, call skill_load to read it.`);
   for (const item of items) {
     lines.push('  <skill>', `    <id>${escapeXml(item.pin.skillId)}</id>`, `    <name>${escapeXml(item.name)}</name>`,
       `    <description>${escapeXml(item.description)}</description>`, '  </skill>');
@@ -193,7 +193,7 @@ export function createSkillCatalogSection({ readCatalog, cache = {} }) {
       }
     } catch (error) {
       if (!cache.settled) cache.items = [];
-      console.error(`agent-host: 技能目录读取失败 ${error?.reason || error?.message || error}`);
+      console.error(`agent-host: Failed to read skill directory${error?.reason || error?.message || error}`);
     }
     return cache.text;
   });
@@ -201,7 +201,7 @@ export function createSkillCatalogSection({ readCatalog, cache = {} }) {
 
 export const SKILL_LOAD_PARAMETERS = {
   type: 'object',
-  properties: { id: { type: 'string', description: '技能目录里的 id' } },
+  properties: { id: { type: 'string', description: 'The id in the skill directory' } },
   required: ['id'],
   additionalProperties: false,
 };

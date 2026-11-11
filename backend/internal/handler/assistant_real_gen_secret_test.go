@@ -23,7 +23,7 @@ func TestE2EGenerationWritesNoSecrets(t *testing.T) {
 
 	for _, relative := range []string{"report.json", "report.md", "canvas.json", "requests/0001.json"} {
 		if _, err := os.Stat(filepath.Join(out, relative)); err != nil {
-			t.Fatalf("预期写盘文件不存在 %s: %v", relative, err)
+			t.Fatalf("The expected write disk file does not exist %s: %v", relative, err)
 		}
 	}
 	bearer := regexp.MustCompile(`Bearer\s+[A-Za-z0-9]`)
@@ -40,13 +40,13 @@ func TestE2EGenerationWritesNoSecrets(t *testing.T) {
 			return readErr
 		}
 		if bytes.Contains(data, []byte(secret)) {
-			t.Fatalf("写盘文件含上游密钥: %s", filePath)
+			t.Fatalf("The write disk file contains the upstream key: %s", filePath)
 		}
 		if bearer.Match(data) {
-			t.Fatalf("写盘文件含未脱敏 Bearer: %s", filePath)
+			t.Fatalf("The write disk file contains undesensitized Bearer: %s", filePath)
 		}
 		if skKey.Match(data) {
-			t.Fatalf("写盘文件含未脱敏 sk- 密钥: %s", filePath)
+			t.Fatalf("The write disk file contains undesensitized sk-key: %s", filePath)
 		}
 		return nil
 	})

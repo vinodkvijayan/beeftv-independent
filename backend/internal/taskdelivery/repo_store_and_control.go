@@ -257,7 +257,7 @@ func PauseGenerationDownload(
 		return nil, err
 	}
 	if localtask.DeliveryComplete(task.ResultJSON, stored, task.Type) {
-		return nil, kernel.BadAuthRequest("生成结果已取回")
+		return nil, kernel.BadAuthRequest("The generated results have been retrieved")
 	}
 	if err := repo.Transaction(func(tx *repository.Repository) error {
 		if err := tx.SetGenerationDeliveryStage(task.UserID, task.ID, stage); err != nil {
@@ -272,7 +272,7 @@ func PauseGenerationDownload(
 			return err
 		}
 		if localtask.DeliveryComplete(task.ResultJSON, outputs, task.Type) {
-			stage = "生成完成"
+			stage = "Generation completed"
 			return tx.SetGenerationDeliveryStage(task.UserID, task.ID, stage)
 		}
 		return nil
@@ -312,13 +312,13 @@ func ResumeGenerationDownload(
 	}
 	for identity := range cancels {
 		if strings.HasPrefix(identity, task.ID+":") {
-			return nil, errors.New("正在停止取回，请稍后再试")
+			return nil, errors.New("Stopping retrieval, please try again later")
 		}
 	}
-	if err := repo.SetGenerationDeliveryStage(task.UserID, task.ID, "正在取回结果"); err != nil {
+	if err := repo.SetGenerationDeliveryStage(task.UserID, task.ID, "Retrieving results"); err != nil {
 		return nil, err
 	}
-	task.Stage = "正在取回结果"
+	task.Stage = "Retrieving results"
 	if attach != nil {
 		attach(&task)
 	}
@@ -430,7 +430,7 @@ func PersistTaskGeneratedMediaResult(
 	finishTrace := startTrace(task)
 	defer func() { finishTrace(traceReason(err)) }()
 	if strings.TrimSpace(task.ID) == "" || strings.TrimSpace(task.UserID) == "" {
-		return nil, fmt.Errorf("生成结果缺少任务身份")
+		return nil, fmt.Errorf("Build result is missing task identity")
 	}
 	persisted, err = ingestor.IngestResult(task.UserID, result, IngestOptions{
 		EnforceQuota: true, IdentityPrefix: task.ID + ":inline",
@@ -451,7 +451,7 @@ func DecodeDataURLWithLimit(value string, maxBytes func() (int64, error)) (strin
 		return "", nil, err
 	}
 	if limit > 0 && int64(len(data)) > limit {
-		return "", nil, fmt.Errorf("单个生成资源超过 %dMB", limit>>20)
+		return "", nil, fmt.Errorf("A single generated resource exceeds %dMB", limit>>20)
 	}
 	return mimeType, data, nil
 }

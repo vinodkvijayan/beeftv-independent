@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-slot-test",
   "version": "0.1.1",
-  "description": "完整演示 BeefTV 全部 27 个界面扩展位与 5 类宿主事件的标准参考插件。",
+  "description": "Standard reference plug-in that fully demonstrates all 27 BeefTV interface extension bits and 5 types of host events.",
   "type": "module",
   "license": "Apache-2.0",
   "keywords": [
@@ -22,7 +22,7 @@
     ]
   },
   "beeftv": {
-    "name": "全插槽演示插件",
+    "name": "Full slot demo plugin",
     "client": "./client/index.js",
     "surfaces": [
       "node",
@@ -47,9 +47,9 @@
       "fields": [
         {
           "name": "greeting",
-          "label": "测试问候语",
+          "label": "Test greeting",
           "type": "string",
-          "default": "你好 BeefTV"
+          "default": "Hello BeefTV"
         }
       ]
     },
@@ -57,8 +57,8 @@
       "canvasNodes": [
         {
           "id": "slot-test-node",
-          "label": "插槽测试节点",
-          "defaultTitle": "插槽测试节点",
+          "label": "Socket test node",
+          "defaultTitle": "Socket test node",
           "defaultSize": {
             "width": 260,
             "height": 160

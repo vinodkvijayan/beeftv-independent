@@ -24,8 +24,8 @@ func TestConversationKeepsLongTextAndHistoryWithinWorkspaceDocumentBound(t *test
 	for i := range messages {
 		messages[i] = map[string]any{"id": fmt.Sprintf("m-%d", i), "role": "user", "content": "hello"}
 	}
-	messages[0]["content"] = strings.Repeat("长", 70_000)
-	raw, err := json.Marshal(map[string]any{"id": "long-history", "title": "旧对话", "messages": messages})
+	messages[0]["content"] = strings.Repeat("Long", 70_000)
+	raw, err := json.Marshal(map[string]any{"id": "long-history", "title": "old conversations", "messages": messages})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func sampleDocument(id, title, messageID, taskID string) json.RawMessage {
 		"title":     title,
 		"updatedAt": "2026-10-02T00:00:00.000Z",
 		"messages": []any{
-			map[string]any{"id": "user-1", "role": "user", "content": "镜头", "mode": "video"},
+			map[string]any{"id": "user-1", "role": "user", "content": "lens", "mode": "video"},
 			map[string]any{
 				"id": messageID, "role": "assistant", "mode": "video", "content": "", "status": "pending",
 				"taskIds": []any{taskID}, "storageKey": "resource:shot-1",
@@ -105,7 +105,7 @@ func sampleDocument(id, title, messageID, taskID string) json.RawMessage {
 
 func TestPutSurvivesRestart(t *testing.T) {
 	_, path, svc := openConversationFixture(t)
-	saved, err := svc.Put("local", "conversation-1", 0, sampleDocument("conversation-1", "第一镜", "assistant-1", "task-1"))
+	saved, err := svc.Put("local", "conversation-1", 0, sampleDocument("conversation-1", "first shot", "assistant-1", "task-1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,14 +124,14 @@ func TestPutSurvivesRestart(t *testing.T) {
 	if err := json.Unmarshal(loaded.Document, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc["title"] != "第一镜" {
+	if doc["title"] != "first shot" {
 		t.Fatalf("restart document = %s", loaded.Document)
 	}
 }
 
 func TestTwoCASWritersOneConflict(t *testing.T) {
 	_, _, svc := openConversationFixture(t)
-	if _, err := svc.Put("local", "conversation-cas", 0, sampleDocument("conversation-cas", "原稿", "assistant-1", "task-1")); err != nil {
+	if _, err := svc.Put("local", "conversation-cas", 0, sampleDocument("conversation-cas", "original manuscript", "assistant-1", "task-1")); err != nil {
 		t.Fatal(err)
 	}
 	start := make(chan struct{})
@@ -143,9 +143,9 @@ func TestTwoCASWritersOneConflict(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			<-start
-			title := "作者甲"
+			title := "Author A"
 			if i == 1 {
-				title = "作者乙"
+				title = "Author B"
 			}
 			record, err := svc.Put("local", "conversation-cas", 1, sampleDocument("conversation-cas", title, "assistant-1", "task-1"))
 			results[i] = err
@@ -183,7 +183,7 @@ func TestTwoCASWritersOneConflict(t *testing.T) {
 
 func TestInterruptedImportReplaysWithoutOverwrite(t *testing.T) {
 	db, _, svc := openConversationFixture(t)
-	raw := sampleDocument("conversation-import", "导入", "assistant-1", "task-1")
+	raw := sampleDocument("conversation-import", "import", "assistant-1", "task-1")
 	injected := errors.New("injected import failure")
 	err := db.Transaction(func(tx *gorm.DB) error {
 		bound := svc.WithTx(tx)
@@ -206,7 +206,7 @@ func TestInterruptedImportReplaysWithoutOverwrite(t *testing.T) {
 	if err != nil || replay.Imported {
 		t.Fatalf("replay = %+v err=%v", replay, err)
 	}
-	changed := sampleDocument("conversation-import", "被覆盖", "assistant-1", "task-1")
+	changed := sampleDocument("conversation-import", "covered", "assistant-1", "task-1")
 	_, hashErr := svc.Import("local", "creation-conversations-v1:conversation-import", "", changed)
 	var convErr *conversation.Error
 	if !errors.As(hashErr, &convErr) || convErr.Reason != conversation.ReasonConflict {
@@ -223,7 +223,7 @@ func TestInterruptedImportReplaysWithoutOverwrite(t *testing.T) {
 
 func TestDeletedTombstoneNotResurrectedByLegacyImport(t *testing.T) {
 	_, _, svc := openConversationFixture(t)
-	if _, err := svc.Put("local", "conversation-dead", 0, sampleDocument("conversation-dead", "旧对话", "assistant-1", "task-1")); err != nil {
+	if _, err := svc.Put("local", "conversation-dead", 0, sampleDocument("conversation-dead", "old conversations", "assistant-1", "task-1")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := svc.Delete("local", "conversation-dead", 1); err != nil {
@@ -236,7 +236,7 @@ func TestDeletedTombstoneNotResurrectedByLegacyImport(t *testing.T) {
 	if len(list.Conversations) != 0 || len(list.DeletedIDs) != 1 || list.DeletedIDs[0] != "conversation-dead" {
 		t.Fatalf("list after delete = %+v", list)
 	}
-	imported, err := svc.Import("local", "creation-conversations-v1:conversation-dead", "", sampleDocument("conversation-dead", "复活", "assistant-1", "task-1"))
+	imported, err := svc.Import("local", "creation-conversations-v1:conversation-dead", "", sampleDocument("conversation-dead", "resurrection", "assistant-1", "task-1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -246,14 +246,14 @@ func TestDeletedTombstoneNotResurrectedByLegacyImport(t *testing.T) {
 	if _, err := svc.Get("local", "conversation-dead"); err == nil {
 		t.Fatal("deleted conversation visible via get")
 	}
-	if _, err := svc.Put("local", "conversation-dead", 0, sampleDocument("conversation-dead", "复活", "assistant-1", "task-1")); err == nil {
+	if _, err := svc.Put("local", "conversation-dead", 0, sampleDocument("conversation-dead", "resurrection", "assistant-1", "task-1")); err == nil {
 		t.Fatal("put resurrected tombstone")
 	}
 }
 
 func TestAttachMessageResultRollsBackWithCallerTx(t *testing.T) {
 	db, _, svc := openConversationFixture(t)
-	saved, err := svc.Put("local", "conversation-attach", 0, sampleDocument("conversation-attach", "待挂载", "assistant-1", "task-1"))
+	saved, err := svc.Put("local", "conversation-attach", 0, sampleDocument("conversation-attach", "To be mounted", "assistant-1", "task-1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,7 +324,7 @@ func TestAttachMessageResultRollsBackWithCallerTx(t *testing.T) {
 
 func TestAttachMessageResultTypedReasons(t *testing.T) {
 	_, _, svc := openConversationFixture(t)
-	if _, err := svc.Put("local", "conversation-typed", 0, sampleDocument("conversation-typed", "待挂载", "assistant-1", "task-1")); err != nil {
+	if _, err := svc.Put("local", "conversation-typed", 0, sampleDocument("conversation-typed", "To be mounted", "assistant-1", "task-1")); err != nil {
 		t.Fatal(err)
 	}
 	_, err := svc.AttachMessageResult("local", conversation.AttachInput{
@@ -358,7 +358,7 @@ func TestPutRejectsCredentialsAndKeepsUnknownFields(t *testing.T) {
 	if !errors.As(err, &convErr) || convErr.Reason != conversation.ReasonInvalid {
 		t.Fatalf("credential error = %v", err)
 	}
-	raw := json.RawMessage(`{"id":"conversation-keep","title":"保留","futureField":true,"messages":[{"id":"m1","role":"user","content":"data: keep the prompt","unknownLocator":"resource:keep","dataUrl":"data:image/png;base64,aaaa","attachments":[{"id":"a1","storageKey":"resource:shot-1","dataUrl":"data:image/png;base64,aaaa"}]}]}`)
+	raw := json.RawMessage(`{"id":"conversation-keep","title":"KEEP","futureField":true,"messages":[{"id":"m1","role":"user","content":"data: keep the prompt","unknownLocator":"resource:keep","dataUrl":"data:image/png;base64,aaaa","attachments":[{"id":"a1","storageKey":"resource:shot-1","dataUrl":"data:image/png;base64,aaaa"}]}]}`)
 	saved, err := svc.Put("local", "conversation-keep", 0, raw)
 	if err != nil {
 		t.Fatal(err)
@@ -377,7 +377,7 @@ func TestDeleteDoesNotRequireMissingLocalDraft(t *testing.T) {
 	if err != nil || !deleted.Deleted {
 		t.Fatalf("missing local delete = %+v err=%v", deleted, err)
 	}
-	imported, err := svc.Import("local", "creation-conversations-v1:conversation-never", "", sampleDocument("conversation-never", "复活", "assistant-1", "task-1"))
+	imported, err := svc.Import("local", "creation-conversations-v1:conversation-never", "", sampleDocument("conversation-never", "resurrection", "assistant-1", "task-1"))
 	if err != nil || imported.Imported || !imported.Deleted {
 		t.Fatalf("zero-revision tombstone missing: %+v err=%v", imported, err)
 	}
@@ -385,7 +385,7 @@ func TestDeleteDoesNotRequireMissingLocalDraft(t *testing.T) {
 
 func TestDeleteZeroRevisionDoesNotDeleteExisting(t *testing.T) {
 	_, _, svc := openConversationFixture(t)
-	if _, err := svc.Put("local", "conversation-live", 0, sampleDocument("conversation-live", "在用", "assistant-1", "task-1")); err != nil {
+	if _, err := svc.Put("local", "conversation-live", 0, sampleDocument("conversation-live", "In use", "assistant-1", "task-1")); err != nil {
 		t.Fatal(err)
 	}
 	_, err := svc.Delete("local", "conversation-live", 0)
@@ -401,7 +401,7 @@ func TestDeleteZeroRevisionDoesNotDeleteExisting(t *testing.T) {
 
 func TestPutReplayAfterLostAckIsIdempotent(t *testing.T) {
 	_, _, svc := openConversationFixture(t)
-	raw := sampleDocument("conversation-replay", "原稿", "assistant-1", "task-1")
+	raw := sampleDocument("conversation-replay", "original manuscript", "assistant-1", "task-1")
 	first, err := svc.Put("local", "conversation-replay", 0, raw)
 	if err != nil {
 		t.Fatal(err)
@@ -410,7 +410,7 @@ func TestPutReplayAfterLostAckIsIdempotent(t *testing.T) {
 	if err != nil || replay.Revision != first.Revision {
 		t.Fatalf("lost-ack replay = %+v err=%v", replay, err)
 	}
-	next := sampleDocument("conversation-replay", "改名", "assistant-1", "task-1")
+	next := sampleDocument("conversation-replay", "Change name", "assistant-1", "task-1")
 	_, err = svc.Put("local", "conversation-replay", 0, next)
 	var convErr *conversation.Error
 	if !errors.As(err, &convErr) || convErr.Reason != conversation.ReasonConflict {
@@ -428,7 +428,7 @@ func TestPutFillsMissingTitle(t *testing.T) {
 	if err := json.Unmarshal(saved.Document, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc["title"] != "新创作" {
+	if doc["title"] != "new creation" {
 		t.Fatalf("missing title = %s", saved.Document)
 	}
 	blank, err := svc.Put("local", "conversation-blank", 0, json.RawMessage(`{"id":"conversation-blank","title":"  ","messages":[]}`))
@@ -438,14 +438,14 @@ func TestPutFillsMissingTitle(t *testing.T) {
 	if err := json.Unmarshal(blank.Document, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc["title"] != "新创作" {
+	if doc["title"] != "new creation" {
 		t.Fatalf("blank title = %s", blank.Document)
 	}
 }
 
 func TestNormalizeKeepsPromptTextAndRejectsNumericIDs(t *testing.T) {
 	_, _, svc := openConversationFixture(t)
-	raw := json.RawMessage(`{"id":"conversation-text","title":"保留","messages":[{"id":"m1","role":"user","mode":"video","content":"data: this is a URI scheme note","unknownLocator":"resource:keep"}]}`)
+	raw := json.RawMessage(`{"id":"conversation-text","title":"Reserved","messages":[{"id":"m1","role":"user","mode":"video","content":"data: this is a URI scheme note","unknownLocator":"resource:keep"}]}`)
 	saved, err := svc.Put("local", "conversation-text", 0, raw)
 	if err != nil {
 		t.Fatal(err)
@@ -475,10 +475,10 @@ func TestConcurrentImportSameOperationDifferentDocuments(t *testing.T) {
 			defer wg.Done()
 			<-start
 			id := "conversation-import-a"
-			title := "甲"
+			title := "A"
 			if i == 1 {
 				id = "conversation-import-b"
-				title = "乙"
+				title = "B"
 			}
 			_, results[i] = svc.Import("local", "creation-conversations-v1:shared-op", "", sampleDocument(id, title, "assistant-1", "task-1"))
 		}(i)

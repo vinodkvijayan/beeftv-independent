@@ -94,7 +94,7 @@ func (s *Service) RegisterTaskOutputFromTask(task model.Task, decryptedInputJSON
 		}
 	}
 	if projectID == "" {
-		return errors.New("任务未提供短剧项目 ID，无法登记产物")
+		return errors.New("The task did not provide a short play project ID and the product could not be registered.")
 	}
 	if strings.TrimSpace(input.ResourceID) != "" && strings.TrimSpace(input.AssetVersionID) == "" && strings.TrimSpace(input.ShotID) != "" {
 		assetVersionID, assetErr := s.EnsureGeneratedProjectAsset(task.UserID, projectID, task.ID, input.ShotID, input.ResourceID, input.MediaType, task.Prompt)

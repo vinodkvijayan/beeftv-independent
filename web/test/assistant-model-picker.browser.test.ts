@@ -67,7 +67,7 @@ test("default multimodal selection and explicit off persist without changing the
     try {
         await page.goto(new URL("/defaults", server.url).toString());
         const row = page.locator('section[aria-labelledby="default-multimodal-title"]');
-        const picker = row.getByRole("combobox", { name: "默认多模态模型" });
+        const picker = row.getByRole("combobox", { name: "Default multimodal model" });
         await picker.click();
         await page.locator('.ant-select-item-option-content').filter({ hasText: /^wand-vega-vl-1.0-flash/ }).click();
         await page.waitForTimeout(100);
@@ -80,7 +80,7 @@ test("default multimodal selection and explicit off persist without changing the
         await page.waitForTimeout(100);
         expect(saved.mediaReviewModel).toBe("");
         await page.reload();
-        expect(await row.innerText()).toContain("不使用独立多模态模型");
+        expect(await row.innerText()).toContain("Not using independent multimodal models");
     } catch (error) {
         console.error("multimodal picker body:", (await page.locator("body").innerText()).slice(0, 1500));
         throw error;
@@ -92,7 +92,7 @@ test("connected account can disconnect and expose the authorization action again
     const page = await browser.newPage({ viewport: { width: 390, height: 700 } });
     try {
         await page.goto(new URL("/settings", server.url).toString());
-        await page.getByRole("button", { name: "断开连接", exact: true }).click();
+        await page.getByRole("button", { name: "Disconnect", exact: true }).click();
         const connect = page.locator("button:not(.ant-btn-loading)").filter({ hasText: /^连接 BeefTV$/ });
         await connect.waitFor({ timeout: 5000 });
         expect(disconnectCalls).toBe(1);
@@ -104,11 +104,11 @@ test("connected account can disconnect and expose the authorization action again
 test("settings retries failed connected catalog read and retains authorization default intent", async () => {
     connectionState = "disconnected"; catalogReadFailures = 0; failFirstStartCatalogRead = true;
     const page = await browser.newPage(); await page.goto(new URL("/settings", server.url).toString());
-    await page.getByRole("button", { name: "连接 BeefTV", exact: true }).click();
-    const retry = page.getByRole("button", { name: "重试更新模型列表" });
+    await page.getByRole("button", { name: "Connect to BeefTV", exact: true }).click();
+    const retry = page.getByRole("button", { name: "Retry updating model list" });
     await retry.waitFor(); await retry.click();
     await retry.waitFor({ state: "hidden" });
-    await page.getByRole("combobox", { name: "助手模型" }).click();
+    await page.getByRole("combobox", { name: "helper model" }).click();
     expect(await page.locator('.ant-select-item-option-selected').innerText()).toContain("gpt-6-astra");
     await page.close();
 }, 30000);
@@ -118,7 +118,7 @@ test("settings channel retry button finalizes saved credential when connection_e
     const page = await browser.newPage();
     try {
         await page.goto(new URL("/settings", server.url).toString());
-        const retry = page.getByRole("button", { name: "重试更新模型列表" });
+        const retry = page.getByRole("button", { name: "Retry updating model list" });
         await retry.waitFor();
         await retry.click();
         await retry.waitFor({ state: "hidden" });
@@ -131,17 +131,17 @@ test("settings channel retry button finalizes saved credential when connection_e
 test("picker keyboard selection persists, respects busy and fits both themes at 390px", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 700 } });
     await page.goto(server.url.toString());
-    const picker = page.getByRole("combobox", { name: "助手模型" });
+    const picker = page.getByRole("combobox", { name: "helper model" });
     await picker.focus(); await picker.press("ArrowDown");
     expect(await page.locator('.ant-select-item-option-content').allTextContents()).toEqual(["gpt-6-astra", "claude-opus-5-5", "deepseek-v4.1-flash", "glm-5.3"]);
     await picker.press("ArrowUp"); await picker.press("Enter");
     await page.waitForTimeout(100);
     expect(saved.assistantModel).toBe("beeftv::gpt-6-astra");
-    await page.reload(); await page.getByRole("button", { name: "切换忙碌" }).click();
+    await page.reload(); await page.getByRole("button", { name: "Toggle busy" }).click();
     expect(await picker.isDisabled()).toBe(true);
     for (let i = 0; i < 2; i++) {
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        await page.getByRole("button", { name: "切换主题" }).click();
+        await page.getByRole("button", { name: "switch theme" }).click();
     }
     await page.close();
 }, 30000);
@@ -150,7 +150,7 @@ test("models-only local default is selectable and survives reload", async () => 
     saved = { ...defaultConfig, assistantModel: "", textModel: "newapi-local::deepseek-v4-flash:free", channels: [createModelChannel({ id: "newapi-local", models: ["deepseek-v4-flash:free"], apiFormat: "openai" })] };
     const page = await browser.newPage({ viewport: { width: 390, height: 700 } });
     await page.goto(server.url.toString());
-    const picker = page.getByRole("combobox", { name: "助手模型" });
+    const picker = page.getByRole("combobox", { name: "helper model" });
     for (let i = 0; i < 2; i++) {
         await picker.click();
         expect(await picker.isDisabled()).toBe(false);
@@ -158,7 +158,7 @@ test("models-only local default is selectable and survives reload", async () => 
         expect(await option.allTextContents()).toEqual(["deepseek-v4-flash:free"]);
         await option.click();
         await page.waitForFunction(() => !document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'));
-        await page.getByRole("button", { name: "切换主题" }).click();
+        await page.getByRole("button", { name: "switch theme" }).click();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         await page.reload();
     }
@@ -170,17 +170,17 @@ test("models-only local default is selectable and survives reload", async () => 
 test("next turn waits for saved selection; failed save cannot dispatch", async () => {
     const page = await browser.newPage(); await page.goto(server.url.toString());
     holdSave = true;
-    await page.getByRole("combobox", { name: "助手模型" }).click();
+    await page.getByRole("combobox", { name: "helper model" }).click();
     await page.locator('.ant-select-item-option-content').filter({ hasText: /^glm-5.3$/ }).click();
-    await page.getByRole("button", { name: "发送测试消息" }).click();
+    await page.getByRole("button", { name: "Send test message" }).click();
     await page.waitForTimeout(100); expect(submitted).toEqual([]);
-    expect(await page.getByRole("combobox", { name: "助手模型" }).isDisabled()).toBe(true);
+    expect(await page.getByRole("combobox", { name: "helper model" }).isDisabled()).toBe(true);
     holdSave = false; release?.();
     await page.waitForTimeout(500); expect({ submitted, error: await page.locator('output').textContent(), saved: saved.assistantModel }).toEqual({ submitted: ["beeftv::glm-5.3"], error: "", saved: "beeftv::glm-5.3" });
     failSave = true;
-    await page.getByRole("combobox", { name: "助手模型" }).click();
+    await page.getByRole("combobox", { name: "helper model" }).click();
     await page.locator('.ant-select-item-option-content').filter({ hasText: /^gpt-6-astra$/ }).click();
-    await page.getByRole("button", { name: "发送测试消息" }).click();
-    await page.waitForFunction(() => document.querySelector('output')?.textContent?.includes('没保存成功'));
+    await page.getByRole("button", { name: "Send test message" }).click();
+    await page.waitForFunction(() => document.querySelector('output')?.textContent?.includes('Not saved successfully'));
     expect(submitted).toHaveLength(1); await page.close();
 }, 30000);

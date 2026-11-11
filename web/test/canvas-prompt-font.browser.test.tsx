@@ -29,20 +29,20 @@ beforeAll(async () => {
 
 afterAll(async () => { await browser?.close(); server?.stop(true); }, 30000);
 
-test("没有保存字号时，从放大编辑器首次调整也与节点保持一致", async () => {
+test("When the font size is not saved, the first adjustment from the enlargement editor is also consistent with the node.", async () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     try {
         await page.goto(server.url.toString());
         const panel = page.getByTestId("node-panel");
-        const compact = panel.getByRole("textbox", { name: "图片提示词" });
+        const compact = panel.getByRole("textbox", { name: "Picture prompt words" });
         await compact.waitFor();
         const before = await compact.evaluate(element => parseFloat(getComputedStyle(element).fontSize));
-        await panel.getByRole("button", { name: "放大编辑提示词" }).click();
+        await panel.getByRole("button", { name: "Enlarge editing prompt word" }).click();
         const dialog = page.getByRole("dialog");
-        const expanded = dialog.getByRole("textbox", { name: "图片提示词" });
+        const expanded = dialog.getByRole("textbox", { name: "Picture prompt words" });
         expect(await expanded.evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBe(before);
-        await dialog.getByRole("button", { name: "放大提示词字号" }).click();
+        await dialog.getByRole("button", { name: "Enlarge prompt word size" }).click();
         expect(await expanded.evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBe(before + 2);
         expect(await compact.evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBe(before + 2);
     } finally { await context.close(); }
@@ -50,7 +50,7 @@ test("没有保存字号时，从放大编辑器首次调整也与节点保持�
 
 for (const dark of [false, true]) {
     for (const width of [1440, 390]) {
-        test(`提示词字号跨面板同步并在刷新后保留：${dark ? "深色" : "浅色"} / ${width}`, async () => {
+        test(`Prompt word sizes are synchronized across panels and retained across refreshes:${dark ? "Dark" : "light color"} / ${width}`, async () => {
             const page = await browser.newPage({ viewport: { width, height: 1000 }, deviceScaleFactor: 2 });
             const errors: string[] = [];
             page.on("pageerror", error => errors.push(error.message));
@@ -58,16 +58,16 @@ for (const dark of [false, true]) {
             try {
                 await page.goto(server.url.toString() + (dark ? "?theme=dark" : ""));
                 const panel = page.getByTestId("node-panel");
-                const editor = panel.getByRole("textbox", { name: "图片提示词" });
+                const editor = panel.getByRole("textbox", { name: "Picture prompt words" });
                 await editor.waitFor();
                 const prompt = await page.getByTestId("prompt-value").textContent();
-                for (let i = 0; i < 5; i++) await panel.getByRole("button", { name: "放大提示词字号" }).click();
+                for (let i = 0; i < 5; i++) await panel.getByRole("button", { name: "Enlarge prompt word size" }).click();
                 expect(await editor.evaluate(element => getComputedStyle(element).fontSize)).toBe("24px");
                 expect(await page.getByTestId("config-composer").locator("[contenteditable]").evaluate(element => getComputedStyle(element).fontSize)).toBe("24px");
                 expect(await page.getByTestId("prompt-value").textContent()).toBe(prompt);
-                await panel.getByRole("button", { name: "放大编辑提示词" }).click();
+                await panel.getByRole("button", { name: "Enlarge editing prompt word" }).click();
                 const dialog = page.getByRole("dialog");
-                const expanded = dialog.getByRole("textbox", { name: "图片提示词" });
+                const expanded = dialog.getByRole("textbox", { name: "Picture prompt words" });
                 await expanded.waitFor();
                 expect(await expanded.evaluate(element => getComputedStyle(element).fontSize)).toBe("24px");
                 await page.keyboard.press("Escape");
@@ -75,12 +75,12 @@ for (const dark of [false, true]) {
                 expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
                 if (process.env.BEEFTV_FONT_SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.BEEFTV_FONT_SCREENSHOT_DIR}/prompt-font-${dark ? "dark" : "light"}-${width}.png` });
                 await page.reload();
-                await panel.getByRole("button", { name: "放大提示词字号" }).waitFor();
+                await panel.getByRole("button", { name: "Enlarge prompt word size" }).waitFor();
                 expect(await editor.evaluate(element => getComputedStyle(element).fontSize)).toBe("24px");
-                for (let i = 0; i < 2; i++) await panel.getByRole("button", { name: "放大提示词字号" }).click();
-                expect(await panel.getByRole("button", { name: "放大提示词字号" }).isDisabled()).toBe(true);
-                for (let i = 0; i < 8; i++) await panel.getByRole("button", { name: "缩小提示词字号" }).click();
-                expect(await panel.getByRole("button", { name: "缩小提示词字号" }).isDisabled()).toBe(true);
+                for (let i = 0; i < 2; i++) await panel.getByRole("button", { name: "Enlarge prompt word size" }).click();
+                expect(await panel.getByRole("button", { name: "Enlarge prompt word size" }).isDisabled()).toBe(true);
+                for (let i = 0; i < 8; i++) await panel.getByRole("button", { name: "Reduce prompt word size" }).click();
+                expect(await panel.getByRole("button", { name: "Reduce prompt word size" }).isDisabled()).toBe(true);
                 expect(await editor.evaluate(element => getComputedStyle(element).fontSize)).toBe("12px");
                 expect(errors).toEqual([]);
             } finally { await page.close(); }

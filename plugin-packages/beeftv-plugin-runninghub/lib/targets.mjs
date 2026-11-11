@@ -76,12 +76,12 @@ function positivePromptTarget(graph) {
 
 /** 工作流：从 ComfyUI API 格式的图里找位置。连着别的节点的输入不能改，它们不是值。 */
 export function workflowTargets(raw) {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("读到的工作流不是 ComfyUI 的格式");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("The workflow read is not in the format of ComfyUI");
   const graph = {};
   for (const [id, node] of Object.entries(raw)) {
     if (node && typeof node === "object" && typeof node.class_type === "string") graph[id] = { ...node, inputs: node.inputs ?? {} };
   }
-  if (Object.keys(graph).length === 0) throw new Error("这个工作流里没有能执行的节点");
+  if (Object.keys(graph).length === 0) throw new Error("There are no nodes that can be executed in this workflow");
   const media = { image: [], video: [], audio: [] };
   const seeds = [];
   for (const id of Object.keys(graph).sort(byNodeId)) {

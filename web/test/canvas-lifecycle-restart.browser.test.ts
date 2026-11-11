@@ -46,7 +46,7 @@ beforeAll(async () => {
         }
         if (path === "/api/tasks/late-failed") {
             taskReads++;
-            return json({ id: "late-failed", type: "canvas_video", status: "failed", error: "测试任务失败", attempts: 1, createdAt: "2026-10-15", updatedAt: "2026-10-15" });
+            return json({ id: "late-failed", type: "canvas_video", status: "failed", error: "Test task failed", attempts: 1, createdAt: "2026-10-15", updatedAt: "2026-10-15" });
         }
         if (path.startsWith("/api/")) return json([]);
         return new Response('<div id="root"></div>' + (['reopen-stamp', 'startup-stamp', 'missing-chat-sessions'].includes(new URL(request.url).searchParams.get('scenario') || '') ? '<script>window.__reopenProject=' + JSON.stringify(backend).replaceAll('<', '\\u003c') + '</script>' : '') + '<script type="module" src="/harness.js"></script>', { headers: { "Content-Type": "text/html; charset=utf-8" } });
@@ -97,7 +97,7 @@ test("first image submission flushes an unobserved preparation state without a f
     await page.evaluate(() => { void (window as any).__lifecycle.generateImage(); });
     await page.waitForFunction(() => (window as any).__lifecycle.generationSettled, undefined, { timeout: 8_000 });
     expect(manifests).toHaveLength(1);
-    expect(warnings.filter(message => message.includes("冲突"))).toEqual([]);
+    expect(warnings.filter(message => message.includes("conflict"))).toEqual([]);
     expect(await page.evaluate(() => (window as any).__lifecycle.held())).toEqual({ paused: false, candidateTitle: null });
     expect(taskPosts).toHaveLength(1);
     expect(taskPosts[0].saved.nodes[0].metadata).toMatchObject({ taskClientOperationId: "proposal:synthetic:n0", generationSubmissionState: "submitting" });
@@ -252,11 +252,11 @@ for (const dragging of [false, true]) test(`an edit made while an opened graph w
     const uploaded = await node("n3");
     expect([uploaded.metadata.fileUpload, uploaded.metadata.content, uploaded.metadata.errorDetails]).toEqual([undefined, "https://example.test/n3.png", undefined]);
     const upload = await node("n-upload");
-    expect([upload.metadata.fileUpload, upload.metadata.fileUploadProgress, upload.metadata.errorDetails]).toEqual(["error", undefined, "上传已中断，请重新选择文件上传"]);
+    expect([upload.metadata.fileUpload, upload.metadata.fileUploadProgress, upload.metadata.errorDetails]).toEqual(["error", undefined, "Upload has been interrupted, please select file upload again"]);
     const orphan = await node("n-orphan");
-    expect([orphan.title, orphan.metadata.status, orphan.metadata.taskId, orphan.metadata.errorDetails]).toEqual(["图片", "loading", undefined, "正在从任务中心恢复生成状态..."]);
+    expect([orphan.title, orphan.metadata.status, orphan.metadata.taskId, orphan.metadata.errorDetails]).toEqual(["pictures", "loading", undefined, "Restoring build status from Task Center..."]);
     const active = await node("n-active");
-    expect([active.metadata.status, active.metadata.taskId, active.metadata.errorDetails]).toEqual(["loading", "task-active", "正在从任务中心恢复生成状态..."]);
+    expect([active.metadata.status, active.metadata.taskId, active.metadata.errorDetails]).toEqual(["loading", "task-active", "Restoring build status from Task Center..."]);
     await page.evaluate(() => (window as any).__lifecycle.save());
     expect(commits.length).toBeGreaterThan(0);
     expect(commits.every(c => c.params.document.connections.length === 6)).toBe(true);
@@ -285,7 +285,7 @@ test("late recovery runs through the real lifecycle merge while preserving an un
         await page.waitForFunction(() => (window as any).__lifecycle.nodeState("n-orphan")?.metadata.status === "error"
             && (window as any).__lifecycle.nodeState("n-failed")?.metadata.taskStatus === "failed", { timeout: 8_000 });
         expect(await page.evaluate(() => (window as any).__lifecycle.title())).toBe("Local unsaved text");
-        expect(await page.evaluate(() => (window as any).__lifecycle.nodeState("n-orphan").metadata.errorDetails)).toBe("页面刷新后本地生成已中断，请重新生成。");
+        expect(await page.evaluate(() => (window as any).__lifecycle.nodeState("n-orphan").metadata.errorDetails)).toBe("The local generation has been interrupted after the page is refreshed, please generate again.");
         expect(await page.evaluate(() => (window as any).__lifecycle.held())).toEqual({ paused: false, candidateTitle: null });
         expect(errors).toEqual([]);
     } finally { await page.close(); }
@@ -306,7 +306,7 @@ test("late recovery reconciles a task on the same node whose prompt was edited w
         expect(metadata.prompt).toBe("Unsaved local prompt");
         expect(metadata.taskId).toBe("late-failed");
         expect(metadata.status).toBe("error");
-        expect(metadata.errorDetails).toContain("测试任务失败");
+        expect(metadata.errorDetails).toContain("Test task failed");
         expect(taskReads).toBe(1);
         expect(await page.evaluate(() => (window as any).__lifecycle.held())).toEqual({ paused: false, candidateTitle: null });
         expect(errors).toEqual([]);
@@ -324,7 +324,7 @@ async function openMidWorkAndEditUnsaved() {
     await page.goto(`${server.url}?scenario=interrupted`);
     await page.waitForFunction(() => document.querySelector('[data-testid="graph"]')?.textContent === "true:10:6");
     const opened = await page.evaluate(() => (window as any).__lifecycle.nodeState("n3"));
-    expect([opened.metadata.fileUpload, opened.metadata.errorDetails]).toEqual(["error", "上传已中断，请重新选择文件上传"]);
+    expect([opened.metadata.fileUpload, opened.metadata.errorDetails]).toEqual(["error", "Upload has been interrupted, please select file upload again"]);
     await page.evaluate(() => { (window as any).__lifecycle.pauseHistory(true); (window as any).__lifecycle.editTitleNow(); });
     return { page, errors };
 }

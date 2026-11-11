@@ -24,7 +24,7 @@ func extractJSONText(raw string) (string, error) {
 			return candidate, nil
 		}
 	}
-	return "", errors.New("模型返回的不是 JSON")
+	return "", errors.New("The model returns something other than JSON")
 }
 
 // extractPreferredJSONText 与 extractJSONText 一样逐个扫描完整的 JSON 值，但会优先返回顶层对象且
@@ -58,7 +58,7 @@ func extractPreferredJSONText(raw string, preferKey string) (string, error) {
 	if fallback != "" {
 		return fallback, nil
 	}
-	return "", errors.New("模型返回的不是 JSON")
+	return "", errors.New("The model returns something other than JSON")
 }
 
 func jsonValueEnd(source string, start int) int {

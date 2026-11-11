@@ -21,33 +21,33 @@ func TestTypedNilAuthorizerDoesNotFilterOwnerCatalog(t *testing.T) {
 
 	listed := registry.List(Caller{Kind: CallerManual, Scope: scope})
 	if len(listed) != 44 {
-		t.Fatalf("带类型的空范围不应收窄 owner 目录，得到 %d: %v", len(listed), descriptorIDs(listed))
+		t.Fatalf("The empty range with type should not narrow the owner directory, getting %d: %v", len(listed), descriptorIDs(listed))
 	}
 	if !containsOp(listed, "conversation.message.attach") {
-		t.Fatalf("owner 应看到消息绑定: %v", descriptorIDs(listed))
+		t.Fatalf("The owner should see the message binding: %v", descriptorIDs(listed))
 	}
 	if !containsOp(listed, "canvas.document.commit") || !containsOp(listed, "canvas.create") {
-		t.Fatalf("owner 应看到文档提交与新建画布: %v", descriptorIDs(listed))
+		t.Fatalf("The owner should see the document submitted with the new canvas: %v", descriptorIDs(listed))
 	}
 	if !containsOp(listed, "asset.list") || !containsOp(listed, "canvas.search") {
-		t.Fatalf("owner 应看到工作区级操作: %v", descriptorIDs(listed))
+		t.Fatalf("The owner should see the workspace level action: %v", descriptorIDs(listed))
 	}
 
 	restricted := registry.List(Caller{Kind: CallerAssistant, Scope: &filterGetOnly{}})
 	if len(restricted) != 1 || restricted[0].ID != "canvas.get" {
-		t.Fatalf("真实范围仍应过滤: %v", descriptorIDs(restricted))
+		t.Fatalf("The true range should still be filtered: %v", descriptorIDs(restricted))
 	}
 
 	external := registry.List(ExternalCaller(false))
 	if len(external) != 44 {
-		t.Fatalf("外部调用方应看到完整目录 %d: %v", len(external), descriptorIDs(external))
+		t.Fatalf("External callers should see the full directory %d: %v", len(external), descriptorIDs(external))
 	}
 	for _, descriptor := range external {
 		if !descriptor.ReadOnly && !jsonContainsOp(descriptor.Params, "operationId") {
-			t.Fatalf("外部写操作 schema 必须带 operationId: %s", descriptor.ID)
+			t.Fatalf("The external write operation schema must have operationId: %s", descriptor.ID)
 		}
 		if descriptor.ID == "canvas.generation.propose" && !descriptor.ReadOnly {
-			t.Fatal("付费提议必须是只读操作")
+			t.Fatal("Paid proposals must be read-only operations")
 		}
 	}
 }

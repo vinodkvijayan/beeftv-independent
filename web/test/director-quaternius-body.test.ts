@@ -21,7 +21,7 @@ function joint(root: import("three").Object3D, name: string) {
     return root.getObjectByName(name)!.getWorldPosition(new Vector3());
 }
 
-test("健硕、纤细、宽厚有各自肩宽和身高，不是同一个全局缩放", async () => {
+test("Strong, slender, and generous have their own shoulder widths and heights, not the same global scale.", async () => {
     const standard = await body();
     const athletic = await body("athletic");
     const slim = await body("slim");
@@ -36,7 +36,7 @@ test("健硕、纤细、宽厚有各自肩宽和身高，不是同一个全局�
     expect(Math.abs(joint(broad.root, "upperarm_l").x)).toBeGreaterThan(standardShoulder * 1.08);
 });
 
-test("少年、儿童、二头身按 LibTV 参考逐级降低身高并增大头身比", async () => {
+test("Adolescents, children, and biceps can gradually reduce their height and increase their head-to-body ratio according to LibTV reference.", async () => {
     const standard = await body();
     const teen = await body("teen");
     const child = await body("child");
@@ -51,7 +51,7 @@ test("少年、儿童、二头身按 LibTV 参考逐级降低身高并增大头�
     expect(headRatio(chibi)).toBeGreaterThan(headRatio(child) * 1.2);
 });
 
-test("变形网格与骨骼绑定保持一致，且不改动共享源资源", async () => {
+test("The deformed mesh remains consistent with the bone binding and does not modify the shared source resources.", async () => {
     const { root, original } = await body("child");
     const mesh = root.getObjectByName("SuperHero_Male") as SkinnedMesh;
     const sourceMesh = original.getObjectByName("SuperHero_Male") as SkinnedMesh;
@@ -65,7 +65,7 @@ test("变形网格与骨骼绑定保持一致，且不改动共享源资源", as
     expect(new Vector3().fromBufferAttribute(vertices, 1000).distanceTo(new Vector3().fromBufferAttribute(sourceVertices, 1000))).toBeGreaterThan(0.001);
 });
 
-test("头颈和胸腹过渡不会把相邻面拉出尖刺", async () => {
+test("The transition between the head and neck and chest and abdomen will not pull out spikes on the adjacent surfaces", async () => {
     const { root, original } = await body("chibi");
     const mesh = root.getObjectByName("SuperHero_Male") as SkinnedMesh;
     const sourceMesh = original.getObjectByName("SuperHero_Male") as SkinnedMesh;

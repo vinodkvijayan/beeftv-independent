@@ -24,7 +24,7 @@ beforeAll(async () => {
         + await build.outputs.find((output) => output.path.endsWith(".css"))!.text();
     const providers = [
         { id: "newapi", name: "OpenAI Videos / Sora", create: "POST /v1/videos", poll: "GET /v1/videos/{task_id}", contentType: "multipart/form-data" },
-        { id: "video-generations-json", name: "视频生成 JSON · ratio / duration", create: "POST /v1/video/generations", poll: "GET /v1/video/generations/{task_id}", contentType: "application/json" },
+        { id: "video-generations-json", name: "Video generation JSON · ratio / duration", create: "POST /v1/video/generations", poll: "GET /v1/video/generations/{task_id}", contentType: "application/json" },
     ].map((provider) => ({ ...provider, version: "1.0.0", vendor: "BeefTV", categories: ["video"], scopes: ["user.custom-channel"], enabled: true }));
     server = Bun.serve({ port: 0, fetch(request) {
         const url = new URL(request.url);
@@ -46,18 +46,18 @@ test("an unconfigured model displays, tests and saves its explicitly selected ch
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     try {
         await page.goto(server.url.toString() + "?inherited=1");
-        await page.getByRole("button", { name: "高级模型设置与测试", exact: true }).click();
+        await page.getByRole("button", { name: "Advanced model setup and testing", exact: true }).click();
         await page.getByText("POST /v1/video/generations", { exact: true }).waitFor();
-        await page.getByRole("button", { name: "配置使用", exact: true }).click();
+        await page.getByRole("button", { name: "Configure using", exact: true }).click();
         // 已经有接口格式时只显示一行摘要，点「更改」才展开选择列表。
-        await page.getByText("视频生成 JSON · ratio / duration", { exact: true }).waitFor();
+        await page.getByText("Video generation JSON · ratio / duration", { exact: true }).waitFor();
         expect(await page.locator(".choice-browser").count()).toBe(0);
         await page.getByRole("button", { name: /^更\s*改$/ }).click();
         expect(await page.locator('input[type="radio"][value="video-generations-json"]').isChecked()).toBe(true);
-        expect(await page.getByRole("button", { name: "生成测试", exact: true }).isEnabled()).toBe(true);
+        expect(await page.getByRole("button", { name: "Generate tests", exact: true }).isEnabled()).toBe(true);
         expect(await page.getByTestId("saved-profile").textContent()).toBe("unsaved");
         await page.getByRole("button", { name: /^完\s*成$/ }).click();
-        await page.getByRole("button", { name: "保存并使用", exact: true }).click();
+        await page.getByRole("button", { name: "Save and use", exact: true }).click();
         await page.waitForFunction(() => document.querySelector('[data-testid="saved-profile"]')?.textContent === "video-generations-json");
         expect(generationRequests).toBe(0);
     } finally { await page.close(); }
@@ -70,21 +70,21 @@ for (const [width, dark] of [[1280, false], [390, true]] as const) {
         page.on("pageerror", (error) => errors.push(error.message));
         try {
             await page.goto(server.url.toString() + (dark ? "?theme=dark" : ""));
-            await page.getByRole("textbox", { name: "模型 ID", exact: true }).fill("seedance-2.5");
-            await page.getByRole("combobox", { name: "模型类型", exact: true }).click();
-            await page.locator('.ant-select-item-option[title="视频"]').click();
+            await page.getByRole("textbox", { name: "Model ID", exact: true }).fill("seedance-2.5");
+            await page.getByRole("combobox", { name: "Model type", exact: true }).click();
+            await page.locator('.ant-select-item-option[title="video"]').click();
             await page.getByRole("button", { name: /^添\s*加$/ }).click();
-            await page.getByRole("button", { name: "保存并使用", exact: true }).click();
-            await page.getByText("seedance-2.5 还需要选择接口格式，请打开高级模型设置", { exact: true }).waitFor();
+            await page.getByRole("button", { name: "Save and use", exact: true }).click();
+            await page.getByText("seedance-2.5 also needs to select the interface format, please open the advanced model settings", { exact: true }).waitFor();
             expect(await page.getByTestId("saved-profile").textContent()).toBe("unsaved");
             // 保存时缺协议，会直接打开这个模型的协议设置，不需要再点「配置使用」。
             await page.locator(".choice-browser").waitFor();
-            expect(await page.getByRole("button", { name: "生成测试", exact: true }).isDisabled()).toBe(true);
+            expect(await page.getByRole("button", { name: "Generate tests", exact: true }).isDisabled()).toBe(true);
             expect(await page.locator('.choice-browser input[type="radio"]:checked').count()).toBe(0);
             await page.locator('input[type="radio"][value="video-generations-json"]').check();
             await page.getByText("application/json", { exact: true }).waitFor();
-            await page.getByText("异步轮询", { exact: true }).waitFor();
-            expect(await page.getByRole("button", { name: "生成测试", exact: true }).isEnabled()).toBe(true);
+            await page.getByText("Asynchronous polling", { exact: true }).waitFor();
+            expect(await page.getByRole("button", { name: "Generate tests", exact: true }).isEnabled()).toBe(true);
             const dialog = page.getByRole("dialog").last();
             const box = (await dialog.boundingBox())!;
             expect(box.x).toBeGreaterThanOrEqual(0);
@@ -93,7 +93,7 @@ for (const [width, dark] of [[1280, false], [390, true]] as const) {
             const output = process.env.BEEFTV_TEST_SCREENSHOT_DIR;
             if (output) { mkdirSync(output, { recursive: true }); await page.screenshot({ path: `${output}/external-video-${width}.png`, fullPage: true, animations: "disabled" }); }
             await page.getByRole("button", { name: /^完\s*成$/ }).click();
-            await page.getByRole("button", { name: "保存并使用", exact: true }).click();
+            await page.getByRole("button", { name: "Save and use", exact: true }).click();
             await page.waitForFunction(() => document.querySelector('[data-testid="saved-profile"]')?.textContent === "video-generations-json");
             expect(errors).toEqual([]);
             expect(generationRequests).toBe(0);

@@ -17,32 +17,32 @@ const (
 	OperationSkillDraft           = "skill_draft"
 )
 
-const legacyStoryboardVideoPromptPreamble = "生成单一连续镜头的视频执行提示词。一个镜头只保留一个叙事目标、一个主运镜和一条主要动作链；摄影机运动必须有起点、动机和停止点。优先保证角色身份、表演、关键动作和连续性，次要环境效果可以简化。\n\n"
+const legacyStoryboardVideoPromptPreamble = "Generate a single sequence of video execution cues. A shot only retains a narrative goal, a main movement and a main action chain; the camera movement must have a starting point, a motive and a stopping point. Prioritize character identity, performance, key actions and continuity, and secondary environmental effects can be simplified."
 
 func defaultPromptDefinitions() []PromptOperationDefinition {
 	return []PromptOperationDefinition{
 		{
-			Operation: OperationChapterAssetsExtract, Label: "章节角色、场景与道具提取", Category: "角色", OutputType: "json", SchemaKey: "chapter-assets/v1",
-			Description:    "从章节正文提取角色、实际发生剧情的场景和影响剧情的道具，分别进入资产待确认列表。",
-			Variables:      []PromptTemplateVariable{{Label: "项目名称", Placeholder: "{{项目名称}}"}, {Label: "章节名称", Placeholder: "{{章节名称}}"}, {Label: "项目画风", Placeholder: "{{项目画风}}"}},
-			DefaultContent: `你是短剧资产导演。按章节事实提取角色、场景和道具。同一身份的别名合并，不编造正文未出现的资产；未明确的视觉信息写“正文未明确”。角色包含剧情定位、稳定外貌服装体态、性格、一致性提示、三视图提示及语言、声音年龄、音色。场景描述空间布局、环境和光照；道具描述材质、形状及剧情用途。无对应资产时返回空数组。`,
+			Operation: OperationChapterAssetsExtract, Label: "Extraction of chapter characters, scenes and props", Category: "role", OutputType: "json", SchemaKey: "chapter-assets/v1",
+			Description:    "Extract the characters, scenes where the plot actually takes place, and props that affect the plot from the chapter text, and enter them into the assets to be confirmed list respectively.",
+			Variables:      []PromptTemplateVariable{{Label: "Project name", Placeholder: "{{项目名称}}"}, {Label: "Chapter name", Placeholder: "{{章节名称}}"}, {Label: "Project style", Placeholder: "{{项目画风}}"}},
+			DefaultContent: `You are a short drama asset director. Extract characters, scenes and props by chapter facts. Aliases of the same identity are merged, and assets that do not appear in the text are not fabricated; unspecified visual information is written as "Unspecified in the text." The character includes plot positioning, stable appearance, clothing, body shape, personality, consistency prompts, three-view prompts and language, voice age, and timbre. The scene describes the spatial layout, environment and lighting; the props describe the material, shape and plot use. If there is no corresponding asset, an empty array is returned.`,
 		},
 		{
-			Operation: OperationStoryboardPlan, Label: "分镜规划", Category: "分镜", OutputType: "json", SchemaKey: "storyboard-plan/v3",
-			Description:    "把剧情、项目画风和当前角色版本规划为可执行镜头。",
-			Variables:      []PromptTemplateVariable{{Label: "项目名称", Placeholder: "{{项目名称}}"}, {Label: "项目画风", Placeholder: "{{项目画风}}"}, {Label: "用户要求", Placeholder: "{{用户要求}}"}},
+			Operation: OperationStoryboardPlan, Label: "Storyboard planning", Category: "Storyboard", OutputType: "json", SchemaKey: "storyboard-plan/v3",
+			Description:    "Plan the plot, project style, and current character version into executable shots.",
+			Variables:      []PromptTemplateVariable{{Label: "Project name", Placeholder: "{{项目名称}}"}, {Label: "Project style", Placeholder: "{{项目画风}}"}, {Label: "User requirements", Placeholder: "{{用户要求}}"}},
 			DefaultContent: DefaultStoryboardPromptTemplate(),
 		},
 		{
-			Operation: OperationStoryboardRepair, Label: "分镜修复", Category: "分镜", OutputType: "json", SchemaKey: "storyboard-plan/v3",
-			Description:    "修复模型返回的分镜结构、字段和镜头复杂度。",
-			Variables:      []PromptTemplateVariable{{Label: "校验错误", Placeholder: "{{校验错误}}"}, {Label: "项目画风", Placeholder: "{{项目画风}}"}},
-			DefaultContent: `你是影视分镜 JSON 修复导演。修复结构时必须保留剧情信息，通过拆镜或重新分配内容解决复杂度超限，不得用删除关键剧情掩盖错误。若校验错误是台词/旁白超长，必须拆镜或精简为单镜头可念完的台词，保留关键情节，不要把超长 dialogue 原样放回。保持原项目的视觉媒介、角色身份、服装、道具和连续性，不要擅自改写画风。只修复校验错误和由此引发的镜头组织问题。`,
+			Operation: OperationStoryboardRepair, Label: "Storyboard repair", Category: "Storyboard", OutputType: "json", SchemaKey: "storyboard-plan/v3",
+			Description:    "Fix storyboard structure, fields and shot complexity returned by model.",
+			Variables:      []PromptTemplateVariable{{Label: "Check error", Placeholder: "{{校验错误}}"}, {Label: "Project style", Placeholder: "{{项目画风}}"}},
+			DefaultContent: `You are a film and television storyboard JSON restoration director. Plot information must be retained when repairing the structure. Complexity overruns must be resolved by removing mirrors or redistributing content. Mistakes must not be covered up by deleting key plots. If the verification error is that the lines/narration are too long, the scenes must be dismantled or condensed into lines that can be read in a single shot, and the key plots should be retained. Do not put the overly long dialogue back as it is. Maintain the visual medium, character identities, costumes, props, and continuity of the original project and do not alter the style without authorization. Only fixes for validation errors and resulting lens organization issues.`,
 		},
 		{
-			Operation: OperationStoryboardFirstFrame, Label: "分镜首帧", Category: "生成", OutputType: "text",
-			Description: "把单镜头结构转换为图片模型使用的首帧提示词。",
-			Variables:   []PromptTemplateVariable{{Label: "项目视觉", Placeholder: "{{项目视觉}}"}, {Label: "首帧构图", Placeholder: "{{首帧构图}}"}, {Label: "表演起始状态", Placeholder: "{{表演起始状态}}"}, {Label: "负面要求", Placeholder: "{{负面要求}}"}},
+			Operation: OperationStoryboardFirstFrame, Label: "First frame of storyboard", Category: "generate", OutputType: "text",
+			Description: "Convert the single shot structure into the first frame prompt word used by the picture model.",
+			Variables:   []PromptTemplateVariable{{Label: "project vision", Placeholder: "{{项目视觉}}"}, {Label: "First frame composition", Placeholder: "{{首帧构图}}"}, {Label: "Performance starting state", Placeholder: "{{表演起始状态}}"}, {Label: "Negative requirements", Placeholder: "{{负面要求}}"}},
 			DefaultContent: `生成单一、可执行的分镜首帧。严格继承项目视觉媒介和角色资产；画面明确主体左右位置、视线、前中后景、遮挡、视觉焦点、可信光源与材质。只描述静止首帧，不提前写后续运动，不添加画外人物、无来源光线、文字或水印。
 
 【项目视觉】
@@ -58,9 +58,9 @@ func defaultPromptDefinitions() []PromptOperationDefinition {
 {{负面要求}}`,
 		},
 		{
-			Operation: OperationStoryboardVideo, Label: "分镜视频", Category: "生成", OutputType: "text",
-			Description: "把单镜头结构转换为视频模型使用的紧凑执行提示词。",
-			Variables:   []PromptTemplateVariable{{Label: "项目视觉", Placeholder: "{{项目视觉}}"}, {Label: "镜头意图", Placeholder: "{{镜头意图}}"}, {Label: "首帧构图", Placeholder: "{{首帧构图}}"}, {Label: "表演与调度", Placeholder: "{{表演与调度}}"}, {Label: "摄影机", Placeholder: "{{摄影机}}"}, {Label: "时间节拍", Placeholder: "{{时间节拍}}"}, {Label: "运动与结尾", Placeholder: "{{运动与结尾}}"}, {Label: "声音", Placeholder: "{{声音}}"}, {Label: "执行优先级", Placeholder: "{{执行优先级}}"}, {Label: "负面要求", Placeholder: "{{负面要求}}"}},
+			Operation: OperationStoryboardVideo, Label: "Storyboard video", Category: "generate", OutputType: "text",
+			Description: "Convert single-shot structures into compact execution cues for use with video models.",
+			Variables:   []PromptTemplateVariable{{Label: "project vision", Placeholder: "{{项目视觉}}"}, {Label: "shot intention", Placeholder: "{{镜头意图}}"}, {Label: "First frame composition", Placeholder: "{{首帧构图}}"}, {Label: "Performance and Scheduling", Placeholder: "{{表演与调度}}"}, {Label: "camera", Placeholder: "{{摄影机}}"}, {Label: "time beat", Placeholder: "{{时间节拍}}"}, {Label: "movement and ending", Placeholder: "{{运动与结尾}}"}, {Label: "sound", Placeholder: "{{声音}}"}, {Label: "execution priority", Placeholder: "{{执行优先级}}"}, {Label: "Negative requirements", Placeholder: "{{负面要求}}"}},
 			DefaultContent: `【项目视觉】
 {{项目视觉}}
 
@@ -92,28 +92,28 @@ func defaultPromptDefinitions() []PromptOperationDefinition {
 {{负面要求}}`,
 		},
 		{
-			Operation: OperationCharacterExtract, Label: "角色卡提取", Category: "角色", OutputType: "json", SchemaKey: "character-breakdown/v1",
-			Description:    "从章节正文提取需要跨镜头保持一致的角色资产。",
-			Variables:      []PromptTemplateVariable{{Label: "项目名称", Placeholder: "{{项目名称}}"}, {Label: "章节名称", Placeholder: "{{章节名称}}"}, {Label: "项目画风", Placeholder: "{{项目画风}}"}},
-			DefaultContent: `你是短剧角色资产导演。只提取章节中实际出场、发言或对剧情产生明确作用，并且后续制作需要保持视觉或声音一致的角色。忽略系统播报、纯物件、无身份群众和没有持续角色价值的一次性路人；合并同一角色的姓名、专属称谓和别名。正文未明确的信息必须写“正文未明确”，不得自行改变人物关系、时代背景或编造编号式姓名。角色设定要具体、稳定、可用于后续三视图和视频一致性控制。`,
+			Operation: OperationCharacterExtract, Label: "Character card extraction", Category: "role", OutputType: "json", SchemaKey: "character-breakdown/v1",
+			Description:    "Extract character assets from the chapter body that need to be consistent across shots.",
+			Variables:      []PromptTemplateVariable{{Label: "Project name", Placeholder: "{{项目名称}}"}, {Label: "Chapter name", Placeholder: "{{章节名称}}"}, {Label: "Project style", Placeholder: "{{项目画风}}"}},
+			DefaultContent: `You are the Shorts Character Asset Director. Only extract characters who actually appear, speak, or have a clear role in the plot in the chapter, and whose visual or sound consistency needs to be maintained in subsequent productions. Ignore system announcements, pure objects, identityless crowds, and one-time passers-by with no lasting role value; merge the names, exclusive titles, and aliases of the same character. Information that is not specified in the text must be written as "not specified in the text." You are not allowed to change the character relationships, historical background, or make up numbered names. The character settings must be specific, stable, and can be used for subsequent three-view and video consistency control.`,
 		},
 		{
-			Operation: OperationCharacterTurnaround, Label: "角色三视图", Category: "角色", OutputType: "text",
-			Description:    "按当前角色版本和项目画风生成正、侧、背三视图。",
-			Variables:      []PromptTemplateVariable{{Label: "角色名称", Placeholder: "{{角色名称}}"}, {Label: "项目画风", Placeholder: "{{项目画风}}"}, {Label: "角色设定", Placeholder: "{{角色设定}}"}},
-			DefaultContent: `制作专业人物三视图设定表。画面严格分成三个等宽竖向区域，从左到右依次为正面全身、右侧面全身、背面全身。三个视角必须是同一角色、同一服装、同一发型、同一体型和同一比例，采用站立中性姿势，完整显示头顶到脚底。背景使用纯净中性浅色和均匀设定稿光线，只负责分离轮廓，不得改变项目画风的绘画或渲染媒介。禁止文字、边框、道具说明、表情变化和额外人物。`,
+			Operation: OperationCharacterTurnaround, Label: "Three views of the character", Category: "role", OutputType: "text",
+			Description:    "Generate front, side and back views according to the current character version and project style.",
+			Variables:      []PromptTemplateVariable{{Label: "Character name", Placeholder: "{{角色名称}}"}, {Label: "Project style", Placeholder: "{{项目画风}}"}, {Label: "Character setting", Placeholder: "{{角色设定}}"}},
+			DefaultContent: `Create a three-view setting table for professional characters. The picture is strictly divided into three equal-width vertical areas, from left to right: the whole body from the front, the whole body from the right side, and the whole body from the back. The three perspectives must be of the same character, the same costume, the same hairstyle, the same body shape and the same proportions, using a standing neutral posture, showing the top of the head to the soles of the feet. Use a pure, neutral light color and evenly set lighting for the background. It is only responsible for isolating the outline and must not change the painting or rendering medium of the project's style. Text, borders, prop descriptions, expression changes, and extra characters are prohibited.`,
 		},
 		{
-			Operation: OperationShortDramaOutline, Label: "短剧大纲", Category: "项目", OutputType: "json", SchemaKey: "short-drama-outline/v1",
-			Description:    "根据一句话故事生成短剧标题、简介和章节正文，供项目创建导入。",
-			Variables:      []PromptTemplateVariable{{Label: "章节数量", Placeholder: "{{章节数量}}"}, {Label: "叙事结构", Placeholder: "{{叙事结构}}"}, {Label: "每章字数", Placeholder: "{{每章字数}}"}, {Label: "叙事视角", Placeholder: "{{叙事视角}}"}, {Label: "整体基调", Placeholder: "{{整体基调}}"}, {Label: "角色规模", Placeholder: "{{角色规模}}"}, {Label: "章节篇幅", Placeholder: "{{章节篇幅}}"}},
+			Operation: OperationShortDramaOutline, Label: "Short play outline", Category: "Project", OutputType: "json", SchemaKey: "short-drama-outline/v1",
+			Description:    "Generate short play titles, introductions and chapter texts based on one-sentence stories for project creation and import.",
+			Variables:      []PromptTemplateVariable{{Label: "Number of chapters", Placeholder: "{{章节数量}}"}, {Label: "narrative structure", Placeholder: "{{叙事结构}}"}, {Label: "word count per chapter", Placeholder: "{{每章字数}}"}, {Label: "narrative perspective", Placeholder: "{{叙事视角}}"}, {Label: "overall tone", Placeholder: "{{整体基调}}"}, {Label: "role size", Placeholder: "{{角色规模}}"}, {Label: "Chapter length", Placeholder: "{{章节篇幅}}"}},
 			DefaultContent: `你是短剧编剧。根据用户的一句话故事，生成一部短剧的标题、一句话简介和 {{章节数量}} 个章节。生成要求：叙事采用{{叙事结构}}结构，每章约 {{每章字数}} 字，使用{{叙事视角}}视角，整体基调{{整体基调}}，主要角色约 {{角色规模}}，章节篇幅{{章节篇幅}}。`,
 		},
 		{
-			Operation: OperationSkillDraft, Label: "技能草稿", Category: "技能", OutputType: "json", SchemaKey: "skill-draft/v1",
-			Description:    "根据用户想法生成可复用创作技能的名称、分类、简介和指令草稿。",
+			Operation: OperationSkillDraft, Label: "skills draft", Category: "Skills", OutputType: "json", SchemaKey: "skill-draft/v1",
+			Description:    "Generate names, categories, introductions and instruction drafts for reusable creative skills based on user ideas.",
 			Variables:      []PromptTemplateVariable{},
-			DefaultContent: `你是一位技能编写助手。根据用户的想法，为一个「可复用的创作技能」生成一份草稿。技能名称简短，不超过 20 个字。分类 tag 必须是 drama、ecommerce、creative、social、others 之一。简介不超过 120 字，说明适用场景、输入条件和最终产出。指令使用 Markdown，至少 300 字，写给后续在画布中使用该技能的模型阅读，必须包含角色设定、输入与约束、分步执行流程、检查清单和输出格式。工具步骤只描述所需能力、输入、输出和确认点，不虚构具体工具名，不把工具、节点、权限、预算或审批写成技能授予的能力；执行时始终以运行环境实际暴露的能力清单为准。`,
+			DefaultContent: `You are a skills writing assistant. Generate a draft for a "reusable creative skill" based on the user's ideas. Keep skill names short, no more than 20 words. The category tag must be one of drama, ecommerce, creative, social, and others. The introduction should not exceed 120 words, describing the applicable scenarios, input conditions and final output. Instructions are written in Markdown, at least 300 words, for subsequent reading by models using this skill in canvas. They must include role settings, inputs and constraints, step-by-step execution processes, checklists, and output formats. Tool steps only describe the required capabilities, inputs, outputs and confirmation points, and do not make up specific tool names, nor write tools, nodes, permissions, budgets or approvals as capabilities granted by skills; when executing, always refer to the list of capabilities actually exposed in the operating environment.`,
 		},
 	}
 }
@@ -128,22 +128,22 @@ func protectedPromptContext(operation string, values map[string]string) string {
 		return characterExtractProtectedContext(values)
 	case OperationChapterAssetsExtract:
 		return strings.Join([]string{
-			fmt.Sprintf("【任务】\n从短剧项目《%s》的章节“%s”提取角色、场景和道具。", values["项目名称"], values["章节名称"]),
-			"【项目画风】\n" + values["项目画风"],
-			"【章节正文】\n" + values["章节正文"],
-			"【受保护输出契约】\n" + promptOutputContract(operation),
+			fmt.Sprintf("【Task】\nExtract characters, scenes and props from the chapter \"%s\" of the short play project \"%s\".", values["Project name"], values["Chapter name"]),
+			"【Project style】" + values["Project style"],
+			"【Chapter text】" + values["Chapter text"],
+			"【Protected Output Contract】" + promptOutputContract(operation),
 		}, "\n\n")
 	case OperationCharacterTurnaround:
-		return strings.Join([]string{"【角色名称】\n" + values["角色名称"], "【项目画风】\n" + values["项目画风"], "【角色设定】\n" + values["角色设定"]}, "\n\n")
+		return strings.Join([]string{"[Character name]" + values["Character name"], "【Project style】" + values["Project style"], "【Character setting】" + values["Character setting"]}, "\n\n")
 	case OperationShortDramaOutline:
 		return strings.Join([]string{
-			"【用户故事】\n" + values["用户故事"],
-			"【受保护输出契约】\n" + promptOutputContract(operation),
+			"【User Story】" + values["user stories"],
+			"【Protected Output Contract】" + promptOutputContract(operation),
 		}, "\n\n")
 	case OperationSkillDraft:
 		return strings.Join([]string{
-			"【用户想法】\n" + values["用户想法"],
-			"【受保护输出契约】\n" + promptOutputContract(operation),
+			"【User Thoughts】" + values["User thoughts"],
+			"【Protected Output Contract】" + promptOutputContract(operation),
 		}, "\n\n")
 	default:
 		return ""
@@ -153,17 +153,17 @@ func protectedPromptContext(operation string, values map[string]string) string {
 func promptOutputContract(operation string) string {
 	switch operation {
 	case OperationStoryboardPlan, OperationStoryboardRepair:
-		return "服务端固定 JSON Schema storyboard-plan/v3（不可由运营模板或用户定制覆盖）：\n" + storyboardPlanJSONSchema
+		return "Server-side fixed JSON Schema storyboard-plan/v3 (cannot be overridden by operational templates or user customization):" + storyboardPlanJSONSchema
 	case OperationCharacterExtract:
-		return "服务端固定 JSON Schema character-breakdown/v1（不可由运营模板或用户定制覆盖）：\n" + characterBreakdownJSONSchema
+		return "Server-side fixed JSON Schema character-breakdown/v1 (cannot be overridden by operational templates or user customization):" + characterBreakdownJSONSchema
 	case OperationChapterAssetsExtract:
-		return "服务端固定 JSON Schema chapter-assets/v1（不可由运营模板或用户定制覆盖）：\n" + ChapterAssetsJSONSchema
+		return "Server-side fixed JSON Schema chapter-assets/v1 (cannot be overridden by operational templates or user customization):" + ChapterAssetsJSONSchema
 	case OperationShortDramaOutline:
-		return "服务端固定 JSON Schema short-drama-outline/v1（不可由运营模板或用户定制覆盖）：\n" + shortDramaOutlineJSONSchema + "\n只输出一个 JSON 对象，不要输出 markdown 代码块或其他文字。"
+		return "Server-side fixed JSON Schema short-drama-outline/v1 (cannot be overridden by operational templates or user customization):" + shortDramaOutlineJSONSchema + "Only output a JSON object, not markdown code blocks or other text."
 	case OperationSkillDraft:
-		return "服务端固定 JSON Schema skill-draft/v1（不可由运营模板或用户定制覆盖）：\n" + skillDraftJSONSchema + "\n只输出一个 JSON 对象，不要输出 markdown 代码块或其他文字。"
+		return "Server-side fixed JSON Schema skill-draft/v1 (cannot be overridden by operational templates or user customization):" + skillDraftJSONSchema + "Only output a JSON object, not markdown code blocks or other text."
 	default:
-		return "当前操作输出普通文本提示词，没有 JSON Schema。"
+		return "The current operation outputs ordinary text prompt words, without JSON Schema."
 	}
 }
 
@@ -224,7 +224,7 @@ const storyboardPlanJSONSchema = `{
           "description": {"type": "string"},
           "durationSeconds": {"type": "integer", "minimum": 1, "maximum": 60},
           "dialogue": {"type": "string"},
-          "characterIds": {"type": "array", "description": "优先填写当前角色资产 ID；尚未确认资产的角色填写角色名称", "items": {"type": "string"}},
+"characterIds": {"type": "array", "description": "Fill in the current character asset ID first; fill in the character name for characters whose assets have not been confirmed", "items": {"type": "string"}},
           "narrativeIntent": {"type": "string"},
           "viewerPOV": {"type": "string"},
           "performanceBlocking": {"type": "string"},
@@ -312,47 +312,46 @@ const characterBreakdownJSONSchema = `{
 
 func storyboardProtectedContext(values map[string]string) string {
 	return strings.Join([]string{
-		"【剧情】\n" + values["剧情"],
-		"【用户本次要求】\n" + values["用户要求"],
-		"【当前画布资产】\n" + values["画布资产"],
-		"【当前项目画风】\n" + values["项目画风"],
-		"【当前角色版本】\n" + values["角色版本"],
-		StoryboardExecutionContract(values["单镜头时长规则"], values["镜头数量规则"]),
+		"【Plot】" + values["plot"],
+		"[User’s request this time]" + values["User requirements"],
+		"[Current canvas assets]" + values["canvas assets"],
+		"[Current project style]" + values["Project style"],
+		"[Current character version]" + values["character version"],
+		StoryboardExecutionContract(values["Single shot duration rules"], values["Shot quantity rules"]),
 	}, "\n\n")
 }
 
 func storyboardRepairProtectedContext(values map[string]string) string {
 	return strings.Join([]string{
-		"【剧情】\n" + values["剧情"],
-		"【用户本次要求】\n" + values["用户要求"],
-		"【当前画布资产】\n" + values["画布资产"],
-		"【原始校验错误】\n" + values["校验错误"],
-		"【当前项目画风】\n" + values["项目画风"],
-		"【当前角色版本】\n" + values["角色版本"],
-		StoryboardExecutionContract(values["单镜头时长规则"], values["镜头数量规则"]),
-		"【需要修复的原始输出】\n" + values["原始输出"],
+		"【Plot】" + values["plot"],
+		"[User’s request this time]" + values["User requirements"],
+		"[Current canvas assets]" + values["canvas assets"],
+		"[Original verification error]" + values["Check error"],
+		"[Current project style]" + values["Project style"],
+		"[Current character version]" + values["character version"],
+		StoryboardExecutionContract(values["Single shot duration rules"], values["Shot quantity rules"]),
+		"[Original output that needs fixing]" + values["raw output"],
 	}, "\n\n")
 }
 
 func StoryboardExecutionContract(durationRule string, countRule string) string {
-	return `【受保护执行契约】
-- ` + durationRule + `
-- ` + countRule + `
-- 单镜头最多 2 名主要角色、1 个主运镜、1 条主要动作链、3 个 timeBeats 和 3 个 mustHave；超限必须拆镜或在固定镜头数内重新分配。
-- dialogue 只写本镜头实际念出的台词或简短旁白，字数上限按 1 秒最多约 5 个中文字符计算（至少 24 字）；超长台词/旁白必须拆镜或精简，不得用 dialogue 承载长段叙述。
-- characterIds 优先填写当前角色版本中的 assetId；角色只有名称、尚未确认资产时填写角色名称，服务端会保留名称引用。不要编造 ID；没有角色时返回空数组。
-- assetRefs 只能引用当前画布资产中的 nodeId；不要根据相似名称编造 ID。每镜最多 6 个，priority 越大表示越重要。
-- styleGuide 最多 120 个中文字符；visualPrompt 只描述首帧，videoPrompt 只描述运动和结尾状态。
-- 画幅比例由视频节点参数控制，提示词不得写入具体比例，也不要讨论画幅配置。
-- 只返回完整 JSON，不要 Markdown 或解释。
-- ` + promptOutputContract(OperationStoryboardPlan)
+	return `[Protected Execution Contract]
+-` + durationRule + `
+- ` + countRule + `- A single shot can have up to 2 main characters, 1 main camera, 1 main action chain, 3 timeBeats and 3 mustHave; if the limit is exceeded, the camera must be disassembled or redistributed within the fixed number of shots.
+- Dialogue only contains the lines or short narration actually spoken in this scene. The upper limit of the number of words is calculated as a maximum of about 5 Chinese characters per second (at least 24 words); extremely long lines/narration must be separated or streamlined, and dialogue must not be used to carry long narratives.
+- characterIds takes priority in filling in the assetId in the current character version; the character only has a name, and if the asset has not yet been confirmed, fill in the character name, and the server will retain the name reference. Don't make up IDs; returns an empty array if there are no roles.
+- assetRefs can only reference nodeIds in the current canvas asset; don't make up IDs based on similar names. Each mirror has a maximum of 6. The larger the priority, the more important it is.
+- styleGuide has a maximum of 120 Chinese characters; visualPrompt only describes the first frame, and videoPrompt only describes the motion and ending status.
+- The frame ratio is controlled by the video node parameters. The prompt words must not write the specific ratio, and do not discuss the frame configuration.
+- Only return full JSON, no Markdown or interpretation.
+-` + promptOutputContract(OperationStoryboardPlan)
 }
 
 func characterExtractProtectedContext(values map[string]string) string {
 	return strings.Join([]string{
-		fmt.Sprintf("【任务】\n从短剧项目《%s》的章节“%s”提取角色。", values["项目名称"], values["章节名称"]),
-		"【项目画风】\n" + values["项目画风"],
-		"【章节正文】\n" + values["章节正文"],
-		"【受保护输出契约】\n" + promptOutputContract(OperationCharacterExtract) + "\n严格 JSON 示例：{\"characters\":[{\"name\":\"角色名\",\"aliases\":[],\"role\":\"剧情定位与人物关系\",\"appearance\":\"稳定外貌\",\"clothing\":\"固定服装\",\"physique\":\"体型体态\",\"personality\":\"表演基线\",\"props\":\"\",\"consistencyPrompt\":\"跨镜头一致性约束\",\"multiViewPrompt\":\"三视图结构重点\",\"voiceLanguage\":\"语言口音\",\"voiceAge\":\"声音年龄感\",\"voiceTimbre\":\"音色语速力度\"}]}",
+		fmt.Sprintf("【Task】\nExtract characters from the chapter \"%s\" of the short play project \"%s\".", values["Project name"], values["Chapter name"]),
+		"【Project style】" + values["Project style"],
+		"【Chapter text】" + values["Chapter text"],
+		"【Protected Output Contract】" + promptOutputContract(OperationCharacterExtract) + "\n严格 JSON 示例：{\"characters\":[{\"name\":\"角色名\",\"aliases\":[],\"role\":\"剧情定位与人物关系\",\"appearance\":\"稳定外貌\",\"clothing\":\"固定服装\",\"physique\":\"体型体态\",\"personality\":\"表演基线\",\"props\":\"\",\"consistencyPrompt\":\"跨镜头一致性约束\",\"multiViewPrompt\":\"三视图结构重点\",\"voiceLanguage\":\"语言口音\",\"voiceAge\":\"声音年龄感\",\"voiceTimbre\":\"音色语速力度\"}]}",
 	}, "\n\n")
 }

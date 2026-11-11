@@ -105,10 +105,10 @@ func StepOperation(run, node string) string {
 func ReadyResource(repo *repository.Repository, user, id, kind string) (*model.Resource, error) {
 	r, e := repo.ResourceForUser(user, id)
 	if e != nil || r == nil || r.Status != model.ResourceStatusReady {
-		return nil, BadRequest("工作流素材不存在或尚未保存，请先保存素材")
+		return nil, BadRequest("The workflow material does not exist or has not been saved. Please save the material first.")
 	}
 	if kind != "" && localasset.NormalizeKind(r.Kind, r.MimeType) != kind {
-		return nil, BadRequest("工作流素材类型与节点不一致")
+		return nil, BadRequest("The workflow material type is inconsistent with the node")
 	}
 	return r, nil
 }
@@ -237,10 +237,10 @@ func (r *Runs) Start(user, id string, req RunRequest) (Run, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.host.Draining() {
-		return Run{}, BadRequest("应用正在退出，请稍后重试")
+		return Run{}, BadRequest("App is exiting, please try again later")
 	}
 	if strings.TrimSpace(req.ClientOperationID) == "" || len(req.ClientOperationID) > 128 {
-		return Run{}, BadRequest("缺少有效的本次运行标识")
+		return Run{}, BadRequest("Missing valid identifier for this run")
 	}
 	req.TemplateRevision = NormalizeRevision(req.TemplateRevision)
 	raw, _ := json.Marshal(struct {
@@ -261,7 +261,7 @@ func (r *Runs) Start(user, id string, req RunRequest) (Run, error) {
 			}{id, req.Inputs})
 			legacyDigest := sha256.Sum256(legacyRaw)
 			if req.TemplateRevision != 1 || NormalizeRevision(old.TemplateRevision) != 1 || old.RequestHash != hex.EncodeToString(legacyDigest[:]) {
-				return Run{}, BadRequest("本次运行标识已用于不同输入，请重新确认运行")
+				return Run{}, BadRequest("This run ID has been used for different inputs, please reconfirm the run.")
 			}
 		}
 		return RunFromRow(old)
@@ -296,7 +296,7 @@ func (r *Runs) Start(user, id string, req RunRequest) (Run, error) {
 			}
 			if n.MediaType == "text" {
 				if strings.TrimSpace(v.Text) == "" || len(v.Text) > 100000 {
-					return Run{}, BadRequest("请输入有效文本：" + n.Title)
+					return Run{}, BadRequest("Please enter valid text:" + n.Title)
 				}
 				v.ResourceID = ""
 			} else {
@@ -314,7 +314,7 @@ func (r *Runs) Start(user, id string, req RunRequest) (Run, error) {
 	}
 	for key := range req.Inputs {
 		if !knownInputs[key] {
-			return Run{}, BadRequest("输入不属于此工作流或不允许替换：" + key)
+			return Run{}, BadRequest("Input does not belong to this workflow or substitution is not allowed:" + key)
 		}
 	}
 	// Template references protect every revision, but admission must only depend
@@ -429,20 +429,20 @@ func (r *Runs) Advance(row *model.CanvasWorkflowRun) {
 		_ = r.save(row, run)
 	}
 	if e != nil {
-		fail("工作流运行记录无法读取，请检查运行记录")
+		fail("The workflow running record cannot be read, please check the running record")
 		return
 	}
 	var d Definition
 	if json.Unmarshal([]byte(row.DefinitionJSON), &d) != nil {
-		fail("工作流定义无法读取，请重新保存模板")
+		fail("The workflow definition cannot be read, please save the template again")
 		return
 	}
 	if _, e = r.host.ReferenceIDs(row.RecipeCipher); e != nil {
 		var recipeErr *RecipeError
 		if errors.As(e, &recipeErr) && !recipeErr.Decrypt {
-			fail("工作流配方无法读取，请重新保存模板")
+			fail("The workflow recipe cannot be read, please save the template again")
 		} else {
-			fail("无法读取工作流配方，请重新保存模板")
+			fail("Unable to read workflow recipe, please save the template again")
 		}
 		return
 	}
@@ -483,7 +483,7 @@ func (r *Runs) Advance(row *model.CanvasWorkflowRun) {
 			} else if len(step.Candidates) > 1 {
 				step.Status = "waiting_selection"
 			} else {
-				step.Status, step.Error, run.Status, run.Error = "failed", "上游没有可选择的图片", "failed", "上游没有可选择的图片"
+				step.Status, step.Error, run.Status, run.Error = "failed", "There are no images to select from upstream", "failed", "There are no images to select from upstream"
 			}
 			if r.save(row, run) != nil {
 				return
@@ -515,14 +515,14 @@ func (r *Runs) Advance(row *model.CanvasWorkflowRun) {
 		}
 		if e != nil {
 			step.Status = "failed"
-			step.Error = "无法执行此步骤：" + r.host.FailureMessage(e.Error(), "")
+			step.Error = "Unable to perform this step:" + r.host.FailureMessage(e.Error(), "")
 			run.Status = "failed"
 			run.Error = step.Error
 			break
 		}
 		if task == nil {
 			step.Status = "failed"
-			step.Error = "原任务记录缺失，停止自动提交；请检查任务记录"
+			step.Error = "The original task record is missing, stop automatic submission; please check the task record"
 			run.Status = "failed"
 			run.Error = step.Error
 			break
@@ -534,7 +534,7 @@ func (r *Runs) Advance(row *model.CanvasWorkflowRun) {
 			step.Status = "failed"
 			step.Error = r.host.FailureMessage(task.Error, task.Stage)
 			if step.Error == "" {
-				step.Error = "任务已失败或取消"
+				step.Error = "Task failed or canceled"
 			}
 			run.Status = "failed"
 			run.Error = step.Error
@@ -550,7 +550,7 @@ func (r *Runs) Advance(row *model.CanvasWorkflowRun) {
 			}
 			if step.Status != "succeeded" && (deliveryPaused(task.Stage) || nodes[step.NodeID].MediaType == "text" || len(canonical) == 0) {
 				step.Status = "failed"
-				step.Error = "任务完成但持久结果不可用，请在任务列表检查并恢复结果"
+				step.Error = "The task is completed but the persistent results are not available, please check and restore the results in the task list"
 				run.Status = "failed"
 				run.Error = step.Error
 			}
@@ -620,7 +620,7 @@ func (r *Runs) collectOutputs(row *model.CanvasWorkflowRun, step *Step, n Node, 
 		step.Status, step.ResourceID = "succeeded", ""
 		for _, edge := range d.Edges {
 			if edge.From == n.ID && nodes[edge.To].OperationID != "image.select" {
-				step.Status, step.Error, run.Status, run.Error = "failed", "多张图片需先经过选择图片结果", "failed", "多张图片需先经过选择图片结果"
+				step.Status, step.Error, run.Status, run.Error = "failed", "Multiple pictures need to be selected first.", "failed", "Multiple pictures need to be selected first."
 			}
 		}
 		return
@@ -697,19 +697,19 @@ func TimelineProject(video func(id string) (*model.Resource, error), n Node, edg
 	switch n.OperationID {
 	case "video.trim":
 		if len(incoming) != 1 {
-			return project, options, BadRequest("视频裁剪需要一个视频输入")
+			return project, options, BadRequest("Video cropping requires a video input")
 		}
 	case "video.merge":
 		if len(incoming) < 2 {
-			return project, options, BadRequest("视频合并需要至少两个视频输入")
+			return project, options, BadRequest("Video merging requires at least two video inputs")
 		}
 	default:
-		return project, options, BadRequest("不支持的本地视频操作")
+		return project, options, BadRequest("Unsupported local video operations")
 	}
 	for i, edge := range incoming {
 		step := steps[edge.From]
 		if step == nil || step.Status != "succeeded" || step.ResourceID == "" {
-			return project, options, BadRequest("视频输入尚未完成或没有已保存的素材")
+			return project, options, BadRequest("Video input has not been completed or there is no saved footage")
 		}
 		resource, err := video(step.ResourceID)
 		if err != nil {
@@ -725,15 +725,15 @@ func TimelineProject(video func(id string) (*model.Resource, error), n Node, edg
 				end, err = Seconds(n.Config["endSeconds"])
 			}
 			if err != nil || end <= start {
-				return project, options, BadRequest("裁剪起止时间无效，结束时间必须大于开始时间")
+				return project, options, BadRequest("The start and end time of cropping is invalid. The end time must be greater than the start time.")
 			}
 			if resource.DurationMs > 0 && end > resource.DurationMs {
-				return project, options, BadRequest("裁剪结束时间不能超过视频时长")
+				return project, options, BadRequest("The trimming end time cannot exceed the length of the video")
 			}
 			duration = end - start
 		}
 		if duration <= 0 || duration > editing.MaxDurationMs-project.DurationMs {
-			return project, options, BadRequest("视频时长缺失或超出支持范围，请先更新素材信息")
+			return project, options, BadRequest("The video duration is missing or exceeds the supported range. Please update the material information first.")
 		}
 		if i == 0 && resource.Width > 0 && resource.Height > 0 {
 			// H.264 requires even dimensions; retain the first video's framing.
@@ -769,10 +769,10 @@ func Seconds(value any) (int64, error) {
 			return 0, err
 		}
 	default:
-		return 0, fmt.Errorf("时间必须是数字")
+		return 0, fmt.Errorf("time must be a number")
 	}
 	if math.IsNaN(seconds) || math.IsInf(seconds, 0) || seconds < 0 || seconds > float64(editing.MaxDurationMs)/1000 {
-		return 0, fmt.Errorf("时间超出支持范围")
+		return 0, fmt.Errorf("Time out of supported range")
 	}
 	return int64(math.Round(seconds * 1000)), nil
 }
@@ -790,7 +790,7 @@ func (r *Runs) Select(user, id, node, resource string) (Run, error) {
 		return run, err
 	}
 	if run.Status != "running" {
-		return run, BadRequest("当前工作流不在等待选择")
+		return run, BadRequest("The current workflow is no longer waiting for selection")
 	}
 	for i := range run.Steps {
 		step := &run.Steps[i]
@@ -801,7 +801,7 @@ func (r *Runs) Select(user, id, node, resource string) (Run, error) {
 			return run, nil
 		}
 		if step.Status != "waiting_selection" {
-			return run, BadRequest("此步骤不在等待选图")
+			return run, BadRequest("This step is no longer waiting for picture selection")
 		}
 		for _, candidate := range step.Candidates {
 			if candidate.ResourceID != resource {
@@ -816,9 +816,9 @@ func (r *Runs) Select(user, id, node, resource string) (Run, error) {
 			}
 			return RunFromRow(row)
 		}
-		return run, BadRequest("请选择本轮生成的候选图片")
+		return run, BadRequest("Please select the candidate images generated in this round")
 	}
-	return run, BadRequest("选择步骤不存在")
+	return run, BadRequest("The selection step does not exist")
 }
 
 func (r *Runs) Retry(user, id string) (Run, error) {
@@ -833,7 +833,7 @@ func (r *Runs) Retry(user, id string) (Run, error) {
 		return Run{}, e
 	}
 	if run.Status != "failed" {
-		return Run{}, BadRequest("只有失败的运行可以重试")
+		return Run{}, BadRequest("Only failed runs can be retried")
 	}
 	for i := range run.Steps {
 		step := &run.Steps[i]
@@ -892,7 +892,7 @@ func (r *Runs) Cancel(ctx context.Context, user, id string) (Run, error) {
 			}
 			if step.TaskID != "" {
 				if e = r.host.CancelTask(ctx, user, step.TaskID); e != nil {
-					step.Error = "已停止后续步骤；当前上游任务无法立即取消，请在任务列表查看"
+					step.Error = "Subsequent steps have been stopped; the current upstream task cannot be canceled immediately, please check it in the task list"
 				}
 			}
 			step.Status = "cancelled"

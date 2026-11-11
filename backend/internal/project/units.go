@@ -38,7 +38,7 @@ func (s *Service) ImportProjectUnits(userID string, projectID string, req Import
 		return nil, err
 	}
 	if len(req.Units) == 0 || len(req.Units) > 2500 {
-		return nil, kernel.BadAuthRequest("一次导入的章节数量必须在 1 到 2500 之间")
+		return nil, kernel.BadAuthRequest("The number of chapters imported at one time must be between 1 and 2500")
 	}
 	existing, err := s.repo.ProjectUnits(projectID)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *Service) ReorderProjectUnits(userID string, projectID string, req Reord
 		return err
 	}
 	if len(req.UnitIDs) != len(units) {
-		return kernel.BadAuthRequest("章节排序列表不完整")
+		return kernel.BadAuthRequest("Chapter sorting list is incomplete")
 	}
 	existing := make(map[string]struct{}, len(units))
 	for _, unit := range units {
@@ -78,10 +78,10 @@ func (s *Service) ReorderProjectUnits(userID string, projectID string, req Reord
 	for _, rawID := range req.UnitIDs {
 		id := strings.TrimSpace(rawID)
 		if _, ok := existing[id]; !ok {
-			return kernel.BadAuthRequest("章节排序包含无效章节")
+			return kernel.BadAuthRequest("Chapter sorting contains invalid chapters")
 		}
 		if _, duplicate := seen[id]; duplicate {
-			return kernel.BadAuthRequest("章节排序包含重复章节")
+			return kernel.BadAuthRequest("Chapter sorting contains duplicate chapters")
 		}
 		seen[id] = struct{}{}
 		normalizedIDs = append(normalizedIDs, id)
@@ -105,11 +105,11 @@ func newProjectUnit(projectID string, req CreateProjectUnitRequest, position int
 		kind = model.ProjectUnitKindChapter
 	}
 	if kind != model.ProjectUnitKindChapter && kind != model.ProjectUnitKindEpisode {
-		return model.ProjectUnit{}, kernel.BadAuthRequest("不支持的项目单元类型")
+		return model.ProjectUnit{}, kernel.BadAuthRequest("Unsupported project unit type")
 	}
 	title := strings.TrimSpace(req.Title)
 	if title == "" {
-		return model.ProjectUnit{}, kernel.BadAuthRequest("章节标题不能为空")
+		return model.ProjectUnit{}, kernel.BadAuthRequest("Chapter title cannot be empty")
 	}
 	if position < 0 {
 		position = 0
@@ -140,7 +140,7 @@ func (s *Service) UpdateProjectUnit(userID string, projectID string, unitID stri
 	unit.WordCount = model.ProjectUnitWordCount(req.SourceText)
 	if status := model.ProjectUnitStatus(strings.TrimSpace(req.Status)); status != "" {
 		if status != model.ProjectUnitStatusDraft && status != model.ProjectUnitStatusReady && status != model.ProjectUnitStatusCompleted {
-			return model.ProjectUnit{}, kernel.BadAuthRequest("不支持的章节状态")
+			return model.ProjectUnit{}, kernel.BadAuthRequest("Unsupported chapter status")
 		}
 		unit.Status = status
 	}

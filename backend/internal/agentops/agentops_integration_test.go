@@ -33,21 +33,21 @@ func newHarness(t *testing.T) *harness {
 	db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "agentops.db")),
 		&gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
-		t.Fatalf("打开临时库失败: %v", err)
+		t.Fatalf("Failed to open temporary library: %v", err)
 	}
 	// 与生产一致：SQLite 单连接池。任何"事务内再去根连接取数"的写法都会在这里自等死锁，
 	// 从而让这类缺陷在 go test 中直接暴露，而不是只在运行时。
 	sqlDB, err := db.DB()
 	if err != nil {
-		t.Fatalf("取底层连接失败: %v", err)
+		t.Fatalf("Failed to get the underlying connection: %v", err)
 	}
 	sqlDB.SetMaxOpenConns(1)
 	sqlDB.SetMaxIdleConns(1)
 	if err := database.MigrateLocalSchema(db); err != nil {
-		t.Fatalf("迁移失败: %v", err)
+		t.Fatalf("Migration failed: %v", err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
-		t.Fatalf("创建工作区失败: %v", err)
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
+		t.Fatalf("Failed to create workspace: %v", err)
 	}
 	dataDir := t.TempDir()
 	service := app.NewLocal(repository.New(db), dataDir)
@@ -56,29 +56,29 @@ func newHarness(t *testing.T) *harness {
 
 	canvasID := "integration-canvas"
 	doc := map[string]any{
-		"id": canvasID, "title": "集成回归画布", "revision": 0,
+		"id": canvasID, "title": "Integrated regression canvas", "revision": 0,
 		"nodes": []any{
-			map[string]any{"id": "n1", "type": "image", "title": "原镜头1", "position": map[string]any{"x": 1, "y": 1},
-				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "原始1", "tag": "keep"}},
-			map[string]any{"id": "n2", "type": "image", "title": "原镜头2", "position": map[string]any{"x": 2, "y": 2},
-				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "原始2", "tag": "keep"}},
+			map[string]any{"id": "n1", "type": "image", "title": "Original shot 1", "position": map[string]any{"x": 1, "y": 1},
+				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "Original 1", "tag": "keep"}},
+			map[string]any{"id": "n2", "type": "image", "title": "Original shot 2", "position": map[string]any{"x": 2, "y": 2},
+				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "original 2", "tag": "keep"}},
 		},
 		"connections": []any{map[string]any{"id": "e1", "fromNodeId": "n1", "toNodeId": "n2"}},
 	}
 	encoded, err := json.Marshal(doc)
 	if err != nil {
-		t.Fatalf("序列化画布失败: %v", err)
+		t.Fatalf("Failed to serialize canvas: %v", err)
 	}
 	if _, err := service.UpsertUserCanvasProject("local", encoded); err != nil {
-		t.Fatalf("写入初始画布失败: %v", err)
+		t.Fatalf("Failed to write to initial canvas: %v", err)
 	}
 	raw, err := service.UserCanvasProject("local", canvasID)
 	if err != nil {
-		t.Fatalf("读取初始画布失败: %v", err)
+		t.Fatalf("Failed to read initial canvas: %v", err)
 	}
 	var stored map[string]any
 	if err := json.Unmarshal(raw, &stored); err != nil {
-		t.Fatalf("解析初始画布失败: %v", err)
+		t.Fatalf("Failed to parse initial canvas: %v", err)
 	}
 	revision := int64(stored["revision"].(float64))
 	return &harness{registry: registry, userID: "local", canvasID: canvasID, revision: revision, dataDir: dataDir, service: service}
@@ -88,7 +88,7 @@ func (h *harness) run(t *testing.T, op, opID string, params map[string]any, read
 	t.Helper()
 	encoded, err := json.Marshal(params)
 	if err != nil {
-		t.Fatalf("序列化参数失败: %v", err)
+		t.Fatalf("Serialization parameter failed: %v", err)
 	}
 	return h.registry.Execute(agentops.Request{Op: op, OpID: opID, UserID: h.userID, ReadOnly: readOnly, Params: encoded})
 }
@@ -97,7 +97,7 @@ func (h *harness) canvas(t *testing.T) map[string]any {
 	t.Helper()
 	result, err := h.run(t, "canvas.get", "", map[string]any{"canvasId": h.canvasID}, false)
 	if err != nil {
-		t.Fatalf("读取画布失败: %v", err)
+		t.Fatalf("Failed to read canvas: %v", err)
 	}
 	payload := result.Result.(map[string]any)
 	return payload["canvas"].(map[string]any)
@@ -107,7 +107,7 @@ func opCode(t *testing.T, err error) agentops.Code {
 	t.Helper()
 	var opErr *agentops.Error
 	if !errors.As(err, &opErr) {
-		t.Fatalf("期望结构化操作错误，得到 %v", err)
+		t.Fatalf("Expected structured operation error, got %v", err)
 	}
 	return opErr.Code
 }
@@ -117,43 +117,43 @@ func TestWriteRequiresOperationIDAndRevision(t *testing.T) {
 	_, err := h.run(t, "canvas.nodes.create", "", map[string]any{"canvasId": h.canvasID,
 		"expectedRevision": h.revision, "nodes": []any{map[string]any{"title": "A", "type": "image"}}}, false)
 	if code := opCode(t, err); code != agentops.CodeInvalidArgument {
-		t.Fatalf("缺少 opId 应被拒，得到 %v", code)
+		t.Fatalf("Missing opId should be rejected, getting %v", code)
 	}
 	_, err = h.run(t, "canvas.node.update", "op-no-rev", map[string]any{"canvasId": h.canvasID,
 		"nodeId": "n1", "patch": map[string]any{"prompt": "x"}}, false)
 	if code := opCode(t, err); code != agentops.CodeInvalidArgument {
-		t.Fatalf("缺少 expectedRevision 应被拒，得到 %v", code)
+		t.Fatalf("Missing expectedRevision should reject, get %v", code)
 	}
 }
 
 func TestIdempotentReplayAndConflict(t *testing.T) {
 	h := newHarness(t)
 	params := map[string]any{"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "镜头A", "type": "image"}, map[string]any{"title": "镜头B", "type": "image"}}}
+		"nodes": []any{map[string]any{"title": "Lens A", "type": "image"}, map[string]any{"title": "Lens B", "type": "image"}}}
 	first, err := h.run(t, "canvas.nodes.create", "op-create", params, false)
 	if err != nil {
-		t.Fatalf("首次创建失败: %v", err)
+		t.Fatalf("First creation failed: %v", err)
 	}
 	if first.Replayed {
-		t.Fatal("首次执行不应标记为回放")
+		t.Fatal("The first execution should not be marked for replay")
 	}
 	second, err := h.run(t, "canvas.nodes.create", "op-create", params, false)
 	if err != nil {
-		t.Fatalf("重试应回读原结果，得到错误: %v", err)
+		t.Fatalf("Retry should read back the original result and get error: %v", err)
 	}
 	if !second.Replayed {
-		t.Fatal("同 opId 同 payload 必须回读原结果")
+		t.Fatal("Same opId and same payload, the original result must be read back")
 	}
 	firstJSON, _ := json.Marshal(first.Result)
 	secondJSON, _ := json.Marshal(second.Result)
 	if string(firstJSON) != string(secondJSON) {
-		t.Fatalf("回放结果应与首次一致:\n%s\n%s", firstJSON, secondJSON)
+		t.Fatalf("The playback result should be the same as the first time:\n%s\n%s", firstJSON, secondJSON)
 	}
 	conflictParams := map[string]any{"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "别的", "type": "image"}}}
+		"nodes": []any{map[string]any{"title": "Others", "type": "image"}}}
 	_, err = h.run(t, "canvas.nodes.create", "op-create", conflictParams, false)
 	if code := opCode(t, err); code != agentops.CodeConflict {
-		t.Fatalf("同 opId 不同 payload 应为冲突，得到 %v", code)
+		t.Fatalf("Different payloads with the same opId should conflict and get %v", code)
 	}
 }
 
@@ -165,44 +165,44 @@ func TestLocalUpdateKeepsNonTargetDataAndBlocksStaleRevision(t *testing.T) {
 	beforeConnections := mustJSON(t, before["connections"])
 
 	if _, err := h.run(t, "canvas.node.update", "op-update", map[string]any{"canvasId": h.canvasID,
-		"nodeId": "n1", "expectedRevision": h.revision, "patch": map[string]any{"prompt": "改成夜景"}}, false); err != nil {
-		t.Fatalf("局部修改失败: %v", err)
+		"nodeId": "n1", "expectedRevision": h.revision, "patch": map[string]any{"prompt": "Change to night scene"}}, false); err != nil {
+		t.Fatalf("Partial modification failed: %v", err)
 	}
 	after := h.canvas(t)
 	afterNodes := after["nodes"].([]any)
 	target := afterNodes[0].(map[string]any)
 	metadata := target["metadata"].(map[string]any)
-	if metadata["composerContent"] != "改成夜景" {
-		t.Fatalf("目标草稿字段未写入: %v", metadata["composerContent"])
+	if metadata["composerContent"] != "Change to night scene" {
+		t.Fatalf("Target draft field not written: %v", metadata["composerContent"])
 	}
-	if metadata["prompt"] != "原始1" {
-		t.Fatalf("历史已提交提示词不应被覆盖: %v", metadata["prompt"])
+	if metadata["prompt"] != "Original 1" {
+		t.Fatalf("Historically submitted prompt words should not be overwritten: %v", metadata["prompt"])
 	}
 	if metadata["tag"] != "keep" {
-		t.Fatalf("非目标字段被破坏: %v", metadata)
+		t.Fatalf("Non-target fields are corrupted: %v", metadata)
 	}
 	if mustJSON(t, afterNodes[1]) != beforeOther {
-		t.Fatal("非目标节点被改动")
+		t.Fatal("Non-target nodes are modified")
 	}
 	if mustJSON(t, after["connections"]) != beforeConnections {
-		t.Fatal("连线被改动")
+		t.Fatal("The connection has been changed")
 	}
 
 	// 陈旧 revision：必须停写，且画布保持上一次成功写入的内容
 	_, err := h.run(t, "canvas.node.update", "op-stale", map[string]any{"canvasId": h.canvasID,
-		"nodeId": "n1", "expectedRevision": h.revision, "patch": map[string]any{"prompt": "不应写入"}}, false)
+		"nodeId": "n1", "expectedRevision": h.revision, "patch": map[string]any{"prompt": "should not be written"}}, false)
 	// 陈旧 revision 由仓储原子谓词裁决，统一映射为 conflict + reason=stale_revision
 	if code := opCode(t, err); code != agentops.CodeConflict {
-		t.Fatalf("陈旧 revision 应为 conflict，得到 %v", code)
+		t.Fatalf("Stale revision should be conflict, got %v", code)
 	}
 	var staleErr *agentops.Error
 	if errors.As(err, &staleErr) && staleErr.Reason != "stale_revision" {
-		t.Fatalf("陈旧 revision 的 reason 应为 stale_revision，得到 %q", staleErr.Reason)
+		t.Fatalf("reason for stale revision should be stale_revision, get %q", staleErr.Reason)
 	}
 	final := h.canvas(t)
 	finalDraft := final["nodes"].([]any)[0].(map[string]any)["metadata"].(map[string]any)["composerContent"]
-	if finalDraft != "改成夜景" {
-		t.Fatalf("陈旧写入不应覆盖，得到 %v", finalDraft)
+	if finalDraft != "Change to night scene" {
+		t.Fatalf("Stale writes should not be overwritten, getting %v", finalDraft)
 	}
 }
 
@@ -211,14 +211,14 @@ func TestReadOperationRejectsOperationID(t *testing.T) {
 	h := newHarness(t)
 	_, err := h.run(t, "canvas.get", "read-with-op-id", map[string]any{"canvasId": h.canvasID}, false)
 	if code := opCode(t, err); code != agentops.CodeInvalidArgument {
-		t.Fatalf("只读操作带 opId 应被拒，得到 %v", code)
+		t.Fatalf("Read-only operations with opId should be rejected and get %v", code)
 	}
 	result, err := h.run(t, "canvas.get", "", map[string]any{"canvasId": h.canvasID}, false)
 	if err != nil {
-		t.Fatalf("只读操作应可用: %v", err)
+		t.Fatalf("Read-only operations should be available: %v", err)
 	}
 	if result.Replayed {
-		t.Fatal("只读操作不应有回放标记")
+		t.Fatal("Read-only operations should not have replay markers")
 	}
 }
 
@@ -227,22 +227,22 @@ func TestReadOnlyClientCannotWriteAndCapabilityListIsFiltered(t *testing.T) {
 	_, err := h.run(t, "canvas.nodes.create", "op-ro", map[string]any{"canvasId": h.canvasID,
 		"expectedRevision": h.revision, "nodes": []any{map[string]any{"title": "X", "type": "image"}}}, true)
 	if code := opCode(t, err); code != agentops.CodeReadOnly {
-		t.Fatalf("只读客户端写操作应被拒，得到 %v", code)
+		t.Fatalf("Read-only client writes should be rejected, getting %v", code)
 	}
 	readOnly := h.registry.List(agentops.Caller{ReadOnly: true})
 	for _, descriptor := range readOnly {
 		if !descriptor.ReadOnly {
-			t.Fatalf("只读能力列表混入写操作: %s", descriptor.ID)
+			t.Fatalf("Read-only capability list mixed with write operations: %s", descriptor.ID)
 		}
 		if descriptor.ID == "skill.script.run" {
-			t.Fatal("只读能力列表不应包含 skill.script.run")
+			t.Fatal("Read-only capability lists should not contain skill.script.run")
 		}
 	}
 	if len(readOnly) != 21 {
-		t.Fatalf("只读操作应为 21 个，得到 %d", len(readOnly))
+		t.Fatalf("Read only operations should be 21 and get %d", len(readOnly))
 	}
 	if _, err := h.run(t, "canvas.get", "", map[string]any{"canvasId": h.canvasID}, true); err != nil {
-		t.Fatalf("只读客户端读操作应可用: %v", err)
+		t.Fatalf("Read-only client read operations should be available: %v", err)
 	}
 }
 
@@ -253,7 +253,7 @@ func TestWriteOperationsExposeStableOperationIDInSchema(t *testing.T) {
 			continue
 		}
 		if !contains(string(descriptor.Params), "operationId") {
-			t.Fatalf("写操作 schema 未暴露 operationId: %s", descriptor.ID)
+			t.Fatalf("The write operation schema is not exposed operationId: %s", descriptor.ID)
 		}
 	}
 }
@@ -262,7 +262,7 @@ func mustJSON(t *testing.T, value any) string {
 	t.Helper()
 	encoded, err := json.Marshal(value)
 	if err != nil {
-		t.Fatalf("序列化失败: %v", err)
+		t.Fatalf("Serialization failed: %v", err)
 	}
 	return string(encoded)
 }
@@ -284,10 +284,10 @@ func TestUnsupportedNodeFieldIsMachineReadableAndDoesNotWrite(t *testing.T) {
 	h := newHarness(t)
 	_, err := h.run(t, "canvas.nodes.create", "op-structure", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"nodes": []any{map[string]any{"title": "脚本节点", "type": "script"}},
+		"nodes": []any{map[string]any{"title": "script node", "type": "script"}},
 	}, false)
 	if err != nil {
-		t.Fatalf("创建脚本节点失败: %v", err)
+		t.Fatalf("Failed to create script node: %v", err)
 	}
 	canvas := h.canvas(t)
 	revision := int64(canvas["revision"].(float64))
@@ -299,13 +299,13 @@ func TestUnsupportedNodeFieldIsMachineReadableAndDoesNotWrite(t *testing.T) {
 		}
 	}
 	if scriptID == "" {
-		t.Fatal("未找到脚本节点")
+		t.Fatal("Script node not found")
 	}
 
 	opErr := func(err error) *agentops.Error {
 		var typed *agentops.Error
 		if !errors.As(err, &typed) {
-			t.Fatalf("期望结构化操作错误，得到 %v", err)
+			t.Fatalf("Expected structured operation error, got %v", err)
 		}
 		return typed
 	}
@@ -313,28 +313,28 @@ func TestUnsupportedNodeFieldIsMachineReadableAndDoesNotWrite(t *testing.T) {
 	// title 是通用字段：结构节点改名必须成功。
 	if _, err := h.run(t, "canvas.node.update", "op-title", map[string]any{
 		"canvasId": h.canvasID, "nodeId": scriptID, "expectedRevision": revision,
-		"patch": map[string]any{"title": "脚本节点改名"},
+		"patch": map[string]any{"title": "Rename script node"},
 	}, false); err != nil {
-		t.Fatalf("结构节点改名应成功: %v", err)
+		t.Fatalf("The structure node rename should be successful: %v", err)
 	}
 	afterTitle := h.canvas(t)
 	if afterTitle["revision"].(float64) != float64(revision+1) {
-		t.Fatalf("改名应推进 revision: %#v", afterTitle["revision"])
+		t.Fatalf("The name change should be pushed forward revision: %#v", afterTitle["revision"])
 	}
 
 	// 未声明字段：reason=unsupported_field，且 revision 不推进。
 	_, err = h.run(t, "canvas.node.update", "op-unsupported", map[string]any{
 		"canvasId": h.canvasID, "nodeId": scriptID, "expectedRevision": revision + 1,
-		"patch": map[string]any{"content": "不该写入"},
+		"patch": map[string]any{"content": "should not write"},
 	}, false)
 	if err == nil {
-		t.Fatal("未声明字段应被拒绝")
+		t.Fatal("Undeclared fields should be rejected")
 	}
 	if reason := opErr(err).Reason; reason != "unsupported_field" {
-		t.Fatalf("reason 应为 unsupported_field，实际 %q", reason)
+		t.Fatalf("reason should be unsupported_field, actual %q", reason)
 	}
 	final := h.canvas(t)
 	if final["revision"].(float64) != float64(revision+1) {
-		t.Fatalf("被拒绝的更新不应推进 revision: %#v", final["revision"])
+		t.Fatalf("Rejected updates should not be pushed forward revision: %#v", final["revision"])
 	}
 }

@@ -33,12 +33,12 @@ func TestAutomaticImageRecoveryContinuesSameKeyAfterAmbiguousTransportLogs(t *te
 			return nil, "", providerHTTPError{StatusCode: 409, Body: `{"error":{"code":"image_submission_pending"}}`}
 		})
 		if err == nil || outcome != "" {
-			t.Fatalf("暂时等待被错误写成终态: outcome=%s err=%v", outcome, err)
+			t.Fatalf("The temporary wait is incorrectly written as the final state: outcome=%s err=%v", outcome, err)
 		}
 	}
 	stored, err := s.repo.ImageSubmission(row.AttemptID, row.TaskID, row.UserID)
 	if err != nil || stored.SendCount != 2 {
-		t.Fatalf("未沿用原提交: row=%+v err=%v", stored, err)
+		t.Fatalf("The original submission is not used: row=%+v err=%v", stored, err)
 	}
 	_, outcome, err := s.failedImageResultWith(context.Background(), task, func(req *http.Request, admit func() error) ([]byte, string, error) {
 		if err := admit(); err != nil {
@@ -47,7 +47,7 @@ func TestAutomaticImageRecoveryContinuesSameKeyAfterAmbiguousTransportLogs(t *te
 		return nil, "", providerHTTPError{StatusCode: 410, IdempotencyReplayed: true, Body: `{"error":{"code":"image_result_expired"}}`}
 	})
 	if err != nil || outcome != localtask.RecoveryUnrecoverable {
-		t.Fatalf("过期结论=%s err=%v", outcome, err)
+		t.Fatalf("Expired conclusion=%s err=%v", outcome, err)
 	}
 }
 
@@ -77,6 +77,6 @@ func TestAutomaticImageRecoveryDoesNotBindReceiptFromPreviousRouteRun(t *testing
 		return []byte(`{"error":{"code":"generation_failed","message":"no image"}}`), "application/json", nil
 	})
 	if sends != 1 || len(result) != 0 || outcome != localtask.RecoveryNoResult || err != nil {
-		t.Fatalf("误用上一轮成功回执: sends=%d result=%s outcome=%s err=%v", sends, result, outcome, err)
+		t.Fatalf("Misuse of the last successful round receipt: sends=%d result=%s outcome=%s err=%v", sends, result, outcome, err)
 	}
 }

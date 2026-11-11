@@ -99,7 +99,7 @@ func (m *Manager) installSkill(kind agentops.ClientKind) error {
 		return ErrUnsupported
 	}
 	if len(canvasSkill) == 0 {
-		return errors.New("内置技能为空")
+		return errors.New("Built-in skills are empty")
 	}
 	var lastErr error
 	for _, dir := range dirs {
@@ -121,16 +121,16 @@ func installManagedSkill(skillsDir string) error {
 		}
 	case os.IsNotExist(err):
 		if err := os.MkdirAll(target, 0o755); err != nil {
-			return fmt.Errorf("写入使用说明失败：%w", err)
+			return fmt.Errorf("Failed to write usage instructions: %w", err)
 		}
 	default:
-		return fmt.Errorf("写入使用说明失败：%w", err)
+		return fmt.Errorf("Failed to write usage instructions: %w", err)
 	}
 	if err := writeFileAtomic(filepath.Join(target, skillMarkerName), markerContent(), 0o644); err != nil {
-		return fmt.Errorf("写入使用说明失败：%w", err)
+		return fmt.Errorf("Failed to write usage instructions: %w", err)
 	}
 	if err := writeFileAtomic(filepath.Join(target, "SKILL.md"), canvasSkill, 0o644); err != nil {
-		return fmt.Errorf("写入使用说明失败：%w", err)
+		return fmt.Errorf("Failed to write usage instructions: %w", err)
 	}
 	return nil
 }
@@ -156,7 +156,7 @@ func (m *Manager) removeSkill(kind agentops.ClientKind) error {
 			continue
 		}
 		if err := os.RemoveAll(target); err != nil {
-			lastErr = fmt.Errorf("移除使用说明失败：%w", err)
+			lastErr = fmt.Errorf("Failed to remove instructions: %w", err)
 		}
 	}
 	return lastErr

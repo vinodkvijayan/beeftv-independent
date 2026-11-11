@@ -18,13 +18,13 @@ function switchScope(userId: string) {
     return () => setActiveUserScope(previous);
 }
 
-function panoramaAsset(title = "全景图", storageKey = "resource:res-1"): NewAsset {
+function panoramaAsset(title = "Panorama", storageKey = "resource:res-1"): NewAsset {
     return {
         kind: "image",
         title,
         coverUrl: "/api/resources/res-1/file",
-        tags: ["全景图"],
-        source: "导演台",
+        tags: ["Panorama"],
+        source: "Director's desk",
         data: { dataUrl: "/api/resources/res-1/file", storageKey, width: 8, height: 8, bytes: 4, mimeType: "image/png" },
         metadata: { source: "director-panorama" },
     };
@@ -34,10 +34,10 @@ function cacheOnlyAsset(id = "cache-only"): ImageAsset {
     return {
         id,
         kind: "image",
-        title: "参考图",
+        title: "Reference picture",
         coverUrl: "/api/resources/res-1/file",
-        tags: ["全景图"],
-        source: "导演台",
+        tags: ["Panorama"],
+        source: "Director's desk",
         createdAt: "2026-10-02T00:00:00.000Z",
         updatedAt: "2026-10-02T00:00:00.000Z",
         data: { dataUrl: "/api/resources/res-1/file", storageKey: "resource:res-1", width: 8, height: 8, bytes: 4, mimeType: "image/png" },
@@ -92,7 +92,7 @@ describe("director library persist canonical writes", () => {
             await withAdapter(async (config) => {
                 urls.push(requestKey(config));
                 const id = String(config.url || "").split("/").pop();
-                return envelope({ asset: { id, title: "全景图", category: "other", status: "confirmed", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                return envelope({ asset: { id, title: "Panorama", category: "other", status: "confirmed", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
             }, async () => {
                 const result = await persistDirectorLibraryAsset({ asset: panoramaAsset() });
                 expect(result.created).toBe(true);
@@ -134,10 +134,10 @@ describe("director library persist canonical writes", () => {
             await withAdapter(async (config) => {
                 urls.push(requestKey(config));
                 const id = String(config.url || "").split("/").pop();
-                return envelope({ asset: { id, title: "参考图", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                return envelope({ asset: { id, title: "Reference picture", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
             }, async () => {
                 const result = await persistDirectorLibraryAsset({
-                    asset: panoramaAsset("参考图"),
+                    asset: panoramaAsset("Reference picture"),
                     existingAssetId: "cache-only",
                 });
                 expect(result.assetId).toBe("cache-only");
@@ -159,11 +159,11 @@ describe("director library persist canonical writes", () => {
             await withAdapter(async (config) => {
                 urls.push(requestKey(config));
                 const id = String(config.url || "").split("/").pop();
-                return envelope({ asset: { id, title: "参考图", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                return envelope({ asset: { id, title: "Reference picture", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
             }, async () => {
-                const first = await persistDirectorLibraryAsset({ asset: panoramaAsset("参考图") });
+                const first = await persistDirectorLibraryAsset({ asset: panoramaAsset("Reference picture") });
                 const second = await persistDirectorLibraryAsset({
-                    asset: panoramaAsset("参考图副本"),
+                    asset: panoramaAsset("Copy of reference drawing"),
                     existingAssetId: first.assetId,
                     existingPersisted: true,
                 });
@@ -190,7 +190,7 @@ describe("director library persist canonical writes", () => {
             bytes: 1,
             mimeType: "image/png",
             pendingRemoteUpload: true,
-            remoteUploadError: "资源服务暂时不可用",
+            remoteUploadError: "Resource service is temporarily unavailable",
         });
         try {
             await withAdapter(async (config) => {
@@ -199,7 +199,7 @@ describe("director library persist canonical writes", () => {
             }, async () => {
                 const { persist } = await persistDirectorImageUpload({
                     source: new Blob(["img"], { type: "image/png" }),
-                    toAsset: (uploaded) => panoramaAsset("全景图", uploaded.storageKey),
+                    toAsset: (uploaded) => panoramaAsset("Panorama", uploaded.storageKey),
                 });
                 expect(persist.created).toBe(true);
                 expect(persist.confirmed).toBe(false);
@@ -236,10 +236,10 @@ describe("director library persist canonical writes", () => {
                 const result = await persistDirectorLibraryAsset({
                     asset: {
                         kind: "model",
-                        title: "角色",
+                        title: "role",
                         coverUrl: "",
-                        tags: ["3D模型"],
-                        source: "导演台",
+                        tags: ["3D model"],
+                        source: "Director's desk",
                         data: { url: "blob:model", storageKey: "file:owner-a:model", bytes: 4, mimeType: "model/gltf-binary", fileName: "hero.glb" },
                         metadata: { source: "director" },
                     },
@@ -249,7 +249,7 @@ describe("director library persist canonical writes", () => {
                 expect(result.confirmed).toBe(false);
                 expect(urls).toEqual([]);
                 expect(peekAssetStoreDraft(getActiveUserScope(), result.assetId)?.kind).toBe("upsert");
-                await expect(persistWorkspaceAssetChanges()).rejects.toThrow("素材文件尚未保存到工作区");
+                await expect(persistWorkspaceAssetChanges()).rejects.toThrow("The footage file has not been saved to the workspace");
                 expect(urls).toEqual([]);
                 unloadAssetStoreDraftsForTests();
                 useAssetStore.setState({ assets: [] });
@@ -319,9 +319,9 @@ describe("director workbench wiring", () => {
         expect(workbench).toContain("persist.confirmed");
         expect(workbench).toContain('message[persist.confirmed ? "success" : "warning"]');
         expect(workbench).toContain("applyResult?.confirmed === false");
-        expect(workbench).toContain("构图已回写画布，文件目前只在这台设备上");
-        expect(workbench).toContain("白膜视频已导出，文件目前只在这台设备上");
-        expect(workbench).toContain("截图期间场景或镜头已切换，请重试");
+        expect(workbench).toContain("The composition has been written back to the canvas and the file is currently only on this device");
+        expect(workbench).toContain("The white film video has been exported, and the file is currently only on this device.");
+        expect(workbench).toContain("The scene or lens has been switched during the screenshot, please try again.");
         expect(workbench).toContain("void onCaptureCover({ scene: current, shotId: shot.id, beauty })");
     });
 
@@ -338,6 +338,6 @@ describe("director workbench wiring", () => {
         const workbench = readFileSync(resolve(import.meta.dir, "../src/components/canvas/director/canvas-director-workbench.tsx"), "utf8");
         expect(workbench).toContain("Promise<void | { confirmed?: boolean }>");
         expect(editor).toContain("if (!result.confirmed) message.warning");
-        expect(editor).toContain("文件目前只在这台设备上");
+        expect(editor).toContain("The file is currently only on this device");
     });
 });

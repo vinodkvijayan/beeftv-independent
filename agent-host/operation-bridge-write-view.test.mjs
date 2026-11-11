@@ -9,10 +9,10 @@ import { boundOutput } from '@earendil-works/chord/output';
 // Documented Pi tool-output limits, exercised through the public shared API.
 const DEFAULT_MAX_BYTES = 50 * 1024, DEFAULT_MAX_LINES = 2000;
 
-const longPrompt = '镜'.repeat(9000);
+const longPrompt = 'mirror'.repeat(9000);
 
 async function fixture(run) {
-  const node = { id: 'shot', type: 'image', title: '首帧', metadata: {
+  const node = { id: 'shot', type: 'image', title: 'first frame', metadata: {
     composerContent: longPrompt, content: 'resource:rendered', model: 'resolved-model', prompt: longPrompt,
     size: '9:16', status: 'success', taskFailureDiagnostics: { message: 'unrelated'.repeat(10000) },
   } };
@@ -78,11 +78,11 @@ describe('node write receipts keep their identity within official tool output li
   });
   test('short text edits retain actual values, leave the stored receipt intact and do not affect other operations', () => {
     const data = { replayed: false, result: { canvasId: 'canvas', nodeId: 'text', revision: 7,
-      node: { id: 'text', type: 'text', title: '实际名称', position: { x: 1, y: 2 }, metadata: { content: '实际正文', custom: 'keep' } },
+      node: { id: 'text', type: 'text', title: 'actual name', position: { x: 1, y: 2 }, metadata: { content: 'actual text', custom: 'keep' } },
     } };
     const original = JSON.stringify(data);
-    const output = canvasWriteView(data, 'canvas.node.update', { patch: { title: '请求名称', content: '请求正文' } });
-    expect(output.result.node).toEqual({ id: 'text', type: 'text', title: '实际名称', metadata: { content: '实际正文' } });
+    const output = canvasWriteView(data, 'canvas.node.update', { patch: { title: 'Request name', content: 'request body' } });
+    expect(output.result.node).toEqual({ id: 'text', type: 'text', title: 'actual name', metadata: { content: 'actual text' } });
     expect(JSON.stringify(data)).toBe(original);
     expect(canvasWriteView(data, 'canvas.get')).toBe(data);
     expect(canvasWriteView(data, 'canvas.task.bind')).toBe(data);
@@ -114,11 +114,11 @@ describe('node write receipts keep their identity within official tool output li
         proposalId: 'gp-1',
         modelKey: 'beeftv::seedance-2.0',
         pricing: { currency: 'CNY', mode: 'tokens', rates: { '720p': { output: 28 } } },
-        estimate: { amount: 4.968, approx: true, text: '预计费用：约 ¥4.97' },
+        estimate: { amount: 4.968, approx: true, text: 'Estimated cost: approximately ¥4.97' },
         targets: [{
           nodeId: 'v1',
           pricing: { currency: 'CNY', mode: 'tokens', rates: { '720p': { output: 28 } } },
-          estimate: { amount: 4.968, approx: true, text: '约 ¥4.97' },
+          estimate: { amount: 4.968, approx: true, text: 'About ¥4.97' },
         }],
       },
     };
@@ -132,12 +132,12 @@ describe('node write receipts keep their identity within official tool output li
 
   test.each(['canvas.node.configure', 'canvas.node.update', 'canvas.node.bind_asset'])('%s omits unrelated node data without changing the write, effects or replay', async operation => {
     await fixture(async ({ call, turn, requests }) => {
-      const patch = operation.endsWith('configure') ? { model: 'display-model', size: '9:16' } : { title: '首帧' };
+      const patch = operation.endsWith('configure') ? { model: 'display-model', size: '9:16' } : { title: 'first frame' };
       const args = { nodeId: 'shot', expectedRevision: 41, ...(operation.endsWith('bind_asset') ? { assetId: 'asset' } : { patch }) };
       const output = retainedJSON(await call(operation, args));
       expect(output.result.revision).toBe(42);
       expect(output.result.nodeId).toBe('shot');
-      expect(output.result.node).toMatchObject({ id: 'shot', title: '首帧', type: 'image' });
+      expect(output.result.node).toMatchObject({ id: 'shot', title: 'first frame', type: 'image' });
       expect(output.result.node.metadata?.prompt).toBeUndefined();
       expect(output.result.node.metadata?.taskFailureDiagnostics).toBeUndefined();
       if (operation.endsWith('configure')) expect(output.result.node.metadata).toEqual({ model: 'resolved-model', size: '9:16' });

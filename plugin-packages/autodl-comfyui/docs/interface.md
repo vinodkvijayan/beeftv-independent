@@ -1,21 +1,21 @@
-# AutoDL ComfyUI 接口字段
+# AutoDL ComfyUI interface fields
 
-## 协议身份
+## Protocol Identity
 
-- 插件 ID：`autodl-comfyui`
-- 视频 Provider：`autodl-comfyui`
-- 音频 Provider：`autodl-comfyui-audio`
-- 创建：`POST /api/v1/comfyui/comfyui_workflow/{workflow_id}`
-- 查询：`GET /api/v1/comfyui/comfyui_workflow/result/{task_id}`
-- 鉴权：`Authorization: <AutoDL Token>`
+- Plug-in ID: `autodl-comfyui`
+- Video Provider: `autodl-comfyui`
+- Audio Provider: `autodl-comfyui-audio`
+- Create: `POST /api/v1/comfyui/comfyui_workflow/{workflow_id}`
+- Query: `GET /api/v1/comfyui/comfyui_workflow/result/{task_id}`
+- Authentication: `Authorization: <AutoDL Token>`
 
-## 配置字段
+## Configuration fields
 
-| 字段 | 类型 | 必填 | 说明 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `apiKey` | secret | 是 | AutoDL Token，由宿主写入 Authorization 请求头。 |
+| `apiKey` | secret | Yes | AutoDL Token, written by the host into the Authorization request header. |
 
-## 视频统一字段
+## Video unified field
 
 | 统一字段 | 类型 | 上游映射 | 规则 |
 | --- | --- | --- | --- |
@@ -28,7 +28,7 @@
 | 普通参考图 | media[] | `ref_image_0` … `ref_image_8` | 过滤 `reference_image/subject_reference/style_reference/edit_source` 后按 order 编号。 |
 | `audios` / 参考音频 | media[] | `ref_audio_0` … `ref_audio_2` | 按 order 编号；仅音频相关 H3 工作流发送。 |
 
-## 工作流分支
+## Workflow branch
 
 | 工作流 | 图片字段 | 音频字段 | 其他差异 |
 | --- | --- | --- | --- |
@@ -42,7 +42,7 @@
 | `minimax_h3_image_audio_to_video` | `ref_image_0` | `ref_audio_0` | 使用 `audio_duration`，不发送 `prompt/duration`。 |
 | `minimax_h3_image_audio_to_video_v2` / `_15s` | `ref_image_0…8` | `ref_audio_0…2` | 多图多音频。 |
 
-## 音频字段
+## Audio field
 
 | 统一字段 | 上游映射 | 说明 |
 | --- | --- | --- |
@@ -50,18 +50,18 @@
 | 第一项参考音频 | `prompt_simple` | 按 order 选择第一项。 |
 | 固定控制方式 | `emo_control_method` | 发送 `与音色参考音频相同`。 |
 
-## 响应
+## Response
 
-- `data.task_id` → 统一任务 ID。
-- `data.status` → `pending/processing/succeeded/failed/cancelled`。
-- `data.results` → 视频或音频结果列表。
-- `data.message` / `msg` → 统一错误消息。
-- 结果 URL 按临时地址处理，宿主成功后立即下载并持久化。
+- `data.task_id` → Unified task ID.
+- `data.status` → `pending/processing/succeeded/failed/cancelled`.
+- `data.results` → Video or audio result list.
+- `data.message` / `msg` → Unified error messages.
+- The result URL is processed as a temporary address, and is downloaded and persisted immediately after the host succeeds.
 
 <!-- BEEFTV_PLUGIN_MANIFEST_START -->
-## Manifest 完整接口定义
+## Manifest complete interface definition
 
-以下 JSON 与插件包内实际 `manifest.json` 逐字段一致，覆盖插件身份、权限、配置、鉴权、参数、校验、创建、Agent、查询、取消、结果下载、响应和 Agent 响应映射。`documentation` 字段的值就是当前完整文档；为避免文档在自身内部无限递归，JSON 中仅用等义占位文本表示正文。
+The following JSON is consistent field by field with the actual `manifest.json` in the plug-in package, covering plug-in identity, permissions, configuration, authentication, parameters, verification, creation, Agent, query, cancellation, result download, response and Agent response mapping. The value of the `documentation` field is the current complete document; in order to avoid infinite recursion of the document within itself, only equivalent placeholder text is used to represent the main text in JSON.
 
 ```json
 {

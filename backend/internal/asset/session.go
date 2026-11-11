@@ -184,10 +184,10 @@ func (s *Service) StartChunkedUpload(userID string, req ChunkedUploadStart) (Chu
 	}
 	req.FileName = strings.TrimSpace(req.FileName)
 	if req.FileName == "" || len(req.FileName) > 255 {
-		return ChunkedUploadSessionInfo{}, kernel.BadAuthRequest("文件名不能为空且不能超过 255 个字符")
+		return ChunkedUploadSessionInfo{}, kernel.BadAuthRequest("Filename cannot be empty and cannot exceed 255 characters")
 	}
 	if req.Size <= 0 {
-		return ChunkedUploadSessionInfo{}, kernel.BadAuthRequest("文件大小必须大于 0")
+		return ChunkedUploadSessionInfo{}, kernel.BadAuthRequest("File size must be greater than 0")
 	}
 	s.sessionMu.Lock()
 	defer s.sessionMu.Unlock()
@@ -564,7 +564,7 @@ func (s *Service) rememberCompletedLocked(userID, identity string, ready *model.
 func (s *Service) createSessionDir(sessionID string) (string, error) {
 	root := s.sessionRoot()
 	if root == "" {
-		return "", kernel.BadAuthRequest("上传会话无法创建")
+		return "", kernel.BadAuthRequest("Upload session cannot be created")
 	}
 	dir := filepath.Join(root, sessionID)
 	if err := os.MkdirAll(dir, 0o750); err != nil {
@@ -591,7 +591,7 @@ func writeSessionMeta(sess *chunkedUploadSession) error {
 
 func writeFileAtomic(dir, name string, payload []byte) error {
 	if strings.TrimSpace(dir) == "" || strings.TrimSpace(name) == "" {
-		return kernel.BadAuthRequest("上传会话无法创建")
+		return kernel.BadAuthRequest("Upload session cannot be created")
 	}
 	temporary, err := os.CreateTemp(dir, "."+name+"-*")
 	if err != nil {

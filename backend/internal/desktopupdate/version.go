@@ -21,13 +21,13 @@ func parseStableVersion(value string) (versionTriple, error) {
 	value = strings.TrimSpace(value)
 	match := stableVersion.FindStringSubmatch(value)
 	if match == nil {
-		return versionTriple{}, fmt.Errorf("版本号无效")
+		return versionTriple{}, fmt.Errorf("Invalid version number")
 	}
 	major, a := strconv.Atoi(match[1])
 	minor, b := strconv.Atoi(match[2])
 	patch, c := strconv.Atoi(match[3])
 	if a != nil || b != nil || c != nil {
-		return versionTriple{}, fmt.Errorf("版本号无效")
+		return versionTriple{}, fmt.Errorf("Invalid version number")
 	}
 	return versionTriple{major: major, minor: minor, patch: patch}, nil
 }

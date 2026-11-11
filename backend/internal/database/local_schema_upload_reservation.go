@@ -18,7 +18,7 @@ import (
 func backfillUnattributedLegacyUploads(tx *gorm.DB) error {
 	var resources []model.Resource
 	if err := tx.Where("status IN ?", []model.ResourceStatus{model.ResourceStatusPending, model.ResourceStatusFailed}).Find(&resources).Error; err != nil {
-		return fmt.Errorf("读取待回填上传资源: %w", err)
+		return fmt.Errorf("Read the uploaded resources to be backfilled: %w", err)
 	}
 	now := time.Now()
 	for i := range resources {
@@ -36,7 +36,7 @@ func backfillUnattributedLegacyUploads(tx *gorm.DB) error {
 			continue
 		}
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("读取上传预留 %s: %w", identity, err)
+			return fmt.Errorf("Read upload reservation %s: %w", identity, err)
 		}
 		row := model.UserUploadReservation{
 			ID:        resource.UserID + ":" + identity,
@@ -47,7 +47,7 @@ func backfillUnattributedLegacyUploads(tx *gorm.DB) error {
 			UpdatedAt: now,
 		}
 		if err := tx.Create(&row).Error; err != nil {
-			return fmt.Errorf("回填上传预留 %s: %w", identity, err)
+			return fmt.Errorf("Backfill upload reserved %s: %w", identity, err)
 		}
 	}
 	return nil

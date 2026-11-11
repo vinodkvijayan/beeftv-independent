@@ -18,15 +18,15 @@ const LEAK_PROBES = [
     "cookie=session=deadbeef; Path=/",
     "api_key=sk-live-0000",
     "Error: boom\n    at DirectorModel (director-viewport.tsx:571:29)",
-    "演员 1 的镜头意图正文",
+    "Actor 1’s shot intention text",
 ];
 
 beforeEach(() => {
     resetDirectorDiagnosticDedupe();
 });
 
-describe("记录进统一诊断缓冲区", () => {
-    test("写入的事件带稳定码、固定文案与 runtime 分类", () => {
+describe("Record into unified diagnostic buffer", () => {
+    test("The written events have stable codes, fixed copywriting and runtime classification", () => {
         const before = directorEvents().length;
         expect(recordDirectorDiagnostic("DIRECTOR_VIEWPORT_RENDER_FAILED")).toBe(true);
 
@@ -35,18 +35,18 @@ describe("记录进统一诊断缓冲区", () => {
         expect(event?.code).toBe("DIRECTOR_VIEWPORT_RENDER_FAILED");
         expect(event?.level).toBe("error");
         expect(event?.category).toBe("runtime");
-        expect(event?.message).toBe("导演台 3D 视口渲染失败");
+        expect(event?.message).toBe("Director's desk 3D viewport rendering fails");
         // 绝不落 stack。
         expect(event?.stack || "").toBe("");
     });
 
-    test("安全字段以枚举后缀进入 code，便于检索", () => {
+    test("Security fields enter the code with an enumeration suffix for easy retrieval.", () => {
         expect(recordDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: "obj-1", objectKind: "model", attempt: 2 })).toBe(true);
         const event = newestDirectorEvent();
         expect(event?.code).toBe("DIRECTOR_MODEL_LOAD_FAILED object=obj-1 kind=model attempt=2");
     });
 
-    test("sceneId 只进 code 后缀，不冒充 canvasId", () => {
+    test("sceneId only enters the code suffix and does not impersonate canvasId", () => {
         expect(recordDirectorDiagnostic("DIRECTOR_SAVE_FLUSH_FAILED", { sceneId: "repro-scene-1", revision: 3 })).toBe(true);
         const event = newestDirectorEvent();
         // DirectorScene.id 不是 canvas id，绝不写入既有后端契约字段。
@@ -54,7 +54,7 @@ describe("记录进统一诊断缓冲区", () => {
         expect(event?.code).toBe("DIRECTOR_SAVE_FLUSH_FAILED scene=repro-scene-1 revision=3");
     });
 
-    test("三个保存相关码都能写入且级别正确", () => {
+    test("All three save-related codes can be written and the levels are correct.", () => {
         recordDirectorDiagnostic("DIRECTOR_SAVE_RETRY_RECOVERED", { revision: 1 });
         expect(newestDirectorEvent()?.level).toBe("info");
         recordDirectorDiagnostic("DIRECTOR_SAVE_DRAFT_UNAVAILABLE", { revision: 1 });
@@ -64,8 +64,8 @@ describe("记录进统一诊断缓冲区", () => {
     });
 });
 
-describe("去重与噪声控制", () => {
-    test("同一 code+字段在窗口内只记一次", () => {
+describe("Deduplication and noise control", () => {
+    test("The same code+ field is only recorded once in the window", () => {
         const before = directorEvents().length;
         expect(recordDirectorDiagnostic("DIRECTOR_VIEWPORT_CONTEXT_LOST")).toBe(true);
         expect(recordDirectorDiagnostic("DIRECTOR_VIEWPORT_CONTEXT_LOST")).toBe(false);
@@ -73,7 +73,7 @@ describe("去重与噪声控制", () => {
         expect(directorEvents().length).toBe(before + 1);
     });
 
-    test("字段不同视为不同事件，不会被误去重", () => {
+    test("Different fields are considered different events and will not be mistakenly deduplicated.", () => {
         const before = directorEvents().length;
         expect(recordDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectKind: "model", attempt: 1 })).toBe(true);
         expect(recordDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectKind: "model", attempt: 2 })).toBe(true);
@@ -81,7 +81,7 @@ describe("去重与噪声控制", () => {
         expect(directorEvents().length).toBe(before + 3);
     });
 
-    test("不同 objectId 在窗口内不互相吞掉", () => {
+    test("Different objectIds do not swallow each other within the window", () => {
         const before = directorEvents().length;
         expect(recordDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: "obj-1", objectKind: "model" })).toBe(true);
         expect(recordDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: "obj-2", objectKind: "model" })).toBe(true);
@@ -91,7 +91,7 @@ describe("去重与噪声控制", () => {
         expect(directorEvents().length).toBe(before + 3);
     });
 
-    test("不同 sceneId 在窗口内不互相吞掉", () => {
+    test("Different sceneIds do not eat each other within the window.", () => {
         const before = directorEvents().length;
         expect(recordDirectorDiagnostic("DIRECTOR_SAVE_FLUSH_FAILED", { sceneId: "scene-1", revision: 1 })).toBe(true);
         expect(recordDirectorDiagnostic("DIRECTOR_SAVE_FLUSH_FAILED", { sceneId: "scene-2", revision: 1 })).toBe(true);
@@ -99,7 +99,7 @@ describe("去重与噪声控制", () => {
         expect(directorEvents().length).toBe(before + 2);
     });
 
-    test("所有写入的 code 都以稳定 DIRECTOR_ 前缀开头", () => {
+    test("All written code starts with the stable DIRECTOR_ prefix", () => {
         resetDirectorDiagnosticDedupe();
         recordDirectorDiagnostic("DIRECTOR_CLOSE_BLOCKED", { sceneId: "scene-1", saveOutcome: "stay" });
         for (const event of directorEvents()) {
@@ -107,7 +107,7 @@ describe("去重与噪声控制", () => {
         }
     });
 
-    test("重置去重状态后可再次记录同一事件", () => {
+    test("The same event can be recorded again after resetting the deduplication state.", () => {
         expect(recordDirectorDiagnostic("DIRECTOR_VIEWPORT_CONTEXT_RESTORED")).toBe(true);
         expect(recordDirectorDiagnostic("DIRECTOR_VIEWPORT_CONTEXT_RESTORED")).toBe(false);
         resetDirectorDiagnosticDedupe();
@@ -115,8 +115,8 @@ describe("去重与噪声控制", () => {
     });
 });
 
-describe("不泄漏敏感内容", () => {
-    test("伪造的敏感字段不会进入缓冲区任何字段", () => {
+describe("Do not leak sensitive content", () => {
+    test("Forged sensitive fields will not enter any fields in the buffer", () => {
         for (const probe of LEAK_PROBES) {
             resetDirectorDiagnosticDedupe();
             recordDirectorDiagnostic("DIRECTOR_MODEL_ADOPT_FAILED", {
@@ -135,14 +135,14 @@ describe("不泄漏敏感内容", () => {
             expect(serialized).not.toContain("sk-live-0000");
             expect(serialized).not.toContain("deadbeef");
             expect(serialized).not.toContain("Bearer");
-            expect(serialized).not.toContain("演员");
+            expect(serialized).not.toContain("actor");
             expect(serialized).not.toContain("director-viewport.tsx");
             expect(event?.canvasId).toBeUndefined();
             expect(event?.code).toBe("DIRECTOR_MODEL_ADOPT_FAILED");
         }
     });
 
-    test("未知 code 既不写入也不抛错", () => {
+    test("Unknown code is neither written nor throws an error", () => {
         const before = directorEvents().length;
         // @ts-expect-error 故意传入白名单外的 code。
         expect(recordDirectorDiagnostic("DIRECTOR_NOT_A_REAL_CODE", { objectId: "obj-1" })).toBe(false);

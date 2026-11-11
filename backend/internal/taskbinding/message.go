@@ -14,7 +14,7 @@ import (
 // inside this call so the operation identity does not change.
 func AttachMessage(ports MessagePorts, userID string, req MessageRequest) (MessageReceipt, error) {
 	if ports == nil {
-		return MessageReceipt{}, invalid("bind_ports_unavailable", "绑定端口不可用")
+		return MessageReceipt{}, invalid("bind_ports_unavailable", "Binding port is not available")
 	}
 	userID = strings.TrimSpace(userID)
 	req.ConversationID = strings.TrimSpace(req.ConversationID)
@@ -22,40 +22,40 @@ func AttachMessage(ports MessagePorts, userID string, req MessageRequest) (Messa
 	req.TaskID = strings.TrimSpace(req.TaskID)
 	req.EffectKey = strings.TrimSpace(req.EffectKey)
 	if userID == "" {
-		return MessageReceipt{}, invalid("missing_scope", "缺少用户/工作区作用域")
+		return MessageReceipt{}, invalid("missing_scope", "Missing user/workspace scope")
 	}
 	if req.ConversationID == "" || req.TaskID == "" || req.MessageID == "" {
-		return MessageReceipt{}, invalid("invalid_params", "conversationId、taskId、messageId 必填")
+		return MessageReceipt{}, invalid("invalid_params", "conversationId, taskId, messageId required")
 	}
 	if req.OutputIndex < 0 {
-		return MessageReceipt{}, invalid("invalid_params", "outputIndex 无效")
+		return MessageReceipt{}, invalid("invalid_params", "outputIndex is invalid")
 	}
 	task, err := ports.Task(userID, req.TaskID)
 	if err != nil {
 		return MessageReceipt{}, mapPortError(err)
 	}
 	if task == nil || strings.TrimSpace(task.ID) == "" {
-		return MessageReceipt{}, notFound("task_not_found", "任务不存在")
+		return MessageReceipt{}, notFound("task_not_found", "Task does not exist")
 	}
 	if strings.TrimSpace(task.UserID) != userID {
-		return MessageReceipt{}, forbidden("task_foreign", "任务不属于当前用户")
+		return MessageReceipt{}, forbidden("task_foreign", "The task does not belong to the current user")
 	}
 	if task.Status != model.TaskStatusSucceeded {
-		return MessageReceipt{}, precondition("task_not_succeeded", "只有成功的任务才能绑定到消息")
+		return MessageReceipt{}, precondition("task_not_succeeded", "Only successful tasks can be bound to messages")
 	}
 	target := localtask.TargetBindingFromInput(task.InputJSON)
 	if conversationID := strings.TrimSpace(target.ConversationID); conversationID != "" && conversationID != req.ConversationID {
-		return MessageReceipt{}, conflict("conversation_mismatch", "只能绑定到任务原先指定的对话")
+		return MessageReceipt{}, conflict("conversation_mismatch", "Can only be bound to the conversation originally assigned to the task")
 	}
 	if messageID := strings.TrimSpace(target.MessageID); messageID != "" && messageID != req.MessageID {
-		return MessageReceipt{}, conflict("message_mismatch", "只能绑定到任务原先指定的消息")
+		return MessageReceipt{}, conflict("message_mismatch", "Can only be bound to the message originally specified by the task")
 	}
 	wantKey := localtask.AttachMessageEffectKey(req.TaskID, req.MessageID, req.OutputIndex)
 	if req.EffectKey == "" {
 		req.EffectKey = wantKey
 	}
 	if req.EffectKey != wantKey {
-		return MessageReceipt{}, invalid("effect_identity_mismatch", "操作身份必须是 attach-message:任务:消息:输出序号")
+		return MessageReceipt{}, invalid("effect_identity_mismatch", "The operation identity must be attach-message:task:message:output sequence number")
 	}
 
 	patch, err := messagePatch(ports, userID, *task, req)
@@ -95,14 +95,14 @@ type messagePatchFields struct {
 func messagePatch(ports MessagePorts, userID string, task model.Task, req MessageRequest) (messagePatchFields, error) {
 	if isMessageTextTask(task) {
 		if req.OutputIndex != 0 {
-			return messagePatchFields{}, invalid("invalid_params", "文本任务只能绑定 outputIndex 0")
+			return messagePatchFields{}, invalid("invalid_params", "Text tasks can only be bound to outputIndex 0")
 		}
 		text, _, ok, unreadable := durableText(task.ResultJSON)
 		if unreadable {
-			return messagePatchFields{}, precondition("delivery_unreadable", "任务结果无法读取，不能绑定到消息")
+			return messagePatchFields{}, precondition("delivery_unreadable", "Task results cannot be read and cannot be bound to a message")
 		}
 		if !ok {
-			return messagePatchFields{}, precondition("output_not_ready", "文本任务还没有可绑定的结果")
+			return messagePatchFields{}, precondition("output_not_ready", "The text task has no results to bind yet")
 		}
 		return messagePatchFields{MediaType: "text", Content: text}, nil
 	}
@@ -120,39 +120,39 @@ func messagePatch(ports MessagePorts, userID string, task model.Task, req Messag
 		}
 	}
 	if !found {
-		return messagePatchFields{}, precondition("output_not_ready", "任务产物尚未交付，不能绑定到消息")
+		return messagePatchFields{}, precondition("output_not_ready", "The task product has not yet been delivered and cannot be bound to a message")
 	}
 	if strings.TrimSpace(output.MaterializationErrorCode) != "" && strings.TrimSpace(output.MaterializedAssetID) == "" {
-		return messagePatchFields{}, precondition(output.MaterializationErrorCode, "任务产物不可用，不能绑定到消息")
+		return messagePatchFields{}, precondition(output.MaterializationErrorCode, "The task product is not available and cannot be bound to the message")
 	}
 	if strings.TrimSpace(output.MaterializedAssetID) == "" || strings.TrimSpace(output.ResourceID) == "" {
-		return messagePatchFields{}, precondition("output_not_ready", "任务产物尚未就绪，不能绑定到消息")
+		return messagePatchFields{}, precondition("output_not_ready", "The task product is not ready yet and cannot be bound to the message")
 	}
 	resource, err := ports.OwnedReadyResource(userID, output.ResourceID)
 	if err != nil {
 		return messagePatchFields{}, mapPortError(err)
 	}
 	if resource == nil || strings.TrimSpace(resource.ID) == "" || resource.Status != model.ResourceStatusReady {
-		return messagePatchFields{}, precondition("resource_not_ready", "任务资源未就绪，不能绑定到消息")
+		return messagePatchFields{}, precondition("resource_not_ready", "The task resource is not ready and cannot be bound to the message")
 	}
 	if strings.TrimSpace(resource.UserID) != userID {
-		return messagePatchFields{}, forbidden("resource_foreign", "任务资源不属于当前用户")
+		return messagePatchFields{}, forbidden("resource_foreign", "The task resource does not belong to the current user")
 	}
 	if strings.TrimSpace(resource.ID) != strings.TrimSpace(output.ResourceID) {
-		return messagePatchFields{}, precondition("resource_mismatch", "任务资源与产物记录不一致，不能绑定到消息")
+		return messagePatchFields{}, precondition("resource_mismatch", "The task resource is inconsistent with the product record and cannot be bound to the message")
 	}
 	asset, err := ports.OwnedAsset(userID, output.MaterializedAssetID)
 	if err != nil {
 		return messagePatchFields{}, mapPortError(err)
 	}
 	if asset == nil || strings.TrimSpace(asset.ID) == "" {
-		return messagePatchFields{}, precondition("output_not_ready", "任务素材尚未就绪，不能绑定到消息")
+		return messagePatchFields{}, precondition("output_not_ready", "The task material is not ready yet and cannot be bound to the message")
 	}
 	if strings.TrimSpace(asset.UserID) != userID {
-		return messagePatchFields{}, forbidden("asset_foreign", "任务素材不属于当前用户")
+		return messagePatchFields{}, forbidden("asset_foreign", "The task material does not belong to the current user")
 	}
 	if assetResourceID(asset) != strings.TrimSpace(output.ResourceID) {
-		return messagePatchFields{}, precondition("resource_mismatch", "任务素材未指向本次产物资源，不能绑定到消息")
+		return messagePatchFields{}, precondition("resource_mismatch", "The task material does not point to this product resource and cannot be bound to the message.")
 	}
 	mediaType := strings.TrimSpace(output.MediaType)
 	if mediaType == "" {
@@ -182,11 +182,11 @@ func isMessageTextTask(task model.Task) bool {
 func mediaResultLabel(mediaType string) string {
 	switch strings.TrimSpace(mediaType) {
 	case "video":
-		return "视频已生成"
+		return "Video has been generated"
 	case "audio":
-		return "音频已生成"
+		return "Audio generated"
 	default:
-		return "图片已生成"
+		return "Image has been generated"
 	}
 }
 

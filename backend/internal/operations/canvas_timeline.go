@@ -8,8 +8,8 @@ import (
 )
 
 func registerCanvasTimelineOps(r *Registry) {
-	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.timeline.update", Summary: "修改画布时间线或用 refreshNodeIds 局部刷新节点素材", Scope: ScopeCanvas,
-		Params: timelineUpdateSchema(json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"expectedRevision":{"type":"integer"},"timeline":{"type":"object","description":"时间线 v2（毫秒）；可见 video/image 不可重叠","properties":{"version":{"type":"integer","enum":[2]},"durationMs":{"type":"integer"},"tracks":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"kind":{"type":"string","enum":["video","audio","subtitle","text","image"]},"visible":{"type":"boolean"},"muted":{"type":"boolean"}},"required":["id","kind"]}},"clips":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"kind":{"type":"string","enum":["video","image","audio","subtitle"]},"nodeId":{"type":"string"},"trackId":{"type":"string"},"startMs":{"type":"integer"},"durationMs":{"type":"integer"},"sourceStartMs":{"type":"integer"},"volume":{"type":"number"},"fadeInMs":{"type":"integer"},"fadeOutMs":{"type":"integer"},"text":{"type":"string"}},"required":["id","kind","trackId","startMs","durationMs"]}},"output":{"type":["object","null"],"properties":{"width":{"type":"integer"},"height":{"type":"integer"},"fps":{"type":"integer"},"burnSubtitles":{"type":"boolean"}}}},"required":["version","tracks","clips","durationMs"]}},"required":["canvasId","expectedRevision","timeline"]}`)), Handler: opCanvasTimelineUpdate})
+	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.timeline.update", Summary: "Modify the canvas timeline or use refreshNodeIds to partially refresh node materials", Scope: ScopeCanvas,
+		Params: timelineUpdateSchema(json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"expectedRevision":{"type":"integer"},"timeline":{"type":"object","description":"Timeline v2 (milliseconds); visible video/image Not overlapping","properties":{"version":{"type":"integer","enum":[2]},"durationMs":{"type":"integer"},"tracks":{"type":"array","items":{"typ e":"object","properties":{"id":{"type":"string"},"kind":{"type":"string","enum":["video","audio","subtitle","text","image"]},"visible":{"type":"boolean"},"muted":{"type":"boolean"}},"require d":["id","kind"]}},"clips":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"k ind":{"type":"string","enum":["video","image","audio","subtitle"]},"nodeId":{"type":"string"},"trackId":{"type":"string"},"startMs":{"type":"integer"},"durationMs":{"type":"integer"},"source StartMs":{"type":"integer"},"volume":{"type":"number"},"fadeInMs":{"type":"integer"},"fadeOutMs":{"type":"integer"},"text":{"type":"string"}},"re asked":["id","kind","trackId","startMs","durationMs"]}},"output":{"type":["object","null"],"prope rties":{"width":{"type":"integer"},"height":{"type":"integer"},"fps":{"type":"integer"},"burnSubtitles":{"type":"boolean"}}}},"required": ["version","tracks","clips","durationMs"]}},"required":["canvasId","expectedRevision","timeline"]}`)), Handler: opCanvasTimelineUpdate})
 }
 
 func timelineUpdateSchema(raw json.RawMessage) json.RawMessage {
@@ -18,12 +18,12 @@ func timelineUpdateSchema(raw json.RawMessage) json.RawMessage {
 	schema["properties"].(map[string]any)["refreshNodeIds"] = map[string]any{
 		"type":        "array",
 		"items":       map[string]any{"type": "string"},
-		"description": "仅刷新指定节点素材引用（与 timeline 二选一）",
+		"description": "Only refresh the specified node material reference (choose one from timeline)",
 	}
 	schema["required"] = []string{"canvasId", "expectedRevision"}
 	// 根级 oneOf 会让部分严格校验的工具端点拒绝整份工具清单。互斥条件由服务端校验，
 	// 模型需要的约束放在参数描述里。
-	schema["description"] = "timeline 与 refreshNodeIds 必须且只能提供一个；服务端校验互斥条件。"
+	schema["description"] = "Only one of timeline and refreshNodeIds must be provided; the server verifies mutually exclusive conditions."
 	encoded, _ := json.Marshal(schema)
 	return encoded
 }
@@ -44,7 +44,7 @@ func opCanvasTimelineUpdate(ctx *Context, params json.RawMessage) (any, error) {
 	_, hasRefresh := fields["refreshNodeIds"]
 	if strings.TrimSpace(args.CanvasID) == "" || args.ExpectedRevision == nil || *args.ExpectedRevision < 0 ||
 		hasTimeline == hasRefresh || (args.Timeline == nil) == (args.RefreshNodeIDs == nil) {
-		return nil, InvalidArg("invalid_params", "需要 canvasId、expectedRevision，且 timeline 与 refreshNodeIds 二选一")
+		return nil, InvalidArg("invalid_params", "Requires canvasId, expectedRevision, and choose one of timeline and refreshNodeIds")
 	}
 	raw, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
 	if err != nil {
@@ -56,7 +56,7 @@ func opCanvasTimelineUpdate(ctx *Context, params json.RawMessage) (any, error) {
 	}
 	revision := canvasRevision(doc)
 	if revision != *args.ExpectedRevision {
-		return nil, Conflict("revision_conflict", "画布已经变化，请重新读取", map[string]any{"currentRevision": revision})
+		return nil, Conflict("revision_conflict", "The canvas has changed, please read again", map[string]any{"currentRevision": revision})
 	}
 	if args.RefreshNodeIDs != nil {
 		if err := refreshTimelineSources(ctx, doc, args.RefreshNodeIDs); err != nil {
@@ -69,7 +69,7 @@ func opCanvasTimelineUpdate(ctx *Context, params json.RawMessage) (any, error) {
 			Timeline map[string]json.RawMessage `json:"timeline"`
 		}
 		if err = json.Unmarshal(params, &requested); err != nil {
-			return nil, InvalidArg("invalid_params", "timeline 必须是对象")
+			return nil, InvalidArg("invalid_params", "timeline must be an object")
 		}
 		// An edit may replace tracks and clips without restating project output.
 		// Explicit null clears the setting; omission retains only valid output.
@@ -121,27 +121,27 @@ func commitTimelineUpdate(ctx *Context, canvasID string, revision int64, doc map
 // only the selected media references back into the original document.
 func refreshTimelineSources(ctx *Context, doc map[string]any, nodeIDs []string) error {
 	if len(nodeIDs) == 0 || len(nodeIDs) > 50 {
-		return InvalidArg("invalid_params", "refreshNodeIds 需要1至50个不同节点")
+		return InvalidArg("invalid_params", "refreshNodeIds requires 1 to 50 different nodes")
 	}
 	selected := map[string]bool{}
 	for _, id := range nodeIDs {
 		if strings.TrimSpace(id) == "" || selected[id] {
-			return InvalidArg("invalid_params", "refreshNodeIds 不能包含空节点或重复节点")
+			return InvalidArg("invalid_params", "refreshNodeIds cannot contain empty nodes or duplicate nodes")
 		}
 		selected[id] = true
 	}
 	rawTimeline, ok := doc["timeline"].(map[string]any)
 	if !ok {
-		return InvalidArg("invalid_timeline", "当前画布没有可更新的时间线")
+		return InvalidArg("invalid_timeline", "The current canvas has no timeline to update")
 	}
 	rawClips, ok := rawTimeline["clips"].([]any)
 	if !ok {
-		return InvalidArg("invalid_timeline", "当前时间线缺少片段")
+		return InvalidArg("invalid_timeline", "The current timeline is missing clips")
 	}
 	raw, err := json.Marshal(rawTimeline)
 	var project editing.Project
 	if err != nil || json.Unmarshal(raw, &project) != nil {
-		return InvalidArg("invalid_timeline", "当前时间线无法读取")
+		return InvalidArg("invalid_timeline", "The current timeline cannot be read")
 	}
 	found := map[string]bool{}
 	for i := range project.Clips {
@@ -152,7 +152,7 @@ func refreshTimelineSources(ctx *Context, doc map[string]any, nodeIDs []string) 
 		}
 	}
 	if len(found) != len(selected) {
-		return InvalidArg("timeline_node_not_used", "指定节点没有对应的媒体片段，未修改时间线")
+		return InvalidArg("timeline_node_not_used", "The specified node does not have a corresponding media clip and the timeline has not been modified.")
 	}
 	sources, err := timelineSources(ctx, doc, &project)
 	if err != nil {
@@ -165,7 +165,7 @@ func refreshTimelineSources(ctx *Context, doc map[string]any, nodeIDs []string) 
 		if selected[clip.NodeID] && clip.Kind != editing.KindSubtitle {
 			rawClip, ok := rawClips[i].(map[string]any)
 			if !ok {
-				return InvalidArg("invalid_timeline", "时间线片段无法读取")
+				return InvalidArg("invalid_timeline", "Timeline clip cannot be read")
 			}
 			rawClip["directMedia"] = clip.DirectMedia
 		}
@@ -215,53 +215,53 @@ func timelineSources(ctx *Context, doc map[string]any, project *editing.Project)
 		}
 		resourceID, direct := editing.MediaResourceID(clip)
 		if clip.DirectMedia != nil && !direct {
-			return nil, PermissionDenied("timeline_source_not_authorized", "时间线只接受已关联的资源引用")
+			return nil, PermissionDenied("timeline_source_not_authorized", "Timeline only accepts linked resource references")
 		}
 		if clip.NodeID != "" {
 			node, ok := nodes[clip.NodeID]
 			if !ok {
-				return nil, PermissionDenied("node_not_in_canvas", "时间线节点不属于当前画布")
+				return nil, PermissionDenied("node_not_in_canvas", "The timeline node does not belong to the current canvas")
 			}
 			ids := map[string]bool{}
 			collectMediaResourceIDs(node, ids)
 			if direct {
 				if !ids[resourceID] {
-					return nil, PermissionDenied("timeline_source_not_authorized", "节点与时间线资源不一致")
+					return nil, PermissionDenied("timeline_source_not_authorized", "Nodes are inconsistent with timeline resources")
 				}
 			} else {
 				if len(ids) != 1 {
-					return nil, InvalidArg("timeline_resource_required", "时间线节点须明确关联一个资源")
+					return nil, InvalidArg("timeline_resource_required", "Timeline nodes must be explicitly associated with a resource")
 				}
 				for id := range ids {
 					resourceID = id
 				}
 			}
 		} else if !direct {
-			return nil, InvalidArg("timeline_resource_required", "时间线片段需要节点或资源引用")
+			return nil, InvalidArg("timeline_resource_required", "Timeline clip requires node or resource reference")
 		}
 		if !allowed[resourceID] {
-			return nil, PermissionDenied("timeline_source_not_authorized", "不能在时间线中加入未关联的资源")
+			return nil, PermissionDenied("timeline_source_not_authorized", "Unassociated resources cannot be added to the timeline")
 		}
 		resource, err := ctx.Domain.OwnedReadyResource(ctx.UserID, resourceID)
 		if err != nil {
 			return nil, mapDomainError(err)
 		}
 		if resource == nil {
-			return nil, PreconditionFailed("timeline_source_not_ready", "时间线素材尚未就绪", nil)
+			return nil, PreconditionFailed("timeline_source_not_ready", "Timeline material is not ready yet", nil)
 		}
 		assetID := assetForResource[resourceID]
 		if assetID == "" {
-			return nil, PreconditionFailed("timeline_asset_not_linked", "素材尚未关联素材库，请先同步", nil)
+			return nil, PreconditionFailed("timeline_asset_not_linked", "The material has not been associated with the material library, please synchronize it first", nil)
 		}
 		asset, err := ctx.Domain.OwnedAsset(ctx.UserID, assetID)
 		if err != nil {
 			return nil, mapDomainError(err)
 		}
 		if asset == nil {
-			return nil, PermissionDenied("timeline_asset_not_owned", "素材不属于当前工作区")
+			return nil, PermissionDenied("timeline_asset_not_owned", "The material does not belong to the current workspace")
 		}
 		if _, linked := assets.DocumentReferencedIDs(asset.PayloadJSON, map[string]struct{}{resourceID: {}})[resourceID]; !linked {
-			return nil, PermissionDenied("timeline_asset_not_linked", "素材与资源引用不一致")
+			return nil, PermissionDenied("timeline_asset_not_linked", "Material and resource references are inconsistent")
 		}
 		kind := ""
 		switch {
@@ -273,7 +273,7 @@ func timelineSources(ctx *Context, doc map[string]any, project *editing.Project)
 			kind = editing.KindImage
 		}
 		if kind == "" || (clip.Kind != kind && !(clip.Kind == editing.KindAudio && kind == editing.KindVideo)) {
-			return nil, InvalidArg("timeline_source_kind", "时间线片段与素材类型不匹配")
+			return nil, InvalidArg("timeline_source_kind", "Timeline clip does not match footage type")
 		}
 		project.Clips[index].DirectMedia = &editing.DirectMedia{ID: resourceID, AssetID: assetID, Kind: kind, StorageKey: "resource:" + resourceID}
 		for _, id := range []string{clip.NodeID, resourceID, "resource:" + resourceID} {

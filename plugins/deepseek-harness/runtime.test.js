@@ -68,12 +68,12 @@ test('only trusted catalog metadata exempts a read-only business call from addit
 
 // The shape canvas.generation.propose returns through the BeefTV MCP server.
 const imageTarget = (nodeId, count, amount) => ({
-  kind: 'image', model: 'dola-seedream-5-0-flash-260915', nodeId, parameters: { count, size: '2K' }, estimate: { amount, text: `预计 ¥${amount}` },
+  kind: 'image', model: 'dola-seedream-5-0-flash-260915', nodeId, parameters: { count, size: '2K' }, estimate: { amount, text: `Estimated ¥${amount}` },
 })
 function proposeResult(proposalId, quote = {}) {
   const result = {
     proposalId, kind: 'image', model: 'dola-seedream-5-0-flash-260915',
-    estimate: { amount: 0.0122, text: '预计费用：¥0.0122' },
+    estimate: { amount: 0.0122, text: 'Estimated cost: ¥0.0122' },
     targets: [imageTarget('node-1', '1', 0.0122)],
     ...quote,
   }
@@ -85,7 +85,7 @@ test('the approval card names the model, amount and price of the nodes this subm
   const propose = 'mcp__beeftv__canvas_generation_propose_ab092b275e46'
   rememberQuote(quotes, propose, proposeResult('gp-image', {
     targets: [imageTarget('shot-1', '2', 0.0244), imageTarget('shot-2', undefined, 0.0122)],
-    estimate: { text: '预计费用：¥0.0366。' },
+    estimate: { text: 'Estimated cost: ¥0.0366.' },
   }))
   rememberQuote(quotes, propose, proposeResult('gp-video', {
     kind: 'video', estimate: {},
@@ -93,10 +93,10 @@ test('the approval card names the model, amount and price of the nodes this subm
   }))
   const submit = 'mcp__beeftv__canvas_generation_submit_ab092b275e46'
   const reason = args => approvalReason(submit, args, [], quotes)
-  assert.equal(reason({ proposalId: 'gp-image', nodeIds: ['shot-1', 'shot-2'] }), 'BeefTV 将生成 3 张图片（dola-seedream-5-0-flash-260915）。预计费用：¥0.0366。')
+  assert.equal(reason({ proposalId: 'gp-image', nodeIds: ['shot-1', 'shot-2'] }), 'BeefTV will generate 3 images (dola-seedream-5-0-flash-260915). Estimated cost: ¥0.0366.')
   // Retrying one failed node shows that node's own quote, not the whole proposal's total.
-  assert.equal(reason({ proposalId: 'gp-image', nodeIds: ['shot-2'] }), 'BeefTV 将生成 1 张图片（dola-seedream-5-0-flash-260915）。预计费用：¥0.0122。')
-  assert.equal(reason({ proposalId: 'gp-video', nodeIds: ['clip-1', 'clip-2'] }), 'BeefTV 将生成 2 段视频（seedance-2.0-fast）。费用按所选渠道实际计费。')
+  assert.equal(reason({ proposalId: 'gp-image', nodeIds: ['shot-2'] }), 'BeefTV will generate 1 image (dola-seedream-5-0-flash-260915). Estimated cost: ¥0.0122.')
+  assert.equal(reason({ proposalId: 'gp-video', nodeIds: ['clip-1', 'clip-2'] }), 'BeefTV will generate 2 videos (seedance-2.0-fast). The fees are actually billed according to the selected channel.')
   for (const args of [{ proposalId: 'gp-unseen', nodeIds: ['shot-1'] }, { proposalId: 'gp-image', nodeIds: ['shot-1', 'other'] }, { proposalId: 'gp-image' }]) {
     assert.match(reason(args), /和已有报价对不上，无法显示费用/)
   }
@@ -124,7 +124,7 @@ test('workspace handshake verifies the live build, database readiness and worksp
   context.mock.method(globalThis, 'fetch', async url => {
     requests.push(url)
     return { ok: true, json: async () => ({ code: 0, data: url.endsWith('/health') ? health : {
-      contractVersion: 1, workspace: { id: 'actual-workspace', name: '本地工作区', storage: 'sqlite' }, user: { private: 'excluded' },
+      contractVersion: 1, workspace: { id: 'actual-workspace', name: 'local workspace', storage: 'sqlite' }, user: { private: 'excluded' },
     } }) }
   })
   const identity = await runtime.inspectWorkspace(connection)
@@ -206,7 +206,7 @@ test('local connection reports an App launch failure without falling back to a h
 test('a desktop App older than the first harness release is never opened or started', async context => {
   const calls = mockRuntimeProcesses(context, { appVersion: '2.1.6' })
   assert.deepEqual(await runtime.localAppStatus(), {
-    compatible: false, version: '2.1.6', message: '本机 BeefTV 版本为 2.1.6，需要 2.2.0 或更高版本。请升级后重新连接。',
+    compatible: false, version: '2.1.6', message: 'Native BeefTV version is 2.1.6, requires 2.2.0 or higher. Please reconnect after upgrading.',
   })
   await assert.rejects(() => runtime.startLocalRuntime(), /版本为 2\.1\.6，需要 2\.2\.0/)
   await assert.rejects(() => runtime.attachLocalRuntime(), /版本为 2\.1\.6，需要 2\.2\.0/)
@@ -392,7 +392,7 @@ test('paid submissions ask with the quote unless the user chose the full-access 
     name: 'mcp__beeftv__canvas_generation_submit_ab092b275e46', arguments: { proposalId: 'gp-1', nodeIds: ['node-1'] }, agent: { session: { id: session } },
   })
   const allow = async () => ({ kind: 'allow' })
-  const asked = { kind: 'ask', reason: 'BeefTV 将生成 1 张图片（dola-seedream-5-0-flash-260915）。预计费用：¥0.0122。' }
+  const asked = { kind: 'ask', reason: 'BeefTV will generate 1 image (dola-seedream-5-0-flash-260915). Estimated cost: ¥0.0122.' }
   assert.deepEqual(await preExecute(submit('workspace-session'), allow), asked)
   assert.deepEqual(await preExecute(submit('full-access-session'), allow), { kind: 'allow' })
   assert.deepEqual(await preExecute(submit('unattended-session'), allow), asked)
@@ -438,7 +438,7 @@ test('Host reports an outdated desktop App for upgrade without starting it', asy
   const { call, calls } = await startHost(context, { appVersion: '2.1.6' })
   const status = (await call('GET', '/beeftv/status')).body
   assert.equal(status.connected, false)
-  assert.deepEqual(status.localApp, { compatible: false, version: '2.1.6', message: '本机 BeefTV 版本为 2.1.6，需要 2.2.0 或更高版本。请升级后重新连接。' })
+  assert.deepEqual(status.localApp, { compatible: false, version: '2.1.6', message: 'Native BeefTV version is 2.1.6, requires 2.2.0 or higher. Please reconnect after upgrading.' })
   const refused = await call('POST', '/beeftv/connect', { mode: 'local' })
   assert.equal(refused.status, 503)
   assert.equal(refused.body.error, status.localApp.message)

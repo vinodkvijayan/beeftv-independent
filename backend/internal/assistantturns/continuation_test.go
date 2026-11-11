@@ -23,7 +23,7 @@ func continuationFixture(t *testing.T, kind string) (*turnFixture, *assistanttur
 		t.Fatal(err)
 	}
 	doc := fx.readCanvas(t)
-	doc["nodes"] = append(doc["nodes"].([]any), map[string]any{"id": "source", "type": kind, "title": "镜头", "position": map[string]any{"x": 10, "y": 10}, "metadata": map[string]any{}})
+	doc["nodes"] = append(doc["nodes"].([]any), map[string]any{"id": "source", "type": kind, "title": "lens", "position": map[string]any{"x": 10, "y": 10}, "metadata": map[string]any{}})
 	after := fx.writeCanvas(t, doc)
 	fx.receipt(t, continuationSource, "create-source", "canvas.nodes.create", map[string]any{"canvasId": fx.canvasID, "revision": after, "created": []any{map[string]any{"id": "source"}}})
 	if err := fx.turns.Finalize(continuationSource); err != nil {
@@ -72,7 +72,7 @@ func continuationTask(t *testing.T, fx *turnFixture, row *assistantturns.Continu
 				t.Fatal(err)
 			}
 			assetID := "asset-" + resource.ID
-			asset, _ := json.Marshal(map[string]any{"id": assetID, "kind": row.Kind, "title": "生成结果", "coverUrl": "", "source": "生成任务", "tags": []any{}, "status": "confirmed", "data": map[string]any{"dataUrl": "", "url": "", "storageKey": "resource:" + resource.ID, "width": 1, "height": 1, "bytes": 1, "mimeType": "image/png"}})
+			asset, _ := json.Marshal(map[string]any{"id": assetID, "kind": row.Kind, "title": "Generate results", "coverUrl": "", "source": "Generate tasks", "tags": []any{}, "status": "confirmed", "data": map[string]any{"dataUrl": "", "url": "", "storageKey": "resource:" + resource.ID, "width": 1, "height": 1, "bytes": 1, "mimeType": "image/png"}})
 			if _, err := fx.canvas.UpsertUserAsset(fx.userID, asset); err != nil {
 				t.Fatal(err)
 			}

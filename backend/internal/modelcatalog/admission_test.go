@@ -92,7 +92,7 @@ func TestSelectTaskModelRejectsLeftoverLogicalModelID(t *testing.T) {
 		Type:            "canvas_image",
 		FrontendEnabled: true,
 	}, TaskSelectLookup{})
-	assertModelError(t, err, ErrCodeModelCatalogMismatch, "模型目录已更新")
+	assertModelError(t, err, ErrCodeModelCatalogMismatch, "Model catalog updated")
 }
 
 func TestSelectTaskModelRebuildsAuthoritativeExecutionSpec(t *testing.T) {
@@ -226,7 +226,7 @@ func TestSelectTaskModelRejectsUnsupportedRequest(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := SelectTaskModel(TaskSelectRequest{Input: test.input, Type: "canvas_image"}, lookup)
-			assertModelError(t, err, ErrCodeModelCapabilityNotSupported, "所选模型不支持当前请求")
+			assertModelError(t, err, ErrCodeModelCapabilityNotSupported, "The selected model does not support the current request")
 		})
 	}
 }
@@ -241,7 +241,7 @@ func TestSelectTaskModelRejectsCorruptCapabilityConfig(t *testing.T) {
 		},
 		Type: "canvas_image",
 	}, lookup)
-	assertModelError(t, err, ErrCodeInvalidModelSelection, "指定的模型能力配置无效，请联系管理员")
+	assertModelError(t, err, ErrCodeInvalidModelSelection, "The specified model capability configuration is invalid, please contact the administrator")
 }
 
 func TestSelectTaskModelImageResolutionPricing(t *testing.T) {

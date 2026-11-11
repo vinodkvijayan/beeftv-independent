@@ -30,7 +30,7 @@ beforeAll(async () => {
         if (path.startsWith("/api/tasks/by-operation/")) return Response.json({ code: 404, msg: "not found" }, { status: 404 });
         if (path === "/api/media-upscale/tasks") {
             creates.push(await request.json() as Record<string, unknown>);
-            return Response.json({ code: 0, data: { id: "original-task", type: "canvas_image", model: "topaz-standard-v2", status: "queued", prompt: "AI 超分", attempts: 1, createdAt: "", updatedAt: "" } });
+            return Response.json({ code: 0, data: { id: "original-task", type: "canvas_image", model: "topaz-standard-v2", status: "queued", prompt: "AI super score", attempts: 1, createdAt: "", updatedAt: "" } });
         }
         if (path.startsWith("/api/")) return Response.json({ code: 0, data: [] });
         return new Response('<div id="root"></div><script type="module" src="/harness.js"></script>', { headers: { "Content-Type": "text/html" } });
@@ -42,10 +42,10 @@ afterAll(async () => { await browser?.close(); server?.stop(true); });
 
 test("official-only account can cancel CNY confirmation without creating a task", async () => {
     await page.goto(server.url.toString());
-    const start = page.getByRole("button", { name: "开始批量超分", exact: true });
+    const start = page.getByRole("button", { name: "Start batch super score", exact: true });
     await start.click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByText("共 1 个素材，先扣 ¥1.25。账单核对完成后按实际费用结算，多扣的退回。", { exact: true }).waitFor();
+    await dialog.getByText("There is 1 material in total, ¥1.25 will be deducted first. After the bill verification is completed, the actual expenses will be settled, and any excess deductions will be refunded.", { exact: true }).waitFor();
     expect(creates).toHaveLength(0);
     await dialog.getByRole("button", { name: /取\s*消/ }).click();
     await dialog.waitFor({ state: "hidden" });
@@ -55,13 +55,13 @@ test("official-only account can cancel CNY confirmation without creating a task"
 
 test("confirmation submits one official task and repeats only query the original", async () => {
     await page.goto(server.url.toString());
-    await page.getByRole("button", { name: "开始批量超分", exact: true }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "确认超分", exact: true }).click();
+    await page.getByRole("button", { name: "Start batch super score", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Confirm over score", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).observed === "original-task");
     expect(creates).toHaveLength(1);
     expect(creates[0].channelId).toBe("beeftv");
     expect(creates[0].clientOperationId).toBeTruthy();
-    await page.getByRole("button", { name: "继续 / 查询批次", exact: true }).click();
+    await page.getByRole("button", { name: "Continue/Query batch", exact: true }).click();
     await page.waitForFunction(() => !document.querySelector(".ant-btn-loading"));
     expect(creates).toHaveLength(1);
     expect(JSON.parse(await page.locator("#snapshot").innerText()).error).toBe("");

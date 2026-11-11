@@ -8,7 +8,7 @@ function folder(id: string, linked = false): CanvasNodeData {
     return {
         id,
         type: CanvasNodeType.Frame,
-        title: linked ? "素材目录" : "我的文件",
+        title: linked ? "Material catalog" : "my files",
         position: { x: 100, y: 100 },
         width: 360,
         height: 280,
@@ -36,21 +36,21 @@ function image(id: string, content = "resource:image"): CanvasNodeData {
 }
 
 describe("canvas folders", () => {
-    test("文件夹样式与主题皮肤独立解析", () => {
+    test("Folder styles and theme skins are resolved independently", () => {
         expect(resolveCanvasFolderTheme("ember")).toBe("ember");
         expect(resolveCanvasFolderTheme("unknown")).toBe("aurora");
         expect(resolveCanvasFolderThemeCover("obsidian")).toContain("folder-theme-obsidian.png");
         expect(resolveCanvasFolderThemeCover("pearl", "resource:custom-cover")).toBe("resource:custom-cover");
     });
 
-    test("识别文件夹并允许非容器节点进入本地文件夹", () => {
+    test("Identify folders and allow non-container nodes to enter local folders", () => {
         const target = folder("folder");
         expect(isCanvasFolderNode(target)).toBe(true);
         expect(canFolderContain(image("image"))).toBe(true);
         expect(canFolderContain(folder("nested"))).toBe(false);
     });
 
-    test("折叠文件夹仍可成为拖放目标并保存展开布局", () => {
+    test("Collapsed folders can still be dragged and dropped targets and expanded layouts saved", () => {
         const target = folder("folder");
         const dragged = image("image");
         const nodes = [target, dragged];
@@ -66,7 +66,7 @@ describe("canvas folders", () => {
         expect(nextFolder.metadata?.frame?.expandedHeight).toBeGreaterThan(dragged.height);
     });
 
-    test("空间索引画框落点与常规落点一致", () => {
+    test("The placement point of the spatial index frame is consistent with the regular placement point", () => {
         const target = folder("folder");
         const dragged = image("image");
         const nodes = [target, dragged];
@@ -76,12 +76,12 @@ describe("canvas folders", () => {
         expect(findFrameDropTargetFromIndex(index, [dragged], new Set([dragged.id]), { x: 400, y: 400 })).toBeNull();
     });
 
-    test("素材库链接文件夹只接收可归档的真实内容节点", () => {
+    test("Library link folders only receive archiveable real content nodes", () => {
         const target = folder("linked", true);
         const ready = image("ready");
         const empty = image("empty", "");
         const existing = { ...image("existing", ""), metadata: { content: "", assetId: "asset-existing" } };
-        const config: CanvasNodeData = { id: "config", type: CanvasNodeType.Config, title: "配置", position: { x: 150, y: 150 }, width: 180, height: 120 };
+        const config: CanvasNodeData = { id: "config", type: CanvasNodeType.Config, title: "Configuration", position: { x: 150, y: 150 }, width: 180, height: 120 };
 
         expect(canLinkedFolderArchive(ready)).toBe(true);
         expect(canLinkedFolderArchive(empty)).toBe(false);
@@ -91,13 +91,13 @@ describe("canvas folders", () => {
         expect(findFrameDropTarget([target, empty], new Set([empty.id]))).toBeNull();
     });
 
-    test("拖出本地文件夹会解除父子关系", () => {
+    test("Dragging out a local folder will dissolve the parent-child relationship", () => {
         const child = { ...image("image"), parentId: "folder" };
         const next = applyFrameDrop([folder("folder"), child], new Set([child.id]), null);
         expect(next.find((node) => node.id === child.id)?.parentId).toBeUndefined();
     });
 
-    test("多选分散节点拖向折叠文件夹时只要有任一节点命中即可归入", () => {
+    test("When dragging multi-select scattered nodes to the collapsed folder, as long as any node is hit, it can be included.", () => {
         const target = folder("folder");
         const hitNode = { ...image("hit"), position: { x: 140, y: 140 } };
         const farNode = { ...image("far"), position: { x: 920, y: 680 } };
@@ -109,7 +109,7 @@ describe("canvas folders", () => {
         expect(findFrameDropTargetFromIndex(index, [hitNode, farNode], draggedIds, { x: 0, y: 0 })).toBe(target.id);
     });
 
-    test("一键将选中节点收纳进新建折叠文件夹", () => {
+    test("Collect selected nodes into a new folded folder with one click", () => {
         const first = { ...image("first"), position: { x: 200, y: 180 } };
         const second = { ...image("second"), position: { x: 640, y: 420 } };
         const packed = packNodesIntoCollapsedFolder([first, second], new Set([first.id, second.id]), (position) => ({
@@ -130,7 +130,7 @@ describe("canvas folders", () => {
         expect(singleWithContainer).toBeNull();
     });
 
-    test("解散文件夹会将内部节点按均衡多列网格排回画布并移除文件夹外壳", () => {
+    test("Dismissing a folder will arrange the internal nodes back to the canvas in a balanced multi-column grid and remove the folder shell.", () => {
         const target = folder("folder-16");
         const children = Array.from({ length: 16 }, (_, index) => ({
             ...image(`img-${index + 1}`),
@@ -149,7 +149,7 @@ describe("canvas folders", () => {
         expect(uniqueRows.size).toBe(4);
     });
 
-    test("从文件夹单独移出某个节点会放到文件夹右侧并保持其余节点收纳", () => {
+    test("Moving a node individually from a folder will move it to the right side of the folder and keep the remaining nodes included.", () => {
         const target = folder("folder-extract");
         const first = { ...image("first"), parentId: target.id };
         const second = { ...image("second"), parentId: target.id };
@@ -163,7 +163,7 @@ describe("canvas folders", () => {
         expect(nextSecond.parentId).toBe(target.id);
     });
 
-    test("将画布中较早创建的节点拖入文件夹时会追加到末尾，保证封面展示最新拖入项", () => {
+    test("When you drag nodes created earlier in the canvas into the folder, they will be appended to the end to ensure that the latest dragged items are displayed on the cover.", () => {
         const earlier = image("earlier");
         const target = folder("folder-recency");
         const existing1 = { ...image("existing-1"), parentId: target.id };
@@ -176,7 +176,7 @@ describe("canvas folders", () => {
         expect(children.slice(-3).map((node) => node.id)).toEqual(["existing-2", "existing-3", "earlier"]);
     });
 
-    test("解散空文件夹或百项大文件夹时正确处理边界与最多 8 列上限", () => {
+    test("Correctly handle boundaries and maximum 8-column limit when dissolving empty folders or large folders with hundreds of items", () => {
         const emptyFolder = folder("empty-folder");
         const emptyResult = unpackCanvasFolder([emptyFolder], emptyFolder.id);
         expect(emptyResult?.unpackedIds).toEqual([]);

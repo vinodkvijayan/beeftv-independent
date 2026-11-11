@@ -17,6 +17,6 @@ describe("curated creation inspirations", () => {
         expect(creationFeaturedWorks.filter((item) => item.source).length).toBe(8);
         expect(inspirationSource.license).toBe("CC0-1.0");
         expect(inspirationSource.revision).toMatch(/^[a-f0-9]{40}$/);
-        expect(inspirationSource.notice).toContain("不代表实际生成结果");
+        expect(inspirationSource.notice).toContain("Does not represent actual generated results");
     });
 });

@@ -59,7 +59,7 @@ mock.module("@/services/api/request", () => ({
             server.gets += 1;
             if (server.failGets > 0) {
                 server.failGets -= 1;
-                throw new Error("读取失败");
+                throw new Error("Read failed");
             }
             // The response reflects the server at the moment the request arrived.
             const snapshot = structuredClone(server.document);
@@ -78,7 +78,7 @@ mock.module("@/services/api/request", () => ({
             if (server.failNext) {
                 const failure = server.failNext;
                 server.failNext = null;
-                throw new ApiError("保存失败", { status: failure.status, retryable: failure.status >= 500 });
+                throw new ApiError("Save failed", { status: failure.status, retryable: failure.status >= 500 });
             }
             const receipt = server.receipts.get(body.opId);
             const reply = (revision: number, replayed: boolean) => ({
@@ -93,7 +93,7 @@ mock.module("@/services/api/request", () => ({
             const expectedRevision = body.params.expectedRevision;
             if (expectedRevision !== server.revision) {
                 server.attempts.push({ opId: body.opId, expectedRevision, accepted: false });
-                throw new ApiError("画布已被其他入口修改", { status: 409, reason: "stale_revision" });
+                throw new ApiError("The canvas has been modified by another entry", { status: 409, reason: "stale_revision" });
             }
             server.revision += 1;
             server.document = { ...structuredClone(body.params.document), id: "c1", revision: server.revision } as Doc;
@@ -113,7 +113,7 @@ mock.module("@/services/local-workspace-sync", () => ({
 
 mock.module("@/services/canvas-sync-drafts", () => ({
     preserveCanvasSyncDraft: async (project: { title?: string; chatSessions?: Array<{ id: string }> }) => {
-        if (draftFailure) throw new Error("存储空间不足");
+        if (draftFailure) throw new Error("Not enough storage space");
         drafts.push(structuredClone(project));
         return drafts.length;
     },
@@ -156,17 +156,17 @@ function shot(id: string, title: string) {
 }
 
 function chat(id: string, text: string) {
-    return { id, title: "对话", messages: [{ id: `${id}-m`, role: "user", content: text }] };
+    return { id, title: "dialogue", messages: [{ id: `${id}-m`, role: "user", content: text }] };
 }
 
 function canvas(revision: number, patch: Record<string, unknown> = {}): Doc {
     return {
         id: "c1",
         revision,
-        title: "画布",
+        title: "canvas",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
-        nodes: [shot("n1", "镜头一")],
+        nodes: [shot("n1", "Shot 1")],
         connections: [],
         chatSessions: [],
         activeChatId: null,
@@ -239,12 +239,12 @@ beforeEach(() => {
     useCanvasStore.setState({ projects: [] });
 });
 
-describe("服务端写入与本地自动保存交错", () => {
-    test("助手写入节点时本地正在自动保存聊天：刷新后两边都保留，并按最新 revision 提交", async () => {
+describe("Server-side writing interleaved with local auto-save", () => {
+    test("The chat is being automatically saved locally when the assistant writes to the node: both sides are retained after refreshing and submitted according to the latest revision", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "帮我加一个镜头")] as never, activeChatId: "s1" });
+        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "Help me add a lens")] as never, activeChatId: "s1" });
         scheduleLocalCanvasBackendSync("c1");
-        externalWrite(addNode("n2", "助手加的镜头"));
+        externalWrite(addNode("n2", "Lenses added by the assistant"));
 
         await refreshLocalCanvasProjectIfChanged("c1");
 
@@ -260,10 +260,10 @@ describe("服务端写入与本地自动保存交错", () => {
         expect(projectSyncProgress("c1", scope)?.phase).toBe("done");
     });
 
-    test("自动保存撞上助手写入被 409 拒绝：读回最新版本合并，只重试一次并保存成功", async () => {
+    test("Autosave hits assistant write rejected with 409: read back latest version merge, only retry once and save successfully", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "帮我加一个镜头")] as never });
-        server.beforeCommit.push(() => externalWrite(addNode("n2", "助手加的镜头")));
+        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "Help me add a lens")] as never });
+        server.beforeCommit.push(() => externalWrite(addNode("n2", "Lenses added by the assistant")));
 
         await syncLocalCanvasProjectToBackend("c1");
 
@@ -280,20 +280,20 @@ describe("服务端写入与本地自动保存交错", () => {
         expect(projectSyncProgress("c1", scope)?.phase).toBe("done");
     });
 
-    test("409 后同一字段两边都改过：保留本地内容和服务端候选，暂停提交，「使用最新版本」前先存草稿", async () => {
+    test("After 409, both sides of the same field have been changed: keep local content and server candidates, pause submission, and save the draft before \"using the latest version\"", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { title: "本地标题" });
-        server.beforeCommit.push(() => externalWrite((doc) => ({ ...doc, title: "助手标题" })));
+        useCanvasStore.getState().updateProject("c1", { title: "local title" });
+        server.beforeCommit.push(() => externalWrite((doc) => ({ ...doc, title: "Assistant title" })));
 
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
 
         expect(attempts()).toEqual([[1, false]]);
-        expect(live().title).toBe("本地标题");
+        expect(live().title).toBe("local title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(true);
         expect(canvasExternalRevisionConflict(scope, "c1")?.remoteRevision).toBe(2);
-        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("助手标题");
+        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("Assistant title");
         expect((await loadCanvasOperationJournal("c1", scope)).confirmedRevision).toBe(1);
-        expect(drafts.map((draft) => draft.title)).toContain("本地标题");
+        expect(drafts.map((draft) => draft.title)).toContain("local title");
         expect(projectSyncProgress("c1", scope)?.phase).toBe("conflict");
 
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toBeInstanceOf(CanvasBackendSubmitPausedError);
@@ -301,56 +301,56 @@ describe("服务端写入与本地自动保存交错", () => {
 
         drafts.length = 0;
         await acceptExternalCanvasRevision("c1");
-        expect(drafts.map((draft) => draft.title)).toEqual(["本地标题"]);
-        expect(live().title).toBe("助手标题");
+        expect(drafts.map((draft) => draft.title)).toEqual(["local title"]);
+        expect(live().title).toBe("Assistant title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
         expect(canvasExternalRevisionConflict(scope, "c1")).toBeUndefined();
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
-        expect(server.document!.title).toBe("助手标题");
+        expect(server.document!.title).toBe("Assistant title");
     });
 
-    test("409 后读回失败：暂停但还没有候选；「使用最新版本」先读最新内容，存草稿后再替换", async () => {
+    test("409 Failed to read back: paused but no candidates yet; \"Use the latest version\" to read the latest content first, save the draft and then replace it", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { title: "本地标题" });
-        server.beforeCommit.push(() => externalWrite((doc) => ({ ...doc, title: "助手标题" })));
+        useCanvasStore.getState().updateProject("c1", { title: "local title" });
+        server.beforeCommit.push(() => externalWrite((doc) => ({ ...doc, title: "Assistant title" })));
         server.failGets = 1;
 
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
         expect(attempts()).toEqual([[1, false]]);
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(true);
         expect(canvasExternalRevisionConflict(scope, "c1")).toBeUndefined();
-        expect(live().title).toBe("本地标题");
+        expect(live().title).toBe("local title");
 
         drafts.length = 0;
         const accepted = await acceptExternalCanvasRevision("c1");
-        expect(accepted?.title).toBe("助手标题");
-        expect(drafts.map((draft) => draft.title)).toEqual(["本地标题"]);
-        expect(live().title).toBe("助手标题");
+        expect(accepted?.title).toBe("Assistant title");
+        expect(drafts.map((draft) => draft.title)).toEqual(["local title"]);
+        expect(live().title).toBe("Assistant title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
         expect(canvasExternalRevisionConflict(scope, "c1")).toBeUndefined();
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
         expect(attempts()).toEqual([[1, false]]);
     });
 
-    test("「使用最新版本」时草稿没存成：不替换本地内容，冲突和候选都保留", async () => {
+    test("The draft is not saved when \"Use the latest version\": local content is not replaced, and conflicts and candidates are retained.", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { title: "本地标题" });
-        externalWrite((doc) => ({ ...doc, title: "助手标题" }));
+        useCanvasStore.getState().updateProject("c1", { title: "local title" });
+        externalWrite((doc) => ({ ...doc, title: "Assistant title" }));
         await refreshLocalCanvasProjectIfChanged("c1");
-        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("助手标题");
+        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("Assistant title");
 
         draftFailure = true;
-        await expect(acceptExternalCanvasRevision("c1")).rejects.toThrow("草稿");
-        expect(live().title).toBe("本地标题");
+        await expect(acceptExternalCanvasRevision("c1")).rejects.toThrow("draft");
+        expect(live().title).toBe("local title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(true);
-        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("助手标题");
+        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("Assistant title");
         expect((await loadCanvasOperationJournal("c1", scope)).confirmedRevision).toBe(1);
     });
 
-    test("合并后重试仍被拒：不再重试，暂停等待处理；之后的轮询把最新服务端版本留作候选", async () => {
+    test("Retry after merging is still rejected: no more retries, paused and waiting for processing; subsequent polling will keep the latest server version as a candidate", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "帮我加一个镜头")] as never });
-        server.beforeCommit.push(() => externalWrite(addNode("n2", "助手加的镜头")), () => externalWrite(addNode("n3", "又加一个")));
+        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "Help me add a lens")] as never });
+        server.beforeCommit.push(() => externalWrite(addNode("n2", "Lenses added by the assistant")), () => externalWrite(addNode("n3", "Add one more")));
 
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
 
@@ -367,14 +367,14 @@ describe("服务端写入与本地自动保存交错", () => {
         expect(attempts()).toHaveLength(2);
     });
 
-    test("会话内在途提交结果未知时服务端被改：刷新不暂停，先重放原操作，被拒后合并再提交", async () => {
+    test("The server is modified when the result of an in-transit submission in the session is unknown: the refresh is not paused, the original operation is replayed first, and then merged and submitted again after rejection.", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "帮我加一个镜头")] as never });
+        useCanvasStore.getState().updateProject("c1", { chatSessions: [chat("s1", "Help me add a lens")] as never });
         server.failNext = { status: 503 };
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
         const lostOp = (await loadCanvasOperationJournal("c1", scope)).inFlight?.operationId;
         expect(lostOp).toBeTruthy();
-        externalWrite(addNode("n2", "助手加的镜头"));
+        externalWrite(addNode("n2", "Lenses added by the assistant"));
 
         await refreshLocalCanvasProjectIfChanged("c1");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
@@ -387,10 +387,10 @@ describe("服务端写入与本地自动保存交错", () => {
         expect((await loadCanvasOperationJournal("c1", scope)).inFlight).toBeNull();
     });
 
-    test("未知提交被拒后使用新确认快照，不能把旧成功媒体写回远端 loading 节点", async () => {
-        const original = { ...shot("n1", "原图"), type: "image", metadata: { taskId: "task-1", status: "success", content: "media-a", storageKey: "resource:old" } };
+    test("After the unknown submission is rejected, a new confirmation snapshot is used, and the old successful media cannot be written back to the remote loading node.", async () => {
+        const original = { ...shot("n1", "Original picture"), type: "image", metadata: { taskId: "task-1", status: "success", content: "media-a", storageKey: "resource:old" } };
         await seedConfirmed(canvas(1, { nodes: [original] }));
-        useCanvasStore.getState().updateProject("c1", { title: "本地标题" });
+        useCanvasStore.getState().updateProject("c1", { title: "local title" });
         server.failNext = { status: 503 };
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
         const originalOperation = (await loadCanvasOperationJournal("c1", scope)).inFlight?.operationId;
@@ -399,7 +399,7 @@ describe("服务端写入与本地自动保存交错", () => {
         await syncLocalCanvasProjectToBackend("c1");
 
         expect(server.attempts.map((attempt) => [attempt.opId === originalOperation, attempt.expectedRevision, attempt.accepted])).toEqual([[true, 1, false], [false, 2, true]]);
-        expect(server.document?.title).toBe("本地标题");
+        expect(server.document?.title).toBe("local title");
         const saved = server.document!.nodes[0] as typeof original;
         expect(saved.metadata.status).toBe("loading");
         expect(saved.metadata.content).toBe("");
@@ -408,32 +408,32 @@ describe("服务端写入与本地自动保存交错", () => {
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
     });
 
-    test("提交回执之后才返回的旧 GET 不会退回已确认版本，也不会制造冲突", async () => {
+    test("Old GETs returned after the receipt has been submitted will not fall back to the confirmed version and will not create conflicts", async () => {
         await seedConfirmed(canvas(1));
         let releaseGet = () => {};
         server.getHold = new Promise<void>((resolve) => { releaseGet = resolve; });
         const refreshing = refreshLocalCanvasProjectIfChanged("c1");
         await waitFor(() => server.gets === 1);
 
-        useCanvasStore.getState().updateProject("c1", { title: "本地标题" });
+        useCanvasStore.getState().updateProject("c1", { title: "local title" });
         await syncLocalCanvasProjectToBackend("c1");
         releaseGet();
 
         expect(await refreshing).toBeUndefined();
         const journal = await loadCanvasOperationJournal("c1", scope);
         expect(journal.confirmedRevision).toBe(2);
-        expect(journal.confirmedSnapshot?.title).toBe("本地标题");
-        expect(live().title).toBe("本地标题");
+        expect(journal.confirmedSnapshot?.title).toBe("local title");
+        expect(live().title).toBe("local title");
         expect(canvasExternalRevisionConflict(scope, "c1")).toBeUndefined();
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
     });
 });
 
-describe("重载后恢复", () => {
-    test("在途提交没落到服务端、服务端又被助手改过：打开不暂停，重放被拒后合并保存", async () => {
+describe("Recover after reloading", () => {
+    test("The submission in transit did not reach the server, and the server was modified by the assistant: it was opened without pausing, and the replay was rejected and then merged and saved.", async () => {
         await seedConfirmed(canvas(1));
-        const draft = canvas(1, { chatSessions: [chat("s1", "帮我加一个镜头")] });
+        const draft = canvas(1, { chatSessions: [chat("s1", "Help me add a lens")] });
         await saveCanvasOperationJournal({
             userScope: scope,
             canvasId: "c1",
@@ -442,7 +442,7 @@ describe("重载后恢复", () => {
             inFlight: { operationId: "op-lost", expectedRevision: 1, payload: { canvasId: "c1", expectedRevision: 1, document: draft as never } },
             pendingProjection: null,
         });
-        externalWrite(addNode("n2", "助手加的镜头"));
+        externalWrite(addNode("n2", "Lenses added by the assistant"));
         reloadWith(draft);
 
         const opened = await openLocalCanvasProjectFromBackend("c1");
@@ -459,9 +459,9 @@ describe("重载后恢复", () => {
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
     });
 
-    test("在途提交其实已落到服务端：重放拿到原回执，不另开 revision", async () => {
+    test("Submit in transit has actually fallen to the server: replay will get the original receipt and no new revision will be opened.", async () => {
         await seedConfirmed(canvas(1));
-        const draft = canvas(1, { title: "已提交的标题" });
+        const draft = canvas(1, { title: "Submitted title" });
         await saveCanvasOperationJournal({
             userScope: scope,
             canvasId: "c1",
@@ -483,14 +483,14 @@ describe("重载后恢复", () => {
         const journal = await loadCanvasOperationJournal("c1", scope);
         expect(journal.inFlight).toBeNull();
         expect(journal.confirmedRevision).toBe(2);
-        expect(live().title).toBe("已提交的标题");
+        expect(live().title).toBe("Submitted title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
     });
 
-    test("未保存的聊天修改与服务端新节点互不相关：打开时合并，不暂停，下一次保存带上两边", async () => {
+    test("Unsaved chat modifications are not related to new nodes on the server side: they are merged when opened, without pausing, and both sides are included in the next save.", async () => {
         await seedConfirmed(canvas(1));
-        externalWrite(addNode("n2", "助手加的镜头"));
-        reloadWith(canvas(1, { chatSessions: [chat("s1", "帮我加一个镜头")] }));
+        externalWrite(addNode("n2", "Lenses added by the assistant"));
+        reloadWith(canvas(1, { chatSessions: [chat("s1", "Help me add a lens")] }));
 
         const opened = await openLocalCanvasProjectFromBackend("c1");
         expect(ids(opened?.nodes)).toEqual(["n1", "n2"]);
@@ -503,47 +503,47 @@ describe("重载后恢复", () => {
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
     });
 
-    test("本地缓存改了节点标题、日记停在旧版本、服务端新增连线：打开时合并，保存不覆盖服务端连线", async () => {
-        const nodes = [shot("n0", "镜头零"), shot("n1", "镜头一")];
+    test("The local cache changed the node title, the journal stopped at the old version, and the server added a new connection: merged when opening, saving does not overwrite the server connection.", async () => {
+        const nodes = [shot("n0", "shot zero"), shot("n1", "Shot 1")];
         await seedConfirmed(canvas(105, { nodes }));
         server.revision = 111;
         server.document = canvas(111, { nodes, connections: [{ id: "e0", fromNodeId: "n0", toNodeId: "n1" }] });
-        reloadWith(canvas(105, { nodes: [{ ...nodes[0], title: "未保存的标题" }, nodes[1]] }));
+        reloadWith(canvas(105, { nodes: [{ ...nodes[0], title: "Unsaved title" }, nodes[1]] }));
         // The journal survives reload: only process memory was lost.
         await saveCanvasOperationJournal({ userScope: scope, canvasId: "c1", confirmedRevision: 105, confirmedSnapshot: canvas(105, { nodes }) as never, inFlight: null, pendingProjection: null });
 
         const opened = await openLocalCanvasProjectFromBackend("c1");
         expect(ids(opened?.connections as never)).toEqual(["e0"]);
-        expect((opened?.nodes as Array<{ title: string }>)[0].title).toBe("未保存的标题");
+        expect((opened?.nodes as Array<{ title: string }>)[0].title).toBe("Unsaved title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
 
         await syncLocalCanvasProjectToBackend("c1");
         expect(attempts()).toEqual([[111, true]]);
         expect(ids(server.document!.connections as never)).toEqual(["e0"]);
-        expect((server.document!.nodes as Array<{ title: string }>)[0].title).toBe("未保存的标题");
+        expect((server.document!.nodes as Array<{ title: string }>)[0].title).toBe("Unsaved title");
     });
 
-    test("本地和服务端改了同一字段：打开时保留本地内容，服务端版本留作候选并暂停，不覆盖任何一边", async () => {
+    test("The same field has been changed on the local and server side: the local content is retained when opening, the server version is left as a candidate and paused, and neither side is covered.", async () => {
         await seedConfirmed(canvas(1));
-        externalWrite((doc) => ({ ...doc, title: "助手标题" }));
-        reloadWith(canvas(1, { title: "本地标题" }));
+        externalWrite((doc) => ({ ...doc, title: "Assistant title" }));
+        reloadWith(canvas(1, { title: "local title" }));
 
         const opened = await openLocalCanvasProjectFromBackend("c1");
-        expect(opened?.title).toBe("本地标题");
-        expect(live().title).toBe("本地标题");
+        expect(opened?.title).toBe("local title");
+        expect(live().title).toBe("local title");
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(true);
-        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("助手标题");
+        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("Assistant title");
 
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toBeInstanceOf(CanvasBackendSubmitPausedError);
         expect(server.attempts).toEqual([]);
-        expect(server.document!.title).toBe("助手标题");
+        expect(server.document!.title).toBe("Assistant title");
     });
 });
 
-describe("本地保存状态", () => {
-    test("等待、保存中、已保存、失败都如实写进进度", async () => {
+describe("Save state locally", () => {
+    test("Waiting, saving, saved, and failed are all written into the progress truthfully.", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { title: "第一次" });
+        useCanvasStore.getState().updateProject("c1", { title: "first time" });
         let release = () => {};
         server.commitHold = new Promise<void>((resolve) => { release = resolve; });
 
@@ -556,20 +556,20 @@ describe("本地保存状态", () => {
         expect(projectSyncProgress("c1", scope)?.phase).toBe("done");
 
         server.commitHold = null;
-        useCanvasStore.getState().updateProject("c1", { title: "第二次" });
+        useCanvasStore.getState().updateProject("c1", { title: "second time" });
         server.failNext = { status: 503 };
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
         expect(projectSyncProgress("c1", scope)?.phase).toBe("error");
 
         await syncLocalCanvasProjectToBackend("c1");
         expect(projectSyncProgress("c1", scope)?.phase).toBe("done");
-        expect(server.document!.title).toBe("第二次");
+        expect(server.document!.title).toBe("second time");
     });
 
-    test("冲突暂停期间的保存尝试不会把状态改回保存中或已保存", async () => {
+    test("Save attempts during conflict pause do not change status back to Saving or Saved", async () => {
         await seedConfirmed(canvas(1));
-        useCanvasStore.getState().updateProject("c1", { title: "本地标题" });
-        externalWrite((doc) => ({ ...doc, title: "助手标题" }));
+        useCanvasStore.getState().updateProject("c1", { title: "local title" });
+        externalWrite((doc) => ({ ...doc, title: "Assistant title" }));
         await refreshLocalCanvasProjectIfChanged("c1");
         expect(projectSyncProgress("c1", scope)?.phase).toBe("conflict");
 

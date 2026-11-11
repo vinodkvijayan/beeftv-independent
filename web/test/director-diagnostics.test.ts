@@ -11,7 +11,7 @@ const LEAK_PROBES = [
     "cookie=session=deadbeef; Path=/",
     "api_key=sk-live-0000",
     "Error: adopt failed\n    at DirectorModel (director-viewport.tsx:571:29)",
-    "演员 1 的镜头意图正文",
+    "Actor 1’s shot intention text",
     "/private/example/secret/path/scene.glb",
 ];
 
@@ -19,8 +19,8 @@ function serialize(value: unknown) {
     return JSON.stringify(value ?? {});
 }
 
-describe("code 白名单", () => {
-    test("白名单内的 code 全部被接受且有稳定文案与级别", () => {
+describe("code whitelist", () => {
+    test("All codes in the whitelist are accepted and have stable copywriting and levels.", () => {
         for (const code of DIRECTOR_DIAGNOSTIC_CODES) {
             expect(isDirectorDiagnosticCode(code)).toBe(true);
             const event = projectDirectorDiagnostic(code, {});
@@ -31,7 +31,7 @@ describe("code 白名单", () => {
         }
     });
 
-    test("未知 code 一律拒绝，不透传", () => {
+    test("Unknown codes will be rejected and will not be transmitted transparently.", () => {
         const rejected = ["", "director_viewport_render_failed", "DIRECTOR_UNKNOWN", "SOME_OTHER_CODE", "DIRECTOR_VIEWPORT_RENDER_FAILED ", null, undefined, 42, {}, []];
         for (const code of rejected) {
             expect(isDirectorDiagnosticCode(code)).toBe(false);
@@ -40,25 +40,25 @@ describe("code 白名单", () => {
     });
 });
 
-describe("字段白名单", () => {
-    test("未知字段不会出现在输出中", () => {
+describe("Field whitelist", () => {
+    test("Unknown fields do not appear in the output", () => {
         const event = projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", {
             objectId: "obj-1",
-            sceneName: "演员 1 场景",
+            sceneName: "Actor 1 scene",
             url: "https://cdn.example.com/a.glb",
             stack: "Error: boom\n at x",
-            prompt: "镜头意图正文",
+            prompt: "Lens intention text",
             storageKey: "assets/secret.glb",
             token: "sk-live-0000",
         });
 
         expect(event?.fields).toEqual({ objectId: "obj-1" });
         expect(serialize(event)).not.toContain("cdn.example.com");
-        expect(serialize(event)).not.toContain("镜头意图正文");
+        expect(serialize(event)).not.toContain("Lens intention text");
         expect(serialize(event)).not.toContain("sk-live-0000");
     });
 
-    test("伪造的敏感输入无法通过任一字段进入输出", () => {
+    test("Fake sensitive input cannot enter the output via either field", () => {
         for (const probe of LEAK_PROBES) {
             const event = projectDirectorDiagnostic("DIRECTOR_SAVE_FLUSH_FAILED", {
                 objectId: probe,
@@ -79,25 +79,25 @@ describe("字段白名单", () => {
             expect(text).not.toContain("token");
             expect(text).not.toContain("cookie");
             expect(text).not.toContain("Bearer");
-            expect(text).not.toContain("演员");
+            expect(text).not.toContain("actor");
         }
     });
 
-    test("safe-id 只接受受限字符集", () => {
+    test("safe-id only accepts restricted character sets", () => {
         expect(projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: "obj-1_a.b:c" })?.fields.objectId).toBe("obj-1_a.b:c");
         for (const bad of ["obj 1", "obj/1", "obj?1", "obj#1", "a".repeat(97), "", "  ", "obj\n1", "obj%201"]) {
             expect(projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: bad })?.fields.objectId).toBeUndefined();
         }
     });
 
-    test("枚举字段只接受白名单值", () => {
+    test("Enum fields only accept whitelist values", () => {
         expect(projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectKind: "actor" })?.fields.objectKind).toBe("actor");
         expect(projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectKind: "spaceship" })?.fields.objectKind).toBeUndefined();
         expect(projectDirectorDiagnostic("DIRECTOR_CLOSE_BLOCKED", { saveOutcome: "stay" })?.fields.saveOutcome).toBe("stay");
         expect(projectDirectorDiagnostic("DIRECTOR_CLOSE_BLOCKED", { saveOutcome: "explode" })?.fields.saveOutcome).toBeUndefined();
     });
 
-    test("数值字段有界且拒绝非有限值", () => {
+    test("Numeric fields are bounded and non-finite values are rejected", () => {
         expect(projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_RETRY", { attempt: 3 })?.fields.attempt).toBe(3);
         expect(projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_RETRY", { attempt: 2.6 })?.fields.attempt).toBe(3);
         for (const bad of [-1, 1000, Number.NaN, Number.POSITIVE_INFINITY, "3", null]) {
@@ -107,7 +107,7 @@ describe("字段白名单", () => {
         expect(projectDirectorDiagnostic("DIRECTOR_SAVE_FLUSH_FAILED", { revision: -1 })?.fields.revision).toBeUndefined();
     });
 
-    test("布尔字段只接受真布尔", () => {
+    test("Boolean fields only accept true booleans", () => {
         expect(projectDirectorDiagnostic("DIRECTOR_SAVE_RETRY_FAILED", { draftStored: false })?.fields.draftStored).toBe(false);
         expect(projectDirectorDiagnostic("DIRECTOR_SAVE_RETRY_FAILED", { draftStored: true })?.fields.draftStored).toBe(true);
         for (const bad of ["true", 1, 0, null, {}]) {
@@ -115,7 +115,7 @@ describe("字段白名单", () => {
         }
     });
 
-    test("非对象 fields 不抛错且产出空字段", () => {
+    test("Non-object fields do not throw an error and produce empty fields", () => {
         for (const fields of [null, undefined, 42, "objectId=1", [1, 2, 3]]) {
             const event = projectDirectorDiagnostic("DIRECTOR_VIEWPORT_CONTEXT_LOST", fields);
             expect(event?.fields).toEqual({});
@@ -123,8 +123,8 @@ describe("字段白名单", () => {
     });
 });
 
-describe("稳定码格式化", () => {
-    test("只拼接安全枚举与数值", () => {
+describe("Stable code formatting", () => {
+    test("Only concatenate safe enums and numbers", () => {
         const event = projectDirectorDiagnostic("DIRECTOR_SAVE_RETRY_FAILED", { sceneId: "scene-1", revision: 4, draftStored: true, userInitiated: true });
         expect(event).not.toBeNull();
         if (!event) return;
@@ -134,14 +134,14 @@ describe("稳定码格式化", () => {
         expect(formatted.startsWith("DIRECTOR_")).toBe(true);
     });
 
-    test("scene 与 object 后缀都进入 code，顺序确定", () => {
+    test("Both scene and object suffixes enter the code, and the order is determined.", () => {
         const event = projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { sceneId: "scene-1", objectId: "obj-9", objectKind: "model", attempt: 2 });
         expect(event).not.toBeNull();
         if (!event) return;
         expect(formatDirectorDiagnosticCode(event)).toBe("DIRECTOR_MODEL_LOAD_FAILED scene=scene-1 object=obj-9 kind=model attempt=2");
     });
 
-    test("不同 objectId / sceneId 产出不同签名", () => {
+    test("Different objectId / sceneId produce different signatures", () => {
         const a = projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: "obj-1" });
         const b = projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: "obj-2" });
         const c = projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { sceneId: "scene-1" });
@@ -152,7 +152,7 @@ describe("稳定码格式化", () => {
         expect(new Set(signatures).size).toBe(4);
     });
 
-    test("非法 id 不进入 code 后缀", () => {
+    test("Illegal ids do not enter the code suffix", () => {
         for (const bad of ["https://cdn.example.com/a.glb?token=abc", "obj 1", "obj/1", "a".repeat(97)]) {
             const event = projectDirectorDiagnostic("DIRECTOR_MODEL_LOAD_FAILED", { objectId: bad, sceneId: bad });
             expect(event).not.toBeNull();
@@ -165,7 +165,7 @@ describe("稳定码格式化", () => {
         }
     });
 
-    test("无字段时只有 code 本身", () => {
+    test("When there is no field, only the code itself", () => {
         const event = projectDirectorDiagnostic("DIRECTOR_VIEWPORT_RENDER_FAILED", {});
         expect(event).not.toBeNull();
         if (!event) return;
@@ -173,8 +173,8 @@ describe("稳定码格式化", () => {
     });
 });
 
-describe("对象种类推导", () => {
-    test("按形态映射，不读取名称或地址", () => {
+describe("Object type derivation", () => {
+    test("Mapping by shape, does not read names or addresses", () => {
         expect(directorDiagnosticObjectKind({ kind: "actor" })).toBe("actor");
         expect(directorDiagnosticObjectKind({ kind: "model" })).toBe("model");
         expect(directorDiagnosticObjectKind({ kind: "billboard" })).toBe("billboard");

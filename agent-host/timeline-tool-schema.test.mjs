@@ -22,8 +22,8 @@ test('timeline model schema keeps inputs and required revision without endpoint-
   // The two modes are declared as properties; their exclusive-or is enforced by the Go handler.
   for (const key of ['oneOf', 'anyOf', 'allOf']) assert.equal(before[key], undefined);
   assert.match(before.description, /timeline 与 refreshNodeIds 必须且只能提供一个/);
-  const described = scopedSchema({ ...descriptor.params, description: '保留草稿版本说明' }, false, descriptor.id);
-  assert.equal(described.description, '保留草稿版本说明');
+  const described = scopedSchema({ ...descriptor.params, description: 'Keep draft release notes' }, false, descriptor.id);
+  assert.equal(described.description, 'Keep draft release notes');
 });
 
 test('delivery composition retains compatible standalone update schema and complete delivery timeline', async () => {

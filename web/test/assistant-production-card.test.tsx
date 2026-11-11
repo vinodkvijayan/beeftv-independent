@@ -7,13 +7,13 @@ import type { AssistantGenerationProposal, AssistantScriptProposal, AssistantTur
 const proposal: AssistantGenerationProposal = {
     proposalId:"gp-film",kind:"image",nodeIds:["frame"],model:"image",modelKey:"custom::image",
     production:{targets:[
-        {nodeId:"frame",title:"首帧",kind:"image",modelKey:"custom::image",prompt:"晨光洒进花店",parameters:{size:"9:16",count:"1"},referenceNodeIds:[]},
-        {nodeId:"speech",title:"中文旁白",kind:"audio",modelKey:"custom::speech",prompt:"把春天带回家。",parameters:{audioVoice:"female-tianmei",audioSpeed:"1",audioFormat:"mp3"},referenceNodeIds:[]},
-    ],estimate:{amount:0,priced:0,unknown:2,text:"预计费用：暂无价格，按所选渠道实际计费"}},source:{canvasId:"canvas",canvasRevision:1,modelConfigRevision:1},
+        {nodeId:"frame",title:"first frame",kind:"image",modelKey:"custom::image",prompt:"Morning light shines into the flower shop",parameters:{size:"9:16",count:"1"},referenceNodeIds:[]},
+        {nodeId:"speech",title:"Chinese narration",kind:"audio",modelKey:"custom::speech",prompt:"Bring spring home.",parameters:{audioVoice:"female-tianmei",audioSpeed:"1",audioFormat:"mp3"},referenceNodeIds:[]},
+    ],estimate:{amount:0,priced:0,unknown:2,text:"Estimated cost: No price yet, actual billing will be based on the selected channel"}},source:{canvasId:"canvas",canvasRevision:1,modelConfigRevision:1},
 };
 test("confirmation shows the paid text, voice, aspect ratio and quantity",()=>{
     const text=assistantProposalText(proposal);
-    for(const expected of ["晨光洒进花店","把春天带回家。","female-tianmei","9:16","1 个","预计费用","重新计费"]) expect(text).toContain(expected);
+    for(const expected of ["Morning light shines into the flower shop","Bring spring home.","female-tianmei","9:16","1","Estimated cost","Rebill"]) expect(text).toContain(expected);
     const progress=assistantProposalProgress(proposal,[]);
     expect(progress.ready).toBe(false);
     expect(progress.text).toContain("0/2");
@@ -27,30 +27,30 @@ test("production confirmation shows the backend estimate for each shot and the t
         modelKey: "beeftv::gpt-image-2",
         production: {
             targets: [
-                { nodeId: "img-1", title: "分镜1-首帧图", kind: "image", modelKey: "beeftv::gpt-image-2", prompt: "镜头1首帧", parameters: { size: "16:9", count: "1" }, referenceNodeIds: [],
-                    estimate: { amount: 0.35, basis: "1K 低质量 ¥0.35/张 × 1 张", text: "预计 ¥0.35（1K 低质量 ¥0.35/张 × 1 张）" } },
-                { nodeId: "vid-1", title: "分镜1-6s视频", kind: "video", modelKey: "beeftv::seedance-2.0", prompt: "镜头1视频", parameters: { vquality: "720p", seconds: "6", count: "1" }, referenceNodeIds: ["img-1"],
-                    estimate: { amount: 5.9616, approx: true, basis: "720p ¥0.9936/秒 × 6 秒，按 Token 折算", text: "约 ¥5.96（720p ¥0.9936/秒 × 6 秒，按 Token 折算）" } },
-                { nodeId: "tts-1", title: "旁白1", kind: "audio", modelKey: "byok::speech", prompt: "旁白台词", parameters: { count: "1" }, referenceNodeIds: [],
-                    estimate: { amount: null, basis: "自带 Key 的渠道暂无价格，按该渠道实际计费", text: "自带 Key 的渠道暂无价格，按该渠道实际计费" } },
+                { nodeId: "img-1", title: "Storyboard 1-First frame", kind: "image", modelKey: "beeftv::gpt-image-2", prompt: "Shot 1 first frame", parameters: { size: "16:9", count: "1" }, referenceNodeIds: [],
+                    estimate: { amount: 0.35, basis: "1K low quality ¥0.35/sheet × 1 sheet", text: "Estimated ¥0.35 (1K low quality ¥0.35/photo × 1 photo)" } },
+                { nodeId: "vid-1", title: "Storyboard 1-6s video", kind: "video", modelKey: "beeftv::seedance-2.0", prompt: "Lens 1 video", parameters: { vquality: "720p", seconds: "6", count: "1" }, referenceNodeIds: ["img-1"],
+                    estimate: { amount: 5.9616, approx: true, basis: "720p ¥0.9936/second × 6 seconds, converted by Token", text: "About ¥5.96 (720p ¥0.9936/second × 6 seconds, converted by Token)" } },
+                { nodeId: "tts-1", title: "Narrator 1", kind: "audio", modelKey: "byok::speech", prompt: "Narration lines", parameters: { count: "1" }, referenceNodeIds: [],
+                    estimate: { amount: null, basis: "There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel.", text: "There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel." } },
             ],
-            estimate: { amount: 6.3116, priced: 2, unknown: 1, approx: true, text: "预计费用：已知部分约 ¥6.31，另有 1 项暂无价格" },
+            estimate: { amount: 6.3116, priced: 2, unknown: 1, approx: true, text: "Estimated cost: The known part is about ¥6.31, and there is another item with no price yet." },
         },
         source: { canvasId: "canvas", canvasRevision: 1, modelConfigRevision: 1 },
     };
     const text = assistantProposalText(fullProposal);
-    expect(text).toContain("整片制作方案：1 张图片、1 段视频、1 段配音\n预计费用：已知部分约 ¥6.31，另有 1 项暂无价格");
-    expect(text).toContain("费用：约 ¥5.96（720p ¥0.9936/秒 × 6 秒，按 Token 折算）");
-    expect(text).toContain("费用：自带 Key 的渠道暂无价格，按该渠道实际计费");
+    expect(text).toContain("Whole film production plan: 1 picture, 1 video, 1 dubbing\nEstimated cost: The known part is about ¥6.31, and there is another item with no price yet.");
+    expect(text).toContain("Cost: About ¥5.96 (720p ¥0.9936/second × 6 seconds, converted by Token)");
+    expect(text).toContain("Cost: There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel.");
     const submitted = assistantProposalText(fullProposal, [], false);
-    expect(submitted).not.toContain("费用");
+    expect(submitted).not.toContain("cost");
 });
 test("proposal card reflects started progress when Pi confirms and admits tasks on canvas nodes",()=>{
     const turn: AssistantTurn = {
         turnId: "turn-1",
-        userText: "开始制作",
+        userText: "Start making",
         selectedNodeIds: [],
-        reply: "请确认方案",
+        reply: "Please confirm the plan",
         toolCalls: [],
         change: null,
         error: null,
@@ -66,7 +66,7 @@ test("proposal card reflects started progress when Pi confirms and admits tasks 
             nodes={[{
                 id: "frame",
                 type: "image",
-                title: "首帧",
+                title: "first frame",
                 x: 0,
                 y: 0,
                 width: 320,
@@ -83,23 +83,23 @@ test("proposal card reflects started progress when Pi confirms and admits tasks 
             onDismissProposal={() => {}}
         />,
     );
-    expect(html).not.toContain("已失效");
-    expect(html).toContain("生成中，0/2 个结果已就绪。");
+    expect(html).not.toContain("Expired");
+    expect(html).toContain("Building, 0/2 results are ready.");
 });
 test("started production does not ask the user to manually continue the next step",()=>{
-    const turn:AssistantTurn={turnId:"film",userText:"做短片",selectedNodeIds:[],reply:"",toolCalls:[],change:null,error:null,cancelled:false,createdAt:"2026-10-19",proposals:[proposal]};
+    const turn:AssistantTurn={turnId:"film",userText:"make short film",selectedNodeIds:[],reply:"",toolCalls:[],change:null,error:null,cancelled:false,createdAt:"2026-10-19",proposals:[proposal]};
     const html=renderToStaticMarkup(<CanvasAssistantTurnView turn={turn} handledProposals={new Set([proposal.proposalId])} nodes={[]}
         onLocate={()=>{}} onUndo={()=>{}} onRunProposal={()=>{}} onDismissProposal={()=>{}} onCheckResults={()=>{}} />);
-    expect(html).not.toContain("填入检查要求");
-    expect(html).not.toContain(">检查结果<");
+    expect(html).not.toContain("Fill in the inspection requirements");
+    expect(html).not.toContain(">Check results<");
     expect(html).toContain("0/2");
 });
 test("production proposal card collapses per-item target details by default while keeping overview and confirm action visible",()=>{
     const turn: AssistantTurn = {
         turnId: "turn-collapsed",
-        userText: "做一支花店短片",
+        userText: "Make a flower shop short film",
         selectedNodeIds: [],
-        reply: "已为你准备好花店短片方案。",
+        reply: "The flower shop short film project has been prepared for you.",
         toolCalls: [],
         change: null,
         error: null,
@@ -118,16 +118,16 @@ test("production proposal card collapses per-item target details by default whil
             onDismissProposal={() => {}}
         />,
     );
-    expect(html).toContain("已为你准备好花店短片方案。");
-    expect(html).toContain("整片制作方案：1 张图片、0 段视频、1 段配音");
-    expect(html).toContain("<details class=\"canvas-assistant-proposal-details\"><summary>查看 2 项镜头与提示词明细</summary>");
+    expect(html).toContain("The flower shop short film project has been prepared for you.");
+    expect(html).toContain("Entire film production plan: 1 picture, 0 videos, 1 dubbing");
+    expect(html).toContain("<details class=\"canvas-assistant-proposal-details\"><summary>View 2 lens and prompt word details</summary>");
     expect(html).not.toContain("<details open");
-    expect(html).toContain("确认并制作整片");
+    expect(html).toContain("Confirm and make the entire film");
 });
 test("legacy proposal without turn reply shows proposal note inside the card without pretending to be a model reply",()=>{
     const turn: AssistantTurn = {
         turnId: "turn-legacy-note",
-        userText: "把首帧改成 9:16",
+        userText: "Change the first frame to 9:16",
         selectedNodeIds: [],
         reply: "",
         toolCalls: [],
@@ -135,7 +135,7 @@ test("legacy proposal without turn reply shows proposal note inside the card wit
         error: null,
         cancelled: false,
         createdAt: "2026-10-28",
-        proposals: [{ ...proposal, note: "已将首帧调整为竖屏 9:16。" }],
+        proposals: [{ ...proposal, note: "The first frame has been adjusted to portrait at 9:16." }],
     };
     const html = renderToStaticMarkup(
         <CanvasAssistantTurnView
@@ -150,7 +150,7 @@ test("legacy proposal without turn reply shows proposal note inside the card wit
     );
     expect(html).not.toContain("canvas-assistant-reply");
     expect(html).toContain("canvas-assistant-proposal-note");
-    expect(html).toContain("已将首帧调整为竖屏 9:16。");
+    expect(html).toContain("The first frame has been adjusted to portrait at 9:16.");
 });
 test("assistantProposalProgress treats retrievable failed and fetching tasks as running until ready and bound",()=>{
     const withOutcome = (meta: Record<string, unknown>) => meta as NonNullable<Parameters<typeof assistantProposalProgress>[1][number]["metadata"]>;
@@ -158,7 +158,7 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         {
             id: "frame",
             type: "image",
-            title: "首帧",
+            title: "first frame",
             position: { x: 0, y: 0 },
             width: 320,
             height: 180,
@@ -172,7 +172,7 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         {
             id: "speech",
             type: "audio",
-            title: "中文旁白",
+            title: "Chinese narration",
             position: { x: 0, y: 200 },
             width: 320,
             height: 120,
@@ -185,13 +185,13 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         },
     ]);
     expect(inFlight.ready).toBe(false);
-    expect(inFlight.text).toBe("生成中，0/2 个结果已就绪。");
+    expect(inFlight.text).toBe("Building, 0/2 results are ready.");
 
     const allReady = assistantProposalProgress(proposal, [
         {
             id: "frame",
             type: "image",
-            title: "首帧",
+            title: "first frame",
             position: { x: 0, y: 0 },
             width: 320,
             height: 180,
@@ -206,7 +206,7 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         {
             id: "speech",
             type: "audio",
-            title: "中文旁白",
+            title: "Chinese narration",
             position: { x: 0, y: 200 },
             width: 320,
             height: 120,
@@ -220,13 +220,13 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         },
     ]);
     expect(allReady.ready).toBe(true);
-    expect(allReady.text).toContain("2 个素材已保存");
+    expect(allReady.text).toContain("2 clips saved");
 
     const settledWithFailure = assistantProposalProgress(proposal, [
         {
             id: "frame",
             type: "image",
-            title: "首帧",
+            title: "first frame",
             position: { x: 0, y: 0 },
             width: 320,
             height: 180,
@@ -240,7 +240,7 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         {
             id: "speech",
             type: "audio",
-            title: "中文旁白",
+            title: "Chinese narration",
             position: { x: 0, y: 200 },
             width: 320,
             height: 120,
@@ -254,7 +254,7 @@ test("assistantProposalProgress treats retrievable failed and fetching tasks as 
         },
     ]);
     expect(settledWithFailure.ready).toBe(true);
-    expect(settledWithFailure.text).toBe("1 个结果已就绪，1 个结果因任务失败或取消而未生成。");
+    expect(settledWithFailure.text).toBe("1 result is ready, 1 result was not generated due to task failure or cancellation.");
 });
 
 test("ordinary proposal with generation order targets renders collapsible order details", () => {
@@ -266,27 +266,27 @@ test("ordinary proposal with generation order targets renders collapsible order 
         model: "gpt-image-1.5",
         modelKey: "beeftv::gpt-image-1.5",
         pricing: "unknown",
-        estimate: { amount: 0, priced: 0, unknown: 1, text: "预计费用：暂无价格，按所选渠道实际计费" },
+        estimate: { amount: 0, priced: 0, unknown: 1, text: "Estimated cost: No price yet, actual billing will be based on the selected channel" },
         approvalMode: "ask",
         status: "pending",
         targets: [{
             nodeId: "shot-1",
-            title: "镜头1",
+            title: "Shot 1",
             kind: "image",
             model: "gpt-image-1.5",
             modelKey: "beeftv::gpt-image-1.5",
             pricing: "unknown",
-            estimate: { amount: null, basis: "自带 Key 的渠道暂无价格，按该渠道实际计费", text: "自带 Key 的渠道暂无价格，按该渠道实际计费" },
-            prompt: "雨夜霓虹街角，主角回头",
+            estimate: { amount: null, basis: "There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel.", text: "There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel." },
+            prompt: "On a neon street corner on a rainy night, the protagonist looks back",
             parameters: { size: "16:9", count: "1" },
             referenceNodeIds: [],
         }],
     };
     const turn: AssistantTurn = {
         turnId: "turn-order-1",
-        userText: "生成镜头1的首帧",
+        userText: "Generate the first frame of shot 1",
         selectedNodeIds: ["shot-1"],
-        reply: "已开出生成单，请确认。",
+        reply: "A generated order has been issued, please confirm.",
         toolCalls: [],
         change: null,
         error: null,
@@ -305,10 +305,10 @@ test("ordinary proposal with generation order targets renders collapsible order 
             onDismissProposal={() => {}}
         />,
     );
-    expect(html).toContain("<details class=\"canvas-assistant-proposal-details\"><summary>查看 1 项生成单明细</summary>");
-    expect(html).toContain("雨夜霓虹街角，主角回头");
-    expect(html).toContain("预计费用：暂无价格，按所选渠道实际计费");
-    expect(html).toContain("费用：自带 Key 的渠道暂无价格，按该渠道实际计费");
+    expect(html).toContain("<details class=\"canvas-assistant-proposal-details\"><summary>View 1 generation order details</summary>");
+    expect(html).toContain("On a neon street corner on a rainy night, the protagonist looks back");
+    expect(html).toContain("Estimated cost: No price yet, actual billing will be based on the selected channel");
+    expect(html).toContain("Cost: There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel.");
     const invalidated = renderToStaticMarkup(
         <CanvasAssistantTurnView
             turn={{ ...turn, proposalsInvalidated: true }}
@@ -320,8 +320,8 @@ test("ordinary proposal with generation order targets renders collapsible order 
             onDismissProposal={() => {}}
         />,
     );
-    expect(invalidated).toContain("雨夜霓虹街角，主角回头");
-    expect(invalidated).not.toContain("费用：");
+    expect(invalidated).toContain("On a neon street corner on a rainy night, the protagonist looks back");
+    expect(invalidated).not.toContain("Fees:");
     expect(html).toContain("canvas-assistant-proposal-lines");
     expect(html).not.toContain("white-space:pre-line");
 });
@@ -332,7 +332,7 @@ test("skill script proposal card renders confirmation actions and collapsible ou
         turnId: "turn-script-1",
         canvasId: "canvas-1",
         skillId: "audio-skill",
-        skillName: "声音审片",
+        skillName: "sound review",
         versionId: "v1",
         version: "1.0",
         contentHash: "a".repeat(64),
@@ -340,14 +340,14 @@ test("skill script proposal card renders confirmation actions and collapsible ou
         interpreter: "python3",
         args: ["--check", "shot-1"],
         timeoutSec: 120,
-        note: "检查第一镜音频静音区间",
+        note: "Check the audio silence interval in the first scene",
         status: "pending",
     };
     const pendingTurn: AssistantTurn = {
         turnId: "turn-script-1",
-        userText: "检查声音",
+        userText: "check sound",
         selectedNodeIds: [],
-        reply: "请确认运行声音检查脚本。",
+        reply: "Please make sure to run the sound check script.",
         toolCalls: [],
         change: null,
         proposals: [],
@@ -368,14 +368,14 @@ test("skill script proposal card renders confirmation actions and collapsible ou
             onDismissProposal={() => {}}
         />,
     );
-    expect(pendingHtml).toContain("运行技能脚本 · 声音审片（1.0）");
-    expect(pendingHtml).toContain("脚本路径：scripts/listen.py");
-    expect(pendingHtml).toContain("运行方式：Python 3");
-    expect(pendingHtml).toContain("启动参数：--check shot-1");
-    expect(pendingHtml).toContain("不会修改已安装的技能文件，也不会读取你的模型密钥");
-    expect(pendingHtml).toContain("运行脚本");
-    expect(pendingHtml).toContain("本对话始终允许");
-    expect(pendingHtml).toContain("先不用");
+    expect(pendingHtml).toContain("Run skill script · Sound review (1.0)");
+    expect(pendingHtml).toContain("Script path: scripts/listen.py");
+    expect(pendingHtml).toContain("Runs as: Python 3");
+    expect(pendingHtml).toContain("Startup parameters: --check shot-1");
+    expect(pendingHtml).toContain("Installed skill files will not be modified, and your model keys will not be read");
+    expect(pendingHtml).toContain("run script");
+    expect(pendingHtml).toContain("This conversation is always allowed");
+    expect(pendingHtml).toContain("No need for now");
 
     const completedHtml = renderToStaticMarkup(
         <CanvasAssistantTurnView
@@ -389,7 +389,7 @@ test("skill script proposal card renders confirmation actions and collapsible ou
                         timedOut: false,
                         cancelled: false,
                         durationMs: 420,
-                        stdout: "检测到 00:01.20-00:01.80 停顿",
+                        stdout: "00:01.20-00:01.80 pause detected",
                         stderr: "",
                     },
                 }],
@@ -403,8 +403,8 @@ test("skill script proposal card renders confirmation actions and collapsible ou
             onDismissProposal={() => {}}
         />,
     );
-    expect(completedHtml).toContain("已完成（耗时 0.4 秒）");
-    expect(completedHtml).toContain("查看脚本输出");
-    expect(completedHtml).toContain("检测到 00:01.20-00:01.80 停顿");
-    expect(completedHtml).not.toContain("本对话始终允许");
+    expect(completedHtml).toContain("Completed (took 0.4 seconds)");
+    expect(completedHtml).toContain("View script output");
+    expect(completedHtml).toContain("00:01.20-00:01.80 pause detected");
+    expect(completedHtml).not.toContain("This conversation is always allowed");
 });

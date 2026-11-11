@@ -43,7 +43,7 @@ func ValidateStructuredStorageQuota(usage repository.UserStorageUsage, kind stri
 
 func ValidateStructuredCountQuota(usage repository.UserStorageUsage, kind string, createdCount int, deltaBytes int64, policy platform.RuntimeResourcePolicy) error {
 	if structuredBytes(usage)+deltaBytes > policy.StructuredDataMB*1024*1024 {
-		return kernel.QuotaExceeded(fmt.Sprintf("账号画布和素材数据已达到 %dMB 上限，请先删除不需要的内容", policy.StructuredDataMB))
+		return kernel.QuotaExceeded(fmt.Sprintf("The account canvas and material data have reached the upper limit of %dMB. Please delete unnecessary content first.", policy.StructuredDataMB))
 	}
 	if createdCount <= 0 {
 		return nil
@@ -51,11 +51,11 @@ func ValidateStructuredCountQuota(usage repository.UserStorageUsage, kind string
 	switch kind {
 	case "asset":
 		if usage.AssetCount+int64(createdCount) > policy.AssetCount {
-			return kernel.QuotaExceeded(fmt.Sprintf("账号素材数量已达到 %d 个上限", policy.AssetCount))
+			return kernel.QuotaExceeded(fmt.Sprintf("The number of account materials has reached the upper limit of %d", policy.AssetCount))
 		}
 	case "canvas":
 		if usage.CanvasCount+int64(createdCount) > policy.CanvasCount {
-			return kernel.QuotaExceeded(fmt.Sprintf("账号画布数量已达到 %d 个上限", policy.CanvasCount))
+			return kernel.QuotaExceeded(fmt.Sprintf("The number of account canvases has reached the upper limit of %d", policy.CanvasCount))
 		}
 	}
 	return nil
@@ -63,21 +63,21 @@ func ValidateStructuredCountQuota(usage repository.UserStorageUsage, kind string
 
 func ValidateTaskStorageQuota(usage repository.UserStorageUsage, incomingBytes int64, policy platform.RuntimeResourcePolicy) error {
 	if usage.TaskCount >= policy.TaskCount {
-		return kernel.QuotaExceeded(fmt.Sprintf("账号任务历史已达到 %d 条上限，请联系管理员归档", policy.TaskCount))
+		return kernel.QuotaExceeded(fmt.Sprintf("The account task history has reached the upper limit of %d. Please contact the administrator to archive it.", policy.TaskCount))
 	}
 	return ValidateTaskDataGrowthQuota(usage, incomingBytes, policy)
 }
 
 func ValidateTaskDataGrowthQuota(usage repository.UserStorageUsage, incomingBytes int64, policy platform.RuntimeResourcePolicy) error {
 	if usage.TaskBytes+incomingBytes > policy.TaskDataGB*1024*1024*1024 {
-		return kernel.QuotaExceeded(fmt.Sprintf("账号任务历史数据已达到 %dGB 上限，请联系管理员归档", policy.TaskDataGB))
+		return kernel.QuotaExceeded(fmt.Sprintf("The account task history data has reached the upper limit of %dGB. Please contact the administrator to archive it.", policy.TaskDataGB))
 	}
 	return nil
 }
 
 func ValidateAPICallLogQuota(usage repository.UserStorageUsage, incomingBytes int64, policy platform.RuntimeResourcePolicy) error {
 	if usage.APICallCount >= policy.APICallLogCount {
-		return kernel.QuotaExceeded(fmt.Sprintf("账号上游请求日志已达到 %d 条上限，请联系管理员归档", policy.APICallLogCount))
+		return kernel.QuotaExceeded(fmt.Sprintf("The account's upstream request log has reached the upper limit of %d. Please contact the administrator to archive it.", policy.APICallLogCount))
 	}
 	return ValidateTaskDataGrowthQuota(usage, incomingBytes, policy)
 }
@@ -87,12 +87,12 @@ func ValidateStructuredReplacementQuota(usage repository.UserStorageUsage, kind 
 	switch kind {
 	case "asset":
 		if int64(count) > policy.AssetCount {
-			return kernel.QuotaExceeded(fmt.Sprintf("账号素材数量不能超过 %d 个", policy.AssetCount))
+			return kernel.QuotaExceeded(fmt.Sprintf("The number of account materials cannot exceed %d", policy.AssetCount))
 		}
 		deltaBytes -= usage.AssetBytes
 	case "canvas":
 		if int64(count) > policy.CanvasCount {
-			return kernel.QuotaExceeded(fmt.Sprintf("账号画布数量不能超过 %d 个", policy.CanvasCount))
+			return kernel.QuotaExceeded(fmt.Sprintf("The number of account canvases cannot exceed %d", policy.CanvasCount))
 		}
 		deltaBytes -= usage.CanvasBytes
 	}
@@ -122,7 +122,7 @@ func TaskStorageError(cause error) error {
 	if mapped := localtask.AdmissionValidationError(cause); mapped != nil {
 		return mapped
 	}
-	return &kernel.AppError{Status: 500, Code: 500, Reason: "local_storage_failed", Message: "本地任务保存失败，尚未提交生成。请重启 BeefTV 后重试；若仍失败，请更新应用并联系支持", Cause: cause}
+	return &kernel.AppError{Status: 500, Code: 500, Reason: "local_storage_failed", Message: "The local task failed to save and the generation has not been submitted yet. Please restart BeefTV and try again; if it still fails, please update the app and contact support", Cause: cause}
 }
 
 func SaveTaskCompletionWithinStorageQuota(
@@ -180,7 +180,7 @@ func SaveTaskCompletionWithinStorageQuota(
 	completed.Status = model.TaskStatusSucceeded
 	completed.RecoveryOutcome = nil
 	completed.NextPollAt = nil
-	completed.Stage = "任务完成"
+	completed.Stage = "Mission accomplished"
 	completed.Progress = 100
 	completed.ResultJSON = string(resultJSON)
 	completed.InputJSON = publicInputJSON

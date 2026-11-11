@@ -145,7 +145,7 @@ func ValidateCanvasWithPolicy(u string, repo *repository.Repository, creating bo
 }
 func (h configHost) ValidateDocument(u string, repo *repository.Repository, raw json.RawMessage) error {
 	if repo == nil {
-		return kernel.NewAppError(kernel.CodeInternal, "画布媒体校验缺少事务仓储")
+		return kernel.NewAppError(kernel.CodeInternal, "Canvas media validation missing transaction repository")
 	}
 	return h.cfg.ValidateDocument(u, repo, raw)
 }

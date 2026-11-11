@@ -28,7 +28,7 @@ type bundle struct {
 
 func inspectBundle(directory, metadataFile string) (*bundle, error) {
 	if directory == "" || metadataFile == "" {
-		return nil, fail("metadata_required", "请指定技能目录和 --metadata 文件")
+		return nil, fail("metadata_required", "Please specify the skills directory and --metadata file")
 	}
 	f, err := os.Open(metadataFile)
 	if err != nil {
@@ -39,13 +39,13 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 	decoder := json.NewDecoder(io.LimitReader(f, 64<<10))
 	decoder.DisallowUnknownFields()
 	if err = decoder.Decode(&metadata); err != nil {
-		return nil, fmt.Errorf("投稿元信息不是有效 JSON：%w", err)
+		return nil, fmt.Errorf("Submission meta information is not valid JSON: %w", err)
 	}
 	if metadata.Name == "" || metadata.Description == "" || metadata.License == "" || metadata.VersionLabel == "" {
-		return nil, fail("invalid_metadata", "投稿元信息需要名称、简介、许可证和版本")
+		return nil, fail("invalid_metadata", "Contribution meta information requires name, introduction, license and version")
 	}
 	if utf8.RuneCountInString(metadata.Description) > skillhub.MaxDescriptionRunes {
-		return nil, fail("invalid_metadata", "投稿元信息简介不能超过 1024 字")
+		return nil, fail("invalid_metadata", "Submission meta information introduction cannot exceed 1024 words")
 	}
 	if metadata.Requirements == nil {
 		metadata.Requirements = []string{}
@@ -62,7 +62,7 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 		return nil, err
 	}
 	if !rootInfo.IsDir() || rootInfo.Mode()&os.ModeSymlink != 0 {
-		return nil, fail("invalid_directory", "请提供真实的技能目录")
+		return nil, fail("invalid_directory", "Please provide a real skills catalog")
 	}
 	files := map[string][]byte{}
 	caseNames := map[string]bool{}
@@ -88,7 +88,7 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 			}
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
-			return fail("invalid_package", "技能包不能包含软链接")
+			return fail("invalid_package", "Skill packs cannot contain soft links")
 		}
 		if entry.IsDir() {
 			return nil
@@ -99,14 +99,14 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 		}
 		base := strings.ToLower(filepath.Base(rel))
 		if base == ".env" || strings.HasPrefix(base, ".env.") || base == "credentials.json" || base == "tokens.json" || base == "secrets.json" || base == "auth.json" || strings.Contains(base, "private_key") || base == "id_rsa" || base == "id_ed25519" || strings.HasSuffix(base, ".pem") || strings.HasSuffix(base, ".key") {
-			return fail("private_file", "文件疑似含投稿凭据或私钥，请先移除")
+			return fail("private_file", "The file seems to contain submission credentials or private keys, please remove them first")
 		}
 		if !info.Mode().IsRegular() || !skillhub.DataFilePath(rel) || caseNames[strings.ToLower(rel)] {
-			return fail("invalid_package", "技能包包含不安全路径或重复名称")
+			return fail("invalid_package", "Skill pack contains unsafe paths or duplicate names")
 		}
 		remaining := int64(skillhub.MaxPackageBytes) - total
 		if info.Size() > remaining {
-			return fail("package_too_large", "技能文件超过发布大小限制")
+			return fail("package_too_large", "Skill file exceeds publishing size limit")
 		}
 		input, err := os.Open(file)
 		if err != nil {
@@ -118,11 +118,11 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 			return err
 		}
 		if skillhub.ContainsPrivateData(data) {
-			return fail("private_file", "文件疑似含投稿凭据或私钥，请先移除")
+			return fail("private_file", "The file seems to contain submission credentials or private keys, please remove them first")
 		}
 		total += int64(len(data))
 		if total > skillhub.MaxPackageBytes {
-			return fail("package_too_large", "技能文件超过发布大小限制")
+			return fail("package_too_large", "Skill file exceeds publishing size limit")
 		}
 		files[rel] = data
 		caseNames[strings.ToLower(rel)] = true
@@ -132,7 +132,7 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 		return nil, err
 	}
 	if !utf8.Valid(files["SKILL.md"]) {
-		return nil, fail("invalid_package", "SKILL.md 必须为 UTF-8")
+		return nil, fail("invalid_package", "SKILL.md must be UTF-8")
 	}
 	if _, err = skillhub.SkillName(files["SKILL.md"]); err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ func inspectBundle(directory, metadataFile string) (*bundle, error) {
 		return nil, err
 	}
 	if archive.Len() > skillhub.MaxArchiveBytes {
-		return nil, fail("package_too_large", "压缩包超过100 MiB")
+		return nil, fail("package_too_large", "The compressed package exceeds 100 MiB")
 	}
 	result.Archive = archive.Bytes()
 	result.ArchiveBytes = archive.Len()

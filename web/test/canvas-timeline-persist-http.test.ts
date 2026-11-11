@@ -43,7 +43,7 @@ export let flushImpl = async () => {};
 export const setFlushImpl = (next) => { flushImpl = next; };
 export const flushCanvasStorePersistence = async () => { flushCalls += 1; return flushImpl(); };
 export const resetFlush = () => { flushCalls = 0; flushImpl = async () => {}; };
-// 画布刷新接缝：这个用例只关心 timeline 落库，因此把外部 revision 相关入口做成最薄替身。
+// Canvas refresh seam: This use case only cares about the timeline drop-in, so the external revision-related entry is made into the thinnest stand-in.
 export const applyExternalCanvasRevision = () => ({ kind: "keep-local", projectId: "", candidate: {}, localRevision: 0, remoteRevision: 0 });
 export const acceptCanvasExternalRevisionCandidate = () => undefined;
 export const clearCanvasExternalRevisionConflict = () => {};
@@ -211,14 +211,14 @@ const timeline: TimelineProject = normalizeTimelineProject({
             trackId: "audio-1",
             startMs: 0,
             durationMs: 5600,
-            title: "旁白",
+            title: "narration",
         },
     ],
 });
 
 const project = {
     id: "canvas-a",
-    title: "验收画布",
+    title: "acceptance canvas",
     createdAt: "2026-09-24T08:00:00.000Z",
     updatedAt: "2026-09-24T08:00:00.000Z",
     revision: 1,
@@ -316,14 +316,14 @@ describe("persistCanvasTimeline http", () => {
     });
 
     it("rejects when the desktop PUT fails", async () => {
-        request.setPutError(new request.ApiError("画布后端持久化失败", { status: 400 }));
+        request.setPutError(new request.ApiError("Canvas backend persistence failed", { status: 400 }));
         let caught: unknown;
         try {
             await repository.persistCanvasTimeline(project.id, timeline);
         } catch (error) {
             caught = error;
         }
-        expect((caught as Error).message).toBe("画布后端持久化失败");
+        expect((caught as Error).message).toBe("Canvas backend persistence failed");
         expect(request.puts).toEqual([]);
         expect(store.projects[0].timeline).toBeUndefined();
     });
@@ -332,7 +332,7 @@ describe("persistCanvasTimeline http", () => {
 const originalAudioNode = {
     id: "audio-original",
     type: "audio",
-    title: "旁白",
+    title: "narration",
     position: { x: 0, y: 0 },
     width: 320,
     height: 120,
@@ -341,7 +341,7 @@ const originalAudioNode = {
 const historyAudioNode = {
     id: "audio-history",
     type: "audio",
-    title: "历史音频",
+    title: "Historical audio",
     position: { x: 360, y: 0 },
     width: 320,
     height: 120,
@@ -354,7 +354,7 @@ describe("persistCanvasDocument http", () => {
         await repository.persistCanvasDocument(project.id, { nodes: [originalAudioNode, historyAudioNode] });
         expect(request.puts).toHaveLength(1);
         expect(request.puts[0].path).toBe("/ops/canvas.document.commit");
-        expect(request.puts[0].body.project.nodes.map((node: { title: string }) => node.title)).toEqual(["旁白", "历史音频"]);
+        expect(request.puts[0].body.project.nodes.map((node: { title: string }) => node.title)).toEqual(["narration", "Historical audio"]);
         expect(request.puts[0].body.project.nodes[1].metadata.storageKey).toBe("resource:audio-owned");
         expect(request.puts[0].body.project.timeline.durationMs).toBe(5600);
         expect(request.puts[0].body.project.timeline.clips[0].nodeId).toBe("7vvfM674HnenwTekmj88V");
@@ -365,7 +365,7 @@ describe("persistCanvasDocument http", () => {
         store.resetProjects([{ ...project, nodes: [originalAudioNode] }]);
         await repository.persistCanvasDocument(project.id, { nodes: [originalAudioNode, historyAudioNode] });
         expect(request.puts).toEqual([]);
-        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["旁白", "历史音频"]);
+        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["narration", "Historical audio"]);
     });
 
     it("local PUT is not blocked by a pending or rejected IndexedDB flush", async () => {
@@ -385,7 +385,7 @@ describe("persistCanvasDocument http", () => {
         });
         await repository.persistCanvasDocument(project.id, { nodes: [originalAudioNode, historyAudioNode] });
         expect(request.puts).toHaveLength(1);
-        expect(request.puts[0].body.project.nodes[1].title).toBe("历史音频");
+        expect(request.puts[0].body.project.nodes[1].title).toBe("Historical audio");
     });
 
     it("hosted profile still awaits flush and does not PUT", async () => {
@@ -403,21 +403,21 @@ describe("persistCanvasDocument http", () => {
         expect((caught as Error).message).toBe("IndexedDB hung");
         expect(request.puts).toEqual([]);
         expect(store.flushCalls).toBe(1);
-        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["旁白"]);
+        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["narration"]);
     });
 
     it("rejects when the desktop PUT fails", async () => {
         store.resetProjects([{ ...project, nodes: [originalAudioNode] }]);
-        request.setPutError(new request.ApiError("画布保存失败，请重试", { status: 400 }));
+        request.setPutError(new request.ApiError("Canvas saving failed, please try again", { status: 400 }));
         let caught: unknown;
         try {
             await repository.persistCanvasDocument(project.id, { nodes: [originalAudioNode, historyAudioNode] });
         } catch (error) {
             caught = error;
         }
-        expect((caught as Error).message).toBe("画布保存失败，请重试");
+        expect((caught as Error).message).toBe("Canvas saving failed, please try again");
         expect(request.puts).toEqual([]);
-        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["旁白"]);
+        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["narration"]);
     });
 
     it("desktop PUT that inspects canvas media rejects unbound history nodes and rolls back", async () => {
@@ -425,7 +425,7 @@ describe("persistCanvasDocument http", () => {
             for (const node of body.project?.nodes || []) {
                 const storageKey = String(node.metadata?.storageKey || "");
                 if (storageKey.startsWith("resource:") && !node.metadata?.assetId) {
-                    return new request.ApiError("画布媒体尚未进入素材库，请等待同步完成后重试", { status: 400 });
+                    return new request.ApiError("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.", { status: 400 });
                 }
             }
             return null;
@@ -438,14 +438,14 @@ describe("persistCanvasDocument http", () => {
         } catch (error) {
             caught = error;
         }
-        expect((caught as Error).message).toContain("尚未进入素材库");
+        expect((caught as Error).message).toContain("Not yet entered the material library");
         expect(request.puts).toEqual([]);
         expect(
             store.projects[0].nodes.map((node: { title: string; metadata?: { assetId?: string } }) => ({
                 title: node.title,
                 assetId: node.metadata?.assetId || "",
             })),
-        ).toEqual([{ title: "旁白", assetId: "asset-owned" }]);
+        ).toEqual([{ title: "narration", assetId: "asset-owned" }]);
     });
 
     it("desktop PUT that inspects canvas media accepts history nodes that reuse the owned assetId", async () => {
@@ -453,7 +453,7 @@ describe("persistCanvasDocument http", () => {
             for (const node of body.project?.nodes || []) {
                 const storageKey = String(node.metadata?.storageKey || "");
                 if (storageKey.startsWith("resource:") && !node.metadata?.assetId) {
-                    return new request.ApiError("画布媒体尚未进入素材库，请等待同步完成后重试", { status: 400 });
+                    return new request.ApiError("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.", { status: 400 });
                 }
             }
             return null;
@@ -471,8 +471,8 @@ describe("persistCanvasDocument http", () => {
                 assetId: node.metadata?.assetId,
             })),
         ).toEqual([
-            { title: "旁白", assetId: "asset-owned" },
-            { title: "历史音频", assetId: "asset-owned" },
+            { title: "narration", assetId: "asset-owned" },
+            { title: "Historical audio", assetId: "asset-owned" },
         ]);
     });
 
@@ -489,22 +489,22 @@ describe("persistCanvasDocument http", () => {
             await Promise.resolve();
         }
         expect(request.putStarted).toBe(1);
-        store.useCanvasStore.getState().updateProject(project.id, { title: "改名后的画布" });
+        store.useCanvasStore.getState().updateProject(project.id, { title: "Canvas after renaming" });
         store.useCanvasStore.setState((state: { projects: Array<Record<string, unknown>> }) => ({
             projects: state.projects.map((item) => (item.id === project.id ? { ...item, revision: 9 } : item)),
         }));
-        rejectPut(new request.ApiError("画布保存失败，请重试", { status: 400 }));
+        rejectPut(new request.ApiError("Canvas saving failed, please try again", { status: 400 }));
         let caught: unknown;
         try {
             await pending;
         } catch (error) {
             caught = error;
         }
-        expect((caught as Error).message).toBe("画布保存失败，请重试");
+        expect((caught as Error).message).toBe("Canvas saving failed, please try again");
         expect(request.puts).toEqual([]);
-        expect(store.projects[0].title).toBe("改名后的画布");
+        expect(store.projects[0].title).toBe("Canvas after renaming");
         expect(store.projects[0].revision).toBe(9);
-        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["旁白"]);
+        expect(store.projects[0].nodes.map((node: { title: string }) => node.title)).toEqual(["narration"]);
     });
 
     it("deferred PUT rejection keeps in-flight node edits that are not the optimistic insert", async () => {
@@ -519,22 +519,22 @@ describe("persistCanvasDocument http", () => {
         for (let attempt = 0; attempt < 20 && request.putStarted === 0; attempt += 1) {
             await Promise.resolve();
         }
-        const editedOriginal = { ...originalAudioNode, title: "旁白改名" };
+        const editedOriginal = { ...originalAudioNode, title: "Narrator changed name" };
         const laterText = {
             id: "text-later",
             type: "text",
-            title: "备注",
+            title: "Remarks",
             position: { x: 720, y: 0 },
             width: 240,
             height: 120,
-            metadata: { content: "飞行中编辑" },
+            metadata: { content: "Edit on the fly" },
         };
         store.useCanvasStore.getState().updateProject(project.id, { nodes: [editedOriginal, historyAudioNode, laterText] });
-        rejectPut(new request.ApiError("画布保存失败，请重试", { status: 400 }));
+        rejectPut(new request.ApiError("Canvas saving failed, please try again", { status: 400 }));
         await pending.catch(() => undefined);
         expect(store.projects[0].nodes.map((node: { id: string; title: string }) => ({ id: node.id, title: node.title }))).toEqual([
-            { id: "audio-original", title: "旁白改名" },
-            { id: "text-later", title: "备注" },
+            { id: "audio-original", title: "Narrator changed name" },
+            { id: "text-later", title: "Remarks" },
         ]);
     });
 });

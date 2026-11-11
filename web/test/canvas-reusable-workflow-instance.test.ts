@@ -11,13 +11,13 @@ import type { CanvasWorkflow, WorkflowRun } from "../src/services/api/canvas-wor
 import { CanvasNodeType, type CanvasNodeData } from "../src/types/canvas";
 
 const workflow: CanvasWorkflow = {
-    id: "template", name: "人物动作替换", description: "", createdAt: "", updatedAt: "",
+    id: "template", name: "Character action replacement", description: "", createdAt: "", updatedAt: "",
     definition: { version: 1, nodes: [
-        { id: "person", title: "帮我生成一个短发可爱女生的三视图", mediaType: "image", role: "input", resourceId: "original-person" },
-        { id: "motion", title: "41972924987-1-192.mp4 · 剪辑片段", mediaType: "video", role: "input", resourceId: "original-motion" },
-        { id: "prompt", title: "固定提示词", mediaType: "text", role: "constant", text: "保持身份" },
-        { id: "depth", title: "原视频", mediaType: "video", role: "depth" },
-        { id: "out", title: "动作结果", mediaType: "video", role: "generation", sourceTaskId: "task" },
+        { id: "person", title: "Help me generate three views of a cute girl with short hair", mediaType: "image", role: "input", resourceId: "original-person" },
+        { id: "motion", title: "41972924987-1-192.mp4 · Clip", mediaType: "video", role: "input", resourceId: "original-motion" },
+        { id: "prompt", title: "Fixed prompt word", mediaType: "text", role: "constant", text: "maintain identity" },
+        { id: "depth", title: "Original video", mediaType: "video", role: "depth" },
+        { id: "out", title: "action result", mediaType: "video", role: "generation", sourceTaskId: "task" },
     ], edges: [{ fromNodeId: "motion", toNodeId: "depth" }, { fromNodeId: "person", toNodeId: "out" }, { fromNodeId: "depth", toNodeId: "out" }, { fromNodeId: "prompt", toNodeId: "out" }], outputNodeIds: ["out"] },
 };
 
@@ -86,29 +86,29 @@ describe("canvas workflow instances", () => {
         expect(a.nodes.some(node => b.nodes.some(other => other.id === node.id))).toBe(false);
         const slots = a.nodes.filter(node => node.metadata?.workflowSlot);
         expect(slots.filter(node => node.metadata?.storageKey)).toHaveLength(0);
-        expect(slots.find(node => node.metadata?.workflowSlot?.nodeId === "prompt")?.metadata?.content).toBe("保持身份");
+        expect(slots.find(node => node.metadata?.workflowSlot?.nodeId === "prompt")?.metadata?.content).toBe("maintain identity");
         expect(a.connections).toHaveLength(4);
         expect(a.connections.every(edge => slots.some(node => node.id === edge.fromNodeId) && slots.some(node => node.id === edge.toNodeId))).toBe(true);
         expect(slots.every(node => node.parentId === a.frame.id)).toBe(true);
         expect(a.control.metadata?.reusableWorkflow?.definition).not.toBe(workflow.definition);
     });
     test("names imported prompt and filename slots by purpose", () => {
-        expect(workflowSlotTitle(workflow.definition.nodes[0], workflow.definition)).toBe("人物三视图");
-        expect(workflowSlotTitle(workflow.definition.nodes[1], workflow.definition)).toBe("动作参考");
-        expect(workflowSlotTitle(workflow.definition.nodes[3], workflow.definition)).toBe("深度捕捉结果");
-        expect(workflowSlotTitle({ ...workflow.definition.nodes[0], title: "人物参考（正面）" }, workflow.definition)).toBe("人物参考（正面）");
+        expect(workflowSlotTitle(workflow.definition.nodes[0], workflow.definition)).toBe("Three views of characters");
+        expect(workflowSlotTitle(workflow.definition.nodes[1], workflow.definition)).toBe("Action reference");
+        expect(workflowSlotTitle(workflow.definition.nodes[3], workflow.definition)).toBe("Depth capture results");
+        expect(workflowSlotTitle({ ...workflow.definition.nodes[0], title: "Character reference (front)" }, workflow.definition)).toBe("Character reference (front)");
     });
     test("requires new input resources instead of silently reusing template defaults", () => {
         const graph = createWorkflowInstance(workflow, { x: 0, y: 0 });
-        expect(() => workflowInstanceInputs(graph.control, graph.nodes)).toThrow("人物三视图");
+        expect(() => workflowInstanceInputs(graph.control, graph.nodes)).toThrow("Three views of characters");
         const populated = graph.nodes.map(node => node.metadata?.workflowSlot?.role === "input" ? { ...node, metadata: { ...node.metadata, storageKey: `resource:new-${node.metadata.workflowSlot.nodeId}` } } : node);
         expect(workflowInstanceInputs(graph.control, populated)).toEqual({ person: { resourceId: "new-person" }, motion: { resourceId: "new-motion" } });
-        expect(() => workflowInstanceInputs(graph.control, populated.filter(node => node.metadata?.workflowSlot?.nodeId !== "motion"))).toThrow("已删除");
+        expect(() => workflowInstanceInputs(graph.control, populated.filter(node => node.metadata?.workflowSlot?.nodeId !== "motion"))).toThrow("Deleted");
     });
     test("accepts matching canvas media at an unlocked input, without changing the source position", () => {
         const graph = createWorkflowInstance(workflow, { x: 100, y: 100 });
         const input = graph.nodes.find(node => node.metadata?.workflowSlot?.nodeId === "person")!;
-        const source: CanvasNodeData = { id: "source", title: "新人物", type: CanvasNodeType.Image, width: 300, height: 300, position: { x: -400, y: 0 }, metadata: { storageKey: "resource:new-person" } };
+        const source: CanvasNodeData = { id: "source", title: "new characters", type: CanvasNodeType.Image, width: 300, height: 300, position: { x: -400, y: 0 }, metadata: { storageKey: "resource:new-person" } };
         const point = { x: input.position.x + 100, y: input.position.y + 100 };
         expect(workflowDropSlot(graph.nodes, source, point)?.id).toBe(input.id);
         expect(source.position).toEqual({ x: -400, y: 0 });

@@ -12,7 +12,7 @@ $goModuleCache = Join-Path $repoRoot ".local\cache\go-mod"
 
 foreach ($commandName in @("go", "bun")) {
     if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
-        throw "未找到 $commandName，请先安装项目要求的运行时。"
+        throw "$commandName not found, please install the runtime required by the project first."
     }
 }
 
@@ -22,12 +22,12 @@ foreach ($directory in @($dataDir, $goBuildCache, $goModuleCache)) {
 
 $viteBinary = Join-Path $webDir "node_modules\.bin\vite"
 if (-not (Test-Path -LiteralPath $viteBinary)) {
-    Write-Host "web/node_modules 不存在，正在执行 bun install --frozen-lockfile..." -ForegroundColor Yellow
+    Write-Host "web/node_modules does not exist, executing bun install --frozen-lockfile..." -ForegroundColor Yellow
     Push-Location $webDir
     try {
         & bun install --frozen-lockfile
         if ($LASTEXITCODE -ne 0) {
-            throw "bun install 失败，无法启动前端。"
+            throw "bun install failed and could not start the front end."
         }
     } finally {
         Pop-Location
@@ -44,7 +44,7 @@ function Test-ListeningPort([int]$Port) {
 
 foreach ($port in @(3000, 8080)) {
     if (Test-ListeningPort $port) {
-        throw "端口 $port 已被占用，请先关闭占用进程后重试。"
+        throw "Port $port is occupied. Please close the occupying process and try again."
     }
 }
 
@@ -53,7 +53,7 @@ if (-not $powerShellPath) {
     $powerShellPath = (Get-Command powershell.exe -ErrorAction SilentlyContinue).Source
 }
 if (-not $powerShellPath) {
-    throw "未找到 PowerShell，无法打开前后端独立窗口。"
+    throw "PowerShell is not found and the front-end and back-end independent windows cannot be opened."
 }
 
 function ConvertTo-PowerShellLiteral([string]$Value) {
@@ -71,12 +71,11 @@ Set-Location -LiteralPath $backendDirLiteral
 `$env:CANVAS_BACKEND_DATA_DIR = $dataDirLiteral
 `$env:GOCACHE = $(ConvertTo-PowerShellLiteral $goBuildCache)
 `$env:GOMODCACHE = $(ConvertTo-PowerShellLiteral $goModuleCache)
-Write-Host 'BeefTV后端：http://127.0.0.1:8080' -ForegroundColor Cyan
+Write-Host 'BeefTV backend:http://127.0.0.1:8080' -ForegroundColor Cyan
 go run ./cmd/server
 "@
 
-$webCommand = @"
-`$ErrorActionPreference = 'Stop'
+$webCommand = @"`$ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $webDirLiteral
 `$env:VITE_API_PROXY_TARGET = 'http://127.0.0.1:8080'
 Write-Host 'BeefTV前端：http://localhost:3000' -ForegroundColor Cyan

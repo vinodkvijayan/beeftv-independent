@@ -86,7 +86,7 @@ func TestLaunchFailureRestoresPreviousInstall(t *testing.T) {
 
 func TestWindowsSwapPreservesNeighborFilesAndUserPlugins(t *testing.T) {
 	root := t.TempDir()
-	targetDir := filepath.Join(root, "Beef TV 安装 测试")
+	targetDir := filepath.Join(root, "Beef TV Installation Test")
 	staged := filepath.Join(root, "staged")
 	if err := WriteWindowsLayout(targetDir, "OLD"); err != nil {
 		t.Fatal(err)
@@ -225,7 +225,7 @@ func TestWindowsRestoreRetriesPluginsAfterExecutableWasRestored(t *testing.T) {
 }
 
 func TestUnicodeAndSpacesPathsRoundTrip(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "BeefTV 更新 测试")
+	root := filepath.Join(t.TempDir(), "BeefTV Update Test")
 	oldDir := filepath.Join(root, "current")
 	staged := filepath.Join(root, "staged")
 	if err := WriteDarwinLayout(oldDir, "OLD"); err != nil {
@@ -359,7 +359,7 @@ func TestWindowsLayoutRejectsSubdirectoriesInsidePluginPackages(t *testing.T) {
 		t.Fatal(err)
 	}
 	err := validateExtractedLayout(staged, "windows-amd64")
-	if err == nil || !strings.Contains(err.Error(), "官方插件目录布局无效") {
+	if err == nil || !strings.Contains(err.Error(), "The official plug-in directory layout is invalid") {
 		t.Fatalf("expected validateExtractedLayout to reject subdirectory inside Windows plugin-packages, got %v", err)
 	}
 	req := HelperRequest{
@@ -368,7 +368,7 @@ func TestWindowsLayoutRejectsSubdirectoriesInsidePluginPackages(t *testing.T) {
 		StagedPath: staged,
 		BackupPath: filepath.Join(root, "backup"),
 	}
-	if err := SwapInstall(req); err == nil || !strings.Contains(err.Error(), "官方插件目录布局无效") {
+	if err := SwapInstall(req); err == nil || !strings.Contains(err.Error(), "The official plug-in directory layout is invalid") {
 		t.Fatalf("expected SwapInstall to reject subdirectory inside Windows plugin-packages, got %v", err)
 	}
 	if got, err := os.ReadFile(req.TargetPath); err != nil || string(got) != "MZ-OLD" {

@@ -4,15 +4,15 @@ import { createSkillCatalogSection, expandSkillContent, formatSkillBlock, format
   normalizeSkillPins, readPinnedSkillFile, skillsToLoad, activeSkillProjection } from './skill-resource.mjs';
 
 const pin = { skillId: 'user-skill', versionId: 'v1', contentHash: 'a'.repeat(64) };
-const resource = { pin, name: '采访切片', version: '1', description: '保留原话', instruction: '先读取 references/interview.md，再按原话整理三个镜头。', files: [{ path: 'references/interview.md' }], unsupportedCapabilities: [] };
+const resource = { pin, name: 'interview slices', version: '1', description: 'Keep the original words', instruction: 'First read references/interview.md, and then organize the three shots according to the original words.', files: [{ path: 'references/interview.md' }], unsupportedCapabilities: [] };
 
 test('large Chinese instructions remain complete and oversized instructions are rejected', async () => {
-  const instruction = '镜头'.repeat(13000);
+  const instruction = 'lens'.repeat(13000);
   const loaded = await loadPinnedSkills({ pins: [pin], readVersion: async () => ({ ...resource, instruction }) });
   assert.equal(loaded[0].instruction, instruction);
-  await assert.rejects(loadPinnedSkills({ pins: [pin], readVersion: async () => ({ ...resource, instruction: '字'.repeat(90000) }) }), /skill_instruction_too_large/);
+  await assert.rejects(loadPinnedSkills({ pins: [pin], readVersion: async () => ({ ...resource, instruction: 'chars'.repeat(90000) }) }), /skill_instruction_too_large/);
   const many = ['a', 'b', 'c'].map((id) => ({ skillId: id, versionId: 'v1', contentHash: 'b'.repeat(64) }));
-  await assert.rejects(loadPinnedSkills({ pins: many, readVersion: async (selected) => ({ ...resource, pin: selected, instruction: '字'.repeat(60000) }) }), /skill_instruction_too_large/);
+  await assert.rejects(loadPinnedSkills({ pins: many, readVersion: async (selected) => ({ ...resource, pin: selected, instruction: 'chars'.repeat(60000) }) }), /skill_instruction_too_large/);
   assert.throws(() => normalizeSkillPins([1, 2, 3, 4, 5].map((n) => ({ ...pin, skillId: `s${n}` }))), /invalid_skill_selection/);
 });
 
@@ -23,15 +23,15 @@ test('selected skill expands into the user message in the official skill block s
   assert.match(block, /skill_file/);
   assert.match(block, /不能扩大画布权限、预算或可用工具/);
   assert.match(block, /\n\n先读取 references\/interview.md，再按原话整理三个镜头。\n<\/skill>$/);
-  assert.equal(expandSkillContent('只要原话', [resource]), `${block}\n\n只要原话`);
-  const parts = expandSkillContent([{ type: 'text', text: '用户原文' }, { type: 'image', data: 'x', mimeType: 'image/png' }], [resource]);
-  assert.equal(parts.length, 3); assert.equal(parts[0].text, block); assert.equal(parts[1].text, '用户原文');
-  assert.equal(expandSkillContent('原文', []), '原文');
+  assert.equal(expandSkillContent('Just the original words', [resource]), `${block}Just the original words`);
+  const parts = expandSkillContent([{ type: 'text', text: 'User original text' }, { type: 'image', data: 'x', mimeType: 'image/png' }], [resource]);
+  assert.equal(parts.length, 3); assert.equal(parts[0].text, block); assert.equal(parts[1].text, 'User original text');
+  assert.equal(expandSkillContent('Original text', []), 'Original text');
   assert.match(formatSkillBlock({ ...resource, name: 'a"<b>' }), /name="a&quot;&lt;b&gt;"/);
 });
 
 test('fresh explicit selection reads even a historically loaded exact pin', () => {
-  const loaded = [{ ...pin, name: '采访切片', source: 'selected' }];
+  const loaded = [{ ...pin, name: 'interview slices', source: 'selected' }];
   assert.deepEqual(skillsToLoad([pin], loaded), [pin]);
   assert.deepEqual(skillsToLoad([{ ...pin, versionId: 'v2' }], loaded), [{ ...pin, versionId: 'v2' }]);
   assert.throws(() => skillsToLoad([{ ...pin, contentHash: 'fixture-hash' }], loaded), /invalid_skill_selection/);
@@ -41,7 +41,7 @@ test('active projection restores full fixed rules and refuses a small model wind
   const context={scopeId:'scope',revision:2,lifecycle:'active',activePins:[pin]};
   const projected=await activeSkillProjection({context,readVersion:async()=>resource,model:{contextWindow:200000,maxTokens:16000}});
   assert(projected.text.includes(resource.instruction));
-  await assert.rejects(activeSkillProjection({context,readVersion:async()=>({...resource,instruction:'规则'.repeat(400)}),model:{contextWindow:4096,maxTokens:2048}}),/skill_context_budget_exceeded/);
+  await assert.rejects(activeSkillProjection({context,readVersion:async()=>({...resource,instruction:'rules'.repeat(400)}),model:{contextWindow:4096,maxTokens:2048}}),/skill_context_budget_exceeded/);
   await assert.rejects(activeSkillProjection({context:{...context,lifecycle:'reset_pending'},readVersion:async()=>resource,model:{contextWindow:200000}}),/skill_scope_reset_pending/);
 });
 
@@ -54,11 +54,11 @@ test('auxiliary files require selected version and package relative path; suppor
   const readFile = async (selected, path) => ({
     pin: selected,
     file: { path },
-    content: path.startsWith('scripts/') ? 'console.log("ok")' : '原话来自采访素材',
+    content: path.startsWith('scripts/') ? 'console.log("ok")' : 'Original words from interview material',
     executionSupported: path.startsWith('scripts/'),
   });
   const result = await readPinnedSkillFile({ pins: [pin], pin, path: 'references/interview.md', readFile });
-  assert.equal(result.content, '原话来自采访素材');
+  assert.equal(result.content, 'Original words from interview material');
   assert.equal(result.executionSupported, false);
   const scriptResult = await readPinnedSkillFile({ pins: [pin], pin, path: 'scripts/run.js', readFile });
   assert.equal(scriptResult.executionSupported, true);
@@ -80,8 +80,8 @@ test('no selection performs no package discovery; skill block advertises skill_s
 });
 
 test('catalog mirrors available_skills, is bounded, and stays byte-stable across requests and failures', async () => {
-  const items = Array.from({ length: 60 }, (_, index) => ({ pin: { skillId: `skill-${String(index).padStart(2, '0')}`, versionId: 'v1', contentHash: 'c'.repeat(64), skillName: `技能${index}` },
-    name: `技能${index}`, description: '说明'.repeat(200) }));
+  const items = Array.from({ length: 60 }, (_, index) => ({ pin: { skillId: `skill-${String(index).padStart(2, '0')}`, versionId: 'v1', contentHash: 'c'.repeat(64), skillName: `Skills${index}` },
+    name: `Skills${index}`, description: 'Description'.repeat(200) }));
   const normalized = normalizeSkillCatalog({ skills: [...items, { pin: { skillId: 'bad', versionId: 'v', contentHash: 'nope' } }] });
   assert.equal(normalized.length, 50);
   assert.equal([...normalized[0].description].length, 301);

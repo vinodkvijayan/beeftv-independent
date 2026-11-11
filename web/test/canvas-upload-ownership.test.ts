@@ -186,14 +186,14 @@ describe("persistOwnedCanvasUploadNode", () => {
                 canvasId: "canvas-a",
                 node: imageNode("media-1"),
             }, persistDeps({
-                ensureCanvasNodeAsset: async () => { throw new Error("素材库不可用"); },
+                ensureCanvasNodeAsset: async () => { throw new Error("Library is not available"); },
                 warn: (text) => warnings.push(text),
             }));
             expect(result.applied).toBe(false);
             expect(result.confirmed).toBe(false);
             expect(result.error).toBeInstanceOf(Error);
-            expect((result.error as Error).message).toBe("素材库不可用");
-            expect(warnings.some((text) => text.includes("素材库不可用"))).toBe(true);
+            expect((result.error as Error).message).toBe("Library is not available");
+            expect(warnings.some((text) => text.includes("Library is not available"))).toBe(true);
         } finally {
             restore();
         }
@@ -249,7 +249,7 @@ describe("shouldSuppressOwnedCanvasCallback", () => {
         const lifetime = createCanvasOwnerLifetime();
         const owner = lifetime.capture("canvas-a", "owner-a");
         lifetime.invalidate();
-        expect(shouldSuppressOwnedCanvasCallback(new Error("网络中断"), {
+        expect(shouldSuppressOwnedCanvasCallback(new Error("Network outage"), {
             owner,
             liveCanvasId: "canvas-a",
             liveLifetime: lifetime.current(),
@@ -261,7 +261,7 @@ describe("shouldSuppressOwnedCanvasCallback", () => {
         const restore = switchScope("owner-a");
         try {
                 const owner = lifetime.capture("canvas-a");
-            expect(shouldSuppressOwnedCanvasCallback(new Error("网络中断"), {
+            expect(shouldSuppressOwnedCanvasCallback(new Error("Network outage"), {
                 owner,
                 liveCanvasId: "canvas-a",
                 liveLifetime: lifetime.current(),
@@ -316,20 +316,20 @@ test("node editor threads the canvas owner through category change and save, and
     expect(config).toContain("nodesRef.current = next");
     expect(config).toContain("persistOwnedEditorNode(updatedNode, patch.assetCategory)");
     expect(config).toContain("if (!guard.alive()) return");
-    expect(config).toContain("message.success(\"资产分类已更新\")");
-    expect(config).toContain("文件目前只在这台设备上");
-    expect(config).toContain("资产分类更新失败");
-    expect(config.indexOf("if (!guard.alive())")).toBeLessThan(config.indexOf("message.success(\"资产分类已更新\")"));
-    expect(config.indexOf("if (!guard.alive())")).toBeLessThan(config.indexOf("资产分类更新失败"));
+    expect(config).toContain("message.success(\"Asset classification has been updated\")");
+    expect(config).toContain("The file is currently only on this device");
+    expect(config).toContain("Asset classification update failed");
+    expect(config.indexOf("if (!guard.alive())")).toBeLessThan(config.indexOf("message.success(\"Asset classification has been updated\")"));
+    expect(config.indexOf("if (!guard.alive())")).toBeLessThan(config.indexOf("Asset classification update failed"));
 
     const save = editor.slice(editor.indexOf("const saveNodeAsset"), editor.indexOf("const handleFontSizeChange"));
     expect(save).toContain("persistOwnedEditorNode(node)");
     expect(save).toContain("if (!guard.alive()) return");
     expect(save).toContain("if (!result.confirmed) message.warning");
-    expect(save).toContain("文件目前只在这台设备上");
-    expect(save).toContain("已加入项目资产");
-    expect(save).toContain("已加入我的素材");
-    expect(save).toContain("素材保存失败");
+    expect(save).toContain("The file is currently only on this device");
+    expect(save).toContain("Project assets have been added");
+    expect(save).toContain("Added my material");
+    expect(save).toContain("Failed to save material");
     expect(save.indexOf("if (!guard.alive())")).toBeLessThan(save.indexOf("if (!result.confirmed) message.warning"));
-    expect(save.indexOf("if (!guard.alive())")).toBeLessThan(save.indexOf("素材保存失败"));
+    expect(save.indexOf("if (!guard.alive())")).toBeLessThan(save.indexOf("Failed to save material"));
 });

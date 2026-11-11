@@ -26,8 +26,8 @@ export function completenessGaps(tasks, artifacts, required = REQUIRED_OUTPUTS) 
   for (const [kind, count] of Object.entries(required)) {
     const succeeded = tasks.filter((task) => taskKind(task) === kind && task.status === 'succeeded').length;
     const saved = artifacts.filter((artifact) => artifact.kind === kind && artifact.bytes > 0).length;
-    if (succeeded < count) gaps.push(`${kind} 成功任务 ${succeeded}/${count}`);
-    if (saved < count) gaps.push(`${kind} 已下载产物 ${saved}/${count}`);
+    if (succeeded < count) gaps.push(`${kind} successful mission${succeeded}/${count}`);
+    if (saved < count) gaps.push(`${kind} Product downloaded${saved}/${count}`);
   }
   return gaps;
 }

@@ -184,7 +184,7 @@ func (r *Repository) HasAPICallLogForTask(taskID string) (bool, error) {
 	return count > 0, err
 }
 
-var ErrAmbiguousImageCreateReceipts = errors.New("图片包含多条已接受或结果未知的创建回执，不能重新生成")
+var ErrAmbiguousImageCreateReceipts = errors.New("The image contains multiple accepted or unknown creation receipts and cannot be regenerated.")
 
 // Recovery requires one unambiguous create receipt. A later failed/unknown
 // create must never be hidden by selecting an earlier successful response.

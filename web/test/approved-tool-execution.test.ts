@@ -66,7 +66,7 @@ test("restart reuses a previously submitted provider task", async () => {
 
 test("changed local execution identity is rejected", async () => {
     const h = harness([submission("existing", "scene")], { ...identity, model: "different" });
-    try { await expect(h.execution.execute(request("scene"))).rejects.toThrow("已变化"); }
+    try { await expect(h.execution.execute(request("scene"))).rejects.toThrow("changed"); }
     finally { h.execution.dispose(); }
 });
 

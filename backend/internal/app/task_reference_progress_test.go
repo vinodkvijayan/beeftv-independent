@@ -9,7 +9,7 @@ import (
 func TestReferenceProgressIsBoundToBeefTVTaskAndCleared(t *testing.T) {
 	s := &Service{}
 	port := s.newReferenceProgressPort("beeftv-task")
-	port.ReportReference(generation.ReferenceProgress{Label: "参考视频 1", Phase: "transferring", LoadedBytes: 512, TotalBytes: 2048})
+	port.ReportReference(generation.ReferenceProgress{Label: "Reference video 1", Phase: "transferring", LoadedBytes: 512, TotalBytes: 2048})
 	if s.referenceProgressForTask("supplier-task") != nil {
 		t.Fatal("progress leaked to another task")
 	}

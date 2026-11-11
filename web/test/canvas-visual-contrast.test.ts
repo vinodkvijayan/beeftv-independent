@@ -44,7 +44,7 @@ describe("canvas visual contrast", () => {
     });
 
     test("keeps the original transparent edge for standard canvas nodes", () => {
-        const node: CanvasNodeData = { id: "ordinary-video", type: CanvasNodeType.Video, title: "视频", position: { x: 0, y: 0 }, width: 300, height: 200, metadata: {} };
+        const node: CanvasNodeData = { id: "ordinary-video", type: CanvasNodeType.Video, title: "video", position: { x: 0, y: 0 }, width: 300, height: 200, metadata: {} };
         const markup = renderToStaticMarkup(createElement(CanvasNode, {
             data: node, scale: 1, isSelected: false, isRelated: false, isFocusRelated: false,
             isConnectionTarget: false, showImageInfo: false,

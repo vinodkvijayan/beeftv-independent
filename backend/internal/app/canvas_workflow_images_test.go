@@ -26,8 +26,8 @@ func TestCanvasWorkflowImageSelectionRoundTrip(t *testing.T) {
 			if err := db.Model(&model.Task{}).Where("id = ?", "original").Updates(map[string]any{"type": "canvas_image", "input_json": `{"mode":"image","prompt":"scene","config":{"channelId":"channel","apiKey":"recipe-secret"}}`, "result_json": string(result)}).Error; err != nil {
 				t.Fatal(err)
 			}
-			d := cw.Definition{Version: 1, Nodes: []cw.Node{{ID: "gen", Title: "生成图片 1", Role: "operation", OperationID: "generate.image", OperationVersion: 1, MediaType: "image", SourceTaskID: "original"}, {ID: "select", Title: "选择图片结果 1", Role: "operation", OperationID: "image.select", OperationVersion: 1, MediaType: "image"}}, Edges: []cw.Edge{{From: "gen", To: "select", FromPort: "output", ToPort: "images"}}, OutputNodeIDs: []string{"select"}}
-			template, err := s.workflowTemplates().Create("owner", cw.CreateRequest{Name: "选择图片", Definition: d})
+			d := cw.Definition{Version: 1, Nodes: []cw.Node{{ID: "gen", Title: "Generate image 1", Role: "operation", OperationID: "generate.image", OperationVersion: 1, MediaType: "image", SourceTaskID: "original"}, {ID: "select", Title: "Select image result 1", Role: "operation", OperationID: "image.select", OperationVersion: 1, MediaType: "image"}}, Edges: []cw.Edge{{From: "gen", To: "select", FromPort: "output", ToPort: "images"}}, OutputNodeIDs: []string{"select"}}
+			template, err := s.workflowTemplates().Create("owner", cw.CreateRequest{Name: "Select picture", Definition: d})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -83,7 +83,7 @@ func TestCanvasWorkflowUpscaleConfiguration(t *testing.T) {
 		if kind == "video" {
 			modelName, format = "Proteus", "mp4"
 		}
-		node := cw.Node{ID: "upscale", Title: "AI超分", Role: "operation", MediaType: kind, OperationID: kind + ".ai-upscale", OperationVersion: 1, Config: map[string]any{"channelId": "beeftv", "preset": "precision|" + modelName, "scale": 2, "outputFormat": format}}
+		node := cw.Node{ID: "upscale", Title: "AI super score", Role: "operation", MediaType: kind, OperationID: kind + ".ai-upscale", OperationVersion: 1, Config: map[string]any{"channelId": "beeftv", "preset": "precision|" + modelName, "scale": 2, "outputFormat": format}}
 		if err := cw.ValidateOperation(node); err != nil {
 			t.Fatal(err)
 		}
@@ -120,8 +120,8 @@ func TestCanvasWorkflowDescribeAndUpscaleTemplateRoundTrip(t *testing.T) {
 			t.Fatalf("missing configured selector: %s", id)
 		}
 	}
-	d := cw.Definition{Version: 1, PresentationVersion: 1, Nodes: []cw.Node{{ID: "input", Title: "图片输入", Role: "input", MediaType: "image"}, {ID: "describe", Title: "提示词反推", Role: "operation", OperationID: "image.describe", OperationVersion: 1, MediaType: "text", Config: map[string]any{"modelOption": "vision::vision-model", "prompt": "描述画面"}}, {ID: "upscale", Title: "图片AI超分", Role: "operation", OperationID: "image.ai-upscale", OperationVersion: 1, MediaType: "image", Config: map[string]any{"channelId": "beeftv", "preset": "precision|Standard V2", "scale": 2, "outputFormat": "png"}}}, Edges: []cw.Edge{{From: "input", To: "describe", FromPort: "output", ToPort: "image"}, {From: "input", To: "upscale", FromPort: "output", ToPort: "image"}}, OutputNodeIDs: []string{"describe", "upscale"}}
-	template, err := s.workflowTemplates().Create("owner", cw.CreateRequest{Name: "图片处理", Definition: d})
+	d := cw.Definition{Version: 1, PresentationVersion: 1, Nodes: []cw.Node{{ID: "input", Title: "Image input", Role: "input", MediaType: "image"}, {ID: "describe", Title: "Prompt word inference", Role: "operation", OperationID: "image.describe", OperationVersion: 1, MediaType: "text", Config: map[string]any{"modelOption": "vision::vision-model", "prompt": "Describe screen"}}, {ID: "upscale", Title: "Picture AI super score", Role: "operation", OperationID: "image.ai-upscale", OperationVersion: 1, MediaType: "image", Config: map[string]any{"channelId": "beeftv", "preset": "precision|Standard V2", "scale": 2, "outputFormat": "png"}}}, Edges: []cw.Edge{{From: "input", To: "describe", FromPort: "output", ToPort: "image"}, {From: "input", To: "upscale", FromPort: "output", ToPort: "image"}}, OutputNodeIDs: []string{"describe", "upscale"}}
+	template, err := s.workflowTemplates().Create("owner", cw.CreateRequest{Name: "Image processing", Definition: d})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestCanvasWorkflowDescribeAndUpscaleTemplateRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if request.Type != "canvas_text" || request.Prompt != "描述画面" || len(request.Input["referenceImages"].([]any)) != 1 {
+	if request.Type != "canvas_text" || request.Prompt != "Describe screen" || len(request.Input["referenceImages"].([]any)) != 1 {
 		t.Fatalf("describe request: %+v", request)
 	}
 	admitted, err := s.CreateTask("owner", request)

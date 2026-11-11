@@ -1,10 +1,10 @@
 // 画布便签插件客户端入口：通过 activate(host) 与 host.contribute 注册便签节点和菜单入口。
 
 const STICKY_THEMES = [
-  { key: "amber", label: "暖黄", bg: "#fef08a", text: "#713f12", border: "#facc15" },
-  { key: "mint", label: "薄荷", bg: "#bbf7d0", text: "#14532d", border: "#4ade80" },
-  { key: "sky", label: "晴空", bg: "#bae6fd", text: "#0c4a6e", border: "#38bdf8" },
-  { key: "rose", label: "樱粉", bg: "#fecdd3", text: "#881337", border: "#fb7185" },
+  { key: "amber", label: "warm yellow", bg: "#fef08a", text: "#713f12", border: "#facc15" },
+  { key: "mint", label: "mint", bg: "#bbf7d0", text: "#14532d", border: "#4ade80" },
+  { key: "sky", label: "clear sky", bg: "#bae6fd", text: "#0c4a6e", border: "#38bdf8" },
+  { key: "rose", label: "Sakura powder", bg: "#fecdd3", text: "#881337", border: "#fb7185" },
 ];
 
 export function activate(host) {
@@ -17,7 +17,7 @@ export function activate(host) {
       initialData.content ||
       props?.node?.metadata?.content ||
       props?.node?.metadata?.prompt ||
-      "点击输入便签内容…";
+      "Click to enter the content of the note...";
     const initialColor = initialData.color || "amber";
 
     const [text, setText] = React.useState(initialText);
@@ -77,7 +77,7 @@ export function activate(host) {
         "data-testid": "sticky-note-textarea",
         value: text,
         onChange: handleTextChange,
-        placeholder: "写下灵感、待办或审片批注…",
+        placeholder: "Write down ideas, to-dos, or review comments…",
         style: {
           flex: 1,
           width: "100%",
@@ -105,7 +105,7 @@ export function activate(host) {
         h(
           "span",
           { style: { fontSize: 11, opacity: 0.75, fontWeight: 500 } },
-          "📌 画布便签",
+          "📌 Canvas Sticky Notes",
         ),
         h(
           "div",
@@ -114,7 +114,7 @@ export function activate(host) {
             h("button", {
               key: item.key,
               type: "button",
-              title: `切换为${item.label}`,
+              title: `switch to${item.label}`,
               "data-testid": `sticky-note-color-${item.key}`,
               onClick: () => handleColorSelect(item.key),
               style: {
@@ -139,9 +139,9 @@ export function activate(host) {
   host.contribute("canvas.node", {
     id: "sticky-note",
     type: "sticky-note",
-    label: "画布便签",
-    title: "画布便签",
-    defaultTitle: "便签",
+    label: "canvas sticky notes",
+    title: "canvas sticky notes",
+    defaultTitle: "Notes",
     defaultWidth: 240,
     defaultHeight: 180,
     defaultSize: { width: 240, height: 180 },
@@ -159,8 +159,8 @@ export function activate(host) {
 
   host.contribute("canvas.addNodeMenu", {
     id: "sticky-note-add",
-    label: "画布便签",
-    title: "画布便签",
+    label: "canvas sticky notes",
+    title: "canvas sticky notes",
     nodeType: "sticky-note",
     section: "node",
     defaultOrder: 88,

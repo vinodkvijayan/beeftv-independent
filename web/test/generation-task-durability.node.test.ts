@@ -9,7 +9,7 @@ import { buildBackendToolRequests } from "../src/services/api/image";
 test("managed cloud agent task keeps tool definitions and tool results", () => {
     const requests = buildBackendToolRequests(
         [
-            { role: "user", content: "读取画布" },
+            { role: "user", content: "Read canvas" },
             { type: "function_call", call_id: "call-1", name: "canvas_get_state", arguments: "{}" },
             { role: "tool", tool_call_id: "call-1", content: '{"nodes":[]}' },
         ],
@@ -22,7 +22,7 @@ test("managed cloud agent task keeps tool definitions and tool results", () => {
     assert.equal(requests.canonical.systemPrompt, "");
     assert.deepEqual(requests.canonical.tools, [{ type: "function", function: { name: "canvas_get_state", parameters: { type: "object" } } }]);
     assert.deepEqual(requests.canonical.messages, [
-        { role: "user", content: "读取画布" },
+        { role: "user", content: "Read canvas" },
         { type: "function_call", call_id: "call-1", name: "canvas_get_state", arguments: "{}" },
         { role: "tool", tool_call_id: "call-1", content: '{"nodes":[]}' },
     ]);

@@ -1,25 +1,25 @@
-# 接口说明
+# Interface description
 
-## 选择条件
+## Selection conditions
 
-服务商文档须同时符合以下格式：Bearer 鉴权；`POST /v1/video/generations`；JSON；`images` 支持带 `url` 和 `role` 的对象数组；时长用整数 `duration`，比例用 `ratio`。不能仅凭模型名或“OpenAI 兼容”判断。
+The service provider document must also comply with the following formats: Bearer authentication; `POST /v1/video/generations`; JSON; `images`. It supports object arrays with `url` and `role`; the duration is an integer `duration`, and the ratio is `ratio`. You can’t tell just by the model name or “OpenAI compatibility”.
 
 例如 [WhatsToken 视频接口](https://www.whatstoken.ai/docs/openai/doc0007)及 [Seedance 示例](https://www.whatstoken.ai/docs/examples/doc0047)公开了此格式。服务地址和 API Key 由用户填写，不内置域名识别。
 
-## 输入与图片角色
+## Input and image roles
 
-`model`、`prompt`、`duration`、`ratio`、`resolution`、`generate_audio`、`watermark` 按原值发送。图片按用户顺序发送，保留 `first_frame`、`last_frame` 或 `reference_image`；没有角色时明确发送 `reference_image`，避免两张参考图被上游推断成首尾帧。`videos`、`audios` 为素材地址数组。具体数量、尺寸、时长和可用功能以模型合同及用户配置为准。
+`model`, `prompt`, `duration`, `ratio`, `resolution`, `generate_audio`, `watermark` are sent as original values. Pictures are sent in user order, retaining `first_frame`, `last_frame` or `reference_image`; when there is no character, `reference_image` is sent explicitly to avoid the two reference pictures being inferred as the first and last frames by the upstream. `videos` and `audios` are material address arrays. The specific quantity, size, duration and available functions are subject to the model contract and user configuration.
 
-## 查询、响应与错误
+## Queries, responses and errors
 
-创建响应应含 `task_id` 或 `id`。查询为 `GET /v1/video/generations/{task_id}`；成功响应使用 `status: completed` 和 `data: [{url: "https://..."}]`。失败状态和 `error.code` 按失败处理，`error.message` 保留说明；HTTP 错误不包装成成功。结果链接是临时素材，由宿主取回保存。
+The creation response should contain `task_id` or `id`. The query is `GET /v1/video/generations/{task_id}`; successful responses use `status: completed` and `data: [{url: "https://..."}]`. Failure status and `error.code` are handled as failures, `error.message` retains description; HTTP errors are not packaged as successes. The result link is temporary material, which is retrieved and saved by the host.
 
-本插件不声明取消或鉴权内容下载端点，也不会在失败后切换其他协议重发。
+This plug-in does not declare the cancellation or authentication of the content download endpoint, nor will it switch to other protocols to resend after failure.
 
 <!-- BEEFTV_PLUGIN_MANIFEST_START -->
-## Manifest 完整接口定义
+## Manifest complete interface definition
 
-以下 JSON 与插件包内实际 `manifest.json` 逐字段一致，覆盖插件身份、权限、配置、鉴权、参数、校验、创建、Agent、查询、取消、结果下载、响应和 Agent 响应映射。`documentation` 字段的值就是当前完整文档；为避免文档在自身内部无限递归，JSON 中仅用等义占位文本表示正文。
+The following JSON is consistent field by field with the actual `manifest.json` in the plug-in package, covering plug-in identity, permissions, configuration, authentication, parameters, verification, creation, Agent, query, cancellation, result download, response and Agent response mapping. The value of the `documentation` field is the current complete document; in order to avoid infinite recursion of the document within itself, only equivalent placeholder text is used to represent the main text in JSON.
 
 ```json
 {

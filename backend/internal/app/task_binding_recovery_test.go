@@ -28,7 +28,7 @@ func TestCanvasBindRecoveryStopsTerminalFailuresAndResumesWhenNodeReturns(t *tes
 			t.Fatalf("successful bind left recovery marker: %q", *stored.RecoveryOutcome)
 		}
 		meta := canvasBindTestNodeMetadata(t, svc, canvasID, "node-normal")
-		if meta["content"] != "正常绑定" {
+		if meta["content"] != "Normal binding" {
 			t.Fatalf("normal bind content = %#v", meta["content"])
 		}
 	})
@@ -86,7 +86,7 @@ func TestCanvasBindRecoveryStopsTerminalFailuresAndResumesWhenNodeReturns(t *tes
 			t.Fatalf("re-pointed node kept terminal marker: %q", *final.RecoveryOutcome)
 		}
 		meta := canvasBindTestNodeMetadata(t, svc, canvasID, "node-switched")
-		if meta["content"] != "节点换回后绑定" {
+		if meta["content"] != "Bind after the node is switched back" {
 			t.Fatalf("re-pointed bind content = %#v", meta["content"])
 		}
 	})
@@ -140,7 +140,7 @@ func TestCanvasBindRecoveryStopsTerminalFailuresAndResumesWhenNodeReturns(t *tes
 			t.Fatalf("recreated node kept terminal marker: %q", *final.RecoveryOutcome)
 		}
 		meta := canvasBindTestNodeMetadata(t, svc, canvasID, "node-deleted")
-		if meta["content"] != "节点重建后绑定" {
+		if meta["content"] != "Bind after node rebuild" {
 			t.Fatalf("recreated bind content = %#v", meta["content"])
 		}
 	})
@@ -215,7 +215,7 @@ func TestCanvasBindRecoveryRetriesPendingVideoAfterClientOperationRestored(t *te
 		}
 	}
 	canvasDoc, err := json.Marshal(map[string]any{
-		"id": canvasID, "title": "视频待绑定", "revision": revision,
+		"id": canvasID, "title": "Video to be bound", "revision": revision,
 		"nodes": []any{map[string]any{
 			"id": "node-video-pending", "type": "video",
 			"metadata": map[string]any{"taskClientOperationId": "operation-other"},
@@ -282,7 +282,7 @@ func TestCanvasBindRecoveryRetriesLegacyMarkers(t *testing.T) {
 		if err := svc.recoverCanvasTaskBindings(*stored); err != nil {
 			t.Fatal(err)
 		}
-		if meta := canvasBindTestNodeMetadata(t, svc, canvasID, "node-legacy"); meta["content"] != "节点重建后绑定" {
+		if meta := canvasBindTestNodeMetadata(t, svc, canvasID, "node-legacy"); meta["content"] != "Bind after node rebuild" {
 			t.Fatalf("legacy marker %s blocked the bind: %#v", legacy, meta)
 		}
 		if cleared, err := svc.repo.Task(task.ID); err != nil || cleared.RecoveryOutcome != nil {
@@ -358,7 +358,7 @@ func TestCanvasBindRecoveryBindsAfterVideoContentCleared(t *testing.T) {
 		}
 	}
 	canvasDoc, err := json.Marshal(map[string]any{
-		"id": canvasID, "title": "视频恢复", "revision": revision,
+		"id": canvasID, "title": "video recovery", "revision": revision,
 		"nodes": []any{map[string]any{
 			"id": "node-video-content", "type": "video",
 			"metadata": map[string]any{"taskClientOperationId": operationID, "content": "existing-result"},
@@ -406,7 +406,7 @@ func seedCanvasBindRecoveryTask(t *testing.T, svc *Service, canvasID string, rev
 	now := time.Now()
 	task := model.Task{
 		ID: taskID, UserID: "local", ProjectID: canvasID, Type: "canvas_text",
-		Status: model.TaskStatusSucceeded, Stage: "任务完成", Prompt: "绑定测试",
+		Status: model.TaskStatusSucceeded, Stage: "Mission accomplished", Prompt: "Binding test",
 		InputJSON:  `{"mode":"text","metadata":{"source":"canvas","nodeId":"` + nodeID + `"}}`,
 		ResultJSON: `{"mode":"text","text":"` + bindTestText(taskID) + `"}`,
 		CreatedAt:  now, UpdatedAt: now, CompletedAt: &now,
@@ -415,9 +415,9 @@ func seedCanvasBindRecoveryTask(t *testing.T, svc *Service, canvasID string, rev
 		t.Fatal(err)
 	}
 	raw, err := json.Marshal(map[string]any{
-		"id": canvasID, "title": "绑定恢复测试", "revision": revision,
+		"id": canvasID, "title": "Bind recovery test", "revision": revision,
 		"nodes": []any{map[string]any{
-			"id": nodeID, "type": "text", "title": "文本", "metadata": map[string]any{"taskId": nodeTaskID},
+			"id": nodeID, "type": "text", "title": "text", "metadata": map[string]any{"taskId": nodeTaskID},
 		}}, "connections": []any{},
 	})
 	if err != nil {
@@ -432,11 +432,11 @@ func seedCanvasBindRecoveryTask(t *testing.T, svc *Service, canvasID string, rev
 func bindTestText(taskID string) string {
 	switch taskID {
 	case "bind-normal":
-		return "正常绑定"
+		return "Normal binding"
 	case "bind-switched":
-		return "节点换回后绑定"
+		return "Bind after the node is switched back"
 	default:
-		return "节点重建后绑定"
+		return "Bind after node rebuild"
 	}
 }
 
@@ -516,7 +516,7 @@ func addCanvasBindTestNode(t *testing.T, svc *Service, canvasID, nodeID, taskID 
 	t.Helper()
 	doc := canvasBindTestDocument(t, svc, canvasID)
 	doc["nodes"] = append(doc["nodes"].([]any), map[string]any{
-		"id": nodeID, "type": "text", "title": "重建文本", "metadata": map[string]any{"taskId": taskID},
+		"id": nodeID, "type": "text", "title": "Reconstruct text", "metadata": map[string]any{"taskId": taskID},
 	})
 	saveCanvasBindTestDocument(t, svc, doc)
 }
@@ -605,10 +605,10 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 		now := time.Now()
 		convPayload, err := json.Marshal(map[string]any{
 			"id":        "conv-deleted-canvas",
-			"title":     "画布删除对话",
+			"title":     "canvas delete dialog",
 			"updatedAt": "2026-10-02T00:00:00.000Z",
 			"messages": []any{
-				map[string]any{"id": "user-1", "role": "user", "content": "生成文案", "mode": "text"},
+				map[string]any{"id": "user-1", "role": "user", "content": "Generate copy", "mode": "text"},
 				map[string]any{
 					"id": "msg-deleted-canvas", "role": "assistant", "mode": "text", "content": "", "status": "pending",
 					"taskIds": []any{"bind-deleted-canvas-text"},
@@ -676,7 +676,7 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 		}
 		messages, _ := convDoc["messages"].([]any)
 		msg, _ := messages[1].(map[string]any)
-		if msg["status"] != "done" || msg["content"] != "节点重建后绑定" {
+		if msg["status"] != "done" || msg["content"] != "Bind after node rebuild" {
 			t.Fatalf("deleted canvas skipped conversation.message.attach: %#v", msg)
 		}
 
@@ -720,7 +720,7 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 			t.Fatalf("restored canvas bind count = %d, want %d", got, beforeBinds+1)
 		}
 		meta := canvasBindTestNodeMetadata(t, svc, canvasID, "node-text")
-		if meta["content"] != "节点重建后绑定" {
+		if meta["content"] != "Bind after node rebuild" {
 			t.Fatalf("restored canvas node content = %#v", meta["content"])
 		}
 	})
@@ -756,7 +756,7 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 			t.Fatal(err)
 		}
 		savedCanvas, err := json.Marshal(map[string]any{
-			"id": canvasID, "title": "Seedream 删除恢复", "revision": revision,
+			"id": canvasID, "title": "Seedream Deletion Recovery", "revision": revision,
 			"nodes": []any{map[string]any{
 				"id": "root", "type": "image", "position": map[string]any{"x": 0, "y": 0},
 				"metadata": map[string]any{"taskId": task.ID},
@@ -803,8 +803,8 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 		svc, canvasID, revision := newAssistantTurnService(t)
 		db := svc.Database()
 		now := time.Now()
-		project := model.Project{ID: "drama-proj-1", UserID: "local", Name: "短剧项目", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
-		unit := model.ProjectUnit{ID: "drama-unit-1", ProjectID: project.ID, Kind: model.ProjectUnitKindChapter, Title: "第一章", Status: model.ProjectUnitStatusDraft, CreatedAt: now, UpdatedAt: now}
+		project := model.Project{ID: "drama-proj-1", UserID: "local", Name: "Short play project", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
+		unit := model.ProjectUnit{ID: "drama-unit-1", ProjectID: project.ID, Kind: model.ProjectUnitKindChapter, Title: "Chapter 1", Status: model.ProjectUnitStatusDraft, CreatedAt: now, UpdatedAt: now}
 		if err := db.Create(&project).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -825,7 +825,7 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 			}
 		}
 		shot, err := svc.ProjectService().CreateProjectShot("local", project.ID, CreateProjectShotRequest{
-			UnitID: unit.ID, Title: "SC.01", Description: "镜头一", DurationMs: 3000,
+			UnitID: unit.ID, Title: "SC.01", Description: "Shot 1", DurationMs: 3000,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -865,7 +865,7 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 			t.Fatal(err)
 		}
 		savedCanvas, _ := json.Marshal(map[string]any{
-			"id": canvasID, "projectId": project.ID, "title": "工作流画布", "revision": revision,
+			"id": canvasID, "projectId": project.ID, "title": "workflow canvas", "revision": revision,
 			"nodes": []any{map[string]any{
 				"id": "node-wf-video", "type": "video",
 				"metadata": map[string]any{"taskId": canvasTask.ID},
@@ -937,13 +937,13 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 		svc, _, _ := newAssistantTurnService(t)
 		db := svc.Database()
 		now := time.Now()
-		project, err := svc.ProjectService().CreateProject("local", CreateProjectRequest{Name: "三视图短剧项目"})
+		project, err := svc.ProjectService().CreateProject("local", CreateProjectRequest{Name: "Three-view short play project"})
 		if err != nil {
 			t.Fatal(err)
 		}
 		character, err := svc.ProjectService().CreateProjectCharacter("local", project.ID, CreateProjectCharacterRequest{
-			Name:       "主角阿昭",
-			Definition: map[string]any{"role": "主角", "appearance": "黑发"},
+			Name:       "Protagonist Azhao",
+			Definition: map[string]any{"role": "Protagonist", "appearance": "black hair"},
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -958,14 +958,14 @@ func TestCanvasBindRecoverySkipsDeletedCanvasAndResumesOnRestore(t *testing.T) {
 		}
 		turnaroundTask := model.Task{
 			ID: "bind-pseudo-turnaround", UserID: "local", ProjectID: project.ID,
-			Type: "canvas_image", Status: model.TaskStatusSucceeded, Prompt: "三视图",
+			Type: "canvas_image", Status: model.TaskStatusSucceeded, Prompt: "Three views",
 			InputJSON:  `{"nodeId":"character-turnaround:` + character.Asset.ID + `","metadata":{"operation":"character_turnaround","characterAssetId":"` + character.Asset.ID + `"}}`,
 			ResultJSON: `{"images":[{"resourceId":"res-turnaround-pseudo","storageKey":"resource:res-turnaround-pseudo"}]}`,
 			CreatedAt:  now, UpdatedAt: now, CompletedAt: &now,
 		}
 		chapterTask := model.Task{
 			ID: "bind-pseudo-chapter", UserID: "local", ProjectID: project.ID,
-			Type: "canvas_text", Status: model.TaskStatusSucceeded, Prompt: "章节提取",
+			Type: "canvas_text", Status: model.TaskStatusSucceeded, Prompt: "Chapter extraction",
 			InputJSON:  `{"nodeId":"chapter_assets_extract:chapter-1","metadata":{"domainProjectId":"` + project.ID + `","chapterId":"chapter-1","operation":"chapter_assets_extract"}}`,
 			ResultJSON: `{"mode":"text","text":"{\"characters\":[]}"}`,
 			CreatedAt:  now, UpdatedAt: now, CompletedAt: &now,

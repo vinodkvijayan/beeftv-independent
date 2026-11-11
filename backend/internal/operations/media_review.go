@@ -33,7 +33,7 @@ type mediaReviewArgs struct {
 
 func registerMediaReview(r *Registry) {
 	r.Register(Op{ID: "media.review", AssistantCanvas: true, ReadOnly: true, ReplayUnsafe: true, Scope: ScopeCanvas,
-		Summary: "用独立多模态审片模型检查指定区间（可能收费，最多15秒）",
+		Summary: "Check the specified interval with an independent multi-modal review model (charges may apply, up to 15 seconds)",
 		Params:  json.RawMessage(`{"type":"object","additionalProperties":false,"properties":{"canvasId":{"type":"string"},"nodeId":{"type":"string"},"assetId":{"type":"string"},"resourceId":{"type":"string"},"expectedVersion":{"type":"string"},"startMs":{"type":"integer"},"endMs":{"type":"integer"},"mode":{"type":"string","enum":["video","audio"]},"question":{"type":"string"}},"required":["canvasId","expectedVersion","startMs","endMs","question"]}`), Handler: runMediaReview})
 }
 
@@ -43,17 +43,17 @@ func runMediaReview(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.Question) == "" || len([]rune(args.Question)) > 4000 || args.StartMs < 0 || args.EndMs <= args.StartMs || args.EndMs-args.StartMs > 15000 || strings.TrimSpace(args.ExpectedVersion) == "" {
-		return nil, InvalidArg("invalid_media_review", "请提供素材版本、明确的15秒以内区间和审查问题")
+		return nil, InvalidArg("invalid_media_review", "Please provide a version of the material, a clear interval within 15 seconds, and review questions")
 	}
 	if args.Mode == "" {
 		args.Mode = "video"
 	}
 	if args.Mode != "video" && args.Mode != "audio" {
-		return nil, InvalidArg("invalid_media_mode", "mode 必须是 video 或 audio")
+		return nil, InvalidArg("invalid_media_mode", "mode must be video or audio")
 	}
 	reviewer, ok := ctx.Domain.(MediaReviewer)
 	if !ok {
-		return nil, Unsupported("media_review_unavailable", "当前工作区未配置审片模型")
+		return nil, Unsupported("media_review_unavailable", "The film review model is not configured in the current workspace")
 	}
 	params, _ := json.Marshal(mediaArgs{CanvasID: args.CanvasID, NodeID: args.NodeID, AssetID: args.AssetID, ResourceID: args.ResourceID, ExpectedVersion: args.ExpectedVersion, StartMs: args.StartMs, EndMs: args.EndMs, Mode: args.Mode})
 	value, err := runMedia(ctx, "media.inspect", params)
@@ -67,18 +67,18 @@ func runMediaReview(ctx *Context, raw json.RawMessage) (any, error) {
 	}
 	if len(media.Content) != 1 || media.Content[0].MimeType != mime {
 		if args.Mode == "audio" {
-			return nil, InvalidArg("media_review_requires_audio", "审片工具需要音频素材")
+			return nil, InvalidArg("media_review_requires_audio", "The review tool requires audio material")
 		}
-		return nil, InvalidArg("media_review_requires_video", "审片工具需要视频素材")
+		return nil, InvalidArg("media_review_requires_video", "The review tool requires video material")
 	}
 	part := media.Content[0]
 	observation, err := reviewer.ReviewMedia(ctx.Context, part, args.Question)
 	if err != nil {
 		return nil, err
 	}
-	note := "指定片段已交给审片模型；观察可能有遗漏，需与原始要求及可见画面对照。时间位置以截取片段起点为0，加上source.startMs后才是原素材位置。"
+	note := "The designated footage has been handed over to the review model; observations may be omitted and need to be compared with the original requirements and visible footage. The time position is based on the starting point of the intercepted clip as 0, and source.startMs is added to the original material position."
 	if args.Mode == "audio" {
-		note = "指定音频片段已交给审片模型；观察可能有遗漏，需与原始要求及实际声音对照，不表示主模型亲自听取。时间位置以截取片段起点为0，加上source.startMs后才是原素材位置。"
+		note = "The designated audio clips have been handed over to the review model; there may be omissions in the observations and need to be compared with the original requirements and actual sounds. This does not mean that the main model listened to it personally. The time position is based on the starting point of the intercepted clip as 0, and source.startMs is added to the original material position."
 	}
 	return map[string]any{"source": media.Source, "durationMs": media.DurationMs, "hasAudio": media.HasAudio, "mediaSHA256": part.SHA256, "review": observation, "note": note}, nil
 }

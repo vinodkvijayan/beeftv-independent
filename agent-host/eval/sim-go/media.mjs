@@ -219,7 +219,7 @@ export function armNextMediaInspectError(state, canvasId, nodeId, options = {}) 
     nodeId: String(nodeId),
     assetId: node?.metadata?.assetId ? String(node.metadata.assetId) : null,
     reason: String(options.reason || 'stale_media_version'),
-    message: String(options.message || '素材内容已变化，请重新读取 overview 获取当前版本'),
+    message: String(options.message || 'The material content has changed, please re-read the overview to get the current version'),
     details: options.details || null,
   });
   return true;
@@ -247,7 +247,7 @@ function readMedia(state, rawParams, ctx) {
   const nodeId = String(rawParams.nodeId || '').trim();
   const assetId = String(rawParams.assetId || '').trim();
   if (!canvasId || (!nodeId && !assetId)) {
-    throw invalidArg('invalid_media_target', '指定 canvasId 和一个 nodeId 或 assetId');
+    throw invalidArg('invalid_media_target', 'Specify canvasId and a nodeId or assetId');
   }
   const doc = ensureCanvas(state, canvasId);
   let resourceId = String(rawParams.resourceId || '').trim();
@@ -257,7 +257,7 @@ function readMedia(state, rawParams, ctx) {
   let durationMs = 6000;
   if (nodeId) {
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw permissionDenied('node_not_in_canvas', '节点不属于指定画布');
+    if (!node) throw permissionDenied('node_not_in_canvas', 'Node does not belong to the specified canvas');
     mediaKind = node.type === 'video' ? 'video' : node.type === 'audio' ? 'audio' : 'image';
     resourceId = resourceId || node.metadata?.resourceId || '';
     promptText = node.metadata?.composerContent || node.metadata?.prompt || '';
@@ -265,14 +265,14 @@ function readMedia(state, rawParams, ctx) {
     durationMs = Number(node.metadata?.durationMs || (Number(node.metadata?.seconds || 6) * 1000));
   } else if (assetId) {
     const asset = state.assets.get(assetId);
-    if (!asset) throw notFound('asset_not_found', '素材不存在');
+    if (!asset) throw notFound('asset_not_found', 'Material does not exist');
     mediaKind = asset.kind || 'image';
     resourceId = resourceId || asset.resourceId || '';
     promptText = asset.prompt || '';
     defectNote = asset.reviewNote || '';
   }
   if (!resourceId) {
-    throw notFound('media_not_found', '目标节点尚未生成或绑定媒体资源');
+    throw notFound('media_not_found', 'The target node has not yet generated or bound media resources');
   }
   // 与真实操作层一致：除 media.overview 外必须先读 overview 再带版本，
   // 版本不一致要明确报 stale_media_version，不能让助手把缺参当成素材问题。
@@ -294,10 +294,10 @@ function readMedia(state, rawParams, ctx) {
     }
   }
   if (opIdName !== 'media.overview' && !expectedVersion) {
-    throw invalidArg('media_version_required', '先读取 overview，再提供 expectedVersion');
+    throw invalidArg('media_version_required', 'Read the overview first, then provide expectedVersion');
   }
   if (expectedVersion && expectedVersion !== version) {
-    throw conflict('stale_media_version', '素材内容已变化，请重新读取 overview', { currentVersion: version });
+    throw conflict('stale_media_version', 'The material content has changed, please re-read the overview', { currentVersion: version });
   }
   state.counts.mediaInspections += 1;
   const source = {
@@ -308,8 +308,8 @@ function readMedia(state, rawParams, ctx) {
     startMs: Number(rawParams.startMs || 0),
     endMs: Number(rawParams.endMs || durationMs),
   };
-  const noteParts = [`占位媒体提示词: ${promptText || '无'}`];
-  if (defectNote) noteParts.push(`画面检查结果: ${defectNote}`);
+  const noteParts = [`Placeholder media prompt words:${promptText || 'None'}`];
+  if (defectNote) noteParts.push(`Screen check results:${defectNote}`);
   const content = [];
   if (opIdName === 'media.inspect') {
     content.push({
@@ -346,9 +346,9 @@ export const MEDIA_OPS = {
   'project.canvas.search': searchAssets,
   'asset.get': (state, rawParams) => {
     const assetId = String(rawParams.assetId || '').trim();
-    if (!assetId) throw invalidArg('invalid_params', 'assetId 必填');
+    if (!assetId) throw invalidArg('invalid_params', 'assetId required');
     const asset = state.assets.get(assetId);
-    if (!asset) throw notFound('asset_not_found', '素材不存在');
+    if (!asset) throw notFound('asset_not_found', 'Material does not exist');
     return { assetId, asset: clone(asset) };
   },
   'media.overview': readMedia,

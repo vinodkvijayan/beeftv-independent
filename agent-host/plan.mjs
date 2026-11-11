@@ -3,7 +3,7 @@
 
 export const PLAN_STATUSES = ['todo', 'doing', 'done', 'needs_user', 'blocked'];
 export const PLAN_MAX_ITEMS = 12;
-const LABEL = { todo: '待做', doing: '进行中', done: '完成', needs_user: '等你确认', blocked: '卡住了' };
+const LABEL = { todo: 'To be done', doing: 'In progress', done: 'Done', needs_user: 'Waiting for your confirmation', blocked: 'stuck' };
 
 export const PLAN_UPDATE_PARAMETERS = {
   type: 'object',
@@ -35,35 +35,35 @@ export const emptyPlan = () => ({ goal: '', items: [], updatedAt: '' });
 // 校验并合并：整体替换步骤清单；goal 省略则保留。
 export function applyPlanUpdate(current, args, now = new Date().toISOString()) {
   const base = current && typeof current === 'object' ? current : emptyPlan();
-  if (!args || typeof args !== 'object' || Array.isArray(args)) throw fail('invalid_plan: 参数必须是对象');
+  if (!args || typeof args !== 'object' || Array.isArray(args)) throw fail('invalid_plan: Parameter must be an object');
   const next = { goal: base.goal || '', items: base.items || [], updatedAt: now };
   if (args.goal !== undefined) {
-    if (typeof args.goal !== 'string') throw fail('invalid_plan: goal 必须是文字');
+    if (typeof args.goal !== 'string') throw fail('invalid_plan: goal must be text');
     next.goal = clip(args.goal, 200);
   }
   if (args.items !== undefined) {
-    if (!Array.isArray(args.items) || args.items.length > PLAN_MAX_ITEMS) throw fail(`invalid_plan: 步骤最多 ${PLAN_MAX_ITEMS} 个`);
+    if (!Array.isArray(args.items) || args.items.length > PLAN_MAX_ITEMS) throw fail(`invalid_plan: most steps${PLAN_MAX_ITEMS} a`);
     const seen = new Set();
     next.items = args.items.map((item) => {
-      if (!item || typeof item.id !== 'string' || !item.id.trim() || typeof item.title !== 'string' || !item.title.trim()) throw fail('invalid_plan: 每步需要 id 和 title');
-      if (!PLAN_STATUSES.includes(item.status)) throw fail(`invalid_plan: 状态只能是 ${PLAN_STATUSES.join('/')}`);
+      if (!item || typeof item.id !== 'string' || !item.id.trim() || typeof item.title !== 'string' || !item.title.trim()) throw fail('invalid_plan: Each step requires id and title');
+      if (!PLAN_STATUSES.includes(item.status)) throw fail(`invalid_plan: The status can only be${PLAN_STATUSES.join('/')}`);
       const id = item.id.trim();
-      if (seen.has(id)) throw fail(`invalid_plan: 步骤编号重复 ${id}`);
+      if (seen.has(id)) throw fail(`invalid_plan: Duplicate step number${id}`);
       seen.add(id);
       return { id, title: clip(item.title, 60), status: item.status, ...(item.note ? { note: clip(item.note, 120) } : {}) };
     });
-    if (next.items.filter((item) => item.status === 'doing').length > 1) throw fail('invalid_plan: 同一时间只能有一步“进行中”');
+    if (next.items.filter((item) => item.status === 'doing').length > 1) throw fail('invalid_plan: There can only be one step "in progress" at the same time');
   }
   return next;
 }
 
 // 系统提示里的计划段落：每轮都是最新状态，压缩后也不会丢。
 export function renderPlanSection(plan) {
-  if (!plan?.items?.length) return plan?.updatedAt ? '当前制作计划：所有步骤已完成。' : undefined;
-  const lines = ['当前制作计划（你自己维护；用 plan_update 更新）：'];
-  if (plan.goal) lines.push(`目标：${plan.goal}`);
+  if (!plan?.items?.length) return plan?.updatedAt ? 'Current production plan: All steps completed.' : undefined;
+  const lines = ['Current production plan (maintained by yourself; updated with plan_update):'];
+  if (plan.goal) lines.push(`Goal:${plan.goal}`);
   plan.items.forEach((item, index) => lines.push(`${index + 1}. [${LABEL[item.status]}] ${item.title}${item.note ? `（${item.note}）` : ''}  (${item.id})`));
-  lines.push('做法：完成一步就更新计划；下一步不需要用户确认或付费时直接接着做；需要用户确认、回答或点“生成”时标 needs_user 并停下说明。出错无法继续标 blocked 并说明原因。没有实际做完的步骤不能标 done。');
+  lines.push('Method: Update the plan after completing one step; proceed directly to the next step if it does not require user confirmation or payment; mark needs_user and stop explaining when the user needs to confirm, answer or click "Generate". If an error occurs and cannot continue, mark blocked and explain the reason. Steps that are not actually completed cannot be marked done.');
   return lines.join('\n');
 }
 
@@ -73,7 +73,7 @@ export function planContinuation(plan, { continuations = 0, maxContinuations = 6
   if (plan.items.some((item) => item.status === 'needs_user' || item.status === 'blocked')) return undefined;
   const next = plan.items.find((item) => item.status === 'doing') || plan.items.find((item) => item.status === 'todo');
   if (!next) return undefined;
-  return `计划还没做完。继续做「${next.title}」；做完用 plan_update 更新状态。遇到需要用户确认、回答或点“生成”的地方，标 needs_user 并停下来。`;
+  return `The plan is not finished yet. Keep doing "${next.title}"; Use plan_update to update the status when finished. When you encounter a place where the user needs to confirm, answer, or click "Generate", mark needs_user and stop.`;
 }
 
 // 给界面看的计划（不含内部字段）。

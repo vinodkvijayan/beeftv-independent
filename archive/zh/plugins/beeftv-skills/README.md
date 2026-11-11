@@ -1,18 +1,18 @@
-# BeefTV Skills 官方接入包
+#BeefTV Skills Official Access Pack
 
-提供一个 BeefTV 画布工作 Skill、两个通用 Skill，以及只读的市场 MCP 连接。公共查询不需要模型 Key、投稿凭据或运行中的 BeefTV。投稿通过独立的 CLI 浏览器授权进行；MCP 不提供上传、审批或公开发布工具。
+Provides a BeefTV canvas working skill, two generic skills, and a read-only market MCP connection. Public queries do not require a model key, contribution credentials, or a running BeefTV. Contributions are made through a separate CLI browser license; MCP does not provide upload, approval, or public publishing tools.
 
-`skills/beeftv-canvas` 是桌面版「一键接入 Claude Code / Codex」安装的同一份技能：桌面端接入时把它写入对应 Agent 的用户级技能目录，断开时移除。这里的文件是唯一可编辑来源，后端嵌入副本由 `scripts/sync-agent-skill.mjs` 同步。
+`skills/beeftv-canvas` is the same skill installed by the desktop version of "One-click access to Claude Code / Codex": it is written into the user-level skill directory of the corresponding Agent when the desktop version is connected, and removed when disconnected. The files here are the only editable source, with backend embedded copies synced by `scripts/sync-agent-skill.mjs`.
 
-此目录是待审查的接入包源码，不代表公共目录已上架或生产服务已开放。生产地址在后端和官网完成部署、联调后才可对用户宣传。
+This directory is the source code of the access package to be reviewed. It does not mean that the public directory has been put on the shelves or that the production service has been opened. The production address can only be promoted to users after the backend and official website have completed deployment and joint debugging.
 
-- `plugin.json`、`mcp.json`：Agent Plugins 1.0 格式，Codex 使用。
-- `.claude-plugin/plugin.json`、`mcp.claude.json`：Claude Code 适配，复用同一份 Skill。
-- 仓库 `.agents/plugins/marketplace.json` 与 `.claude-plugin/marketplace.json`：各宿主的仓库来源入口。
-- `skills/`：BeefTV 画布工作方法、寻找技能、整理投稿的三个工作流，不打包整个社区目录。
+- `plugin.json`, `mcp.json`: Agent Plugins 1.0 format, used by Codex.
+- `.claude-plugin/plugin.json`, `mcp.claude.json`: Claude Code adaptation, reusing the same Skill.
+- Warehouses `.agents/plugins/marketplace.json` and `.claude-plugin/marketplace.json`: the warehouse source entrances of each host.
+- `skills/`: BeefTV canvas working method, three workflows of searching for skills, and organizing submissions, without packaging the entire community directory.
 
-本地构建 CLI：在仓库根目录执行 `go -C backend build -o ../.local/bin/beeftv ./cmd/beeftv`，然后运行 `.local/bin/beeftv skills help`。只读 MCP 位于 `/api/beeftv/skillhub/v1/mcp`；默认远程 HTTPS，测试时可显式指定本机市场。安装包不运行 shell hook 或 npm 生命周期脚本。
+Build the CLI locally: Execute `go -C backend build -o ../.local/bin/beeftv ./cmd/beeftv` in the repository root directory, then run `.local/bin/beeftv skills help`. Read-only MCP is located at `/api/beeftv/skillhub/v1/mcp`; defaults to remote HTTPS, local market can be specified explicitly when testing. The installation package does not run shell hooks or npm lifecycle scripts.
 
-宿主校验使用其实际提供的命令：Claude Code 为 `claude plugin validate ./plugins/beeftv-skills --strict`；Codex 的清单以官方 Agent Plugins schema 和实际宿主版本为准。清单校验不等于已安装、已启用或进入官方精选目录。
+The host verification uses the command actually provided by it: Claude Code is `claude plugin validate ./plugins/beeftv-skills --strict`; the Codex list is based on the official Agent Plugins schema and the actual host version. Manifest verification does not equate to being installed, enabled, or in the official selection directory.
 
-规范来源：[OpenAI 插件打包](https://developers.openai.com/plugins/build/plugins)、[Claude 插件清单](https://code.claude.com/docs/en/plugins-reference)。
+Source of specification: [OpenAI plug-in packaging](https://developers.openai.com/plugins/build/plugins)、[Claude plug-in list](https://code.claude.com/docs/en/plugins-reference)。

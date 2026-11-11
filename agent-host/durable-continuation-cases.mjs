@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { modelFixture } from './test-support/durable-model-switch-probe.mjs';
 
-const input = { continuationId: 'receipt', turnId: 'fixed-turn', requestId: 'generation_fixed', content: '【自动继续】检查实际结果并继续原计划', userText: '【自动继续】检查实际结果并继续原计划', selectedNodeIds: ['actual-result'] };
+const input = { continuationId: 'receipt', turnId: 'fixed-turn', requestId: 'generation_fixed', content: '[Auto-continue] Check the actual results and continue with the original plan', userText: '[Auto-continue] Check the actual results and continue with the original plan', selectedNodeIds: ['actual-result'] };
 const failure = reason => Object.assign(new Error(reason), { reason });
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return {promise,resolve}; };
 
@@ -80,7 +80,7 @@ for(const reason of ['continuation_cancelled','continuation_scope_changed']) tes
     assert.equal(await fixture.store.submit(entry,input),null);
     const history=await fixture.store.history('canvas',entry.sessionId);
     assert.equal(history.turns[0].cancelled,true);assert.equal(fixture.requests.length,0);
-    const manual=await fixture.store.submit(entry,{turnId:'manual',requestId:'manual',content:'我的新要求'});
+    const manual=await fixture.store.submit(entry,{turnId:'manual',requestId:'manual',content:'my new request'});
     await fixture.store.wait(entry,manual);
     assert.equal(fixture.requests.length,1);
   }finally{await fixture?.close();fs.rmSync(directory,{recursive:true,force:true});}

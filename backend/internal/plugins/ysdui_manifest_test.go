@@ -306,7 +306,7 @@ func TestYsduiVideoManifestIsolatesVendorParameters(t *testing.T) {
 		BaseURL: "https://tokenhub.ysdui.cn",
 		Request: protocol.GenerationRequest{
 			Model:       "wan3.0-video",
-			Prompt:      "替换背景",
+			Prompt:      "Replace background",
 			Operation:   "inpaint",
 			AspectRatio: "16:9",
 			Videos:      []protocol.MediaReference{{URL: "https://cdn.example.test/ref.mp4"}},

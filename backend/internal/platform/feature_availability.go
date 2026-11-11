@@ -98,7 +98,7 @@ func (s *Service) FeatureEnabled(feature string) (bool, error) {
 	case FeatureTimelineTranscription:
 		return value.TimelineTranscriptionEnabled, nil
 	default:
-		return false, errors.New("未知功能开放配置")
+		return false, errors.New("Unknown function open configuration")
 	}
 }
 
@@ -111,25 +111,25 @@ func (s *Service) RequireFeature(feature string) error {
 		return nil
 	}
 	if s != nil && s.localMode {
-		return kernel.Forbidden("当前工作区未开放此功能")
+		return kernel.Forbidden("This feature is not available in the current workspace")
 	}
 	switch feature {
 	case FeatureShortDrama:
-		return kernel.Forbidden("短剧创作暂未开放")
+		return kernel.Forbidden("Short play creation is not available yet")
 	case FeatureTaskCenter:
-		return kernel.Forbidden("任务中心暂未开放")
+		return kernel.Forbidden("The mission center is not open yet")
 	case FeatureCustomChannels:
-		return kernel.Forbidden("自定义渠道暂未开放")
+		return kernel.Forbidden("Custom channels are not yet open")
 	case FeatureFrontendModels:
-		return kernel.Forbidden("前台模型目录暂未开放")
+		return kernel.Forbidden("The front-end model directory is not yet open")
 	case FeaturePluginCenter:
-		return kernel.Forbidden("插件中心暂未开放")
+		return kernel.Forbidden("The plug-in center is not open yet")
 	case FeatureSystemPlugins:
-		return kernel.Forbidden("系统插件暂未向普通用户展示")
+		return kernel.Forbidden("System plug-ins are not yet displayed to ordinary users")
 	case FeatureTimelineTranscription:
-		return kernel.Forbidden("字幕转写暂未开放")
+		return kernel.Forbidden("Subtitle transcription is not available yet")
 	default:
-		return kernel.Forbidden("该功能暂未开放")
+		return kernel.Forbidden("This function is not available yet")
 	}
 }
 
@@ -144,7 +144,7 @@ func (s *Service) readFeatureAvailability() (*model.SystemSetting, FeatureAvaila
 	// 以全开放默认值为基底，避免已有三字段配置在升级后因缺少新字段而意外关闭功能。
 	value := DefaultFeatureAvailability()
 	if strings.TrimSpace(setting.ValueJSON) == "" || json.Unmarshal([]byte(setting.ValueJSON), &value) != nil {
-		return nil, FeatureAvailability{}, errors.New("功能开放配置格式无效")
+		return nil, FeatureAvailability{}, errors.New("The function opening configuration format is invalid")
 	}
 	return setting, value, nil
 }

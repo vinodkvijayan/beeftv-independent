@@ -39,23 +39,23 @@ func ownedFullVideoMediaReader(ctx context.Context, userID string) BeefTVSeedanc
 	return func(kind string, media Media) ([]byte, string, bool, error) {
 		limit := fullvideoMediaLimit(kind)
 		if media.Bytes > limit {
-			return nil, "", false, errors.New("参考素材超过服务商大小限制")
+			return nil, "", false, errors.New("The reference material exceeds the size limit of the service provider")
 		}
 		if !strings.HasPrefix(media.StorageKey, "resource:") {
 			return ReadBeefTVSeedanceInlineMedia(kind, media)
 		}
 		runtime, ok := RuntimeFromContext(ctx)
 		if !ok || runtime.Resources == nil {
-			return nil, "", false, errors.New("读取任务参考资源失败：资源端口未接入")
+			return nil, "", false, errors.New("Failed to read task reference resources: the resource port is not connected")
 		}
 		resource, body, err := runtime.Resources.Open(userID, strings.TrimPrefix(media.StorageKey, "resource:"))
 		if err != nil {
-			return nil, "", false, fmt.Errorf("读取任务参考资源失败：%w", err)
+			return nil, "", false, fmt.Errorf("Failed to read task reference resources: %w", err)
 		}
 		defer body.Close()
 		data, err := io.ReadAll(io.LimitReader(body, limit+1))
 		if err == nil && int64(len(data)) > limit {
-			err = errors.New("参考素材超过服务商大小限制")
+			err = errors.New("The reference material exceeds the size limit of the service provider")
 		}
 		return data, firstNonEmpty(media.MimeType, resource.MimeType), false, err
 	}
@@ -68,14 +68,14 @@ func prepareFullVideoReferences(ctx context.Context, input *Input, read BeefTVSe
 		return nil
 	}
 	if !fullvideoFullModel(input.Config.Model) {
-		return errors.New("此协议仅支持全参 2.0 / 2.5")
+		return errors.New("This protocol only supports full parameters 2.0 / 2.5")
 	}
 	maxTotal := 12
 	if strings.HasSuffix(input.Config.Model, "2.5") {
 		maxTotal = 50
 	}
 	if len(input.ReferenceImages)+len(input.ReferenceVideos)+len(input.ReferenceAudios) > maxTotal {
-		return fmt.Errorf("当前模型最多支持 %d 个参考素材", maxTotal)
+		return fmt.Errorf("The current model supports up to %d reference materials", maxTotal)
 	}
 	prepared := *input
 	prepared.ReferenceImages = append([]Media(nil), input.ReferenceImages...)
@@ -89,7 +89,7 @@ func prepareFullVideoReferences(ctx context.Context, input *Input, read BeefTVSe
 					return err
 				}
 				if group.kind != "image" && media.DurationMs <= 0 {
-					return errors.New("参考音视频缺少真实时长")
+					return errors.New("Reference audio and video lacks real duration")
 				}
 				continue
 			}
@@ -98,10 +98,10 @@ func prepareFullVideoReferences(ctx context.Context, input *Input, read BeefTVSe
 				return err
 			}
 			if skip || len(data) == 0 {
-				return errors.New("无法读取参考素材，请重新导入")
+				return errors.New("Unable to read reference material, please import again")
 			}
 			if int64(len(data)) > fullvideoMediaLimit(group.kind) {
-				return errors.New("参考素材超过服务商大小限制")
+				return errors.New("The reference material exceeds the size limit of the service provider")
 			}
 			sum := sha256.Sum256(data)
 			digest := hex.EncodeToString(sum[:])
@@ -127,14 +127,14 @@ func prepareFullVideoReferences(ctx context.Context, input *Input, read BeefTVSe
 			}
 			if receipt.Status != "complete" {
 				if !validFullVideoUploadID(receipt.ID) || receipt.ChunkSize <= 0 || receipt.ChunkSize > 16<<20 {
-					return errors.New("素材上传回执无效")
+					return errors.New("Material upload receipt is invalid")
 				}
 				path := "/v1/media/uploads/" + receipt.ID
 				received := map[int]bool{}
 				chunkCount := (len(data) + receipt.ChunkSize - 1) / receipt.ChunkSize
 				for _, n := range receipt.Received {
 					if n < 0 || n >= chunkCount || received[n] {
-						return errors.New("素材上传分片回执无效")
+						return errors.New("Invalid receipt of material upload fragments")
 					}
 					received[n] = true
 				}
@@ -155,13 +155,13 @@ func prepareFullVideoReferences(ctx context.Context, input *Input, read BeefTVSe
 				}
 			}
 			if receipt.Status != "complete" || receipt.Bytes != int64(len(data)) || receipt.SHA256 != digest || receipt.Kind != group.kind || !trustedFullVideoAssetSource(input.Config.BaseURL, receipt.Source, input.Config.ReferenceAssetOrigin) {
-				return errors.New("素材上传未通过完整性校验")
+				return errors.New("Material upload failed integrity check")
 			}
 			if _, err := outbound.ValidateOutboundURL(receipt.Source); err != nil {
 				return err
 			}
 			if group.kind != "image" && receipt.Duration <= 0 {
-				return errors.New("服务商未确认参考音视频时长")
+				return errors.New("The service provider has not confirmed the reference audio and video duration.")
 			}
 			media.URL = receipt.Source
 			media.DataURL = ""
@@ -213,7 +213,7 @@ func trustedFullVideoAssetSource(baseURL, sourceURL, assetOrigin string) bool {
 
 func fullvideoFullModel(name string) bool {
 	switch name {
-	case "sd-native-full-2.0", "sd-native-full-2.5", "原生不卡人脸-全参2.0", "原生不卡人脸-全参2.5":
+	case "sd-native-full-2.0", "sd-native-full-2.5", "Native face recognition-Full Reference 2.0", "Native face recognition without blocking - full reference 2.5":
 		return true
 	}
 	return false

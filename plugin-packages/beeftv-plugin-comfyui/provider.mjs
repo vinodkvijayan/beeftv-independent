@@ -21,7 +21,7 @@ const MISSING_LIMIT = 3;
 /** @param {import("@beeftv/plugin-sdk").ProviderModuleContext} ctx */
 function baseUrl(ctx) {
   const raw = String(ctx.config?.baseUrl ?? "").trim().replace(/\/+$/, "");
-  if (!raw) throw new Error("请先在模型服务里填写 ComfyUI 的服务地址");
+  if (!raw) throw new Error("Please fill in the service address of ComfyUI in the model service first");
   return raw.replace(/\/api$/, "");
 }
 
@@ -32,7 +32,7 @@ async function comfy(ctx, path, init = {}) {
     response = await fetch(url, { ...init, signal: ctx.signal });
   } catch (error) {
     if (ctx.signal?.aborted) throw error;
-    throw new Error("连不上 ComfyUI。请确认 ComfyUI 已经启动，服务地址也填对了");
+    throw new Error("Can't connect to ComfyUI. Please confirm that ComfyUI has been started and the service address is filled in correctly.");
   }
   return response;
 }
@@ -57,7 +57,7 @@ async function comfyJSON(ctx, path, init) {
 
 function workflowPath(model) {
   const name = String(model ?? "").trim();
-  if (!name || name.split("/").some((part) => part === ".." || part === "")) throw new Error("请选择一个 ComfyUI 工作流");
+  if (!name || name.split("/").some((part) => part === ".." || part === "")) throw new Error("Please select a ComfyUI workflow");
   return `${WORKFLOW_DIR}/${name}`;
 }
 
@@ -65,7 +65,7 @@ async function readWorkflow(ctx, model) {
   try {
     return await comfyJSON(ctx, `/userdata/${encodeURIComponent(workflowPath(model))}`);
   } catch (error) {
-    if (error.status === 404) throw new Error(`ComfyUI 里找不到工作流「${model}」，可能已经改名或删除。请在模型服务里重新读取模型`);
+    if (error.status === 404) throw new Error(`Workflow cannot be found in ComfyUI"${model}”, may have been renamed or deleted. Please re-read the model in the model service`);
     throw error;
   }
 }
@@ -90,7 +90,7 @@ async function prepare(ctx, raw) {
     info = await objectInfo(ctx, true);
     missing = missingNodeTypes(raw, info);
   }
-  if (missing.length > 0) throw new Error(`这台 ComfyUI 缺少节点：${missing.join("、")}。请先装好对应的节点包`);
+  if (missing.length > 0) throw new Error(`This ComfyUI is missing nodes:${missing.join("、")}. Please install the corresponding node package first`);
   return prepareWorkflow(raw, info);
 }
 
@@ -108,9 +108,9 @@ async function readMedia(reference, ctx) {
   const inline = mediaBytes(reference);
   if (inline) return inline;
   const url = String(reference.url ?? "");
-  if (!/^https?:\/\//i.test(url)) throw new Error("有一个参考素材没有可下载的地址");
+  if (!/^https?:\/\//i.test(url)) throw new Error("There is a reference material without a downloadable address.");
   const response = await fetch(url, { signal: ctx.signal });
-  if (!response.ok) throw new Error(`下载参考素材失败：HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`Failed to download reference material: HTTP${response.status}`);
   return { body: Buffer.from(await response.arrayBuffer()), mimeType: response.headers.get("content-type") || reference.mimeType };
 }
 
@@ -143,16 +143,16 @@ async function upload(ctx, reference, name) {
   return saved.subfolder ? `${saved.subfolder}/${saved.name}` : saved.name;
 }
 
-const KIND_LABEL = { image: "图片", video: "视频", audio: "音频" };
+const KIND_LABEL = { image: "pictures", video: "video", audio: "Audio" };
 
 function nodeErrorMessage(body) {
   const lines = [];
   for (const [nodeId, detail] of Object.entries(body?.node_errors ?? {})) {
     for (const error of detail?.errors ?? []) {
-      lines.push(`节点 ${nodeId}（${detail.class_type}）：${error.details || error.message}`);
+      lines.push(`node${nodeId}（${detail.class_type}）：${error.details || error.message}`);
     }
   }
-  const head = body?.error?.message || "ComfyUI 拒绝了这个工作流";
+  const head = body?.error?.message || "ComfyUI rejected this workflow";
   return lines.length > 0 ? `${head}：${lines.slice(0, 3).join("；")}` : head;
 }
 
@@ -163,7 +163,7 @@ async function preparePrompt(request, ctx) {
 
   const prompt = String(request.prompt ?? "").trim();
   if (prompt && targets.prompt) setInput(prepared.graph, targets.prompt, prompt);
-  if (prompt && !targets.prompt) ctx.log(`工作流 ${request.model} 没有填提示词的位置，这次的提示词没有用上`);
+  if (prompt && !targets.prompt) ctx.log(`Workflow${request.model} There is no space for the prompt word. The prompt word is not used this time.`);
 
   const key = String(request.extra?.idempotencyKey ?? Date.now()).replace(/[^\w-]/g, "").slice(0, 40);
   // 局部重绘的蒙版不是普通输入图，工作流要用蒙版时请在 ComfyUI 里自己接。
@@ -171,8 +171,8 @@ async function preparePrompt(request, ctx) {
   for (const kind of ["image", "video", "audio"]) {
     const slots = targets.media[kind];
     if (supplied[kind].length > slots.length) {
-      const limit = slots.length === 0 ? `不接收${KIND_LABEL[kind]}` : `最多接收 ${slots.length} 个${KIND_LABEL[kind]}`;
-      return { status: "failed", message: `这个工作流${limit}，这次给了 ${supplied[kind].length} 个` };
+      const limit = slots.length === 0 ? `Do not accept${KIND_LABEL[kind]}` : `Most received${slots.length} a${KIND_LABEL[kind]}`;
+      return { status: "failed", message: `This workflow${limit}, this time I gave it${supplied[kind].length} a` };
     }
     // 给的素材比位置少时，其余位置用工作流里原来选的文件。
     for (const [index, reference] of supplied[kind].entries()) {
@@ -182,7 +182,7 @@ async function preparePrompt(request, ctx) {
 
   randomizeSeeds(prepared);
   const outputs = outputNodeIds(prepared);
-  if (outputs.length === 0) return { status: "failed", message: "这个工作流没有保存图片、视频或音频的节点" };
+  if (outputs.length === 0) return { status: "failed", message: "This workflow has no nodes to save images, videos or audios" };
   return { graph: prepared.graph, outputs };
 }
 
@@ -208,7 +208,7 @@ export async function submit(request, ctx) {
     if (error.status === 400) return { status: "failed", message: nodeErrorMessage(error.body) };
     throw error;
   }
-  if (!queued?.prompt_id) throw new Error("ComfyUI 没有返回任务号");
+  if (!queued?.prompt_id) throw new Error("ComfyUI does not return the task number");
   return { taskId: queued.prompt_id, status: "pending" };
 }
 
@@ -217,12 +217,12 @@ const missingCounts = new Map();
 function executionError(messages) {
   for (const [type, detail] of messages ?? []) {
     if (type === "execution_error") {
-      const where = detail?.node_type ? `节点 ${detail.node_type} 出错：` : "";
-      return `${where}${detail?.exception_message || "ComfyUI 运行失败"}`.trim();
+      const where = detail?.node_type ? `node${detail.node_type} Error:` : "";
+      return `${where}${detail?.exception_message || "ComfyUI failed to run"}`.trim();
     }
-    if (type === "execution_interrupted") return "任务在 ComfyUI 里被中断了";
+    if (type === "execution_interrupted") return "The task was interrupted in ComfyUI";
   }
-  return "ComfyUI 运行失败";
+  return "ComfyUI failed to run";
 }
 
 const VIDEO_EXT = /\.(mp4|webm|mov|m4v|mkv)$/i;
@@ -260,7 +260,7 @@ export async function query(taskId, _request, ctx) {
     if (entry.status && entry.status.completed === false) return { taskId, status: "processing" };
     const result = collectOutputs(ctx, entry);
     if (result.images.length + result.videos.length + result.audios.length === 0) {
-      return { taskId, status: "failed", message: "工作流跑完了，但没有产出图片、视频或音频" };
+      return { taskId, status: "failed", message: "The workflow is completed, but no images, videos or audios are produced." };
     }
     return { taskId, status: "succeeded", result };
   }
@@ -272,7 +272,7 @@ export async function query(taskId, _request, ctx) {
   missingCounts.set(taskId, misses);
   if (misses < MISSING_LIMIT) return { taskId, status: "processing" };
   missingCounts.delete(taskId);
-  return { taskId, status: "failed", message: "ComfyUI 里找不到这个任务，可能 ComfyUI 重启过。请重新生成" };
+  return { taskId, status: "failed", message: "This task cannot be found in ComfyUI. ComfyUI may have been restarted. Please regenerate" };
 }
 
 async function mapLimit(items, limit, fn) {
@@ -300,14 +300,14 @@ export async function models(ctx) {
   }
   const names = (Array.isArray(files) ? files : []).filter((name) => typeof name === "string" && name.endsWith(".json")).sort();
   if (names.length === 0) {
-    throw new Error("这台 ComfyUI 里还没有保存的工作流。请在 ComfyUI 里打开工作流并保存，再回来读取模型");
+    throw new Error("There are no saved workflows in this ComfyUI. Please open the workflow in ComfyUI and save it, then come back to read the model");
   }
   const listed = await mapLimit(names, 8, async (name) => {
     try {
       const capability = workflowOutputKind(await readWorkflow(ctx, name));
       return capability ? { id: name, displayName: name.replace(/(\.app)?\.json$/, ""), capability } : null;
     } catch (error) {
-      ctx.log(`读取工作流 ${name} 失败：${error.message}`);
+      ctx.log(`Read workflow${name} Failure:${error.message}`);
       return null;
     }
   });

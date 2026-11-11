@@ -270,7 +270,7 @@ func TestRegisterCanvasAPINormalizesInstalledPluginWorkflow(t *testing.T) {
 		t.Fatalf("ratios = %#v (default %#v), want empty", ratios, video["defaultRatio"])
 	}
 	resolutions, _ := video["resolutions"].([]any)
-	if len(resolutions) != 3 || video["defaultResolution"] != "736p竖" {
+	if len(resolutions) != 3 || video["defaultResolution"] != "736p vertical" {
 		t.Fatalf("resolutions = %#v (default %#v), want 3 directional 736p tiers", resolutions, video["defaultResolution"])
 	}
 	duration, _ := video["duration"].(map[string]any)

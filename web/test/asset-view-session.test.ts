@@ -60,9 +60,9 @@ describe("asset page and picker wiring", () => {
         expect(page).toContain("mergeHistoryLibraryAssets(current, next, historyPage)");
         expect(page).toContain("canonicalHasMore");
         expect(page).toContain("generated: true");
-        expect(page).toContain("加载更多");
-        expect(page).not.toContain("回收站");
-        expect(page).toContain('okText="永久删除"');
+        expect(page).toContain("load more");
+        expect(page).not.toContain("recycle bin");
+        expect(page).toContain('okText="Permanently delete"');
         expect(page).not.toContain("keepPreviousData");
         expect(page).not.toContain('queryKey: [...ASSET_LIBRARY_QUERY_KEY');
 
@@ -70,14 +70,14 @@ describe("asset page and picker wiring", () => {
         expect(readModel).toContain("addAsset({");
         expect(readModel).toContain("await persistWorkspaceAssetChanges()");
         expect(readModel.indexOf("await persistWorkspaceAssetChanges()")).toBeGreaterThan(readModel.indexOf("addAsset({"));
-        expect(readModel).toContain("3D 模型已保存");
-        expect(readModel).toContain('localSavedRemotePendingMessage("3D 模型已在本地保存"');
+        expect(readModel).toContain("3D model saved");
+        expect(readModel).toContain('localSavedRemotePendingMessage("3D model has been saved locally"');
     });
 
     test("picker has no archive bin and no workspace-mode branch", () => {
         const picker = read("../src/components/assets/asset-library-picker-modal.tsx");
         expect(picker).not.toContain("clearWorkspaceArchivedAssets");
-        expect(picker).not.toContain("回收站");
+        expect(picker).not.toContain("recycle bin");
         expect(picker).not.toContain('queryKey: ["asset-picker", userId');
         expect(picker).not.toContain("isLocalWorkspaceMode");
     });

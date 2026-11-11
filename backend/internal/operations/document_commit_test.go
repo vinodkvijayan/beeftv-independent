@@ -12,12 +12,12 @@ import (
 func TestDocumentCommitManualAndAgentInterleaving(t *testing.T) {
 	h := newHarness(t)
 	overlay := map[string]any{
-		"id": h.canvasID, "title": "手工整页",
+		"id": h.canvasID, "title": "Manual full page",
 		"nodes": []any{
-			map[string]any{"id": "n1", "type": "image", "title": "手工镜头", "position": map[string]any{"x": 1, "y": 1},
-				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "手工"}},
-			map[string]any{"id": "n2", "type": "image", "title": "镜头2", "position": map[string]any{"x": 2, "y": 2},
-				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "原始2"}},
+			map[string]any{"id": "n1", "type": "image", "title": "handmade lens", "position": map[string]any{"x": 1, "y": 1},
+				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "handmade"}},
+			map[string]any{"id": "n2", "type": "image", "title": "Shot 2", "position": map[string]any{"x": 2, "y": 2},
+				"width": 320, "height": 220, "metadata": map[string]any{"prompt": "original 2"}},
 		},
 		"connections": []any{},
 	}
@@ -28,24 +28,24 @@ func TestDocumentCommitManualAndAgentInterleaving(t *testing.T) {
 		t.Fatal(err)
 	}
 	if first.Replayed || first.Caller != operations.CallerManual || first.Revision == 0 {
-		t.Fatalf("手工提交信封异常: %#v", first)
+		t.Fatalf("Exception when submitting envelope manually: %#v", first)
 	}
 	agentRev := h.revisionNow(t)
 	agent, err := h.execute(t, h.assistant(), "canvas.node.update", "agent-patch-1", map[string]any{
 		"canvasId": h.canvasID, "nodeId": "n1", "expectedRevision": agentRev,
-		"patch": map[string]any{"title": "助手改名"},
+		"patch": map[string]any{"title": "Assistant name change"},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if agent.Revision == first.Revision {
-		t.Fatal("助手写入应推进 revision")
+		t.Fatal("Helper writes should advance to revision")
 	}
 	_, err = h.execute(t, operations.ManualCaller(false), "canvas.document.commit", "manual-stale", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": first.Revision, "document": overlay,
 	})
 	if got := opErr(t, err); got.Code != operations.CodeConflict {
-		t.Fatalf("陈旧手工提交必须冲突: %v", err)
+		t.Fatalf("Stale manual commit must conflict: %v", err)
 	}
 	raw, err := h.service.UserCanvasProject(h.userID, h.canvasID)
 	if err != nil {
@@ -57,8 +57,8 @@ func TestDocumentCommitManualAndAgentInterleaving(t *testing.T) {
 	}
 	nodes := stored["nodes"].([]any)
 	title, _ := nodes[0].(map[string]any)["title"].(string)
-	if title != "助手改名" {
-		t.Fatalf("陈旧手工提交不得覆盖助手改动: %s", raw)
+	if title != "Assistant name change" {
+		t.Fatalf("Stale manual submissions must not overwrite assistant changes: %s", raw)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestDocumentCommitReplayAndPayloadConflict(t *testing.T) {
 	h := newHarness(t)
 	params := map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revisionNow(t),
-		"document": map[string]any{"title": "幂等提交", "nodes": []any{}, "connections": []any{}},
+		"document": map[string]any{"title": "Idempotent submission", "nodes": []any{}, "connections": []any{}},
 	}
 	first, err := h.execute(t, operations.ManualCaller(false), "canvas.document.commit", "doc-replay", params)
 	if err != nil {
@@ -78,24 +78,24 @@ func TestDocumentCommitReplayAndPayloadConflict(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !replay.Replayed || replay.Revision != first.Revision {
-		t.Fatalf("丢失应答重放必须回读原结果: %#v", replay)
+		t.Fatalf("Lost response replay must read back the original result: %#v", replay)
 	}
 	if h.revisionNow(t) != before {
-		t.Fatal("重放推进了画布版本")
+		t.Fatal("Replay advances canvas version")
 	}
 	var receipts int64
 	if err := h.service.Database().Model(&model.AgentOpRecord{}).Where("user_id = ? AND op_id = ?", h.userID, "doc-replay").Count(&receipts).Error; err != nil {
 		t.Fatal(err)
 	}
 	if receipts != 1 {
-		t.Fatalf("同一操作应只有一条回执，得到 %d", receipts)
+		t.Fatalf("There should be only one receipt for the same operation, getting %d", receipts)
 	}
 	_, err = h.execute(t, operations.ManualCaller(false), "canvas.document.commit", "doc-replay", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revision,
-		"document": map[string]any{"title": "不同内容", "nodes": []any{}, "connections": []any{}},
+		"document": map[string]any{"title": "different content", "nodes": []any{}, "connections": []any{}},
 	})
 	if got := opErr(t, err); got.Reason != "operation_id_reused_with_different_payload" {
-		t.Fatalf("不同 payload 应为冲突，得到 %v", err)
+		t.Fatalf("Different payloads should conflict and get %v", err)
 	}
 }
 
@@ -103,56 +103,56 @@ func TestAssistantCannotCommitDocument(t *testing.T) {
 	h := newHarness(t)
 	for _, descriptor := range h.registry.List(h.assistant()) {
 		if descriptor.ID == "canvas.document.commit" {
-			t.Fatal("助手能力发现不得包含整页文档提交")
+			t.Fatal("Assistant capability discovery must not contain full page document submissions")
 		}
 	}
 	_, err := h.execute(t, h.assistant(), "canvas.document.commit", "assistant-doc", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revisionNow(t),
-		"document": map[string]any{"title": "越权", "nodes": []any{}, "connections": []any{}},
+		"document": map[string]any{"title": "ultra vires", "nodes": []any{}, "connections": []any{}},
 	})
 	if got := opErr(t, err); got.Code != operations.CodePermissionDenied {
-		t.Fatalf("助手执行整页提交应被拒: %v", err)
+		t.Fatalf("Assistant performing full page submission should be rejected: %v", err)
 	}
 	empty := operations.AssistantCaller(&agentops.AssistantScope{}, false)
 	_, err = h.execute(t, empty, "canvas.document.commit", "empty-scope-doc", map[string]any{
 		"canvasId": h.canvasID, "expectedRevision": h.revisionNow(t),
-		"document": map[string]any{"title": "空范围", "nodes": []any{}, "connections": []any{}},
+		"document": map[string]any{"title": "empty range", "nodes": []any{}, "connections": []any{}},
 	})
 	if got := opErr(t, err); got.Code != operations.CodePermissionDenied {
-		t.Fatalf("空助手范围执行整页提交应被拒: %v", err)
+		t.Fatalf("Full page submission performed with an empty assistant range should be rejected: %v", err)
 	}
 }
 
 func TestDocumentCommitRequiresExpectedRevision(t *testing.T) {
 	h := newHarness(t)
 	_, err := h.execute(t, operations.ManualCaller(false), "canvas.document.commit", "missing-rev", map[string]any{
-		"canvasId": h.canvasID, "document": map[string]any{"title": "缺版本"},
+		"canvasId": h.canvasID, "document": map[string]any{"title": "Missing version"},
 	})
 	if got := opErr(t, err); got.Code != operations.CodeInvalidArgument {
-		t.Fatalf("缺少 expectedRevision 应被拒: %v", err)
+		t.Fatalf("Missing expectedRevision should be rejected: %v", err)
 	}
 }
 
 func TestCanvasCreateOperationAndReplay(t *testing.T) {
 	h := newHarness(t)
 	if _, err := h.execute(t, operations.AssistantCaller(&agentops.AssistantScope{CanvasID: h.canvasID, PermissionMode: "full-access"}, false), "canvas.create", "create-op-assistant", map[string]any{
-		"title": "内置助手不应能创建画布",
+		"title": "Built-in helpers should not be able to create canvases",
 	}); err == nil {
 		t.Fatal("expected assistant caller to be denied canvas.create")
 	}
 	created, err := h.execute(t, operations.ExternalCaller(false), "canvas.create", "create-op-1", map[string]any{
-		"title": "外部创建画布",
+		"title": "Create canvas externally",
 	})
 	if err != nil {
 		t.Fatalf("canvas.create: %v", err)
 	}
 	res, _ := created.Result.(map[string]any)
 	canvasID, _ := res["canvasId"].(string)
-	if canvasID == "" || res["title"] != "外部创建画布" || created.Revision != 1 {
+	if canvasID == "" || res["title"] != "Create canvas externally" || created.Revision != 1 {
 		t.Fatalf("unexpected canvas.create result: %#v", created)
 	}
 	replay, err := h.execute(t, operations.ExternalCaller(false), "canvas.create", "create-op-1", map[string]any{
-		"title": "外部创建画布",
+		"title": "Create canvas externally",
 	})
 	if err != nil || !replay.Replayed {
 		t.Fatalf("expected replay of canvas.create, got %#v (err=%v)", replay, err)
@@ -173,7 +173,7 @@ func TestCanvasCreateOperationAndReplay(t *testing.T) {
 	}
 	if _, err := h.execute(t, operations.ExternalCaller(false), "canvas.create", "create-op-dup", map[string]any{
 		"canvasId": canvasID,
-		"title":    "重复ID画布",
+		"title":    "Duplicate ID canvas",
 	}); err == nil {
 		t.Fatal("expected canvas.create with existing canvasId to fail with conflict")
 	}
@@ -192,7 +192,7 @@ func TestCanvasCreateOperationAndReplay(t *testing.T) {
 	// 删除后若用相同 canvasId 重建新画布，旧 canvas.create 记录不得误删新建实例
 	if _, err := h.execute(t, operations.ExternalCaller(false), "canvas.create", "create-op-2", map[string]any{
 		"canvasId": "canvas-recreated",
-		"title":    "第一版",
+		"title":    "first edition",
 	}); err != nil {
 		t.Fatalf("canvas.create first instance: %v", err)
 	}
@@ -201,7 +201,7 @@ func TestCanvasCreateOperationAndReplay(t *testing.T) {
 	}
 	if _, err := h.execute(t, operations.ExternalCaller(false), "canvas.create", "create-op-3", map[string]any{
 		"canvasId": "canvas-recreated",
-		"title":    "重建版",
+		"title":    "Rebuild",
 	}); err != nil {
 		t.Fatalf("canvas.create second instance: %v", err)
 	}

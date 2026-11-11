@@ -38,12 +38,12 @@ if (params.has("copied-submission")) {
 }
 if (params.has("missing-submission-id") || params.has("known-task-only")) {
     const target = project.nodes.find((node: CanvasNodeData) => node.id === "target")!;
-    Object.assign(target.metadata!, { status: "error", generationSubmissionState: "unknown", errorDetails: "页面刷新后本地生成已中断，请重新生成。" });
+    Object.assign(target.metadata!, { status: "error", generationSubmissionState: "unknown", errorDetails: "The local generation has been interrupted after the page is refreshed, please generate again." });
     if (params.has("known-task-only")) target.metadata!.taskId = "original-customer-task";
 }
 if (params.has("reference-repair-ui")) {
-    project.nodes.push({ ...project.nodes[0], id: "unlinked", title: "未连接的场景图" });
-    project.nodes.find((node: CanvasNodeData) => node.id === "target")!.metadata!.composerContent = "保留 @[node:image-1]，参考 @[node:unlinked] 和 @[asset:missing-library]。正文保持不变。";
+    project.nodes.push({ ...project.nodes[0], id: "unlinked", title: "Unconnected scene graph" });
+    project.nodes.find((node: CanvasNodeData) => node.id === "target")!.metadata!.composerContent = "Reserve @[node:image-1], refer to @[node:unlinked] and @[asset:missing-library]. The text remains unchanged.";
 }
 const noop = () => {};
 setActiveUserScope("synthetic-customer");
@@ -56,7 +56,7 @@ if (params.has("long-prompt-limit")) {
     const capabilityConfig = defaultModelCapabilityConfig(protocol, selectedModel);
     capabilityConfig.video!.references.promptMaxChars = 8000;
     channel.modelProfiles = [{ model: selectedModel, protocol, capabilityConfig }];
-    project.nodes.find(node => node.id === "target")!.metadata!.composerContent = "镜".repeat(8066);
+    project.nodes.find(node => node.id === "target")!.metadata!.composerContent = "mirror".repeat(8066);
 }
 const model = encodeChannelModel(channel.id, selectedModel);
 const config = { ...defaultConfig, channels: [channel], model, videoModel: model, videoModels: [model], models: [model], videoSeconds: "5", size: "16:9" };
@@ -117,7 +117,7 @@ function Harness() {
         catch (error) { harness.error = error instanceof Error ? error.message : String(error); }
         finally { harness.settled = true; }
     };
-    harness.edit = () => setNodes(current => current.map(node => node.id === "target" ? { ...node, title: "准备期间改过的标题", metadata: { ...node.metadata, composerContent: "准备期间修改的新提示词" } } : node));
+    harness.edit = () => setNodes(current => current.map(node => node.id === "target" ? { ...node, title: "Title changed during preparation", metadata: { ...node.metadata, composerContent: "New prompt words modified during preparation" } } : node));
     (harness as any).replaceOutput = () => setNodes(current => current.map(node => node.id === "target" ? { ...node, metadata: { ...node.metadata, content: "/api/resources/newer-result/file", storageKey: "resource:newer-result", assetId: "newer-asset", durationMs: 7000 } } : node));
     harness.cancel = () => harness.controller?.abort();
     return <>
@@ -134,11 +134,11 @@ function Harness() {
             onLocateReferenceNode={(id) => { (harness as any).locatedNodeId = id; }}
         /> : null}
         <CanvasGenerationHistoryPicker open={historyOpen} projectId={project.id} onClose={() => setHistoryOpen(false)} onSelect={() => {}} />
-        <button onClick={() => void harness.generate()}>生成视频</button>
-        <button onClick={() => harness.edit()}>准备期间修改画布</button>
-        <button onClick={() => harness.cancel()}>取消准备</button>
-        {preparation ? <section aria-label="视频节点"><CanvasNodeGenerationProgress node={target} theme={canvasThemes.dark} operation={preparation} /></section> : null}
-        <output data-testid="stage">{nodes.find(node => node.id === "target")?.metadata?.taskStage || "尚未提交"}</output>
+        <button onClick={() => void harness.generate()}>Generate video</button>
+        <button onClick={() => harness.edit()}>Modify canvas during preparation</button>
+        <button onClick={() => harness.cancel()}>Cancel preparation</button>
+        {preparation ? <section aria-label="video node"><CanvasNodeGenerationProgress node={target} theme={canvasThemes.dark} operation={preparation} /></section> : null}
+        <output data-testid="stage">{nodes.find(node => node.id === "target")?.metadata?.taskStage || "Not submitted yet"}</output>
         <pre data-testid="snapshot">{JSON.stringify(nodes)}</pre>
     </>;
 }

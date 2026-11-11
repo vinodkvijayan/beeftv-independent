@@ -26,19 +26,19 @@ func (c ImageContract) GenerationPrompt(prompt, size string) (string, error) {
 		}
 	}
 	if selected.Size == "" {
-		return "", fmt.Errorf("当前 Midjourney 不支持所选尺寸")
+		return "", fmt.Errorf("The selected size is currently not supported by Midjourney")
 	}
 	for _, match := range mjRatioFlag.FindAllStringSubmatch(prompt, -1) {
 		if match[1] != selected.Ratio {
-			return "", fmt.Errorf("提示词中的 --ar/--aspect 与宽高比选项冲突，请统一后提交")
+			return "", fmt.Errorf("--ar/--aspect in the prompt word conflicts with the aspect ratio option, please unify and submit.")
 		}
 	}
 	if mjUnsupportedFlag.MatchString(prompt) {
-		return "", fmt.Errorf("当前官方 Midjourney 渠道仅支持原生标准档，不支持 HD、质量、速度、版本或重复参数")
+		return "", fmt.Errorf("The current official Midjourney channel only supports native standard files and does not support HD, quality, speed, version or duplicate parameters.")
 	}
 	prompt = mjRatioFlag.ReplaceAllString(prompt, " ")
 	if strings.TrimSpace(prompt) == "" {
-		return "", fmt.Errorf("请输入图片内容描述")
+		return "", fmt.Errorf("Please enter a description of the image content")
 	}
 	prompt = strings.TrimSpace(prompt)
 	if selected.Ratio != "1:1" {

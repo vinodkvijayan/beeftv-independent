@@ -17,11 +17,11 @@ function clip(id: string, resource = id): TimelineClip {
 }
 
 function timeline(clips: TimelineClip[]): TimelineProject {
-    return { version: 2, tracks: [{ id: "track", kind: "video", label: "视频", order: 0 }], clips, durationMs: 1000 };
+    return { version: 2, tracks: [{ id: "track", kind: "video", label: "video", order: 0 }], clips, durationMs: 1000 };
 }
 
 function project(nodes: CanvasNodeData[], track?: TimelineProject): CanvasProject {
-    return { id: "heal-canvas", title: "画布", createdAt: "2026-01-01", updatedAt: "2026-01-01", revision: 3, nodes, connections: [], chatSessions: [], activeChatId: null, backgroundMode: "grid", showImageInfo: false, viewport: { x: 0, y: 0, k: 1 }, directorScenes: [], timeline: track };
+    return { id: "heal-canvas", title: "canvas", createdAt: "2026-01-01", updatedAt: "2026-01-01", revision: 3, nodes, connections: [], chatSessions: [], activeChatId: null, backgroundMode: "grid", showImageInfo: false, viewport: { x: 0, y: 0, k: 1 }, directorScenes: [], timeline: track };
 }
 
 function gate() {
@@ -30,7 +30,7 @@ function gate() {
     return { promise, resolve };
 }
 
-const guardError = () => new ApiError("画布媒体尚未进入素材库，请等待同步完成后重试", { status: 400 });
+const guardError = () => new ApiError("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.", { status: 400 });
 const ensured = (id: string) => ({ assetId: `asset-${id}`, created: true, linkedToProject: false, confirmed: true });
 beforeEach(() => { useAssetStore.setState({ assets: [] }); useCanvasStore.setState({ projects: [] }); });
 
@@ -137,7 +137,7 @@ test("target save persists concurrent edits and deleted targets stay deleted bef
             useCanvasStore.getState().updateProject(initial.id, { nodes: [media("reference"), media("added")], connections });
             return ensured(node.id);
         },
-    }, async (_id, patch) => { patches.push(patch); if (patches.length === 1) throw guardError(); })).rejects.toThrow("生成节点已不存在");
+    }, async (_id, patch) => { patches.push(patch); if (patches.length === 1) throw guardError(); })).rejects.toThrow("The build node no longer exists");
     for (const patch of patches.slice(1)) {
         expect(patch.nodes?.map((node) => node.id)).toEqual(["reference", "added"]);
         expect(patch.connections).toEqual(connections);

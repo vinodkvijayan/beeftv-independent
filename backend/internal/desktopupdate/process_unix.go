@@ -12,7 +12,7 @@ import (
 
 func waitForPID(pid int, timeout time.Duration) error {
 	if pid <= 0 {
-		return fmt.Errorf("更新请求缺少进程信息")
+		return fmt.Errorf("Update request missing process information")
 	}
 	deadline := time.Now().Add(timeout)
 	for {
@@ -28,7 +28,7 @@ func waitForPID(pid int, timeout time.Duration) error {
 			}
 		}
 		if time.Now().After(deadline) {
-			return fmt.Errorf("等待应用退出超时")
+			return fmt.Errorf("Timeout waiting for application to exit")
 		}
 		time.Sleep(50 * time.Millisecond)
 	}

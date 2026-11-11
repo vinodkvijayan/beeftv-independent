@@ -38,7 +38,7 @@ const PORT_RAW = String(process.env.BEEFTV_AGENT_PORT || '').trim();
 const INSTANCE_NONCE = process.env.BEEFTV_AGENT_INSTANCE_NONCE || '';
 const LIFETIME_STDIN = process.env.BEEFTV_AGENT_LIFETIME_STDIN === '1';
 if (!LISTEN_FD && !PORT_RAW) {
-  console.error('agent-host: 缺少 BEEFTV_AGENT_PORT 或 BEEFTV_AGENT_LISTEN_FD（由产品启动链注入）');
+  console.error('agent-host: missing BEEFTV_AGENT_PORT or BEEFTV_AGENT_LISTEN_FD (injected by product launch chain)');
   process.exit(2);
 }
 const PORT = Number(PORT_RAW || 0);
@@ -58,7 +58,7 @@ const PROVIDER_ID = 'beeftv';
 
 for (const [name, value] of Object.entries({ BEEFTV_AGENT_HOST_TOKEN: HOST_TOKEN,
   BEEFTV_AGENT_DATA_DIR: DATA_DIR })) {
-  if (!value) { console.error(`agent-host: 缺少 ${name}（由产品启动链注入）`); process.exit(2); }
+  if (!value) { console.error(`agent-host: missing${name}(Injected by product launch chain)`); process.exit(2); }
 }
 const SESSION_ROOT = path.join(DATA_DIR, 'sessions');
 const RUN_ID = crypto.randomUUID();
@@ -88,7 +88,7 @@ async function initializeModel() {
     providerReason = '';
   } catch (error) {
     providerReason = 'model_not_configured';
-    console.error(`agent-host: 模型初始化失败 ${error?.message || error}`);
+    console.error(`agent-host: Model initialization failed${error?.message || error}`);
   }
 }
 
@@ -113,7 +113,7 @@ globalThis.fetch = async (input, options = {}) => {
   if (isModelCall) {
     // Transform at the real dispatch boundary; extension errors are caught by pi.
     const budget = turnBudgetContext.getStore();
-    let historicalKind='素材';
+    let historicalKind='Material';
     try {
     if (options.body) {
       const payload = JSON.parse(options.body);
@@ -137,7 +137,7 @@ globalThis.fetch = async (input, options = {}) => {
       options = {...options,body:JSON.stringify(adaptMediaRequest(payload,mediaOptions))};
     }
     } catch(error) {
-      const failure={reason:error.reason || 'native_history_unavailable',message:`历史${historicalKind}已不可用，请在新对话重新添加这份素材后再试。`};
+      const failure={reason:error.reason || 'native_history_unavailable',message:`history${historicalKind}It is no longer available. Please add this material to a new conversation and try again.`};
       if(budget) budget.failure=failure;
       return new Response(JSON.stringify({error:{message:failure.message,type:'invalid_request_error',code:failure.reason}}),{status:400,headers:{'Content-Type':'application/json'}});
     }
@@ -740,7 +740,7 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     if (error?.tooLarge) { respond(res, 413, { code: 413, reason: 'body_too_large' }); return; }
     if (!res.headersSent && respondStoreError(res, error)) return;
-    console.error(`agent-host: 请求失败 ${error?.message || error}`);
+    console.error(`agent-host: Request failed${error?.message || error}`);
     if (!res.headersSent) { respond(res, 500, { code: 500, reason: 'internal_error', message: String(error?.message || error) }); }
     else {
       if (!res.destroyed) {
@@ -758,9 +758,9 @@ async function shutdown() {
   shuttingDown = true;
   try {
     const released = await durable.disposeAll();
-    console.error(`agent-host: 关闭，释放 ${released} 个会话`);
+    console.error(`agent-host: close, release${released} conversations`);
   } catch (error) {
-    console.error(`agent-host: 关闭时释放会话失败 ${error?.message || error}`);
+    console.error(`agent-host: Failed to release session on shutdown${error?.message || error}`);
   }
   await new Promise((resolve) => server.close(() => resolve()));
   process.exit(0);
@@ -776,15 +776,15 @@ if (LIFETIME_STDIN) {
 await initializeModel();
 try {
   const count = await ops.loadDescriptors();
-  console.error(`agent-host: 载入 ${count} 个操作（readOnly=${READ_ONLY_MODE}）`);
+  console.error(`agent-host: loading${count} operations (readOnly=${READ_ONLY_MODE}）`);
   // Same sync every turn uses: a Go without plugin packages just leaves the list empty.
   await pluginController.syncIfChanged();
 }
-catch (error) { console.error(`agent-host: 能力发现失败（稍后可重试）：${error?.message || error}`); }
+catch (error) { console.error(`agent-host: Capability discovery failed (can try again later):${error?.message || error}`); }
 function onListen() {
   const bound = server.address();
   const port = bound && typeof bound === 'object' ? bound.port : PORT;
-  console.log(`agent-host 已启动 http://127.0.0.1:${port} model=${MODEL?.id || MODEL_ID} api=${MODEL_API} baseUrl=${MODEL?.baseUrl || BASE_URL} ops=${OPS_URL} readOnly=${READ_ONLY_MODE} reason=${providerReason || 'ok'}`);
+  console.log(`agent-host started http://127.0.0.1:${port} model=${MODEL?.id || MODEL_ID} api=${MODEL_API} baseUrl=${MODEL?.baseUrl || BASE_URL} ops=${OPS_URL} readOnly=${READ_ONLY_MODE} reason=${providerReason || 'ok'}`);
 }
 if (LISTEN_FD > 0) server.listen({ fd: LISTEN_FD }, onListen);
 else server.listen(PORT, '127.0.0.1', onListen);

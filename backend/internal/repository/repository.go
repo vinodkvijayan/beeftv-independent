@@ -205,7 +205,7 @@ func (r *Repository) CleanupDuplicateTaskPayloads() error {
 
 func (r *Repository) BackupSQLite(path string) error {
 	if r.Dialect() != "sqlite" {
-		return errors.New("当前数据库不是 SQLite，不能执行 SQLite 备份")
+		return errors.New("The current database is not SQLite and SQLite backup cannot be performed.")
 	}
 	escaped := strings.ReplaceAll(path, "'", "''")
 	return r.db.Exec("VACUUM INTO '" + escaped + "'").Error
@@ -278,7 +278,7 @@ func (r *Repository) ClaimNextTask(owner string, leaseDuration time.Duration) (*
 		updated := claim.
 			Updates(map[string]any{
 				"status":           model.TaskStatusRunning,
-				"stage":            "后端接管任务",
+				"stage":            "Backend takes over tasks",
 				"progress":         15,
 				"attempts":         gorm.Expr("attempts + ?", 1),
 				"started_at":       gorm.Expr("COALESCE(started_at, ?)", now),
@@ -310,7 +310,7 @@ func (r *Repository) RenewTaskLease(id string, owner string, leaseDuration time.
 		return result.Error
 	}
 	if result.RowsAffected != 1 {
-		return errors.New("任务租约已失效")
+		return errors.New("Task lease has expired")
 	}
 	return nil
 }
@@ -421,7 +421,7 @@ func taskLeaseWriter(db *gorm.DB, owner string) *gorm.DB {
 func (r *Repository) UpdateTaskProviderProgress(id string, progress int) error {
 	progress = max(0, min(100, progress))
 	return r.db.Model(&model.Task{}).Where("id = ? AND status = ?", id, model.TaskStatusRunning).Updates(map[string]any{
-		"stage":      "上游生成中",
+		"stage":      "Upstream is generating",
 		"progress":   gorm.Expr("CASE WHEN progress < ? THEN ? ELSE progress END", progress, progress),
 		"updated_at": time.Now(),
 	}).Error
@@ -472,7 +472,7 @@ func (r *Repository) CancelTaskIfStatus(userID string, id string, expected model
 	result := r.db.Model(&model.Task{}).
 		Where("id = ? AND user_id = ? AND status = ?", id, userID, expected).
 		Updates(map[string]any{
-			"status": model.TaskStatusCancelled, "stage": "任务已取消", "error": "任务已取消", "completed_at": &now,
+			"status": model.TaskStatusCancelled, "stage": "Task canceled", "error": "Task canceled", "completed_at": &now,
 			"lease_owner": "", "lease_expires_at": nil, "updated_at": now,
 		})
 	return result.RowsAffected == 1, result.Error
@@ -876,7 +876,7 @@ func (r *Repository) DeleteResource(userID string, id string) error {
 				return err
 			}
 			if count > 0 {
-				return fmt.Errorf("资源仍被工作流模板或运行记录引用")
+				return fmt.Errorf("The resource is still referenced by the workflow template or run record")
 			}
 		}
 		var resource model.Resource
@@ -1276,7 +1276,7 @@ func (r *Repository) DeleteProject(userID string, id string, canvasUpdates []mod
 			return err
 		}
 		if remainingCanvasCount != 0 {
-			return fmt.Errorf("项目删除时仍有 %d 个画布关联未处理", remainingCanvasCount)
+			return fmt.Errorf("%d canvas associations remain unprocessed when project is deleted", remainingCanvasCount)
 		}
 		shotIDs := tx.Model(&model.Shot{}).Select("id").Where("project_id = ?", id)
 		if err := tx.Where("project_id = ?", id).Delete(&model.ProductionTaskLink{}).Error; err != nil {

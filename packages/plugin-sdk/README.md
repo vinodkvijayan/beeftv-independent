@@ -1,16 +1,16 @@
 # `@beeftv/plugin-sdk`
 
-BeefTV 插件开发 SDK，提供：
+BeefTV plug-in development SDK provides:
 
-- `package.json` 里 `beeftv` 一段的类型（`PluginManifest`）
-- 浏览器端 `activate(host)` 的宿主接口类型（`BeefTVPluginHost`）
-- 全部界面扩展位（`BeefTVSlotMap`）与宿主事件（`BeefTVEventMap`）
-- 用 JS 写生成服务时的 `submit` / `query` 类型（`defineProvider`、`ProviderModule`）
-- 助手端 `pi` 扩展工具定义辅助函数（`definePiExtension`、`PiExtensionAPI`）
+- The type of `beeftv` segment in `package.json` (`PluginManifest`)
+- The host interface type of `activate(host)` on the browser side (`BeefTVPluginHost`)
+- All interface extension bits (`BeefTVSlotMap`) and host events (`BeefTVEventMap`)
+- Use JS to write `submit` / `query` types (`defineProvider`, `ProviderModule`) when generating services
+- Assistant `pi` extended tool definition auxiliary function (`definePiExtension`, `PiExtensionAPI`)
 
-## 清单
+## List
 
-插件 ID、版本、说明和作者直接取 `package.json` 的 `name`、`version`、`description`、`author`，`beeftv` 里只写 BeefTV 自己的东西：
+The plug-in ID, version, description and author are directly taken from `package.json`’s `name`, `version`, `description`, `author`. Only BeefTV’s own stuff is written in `beeftv`:
 
 ```json
 {
@@ -30,13 +30,13 @@ BeefTV 插件开发 SDK，提供：
 }
 ```
 
-写了别的键（比如 `beeftv.id`、顶层 `canvasNodes`、节点的 `type`）时，BeefTV 不会安装，并逐项说明该怎么改。
+When other keys are written (such as `beeftv.id`, top-level `canvasNodes`, node's `type`), BeefTV will not install and will explain how to change it one by one.
 
-## 怎么用
+## How to use
 
 BeefTV 直接加载插件里的 JS 文件，不经过打包，所以文件里不能 `import "@beeftv/plugin-sdk"`。把仓库内的 `packages/plugin-sdk` 装成开发依赖（例如 `npm i -D <BeefTV仓库路径>/packages/plugin-sdk`），用 JSDoc 拿到编辑器提示；用 TypeScript 或打包工具的插件也可以直接用 `definePlugin`、`defineProvider`，打包后发布。
 
-## 界面插件
+## Interface plug-in
 
 ```js
 /** @param {import("@beeftv/plugin-sdk").BeefTVPluginHost} host */
@@ -49,7 +49,7 @@ export function activate(host) {
 }
 ```
 
-## 用 JS 写生成服务
+## Use JS to write the generation service
 
 在清单里登记 `"providers": [{ "id": "my-service", "label": "我的服务", "capabilities": ["image"], "scopes": ["user.custom-channel"], "module": "./provider.js" }]`（只支持图片、视频、音频），然后在 `provider.js` 里：
 
@@ -74,6 +74,6 @@ export async function query(taskId, request, ctx) {
 }
 ```
 
-还可以导出 `models(ctx)`，返回 `[{ id, displayName, capability }]`。装好插件后，这个服务会出现在「模型服务 → 选择服务商」里，用户填好地址后点「读取模型」，BeefTV 就调用它列出模型；不写的话，用户要手动填模型 ID。
+You can also export `models(ctx)` and return `[{ id, displayName, capability }]`. After installing the plug-in, this service will appear in "Model Service → Select Service Provider". After the user fills in the address and clicks "Read Model", BeefTV will call it to list the models; otherwise, the user must manually fill in the model ID.
 
-这个文件跑在 BeefTV 后端旁边的 Node 进程里。BeefTV 负责记任务、重启后继续查询、把结果下载进工作区；插件只管跟服务商说话。
+This file runs in the Node process next to the BeefTV backend. BeefTV is responsible for recording tasks, continuing the query after restarting, and downloading the results into the workspace; the plug-in only talks to the service provider.

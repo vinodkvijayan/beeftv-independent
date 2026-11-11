@@ -88,7 +88,7 @@ func TestHistoricalImageRejectionKeepsOriginalUncertainty(t *testing.T) {
 	if err := s.repo.SaveRouteAttempt(attempt); err != nil {
 		t.Fatal(err)
 	}
-	task.Status, task.Stage, task.Error = model.TaskStatusFailed, "submission_unknown", "图片结果尚未确认，自动恢复已停止"
+	task.Status, task.Stage, task.Error = model.TaskStatusFailed, "submission_unknown", "Image result not confirmed yet, auto-recovery stopped"
 	task.FailureDiagnostics = imageRejectionDiagnostics("InputTextSensitiveContentDetected", "The request failed because the input text may contain sensitive information.")
 	got := taskForOutput(task)
 	if got.ErrorCode != "submission_uncertain" || got.Stage != "submission_unknown" || !strings.Contains(got.Error, "尚未确认") {

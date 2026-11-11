@@ -36,7 +36,7 @@ func (f fakeWorkspaceRepo) DefaultWorkspace() (*model.Workspace, error) {
 
 func TestWorkspaceServiceProjectsExistingLocalPrincipal(t *testing.T) {
 	now := time.Date(2026, 10, 1, 8, 0, 0, 0, time.UTC)
-	record := &model.Workspace{ID: "ws-1", Name: "本地工作区", CreatedAt: now, UpdatedAt: now}
+	record := &model.Workspace{ID: "ws-1", Name: "local workspace", CreatedAt: now, UpdatedAt: now}
 	svc := NewService(fakeWorkspaceRepo{
 		byID: map[string]*model.Workspace{"ws-1": record},
 		def:  record,
@@ -46,7 +46,7 @@ func TestWorkspaceServiceProjectsExistingLocalPrincipal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if owner.ID != "ws-1" || owner.Username != "local" || owner.DisplayName != "本地工作区" {
+	if owner.ID != "ws-1" || owner.Username != "local" || owner.DisplayName != "local workspace" {
 		t.Fatalf("owner identity = %#v", owner)
 	}
 	if owner.Role != model.UserRoleAdmin || owner.Status != model.UserStatusActive {
@@ -80,7 +80,7 @@ func TestWorkspaceServiceUnavailableWithoutRepository(t *testing.T) {
 }
 
 func TestLocalPrincipalJSONKeepsExternalUserShape(t *testing.T) {
-	principal := LocalPrincipal(&model.Workspace{ID: "ws-1", Name: "本地工作区"})
+	principal := LocalPrincipal(&model.Workspace{ID: "ws-1", Name: "local workspace"})
 	body, err := json.Marshal(principal)
 	if err != nil {
 		t.Fatal(err)

@@ -8,15 +8,15 @@ describe("asset library category sidebar", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/assets/index.tsx"), "utf8");
         const css = readFileSync(resolve(import.meta.dir, "../src/styles/workspace-product.css"), "utf8");
         expect(page).toContain("assets-collection-layout");
-        expect(page).toContain('aria-label="素材分类"');
+        expect(page).toContain('aria-label="Material classification"');
         expect(page).toContain("builtinFolderCounts");
-        expect(page).toContain('aria-label="新建分类"');
-        expect(page).not.toContain('title="默认标签"');
-        expect(page).not.toContain('title="标签与分类"');
-        expect(page).toContain('className="collection-filter-label">分类</span>');
+        expect(page).toContain('aria-label="New category"');
+        expect(page).not.toContain('title="default label"');
+        expect(page).not.toContain('title="Tags and Classifications"');
+        expect(page).toContain('className="collection-filter-label">Classification</span>');
         expect(page).toContain('"character", "environment", "prop"');
         expect(page).toContain("folders.map((folder) => (");
-        expect(page).not.toContain("全部自定义分类");
+        expect(page).not.toContain("All custom categories");
         expect(css).toContain(".assets-library-source-rail");
         expect(css).toContain(".assets-library-source-rail");
     });
@@ -29,19 +29,19 @@ describe("asset upload entry points", () => {
         expect(page).toContain("<AssetsEmptyState onImport={() => assetUploadInputRef.current?.click()} />");
         expect(page).toContain('accept="image/*,video/*,audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg"');
         expect(page).toContain("await uploadWorkspaceAssetFiles(files, folderId)");
-        expect(page).toContain('label: "上传资产"');
+        expect(page).toContain('label: "Upload assets"');
         expect(handler).toContain("uploadMediaFile(file, \"video\"");
         expect(handler).toContain("uploadMediaFile(file, \"audio\"");
-        expect(handler).toContain("请选择图片、视频或音频文件");
+        expect(handler).toContain("Please select an image, video or audio file");
         expect(page).not.toContain("AssetBatchUploadModal");
         expect(page).not.toContain("batchUploadOpen");
     });
 
     test("matches LibTV personal-library new menu", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/assets/index.tsx"), "utf8");
-        expect(page).toContain('label: "上传资产"');
-        expect(page).toContain('label: "新建文件夹"');
-        expect(page).not.toContain('label: "新建文本素材"');
+        expect(page).toContain('label: "Upload assets"');
+        expect(page).toContain('label: "New folder"');
+        expect(page).not.toContain('label: "New text material"');
     });
 });
 
@@ -49,23 +49,23 @@ describe("project card actions", () => {
     test("project cards expose the LibTV-style overflow actions", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/projects/index.tsx"), "utf8");
         expect(page).toContain('aria-label={`${row.project.name} 更多操作`}');
-        expect(page).toContain('label: "打开"');
-        expect(page).toContain('label: "重命名"');
-        expect(page).toContain('label: "修改封面"');
-        expect(page).toContain('label: "创建副本"');
-        expect(page).toContain('label: "移动至文件夹"');
+        expect(page).toContain('label: "open"');
+        expect(page).toContain('label: "rename"');
+        expect(page).toContain('label: "Modify cover"');
+        expect(page).toContain('label: "Create a copy"');
+        expect(page).toContain('label: "Move to folder"');
         expect(page).toContain("duplicateProject");
         expect(page).toContain("moveProjectToFolder");
-        expect(page).toContain('label: row.project.status === "archived" ? "恢复项目" : "归档项目"');
-        expect(page).toContain('label: "删除项目"');
+        expect(page).toContain('label: row.project.status === "archived" ? "Restore Project" : "Archived Project"');
+        expect(page).toContain('label: "Delete item"');
         expect(page).toContain("updateProject");
         const canvasCard = readFileSync(resolve(import.meta.dir, "../src/components/canvas/canvas-folder-card.tsx"), "utf8");
-        expect(canvasCard).toContain('label: "打开"');
-        expect(canvasCard).toContain('label: "重命名"');
-        expect(canvasCard).toContain('label: "移动至文件夹"');
+        expect(canvasCard).toContain('label: "open"');
+        expect(canvasCard).toContain('label: "rename"');
+        expect(canvasCard).toContain('label: "Move to folder"');
         expect(canvasCard).toContain("<LibraryCardShell");
-        expect(canvasCard).toContain('label: "创建副本"');
-        expect(canvasCard).toContain('label: "修改封面"');
+        expect(canvasCard).toContain('label: "Create a copy"');
+        expect(canvasCard).toContain('label: "Modify cover"');
         expect(canvasCard).toContain("beeftv-project-cover:");
         expect(canvasCard).toContain('toDataURL("image/jpeg", 0.84)');
         expect(canvasCard).toContain("onDuplicate");
@@ -79,23 +79,23 @@ describe("project card actions", () => {
         expect(canvasPage).toContain("<LibraryCardShell");
         expect(canvasPage).toContain("maxSize = 1280");
         expect(canvasPage).toContain('toDataURL("image/jpeg", 0.84)');
-        expect(canvasPage).toContain("封面图片不能超过 12MB");
-        expect(canvasPage).toContain("封面请选择图片文件");
+        expect(canvasPage).toContain("Cover image cannot exceed 12MB");
+        expect(canvasPage).toContain("Please select an image file for cover");
         expect(canvasPage).toContain("onOpen={() => setFolderFilter(folder.id)}");
-        expect(canvasPage).toContain('label: "更换封面"');
+        expect(canvasPage).toContain('label: "Change cover"');
         expect(canvasPage).not.toContain('icon: <ImageIcon className="size-3.5" />');
-        expect(canvasPage).toContain('label: "删除文件夹"');
+        expect(canvasPage).toContain('label: "Delete folder"');
         expect(canvasPage).not.toContain('icon: <Pencil className="size-3.5" />');
         const recycleBin = readFileSync(resolve(import.meta.dir, "../src/components/canvas/recycle-bin-dialog.tsx"), "utf8");
         expect(recycleBin).toContain("restoreProject");
-        expect(recycleBin).toContain("恢复到项目列表");
-        expect(recycleBin).toContain("彻底删除");
-        expect(recycleBin).toContain("删除后无法恢复");
+        expect(recycleBin).toContain("Revert to project list");
+        expect(recycleBin).toContain("Delete completely");
+        expect(recycleBin).toContain("Unable to recover after deletion");
         expect(recycleBin).toContain("createPortal");
         expect(recycleBin).not.toContain("<Modal");
         expect(recycleBin).toContain('role="dialog"');
         expect(recycleBin).toContain('aria-modal="true"');
-        expect(recycleBin).toContain('aria-label="全选回收站项目"');
+        expect(recycleBin).toContain('aria-label="Select all recycle bin items"');
         expect(recycleBin).toContain("setSelectedDeleted(event.target.checked ? allDeletedProjectIds : [])");
         expect(recycleBin).toContain('document.body.style.overflow = "hidden"');
         expect(recycleBin).not.toContain("Popconfirm");
@@ -137,19 +137,19 @@ describe("project card actions", () => {
         const globalStyles = readFileSync(resolve(import.meta.dir, "../src/styles/globals.css"), "utf8");
         expect(globalStyles).toContain("min-height: 230.8px");
         expect(globalStyles).toContain("height: 34.8px !important");
-        expect(page).toContain('label: "打开"');
+        expect(page).toContain('label: "open"');
     });
 });
 
 describe("asset card actions", () => {
     test("asset overflow menu supports rename, categorization, download and deletion", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/assets/index.tsx"), "utf8");
-        expect(page).toContain('label: "重命名"');
-        expect(page).toContain('label: "移动到分类"');
-        expect(page).toContain('label: "下载"');
-        expect(page).toContain("永久删除");
-        expect(page).not.toContain('label: "编辑标签"');
-        expect(page).not.toContain('label: asset.metadata?.favorite === true ? "取消收藏" : "收藏"');
+        expect(page).toContain('label: "rename"');
+        expect(page).toContain('label: "Move to category"');
+        expect(page).toContain('label: "Download"');
+        expect(page).toContain("Delete permanently");
+        expect(page).not.toContain('label: "Edit label"');
+        expect(page).not.toContain('label: asset.metadata?.favorite === true ? "Unfavorite" : "Favorite"');
     });
 
     test("asset overflow trigger behaves as an isolated menu control", () => {
@@ -163,7 +163,7 @@ describe("generation history card actions", () => {
     test("matches LibTV hover controls for download and permanent deletion", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/assets/index.tsx"), "utf8");
         const css = readFileSync(resolve(import.meta.dir, "../src/styles/assets-reference-baseline.css"), "utf8");
-        expect(page).toContain('aria-label="生成结果操作"');
+        expect(page).toContain('aria-label="Generate result operation"');
         expect(page).toContain('aria-label={`下载 ${asset.title}`}');
         expect(page).toContain('aria-label={`永久删除 ${asset.title}`}');
         expect(page).toContain("setPendingDelete([asset])");
@@ -180,8 +180,8 @@ describe("generation history card actions", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/assets/index.tsx"), "utf8");
         const css = readFileSync(resolve(import.meta.dir, "../src/styles/assets-reference-baseline.css"), "utf8");
         expect(page).toContain('aria-label={`选择 ${asset.title}`}');
-        expect(page).toContain('aria-label="生成历史批量操作"');
-        expect(page).toContain("已选择");
+        expect(page).toContain('aria-label="Generate historical batch operations"');
+        expect(page).toContain("Selected");
         expect(page).toContain("selectedHistoryIds");
         expect(css).toContain(".generation-history-select");
         expect(css).toContain(".generation-history-batch-bar");
@@ -190,11 +190,11 @@ describe("generation history card actions", () => {
     test("supports saving generation history items into personal asset library", () => {
         const page = readFileSync(resolve(import.meta.dir, "../src/pages/assets/index.tsx"), "utf8");
         expect(page).toContain("isWorkspacePersonalLibraryAsset");
-        expect(page).toContain("存入资产库");
-        expect(page).toContain("已存资产库");
-        expect(page).toContain('message.success("已存入个人资产库")');
-        expect(isWorkspaceGeneratedHistoryAsset({ kind: "image", source: "生成任务", metadata: { generationEffectKey: "eff-1" } })).toBe(true);
-        expect(isWorkspacePersonalLibraryAsset({ kind: "image", source: "生成任务", metadata: { generationEffectKey: "eff-1" } })).toBe(false);
-        expect(isWorkspacePersonalLibraryAsset({ kind: "image", source: "生成任务", metadata: { generationEffectKey: "eff-1", savedToLibrary: true } })).toBe(true);
+        expect(page).toContain("Save to asset library");
+        expect(page).toContain("Saved asset library");
+        expect(page).toContain('message.success("Deposited into personal asset library")');
+        expect(isWorkspaceGeneratedHistoryAsset({ kind: "image", source: "Generate tasks", metadata: { generationEffectKey: "eff-1" } })).toBe(true);
+        expect(isWorkspacePersonalLibraryAsset({ kind: "image", source: "Generate tasks", metadata: { generationEffectKey: "eff-1" } })).toBe(false);
+        expect(isWorkspacePersonalLibraryAsset({ kind: "image", source: "Generate tasks", metadata: { generationEffectKey: "eff-1", savedToLibrary: true } })).toBe(true);
     });
 });

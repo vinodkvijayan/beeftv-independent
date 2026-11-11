@@ -62,13 +62,13 @@ func ValidateOutboundURLContext(ctx context.Context, rawURL string) (*url.URL, e
 	}
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Hostname() == "" {
-		return nil, BadAuthRequest("外部服务地址无效")
+		return nil, BadAuthRequest("Invalid external service address")
 	}
 	if parsed.Scheme != "https" && parsed.Scheme != "http" {
-		return nil, BadAuthRequest("外部服务地址只支持 http/https")
+		return nil, BadAuthRequest("External service addresses only support http/https")
 	}
 	if parsed.User != nil {
-		return nil, BadAuthRequest("外部服务地址不允许包含认证信息")
+		return nil, BadAuthRequest("External service addresses are not allowed to contain authentication information")
 	}
 	if _, err := resolveOutboundHost(ctx, parsed.Hostname()); err != nil {
 		if ctx.Err() != nil {
@@ -83,24 +83,24 @@ func ValidateOutboundURLContext(ctx context.Context, rawURL string) (*url.URL, e
 // 当部署显式关闭私网出站（CANVAS_ALLOW_PRIVATE_UPSTREAMS=false）时仅允许白名单主机使用 HTTP。
 func ValidateCustomRelayURL(rawURL string) (*url.URL, error) {
 	if len(strings.TrimSpace(rawURL)) > 4096 {
-		return nil, BadAuthRequest("自定义渠道地址过长")
+		return nil, BadAuthRequest("Custom channel address is too long")
 	}
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Hostname() == "" || !parsed.IsAbs() {
-		return nil, BadAuthRequest("自定义渠道地址无效")
+		return nil, BadAuthRequest("Invalid custom channel address")
 	}
 	scheme := strings.ToLower(parsed.Scheme)
 	if scheme != "https" && scheme != "http" {
-		return nil, BadAuthRequest("自定义渠道地址只支持 http/https")
+		return nil, BadAuthRequest("Custom channel addresses only support http/https")
 	}
 	if scheme == "http" && !(allowPrivateUpstreams() || AllowedPrivateUpstreamHost(parsed.Hostname())) {
-		return nil, BadAuthRequest("自定义渠道 HTTP 仅允许访问已配置的可信上游主机")
+		return nil, BadAuthRequest("Custom channel HTTP only allows access to configured trusted upstream hosts")
 	}
 	if parsed.User != nil {
-		return nil, BadAuthRequest("自定义渠道地址不允许包含认证信息")
+		return nil, BadAuthRequest("Custom channel addresses are not allowed to contain authentication information")
 	}
 	if parsed.Fragment != "" {
-		return nil, BadAuthRequest("自定义渠道地址不允许包含片段")
+		return nil, BadAuthRequest("Custom channel addresses are not allowed to contain fragments")
 	}
 	if err := validateCustomRelayHost(parsed.Hostname()); err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func OutboundHTTPClient(timeout time.Duration) *http.Client {
 		Timeout:   timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= maxOutboundRedirects {
-				return errors.New("外部服务重定向次数过多")
+				return errors.New("Too many external service redirects")
 			}
 			_, err := ValidateOutboundURLContext(req.Context(), req.URL.String())
 			return err
@@ -127,7 +127,7 @@ func CustomRelayHTTPClient(timeout time.Duration) *http.Client {
 		Transport: customRelayTransport,
 		Timeout:   timeout,
 		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-			return errors.New("自定义渠道中转不允许重定向")
+			return errors.New("Custom channel transit does not allow redirects")
 		},
 	}
 }
@@ -144,7 +144,7 @@ func ApplyDefaultOutboundHeaders(req *http.Request) {
 // 但禁止覆盖鉴权、请求体协议、代理内部头及 hop-by-hop 头。
 func NormalizeOutboundHeaders(headers []OutboundHeader) ([]OutboundHeader, error) {
 	if len(headers) > maxOutboundHeaderCount {
-		return nil, BadAuthRequest(fmt.Sprintf("自定义请求头最多支持 %d 项", maxOutboundHeaderCount))
+		return nil, BadAuthRequest(fmt.Sprintf("Custom request headers support up to %d items", maxOutboundHeaderCount))
 	}
 	seen := make(map[string]struct{}, len(headers))
 	normalized := make([]OutboundHeader, 0, len(headers))
@@ -156,25 +156,25 @@ func NormalizeOutboundHeaders(headers []OutboundHeader) ([]OutboundHeader, error
 			continue
 		}
 		if name == "" || !validOutboundHeaderName(name) {
-			return nil, BadAuthRequest("自定义请求头名称无效，请使用标准 HTTP Header 名称")
+			return nil, BadAuthRequest("The custom request header name is invalid, please use the standard HTTP Header name")
 		}
 		name = http.CanonicalHeaderKey(name)
 		lowerName := strings.ToLower(name)
 		if blockedOutboundHeader(lowerName) {
-			return nil, BadAuthRequest("请求头 " + name + " 由系统管理，不允许自定义")
+			return nil, BadAuthRequest("Request header" + name + " Managed by the system, no customization allowed")
 		}
 		if _, exists := seen[lowerName]; exists {
-			return nil, BadAuthRequest("自定义请求头不能重复：" + name)
+			return nil, BadAuthRequest("Custom request headers cannot be repeated:" + name)
 		}
 		if !validOutboundHeaderValue(value) {
-			return nil, BadAuthRequest("请求头 " + name + " 的值包含非法控制字符")
+			return nil, BadAuthRequest("Request header" + name + " The value contains illegal control characters")
 		}
 		if len(name) > 128 || len(value) > 4096 {
-			return nil, BadAuthRequest("单个自定义请求头名称或值过长")
+			return nil, BadAuthRequest("A single custom request header name or value is too long")
 		}
 		totalBytes += len(name) + len(value)
 		if totalBytes > maxOutboundHeaderBytes {
-			return nil, BadAuthRequest("自定义请求头总大小不能超过 16KB")
+			return nil, BadAuthRequest("The total size of custom request headers cannot exceed 16KB")
 		}
 		seen[lowerName] = struct{}{}
 		normalized = append(normalized, OutboundHeader{Name: name, Value: value})
@@ -206,7 +206,7 @@ func ParseOutboundHeadersJSON(raw string) ([]OutboundHeader, error) {
 	}
 	var headers []OutboundHeader
 	if err := json.Unmarshal([]byte(raw), &headers); err != nil {
-		return nil, errors.New("渠道自定义请求头配置损坏")
+		return nil, errors.New("Channel custom request header configuration is damaged")
 	}
 	return NormalizeOutboundHeaders(headers)
 }
@@ -216,15 +216,15 @@ func DecodeRelayOutboundHeaders(encoded string) ([]OutboundHeader, error) {
 		return []OutboundHeader{}, nil
 	}
 	if len(encoded) > (maxOutboundHeaderBytes*2)+1024 {
-		return nil, BadAuthRequest("自定义请求头配置过大")
+		return nil, BadAuthRequest("Custom request header configuration is too large")
 	}
 	data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return nil, BadAuthRequest("自定义请求头编码无效")
+		return nil, BadAuthRequest("Invalid custom request header encoding")
 	}
 	var headers []OutboundHeader
 	if err := json.Unmarshal(data, &headers); err != nil {
-		return nil, BadAuthRequest("自定义请求头格式无效")
+		return nil, BadAuthRequest("The custom request header format is invalid")
 	}
 	return NormalizeOutboundHeaders(headers)
 }
@@ -383,7 +383,7 @@ func resolveCustomRelayHost(ctx context.Context, host string) ([]net.IP, error) 
 	if !allowPrivateHost {
 		for _, ip := range addresses {
 			if blockedCustomRelayIP(ip) {
-				return nil, BadAuthRequest("不允许访问保留地址或特殊用途地址")
+				return nil, BadAuthRequest("Access to reserved or special purpose addresses is not allowed")
 			}
 		}
 	}
@@ -392,10 +392,10 @@ func resolveCustomRelayHost(ctx context.Context, host string) ([]net.IP, error) 
 
 func resolveOutboundHostWithPolicy(ctx context.Context, host string, allowPrivateHost bool) ([]net.IP, error) {
 	if host == "" {
-		return nil, BadAuthRequest("外部服务域名无效")
+		return nil, BadAuthRequest("The external service domain name is invalid")
 	}
 	if !allowPrivateHost && (host == "localhost" || strings.HasSuffix(host, ".localhost")) {
-		return nil, BadAuthRequest("不允许访问本机或内网地址")
+		return nil, BadAuthRequest("Access to this machine or intranet address is not allowed")
 	}
 	addresses, err := net.DefaultResolver.LookupIP(ctx, "ip", host)
 	if err != nil {
@@ -411,16 +411,16 @@ func resolveOutboundHostWithPolicy(ctx context.Context, host string, allowPrivat
 		if allowPrivateHost && (host == "localhost" || strings.HasSuffix(host, ".localhost")) {
 			return []net.IP{net.IPv4(127, 0, 0, 1)}, nil
 		}
-		return nil, BadAuthRequest("外部服务域名没有可用地址")
+		return nil, BadAuthRequest("There is no available address for the external service domain name")
 	}
 	for _, ip := range addresses {
 		// Link-local includes cloud metadata (169.254.169.254). An operator
 		// allowlist may pin a LAN host, but it must not reopen that range.
 		if blockedLinkLocalOrSpecialIP(ip) {
-			return nil, BadAuthRequest("不允许访问链路本地、未指定或组播地址")
+			return nil, BadAuthRequest("Do not allow access to link-local, unspecified, or multicast addresses")
 		}
 		if !allowPrivateHost && blockedOutboundIP(ip) {
-			return nil, BadAuthRequest("不允许访问本机、内网或链路本地地址")
+			return nil, BadAuthRequest("Access to local machine, intranet or link-local address is not allowed")
 		}
 	}
 	return addresses, nil

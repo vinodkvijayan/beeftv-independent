@@ -66,7 +66,7 @@ func normalizeAndValidateDescriptor(descriptor Descriptor, isPlugin bool) (Descr
 			descriptor.DefaultHeight = 260
 		}
 		if len(descriptor.PatchFields) == 0 && !descriptor.CanUpdate {
-			descriptor.PatchFields = editableNodeFields("metadata.content", "内容", "插件节点内容")
+			descriptor.PatchFields = editableNodeFields("metadata.content", "content", "Plug-in node content")
 			descriptor.CanUpdate = true
 		} else if len(descriptor.PatchFields) > 0 {
 			descriptor.CanUpdate = true
@@ -248,11 +248,11 @@ func (r *Registry) Resolve(nodeType string) (Descriptor, bool) {
 func (r *Registry) ValidateReferenceConnection(fromType, toType string) error {
 	from, ok := r.Resolve(fromType)
 	if !ok {
-		return fmt.Errorf("未知的节点类型 %s", strings.TrimSpace(fromType))
+		return fmt.Errorf("Unknown node type %s", strings.TrimSpace(fromType))
 	}
 	to, ok := r.Resolve(toType)
 	if !ok {
-		return fmt.Errorf("未知的节点类型 %s", strings.TrimSpace(toType))
+		return fmt.Errorf("Unknown node type %s", strings.TrimSpace(toType))
 	}
 	return ValidateReferenceConnectionBetween(from, to)
 }
@@ -260,10 +260,10 @@ func (r *Registry) ValidateReferenceConnection(fromType, toType string) error {
 // ValidateReferenceConnectionBetween 用两个已知描述符判定连线，供自带类型表的调用方复用同一套规则。
 func ValidateReferenceConnectionBetween(from, to Descriptor) error {
 	if from.InputKind == "" || !from.Connection.CanSource {
-		return fmt.Errorf("来源节点类型 %s 不能作为生成输入；引用连线不能用于普通节点关联", from.Type)
+		return fmt.Errorf("Source node type %s cannot be used as generation input; reference wires cannot be used for normal node associations", from.Type)
 	}
 	if !to.Connection.CanTarget {
-		return fmt.Errorf("目标节点类型 %s 不能接收生成输入；无需为文档归档建立引用连线", to.Type)
+		return fmt.Errorf("Target node type %s cannot receive build input; no reference wires need to be established for document archives", to.Type)
 	}
 	return to.ValidateConnection(from.InputKind)
 }

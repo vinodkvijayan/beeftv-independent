@@ -17,27 +17,27 @@ import (
 func PrepareWAV(ctx context.Context, reader io.Reader, mime string) (string, func(), error) {
 	ffmpegBin, err := mediatools.ResolveFFmpeg()
 	if err != nil {
-		return "", nil, fmt.Errorf("音频预处理依赖未安装（需要 ffmpeg）")
+		return "", nil, fmt.Errorf("Audio preprocessing dependencies are not installed (requires ffmpeg)")
 	}
 	tmpDir, err := os.MkdirTemp("", "beeftv-whisper-*")
 	if err != nil {
-		return "", nil, fmt.Errorf("创建临时目录失败: %w", err)
+		return "", nil, fmt.Errorf("Failed to create temporary directory: %w", err)
 	}
 	cleanup := func() { _ = os.RemoveAll(tmpDir) }
 	inPath := filepath.Join(tmpDir, "input"+ExtForMIME(mime))
 	inFile, err := os.Create(inPath)
 	if err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("写入待转写媒体失败: %w", err)
+		return "", nil, fmt.Errorf("Failed to write to media to be transcribed: %w", err)
 	}
 	if _, err := io.Copy(inFile, reader); err != nil {
 		inFile.Close()
 		cleanup()
-		return "", nil, fmt.Errorf("读取待转写媒体失败: %w", err)
+		return "", nil, fmt.Errorf("Failed to read media to be transcribed: %w", err)
 	}
 	if err := inFile.Close(); err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("关闭临时文件失败: %w", err)
+		return "", nil, fmt.Errorf("Failed to close temporary file: %w", err)
 	}
 	wavPath := filepath.Join(tmpDir, "audio16k.wav")
 	cmd := exec.CommandContext(ctx, ffmpegBin, "-nostdin", "-y", "-i", inPath, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wavPath)
@@ -49,7 +49,7 @@ func PrepareWAV(ctx context.Context, reader io.Reader, mime string) (string, fun
 		if len(detail) > 400 {
 			detail = detail[len(detail)-400:]
 		}
-		return "", nil, fmt.Errorf("音频预处理失败（ffmpeg）: %s", detail)
+		return "", nil, fmt.Errorf("Audio preprocessing failed (ffmpeg): %s", detail)
 	}
 	return wavPath, cleanup, nil
 }

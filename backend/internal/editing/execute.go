@@ -61,7 +61,7 @@ func (r *Renderer) Render(ctx context.Context, plan *Plan, progress Progress) (R
 	if err != nil {
 		return RenderedOutput{}, nil, err
 	}
-	if err := reportProgress(progress, "准备媒体…", 10); err != nil {
+	if err := reportProgress(progress, "Prepare the media…", 10); err != nil {
 		return RenderedOutput{}, nil, err
 	}
 	workDir, files, cleanup, err := r.materialize(ctx, plan)
@@ -87,15 +87,15 @@ func (r *Renderer) Render(ctx context.Context, plan *Plan, progress Progress) (R
 	}
 	if plan.SubtitleSRT != "" {
 		if err := os.WriteFile(filepath.Join(workDir, SubtitleFileName), []byte(plan.SubtitleSRT), 0600); err != nil {
-			return fail(fmt.Errorf("写入字幕文件失败"))
+			return fail(fmt.Errorf("Failed to write subtitle file"))
 		}
 	}
 	target := filepath.Join(workDir, renderOutputName)
 	args := BuildFFmpegArgs(*plan, files, target)
 	if len(args) == 0 {
-		return fail(fmt.Errorf("无法生成渲染命令"))
+		return fail(fmt.Errorf("Unable to generate render command"))
 	}
-	if err := reportProgress(progress, "正在渲染…", 30); err != nil {
+	if err := reportProgress(progress, "Rendering…", 30); err != nil {
 		return fail(err)
 	}
 	cmd := exec.CommandContext(ctx, ffmpegBin, args...)
@@ -107,7 +107,7 @@ func (r *Renderer) Render(ctx context.Context, plan *Plan, progress Progress) (R
 	runErr := cmd.Run()
 	output := log.Text()
 	if runErr != nil || (plan.SubtitleSRT != "" && log.FontFailure()) {
-		return fail(fmt.Errorf("ffmpeg 渲染失败：%s", ffmpegErrorDetail(output, runErr)))
+		return fail(fmt.Errorf("ffmpeg rendering failed: %s", ffmpegErrorDetail(output, runErr)))
 	}
 	outputFacts, size, err := verifyRenderedOutput(ctx, target, plan)
 	if err != nil {
@@ -133,26 +133,26 @@ func (r *Renderer) Render(ctx context.Context, plan *Plan, progress Progress) (R
 func verifyRenderedOutput(ctx context.Context, path string, plan *Plan) (SourceFacts, int64, error) {
 	stat, err := os.Stat(path)
 	if err != nil {
-		return SourceFacts{}, 0, fmt.Errorf("读取渲染产物失败")
+		return SourceFacts{}, 0, fmt.Errorf("Failed to read rendering product")
 	}
 	if stat.Size() == 0 {
-		return SourceFacts{}, 0, fmt.Errorf("渲染产物为空")
+		return SourceFacts{}, 0, fmt.Errorf("Rendering product is empty")
 	}
 	facts, err := Probe(ctx, path)
 	if err != nil {
-		return SourceFacts{}, 0, fmt.Errorf("渲染产物不是有效媒体")
+		return SourceFacts{}, 0, fmt.Errorf("The rendering product is not valid media")
 	}
 	if !facts.HasVideo {
-		return SourceFacts{}, 0, fmt.Errorf("渲染产物缺少视频轨")
+		return SourceFacts{}, 0, fmt.Errorf("Rendered product is missing video track")
 	}
 	if !facts.HasAudio {
-		return SourceFacts{}, 0, fmt.Errorf("渲染产物缺少音频轨")
+		return SourceFacts{}, 0, fmt.Errorf("Rendered product is missing audio track")
 	}
 	if facts.DurationMs <= 0 {
-		return SourceFacts{}, 0, fmt.Errorf("渲染产物时长无效")
+		return SourceFacts{}, 0, fmt.Errorf("Rendering product duration is invalid")
 	}
 	if plan != nil && !outputDurationWithinPlan(plan.DurationMs, facts.DurationMs, plan.Output.FPS) {
-		return SourceFacts{}, 0, fmt.Errorf("渲染产物时长无效")
+		return SourceFacts{}, 0, fmt.Errorf("Rendering product duration is invalid")
 	}
 	return facts, stat.Size(), nil
 }
@@ -250,7 +250,7 @@ func (t *ffmpegLogTail) FontFailure() bool {
 func (r *Renderer) materialize(ctx context.Context, plan *Plan) (string, map[string]string, func(), error) {
 	tmpDir, err := os.MkdirTemp("", "beeftv-render-*")
 	if err != nil {
-		return "", nil, nil, fmt.Errorf("创建临时目录失败: %w", err)
+		return "", nil, nil, fmt.Errorf("Failed to create temporary directory: %w", err)
 	}
 	cleanup := func() { _ = os.RemoveAll(tmpDir) }
 	files := map[string]string{}
@@ -261,38 +261,38 @@ func (r *Renderer) materialize(ctx context.Context, plan *Plan) (string, map[str
 		}
 		if sourceID == "" {
 			cleanup()
-			return "", nil, nil, fmt.Errorf("片段缺少有效媒体引用")
+			return "", nil, nil, fmt.Errorf("Fragment missing valid media reference")
 		}
 		if r == nil || r.Sources == nil {
 			cleanup()
-			return "", nil, nil, fmt.Errorf("无法读取时间线引用的媒体，可能已被删除")
+			return "", nil, nil, fmt.Errorf("The media referenced by the timeline cannot be read and may have been deleted")
 		}
 		reader, err := r.Sources.Open(ctx, sourceID)
 		if err != nil || reader == nil {
 			cleanup()
-			return "", nil, nil, fmt.Errorf("无法读取时间线引用的媒体，可能已被删除")
+			return "", nil, nil, fmt.Errorf("The media referenced by the timeline cannot be read and may have been deleted")
 		}
 		path := filepath.Join(tmpDir, fmt.Sprintf("src-%d.mp4", len(files)))
 		file, err := os.Create(path)
 		if err != nil {
 			reader.Close()
 			cleanup()
-			return "", nil, nil, fmt.Errorf("写入临时媒体失败: %w", err)
+			return "", nil, nil, fmt.Errorf("Failed to write to temporary media: %w", err)
 		}
 		if _, err := io.Copy(file, reader); err != nil {
 			file.Close()
 			reader.Close()
 			cleanup()
-			return "", nil, nil, fmt.Errorf("读取时间线媒体失败: %w", err)
+			return "", nil, nil, fmt.Errorf("Failed to read timeline media: %w", err)
 		}
 		if err := file.Close(); err != nil {
 			reader.Close()
 			cleanup()
-			return "", nil, nil, fmt.Errorf("写入临时媒体失败: %w", err)
+			return "", nil, nil, fmt.Errorf("Failed to write to temporary media: %w", err)
 		}
 		if err := reader.Close(); err != nil {
 			cleanup()
-			return "", nil, nil, fmt.Errorf("读取时间线媒体失败: %w", err)
+			return "", nil, nil, fmt.Errorf("Failed to read timeline media: %w", err)
 		}
 		files[sourceID] = path
 	}

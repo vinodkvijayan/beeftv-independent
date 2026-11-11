@@ -6,45 +6,45 @@ import { buildNodeGenerationInputs } from "../src/components/canvas/canvas-node-
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData } from "../src/types/canvas";
 
 const smartReferences: CanvasResourceReference[] = [
-    { id: "image-6", nodeId: "image-6", kind: "image", label: "图片6", title: "宫门全景", active: true },
-    { id: "character", nodeId: "character", kind: "character", label: "角色1", title: "唐妙菱", active: true },
+    { id: "image-6", nodeId: "image-6", kind: "image", label: "Picture 6", title: "Palace gate panorama", active: true },
+    { id: "character", nodeId: "character", kind: "character", label: "role 1", title: "Tang Miaoling", active: true },
 ];
 
 describe("canvas smart references", () => {
     test("converts repeated names and aliases without rewriting existing mentions", () => {
         // 用户自己写的标题（宫门全景 / 唐妙菱）保留原文，引用追加在后面；自动编号仍然直接替换。
-        expect(autoMentionCanvasResourceReferences("图片6在前景，图6退后；宫门全景可见。唐妙菱看向图片60。", smartReferences))
-            .toBe("@[node:image-6] 在前景，@[node:image-6] 退后；宫门全景 @[node:image-6] 可见。唐妙菱 @[node:character] 看向图片60。");
-        const alreadyLinked = "唐妙菱 @[node:character] 看向远景";
+        expect(autoMentionCanvasResourceReferences("Picture 6 is in the foreground, Picture 6 is in the background; the palace gate is visible in full view. Tang Miaoling looked at picture 60.", smartReferences))
+            .toBe("@[node:image-6] is in the foreground, @[node:image-6] stands back; panoramic view of the palace gate @[node:image-6] is visible. Tang Miaoling @[node:character] looks at picture 60.");
+        const alreadyLinked = "Tang Miaoling @[node:character] looks into the distance";
         expect(autoMentionCanvasResourceReferences(alreadyLinked, smartReferences)).toBe(alreadyLinked);
-        const existing = "已有 @图片6 和 @[node:image-6]、@[asset:宫门全景]。";
+        const existing = "There are already @Picture6 and @[node:image-6], @[asset:Palace Gate Panorama].";
         expect(autoMentionCanvasResourceReferences(existing, smartReferences)).toBe(existing);
-        expect(autoMentionCanvasResourceReferences("请使用 2。不要改约2秒。", smartReferences)).toBe("请使用 2。不要改约2秒。");
+        expect(autoMentionCanvasResourceReferences("Please use 2. Don't change it to about 2 seconds.", smartReferences)).toBe("Please use 2. Don't change it to about 2 seconds.");
     });
 
-    test("上传素材以标题为编号时仍保留用户写的标题", () => {
-        const asset: CanvasResourceReference = { id: "asset:宫门全景", nodeId: "asset", kind: "image", label: "宫门全景", title: "宫门全景", active: true };
-        expect(autoMentionCanvasResourceReferences("宫门全景 推近", [asset])).toBe("宫门全景 @[node:asset] 推近");
+    test("When uploading materials and numbering them by title, the title written by the user will still be retained.", () => {
+        const asset: CanvasResourceReference = { id: "asset:Panorama of Palace Gate", nodeId: "asset", kind: "image", label: "Palace gate panorama", title: "Palace gate panorama", active: true };
+        expect(autoMentionCanvasResourceReferences("Panoramic view of palace gate closer", [asset])).toBe("Panoramic view of the palace gate @[node:asset] push closer");
         // 没有自定义标题的节点只显示自动编号，仍然直接替换。
-        const untitled: CanvasResourceReference = { id: "image-3", nodeId: "image-3", kind: "image", label: "图片3", title: "图片3", active: true };
-        expect(autoMentionCanvasResourceReferences("图片3 在左侧", [untitled])).toBe("@[node:image-3] 在左侧");
+        const untitled: CanvasResourceReference = { id: "image-3", nodeId: "image-3", kind: "image", label: "Picture 3", title: "Picture 3", active: true };
+        expect(autoMentionCanvasResourceReferences("Picture 3 on the left", [untitled])).toBe("@[node:image-3] on the left");
     });
 
-    test("@ 选中和 Tab 补全时，完整打出的角色名保留，搜索片段和自动编号只插引用", () => {
+    test("When @ is selected and tab completed, the fully typed character name is retained, and only references are inserted for search fragments and automatic numbering.", () => {
         const character = smartReferences[1];
-        expect(canvasResourceReferenceInsertText(character, "唐妙菱")).toBe("唐妙菱 @[node:character] ");
-        expect(canvasResourceReferenceInsertText(character, "唐")).toBe("@[node:character] ");
+        expect(canvasResourceReferenceInsertText(character, "Tang Miaoling")).toBe("Tang Miaoling @[node:character]");
+        expect(canvasResourceReferenceInsertText(character, "Tang")).toBe("@[node:character] ");
         expect(canvasResourceReferenceInsertText(character, "")).toBe("@[node:character] ");
-        expect(canvasResourceReferenceInsertText(character, "角色1")).toBe("@[node:character] ");
+        expect(canvasResourceReferenceInsertText(character, "role 1")).toBe("@[node:character] ");
         // 名字后面已经跟着自己的引用时，Tab 不再重复提示。
-        const linked = "唐妙菱 @[node:character] 看向远景";
-        expect(findCanvasResourceAutoLinkMatch(linked, "唐妙菱".length, smartReferences)).toBeNull();
-        expect(findCanvasResourceAutoLinkMatch("唐妙菱 看向远景", "唐妙菱".length, smartReferences)?.reference.id).toBe("character");
+        const linked = "Tang Miaoling @[node:character] looks into the distance";
+        expect(findCanvasResourceAutoLinkMatch(linked, "Tang Miaoling".length, smartReferences)).toBeNull();
+        expect(findCanvasResourceAutoLinkMatch("Tang Miaoling looks into the distance", "Tang Miaoling".length, smartReferences)?.reference.id).toBe("character");
     });
 
     test("returns exact replacement offsets for names and shelf orders", () => {
-        for (const alias of ["唐妙菱", "角色1", "2"]) {
-            const prompt = `请使用 ${alias}，然后继续`;
+        for (const alias of ["Tang Miaoling", "role 1", "2"]) {
+            const prompt = `Please use${alias}, then continue`;
             expect(findCanvasResourceAutoLinkMatch(prompt, 4 + alias.length, smartReferences))
                 .toEqual({ reference: smartReferences[1], start: 4, end: 4 + alias.length, query: alias });
         }
@@ -52,22 +52,22 @@ describe("canvas smart references", () => {
 
     test("bulk linking preserves counts, timings, table indexes and numeric resource titles", () => {
         const references = [
-            { ...smartReferences[0], label: "图片1", title: "走廊" },
-            { ...smartReferences[0], id: "image-2", label: "图片2", title: "2" },
+            { ...smartReferences[0], label: "Picture 1", title: "Corridor" },
+            { ...smartReferences[0], id: "image-2", label: "Picture 2", title: "2" },
         ];
-        const prompt = "固定 2 人，只有 1 句对白。\n| IMAGE 1 | 走廊 |\n| IMAGE 2 | 服装 |\n0-2.4 秒，6.0-7.0 秒，机位 30 度，@图片2 保持一致。";
-        expect(autoMentionCanvasResourceReferences(prompt, references)).toBe(prompt.replace("走廊", "走廊 @[node:image-6]"));
+        const prompt = "Fixed 2 people, only 1 line of dialogue.\n| IMAGE 1 | Corridor |\n| IMAGE 2 | Clothing |\n0-2.4 seconds, 6.0-7.0 seconds, camera position 30 degrees, @Picture 2 remains consistent.";
+        expect(autoMentionCanvasResourceReferences(prompt, references)).toBe(prompt.replace("Corridor", "Corridor @[node:image-6]"));
     });
 
     test("image aliases use the image label instead of the mixed resource shelf position", () => {
         const references: CanvasResourceReference[] = [
-            { id: "audio", nodeId: "audio", kind: "audio", label: "音频1", title: "声音", active: true },
-            { ...smartReferences[0], label: "图片1", title: "走廊" },
-            { id: "image-2", nodeId: "image-2", kind: "image", label: "图片2", title: "人物", active: true },
+            { id: "audio", nodeId: "audio", kind: "audio", label: "Audio 1", title: "sound", active: true },
+            { ...smartReferences[0], label: "Picture 1", title: "Corridor" },
+            { id: "image-2", nodeId: "image-2", kind: "image", label: "Picture 2", title: "characters", active: true },
             smartReferences[1],
         ];
-        expect(autoMentionCanvasResourceReferences("image1、image 2、图1、图片2、声音、唐妙菱", references))
-            .toBe("@[node:image-6]、@[node:image-2]、@[node:image-6]、@[node:image-2]、声音 @[node:audio]、唐妙菱 @[node:character]");
+        expect(autoMentionCanvasResourceReferences("image1, image 2, picture 1, picture 2, sound, Tang Miaoling", references))
+            .toBe("@[node:image-6], @[node:image-2], @[node:image-6], @[node:image-2], sound @[node:audio], Tang Miaoling @[node:character]");
         expect(findCanvasResourceAutoLinkMatch("image1", 6, references)?.reference.nodeId).toBe("image-6");
         expect(findCanvasResourceAutoLinkMatch("image2", 6, smartReferences)).toBeNull();
     });
@@ -78,17 +78,17 @@ describe("canvas smart references", () => {
             { ...smartReferences[1], assetId: "library" },
             { ...smartReferences[1], kind: "skill" },
         ];
-        expect(autoMentionCanvasResourceReferences("宫门全景 唐妙菱 1", excluded)).toBe("宫门全景 唐妙菱 1");
-        expect(findCanvasResourceAutoLinkMatch("唐妙菱", 3, excluded)).toBeNull();
-        const ambiguous = [smartReferences[0], { ...smartReferences[1], title: "宫门全景" }];
-        expect(autoMentionCanvasResourceReferences("宫门全景", ambiguous)).toBe("宫门全景");
-        expect(findCanvasResourceAutoLinkMatch("宫门全景", 4, ambiguous)).toBeNull();
+        expect(autoMentionCanvasResourceReferences("Panoramic view of the palace gate Tang Miaoling 1", excluded)).toBe("Panoramic view of the palace gate Tang Miaoling 1");
+        expect(findCanvasResourceAutoLinkMatch("Tang Miaoling", 3, excluded)).toBeNull();
+        const ambiguous = [smartReferences[0], { ...smartReferences[1], title: "Palace gate panorama" }];
+        expect(autoMentionCanvasResourceReferences("Palace gate panorama", ambiguous)).toBe("Palace gate panorama");
+        expect(findCanvasResourceAutoLinkMatch("Palace gate panorama", 4, ambiguous)).toBeNull();
     });
 
     test("does not complete partial identifiers, existing tokens or ordinary numbers", () => {
         for (const [prompt, cursor] of [
-            ["@图片6", 4], ["@[node:宫门全景", 10], ["@前缀宫门全景", 7],
-            ["myimage2", 8], ["图片60", 3], ["2秒", 1], ["约2", 2], ["20", 1],
+            ["@Picture6", 4], ["@[node: panoramic view of the palace gate", 10], ["@prefix palace gate panorama", 7],
+            ["myimage2", 8], ["Picture 60", 3], ["2 seconds", 1], ["about 2", 2], ["20", 1],
             ["", 0], ["2", 5],
         ] as const) {
             expect(findCanvasResourceAutoLinkMatch(prompt, cursor, smartReferences)).toBeNull();
@@ -96,8 +96,8 @@ describe("canvas smart references", () => {
     });
 
     test("escapes regular expression characters and preserves explicit mention tokens", () => {
-        const reference = { ...smartReferences[0], title: "场景(夜)+", mentionToken: "@[node:image-6]" };
-        expect(autoMentionCanvasResourceReferences("场景(夜)+出现", [reference])).toBe("场景(夜)+ @[node:image-6] 出现");
+        const reference = { ...smartReferences[0], title: "Scene(Night)+", mentionToken: "@[node:image-6]" };
+        expect(autoMentionCanvasResourceReferences("Scene (night) + appearance", [reference])).toBe("Scene (night) + @[node:image-6] appears");
         expect(findCanvasResourceAutoLinkMatch(reference.title, reference.title.length, [reference])?.reference).toBe(reference);
     });
 });
@@ -155,7 +155,7 @@ function connection(fromNodeId: string, toNodeId: string): CanvasConnection {
 }
 
 describe("collectUpstreamVideoNodes", () => {
-    test("下游视频节点能回溯到上游视频源", () => {
+    test("Downstream video nodes can trace back to upstream video sources", () => {
         const source = videoNode("source-video");
         const segment = videoNode("segment-video");
         const target = videoNode("target-video");
@@ -165,7 +165,7 @@ describe("collectUpstreamVideoNodes", () => {
         expect(collectUpstreamVideoNodes("target-video", nodes, connections).map((node) => node.id)).toEqual(["target-video", "segment-video", "source-video"]);
     });
 
-    test("存在环时不会死循环", () => {
+    test("There will be no infinite loop when there is a loop", () => {
         const a = videoNode("a");
         const b = videoNode("b");
         const nodes = [a, b];
@@ -211,7 +211,7 @@ describe("canvas resource mention slots", () => {
         const fromStore = bindCanvasNodeResourceAsset(history, [], [{
             id: "asset-from-store",
             kind: "audio",
-            title: "旁白",
+            title: "narration",
             coverUrl: "",
             tags: [],
             createdAt: "2026-09-24T00:00:00.000Z",
@@ -250,11 +250,11 @@ describe("canvas resource mention slots", () => {
         expect(repaired.map((node) => node.metadata?.assetId)).toEqual(["asset-ensured", "asset-ensured", "asset-ensured"]);
     });
 
-    test("素材库视频优先使用封面，没有封面时保留首帧视频回退源", () => {
+    test("The material library video uses the cover first. If there is no cover, the first frame video fallback source is retained.", () => {
         const poster = buildAssetMentionReferences([{
             id: "video-with-poster",
             kind: "video",
-            title: "带封面视频",
+            title: "Video with cover",
             coverUrl: "https://cdn.example.com/poster.jpg",
             tags: [],
             createdAt: "2026-08-31T00:00:00.000Z",
@@ -267,7 +267,7 @@ describe("canvas resource mention slots", () => {
         const legacy = buildAssetMentionReferences([{
             id: "legacy-video",
             kind: "video",
-            title: "旧视频",
+            title: "old videos",
             coverUrl: "https://cdn.example.com/video.mp4",
             tags: [],
             createdAt: "2026-08-31T00:00:00.000Z",
@@ -278,7 +278,7 @@ describe("canvas resource mention slots", () => {
         expect(legacy?.mediaUrl).toBe("https://cdn.example.com/video.mp4");
     });
 
-    test("保存画布视频资产时保留节点已有的静态首帧", () => {
+    test("Keep the existing static first frame of the node when saving canvas video assets", () => {
         const node = videoNode("video-with-poster");
         node.metadata = {
             content: "https://cdn.example.com/video.mp4",
@@ -289,7 +289,7 @@ describe("canvas resource mention slots", () => {
         expect(asset && "coverUrl" in asset ? asset.coverUrl : "").toBe("https://cdn.example.com/poster.jpg");
     });
 
-    test("仅有持久资源键的媒体节点仍可恢复为素材且不伪造临时地址", () => {
+    test("Media nodes with only persistent resource keys can still be restored to assets without forging temporary addresses", () => {
         const node = videoNode("storage-key-only-video");
         node.metadata = {
             storageKey: "  video:user:durable  ",
@@ -303,7 +303,7 @@ describe("canvas resource mention slots", () => {
         expect(asset?.kind === "video" ? asset.data.storageKey : undefined).toBe("video:user:durable");
     });
 
-    test("上传视频作为生成设置引用时携带首帧预览，而不是播放器地址", () => {
+    test("When uploading a video as a reference in build settings, carry the first frame preview instead of the player address", () => {
         const source = videoNode("uploaded-video");
         source.metadata = {
             content: "https://cdn.example.com/video.mp4",
@@ -313,7 +313,7 @@ describe("canvas resource mention slots", () => {
         const config: CanvasNodeData = {
             id: "config",
             type: CanvasNodeType.Config,
-            title: "生成设置",
+            title: "Build settings",
             position: { x: 0, y: 0 },
             width: 320,
             height: 180,
@@ -326,7 +326,7 @@ describe("canvas resource mention slots", () => {
         expect(inputs[0]?.previewUrl).not.toBe(source.metadata.content);
     });
 
-    test("视频引用只暴露静态首帧，不把原视频当缩略图", () => {
+    test("The video reference only exposes the static first frame and does not use the original video as a thumbnail.", () => {
         const genericVideo = videoNode("generic-video");
         genericVideo.metadata = { content: "https://example.com/video.mp4" };
         const libtvVideo = videoNode("libtv-video");
@@ -347,11 +347,11 @@ describe("canvas resource mention slots", () => {
         expect(uploadedReference?.storageKey).toBe("video:user:source");
     });
 
-    test("绘图引用保留本地预览定位信息", () => {
+    test("Drawing references retain local preview positioning information", () => {
         const drawing: CanvasNodeData = {
             id: "drawing-a",
             type: CanvasNodeType.Drawing,
-            title: "草图 A",
+            title: "Sketch A",
             position: { x: 0, y: 0 },
             width: 100,
             height: 100,
@@ -359,27 +359,27 @@ describe("canvas resource mention slots", () => {
         };
         const target = videoNode("target");
         const [reference] = buildNodeMentionReferences(target, [drawing, target], [connection(drawing.id, target.id)]);
-        expect(reference).toMatchObject({ kind: "image", label: "绘图1", drawingId: "drawing-document-a", drawingRevision: 3 });
+        expect(reference).toMatchObject({ kind: "image", label: "Drawing 1", drawingId: "drawing-document-a", drawingRevision: 3 });
     });
 
-    test("画布节点显示类型编号，引用保存具体节点 ID", () => {
+    test("The canvas node displays the type number, and the reference saves the specific node ID.", () => {
         const target = videoNode("target");
         const image = imageNode("image-a");
         const [reference] = buildNodeMentionReferences(target, [image, target], [connection(image.id, target.id)]);
 
-        expect(reference.label).toBe("图片1");
+        expect(reference.label).toBe("Picture 1");
         expect(canvasResourceMentionToken(reference)).toBe("@[node:image-a]");
     });
 
-    test("图片、音频和文本分别按各自类型顺序编号", () => {
+    test("Pictures, audio and text are numbered sequentially according to their respective types.", () => {
         const target = videoNode("target");
         const nodes = [imageNode("image-a"), audioNode("audio-a"), imageNode("image-b"), textNode("text-a"), target];
         const connections = nodes.slice(0, -1).map((node) => connection(node.id, target.id));
 
-        expect(buildNodeMentionReferences(target, nodes, connections).map((reference) => reference.label)).toEqual(["图片1", "音频1", "图片2", "文本1"]);
+        expect(buildNodeMentionReferences(target, nodes, connections).map((reference) => reference.label)).toEqual(["Picture 1", "Audio 1", "Picture 2", "Text 1"]);
     });
 
-    test("批量索引保持直接引用和配置节点引用语义", () => {
+    test("Bulk indexing maintains direct reference and configured node reference semantics", () => {
         const image = imageNode("image-a");
         const audio = audioNode("audio-a");
         const target = videoNode("target");
@@ -394,19 +394,19 @@ describe("canvas resource mention slots", () => {
         expect(buildNodeMentionReferences(image, nodes, connections).map((reference) => reference.nodeId)).toEqual([image.id]);
     });
 
-    test("素材库身份 token 保持稳定", () => {
+    test("Material library identity token remains stable", () => {
         expect(canvasResourceMentionToken({
             id: "asset:asset-a",
             nodeId: "",
             assetId: "asset-a",
             kind: "image",
-            label: "场景图",
-            title: "场景图",
+            label: "scene graph",
+            title: "scene graph",
             active: false,
         })).toBe("@[asset:asset-a]");
     });
 
-    test("文本类资源判定覆盖 Text/Skill/Markdown/Svg/Html 并排除角色卡节点", () => {
+    test("Text resource determination covers Text/Skill/Markdown/Svg/Html and excludes character card nodes", () => {
         for (const type of [CanvasNodeType.Text, CanvasNodeType.Skill, CanvasNodeType.Markdown, CanvasNodeType.Svg, CanvasNodeType.Html]) {
             expect(isCanvasTextResourceNode({ ...textNode(type), type })).toBe(true);
         }
@@ -417,61 +417,61 @@ describe("canvas resource mention slots", () => {
 });
 
 describe("remove canvas resource mention tokens", () => {
-    test("断开首图时同步紧邻中文、连续引用及两位数编号", () => {
+    test("When disconnecting the first image, synchronize the adjacent Chinese, continuous quotations and two-digit numbers", () => {
         const images = Array.from({ length: 10 }, (_, index) => imageNode(`image-${index}`));
         const target = {
             ...videoNode("target"),
-            metadata: { composerContent: "@图片1@图片2的人物参考@图片10，@[node:image-1]保持一致" },
+            metadata: { composerContent: "@Picture1@Picture2 characters refer to @Picture10, @[node:image-1] remains consistent" },
         };
         const nodes = [...images, target];
         const connections = images.map((image) => connection(image.id, target.id));
         const result = applyCanvasConnectionPromptSync(nodes, connections, nodes, connections.slice(1));
         expect(result.find((node) => node.id === target.id)?.metadata?.composerContent)
-            .toBe("@图片1的人物参考@图片9，@[node:image-1]保持一致");
+            .toBe("The characters in @Picture 1 refer to @Picture 9, @[node:image-1] remains consistent");
     });
 
-    test("取消引用后会清掉对应的 @图片N", () => {
+    test("After canceling the reference, the corresponding @PictureN will be cleared", () => {
         const image = imageNode("image-a");
         const target = {
             ...videoNode("target"),
-            metadata: { composerContent: "@图片1 生成角色设定图：保持同一角色身份。" },
+            metadata: { composerContent: "@Picture 1 Generate character setting diagram: keep the same character identity." },
         };
         const previousConnections = [connection(image.id, target.id)];
         const [nextTarget] = applyCanvasConnectionPromptSync([image, target], previousConnections, [image, target], []).filter((node) => node.id === target.id);
 
-        expect(nextTarget.metadata?.composerContent).toBe("生成角色设定图：保持同一角色身份。");
-        expect(nextTarget.metadata?.composerContent).not.toContain("@图片1");
+        expect(nextTarget.metadata?.composerContent).toBe("Generate a character map: keep the same character identity.");
+        expect(nextTarget.metadata?.composerContent).not.toContain("@Picture1");
     });
 
-    test("同时存在节点 token 时一并清掉", () => {
+    test("If there are node tokens at the same time, they will be cleared together.", () => {
         const image = imageNode("image-a");
         const target = {
             ...videoNode("target"),
-            metadata: { composerContent: "让 @图片1 和 @[node:image-a] 一起进入画面" },
+            metadata: { composerContent: "Let @image1 and @[node:image-a] enter the screen together" },
         };
         const [nextTarget] = applyCanvasConnectionPromptSync([image, target], [connection(image.id, target.id)], [image, target], []).filter((node) => node.id === target.id);
-        expect(nextTarget.metadata?.composerContent).toBe("让 和 一起进入画面");
-        expect(nextTarget.metadata?.composerContent).not.toContain("@图片1");
+        expect(nextTarget.metadata?.composerContent).toBe("Let and come into the picture together");
+        expect(nextTarget.metadata?.composerContent).not.toContain("@Picture1");
         expect(nextTarget.metadata?.composerContent).not.toContain("@[node:image-a]");
     });
 
-    test("多图时只清被移除的那张，并把剩余引用重新编号", () => {
+    test("When there are multiple pictures, only the one that was removed will be cleared, and the remaining references will be renumbered.", () => {
         const imageA = imageNode("image-a");
         const imageB = imageNode("image-b");
         const target = {
             ...videoNode("target"),
-            metadata: { composerContent: "比较 @图片1 和 @图片2" },
+            metadata: { composerContent: "Compare @picture1 and @picture2" },
         };
         const previousConnections = [connection(imageA.id, target.id), connection(imageB.id, target.id)];
         const nextConnections = [connection(imageB.id, target.id)];
         const [nextTarget] = applyCanvasConnectionPromptSync([imageA, imageB, target], previousConnections, [imageA, imageB, target], nextConnections).filter((node) => node.id === target.id);
 
-        expect(nextTarget.metadata?.composerContent).toBe("比较 和 @图片1");
+        expect(nextTarget.metadata?.composerContent).toBe("Compare with @picture1");
     });
 });
 
 describe("image generation reference connections", () => {
-    test("把源节点的参考图连线复制到新结果，避免提示词图片丢失", () => {
+    test("Copy the reference picture connection of the source node to the new result to avoid losing the prompt word picture", () => {
         const imageA = imageNode("image-a");
         const imageB = imageNode("image-b");
         const source = textNode("prompt");
@@ -484,19 +484,19 @@ describe("image generation reference connections", () => {
 });
 
 describe("reorder canvas resource connections", () => {
-    test("直接引用按指定顺序换位并同步编号提示词", () => {
+    test("Direct quotations are transposed in the specified order and numbered prompts are synchronized", () => {
         const imageA = imageNode("image-a");
         const imageB = imageNode("image-b");
-        const target = { ...videoNode("target"), metadata: { composerContent: "比较 @图片1 和 @图片2" } };
+        const target = { ...videoNode("target"), metadata: { composerContent: "Compare @picture1 and @picture2" } };
         const nodes = [imageA, imageB, target];
         const previousConnections = [connection(imageA.id, target.id), connection(imageB.id, target.id)];
         const nextConnections = reorderCanvasResourceConnections(target.id, [imageB.id, imageA.id], nodes, previousConnections);
         expect(nextConnections.map((item) => item.fromNodeId)).toEqual([imageB.id, imageA.id]);
         const nextNodes = applyCanvasConnectionPromptSync(nodes, previousConnections, nodes, nextConnections);
-        expect(nextNodes.find((node) => node.id === target.id)?.metadata?.composerContent).toBe("比较 @图片2 和 @图片1");
+        expect(nextNodes.find((node) => node.id === target.id)?.metadata?.composerContent).toBe("Compare @Picture2 and @Picture1");
     });
 
-    test("配置节点承接的引用可排序且不改变主链和无关连线", () => {
+    test("The references inherited by the configuration node can be sorted and the main chain and irrelevant connections will not be changed.", () => {
         const imageA = imageNode("image-a");
         const imageB = imageNode("image-b");
         const target = videoNode("target");
@@ -513,45 +513,45 @@ describe("reorder canvas resource connections", () => {
 });
 
 describe("replace canvas reference mentions", () => {
-    test("替换参考图时将提示词内所有提及同张图片的标记全部替换", () => {
+    test("When replacing the reference picture, replace all the tags mentioning the same picture in the prompt word.", () => {
         const oldRef: CanvasResourceReference = {
             id: "node-old",
             nodeId: "node-old",
             kind: "image",
-            label: "图片1",
-            title: "卡通可爱动画风画册",
+            label: "Picture 1",
+            title: "Cartoon cute animation style picture album",
             active: true,
         };
-        const prompt = "@图片1 参考 @图片2 生成，保持 @图片1 的色调与 @卡通可爱动画风画册 的画风";
-        const replaced = replaceCanvasReferenceMentions(prompt, oldRef, "@图片3", "未来赛博超跑");
-        expect(replaced).toBe("@图片3 参考 @图片2 生成，保持 @图片3 的色调与 @未来赛博超跑 的画风");
+        const prompt = "@Picture 1 is generated with reference to @Picture 2, keeping the tone of @Picture 1 and the style of @Cartoon Cute Animation Style Album";
+        const replaced = replaceCanvasReferenceMentions(prompt, oldRef, "@Picture 3", "Future cyber supercar");
+        expect(replaced).toBe("@Picture 3 is generated with reference to @Picture 2, maintaining the tone of @Picture 3 and the style of @Future Cyber Supercar");
     });
 
-    test("不会误替换较长数字或无关标记", () => {
+    test("Don't mistakenly replace long numbers or irrelevant tags", () => {
         const oldRef: CanvasResourceReference = {
             id: "node-old",
             nodeId: "node-old",
             kind: "image",
-            label: "图片1",
-            title: "画册",
+            label: "Picture 1",
+            title: "picture album",
             active: true,
         };
-        const prompt = "@图片1 和 @图片10 及 @图片11，不要改动 @图片10";
-        const replaced = replaceCanvasReferenceMentions(prompt, oldRef, "@图片9");
-        expect(replaced).toBe("@图片9 和 @图片10 及 @图片11，不要改动 @图片10");
+        const prompt = "@Picture1 and @Picture10 and @Picture11, do not change @Picture10";
+        const replaced = replaceCanvasReferenceMentions(prompt, oldRef, "@Picture9");
+        expect(replaced).toBe("@Picture9 and @Picture10 and @Picture11, do not change @Picture10");
     });
 
-    test("自动规范化带有或缺失@前缀的参数", () => {
+    test("Automatically normalize parameters with or missing @ prefix", () => {
         const oldRef: CanvasResourceReference = {
             id: "node-old",
             nodeId: "node-old",
             kind: "image",
-            label: "@图片1",
-            title: "@画册",
+            label: "@Picture1",
+            title: "@Picture Album",
             active: true,
         };
-        const prompt = "@图片1 的画风结合 @画册 的色调";
-        const replaced = replaceCanvasReferenceMentions(prompt, oldRef, "图片2", "新封面");
-        expect(replaced).toBe("@图片2 的画风结合 @新封面 的色调");
+        const prompt = "The painting style of @Picture 1 combined with the tone of @Picture Album";
+        const replaced = replaceCanvasReferenceMentions(prompt, oldRef, "Picture 2", "new cover");
+        expect(replaced).toBe("The painting style of @Picture 2 combined with the color tone of @New Cover");
     });
 });

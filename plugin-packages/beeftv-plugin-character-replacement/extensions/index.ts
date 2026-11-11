@@ -38,7 +38,7 @@ function parseCanvasSnapshot(readRes: {
 } {
   const readText = extractText(readRes?.result || {});
   if (readRes?.isError) {
-    throw new Error(`读取画布失败：${readText}`);
+    throw new Error(`Failed to read canvas:${readText}`);
   }
   const structured =
     (readRes?.result?.structuredContent as Record<string, unknown> | undefined) ||
@@ -68,81 +68,81 @@ function parseCanvasSnapshot(readRes: {
 export default function registerCharacterReplacementExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "character_replacement_arrange",
-    label: "一键编排 AI 角色替换双阶段管线",
+    label: "One-click orchestration of AI character replacement two-stage pipeline",
     description:
-      "在当前画布创建「AI 角色替换」配置节点、Step 2 关键帧人物替换图片节点与 Step 3 视频元素替换（replace_element）节点，自动连接原关键帧、目标角色参考图、可选定位图与原视频，并可选直接发起生成提议。",
+      "Create the \"AI character replacement\" configuration node, Step 2 keyframe character replacement image node, and Step 3 video element replacement (replace_element) node on the current canvas, automatically connect the original keyframes, target character reference map, optional positioning map, and original video, and optionally initiate generation of proposals directly.",
     parameters: Type.Object({
       shotTitle: Type.String({
-        description: "镜头名称，例如「镜头 1」或「雨夜拔剑特写」",
+        description: "Shot name, such as \"Shot 1\" or \"Close-up of drawing a sword on a rainy night\"",
       }),
       sourceDescription: Type.String({
-        description: "原画面中被替换人物的特征描述，例如「穿黑西装的男人」或「银甲男剑客」",
+        description: "A description of the characteristics of the replaced character in the original scene, such as \"a man in a black suit\" or \"a male swordsman in silver armor\"",
       }),
       targetDescription: Type.String({
-        description: "目标替换角色的外貌与服装描述，例如「戴银框眼镜、穿酒红色丝绒西装的年轻霸总」",
+        description: "The target replacement character's appearance and clothing description, such as \"a young boss wearing silver-rimmed glasses and a burgundy velvet suit\"",
       }),
       position: Type.Optional(
         Type.String({
-          description: "目标人物在画面中的位置：single（单人）| left（左侧）| center（中间）| right（右侧）",
+          description: "The position of the target character in the screen: single (single) | left (left) | center (middle) | right (right)",
           default: "single",
         }),
       ),
       genderHint: Type.Optional(
         Type.String({
-          description: "人物性别提示：person（不限）| male（男）| female（女）",
+          description: "Character gender prompt: person (no limit) | male (male) | female (female)",
           default: "person",
         }),
       ),
       replacementScope: Type.Optional(
         Type.String({
           description:
-            "替换范围：full-person（完整人物）| visible-part（当前可见部分）| face-hair（脸部和头发）| clothing（仅服装）| arm-hand（手臂和手部）",
+            "Replacement range: full-person (full character) | visible-part (currently visible part) | face-hair (face and hair) | clothing (clothing only) | arm-hand (arm and hand)",
           default: "full-person",
         }),
       ),
       promptMode: Type.Optional(
         Type.String({
           description:
-            "提示词模式：regular（常规位置描述）| positioning（SVG 定位框辅助）| manual（自定义提示词）",
+            "Prompt word mode: regular (regular position description) | positioning (SVG positioning box assistance) | manual (custom prompt word)",
           default: "regular",
         }),
       ),
       manualPrompt: Type.Optional(
         Type.String({
-          description: "当 promptMode 为 manual 时的自定义关键帧换人提示词",
+          description: "Custom keyframe substitution prompt words when promptMode is manual",
         }),
       ),
       sourceKeyframeNodeId: Type.Optional(
         Type.String({
-          description: "画布上已有的原视频关键帧图片节点 ID（将自动作为图1连接到关键帧换人节点）",
+          description: "The ID of the original video keyframe image node already on the canvas (will be automatically connected to the keyframe substitution node as Figure 1)",
         }),
       ),
       targetCharacterNodeId: Type.Optional(
         Type.String({
-          description: "画布上已有的目标角色参考图节点 ID（将自动作为图2连接到关键帧换人节点）",
+          description: "The reference graph node ID of the target character already on the canvas (will be automatically connected to the keyframe substitution node as graph 2)",
         }),
       ),
       locationGuideNodeId: Type.Optional(
         Type.String({
-          description: "画布上已有的人物定位框图节点 ID（在 positioning 模式下将作为图3连接到关键帧换人节点）",
+          description: "The ID of the character positioning block diagram node already on the canvas (in positioning mode, it will be connected to the keyframe substitution node as Figure 3)",
         }),
       ),
       sourceVideoNodeId: Type.Optional(
         Type.String({
-          description: "画布上已有的原镜头视频节点 ID（将自动连接到 Step 3 视频角色替换节点）",
+          description: "The ID of the original shot video node already on the canvas (will be automatically connected to the Step 3 video character replacement node)",
         }),
       ),
       expectedRevision: Type.Optional(
-        Type.Number({ description: "当前画布版本号（未传时自动读取）" }),
+        Type.Number({ description: "Current canvas version number (automatically read if not transmitted)" }),
       ),
       proposeGeneration: Type.Optional(
         Type.Boolean({
-          description: "创建并连线后是否立即发起关键帧换人生成提议（canvas_generation_propose）",
+          description: "Whether to initiate keyframe substitution generation proposal (canvas_generation_propose) immediately after creation and connection",
         }),
       ),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
-      const shotTitle = String(params.shotTitle || "镜头 1").trim() || "镜头 1";
+      const shotTitle = String(params.shotTitle || "Shot 1").trim() || "Shot 1";
       const position = normalizePosition(params.position || "single");
       const genderHint = normalizeGenderHint(params.genderHint || "person");
       const replacementScope = normalizeReplacementScope(params.replacementScope || "full-person");
@@ -163,7 +163,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
 
       if (params.proposeGeneration && (!srcKeyframeId || !targetCharId)) {
         throw new Error(
-          "发起关键帧换人生成提议（proposeGeneration=true）时必须提供 sourceKeyframeNodeId 与 targetCharacterNodeId",
+          "SourceKeyframeNodeId and targetCharacterNodeId must be provided when initiating a keyframe substitution generation proposal (proposeGeneration=true)",
         );
       }
 
@@ -174,7 +174,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
           ? (params.expectedRevision as number)
           : snap.revision;
       if (!Number.isSafeInteger(revision)) {
-        throw new Error("无法确定当前画布 revision");
+        throw new Error("Unable to determine current canvas revision");
       }
 
       const existingTitles = new Set(
@@ -194,15 +194,15 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
         hasLocationGuideImage: Boolean(locationGuideId),
       });
 
-      const controlTitle = uniqueNodeTitle(`${shotTitle} · 角色替换配置`, existingTitles);
-      const keyframeTitle = uniqueNodeTitle(`${shotTitle} · 关键帧换人`, existingTitles);
-      const videoTitle = uniqueNodeTitle(`${shotTitle} · 视频角色替换`, existingTitles);
+      const controlTitle = uniqueNodeTitle(`${shotTitle} · Role replacement configuration`, existingTitles);
+      const keyframeTitle = uniqueNodeTitle(`${shotTitle} · Keyframe substitution`, existingTitles);
+      const videoTitle = uniqueNodeTitle(`${shotTitle} ·Video character replacement`, existingTitles);
 
       const nodesToCreate = [
         {
           type: "character-replacement",
           title: controlTitle,
-          prompt: `镜头：${shotTitle}\n原人物：${sourceDescription || position}\n目标角色：${targetDescription}\n范围：${replacementScope}`,
+          prompt: `Lens:${shotTitle}Original character:${sourceDescription || position}Target role:${targetDescription}Scope:${replacementScope}`,
           pluginData: {
             shotTitle,
             position,
@@ -236,7 +236,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
       });
       const createdText = extractText(createdRes.result);
       if (createdRes.isError) {
-        throw new Error(`创建角色替换节点失败：${createdText}`);
+        throw new Error(`Failed to create role replacement node:${createdText}`);
       }
 
       const parsedCreated =
@@ -324,11 +324,11 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
           ...(srcVideoId && videoNodeId
             ? { productionNodeIds: [keyframeNodeId, videoNodeId] }
             : {}),
-          note: `AI 角色替换（${shotTitle}）：先生成换人关键帧，再执行视频元素替换`,
+          note: `AI role replacement (${shotTitle}): First generate substitution key frames, and then perform video element substitution`,
         });
         const proposeText = extractText(proposeRes.result);
         if (proposeRes.isError) {
-          throw new Error(`发起角色替换生成提议失败：${proposeText}`);
+          throw new Error(`Failed to initiate role replacement generation proposal:${proposeText}`);
         }
         const parsedPropose =
           (proposeRes.result.structuredContent as Record<string, unknown> | undefined) ||
@@ -341,14 +341,14 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
 
       const missingNote =
         missingReferences.length > 0
-          ? `（提示：尚未绑定 ${missingReferences.join("、")}，生成前请先连接对应参考节点）`
+          ? `(Tip: Not yet bound${missingReferences.join("、")}, please connect the corresponding reference node before generating)`
           : "";
 
       return {
         content: [
           {
             type: "text",
-            text: `已为「${shotTitle}」编排 AI 角色替换双阶段管线：关键帧换人节点（${keyframeNodeId}）→ 视频元素替换节点（${videoNodeId}，videoEditOperation=replace_element）${proposalId ? `，并已登记生成提议（${proposalId}）` : ""}${missingNote}。`,
+            text: `has been "${shotTitle}》Arrange AI character replacement two-stage pipeline: key frame substitution node (${keyframeNodeId}) → video element replacement node (${videoNodeId}，videoEditOperation=replace_element）${proposalId ? `, and has registered to generate proposals (${proposalId}）` : ""}${missingNote}。`,
           },
         ],
         details: {
@@ -370,35 +370,35 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
 
   pi.registerTool({
     name: "character_replacement_splice_timeline",
-    label: "将角色替换后的镜头视频无损回插至全片时间线",
+    label: "Insert the scene video after character replacement into the full film timeline without loss",
     description:
-      "根据原全片视频节点、全片总时长及一个或多个替换后的镜头视频区间（startMs~endMs），构建「原片前段 → 替换镜头 → 原片后段」的无损 Timeline v2 并写入画布时间线（保留画布既有字幕/BGM 轨道）。",
+      "Based on the original full-film video node, the total duration of the full film, and one or more replaced shot video intervals (startMs~endMs), a lossless Timeline v2 of \"original film front → replacement shot → original film back\" is constructed and written to the canvas timeline (retaining the existing subtitles/BGM track on the canvas).",
     parameters: Type.Object({
       fullVideoNodeId: Type.String({
-        description: "原全片视频节点 ID",
+        description: "Original full video node ID",
       }),
       fullDurationMs: Type.Optional(
         Type.Number({
-          description: "原全片视频总时长（毫秒，如 15000；未传时自动读取原全片节点的 durationMs）",
+          description: "The total duration of the original full video (milliseconds, such as 15000; the durationMs of the original full video node is automatically read when not transmitted)",
           minimum: 100,
         }),
       ),
       replacements: Type.Array(
         Type.Object({
-          nodeId: Type.String({ description: "替换完成后的镜头视频节点 ID" }),
-          startMs: Type.Number({ description: "在原全片中的起始毫秒（如 3000）", minimum: 0 }),
-          endMs: Type.Number({ description: "在原全片中的结束毫秒（如 8000）", minimum: 100 }),
+          nodeId: Type.String({ description: "Lens video node ID after replacement" }),
+          startMs: Type.Number({ description: "The starting millisecond in the original full movie (e.g. 3000)", minimum: 0 }),
+          endMs: Type.Number({ description: "Ending milliseconds in the original full movie (e.g. 8000)", minimum: 100 }),
         }),
-        { minItems: 1, description: "需要回插的替换镜头区间列表" },
+        { minItems: 1, description: "List of replacement lens intervals that need to be inserted back" },
       ),
       keepOriginalAudio: Type.Optional(
         Type.Boolean({
-          description: "是否保留原全片完整连续音轨（默认 true，静音视频片段轨并叠加原片完整音频轨）",
+          description: "Whether to retain the complete and continuous audio track of the original film (default true, mute the video clip track and superimpose the complete audio track of the original film)",
           default: true,
         }),
       ),
       expectedRevision: Type.Optional(
-        Type.Number({ description: "当前画布版本号（未传时自动读取）" }),
+        Type.Number({ description: "Current canvas version number (automatically read if not transmitted)" }),
       ),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
@@ -409,7 +409,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
           ? (params.expectedRevision as number)
           : snap.revision;
       if (!Number.isSafeInteger(revision)) {
-        throw new Error("无法确定当前画布 revision");
+        throw new Error("Unable to determine current canvas revision");
       }
 
       const nodeDurationMap = new Map<string, number>();
@@ -434,7 +434,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
           resolvedFullDurationMs = detectedFullDurationMs as number;
         } else if (Math.abs(callerFullDurationMs - (detectedFullDurationMs as number)) > 250) {
           throw new Error(
-            `传入的全片总时长（${callerFullDurationMs}ms）与原全片节点实际时长（${detectedFullDurationMs}ms）不一致`,
+            `The total duration of the entire movie passed in (${callerFullDurationMs}ms) and the actual duration of the original full-slice node (${detectedFullDurationMs}ms) inconsistent`,
           );
         }
       }
@@ -458,7 +458,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
       });
       const updateText = extractText(updateRes.result);
       if (updateRes.isError) {
-        throw new Error(`更新全片时间线失败：${updateText}`);
+        throw new Error(`Failed to update full movie timeline:${updateText}`);
       }
 
       const parsedUpdate =
@@ -470,7 +470,7 @@ export default function registerCharacterReplacementExtension(pi: ExtensionAPI) 
         content: [
           {
             type: "text",
-            text: `已将 ${params.replacements.length} 个替换镜头无损回插至全片时间线（共生成 ${timeline.clips.length} 个片段，画布版本 r${nextRevision}）。`,
+            text: `Already${params.replacements.length} Replacement shots are losslessly inserted back into the full film timeline (a total of${timeline.clips.length} fragments, canvas version r${nextRevision}）。`,
           },
         ],
         details: {

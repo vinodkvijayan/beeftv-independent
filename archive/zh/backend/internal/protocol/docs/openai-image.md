@@ -1,8 +1,8 @@
 # OpenAI Images
 
-OpenAI Images 插件实现 JSON 文生图请求，并解析 OpenAI Images 风格的 `data[]` 响应。上游官方还提供 multipart 图像编辑接口，但当前宿主适配器的创建路径只构造 `/v1/images/generations`；详情中列出编辑接口是为了说明协议能力，不代表当前画布已发送编辑请求。
+The OpenAI Images plugin implements JSON image requests and parses OpenAI Images style `data[]` responses. The upstream official also provides a multipart image editing interface, but the current creation path of the host adapter only constructs `/v1/images/generations`; the editing interface is listed in the details to illustrate the protocol capabilities, and does not mean that the current canvas has sent an editing request.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -12,19 +12,19 @@ Authorization: Bearer <API_KEY>
 Content-Type: application/json
 ```
 
-官方编辑接口为 `POST /v1/images/edits`、`multipart/form-data`。当前适配器未在有参考图时切换到该路径，这是明确的实现缺口。
+The official editing interfaces are `POST /v1/images/edits` and `multipart/form-data`. The current adapter does not switch to this path when a reference map is available, which is a clear implementation gap.
 
-## 模型、尺寸与质量
+## Model, size and quality
 
-模型、允许尺寸、质量枚举、单次张数和计费会随上游服务变化，插件不维护可能过期的白名单。渠道若是 OpenAI 兼容实现，必须分别验证它是否支持 `n`、`quality`、`background`、`output_format` 和 Base64 响应。
+Models, allowed sizes, quality enumerations, number of shots per shot, and billing will change with the upstream service, and the plugin does not maintain a whitelist that may expire. If the channel is an OpenAI compatible implementation, it must separately verify that it supports `n`, `quality`, `background`, `output_format`, and Base64 responses.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-当前实现：`imageCount -> n`、`aspectRatio -> size`、`quality -> quality`；`extra` 可透传 `size`、`quality`、`background`、`response_format`、`output_format`、`style`、`n`。`images` 和 `resolution` 当前不会进入文生图请求。
+Current implementation: `imageCount -> n`, `aspectRatio -> size`, `quality -> quality`; `extra` can transparently transmit `size`, `quality`, `background`, `response_format`, `output_format`, `style`, `n`. `images` and `resolution` currently do not enter Vincentian graph requests.
 
-## 文生图请求
+## Vincent picture request
 
 ```bash
 curl "{channel_base_url}/v1/images/generations" \
@@ -39,21 +39,21 @@ curl "{channel_base_url}/v1/images/generations" \
   }'
 ```
 
-URL 响应：
+URL response:
 
 ```json
 {"created":1780000000,"data":[{"url":"https://cdn.example/generated.png"}]}
 ```
 
-Base64 响应：
+Base64 response:
 
 ```json
 {"created":1780000000,"data":[{"b64_json":"iVBORw0KGgo..."}]}
 ```
 
-解析器遍历 `data[]`，优先识别 `url`，也接受 `b64_json` 或 `data`。URL 应立即下载；裸 Base64 会转为 `data:image/png;base64,...`，已带 data URL 前缀的值保持不变。若渠道使用 WebP/JPEG Base64 且响应不返回 MIME，当前协议无法可靠推断格式，应优先请求 URL 或补充带 MIME 的响应合同。
+The parser iterates over `data[]`, identifying `url` first, but also accepts `b64_json` or `data`. The URL should be downloaded immediately; the bare Base64 will be converted to `data:image/png;base64,...`, and the value prefixed with the data URL will remain unchanged. If a channel uses WebP/JPEG Base64 and the response does not return MIME, the current protocol cannot reliably infer the format and should prioritize requesting the URL or supplementing the response contract with MIME.
 
-## 图像编辑参考请求
+## Image editing reference request
 
 ```bash
 curl "{channel_base_url}/v1/images/edits" \
@@ -63,9 +63,9 @@ curl "{channel_base_url}/v1/images/edits" \
   -F "prompt=保持人物一致，改成雨夜街道"
 ```
 
-该示例是上游协议参考；在宿主中使用前必须补 multipart 构造、参考图数量与 MIME 校验、编辑响应测试。
+This example is an upstream protocol reference; the multipart construct, reference image number and MIME verification, and edit response testing must be completed before use in the host.
 
-## 官方资料
+## Official information
 
 - [OpenAI Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
 - [OpenAI Images API reference](https://developers.openai.com/api/reference/resources/images)

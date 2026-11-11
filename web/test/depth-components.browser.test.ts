@@ -29,12 +29,12 @@ test("first use requires confirmation and dismissing creates no download or task
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await page.getByText("尚未安装", { exact: true }).waitFor();
+        await page.getByText("Not installed yet", { exact: true }).waitFor();
         expect(await page.evaluate(() => (window as any).depthHarness.calls.downloads)).toBe(0);
-        await page.getByRole("button", { name: "使用深度动作捕捉", exact: true }).click();
+        await page.getByRole("button", { name: "Using deep motion capture", exact: true }).click();
         const dialog = page.getByRole("dialog");
-        await dialog.getByRole("button", { name: "下载并继续", exact: true }).waitFor();
-        await dialog.getByRole("button", { name: "暂不下载", exact: true }).click();
+        await dialog.getByRole("button", { name: "Download and continue", exact: true }).waitFor();
+        await dialog.getByRole("button", { name: "Not downloading yet", exact: true }).click();
         await dialog.waitFor({ state: "detached" });
         expect(await page.evaluate(() => (window as any).depthHarness.calls)).toMatchObject({ downloads: 0, tasks: 0 });
     } finally { await page.close(); }
@@ -44,13 +44,13 @@ test("confirmed first-use download continues only after installation succeeds", 
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "使用深度动作捕捉", exact: true }).click();
+        await page.getByRole("button", { name: "Using deep motion capture", exact: true }).click();
         const dialog = page.getByRole("dialog");
-        await dialog.getByRole("button", { name: "下载并继续", exact: true }).click();
-        await dialog.getByText("正在下载", { exact: true }).waitFor();
+        await dialog.getByRole("button", { name: "Download and continue", exact: true }).click();
+        await dialog.getByText("Downloading", { exact: true }).waitFor();
         expect(await page.evaluate(() => (window as any).depthHarness.calls)).toMatchObject({ downloads: 1, tasks: 0 });
         await page.evaluate(() => (window as any).depthHarness.ready());
-        await page.getByText("深度任务已创建", { exact: true }).waitFor();
+        await page.getByText("Depth task has been created", { exact: true }).waitFor();
         expect(await dialog.count()).toBe(0);
     } finally { await page.close(); }
 }, 30000);
@@ -59,13 +59,13 @@ test("settings download pauses and resumes explicitly, failures preserve a retry
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "下载组件", exact: true }).click();
-        await page.getByRole("button", { name: "暂停下载", exact: true }).click();
-        await page.getByText("下载已暂停", { exact: true }).waitFor();
-        await page.getByRole("button", { name: "继续下载", exact: true }).click();
+        await page.getByRole("button", { name: "Download components", exact: true }).click();
+        await page.getByRole("button", { name: "Pause download", exact: true }).click();
+        await page.getByText("Download paused", { exact: true }).waitFor();
+        await page.getByRole("button", { name: "Continue downloading", exact: true }).click();
         await page.evaluate(() => (window as any).depthHarness.fail());
-        await page.getByText("下载连接中断，已下载文件保留。请重试。", { exact: true }).waitFor();
-        expect(await page.getByRole("button", { name: "继续下载", exact: true }).isEnabled()).toBe(true);
+        await page.getByText("The download connection is interrupted and the downloaded files are retained. Please try again.", { exact: true }).waitFor();
+        expect(await page.getByRole("button", { name: "Continue downloading", exact: true }).isEnabled()).toBe(true);
         expect(await page.evaluate(() => (window as any).depthHarness.calls)).toMatchObject({ downloads: 2, pauses: 1, tasks: 0 });
     } finally { await page.close(); }
 }, 30000);
@@ -76,12 +76,12 @@ for (const width of [1440, 390]) for (const dark of [false, true]) test(`compone
     page.on("pageerror", error => errors.push(error.message));
     try {
         await page.goto(server.url + "?low-space" + (dark ? "&dark" : ""));
-        await page.getByText("空间不足，请先更换目录或清理磁盘。", { exact: true }).waitFor();
-        expect(await page.getByRole("button", { name: "下载组件", exact: true }).isDisabled()).toBe(true);
+        await page.getByText("Insufficient space, please change the directory or clean the disk first.", { exact: true }).waitFor();
+        expect(await page.getByRole("button", { name: "Download components", exact: true }).isDisabled()).toBe(true);
         await page.screenshot({ path: `${output}/settings-${width}-${dark}.png` });
-        await page.getByRole("button", { name: "使用深度动作捕捉", exact: true }).click();
+        await page.getByRole("button", { name: "Using deep motion capture", exact: true }).click();
         const dialog = page.getByRole("dialog");
-        expect(await dialog.getByRole("button", { name: "下载并继续", exact: true }).isDisabled()).toBe(true);
+        expect(await dialog.getByRole("button", { name: "Download and continue", exact: true }).isDisabled()).toBe(true);
         await page.screenshot({ path: `${output}/consent-${width}-${dark}.png` });
         const bounds = await dialog.boundingBox();
         expect(bounds!.x).toBeGreaterThanOrEqual(0);

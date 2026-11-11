@@ -1,57 +1,57 @@
-# MiniMax Hailuo Video V2 / H3 接口字段
+# MiniMax Hailuo Video V2 / H3 interface fields
 
-## 入口和生命周期
+## Entry and life cycle
 
-- 创建：`POST /v2/video_generation`。
-- 查询：`GET /v2/query/video_generation/{taskId}`。
-- 鉴权：`Authorization: Bearer <apiKey>`。
-- 请求：JSON；结果：异步任务，完成后下载并持久化临时 URL。
+- Create: `POST /v2/video_generation`.
+- Query: `GET /v2/query/video_generation/{taskId}`.
+- Authentication: `Authorization: Bearer <apiKey>`.
+- Request: JSON; Result: Asynchronous task, download and persist temporary URL after completion.
 
-## 请求字段
+## Request fields
 
-| 上游字段 | 类型 | 必填 | 统一来源 | 说明 |
+| Upstream fields | Type | Required | Unified source | Description |
 | --- | --- | --- | --- | --- |
-| `model` | string | 是 | `request.model` | Hailuo/MiniMax 视频模型 ID。 |
-| `content` | block[] | 是 | prompt + inputs | 第一个 block 为 text；媒体 block 依次按 order 输出。 |
-| `content[].type` | enum | 是 | media.kind | `text/image_url/video_url/audio_url`。 |
-| `content[].text` | string | 文本必填 | `request.prompt` | 不重复发送顶层 prompt。 |
-| `content[].image_url.url` | string | 图片 block 必填 | `media.value` | 由宿主保证公网 URL。 |
-| `content[].video_url.url` | string | 视频 block 必填 | `media.value` | 参考视频。 |
-| `content[].audio_url.url` | string | 音频 block 必填 | `media.value` | 参考音频/声音。 |
-| `content[].role` | string | 媒体必填 | `media.role` | `first_frame/last_frame/reference_image/reference_video/reference_audio/reference_voice`。 |
-| `images` | media[] | 否 | image content blocks | 图片按显式 role 与 order 映射，不使用数组下标猜测。 |
-| `videos` | media[] | 否 | video content blocks | 参考视频按 role 与 order 映射。 |
-| `audios` | media[] | 否 | audio content blocks | 参考音频或声音按 role 与 order 映射。 |
-| `duration` | integer | 是 | `request.duration` | 4-15 秒。 |
-| `resolution` | string | 否 | `request.resolution` | 默认 `768P`；实际枚举按模型 profile。 |
-| `ratio` | string | 否 | `request.aspectRatio` | 首尾帧模式为 `adaptive`，其余默认 `16:9`。 |
-| `aigc_watermark` | boolean | 否 | `request.watermark` | 是否带 AIGC 水印。 |
-| `generate_audio` | boolean | 否 | `request.generateAudio` | 模型支持时生成音频。 |
-| `seed` | integer | 否 | `providerOptions.minimax-video.seed` | 随机种子。 |
-| `prompt_optimizer` | boolean | 否 | `providerOptions.minimax-video.prompt_optimizer` | 提示词优化开关。 |
+| `model` | string | Yes | `request.model` | Hailuo/MiniMax video model ID. |
+| `content` | block[] | Yes | prompt + inputs | The first block is text; the media blocks are output in order. |
+| `content[].type` | enum | is | media.kind | `text/image_url/video_url/audio_url`. |
+| `content[].text` | string | Text required | `request.prompt` | Do not send the top prompt repeatedly. |
+| `content[].image_url.url` | string | Image block required | `media.value` | The public URL is guaranteed by the host. |
+| `content[].video_url.url` | string | Video block required | `media.value` | Reference video. |
+| `content[].audio_url.url` | string | Audio block required | `media.value` | Reference audio/sound. |
+| `content[].role` | string | Media required | `media.role` | `first_frame/last_frame/reference_image/reference_video/reference_audio/reference_voice`. |
+| `images` | media[] | No | image content blocks | Images are mapped by explicit role and order, without using array subscript guessing. |
+| `videos` | media[] | No | video content blocks | Reference videos are mapped by role and order. |
+| `audios` | media[] | No | audio content blocks | Reference audio or sounds mapped by role and order. |
+| `duration` | integer | Yes | `request.duration` | 4-15 seconds. |
+| `resolution` | string | No | `request.resolution` | Default `768P`; actual enumeration is based on model profile. |
+| `ratio` | string | No | `request.aspectRatio` | The first and last frame modes are `adaptive`, and the rest default to `16:9`. |
+| `aigc_watermark` | boolean | No | `request.watermark` | Whether to carry AIGC watermark. |
+| `generate_audio` | boolean | No | `request.generateAudio` | Generate audio if model supports it. |
+| `seed` | integer | No | `providerOptions.minimax-video.seed` | Random seed. |
+| `prompt_optimizer` | boolean | No | `providerOptions.minimax-video.prompt_optimizer` | Prompt word optimization switch. |
 
-## 强校验
+## Strong verification
 
-- 图片最多 9 张、视频最多 3 个、音频最多 3 个。
-- 首帧和尾帧各最多 1 张；尾帧不能脱离首帧。
-- 首尾帧模式不能混入 `reference_image/subject_reference/style_reference`。
+- Up to 9 pictures, 3 videos, and 3 audios.
+- The first frame and the last frame can each have a maximum of 1 picture; the last frame cannot be separated from the first frame.
+- The first and last frame modes cannot be mixed with `reference_image/subject_reference/style_reference`.
 
-## 中转兼容边界
+## Transit compatibility boundary
 
-本插件对应 MiniMax `/v2/video_generation` 原生线协议。NewAPI Channel 1、Channel 2 和自定义 OpenAI Videos 中转必须选择各自独立插件；不能只根据模型名包含 `H3` 自动切协议。
+This plug-in corresponds to the MiniMax `/v2/video_generation` native line protocol. NewAPI Channel 1, Channel 2 and custom OpenAI Videos transfer must select independent plug-ins; the protocol cannot be automatically switched based only on the model name containing `H3`.
 
-## 响应映射
+## Response mapping
 
-- `task_id` / `data.task_id` 映射为统一任务 ID。
-- `status` / `data.status` 映射为 `pending/processing/succeeded/failed/cancelled`。
-- `file_id`、`video_url` 及其 `data` 嵌套形式映射为统一视频结果。
-- `message` / `base_resp.status_msg` 映射为统一错误消息。
-- 完成后的临时媒体地址由宿主立即下载并持久化。
+- `task_id` / `data.task_id` are mapped to unified task IDs.
+- `status` / `data.status` map to `pending/processing/succeeded/failed/cancelled`.
+- `file_id`, `video_url` and their `data` nested forms map to unified video results.
+- `message` / `base_resp.status_msg` mapped to unified error messages.
+- The completed temporary media address is immediately downloaded and persisted by the host.
 
 <!-- BEEFTV_PLUGIN_MANIFEST_START -->
-## Manifest 完整接口定义
+## Manifest complete interface definition
 
-以下 JSON 与插件包内实际 `manifest.json` 逐字段一致，覆盖插件身份、权限、配置、鉴权、参数、校验、创建、Agent、查询、取消、结果下载、响应和 Agent 响应映射。`documentation` 字段的值就是当前完整文档；为避免文档在自身内部无限递归，JSON 中仅用等义占位文本表示正文。
+The following JSON is consistent field by field with the actual `manifest.json` in the plug-in package, covering plug-in identity, permissions, configuration, authentication, parameters, verification, creation, Agent, query, cancellation, result download, response and Agent response mapping. The value of the `documentation` field is the current complete document; in order to avoid infinite recursion of the document within itself, only equivalent placeholder text is used to represent the main text in JSON.
 
 ```json
 {

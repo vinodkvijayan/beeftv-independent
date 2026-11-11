@@ -74,7 +74,7 @@ func TestLocalSchemaRecordsVersionAndIsIdempotent(t *testing.T) {
 
 func TestTaskDiagnosticsMigrationPreservesExistingTasks(t *testing.T) {
 	db := openHistorical(t, "product-v2")
-	if err := db.Exec("UPDATE tasks SET id = 'existing-task', error = '历史错误' WHERE id = 'task'").Error; err != nil {
+	if err := db.Exec("UPDATE tasks SET id = 'existing-task', error = 'Historical error' WHERE id = 'task'").Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := MigrateLocalSchema(db); err != nil {
@@ -84,7 +84,7 @@ func TestTaskDiagnosticsMigrationPreservesExistingTasks(t *testing.T) {
 	if err := db.First(&task, "id = ?", "existing-task").Error; err != nil {
 		t.Fatal(err)
 	}
-	if task.Error != "历史错误" || task.FailureDiagnostics != nil {
+	if task.Error != "historical errors" || task.FailureDiagnostics != nil {
 		t.Fatalf("task changed: %+v", task)
 	}
 	mustColumn(t, db, "tasks", "preview_marker", "keep")
@@ -361,7 +361,7 @@ func TestTaskDiagnosticsRepairWithOccupiedMigrationVersions(t *testing.T) {
 	for _, history := range []string{"agent-v3", "agent-v6"} {
 		t.Run(history, func(t *testing.T) {
 			db := openHistorical(t, history)
-			if err := db.Exec("UPDATE tasks SET id = 'old', error = '历史错误' WHERE id = 'task'").Error; err != nil {
+			if err := db.Exec("UPDATE tasks SET id = 'old', error = 'Historical error' WHERE id = 'task'").Error; err != nil {
 				t.Fatal(err)
 			}
 			if RequireLocalSchema(db) == nil {
@@ -385,12 +385,12 @@ func TestTaskDiagnosticsRepairWithOccupiedMigrationVersions(t *testing.T) {
 				t.Fatalf("migration overwritten: %+v %v", migration, err)
 			}
 			var old struct{ Error, PreviewMarker string }
-			if err = db.Table("tasks").Where("id = 'old'").Scan(&old).Error; err != nil || old.Error != "历史错误" || old.PreviewMarker != "keep" {
+			if err = db.Table("tasks").Where("id = 'old'").Scan(&old).Error; err != nil || old.Error != "historical errors" || old.PreviewMarker != "keep" {
 				t.Fatalf("old data lost: %+v %v", old, err)
 			}
 			mustColumn(t, db, "agent_op_records", "preview_receipt", "keep-receipt")
 			for _, kind := range []string{"canvas_text", "image_generate", "video_generate"} {
-				if err = db.Create(&model.Task{ID: kind, Type: kind, Prompt: "真实升级回归"}).Error; err != nil {
+				if err = db.Create(&model.Task{ID: kind, Type: kind, Prompt: "Real upgrade returns"}).Error; err != nil {
 					t.Fatal(err)
 				}
 			}

@@ -38,8 +38,8 @@ const canvasSkillDir = path.join(repoRoot, 'plugins', 'beeftv-skills', 'skills',
 
 // 只靠宿主才有的能力判分的场景：外部 Agent 没有这些入口，不计入对比。
 const HOST_ONLY = new Map([
-  ['S4', '中途插话（steer）只有内置宿主支持'],
-  ['S5', '生成完成后自动唤醒只有内置宿主支持'],
+  ['S4', 'Steer is only supported by the built-in host'],
+  ['S5', 'Automatically waking up after the generation is completed is only supported by the built-in host.'],
 ]);
 
 export function parseArgs(argv = process.argv.slice(2)) {
@@ -56,9 +56,9 @@ export function parseArgs(argv = process.argv.slice(2)) {
     else if (arg === '--budget-cny' || arg.startsWith('--budget-cny=')) {
       const raw = arg.includes('=') ? arg.slice('--budget-cny='.length) : argv[++i];
       const value = Number(raw);
-      if (!Number.isFinite(value) || value <= 0) throw new Error(`--budget-cny 必须是大于 0 的数字，收到: ${raw}`);
+      if (!Number.isFinite(value) || value <= 0) throw new Error(`--budget-cny must be a number greater than 0, received:${raw}`);
       out.budgetCny = value;
-    } else throw new Error(`未知参数: ${arg}`);
+    } else throw new Error(`Unknown parameters:${arg}`);
   }
   return out;
 }
@@ -69,7 +69,7 @@ export function readEvalPrices(source = process.env) {
     const raw = String(source[name] ?? '').trim();
     if (raw === '') return undefined;
     const value = Number(raw);
-    if (!Number.isFinite(value)) throw new Error(`${name} 必须是数字（元/百万 token），收到: ${raw}`);
+    if (!Number.isFinite(value)) throw new Error(`${name} Must be a number (yuan/million tokens), received:${raw}`);
     return value;
   };
   return { input: read('BEEFTV_EVAL_PRICE_IN') ?? 0, cache: read('BEEFTV_EVAL_PRICE_CACHE'), output: read('BEEFTV_EVAL_PRICE_OUT') ?? 0 };
@@ -105,7 +105,7 @@ function startTurnProxy(simGo) {
 
 function skillPinNote(pin) {
   if (!pin) return '';
-  return `（我在 BeefTV 里选了技能 ${pin.skillId}，版本 versionId=${pin.versionId}，contentHash=${pin.contentHash}。需要时用 skill.get 读取它并照着做。）\n`;
+  return `(I selected the skill in BeefTV${pin.skillId}, version versionId=${pin.versionId}，contentHash=${pin.contentHash}. Read it with skill.get when needed and do that. )`;
 }
 
 // 外部 CLI 的隔离配置目录：只放画布技能和 MCP 配置，不碰真实的 ~/.claude 或 ~/.codex。
@@ -360,7 +360,7 @@ export function summarizeUsage(results, scoredRuns, { prices = {}, budget = null
 
 export async function runExternalEval(options = {}) {
   const kind = options.agent || process.env.BEEFTV_EVAL_AGENT || 'claude';
-  if (!['claude', 'codex', 'dsh'].includes(kind)) throw new Error('BEEFTV_EVAL_AGENT 只能是 claude、codex 或 dsh');
+  if (!['claude', 'codex', 'dsh'].includes(kind)) throw new Error('BEEFTV_EVAL_AGENT can only be claude, codex or dsh');
   const scenarios = resolveScenarioList(options.scenario || 'all');
   const outDir = path.resolve(options.out || fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-ext-eval-')));
   fs.mkdirSync(outDir, { recursive: true });
@@ -422,15 +422,15 @@ export async function runExternalEval(options = {}) {
           continue;
         }
         if (scenario.runners && !scenario.runners.includes('external')) {
-          results.push({ id: scenario.id, code: scenario.code, runIndex: runIdx, status: 'not_applicable', reason: '这个场景只适用于内置宿主', checks: [] });
+          results.push({ id: scenario.id, code: scenario.code, runIndex: runIdx, status: 'not_applicable', reason: 'This scenario only applies to built-in hosts', checks: [] });
           continue;
         }
         if (usageAbort) {
-          results.push(abortedUsageRecord(scenario, runIdx, `${usageAbort.turnId} 的用量不完整（${usageAbort.detail}），设了预算时不按 0 继续，未开始`));
+          results.push(abortedUsageRecord(scenario, runIdx, `${usageAbort.turnId} The dosage of is incomplete (${usageAbort.detail}), do not press 0 to continue when setting a budget, and do not start.`));
           continue;
         }
         if (budgetStop.shouldStop()) {
-          results.push(abortedRecord(scenario, runIdx, `累计费用 ¥${budget.spent.toFixed(4)} 已达到或超过预算上限 ¥${budget.limit}，未开始`));
+          results.push(abortedRecord(scenario, runIdx, `Cumulative cost ¥${budget.spent.toFixed(4)} Budget limit ¥ has been reached or exceeded${budget.limit}, not started`));
           continue;
         }
         const canvasId = `canvas-${scenario.code.toLowerCase()}-run${runIdx}`;
@@ -454,7 +454,7 @@ export async function runExternalEval(options = {}) {
           proxy.state.turnId = turnId;
           const pin = turnSpec.useActiveSkillPins ? setupState?.skillPin : null;
           const digest = options.withDigest ? `${buildStudioDigest(simGo.snapshot().canvases[canvasId]).text}\n\n` : '';
-          const message = `当前画布 ID：${canvasId}\n${digest}${skillPinNote(pin)}${turnSpec.message}`;
+          const message = `Current canvas ID:${canvasId}\n${digest}${skillPinNote(pin)}${turnSpec.message}`;
           const turnStart = Date.now();
           const outcome = await runTurn({ agent, message, sessionId, resume: index > 0 && Boolean(sessionId), timeoutMs: options.turnTimeoutMs || 300_000 });
           if (kind === 'codex' && outcome.threadId) sessionId = outcome.threadId;
@@ -481,8 +481,8 @@ export async function runExternalEval(options = {}) {
             stoppedByUsageIncomplete = {
               turnId,
               detail: outcome.usageIncomplete && tokens.incomplete
-                ? 'DSH 事件流与统一口径都缺用量'
-                : outcome.usageIncomplete ? 'DSH 事件流缺用量' : '统一口径缺用量',
+                ? 'DSH event stream and unified aperture are both short of usage'
+                : outcome.usageIncomplete ? 'DSH event stream missing usage' : 'Unified caliber shortage',
             };
             break;
           }
@@ -501,7 +501,7 @@ export async function runExternalEval(options = {}) {
             checks: [{
               name: 'usage_complete',
               passed: false,
-              detail: `${stoppedByUsageIncomplete.turnId} 的用量不完整（${stoppedByUsageIncomplete.detail}），设了预算时不按 0 继续，本场景剩余回合与后续场景已停止`,
+              detail: `${stoppedByUsageIncomplete.turnId} The dosage of is incomplete (${stoppedByUsageIncomplete.detail}), if you do not press 0 to continue when the budget is set, the remaining rounds of this scene and subsequent scenes have been stopped.`,
             }],
             durationMs: Date.now() - started,
             turns: turnRecords.map(({ turnId, reply, error, durationMs }) => ({ turnId, error, durationMs, reply: String(reply || '').slice(0, 400) })),
@@ -517,7 +517,7 @@ export async function runExternalEval(options = {}) {
             code: scenario.code,
             runIndex: runIdx,
             status: 'aborted_budget',
-            checks: [{ name: 'budget_ceiling_enforced', passed: false, detail: `累计费用 ¥${budget.spent.toFixed(4)} 已达到或超过预算上限 ¥${budget.limit}，本场景剩余回合未运行` }],
+            checks: [{ name: 'budget_ceiling_enforced', passed: false, detail: `Cumulative cost ¥${budget.spent.toFixed(4)} Budget limit ¥ has been reached or exceeded${budget.limit}, the remaining rounds of this scene have not been run.` }],
             durationMs: Date.now() - started,
             turns: turnRecords.map(({ turnId, reply, error, durationMs }) => ({ turnId, error, durationMs, reply: String(reply || '').slice(0, 400) })),
             usages,
@@ -537,7 +537,7 @@ export async function runExternalEval(options = {}) {
         const checks = [...(evalResult.checks || []), {
           name: 'turns_completed_without_error',
           passed: turnErrors.length === 0,
-          detail: turnErrors.length ? turnErrors.map((t) => `${t.turnId}: ${String(t.error).slice(0, 160)}`).join('；') : '全部回合正常结束',
+          detail: turnErrors.length ? turnErrors.map((t) => `${t.turnId}: ${String(t.error).slice(0, 160)}`).join('；') : 'All rounds end normally',
         }];
         // S6 的「活动技能进了每次模型请求」只能从宿主请求体取证，外部 Agent 没有这项，不计入。
         const scored = checks.filter((check) => check.name !== 'active_skill_present_in_every_turn_request');

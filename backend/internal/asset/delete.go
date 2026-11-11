@@ -43,9 +43,9 @@ func OccupiedMessage(usages []ResourceUsage) string {
 	sort.Strings(labels)
 	visible := labels
 	if len(visible) > 3 {
-		visible = append(append([]string{}, visible[:3]...), fmt.Sprintf("等 %d 处", len(labels)))
+		visible = append(append([]string{}, visible[:3]...), fmt.Sprintf("Wait for %d", len(labels)))
 	}
-	return "素材仍被" + strings.Join(visible, "、") + "引用，请先在对应画布、任务或业务记录中解除引用后再删除"
+	return "The material is still" + strings.Join(visible, "、") + "Reference, please dereference it in the corresponding canvas, task or business record before deleting it."
 }
 
 func StorageIdentity(resource *model.Resource) string {
@@ -88,7 +88,7 @@ func normalizeExpectedAssetStatus(values []string) (string, error) {
 		return "", nil
 	}
 	if value != string(model.AssetVersionStatusArchived) {
-		return "", kernel.BadAuthRequest("删除条件无效")
+		return "", kernel.BadAuthRequest("Delete condition is invalid")
 	}
 	return value, nil
 }
@@ -165,10 +165,10 @@ func (s *Service) DeleteUserAssetWithResources(userID string, assetID string, ex
 		for _, document := range snapshot.Documents {
 			switch document.TaskStatus {
 			case model.TaskStatusSucceeded, model.TaskStatusFailed, model.TaskStatusCancelled:
-				if document.Kind == "任务日志" || document.Kind == "任务结果" {
+				if document.Kind == "Mission log" || document.Kind == "Task results" {
 					continue
 				}
-				if document.Kind == "任务" {
+				if document.Kind == "Task" {
 					document.SecondaryJSON = ""
 				}
 			}
@@ -222,7 +222,7 @@ func (s *Service) DeleteUserAssetWithResources(userID string, assetID string, ex
 		if errors.Is(err, repository.ErrAssetExpectedStatusMismatch) {
 			return TrashStatusConflict()
 		}
-		return fmt.Errorf("素材记录删除失败，请重试：%w", err)
+		return fmt.Errorf("Material record deletion failed, please try again: %w", err)
 	}
 	if len(deletionJobs) > 0 {
 		s.runBackground(func() { s.DrainDeletionJobs(len(deletionJobs)) })
@@ -232,7 +232,7 @@ func (s *Service) DeleteUserAssetWithResources(userID string, assetID string, ex
 
 func (s *Service) DeleteStoredObject(userID string, resource *model.Resource) error {
 	if resource == nil {
-		return errors.New("资源记录为空")
+		return errors.New("Resource record is empty")
 	}
 	if s == nil || s.repo == nil {
 		return ResourceMissing()
@@ -249,7 +249,7 @@ func (s *Service) DeleteStoredObject(userID string, resource *model.Resource) er
 
 func (s *Service) deleteOutboxObject(job *model.ResourceDeletionJob) error {
 	if job == nil || strings.TrimSpace(job.UserID) == "" || strings.TrimSpace(job.ObjectKey) == "" {
-		return errors.New("资源记录为空")
+		return errors.New("Resource record is empty")
 	}
 	return s.deleteTrustedObject(job.UserID, &model.Resource{
 		ID: job.ResourceID, UserID: job.UserID, Provider: job.Provider,
@@ -260,13 +260,13 @@ func (s *Service) deleteOutboxObject(job *model.ResourceDeletionJob) error {
 
 func (s *Service) deleteTrustedObject(userID string, resource *model.Resource) error {
 	if resource == nil {
-		return errors.New("资源记录为空")
+		return errors.New("Resource record is empty")
 	}
 	if strings.TrimSpace(userID) == "" || (resource.UserID != "" && resource.UserID != userID) {
 		return ResourceMissing()
 	}
 	if strings.TrimSpace(resource.ObjectKey) == "" {
-		return fmt.Errorf("资源 %s 的存储路径为空", resource.ID)
+		return fmt.Errorf("The storage path of resource %s is empty", resource.ID)
 	}
 	if s == nil || s.repo == nil {
 		return ResourceMissing()
@@ -276,7 +276,7 @@ func (s *Service) deleteTrustedObject(userID string, resource *model.Resource) e
 		return err
 	}
 	if protected {
-		return errors.New("资源仍被画布历史版本引用")
+		return errors.New("The resource is still referenced by the canvas historical version")
 	}
 	provider := strings.ToLower(strings.TrimSpace(resource.Provider))
 	if s.localStorage && provider != "" && provider != "local" {
@@ -295,7 +295,7 @@ func (s *Service) DeleteLocalObject(objectKey string) error {
 		return errors.New("local resource store is not initialized")
 	}
 	if err := s.blobs.Delete(objectKey); err != nil {
-		return fmt.Errorf("删除本地资源文件失败：%w", err)
+		return fmt.Errorf("Failed to delete local resource files: %w", err)
 	}
 	return nil
 }

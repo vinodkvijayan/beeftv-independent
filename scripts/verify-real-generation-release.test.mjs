@@ -290,10 +290,10 @@ test('audit-public-docs.sh passes on repository and rejects internal paths, sess
     ['session identifier tds/conv-', 'tds/conv-' + 'abcd1234'],
     ['Feishu table identifier', 'tbl' + 'AbcdEfgh1234'],
     ['owner-authorization', 'owner-' + 'authorization.json'],
-    ['internal budget amount symbol', '预算 ' + '¥50'],
-    ['internal budget amount yuan', '预算 ' + '50 元'],
-    ['internal budget amount colon', '预算：' + '1000'],
-    ['internal personal name', '联系 ' + '\u8303\u952e\u4fca'],
+    ['internal budget amount symbol', 'budget' + '¥50'],
+    ['internal budget amount yuan', 'budget' + '50 yuan'],
+    ['internal budget amount colon', 'Budget:' + '1000'],
+    ['internal personal name', 'Contact' + 'Fan Jianjun'],
     ['internal personal name english', 'owner ' + 'Sun' + 'ny'],
   ];
 

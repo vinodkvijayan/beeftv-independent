@@ -10,42 +10,42 @@ import { CanvasNodeType } from "../src/types/canvas";
 const image = { url: "/api/resources/cover/file", storageKey: "resource:cover", width: 1280, height: 720, bytes: 2000, mimeType: "image/png" };
 const video = { url: "/api/resources/clay/file", storageKey: "resource:clay", bytes: 3000, mimeType: "video/webm" };
 
-test("导演台白膜视频复用已导出的构图作封面，并明确标记静音以允许画布自动播放", () => {
+test("The director's stage white film video reuses the exported composition as the cover, and clearly marks mute to allow the canvas to play automatically.", () => {
     const metadata = directorClayVideoMetadata(video, image);
     expect(metadata.content).toBe(video.url);
     expect(metadata.storageKey).toBe(video.storageKey);
     expect(metadata.hasAudio).toBe(false);
     expect(metadata.videoPreview).toMatchObject({ content: image.url, storageKey: image.storageKey, sourceKey: video.storageKey });
-    expect(canvasNodeVideoPreviewUrl({ id: "clay", type: CanvasNodeType.Video, title: "白膜视频", position: { x: 0, y: 0 }, width: 360, height: 220, metadata })).toBe(image.url);
+    expect(canvasNodeVideoPreviewUrl({ id: "clay", type: CanvasNodeType.Video, title: "White film video", position: { x: 0, y: 0 }, width: 360, height: 220, metadata })).toBe(image.url);
 });
 
-test("视频本身已有可用封面时优先使用视频封面", () => {
+test("When the video itself has a cover available, the video cover will be used first.", () => {
     const preview = { ...image, url: "/api/resources/video-poster/file", storageKey: "resource:video-poster" };
     const metadata = directorClayVideoMetadata({ ...video, preview }, image);
     expect(metadata.videoPreview?.content).toBe(preview.url);
     expect(metadata.videoPreview?.sourceKey).toBe(video.storageKey);
 });
 
-test("录制器的 WebM codec 参数不会让画布播放器误按 MP4 解析", () => {
+test("The recorder's WebM codec parameter will not cause the canvas player to mistakenly parse MP4", () => {
     const metadata = directorClayVideoMetadata({ ...video, mimeType: "video/webm;codecs=vp9" }, image);
     expect(metadata.mimeType).toBe("video/webm");
     expect(normalizeVideoPlayerMimeType("video/webm;codecs=vp9")).toBe("video/webm");
     expect(normalizeVideoPlayerMimeType("video/mp4;codecs=avc1")).toBe("video/mp4");
 });
 
-test("已导出的旧白膜节点仍识别为静音", () => {
-    expect(isSilentDirectorClayVideo({ workflowKind: "reference_video", assetTags: ["导演台白膜"] })).toBe(true);
-    expect(isSilentDirectorClayVideo({ workflowKind: "reference_video", assetTags: ["其他视频"] })).toBe(false);
+test("The exported old albuginea node is still recognized as mute", () => {
+    expect(isSilentDirectorClayVideo({ workflowKind: "reference_video", assetTags: ["Director's white film"] })).toBe(true);
+    expect(isSilentDirectorClayVideo({ workflowKind: "reference_video", assetTags: ["Other videos"] })).toBe(false);
 });
 
-test("导演台导出成功与失败反馈均可在工作台内直接看到", () => {
-    const success = renderToStaticMarkup(<DirectorExportNotice kind="success" text="白膜视频已导出，可在画布中预览播放" />);
-    const warning = renderToStaticMarkup(<DirectorExportNotice kind="warning" text="白膜视频已导出，文件目前只在这台设备上" />);
-    const error = renderToStaticMarkup(<DirectorExportNotice kind="error" text="导出失败，请重试" />);
+test("The success and failure feedback of the director's console export can be seen directly in the workbench.", () => {
+    const success = renderToStaticMarkup(<DirectorExportNotice kind="success" text="The white film video has been exported and can be previewed and played in the canvas" />);
+    const warning = renderToStaticMarkup(<DirectorExportNotice kind="warning" text="The white film video has been exported, and the file is currently only on this device." />);
+    const error = renderToStaticMarkup(<DirectorExportNotice kind="error" text="Export failed, please try again" />);
     expect(success).toContain('role="status"');
-    expect(success).toContain("白膜视频已导出，可在画布中预览播放");
+    expect(success).toContain("The white film video has been exported and can be previewed and played in the canvas");
     expect(warning).toContain('role="status"');
-    expect(warning).toContain("白膜视频已导出，文件目前只在这台设备上");
+    expect(warning).toContain("The white film video has been exported, and the file is currently only on this device.");
     expect(error).toContain('role="alert"');
-    expect(error).toContain("导出失败，请重试");
+    expect(error).toContain("Export failed, please try again");
 });

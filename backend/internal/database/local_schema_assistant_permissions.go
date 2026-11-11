@@ -20,7 +20,7 @@ func requireAssistantPermissions(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("助手权限和撤销记录缺少 %s，请启用自动迁移", name)
+			return fmt.Errorf("Assistant permissions and revocation records are missing %s, please enable automatic migration", name)
 		}
 	}
 	return nil

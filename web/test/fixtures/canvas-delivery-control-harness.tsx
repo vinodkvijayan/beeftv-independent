@@ -19,8 +19,8 @@ function Harness() {
     const [projectId, setProjectId] = useState("canvas-test");
     const [, refresh] = useState(0);
     const unknownSubmission = location.search.includes("unknown");
-    const [nodes, setNodes] = useState<CanvasNodeData[]>([{ id: "node-test", type: CanvasNodeType.Video, title: "取回测试", position: { x: 0, y: 0 }, width: 560, height: 320, metadata: unknownSubmission
-        ? { status: "error", taskId: "task-test", taskStatus: "failed", errorDetails: "提交结果待确认", taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "submission_unknown" } }
+    const [nodes, setNodes] = useState<CanvasNodeData[]>([{ id: "node-test", type: CanvasNodeType.Video, title: "Retrieve test", position: { x: 0, y: 0 }, width: 560, height: 320, metadata: unknownSubmission
+        ? { status: "error", taskId: "task-test", taskStatus: "failed", errorDetails: "Submit results to be confirmed", taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "submission_unknown" } }
         : { status: "loading", taskId: "task-test", taskStatus: "succeeded", content: location.search.includes("old") ? "data:video/mp4;base64,AA==" : undefined } }]);
     const nodesRef = useRef(nodes);
     nodesRef.current = nodes;
@@ -32,12 +32,12 @@ function Harness() {
     // Another generation path claims the same node through the shared request registry.
     const takeOver = () => {
         generation.startGenerationRequest("node-test", "node-test", "node-test");
-        setNodes((current) => current.map((node) => ({ ...node, metadata: { ...node.metadata, status: "loading", taskStage: "接管" } })));
+        setNodes((current) => current.map((node) => ({ ...node, metadata: { ...node.metadata, status: "loading", taskStage: "take over" } })));
     };
     return <>
-        <button id="take-over" onClick={takeOver}>接管节点</button>
-        <button id="switch-canvas" onClick={() => setProjectId("canvas-other")}>切换画布</button>
-        <button id="switch-account" onClick={() => { setActiveUserScope("other"); refresh((value) => value + 1); }}>切换账号</button>
+        <button id="take-over" onClick={takeOver}>Take over node</button>
+        <button id="switch-canvas" onClick={() => setProjectId("canvas-other")}>Switch canvas</button>
+        <button id="switch-account" onClick={() => { setActiveUserScope("other"); refresh((value) => value + 1); }}>Switch account</button>
         <div style={{ width: 560, height: 320 }}>
             <CanvasNodeContent node={nodes[0]} theme={canvasThemes.dark} isEditingContent={false} textareaRef={createRef<HTMLTextAreaElement>()} isBatchRoot={false} batchCount={0} batchExpanded={false} batchOpening={false} batchRecovering={false} onContentChange={noop} onStopEditing={noop} mentionReferences={[]} onCancelTask={async () => generation.cancelCanvasTask(await queryGenerationTask("task-test"))} onReloadResource={handoff.reloadCanvasNodeResource} />
         </div>

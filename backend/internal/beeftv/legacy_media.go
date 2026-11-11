@@ -39,7 +39,7 @@ func (c *MediaClient) LegacyBinary(ctx context.Context, method, path string, bod
 }
 func (c *MediaClient) LegacyCreate(ctx context.Context, path, key string, body, target any) error {
 	if key == "" {
-		return errors.New("媒体任务缺少持久化提交编号")
+		return errors.New("Media task missing persistence commit number")
 	}
 	req, err := c.request(ctx, http.MethodPost, path, body)
 	if err != nil {
@@ -55,7 +55,7 @@ func (c *MediaClient) LegacyCreate(ctx context.Context, path, key string, body, 
 }
 func (c *MediaClient) LegacyImageJob(ctx context.Context, id string) (map[string]any, error) {
 	if strings.TrimSpace(id) == "" {
-		return nil, errors.New("图片任务编号为空")
+		return nil, errors.New("Image task number is empty")
 	}
 	var state map[string]any
 	err := c.LegacyJSON(ctx, http.MethodGet, "/images/jobs/"+url.PathEscape(id), nil, &state)

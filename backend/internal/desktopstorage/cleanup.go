@@ -34,7 +34,7 @@ func Snapshot(dir string) (map[string]string, error) {
 			return nil
 		}
 		if !entry.Type().IsRegular() {
-			return errors.New("数据目录含链接或特殊文件，无法清理或迁移")
+			return errors.New("The data directory contains links or special files and cannot be cleaned or migrated.")
 		}
 		file, err := openMigrationFile(path)
 		if err != nil {
@@ -62,11 +62,11 @@ func VerifySnapshot(dir string, files map[string]string, allowMissing bool) erro
 	}
 	for path, hash := range current {
 		if files[path] != hash {
-			return errors.New("原目录有新增或修改的数据，已停止清理，请保留并检查原目录")
+			return errors.New("There is new or modified data in the original directory and cleaning has stopped. Please keep and check the original directory.")
 		}
 	}
 	if !allowMissing && len(current) != len(files) {
-		return errors.New("迁移文件数量不一致，原数据已保留")
+		return errors.New("The number of migrated files is inconsistent and the original data has been retained.")
 	}
 	return nil
 }
@@ -106,14 +106,14 @@ func CleanupPrevious(root, current string, acquireLock func(string) (*os.File, e
 		return err
 	}
 	if location.PreviousDir == "" || len(location.PreviousFiles) == 0 {
-		return errors.New("没有可自动清理的原目录")
+		return errors.New("There is no original directory that can be automatically cleaned")
 	}
 	overlaps, err := Overlaps(current, location.PreviousDir)
 	if err != nil {
 		return err
 	}
 	if overlaps {
-		return errors.New("原目录与当前目录重叠，无法清理")
+		return errors.New("The original directory overlaps with the current directory and cannot be cleaned.")
 	}
 	lock, err := acquireLock(location.PreviousDir)
 	if err != nil {
@@ -126,7 +126,7 @@ func CleanupPrevious(root, current string, acquireLock func(string) (*os.File, e
 	for rel := range location.PreviousFiles {
 		// Snapshot paths are untrusted persisted data: prevent traversal.
 		if !filepath.IsLocal(rel) || filepath.Clean(rel) != rel || rel == locationFile {
-			return errors.New("迁移记录无效，无法清理")
+			return errors.New("The migration record is invalid and cannot be cleaned")
 		}
 	}
 	// A live desktop child can retain scratch handles after the workspace has
@@ -134,9 +134,9 @@ func CleanupPrevious(root, current string, acquireLock func(string) (*os.File, e
 	// retain the receipt so cleanup can be retried after those handles close.
 	if err = os.RemoveAll(filepath.Join(location.PreviousDir, "cache", "tmp")); err != nil {
 		if fileInUse(err) {
-			return fmt.Errorf("临时文件仍在使用中，请重启 BeefTV 后再次清理。当前存储目录不受影响\n\n%w", err)
+			return fmt.Errorf("The temporary file is still in use, please restart BeefTV and clean it again. The current storage directory is not affected\n\n%w", err)
 		}
-		return fmt.Errorf("临时文件未能清理，当前存储目录不受影响。请检查原目录的访问权限和磁盘状态\n\n%w", err)
+		return fmt.Errorf("Temporary files could not be cleaned up and the current storage directory was not affected. Please check the access permissions and disk status of the original directory\n\n%w", err)
 	}
 	for rel := range location.PreviousFiles {
 		// Older receipts included scratch files; they are handled above.
@@ -144,7 +144,7 @@ func CleanupPrevious(root, current string, acquireLock func(string) (*os.File, e
 			continue
 		}
 		if err = os.Remove(filepath.Join(location.PreviousDir, rel)); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("原目录清理未完成，当前存储目录不受影响。请保留当前目录并检查错误详情\n\n%w", err)
+			return fmt.Errorf("The original directory cleanup has not been completed, and the current storage directory is not affected. Please keep the current directory and check the error details\n\n%w", err)
 		}
 	}
 	// Only remove empty directories. Keep the fixed profile pointer intact.

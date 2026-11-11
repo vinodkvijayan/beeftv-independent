@@ -115,7 +115,7 @@ func TestVerifyEnvelopeV2MultiSourceAndStrictDomainValidation(t *testing.T) {
 		Schema:  payloadSchemaV2,
 		Version: "v2.1.0",
 		Commit:  strings.Repeat("a", 40),
-		Notes:   "支持国内源与 R2 自动回退",
+		Notes:   "Support domestic sources and R2 automatic fallback",
 		Platforms: map[string]PlatformArtifact{
 			"darwin-arm64": {
 				URLs:   []string{cnbURL, r2URL},
@@ -251,7 +251,7 @@ func TestLegacySchema1EnvelopeReadableByV206StrictParser(t *testing.T) {
 		t.Fatal(err)
 	}
 	r2URL := "https://updates.beefapi.com/beeftv/v2.1.0/BeefTV-v2.1.0-windows-amd64.zip"
-	v1Payload := testPayload("v2.1.0", "windows-amd64", r2URL, strings.Repeat("cd", 32), 280362215, "兼容 v2.0.6 旧客户端")
+	v1Payload := testPayload("v2.1.0", "windows-amd64", r2URL, strings.Repeat("cd", 32), 280362215, "Compatible with v2.0.6 old client")
 	raw, err := SignEnvelope(priv, v1Payload)
 	if err != nil {
 		t.Fatal(err)

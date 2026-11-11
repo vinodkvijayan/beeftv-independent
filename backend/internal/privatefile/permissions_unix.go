@@ -9,7 +9,7 @@ import (
 
 func Check(_ string, info os.FileInfo) error {
 	if info.Mode().Perm()&0077 != 0 {
-		return errors.New("投稿状态文件权限必须为0600")
+		return errors.New("Submission status file permissions must be 0600")
 	}
 	return nil
 }

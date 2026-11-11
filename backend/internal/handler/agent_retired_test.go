@@ -24,7 +24,7 @@ import (
 // 旧内置 Agent 已从产品运行面退场。这里用真实 HTTP 路由图（而不是源码字符串）
 // 证明三件事：/agent/* 入口不存在、通用任务 API 不能创建旧 Agent 任务、
 // 手工生成任务的创建路径仍然可用。
-const retiredAgentBoundaryMessage = "Agent 能力已下线，请在画布中手动创建节点并生成"
+const retiredAgentBoundaryMessage = "Agent capability is offline, please manually create nodes in the canvas and generate"
 
 type retiredAgentHarness struct {
 	router *gin.Engine
@@ -43,7 +43,7 @@ func newRetiredAgentHarness(t *testing.T) retiredAgentHarness {
 		t.Fatal(err)
 	}
 	// 本地工作区主体必须存在；路由中间件用 ID 解析当前用户。
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	dir := t.TempDir()
@@ -53,7 +53,7 @@ func newRetiredAgentHarness(t *testing.T) retiredAgentHarness {
 	RegisterDesktopCanvasAPIWithDependencies(router.Group("/api"), svc, defaultRuntimeDependencies(svc))
 	// bootstrap 的真实 404 投影；同时保证“路由不存在”不会伪装成业务错误。
 	router.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "msg": "请求不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "msg": "Request does not exist"})
 	})
 	return retiredAgentHarness{router: router, svc: svc, db: db}
 }
@@ -83,7 +83,7 @@ func TestRetiredAgentEndpointsAreAbsentFromProductRouteGraph(t *testing.T) {
 		// 退场的是旧内置 Agent 的 /api/agent/* 运行面。
 		// /api/agent-clients 是另一回事：外部 Agent 的凭据签发与吊销，只对受信任的桌面界面开放。
 		if route.Path == "/api/agent" || strings.HasPrefix(route.Path, "/api/agent/") {
-			t.Fatalf("旧 Agent 入口仍在产品路由图中: %s %s", route.Method, route.Path)
+			t.Fatalf("The old Agent entry is still in the product routing map: %s %s", route.Method, route.Path)
 		}
 	}
 	for _, probe := range []struct{ method, path string }{
@@ -110,9 +110,9 @@ func TestRetiredAgentEndpointsAreAbsentFromProductRouteGraph(t *testing.T) {
 func TestGenericTaskAPICannotCreateRetiredAgentTasks(t *testing.T) {
 	harness := newRetiredAgentHarness(t)
 	requests := map[string]map[string]any{
-		"root run operation":      {"type": "canvas_text", "operation": "cloud_agent", "prompt": "帮我改画布", "projectId": "canvas-1"},
-		"agent step operation":    {"type": "canvas_text", "operation": "cloud_agent_step", "prompt": "继续执行", "projectId": "canvas-1"},
-		"legacy cloudAgent input": {"type": "canvas_text", "prompt": "帮我改画布", "projectId": "canvas-1", "input": map[string]any{"mode": "text", "cloudAgent": map[string]any{"version": 1}}},
+		"root run operation":      {"type": "canvas_text", "operation": "cloud_agent", "prompt": "Help me change the canvas", "projectId": "canvas-1"},
+		"agent step operation":    {"type": "canvas_text", "operation": "cloud_agent_step", "prompt": "Continue execution", "projectId": "canvas-1"},
+		"legacy cloudAgent input": {"type": "canvas_text", "prompt": "Help me change the canvas", "projectId": "canvas-1", "input": map[string]any{"mode": "text", "cloudAgent": map[string]any{"version": 1}}},
 	}
 	for name, request := range requests {
 		t.Run(name, func(t *testing.T) {
@@ -138,7 +138,7 @@ func TestGenericTaskAPICannotCreateRetiredAgentTasks(t *testing.T) {
 				t.Fatal(err)
 			}
 			if count != 0 {
-				t.Fatalf("被拒绝的 Agent 请求仍然落库了 %d 条任务", count)
+				t.Fatalf("The rejected Agent request still has %d tasks left in the database.", count)
 			}
 		})
 	}
@@ -150,11 +150,11 @@ func TestManualCanvasTaskCreationStillReachesTaskAdmission(t *testing.T) {
 	harness := newRetiredAgentHarness(t)
 	seedSystemTextChannel(t, harness.db)
 	recorder := harness.do(t, http.MethodPost, "/api/tasks", map[string]any{
-		"type": "canvas_text", "prompt": "手工写一段分镜", "model": "text-test",
-		"input": map[string]any{"mode": "text", "prompt": "手工写一段分镜", "config": map[string]any{"channelId": "channel", "model": "text-test"}},
+		"type": "canvas_text", "prompt": "Write a storyboard by hand", "model": "text-test",
+		"input": map[string]any{"mode": "text", "prompt": "Write a storyboard by hand", "config": map[string]any{"channelId": "channel", "model": "text-test"}},
 	})
 	if recorder.Code != http.StatusOK {
-		t.Fatalf("手工生成任务创建失败: status=%d body=%s", recorder.Code, recorder.Body.String())
+		t.Fatalf("Manual generation task creation failed: status=%d body=%s", recorder.Code, recorder.Body.String())
 	}
 	var envelope struct {
 		Code int `json:"code"`
@@ -167,17 +167,17 @@ func TestManualCanvasTaskCreationStillReachesTaskAdmission(t *testing.T) {
 		t.Fatal(err)
 	}
 	if envelope.Code != 0 || envelope.Data.ID == "" {
-		t.Fatalf("手工生成任务没有返回任务标识: %s", recorder.Body.String())
+		t.Fatalf("Manually generated tasks do not return task ID: %s", recorder.Body.String())
 	}
 	if strings.Contains(envelope.Data.Operation, "cloud_agent") {
-		t.Fatalf("手工生成任务被误标成 Agent 任务: %#v", envelope.Data)
+		t.Fatalf("Manually generated tasks are mistakenly marked as Agent tasks: %#v", envelope.Data)
 	}
 	var stored model.Task
 	if err := harness.db.First(&stored, "id = ?", envelope.Data.ID).Error; err != nil {
 		t.Fatal(err)
 	}
 	if stored.Operation != "" && strings.HasPrefix(stored.Operation, "cloud_agent") {
-		t.Fatalf("落库任务 operation = %q, 不是手工生成任务", stored.Operation)
+		t.Fatalf("The warehouse drop task operation = %q is not a manually generated task.", stored.Operation)
 	}
 }
 
@@ -188,7 +188,7 @@ func seedSystemTextChannel(t *testing.T, db *gorm.DB) {
 		t.Fatal(err)
 	}
 	rows := []any{
-		&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "本地测试渠道"},
+		&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "Local test channel"},
 		&model.ChannelModel{ID: "cm", ChannelID: "channel", ModelKey: "text-test", Capability: "text", Protocol: model.ChannelInterfaceChatCompletion, CapabilityConfigJSON: string(capabilityConfig), Enabled: true},
 		&model.ChannelModelVariant{ID: "tier", ChannelModelID: "cm", SelectorKey: "{}", SelectorJSON: "{}", Enabled: true},
 	}

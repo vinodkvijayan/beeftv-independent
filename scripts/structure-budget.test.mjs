@@ -44,7 +44,7 @@ test("model and vendor names written into source are counted", () => {
     assert.equal(countModelLiterals(`if (model === "seedance-2.0" || name.startsWith("doubao-seedream-4")) {}`), 2);
     assert.equal(countModelLiterals(`const protocol = "gemini-veo"; const flash = "ray-flash-2";`), 2);
     assert.equal(countModelLiterals(`const a = "openai-videos"; const b = "volcengine-jimeng-video"; const c = "dashscope-wan-video";`), 3);
-    assert.equal(countModelLiterals(`const kind = "video"; const label = "生成视频"; const format = "openai";`), 0);
+    assert.equal(countModelLiterals(`const kind = "video"; const label = "Generate video"; const format = "openai";`), 0);
     assert.equal(countModelLiterals(`"Pikachu" "stability-check" "replicate-button" "h3-title" "gen2" "ray-trace" "flux-capacitor" "runways"`), 0);
     assert.equal(countModelLiterals(`"pika-2.2" "h3_max" "flux-pro" "gpt-image-2" "gemini" "kling-video-v3" "stability-image" "wan2.5"`), 8);
 });

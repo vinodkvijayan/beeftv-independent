@@ -30,7 +30,7 @@ function fakeReply(res, model) {
   res.writeHead(200, { 'content-type': 'text/event-stream' });
   const frame = (delta, finish) => res.write('data: ' + JSON.stringify({ id: 'f', object: 'chat.completion.chunk', created: 1, model, choices: [{ index: 0, delta, finish_reason: finish ?? null }] }) + '\n\n');
   if (first) frame({ role: 'assistant', tool_calls: [{ index: 0, id: 'c' + fakeCalls, type: 'function', function: { name: 'model_catalog', arguments: '{"capabilities":["image","video"]}' } }] }, null);
-  else frame({ role: 'assistant', content: '好的。' }, null);
+  else frame({ role: 'assistant', content: 'OK.' }, null);
   frame({}, first ? 'tool_calls' : 'stop');
   res.write('data: ' + JSON.stringify({ id: 'f', object: 'chat.completion.chunk', created: 1, model, choices: [], usage: { prompt_tokens: 1000, completion_tokens: 20, prompt_tokens_details: { cached_tokens: first ? 0 : 900 } } }) + '\n\n');
   res.end('data: [DONE]\n\n');
@@ -132,16 +132,16 @@ function report() {
   const attributed = turns.reduce((a, t) => a + t.requests.length, 0);
   const rows = turns.map((t) => {
     const r = t.requests; const inTok = r.reduce((a, x) => a + x.promptTokens, 0); const cached = r.reduce((a, x) => a + x.cachedTokens, 0);
-    const cachedPct = r.some((x) => !x.cacheKnown) ? '未知' : (inTok ? +(cached * 100 / inTok).toFixed(1) : 0);
+    const cachedPct = r.some((x) => !x.cacheKnown) ? 'unknown' : (inTok ? +(cached * 100 / inTok).toFixed(1) : 0);
     return { turn: t.turn, status: t.status, requests: r.length, seconds: +(t.ms / 1000).toFixed(1), inputTokens: inTok, cachedPct, outputTokens: r.reduce((a, x) => a + x.completionTokens, 0),
       usageMissing: r.filter((x) => x.usageMissing).length, tools: r.map((x, i) => `R${i + 1}:${x.tools.join('+') || (x.replied ? '<reply>' : '-')}`).join(' → ') };
   });
   const total = (key) => rows.reduce((a, x) => a + x[key], 0);
-  const lines = ['| 回合 | 状态 | 请求数 | 耗时(s) | 输入token | 缓存% | 输出token | 缺用量 | 工具序列 |', '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+  const lines = ['| Round | Status | Number of requests | Time spent (s) | Input token | Cache % | Output token | Missing usage | Tool sequence |', '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows.map((x) => `| ${x.turn} | ${x.status} | ${x.requests} | ${x.seconds} | ${x.inputTokens} | ${x.cachedPct} | ${x.outputTokens} | ${x.usageMissing} | ${x.tools} |`),
-    `| 合计 | | ${total('requests')} | ${(+total('seconds')).toFixed(1)} | ${total('inputTokens')} | | ${total('outputTokens')} | ${total('usageMissing')} | |`];
-  if (attributed !== records.length) lines.push(`\n对账失败：代理共记录 ${records.length} 次请求，只有 ${attributed} 次归入回合（${records.length - attributed} 次晚到或无归属）`);
-  if (capped) lines.push(`\n已达到请求上限 ${maxRequests}，后续回合未执行`);
+    `|Total | |${total('requests')} | ${(+total('seconds')).toFixed(1)} | ${total('inputTokens')} | | ${total('outputTokens')} | ${total('usageMissing')} | |`];
+  if (attributed !== records.length) lines.push(`Reconciliation failed: Agent recorded total${records.length} requests, only${attributed} times into rounds (${records.length - attributed} Arrive late for the second time or do not show up)`);
+  if (capped) lines.push(`Request limit reached${maxRequests}, subsequent rounds are not executed`);
   fs.mkdirSync(config.outDir, { recursive: true });
   fs.writeFileSync(path.join(config.outDir, 'raw.json'), JSON.stringify({ startedAt: new Date().toISOString(), provider: upstream.fake ? 'fake' : upstream.model, capped, totalRequests: records.length, attributedRequests: attributed, turns }, null, 2));
   fs.writeFileSync(path.join(config.outDir, 'summary.md'), lines.join('\n') + '\n');
@@ -162,5 +162,5 @@ try { await main(); } catch (error) { failure = error.message; }
 const { rows, ok } = report();
 await stop();
 if (failure) { console.error('REAL_GO_DRIVER_FAILED', failure, '\nhost log tail:\n' + hostLog.slice(-1500)); process.exitCode = 1; }
-else if (!ok) { console.error('REAL_GO_DRIVER_FAILED 结果不完整：请求与回合对账不一致、达到请求上限或回合结束后仍有请求未落地'); process.exitCode = 1; }
+else if (!ok) { console.error('REAL_GO_DRIVER_FAILED The result is incomplete: the request is inconsistent with the round reconciliation, the request limit has been reached, or there are still requests that have not been landed after the round ends.'); process.exitCode = 1; }
 else console.log('REAL_GO_DRIVER_OK turns=' + rows.length + ' requests=' + records.length);

@@ -18,7 +18,7 @@ func ValidateMediaTransport(ctx context.Context, input Input) error {
 	}
 	for kind, transport := range input.Config.ReferenceMediaTransport {
 		if (kind != "image" && kind != "video" && kind != "audio") || (transport != "" && transport != "auto" && transport != "inline" && transport != "url" && transport != "link") {
-			return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_reference_transport", Message: "参考素材传输方式无效，请重新选择"}
+			return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_reference_transport", Message: "The reference material transmission method is invalid, please choose again."}
 		}
 	}
 	if err := validateBytePlusVideoTransport(ctx, input); err != nil {
@@ -34,18 +34,18 @@ func ValidateMediaTransport(ctx context.Context, input Input) error {
 		kind  string
 		items []Media
 	}{
-		{"参考图片", "image", input.ReferenceImages}, {"参考视频", "video", input.ReferenceVideos}, {"参考音频", "audio", input.ReferenceAudios},
+		{"Reference pictures", "image", input.ReferenceImages}, {"Reference video", "video", input.ReferenceVideos}, {"Reference audio", "audio", input.ReferenceAudios},
 	}
 	if input.Mask != nil {
 		groups = append(groups, struct {
 			label string
 			kind  string
 			items []Media
-		}{"遮罩", "image", []Media{*input.Mask}})
+		}{"Mask", "image", []Media{*input.Mask}})
 	}
 	for _, group := range groups {
 		kind := group.kind
-		if group.label == "遮罩" {
+		if group.label == "Mask" {
 			kind = "mask"
 		}
 		groupPolicy := mediaPolicyForKind(ctx, input, kind, policy)
@@ -65,7 +65,7 @@ func ValidateMediaTransport(ctx context.Context, input Input) error {
 						var err error
 						storageEnabled, err = runtime.ReferenceStorage.Enabled()
 						if err != nil {
-							return kernel.WrapAppError(500, "参考素材对象存储配置无法读取，请检查存储设置", err)
+							return kernel.WrapAppError(500, "The reference material object storage configuration cannot be read, please check the storage settings.", err)
 						}
 						storageChecked = true
 					}
@@ -77,13 +77,13 @@ func ValidateMediaTransport(ctx context.Context, input Input) error {
 				continue
 			}
 			blocked = append(blocked, fmt.Sprintf("%s %d", group.label, i+1))
-			required = append(required, map[string]any{"kind": group.kind, "index": i, "mask": group.label == "遮罩"})
+			required = append(required, map[string]any{"kind": group.kind, "index": i, "mask": group.label == "Mask"})
 		}
 	}
 	if len(blocked) == 0 {
 		return nil
 	}
-	return &kernel.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Details: map[string]any{"requiredReferences": required}, Message: "当前渠道需要在线素材链接：" + strings.Join(blocked, "、") + "无法直接读取。请替换为可访问的 HTTPS 链接，或切换支持本地素材的渠道"}
+	return &kernel.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Details: map[string]any{"requiredReferences": required}, Message: "The current channel requires online material links:" + strings.Join(blocked, "、") + "Cannot be read directly. Please replace with an accessible HTTPS link, or switch to a channel that supports local content"}
 }
 
 // BytePlus accepts inline images and audio, but reference videos need an online
@@ -106,7 +106,7 @@ func validateBytePlusVideoTransport(ctx context.Context, input Input) error {
 		return nil
 	}
 	if input.Config.ChannelID == "" && input.Config.ReferenceMediaTransport["video"] == "inline" && len(input.ReferenceVideos) > 0 {
-		return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_reference_transport", Message: "BytePlus 参考视频不支持直接传素材，请将视频传输方式改为自动、对象存储或在线链接"}
+		return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_reference_transport", Message: "BytePlus reference video does not support direct transmission of materials. Please change the video transmission method to automatic, object storage or online link."}
 	}
 	runtime, _ := RuntimeFromContext(ctx)
 	var blocked []string
@@ -119,7 +119,7 @@ func validateBytePlusVideoTransport(ctx context.Context, input Input) error {
 			if runtime.ReferenceStorage != nil {
 				enabled, err := runtime.ReferenceStorage.Enabled()
 				if err != nil {
-					return kernel.WrapAppError(500, "参考素材对象存储配置无法读取，请检查存储设置", err)
+					return kernel.WrapAppError(500, "The reference material object storage configuration cannot be read, please check the storage settings.", err)
 				}
 				if enabled {
 					continue
@@ -132,11 +132,11 @@ func validateBytePlusVideoTransport(ctx context.Context, input Input) error {
 		if !strings.HasPrefix(media.StorageKey, "resource:") && (remote || asset) {
 			continue
 		}
-		blocked = append(blocked, fmt.Sprintf("参考视频 %d", index+1))
+		blocked = append(blocked, fmt.Sprintf("Reference video %d", index+1))
 		required = append(required, map[string]any{"kind": "video", "index": index})
 	}
 	if len(blocked) == 0 {
 		return nil
 	}
-	return &kernel.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Details: map[string]any{"requiredReferences": required}, Message: "BytePlus 无法直接读取本地参考视频：" + strings.Join(blocked, "、") + "。请改用可公开访问的 HTTPS 视频链接或 BytePlus 素材 ID（asset://），或切换支持本地视频的渠道。图片和音频可以继续使用本地文件"}
+	return &kernel.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Details: map[string]any{"requiredReferences": required}, Message: "BytePlus cannot read local reference video directly:" + strings.Join(blocked, "、") + ". Please use a publicly accessible HTTPS video link or BytePlus asset ID (asset://) instead, or switch to a channel that supports local video. Pictures and audio can continue to use local files"}
 }

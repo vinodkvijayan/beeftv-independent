@@ -73,7 +73,7 @@ func (s *Service) MarketFile(ctx context.Context, id, release, name string, offs
 func checkMarketRequirements(requirements []string) error {
 	for _, required := range requirements {
 		if required != "beeftv.canvas" && required != "model.image" && required != "model.video" && required != "model.audio" {
-			return kernel.BadAuthRequest("当前工作区尚未验证技能要求的能力：" + required)
+			return kernel.BadAuthRequest("The current workspace has not yet verified the competencies required for the skills:" + required)
 		}
 	}
 	return nil

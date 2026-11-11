@@ -90,7 +90,7 @@ func envelopeReason(t *testing.T, body string) string {
 		Reason string `json:"reason"`
 	}
 	if err := json.Unmarshal([]byte(body), &payload); err != nil {
-		t.Fatalf("响应不是信封 JSON: %s", body)
+		t.Fatalf("Response is not an envelope JSON: %s", body)
 	}
 	return payload.Reason
 }
@@ -100,30 +100,30 @@ func TestAgentOpsRejectsForgedTurnFromRegisteredClient(t *testing.T) {
 	const turnID = "aaaa1111aaaa1111"
 	env.beginTurn(t, turnID, app.AssistantTurnInput{})
 
-	registration, token, err := env.clients.Register("外部 CLI", agentops.ClientReadWrite)
+	registration, token, err := env.clients.Register("External CLI", agentops.ClientReadWrite)
 	if err != nil {
 		t.Fatal(err)
 	}
 	revision, nodes := env.canvasSnapshot(t)
 	params := mustJSONString(t, map[string]any{"canvasId": env.canvasID, "expectedRevision": revision,
-		"nodes": []any{map[string]any{"title": "冒认写入", "type": "text"}}})
+		"nodes": []any{map[string]any{"title": "Pretending to write", "type": "text"}}})
 
 	// 已登记读写客户端拿到 turnId 也不能自报归属：否则撤销会连它的写入一起抹掉。
 	status, body := env.opsAsClient(registration.ID, token, "canvas.nodes.create", "forged-1", turnID, params)
 	if status != http.StatusForbidden {
-		t.Fatalf("伪造回合归属应被拒绝，得到 %d %s", status, body)
+		t.Fatalf("False round attribution should be rejected, resulting in %d %s", status, body)
 	}
 	if afterRevision, afterNodes := env.canvasSnapshot(t); afterRevision != revision || afterNodes != nodes {
-		t.Fatal("被拒绝的伪造写入不能改动画布")
+		t.Fatal("Rejected forged writes cannot modify the canvas")
 	}
 
 	// 同一客户端不带归属仍然按登记模式正常工作（不收窄外部客户端已有权限）。
 	status, body = env.opsAsClient(registration.ID, token, "canvas.nodes.create", "legit-1", "", params)
 	if status != http.StatusOK {
-		t.Fatalf("外部客户端正常写入不应被收窄，得到 %d %s", status, body)
+		t.Fatalf("Normal writes by external clients should not be narrowed, getting %d %s", status, body)
 	}
 	if _, afterNodes := env.canvasSnapshot(t); afterNodes != nodes+1 {
-		t.Fatal("外部客户端写入应真的落地")
+		t.Fatal("External client writing should really be implemented")
 	}
 }
 
@@ -133,7 +133,7 @@ func TestAgentOpsRejectsCrossCanvasWriteFromAssistant(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	other := map[string]any{"id": "other-canvas", "title": "别的画布", "revision": 0,
+	other := map[string]any{"id": "other-canvas", "title": "other canvas", "revision": 0,
 		"nodes": []any{}, "connections": []any{}}
 	encoded, _ := json.Marshal(other)
 	if _, err := env.service.UpsertUserCanvasProject(owner.ID, encoded); err != nil {
@@ -144,13 +144,13 @@ func TestAgentOpsRejectsCrossCanvasWriteFromAssistant(t *testing.T) {
 
 	revision, _ := env.canvasSnapshot(t)
 	params := mustJSONString(t, map[string]any{"canvasId": "other-canvas", "expectedRevision": revision,
-		"nodes": []any{map[string]any{"title": "越界节点", "type": "text"}}})
+		"nodes": []any{map[string]any{"title": "out of bounds node", "type": "text"}}})
 	status, body := env.opsRaw("canvas.nodes.create", "cross-canvas-1", turnID, params)
 	if status != http.StatusForbidden {
-		t.Fatalf("跨画布写入应被拒绝，得到 %d %s", status, body)
+		t.Fatalf("Cross-canvas writes should be rejected, getting %d %s", status, body)
 	}
 	if reason := envelopeReason(t, body); reason != "scope_denied" {
-		t.Fatalf("拒绝原因应为 scope_denied，得到 %s", reason)
+		t.Fatalf("Denial reason should be scope_denied, got %s", reason)
 	}
 }
 
@@ -161,16 +161,16 @@ func TestAgentOpsRejectsUnknownParamsOverHTTP(t *testing.T) {
 	revision, _ := env.canvasSnapshot(t)
 
 	params := mustJSONString(t, map[string]any{"canvasId": env.canvasID, "nodeId": "n1", "expectedRevision": revision,
-		"patch": map[string]any{"title": "改名", "temperature": 0.7}})
+		"patch": map[string]any{"title": "Change name", "temperature": 0.7}})
 	status, body := env.opsRaw("canvas.node.update", "unknown-http-1", turnID, params)
 	if status != http.StatusBadRequest {
-		t.Fatalf("含未知字段的请求应被拒绝，得到 %d %s", status, body)
+		t.Fatalf("Requests with unknown fields should be rejected, resulting in %d %s", status, body)
 	}
 	if reason := envelopeReason(t, body); reason != "unknown_field" {
-		t.Fatalf("拒绝原因应为 unknown_field，得到 %s", reason)
+		t.Fatalf("Rejection reason should be unknown_field, got %s", reason)
 	}
 	if afterRevision, _ := env.canvasSnapshot(t); afterRevision != revision {
-		t.Fatal("被拒绝的请求不能推进画布版本")
+		t.Fatal("Denied request cannot advance canvas version")
 	}
 }
 
@@ -192,7 +192,7 @@ func TestAssistantUndoRecoversAfterStreamBreakWithoutTurnEnd(t *testing.T) {
 			// 任何失败都以 500 返回，由主测试线程断言。
 			revision, revErr := env.canvasRevisionQuiet()
 			params, marshalErr := json.Marshal(map[string]any{"canvasId": env.canvasID, "expectedRevision": revision,
-				"nodes": []any{map[string]any{"title": "断流节点", "type": "text"}}})
+				"nodes": []any{map[string]any{"title": "Cutoff node", "type": "text"}}})
 			if revErr != nil || marshalErr != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -210,34 +210,34 @@ func TestAssistantUndoRecoversAfterStreamBreakWithoutTurnEnd(t *testing.T) {
 	useEnvProvider(t, "chat-completion")
 
 	recorder := env.call(t, http.MethodPost, "/assistant/chat",
-		`{"canvasId":"`+env.canvasID+`","message":"加一个节点"}`)
+		`{"canvasId":"`+env.canvasID+`","message":"Add a node"}`)
 	if recorder.Code != http.StatusOK {
-		t.Fatalf("对话应成功建立流: %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("The conversation should successfully establish the stream: %d %s", recorder.Code, recorder.Body.String())
 	}
 	if captured.TurnID == "" {
-		t.Fatal("后端必须生成 turnId 交给宿主")
+		t.Fatal("The backend must generate turnId and give it to the host")
 	}
 	if _, nodes := env.canvasSnapshot(t); nodes != 2 {
-		t.Fatalf("宿主写入应当落地，得到 %d 个节点", nodes)
+		t.Fatalf("The host write should be implemented and %d nodes should be obtained.", nodes)
 	}
 	owner, err := env.service.LocalWorkspaceOwner()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, open, err := env.service.AssistantTurns().ScopeForHost(owner.ID, captured.TurnID); err != nil || !open {
-		t.Fatalf("宿主断流后应保留恢复权限: open=%v err=%v", open, err)
+		t.Fatalf("The recovery permission should be retained after the host is disconnected: open=%v err=%v", open, err)
 	}
 
 	undo := decodeEnvelope(t, env.call(t, http.MethodPost, "/assistant/turns/"+captured.TurnID+"/undo",
 		`{"canvasId":"`+env.canvasID+`"}`))
 	if _, ok := undo["revision"].(float64); !ok {
-		t.Fatalf("没有 turn_end 的回合也必须能从回执撤销: %#v", undo)
+		t.Fatalf("Turns without turn_end must also be reversible from the receipt: %#v", undo)
 	}
 	if _, nodes := env.canvasSnapshot(t); nodes != 1 {
-		t.Fatalf("撤销后应回到轮前节点集合，得到 %d 个节点", nodes)
+		t.Fatalf("After revocation, we should return to the previous node set and get %d nodes.", nodes)
 	}
 	if _, open, err := env.service.AssistantTurns().ScopeForHost(owner.ID, captured.TurnID); err != nil || open {
-		t.Fatalf("明确撤销后不得恢复写入: open=%v err=%v", open, err)
+		t.Fatalf("Writing must not be resumed after explicit revocation: open=%v err=%v", open, err)
 	}
 }
 
@@ -266,7 +266,7 @@ func TestAssistantChatGrantsOnlyVerifiedReferences(t *testing.T) {
 			seen.refCanvas, _ = env.opsRaw("canvas.get", "", body.TurnID, `{"canvasId":"ref-canvas"}`)
 			seen.otherCanvas, _ = env.opsRaw("canvas.get", "", body.TurnID, `{"canvasId":"other-canvas"}`)
 			w.Header().Set("Content-Type", "application/x-ndjson")
-			_, _ = w.Write([]byte(`{"type":"turn_end","turnId":"` + body.TurnID + `","reply":"好","toolCalls":[],"proposals":[],"change":null}` + "\n"))
+			_, _ = w.Write([]byte(`{"type":"turn_end","turnId":"` + body.TurnID + `","reply":"OK","toolCalls":[],"proposals":[],"change":null}` + "\n"))
 		})
 	})
 	useEnvProvider(t, "chat-completion")
@@ -283,25 +283,25 @@ func TestAssistantChatGrantsOnlyVerifiedReferences(t *testing.T) {
 
 	// 不存在的素材引用：整轮拒绝，且不转发给宿主。
 	recorder := env.call(t, http.MethodPost, "/assistant/chat",
-		`{"canvasId":"`+env.canvasID+`","message":"看看","references":[{"kind":"asset","id":"missing-asset"}]}`)
+		`{"canvasId":"`+env.canvasID+`","message":"Look","references":[{"kind":"asset","id":"missing-asset"}]}`)
 	if recorder.Code != http.StatusBadRequest {
-		t.Fatalf("不存在的引用应整轮拒绝，得到 %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("Non-existent references should be rejected for the entire round, resulting in %d %s", recorder.Code, recorder.Body.String())
 	}
 	if env.hostHits["/chat"] != 0 {
-		t.Fatal("引用校验失败时不应转发给宿主")
+		t.Fatal("Reference verification failure should not be forwarded to the host")
 	}
 
 	// 真实画布引用：通过校验并成为这一轮的只读范围。
 	recorder = env.call(t, http.MethodPost, "/assistant/chat",
-		`{"canvasId":"`+env.canvasID+`","message":"看看","references":[{"kind":"canvas","id":"ref-canvas"}]}`)
+		`{"canvasId":"`+env.canvasID+`","message":"Look","references":[{"kind":"canvas","id":"ref-canvas"}]}`)
 	if recorder.Code != http.StatusOK {
-		t.Fatalf("合法引用应成功: %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("Legal references should succeed: %d %s", recorder.Code, recorder.Body.String())
 	}
 	if seen.refCanvas != http.StatusOK {
-		t.Fatalf("被引用的画布应可读，得到 %d", seen.refCanvas)
+		t.Fatalf("The referenced canvas should be readable, getting %d", seen.refCanvas)
 	}
 	if seen.otherCanvas != http.StatusForbidden {
-		t.Fatalf("未被引用的画布应被拒，得到 %d", seen.otherCanvas)
+		t.Fatalf("Unreferenced canvases should be rejected, getting %d", seen.otherCanvas)
 	}
 }
 

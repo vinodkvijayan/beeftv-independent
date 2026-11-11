@@ -70,7 +70,7 @@ func TestCanvasHostSkipsStorageMutexInsideTransactionAndStillSeesTxQuota(t *test
 			t.Fatal(err)
 		}
 	case <-ctx.Done():
-		t.Fatal("事务内 WithStorageLock 仍在等根 storageMu")
+		t.Fatal("Within transaction WithStorageLock is still waiting for root storageMu")
 	}
 	s.storageMu.Unlock()
 	held = false

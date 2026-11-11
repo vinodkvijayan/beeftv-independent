@@ -77,7 +77,7 @@ func testVideo() *model.Resource {
 
 func TestProcessRetainsWorkerExitReasonAfterLongProgressMeter(t *testing.T) {
 	tasks := &fakeTasks{}
-	message := strings.Repeat("\r 0 0 0 0 Time Time Current", 150) + "\ncurl: (28) Connection timed out\n模型补下载失败"
+	message := strings.Repeat("\r 0 0 0 0 Time Time Current", 150) + "curl: (28) Connection timed out\nModel download failed"
 	svc := New(Deps{
 		GOOS: "darwin", GOARCH: "arm64", Media: &fakeMedia{resource: testVideo(), body: []byte("mp4")}, Tasks: tasks, Installer: fakeInstaller{},
 		Run: func(context.Context, string, string, string, string, string, string, func(string)) error {

@@ -1,8 +1,8 @@
 # BeefTV Depth Capture CLI
 
-将普通 RGB 视频转换成近白远黑、时间连续的相对深度参考视频。第一版使用 Apache-2.0 许可的 Video Depth Anything Small 模型。
+Convert ordinary RGB video into near white and far black, time-continuous relative depth reference video. The first version uses the Apache-2.0 licensed Video Depth Anything Small model.
 
-## 运行
+## Run
 
 ```bash
 cd tools/depth-capture
@@ -13,9 +13,9 @@ PYTORCH_ENABLE_MPS_FALLBACK=1 uv run python -m depth_capture \
   --save-raw
 ```
 
-模型代码和权重默认持久化在项目目录的 `tools/depth-capture/.cache/runtime`，不会因为 `/tmp` 清理而丢失。也可以通过 `BEEFTV_DEPTH_RUNTIME` 指定其他持久化目录。下载会先写入临时文件并校验，未完成的文件不会被当成模型使用。Apple Silicon 默认建议使用 `--input-size 280 --max-resolution 960`；CUDA 环境可提高到 `--input-size 518 --max-resolution 1280`。
+The model code and weights are persisted in `tools/depth-capture/.cache/runtime` in the project directory by default and will not be lost due to `/tmp` cleanup. Other persistence directories can also be specified via `BEEFTV_DEPTH_RUNTIME`. The download will first be written into a temporary file and verified, and unfinished files will not be used as models. Apple Silicon recommends `--input-size 280 --max-resolution 960` by default; CUDA environments can increase this to `--input-size 518 --max-resolution 1280`.
 
-## 输出
+## Output
 
-- `*_depth_preview.mp4`：8-bit H.264 灰度预览，默认 1920×1080。
-- `*_depth_raw.npz`：可选的 float32 原始相对深度。
+- `*_depth_preview.mp4`: 8-bit H.264 grayscale preview, default 1920×1080.
+- `*_depth_raw.npz`: Optional float32 raw relative depth.

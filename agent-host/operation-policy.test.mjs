@@ -61,7 +61,7 @@ test('Opus delegates independent audio to a non-replayable review and receives o
   if(req.url==='/ops') return res.end(JSON.stringify({code:0,data:{ops:descriptors}}));
   let raw='';for await (const chunk of req) raw+=chunk;
   received.push({url:req.url,...JSON.parse(raw)});
-  if(fail) {res.statusCode=412;return res.end(JSON.stringify({code:412,msg:'保留原素材，不自动重复付费请求',reason:'media_review_failed'}));}
+  if(fail) {res.statusCode=412;return res.end(JSON.stringify({code:412,msg:'Keep original materials and do not automatically repeat payment requests',reason:'media_review_failed'}));}
   res.end(JSON.stringify({code:0,data:{result:observation}}));
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

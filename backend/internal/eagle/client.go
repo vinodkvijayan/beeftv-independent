@@ -42,7 +42,7 @@ func (c *Client) Library(rawBaseURL string) (*Library, error) {
 		return nil, err
 	}
 	if response.Status != "success" {
-		return nil, errors.New("Eagle 未返回成功状态，请确认 Eagle 已启动并打开素材库")
+		return nil, errors.New("Eagle does not return a successful status, please confirm that Eagle has been started and the material library is opened.")
 	}
 	folders := flattenFolders(response.Data.Folders, "")
 	return &Library{
@@ -83,7 +83,7 @@ func (c *Client) Items(rawBaseURL string, query ItemQuery) ([]Item, error) {
 		return nil, err
 	}
 	if response.Status != "success" {
-		return nil, errors.New("Eagle 未返回素材列表")
+		return nil, errors.New("Eagle did not return the material list")
 	}
 	for index := range response.Data {
 		item := &response.Data[index]
@@ -95,7 +95,7 @@ func (c *Client) Items(rawBaseURL string, query ItemQuery) ([]Item, error) {
 
 func (c *Client) OpenFile(rawBaseURL string, itemID string) (*File, error) {
 	if !validItemID(itemID) {
-		return nil, kernel.BadAuthRequest("Eagle 素材 ID 无效")
+		return nil, kernel.BadAuthRequest("Eagle asset ID is invalid")
 	}
 	baseURL, err := validateBaseURL(rawBaseURL)
 	if err != nil {
@@ -105,7 +105,7 @@ func (c *Client) OpenFile(rawBaseURL string, itemID string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	thumbnailPath, err := c.thumbnailPath(baseURL, itemID, "Eagle 未返回素材路径", "Eagle 素材路径编码无效")
+	thumbnailPath, err := c.thumbnailPath(baseURL, itemID, "Eagle did not return the material path", "Eagle material path encoding is invalid")
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +113,12 @@ func (c *Client) OpenFile(rawBaseURL string, itemID string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return openLocalFile(resolved, "无法读取 Eagle 原始文件，请确认素材库仍处于可用状态")
+	return openLocalFile(resolved, "Unable to read Eagle raw file, please confirm that the library is still available")
 }
 
 func (c *Client) OpenThumbnail(rawBaseURL string, itemID string) (*File, error) {
 	if !validItemID(itemID) {
-		return nil, kernel.BadAuthRequest("Eagle 素材 ID 无效")
+		return nil, kernel.BadAuthRequest("Eagle asset ID is invalid")
 	}
 	baseURL, err := validateBaseURL(rawBaseURL)
 	if err != nil {
@@ -128,7 +128,7 @@ func (c *Client) OpenThumbnail(rawBaseURL string, itemID string) (*File, error) 
 	if err != nil {
 		return nil, err
 	}
-	thumbnailPath, err := c.thumbnailPath(baseURL, itemID, "Eagle 未返回缩略图路径", "Eagle 缩略图路径编码无效")
+	thumbnailPath, err := c.thumbnailPath(baseURL, itemID, "Eagle does not return thumbnail path", "Eagle thumbnail path encoding is invalid")
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (c *Client) OpenThumbnail(rawBaseURL string, itemID string) (*File, error) 
 	if err != nil {
 		return nil, err
 	}
-	return openLocalFile(jailed, "无法读取 Eagle 缩略图")
+	return openLocalFile(jailed, "Unable to read Eagle thumbnail")
 }
 
 func (c *Client) thumbnailPath(baseURL *url.URL, itemID string, missingMessage string, encodingMessage string) (string, error) {
@@ -160,10 +160,10 @@ func (c *Client) thumbnailPath(baseURL *url.URL, itemID string, missingMessage s
 
 func (c *Client) AddItem(rawBaseURL string, request AddItemRequest) (*CreatedItem, error) {
 	if !isMediaDataURL(request.URL) {
-		return nil, kernel.BadAuthRequest("写入 Eagle 只接受图片、视频或音频数据")
+		return nil, kernel.BadAuthRequest("Writing to Eagle only accepts image, video or audio data")
 	}
 	if strings.TrimSpace(request.Name) == "" {
-		return nil, kernel.BadAuthRequest("写入 Eagle 时必须提供素材名称")
+		return nil, kernel.BadAuthRequest("Asset name must be provided when writing to Eagle")
 	}
 	baseURL, err := validateBaseURL(rawBaseURL)
 	if err != nil {
@@ -177,14 +177,14 @@ func (c *Client) AddItem(rawBaseURL string, request AddItemRequest) (*CreatedIte
 		return nil, err
 	}
 	if response.Status != "success" {
-		return nil, errors.New("Eagle 拒绝写入素材")
+		return nil, errors.New("Eagle refuses to write material")
 	}
 	return &response.Data, nil
 }
 
 func (c *Client) CreateFolder(rawBaseURL string, name string, parentID string) error {
 	if strings.TrimSpace(name) == "" {
-		return kernel.BadAuthRequest("Eagle 文件夹名称不能为空")
+		return kernel.BadAuthRequest("Eagle folder name cannot be empty")
 	}
 	baseURL, err := validateBaseURL(rawBaseURL)
 	if err != nil {
@@ -201,7 +201,7 @@ func (c *Client) CreateFolder(rawBaseURL string, name string, parentID string) e
 		return err
 	}
 	if response.Status != "success" {
-		return errors.New("Eagle 文件夹创建失败")
+		return errors.New("Eagle folder creation failed")
 	}
 	return nil
 }

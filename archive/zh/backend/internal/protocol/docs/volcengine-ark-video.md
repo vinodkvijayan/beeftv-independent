@@ -1,8 +1,8 @@
-# 火山方舟视频任务
+# Volcano Ark Video Mission
 
-本插件使用 Ark Contents Generations Tasks 异步接口。提示词、参考图、参考视频和参考音频组成 `content[]`；比例、分辨率、时长、生成音频和水印位于顶层任务参数。
+This plugin uses the Ark Contents Generations Tasks asynchronous interface. Prompt word, reference picture, reference video and reference audio constitute `content[]`; scale, resolution, duration, generated audio and watermark are located in the top-level task parameters.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,23 +13,23 @@ Authorization: Bearer <ARK_API_KEY>
 Content-Type: application/json
 ```
 
-## 模型与约束
+## Models and Constraints
 
-模型通常对应控制台可用模型或 endpoint ID。允许时长、分辨率、画幅、参考图数量、是否可生成音频及计费由具体模型决定。插件默认 5 秒、`16:9`、`720p`，默认值不是上游能力承诺。
+Models typically correspond to console-available models or endpoint IDs. The allowed duration, resolution, frame, number of reference images, whether audio can be generated, and billing are determined by the specific model. The plug-in defaults to 5 seconds, `16:9`, and `720p`. The default value is not an upstream capability commitment.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-全模态参考的素材映射如下：
+The material mapping for full-modal reference is as follows:
 
-- 图片：`{"type":"image_url","image_url":{"url":"..."},"role":"reference_image"}`
-- 视频：`{"type":"video_url","video_url":{"url":"..."},"role":"reference_video"}`
-- 音频：`{"type":"audio_url","audio_url":{"url":"..."},"role":"reference_audio"}`
+- Picture: `{"type":"image_url","image_url":{"url":"..."},"role":"reference_image"}`
+- Video: `{"type":"video_url","video_url":{"url":"..."},"role":"reference_video"}`
+- Audio: `{"type":"audio_url","audio_url":{"url":"..."},"role":"reference_audio"}`
 
-单次最多发送 9 张图片、3 个视频和 3 个音频。参考素材可以组合使用，但上游不支持纯音频或“文本 + 音频”；使用音频时必须同时提供至少一张参考图或一个参考视频。`generate_audio` 和 `watermark` 只在 true 时发送。
+You can send up to 9 pictures, 3 videos and 3 audios at a time. Reference materials can be used in combination, but upstream does not support pure audio or "text + audio"; when using audio, at least one reference image or one reference video must be provided at the same time. `generate_audio` and `watermark` are only sent when true.
 
-## 创建任务示例
+## Create task example
 
 ```bash
 curl "{channel_base_url}/api/v3/contents/generations/tasks" \
@@ -51,16 +51,16 @@ curl "{channel_base_url}/api/v3/contents/generations/tasks" \
   }'
 ```
 
-## 查询、状态与结果
+## Query, status and results
 
-创建响应任务 ID 由统一解析器从顶层、`task` 或 `data` 提取。查询成功后读取视频数组或常见 URL 字段。若 Ark 把结果放在其他嵌套路径，必须用真实 fixture 增加专属解析，不允许只根据 `completed` 返回空成功。
+The create response task ID is extracted by the unified parser from the top level, `task` or `data`. Read the video array or common URL field after the query is successful. If Ark places the results in other nested paths, it must use real fixtures to add exclusive analysis, and it is not allowed to return empty success based only on `completed`.
 
-任务失败可能来自 endpoint 不可用、素材下载失败、参数组合不受支持、内容审核、并发或额度限制。上游 request ID 应保留用于排查，API Key 和素材正文不得进入日志。
+Task failure may result from unavailable endpoints, failed material downloads, unsupported parameter combinations, content review, concurrency or quota restrictions. The upstream request ID should be retained for troubleshooting, and the API Key and material text should not be entered into the log.
 
-## 官方资料
+## Official information
 
-- [火山方舟视频生成 API](https://www.volcengine.com/docs/82379)
-- [火山方舟内容生成任务文档](https://www.volcengine.com/docs/82379/1520757)
-- [Doubao Seedance 2.0 全模态参考教程](https://console.volcengine.com/ark/region:cn-beijing/docs/82379/2291680?lang=zh#50e1b4ea)
+- [Volcano Ark Video Generation API](https://www.volcengine.com/docs/82379)
+- [Volcano Ark Content Generation Task Document](https://www.volcengine.com/docs/82379/1520757)
+- [Doubao Seedance 2.0 full-modal reference tutorial](https://console.volcengine.com/ark/region:cn-beijing/docs/82379/2291680?lang=zh#50e1b4ea)
 
 {{CONTRACT}}

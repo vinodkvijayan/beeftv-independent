@@ -10,11 +10,11 @@ import { CanvasNodeType, type CanvasNodeData } from "../src/types/canvas";
 import type { GenerationTask } from "../src/services/api/task-center";
 
 const preparationMessages = [
-    ["image_reference_upload_failed", "参考图片上传失败，本次尚未开始生成。请稍后重试。"],
-    ["reference_media_upload_failed", "参考素材上传失败，本次尚未开始生成。请检查对象存储配置和公开读取权限后重试。"],
+    ["image_reference_upload_failed", "The reference image upload failed and the generation has not started yet. Please try again later."],
+    ["reference_media_upload_failed", "The reference material upload failed and the generation has not started yet. Please check the object storage configuration and public read permissions and try again."],
 ] as const;
 
-function task(error: string, stage = "准备参考素材"): GenerationTask {
+function task(error: string, stage = "Prepare reference materials"): GenerationTask {
     return { id: "task-reference", type: "canvas_image", status: "failed", errorCode: "provider_unavailable", error, stage, attempts: 1, createdAt: "2026-10-17T10:00:00Z", updatedAt: "2026-10-17T10:00:01Z" };
 }
 
@@ -38,12 +38,12 @@ test("local runtime preserves confirmed preparation copy and offers only manual 
         expect(explanation.blockManualRetry).toBe(false);
         expect(isTaskRegenerateBlocked(task(message))).toBe(false);
         const notice = renderToStaticMarkup(<GenerationFailureNotice explanation={explanation} onRetry={() => {}} />);
-        expect(notice).toContain("重新生成");
+        expect(notice).toContain("Regenerate");
         const html = creation(message, undefined, "provider_unavailable");
-        expect(html).toContain("本次尚未开始生成");
-        expect(html).toContain("重新生成");
-        expect(html).not.toContain("本地资源目录");
-        if (code === "image_reference_upload_failed") expect(html).not.toContain("检查对象存储");
+        expect(html).toContain("This time the generation has not started yet");
+        expect(html).toContain("Regenerate");
+        expect(html).not.toContain("local resource directory");
+        if (code === "image_reference_upload_failed") expect(html).not.toContain("Check object storage");
     }
 });
 
@@ -52,9 +52,9 @@ test("unknown stage overrides later preparation text in creation and task center
         expect(explainGenerationError({ code: "provider_unavailable", message }, { stage: "submission_unknown" }).blockManualRetry).toBe(true);
         expect(isTaskRegenerateBlocked(task(message, "submission_unknown"))).toBe(true);
         const html = creation(message, "submission_unknown", "provider_unavailable");
-        expect(html).toContain("提交结果尚未确认");
-        expect(html).not.toContain("本次尚未开始生成");
-        expect(html).not.toContain("重新生成");
+        expect(html).toContain("The submission result has not yet been confirmed");
+        expect(html).not.toContain("This time the generation has not started yet");
+        expect(html).not.toContain("Regenerate");
     }
 });
 
@@ -67,15 +67,15 @@ test("untrusted HTTP echoes and upload short messages do not grant manual retry"
                 expect(explainGenerationError(error).blockManualRetry).toBe(true);
             }
         }
-        expect(explainGenerationError({ code, message: "参考图片上传失败" }).blockManualRetry).toBe(true);
+        expect(explainGenerationError({ code, message: "Reference image upload failed" }).blockManualRetry).toBe(true);
     }
-    expect(explainGenerationError("参考图片上传失败").blockManualRetry).toBe(true);
-    expect(creation("参考图片上传失败")).not.toContain("重新生成");
+    expect(explainGenerationError("Reference image upload failed").blockManualRetry).toBe(true);
+    expect(creation("Reference image upload failed")).not.toContain("Regenerate");
 });
 
 test("manual canvas and batch retry keep preparation distinct from unknown submission", () => {
     for (const [, message] of preparationMessages) {
-        const node: CanvasNodeData = { id: "prepared", type: CanvasNodeType.Image, title: "镜头", width: 320, height: 180, position: { x: 0, y: 0 }, metadata: { status: "error", generationErrorCode: "provider_unavailable", errorDetails: message } };
+        const node: CanvasNodeData = { id: "prepared", type: CanvasNodeType.Image, title: "lens", width: 320, height: 180, position: { x: 0, y: 0 }, metadata: { status: "error", generationErrorCode: "provider_unavailable", errorDetails: message } };
         const unknown = { ...node, id: "unknown", metadata: { ...node.metadata, taskStage: "submission_unknown" } };
         expect(isNodeRegenerateBlocked(node.metadata)).toBe(false);
         expect(isNodeRegenerateBlocked(unknown.metadata)).toBe(true);

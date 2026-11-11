@@ -82,7 +82,7 @@ func effectiveSEODescription(value Setting) string {
 	if value.SEODescription != "" {
 		return value.SEODescription
 	}
-	return value.BrandName + "，面向 AI 影视与短剧创作的工作台。"
+	return value.BrandName + ", a workbench for AI film, television and short drama creation."
 }
 
 func effectiveCopyright(value Setting) string {

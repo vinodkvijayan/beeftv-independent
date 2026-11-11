@@ -449,7 +449,7 @@ func TestDeclarativeManifestKeepsLegacyVideoResolutionTransformCompatible(t *tes
 	tests := map[string]string{
 		"768":   "768p",
 		"768P":  "768p",
-		"768P横": "768p横",
+		"768P horizontal": "768p horizontal",
 	}
 	for input, expected := range tests {
 		if actual := applyManifestTransform(input, "video-resolution", GenerationRequest{}); actual != expected {
@@ -497,7 +497,7 @@ func TestBuiltinDocumentationMatchesTextRequestShape(t *testing.T) {
 }
 
 func TestEveryBuiltinHasDetailedDocumentation(t *testing.T) {
-	requiredSections := []string{"## 接口", "## 模型", "## 参数", "## 官方", "## 宿主运行时合同"}
+	requiredSections := []string{"## Interface", "## Model", "## Parameters", "## Official", "## Host runtime contract"}
 	for _, metadata := range Builtins().List("", "", true) {
 		t.Run(metadata.ID, func(t *testing.T) {
 			AttachDocumentation(&metadata)

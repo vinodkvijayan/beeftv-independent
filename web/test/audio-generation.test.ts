@@ -10,7 +10,7 @@ function audioNode(patch: Partial<CanvasNodeData> = {}): CanvasNodeData {
     return {
         id: "audio-1",
         type: CanvasNodeType.Audio,
-        title: "旁白",
+        title: "narration",
         position: { x: 0, y: 0 },
         width: 320,
         height: 120,
@@ -62,7 +62,7 @@ describe("enterprise MiniMax speech settings", () => {
 
     test("does not coerce MiniMax voices onto OpenAI alloy", () => {
         expect(normalizeAudioVoiceValue("alloy", "beeftv::minimax-speech-2.8-hd")).toBe("male-qn-qingse");
-        expect(normalizeAudioVoiceValue("中文", "minimax-speech-2.8-hd")).toBe("male-qn-qingse");
+        expect(normalizeAudioVoiceValue("Chinese", "minimax-speech-2.8-hd")).toBe("male-qn-qingse");
         expect(normalizeAudioVoiceValue("male-qn-jingying", "minimax-speech-2.8-hd")).toBe("male-qn-jingying");
         expect(normalizeAudioVoiceValue("cloned-voice-abc", "minimax-speech-2.8-hd")).toBe("cloned-voice-abc");
         expect(normalizeAudioVoiceValue("alloy", "gpt-4o-mini-tts")).toBe("alloy");
@@ -74,12 +74,12 @@ describe("enterprise MiniMax speech settings", () => {
             audioFormat: "mp3",
             audioSpeed: "1",
         });
-        expect(audioSettingsSummary({ model: "beeftv::minimax-speech-2.8-hd", ...settings })).toBe("青涩青年 · MP3 · 1x");
+        expect(audioSettingsSummary({ model: "beeftv::minimax-speech-2.8-hd", ...settings })).toBe("Youth · MP3 · 1x");
         expect(audioSettingsSummary({ model: "beeftv::minimax-speech-2.8-hd", ...settings })).not.toContain("24k");
-        expect(audioSettingsSummary({ model: "beeftv::minimax-speech-2.8-hd", ...settings })).not.toContain("中文");
-        expect(buildAudioSpeechRequest({ model: "minimax-speech-2.8-hd", ...settings }, "大家好")).toEqual({
+        expect(audioSettingsSummary({ model: "beeftv::minimax-speech-2.8-hd", ...settings })).not.toContain("Chinese");
+        expect(buildAudioSpeechRequest({ model: "minimax-speech-2.8-hd", ...settings }, "Hello everyone")).toEqual({
             model: "minimax-speech-2.8-hd",
-            input: "大家好",
+            input: "Hello everyone",
             voice: "male-qn-qingse",
             response_format: "mp3",
             speed: 1,
@@ -87,9 +87,9 @@ describe("enterprise MiniMax speech settings", () => {
     });
 
     test("helper music payload omits voice; OpenAI TTS keeps alloy and instructions", () => {
-        expect(buildAudioSpeechRequest({ model: "minimax-music-v3.0", audioFormat: "mp3" }, "轻快的钢琴")).toEqual({
+        expect(buildAudioSpeechRequest({ model: "minimax-music-v3.0", audioFormat: "mp3" }, "light piano")).toEqual({
             model: "minimax-music-v3.0",
-            input: "轻快的钢琴",
+            input: "light piano",
             response_format: "mp3",
             metadata: { audio_setting: { sample_rate: 44100, bitrate: 256000, format: "mp3" } },
         });
@@ -100,7 +100,7 @@ describe("enterprise MiniMax speech settings", () => {
                     audioVoice: "alloy",
                     audioFormat: "wav",
                     audioSpeed: "1.25",
-                    audioInstructions: "温暖旁白",
+                    audioInstructions: "Warm narration",
                 },
                 "hello",
             ),
@@ -110,7 +110,7 @@ describe("enterprise MiniMax speech settings", () => {
             voice: "alloy",
             response_format: "wav",
             speed: 1.25,
-            instructions: "温暖旁白",
+            instructions: "Warm narration",
         });
     });
 
@@ -119,7 +119,7 @@ describe("enterprise MiniMax speech settings", () => {
         expect(config.model).toContain("minimax-speech-2.8-hd");
         expect(config.audioVoice).toBe("male-qn-qingse");
         expect(config.audioFormat).toBe("mp3");
-        expect(audioSettingsSummary(config)).toBe("青涩青年 · MP3 · 1x");
+        expect(audioSettingsSummary(config)).toBe("Youth · MP3 · 1x");
     });
 
     test("Seed-Audio defaults to auto omni-reference mode and normalizes stale MiniMax/OpenAI voices to auto", () => {
@@ -135,8 +135,8 @@ describe("enterprise MiniMax speech settings", () => {
         expect(normalizeAudioVoiceValue("zh_male_taocheng_uranus_bigtts", "beeftv::seed-audio-1.0")).toBe("zh_male_taocheng_uranus_bigtts");
         expect(normalizeAudioVoiceValue("auto", "beeftv::minimax-speech-2.8-hd")).toBe("male-qn-qingse");
         expect(normalizeAudioVoiceValue("zh_female_cancan_uranus_bigtts", "beeftv::minimax-speech-2.8-hd")).toBe("male-qn-qingse");
-        expect(audioSettingsSummary({ model: "beeftv::seed-audio-1.0", audioVoice: "male-qn-qingse", audioFormat: "mp3", audioSpeed: "1" })).toBe("自动（全能参考） · MP3 · 1x");
-        expect(audioSettingsSummary({ model: "beeftv::seed-audio-1.0", audioVoice: "zh_male_taocheng_uranus_bigtts", audioFormat: "mp3", audioSpeed: "1.25", audioPitch: "2", audioVolume: "1.3" })).toBe("阳光小天 · MP3 · 1.25x · 音调+2 · 音量130%");
+        expect(audioSettingsSummary({ model: "beeftv::seed-audio-1.0", audioVoice: "male-qn-qingse", audioFormat: "mp3", audioSpeed: "1" })).toBe("Automatic (all-purpose reference) · MP3 · 1x");
+        expect(audioSettingsSummary({ model: "beeftv::seed-audio-1.0", audioVoice: "zh_male_taocheng_uranus_bigtts", audioFormat: "mp3", audioSpeed: "1.25", audioPitch: "2", audioVolume: "1.3" })).toBe("Sunshine Xiaotian · MP3 · 1.25x · Tone +2 · Volume 130%");
         expect(
             buildAudioSpeechRequest(
                 {
@@ -146,24 +146,24 @@ describe("enterprise MiniMax speech settings", () => {
                     audioSpeed: "1",
                     audioPitch: "2",
                     audioVolume: "1.3",
-                    audioInstructions: "温柔甜美少女音",
+                    audioInstructions: "Gentle and sweet girly voice",
                 },
-                "你好世界",
+                "hello world",
             ),
         ).toEqual({
             model: "seed-audio-1.0",
-            input: "你好世界",
+            input: "hello world",
             response_format: "mp3",
             speed: 1,
             pitch: 2,
             volume: 1.3,
-            instructions: "温柔甜美少女音",
+            instructions: "Gentle and sweet girly voice",
         });
     });
 
     test("prompt panel no longer overlays a fake Seed Audio summary", () => {
         const source = readFileSync(new URL("../src/components/canvas/canvas-node-prompt-panel.tsx", import.meta.url), "utf8");
-        expect(source).not.toContain("中文 · 24k · wav");
+        expect(source).not.toContain("Chinese · 24k · wav");
         expect(source).not.toContain('summaryOverride={localOnly ? "中文');
     });
 });

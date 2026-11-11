@@ -12,7 +12,7 @@ import (
 	"infinite-canvas/backend/internal/taskdelivery"
 )
 
-const taskStageRequestNotSent = "请求尚未提交"
+const taskStageRequestNotSent = "The request has not been submitted yet"
 
 type TargetBindingState string
 

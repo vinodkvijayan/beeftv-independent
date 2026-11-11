@@ -18,11 +18,11 @@ type renderSourceOpener struct {
 func (o renderSourceOpener) Open(ctx context.Context, sourceID string) (io.ReadCloser, error) {
 	_ = ctx
 	if o.service == nil {
-		return nil, fmt.Errorf("无法读取时间线引用的媒体，可能已被删除")
+		return nil, fmt.Errorf("The media referenced by the timeline cannot be read and may have been deleted")
 	}
 	_, reader, err := o.service.OpenResource(o.userID, sourceID)
 	if err != nil || reader == nil {
-		return nil, fmt.Errorf("无法读取时间线引用的媒体，可能已被删除")
+		return nil, fmt.Errorf("The media referenced by the timeline cannot be read and may have been deleted")
 	}
 	return reader, nil
 }

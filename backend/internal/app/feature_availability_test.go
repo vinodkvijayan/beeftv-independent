@@ -74,9 +74,9 @@ func TestPluginsForUserKeepsOfficialApplicationsAndHidesManagedPlugins(t *testin
 		CustomChannelsEnabled: true, PluginCenterEnabled: true, SystemPluginsVisibleToUsers: false,
 	})
 	svc.pluginRuntime = pluginRuntimeFromRecords(map[string]pluginRecord{
-		"bundled":  {Source: "bundled", Metadata: protocol.Metadata{ID: "bundled", Name: "系统协议", Version: "1"}},
-		"uploaded": {Source: "uploaded", Metadata: protocol.Metadata{ID: "uploaded", Name: "自定义协议", Version: "1"}},
-		"app":      {Source: "bundled", Metadata: protocol.Metadata{ID: PluginAIArtCritique, Name: "官方应用", Version: "1"}},
+		"bundled":  {Source: "bundled", Metadata: protocol.Metadata{ID: "bundled", Name: "System protocol", Version: "1"}},
+		"uploaded": {Source: "uploaded", Metadata: protocol.Metadata{ID: "uploaded", Name: "Custom protocol", Version: "1"}},
+		"app":      {Source: "bundled", Metadata: protocol.Metadata{ID: PluginAIArtCritique, Name: "Official app", Version: "1"}},
 	})
 
 	visibleToUser, err := svc.PluginsForUser(&model.User{ID: "user-1", Role: model.UserRoleUser})
@@ -138,7 +138,7 @@ func TestCreateTaskDoesNotClassifyCustomChannelAsMissingSystemModel(t *testing.T
 		t.Fatal("CreateTask() error = nil")
 	}
 	var authErr *AuthError
-	if !errors.As(err, &authErr) || authErr.Message != "自定义渠道暂未开放" {
+	if !errors.As(err, &authErr) || authErr.Message != "Custom channels are not yet open" {
 		t.Fatalf("CreateTask() error = %#v, want custom channel feature error", err)
 	}
 }

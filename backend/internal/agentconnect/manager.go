@@ -53,7 +53,7 @@ func (execRunner) Run(ctx context.Context, name string, args []string, env []str
 		}
 		cmd = scriptCommand(ctx, comspec, line)
 		if cmd == nil {
-			return fmt.Errorf("%w: 无法创建命令解释器", ErrUnsafeCommand)
+			return fmt.Errorf("%w: Unable to create command interpreter", ErrUnsafeCommand)
 		}
 	} else {
 		cmd = exec.CommandContext(ctx, name, args...)
@@ -224,10 +224,10 @@ func (m *Manager) Connect(kind agentops.ClientKind, spec LaunchSpec) error {
 		if errors.Is(err, ErrUnsafeCommand) {
 			return err
 		}
-		return fmt.Errorf("写入 %s 配置失败：%w", displayName(kind), err)
+		return fmt.Errorf("Failed to write %s configuration: %w", displayName(kind), err)
 	}
 	if err := m.run(cli, getArgs()); err != nil {
-		return fmt.Errorf("%s 配置没有生效：%w", displayName(kind), err)
+		return fmt.Errorf("%s configuration does not take effect: %w", displayName(kind), err)
 	}
 	// A skill ownership conflict must not fail the connection. The status
 	// reports whether the usage note was actually installed.

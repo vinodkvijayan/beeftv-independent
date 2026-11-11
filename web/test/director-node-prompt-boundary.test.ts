@@ -6,7 +6,7 @@ import { CanvasNodeType, type CanvasNodeData } from "../src/types/canvas";
 const directorNode: CanvasNodeData = {
     id: "director-1",
     type: CanvasNodeType.Director,
-    title: "导演台 1",
+    title: "Director's Podium 1",
     position: { x: 0, y: 0 },
     width: 560,
     height: 560,
@@ -21,9 +21,9 @@ test("numbering selects the first unused director title index", async () => {
     const { nextDirectorNodeIndex } = await import("../src/lib/canvas/director/director-node-naming");
     const nodes: CanvasNodeData[] = [
         directorNode,
-        { ...directorNode, id: "director-3", title: "导演台 3", metadata: { ...directorNode.metadata, shotIndex: 3 } },
+        { ...directorNode, id: "director-3", title: "Director's desk 3", metadata: { ...directorNode.metadata, shotIndex: 3 } },
     ];
 
     expect(nextDirectorNodeIndex(nodes)).toBe(2);
-    expect(nextDirectorNodeIndex([{ ...directorNode, title: "导演台" }])).toBe(2);
+    expect(nextDirectorNodeIndex([{ ...directorNode, title: "Director's desk" }])).toBe(2);
 });

@@ -43,7 +43,7 @@ func StartVideoRecoveryPass(
 		bounded, cancel := context.WithTimeout(ctx, VideoRecoveryPassTimeout)
 		defer cancel()
 		if err := recoverBatch(bounded, VideoRecoveryBatch); err != nil && logFn != nil {
-			_ = logFn("", "", "warn", "视频与超分自动取回暂缓，将稍后再试", "")
+			_ = logFn("", "", "warn", "Automatic retrieval of videos and super scores is on hold. We will try again later.", "")
 		}
 	})
 	if !started {
@@ -343,28 +343,28 @@ type VideoTaskRecoveryDeps struct {
 func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDeps, task *model.Task, claimUserID string) (*ProviderTaskQueryResult, error) {
 	ctx = generation.WithProtocolRegistry(ctx, deps.Registry)
 	if task == nil || task.ID == "" {
-		return nil, kernel.BadAuthRequest("任务不存在")
+		return nil, kernel.BadAuthRequest("Task does not exist")
 	}
 	if task.Status != model.TaskStatusFailed {
-		return nil, kernel.BadAuthRequest("只能人工查询状态为失败的任务")
+		return nil, kernel.BadAuthRequest("Only tasks with failed status can be manually queried")
 	}
 	unified, managedKind, execManaged, queryErr := deps.ManagedQuery(ctx, task)
 	if queryErr != nil {
 		return nil, queryErr
 	}
 	if unified && managedKind != "video" && managedKind != "upscale" && managedKind != "audio" {
-		return nil, kernel.BadAuthRequest("原任务不是视频或超分任务")
+		return nil, kernel.BadAuthRequest("The original mission is not a video or super score mission")
 	}
 	upscale := task.IsUpscale() || (unified && managedKind == "upscale")
 	if !strings.HasPrefix(task.Type, "canvas_video") && !strings.HasPrefix(task.Type, "video_") && !upscale && !(unified && task.Type == "canvas_audio" && managedKind == "audio") {
-		return nil, kernel.BadAuthRequest("该任务不是视频生成任务")
+		return nil, kernel.BadAuthRequest("This task is not a video generation task")
 	}
 
 	deps.HydrateReqID(task)
 	providerRequestID := strings.TrimSpace(task.ProviderRequestID)
 	if providerRequestID == "" && !unified {
 		deps.RecordMissing(task, claimUserID)
-		return nil, kernel.BadAuthRequest("该任务没有可恢复的上游任务 ID")
+		return nil, kernel.BadAuthRequest("The task has no recoverable upstream task ID")
 	}
 	var input generation.Input
 	var adapter protocol.Adapter
@@ -373,11 +373,11 @@ func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDep
 	if !unified {
 		decryptedInput, err := deps.DecryptTaskInput(task.InputJSON)
 		if err != nil {
-			return nil, fmt.Errorf("读取任务配置失败：%w", err)
+			return nil, fmt.Errorf("Failed to read task configuration: %w", err)
 		}
 		if err := json.Unmarshal([]byte(decryptedInput), &input); err != nil {
 			deps.RecordUnrecoverable(task, claimUserID)
-			return nil, fmt.Errorf("任务输入解析失败：%w", err)
+			return nil, fmt.Errorf("Task input parsing failed: %w", err)
 		}
 		config, err := deps.ResolveProviderConfig(input.Config)
 		if err != nil {
@@ -390,7 +390,7 @@ func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDep
 		legacyVideo = !officialVideo && (strings.TrimSpace(config.InterfaceType) == "" || generation.IsArkPlanVideoConfig(config))
 		if !declarative && !beefVideo && !legacyVideo && !upscale {
 			deps.RecordUnrecoverable(task, claimUserID)
-			return nil, kernel.BadAuthRequest("该任务的请求协议不支持安全查询上游状态")
+			return nil, kernel.BadAuthRequest("The request protocol of this task does not support secure querying of upstream status")
 		}
 		input.Config = config
 		task.InputJSON = decryptedInput
@@ -403,14 +403,14 @@ func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDep
 	owner := "manual-recovery:" + deps.NewID()
 	if err := deps.Repo.ClaimFailedTaskProviderRecovery(task.ID, claimUserID, owner, ProviderTaskRecoveryLeaseDuration); err != nil {
 		if errors.Is(err, repository.ErrTaskProviderRecoveryConflict) {
-			return nil, &kernel.AppError{Status: 409, Message: "该任务正在查询上游状态，请稍后再试"}
+			return nil, &kernel.AppError{Status: 409, Message: "The task is querying the upstream status, please try again later"}
 		}
 		return nil, err
 	}
 	task.LeaseOwner = owner
 	defer func() {
 		if releaseErr := deps.Repo.ReleaseTaskProviderRecovery(task.ID, owner); releaseErr != nil {
-			_ = deps.Log(task.UserID, task.ID, "error", "人工查询租约释放失败", releaseErr.Error())
+			_ = deps.Log(task.UserID, task.ID, "error", "Manual query lease release failed", releaseErr.Error())
 		}
 	}()
 
@@ -461,7 +461,7 @@ func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDep
 			task.RecoveryOutcome = &outcome
 			task.NextPollAt = next
 		}
-		_ = deps.Log(task.UserID, task.ID, "error", "人工查询上游视频任务失败", err.Error())
+		_ = deps.Log(task.UserID, task.ID, "error", "Manual query of upstream video task failed", err.Error())
 		return nil, err
 	}
 	if result == nil {
@@ -481,13 +481,13 @@ func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDep
 		}
 		projected := TaskForOutput(*task)
 		deps.AttachDelivery(projected)
-		_ = deps.Log(task.UserID, task.ID, "info", "人工查询完成，上游任务仍在处理", providerStatus)
+		_ = deps.Log(task.UserID, task.ID, "info", "Manual query completed, upstream tasks are still being processed", providerStatus)
 		return &ProviderTaskQueryResult{Task: projected, ProviderStatus: providerStatus, Recovered: false}, nil
 	}
 
 	result, err = deps.PersistGeneratedMedia(*task, result)
 	if err != nil {
-		_ = deps.Log(task.UserID, task.ID, "error", "人工查询已取得视频，但结果保存失败", err.Error())
+		_ = deps.Log(task.UserID, task.ID, "error", "Manual query has obtained the video, but the result failed to be saved.", err.Error())
 		return nil, err
 	}
 	resultJSON, err := json.Marshal(result)
@@ -498,15 +498,15 @@ func QueryFailedVideoTaskWithDeps(ctx context.Context, deps VideoTaskRecoveryDep
 	task.PollStage = strings.ToLower(providerStatus)
 	task.NextPollAt = nil
 	if err := deps.SaveTaskCompletion(task, resultJSON, nil, false); err != nil {
-		_ = deps.Log(task.UserID, task.ID, "error", "人工查询已取得视频，但任务恢复失败", err.Error())
+		_ = deps.Log(task.UserID, task.ID, "error", "Manual query has obtained the video, but the task recovery failed", err.Error())
 		return nil, err
 	}
 	if err := deps.RegisterOutput(*task); err != nil {
-		_ = deps.Log(task.UserID, task.ID, "error", "任务恢复成功但项目产物登记失败", err.Error())
-		return nil, fmt.Errorf("任务已恢复，但项目素材登记失败：%w", err)
+		_ = deps.Log(task.UserID, task.ID, "error", "Task recovery was successful but project product registration failed", err.Error())
+		return nil, fmt.Errorf("The task has been resumed, but the project material registration failed: %w", err)
 	}
 	projected := deps.AttachRecovered(task)
-	_ = deps.Log(task.UserID, task.ID, "info", "人工查询确认生成成功，任务已恢复并登记项目产物", providerStatus)
+	_ = deps.Log(task.UserID, task.ID, "info", "Manual query confirmed that the generation was successful, the task has been restored and the project products have been registered.", providerStatus)
 	return &ProviderTaskQueryResult{Task: projected, ProviderStatus: providerStatus, Recovered: true}, nil
 }
 
@@ -524,7 +524,7 @@ func SelectCatalogTask(
 	input := req.Input
 	if config, ok := input["config"].(map[string]any); ok {
 		if strings.HasPrefix(strings.TrimSpace(fmt.Sprint(config["model"])), "topaz/upscale/") || config["channelId"] == "fal-topaz-upscale" {
-			return SelectResult{}, kernel.BadAuthRequest("Topaz 请使用素材节点的 AI 超分入口")
+			return SelectResult{}, kernel.BadAuthRequest("Topaz Please use the AI super score entrance of the material node")
 		}
 	}
 	config, _ := input["config"].(map[string]any)
@@ -533,17 +533,17 @@ func SelectCatalogTask(
 	if input["upscale"] != nil || legacyKind != "" {
 		kind := kernel.StringValue(input["mode"])
 		if (kind != "image" && kind != "video") || (legacyKind != "" && kind != legacyKind) {
-			return SelectResult{}, kernel.BadAuthRequest("超分模型与任务类型不一致")
+			return SelectResult{}, kernel.BadAuthRequest("The super-resolution model is inconsistent with the task type")
 		}
 		if req.Model != name || req.Type != "canvas_"+kind || kernel.StringValue(input["mode"]) != kind {
-			return SelectResult{}, kernel.BadAuthRequest("超分模型与任务类型不一致")
+			return SelectResult{}, kernel.BadAuthRequest("The super-resolution model is inconsistent with the task type")
 		}
 		managed, err := upscaleConfig(name)
 		if err != nil {
 			return SelectResult{}, err
 		}
 		if kernel.StringValue(config["credentialRef"]) != beeftv.CredentialRef || kernel.StringValue(config["apiKey"]) != managed.APIKey || kernel.StringValue(config["baseUrl"]) != managed.BaseURL {
-			return SelectResult{}, kernel.BadAuthRequest("AI 超分需要使用已连接的官方算力账号")
+			return SelectResult{}, kernel.BadAuthRequest("AI super scores require the use of a connected official computing power account")
 		}
 	}
 	enabled, err := frontendEnabled()
@@ -610,11 +610,11 @@ func ValidateTaskMediaTransport(
 ) error {
 	raw, err := json.Marshal(input)
 	if err != nil {
-		return kernel.BadAuthRequest("任务输入格式无效")
+		return kernel.BadAuthRequest("Invalid task input format")
 	}
 	var prepared generation.Input
 	if err := json.Unmarshal(raw, &prepared); err != nil {
-		return kernel.BadAuthRequest("任务参数格式无效，请检查模型设置后重新提交")
+		return kernel.BadAuthRequest("The task parameter format is invalid, please check the model settings and resubmit.")
 	}
 	if len(prepared.ReferenceImages)+len(prepared.ReferenceVideos)+len(prepared.ReferenceAudios) == 0 && prepared.Mask == nil {
 		return nil

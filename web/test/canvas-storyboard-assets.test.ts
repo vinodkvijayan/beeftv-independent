@@ -18,9 +18,9 @@ const row: StoryboardRow = {
     id: "row-1",
     shotNumber: 1,
     durationSeconds: 6,
-    plotDescription: "雨夜追逐",
-    dialogue: "快走",
-    characters: [{ characterName: "林岚", characterAssetId: "character-asset" }],
+    plotDescription: "Chasing on a rainy night",
+    dialogue: "Go quickly",
+    characters: [{ characterName: "Lin Lan", characterAssetId: "character-asset" }],
     narrativeIntent: "",
     viewerPOV: "",
     performanceBlocking: "",
@@ -32,7 +32,7 @@ const row: StoryboardRow = {
     motion: "",
     timeBeats: "",
     imageGenerationPrompt: "",
-    videoMotionPrompt: "快速跟拍",
+    videoMotionPrompt: "Quick follow shot",
     mustHave: [],
     optionalDetails: [],
     continuityOut: "",
@@ -70,9 +70,9 @@ describe("storyboard target materializer", () => {
     it("combines stable bindings and preserves identity mentions across node order", () => {
         const references = storyboardRowReferenceNodeIds(script, row, nodes, connections, true);
         expect(references).toEqual(["project-style", "prop", "character", "manual", "first-frame"]);
-        const content = storyboardComposerContent("快速跟拍", references, nodes);
-        expect(content).toBe("参考资产：@[node:project-style] @[node:prop] @[node:character] @[node:manual] @[node:first-frame]\n快速跟拍");
-        expect(storyboardComposerContent("快速跟拍", references, [...nodes].reverse())).toBe(content);
+        const content = storyboardComposerContent("Quick follow shot", references, nodes);
+        expect(content).toBe("Reference assets: @[node:project-style] @[node:prop] @[node:character] @[node:manual] @[node:first-frame]\nQuick follow shot");
+        expect(storyboardComposerContent("Quick follow shot", references, [...nodes].reverse())).toBe(content);
 
         const withDirectManualInput = storyboardRowReferenceNodeIds(script, row, nodes, [...connections, { id: "direct", fromNodeId: "direct-manual", toNodeId: "target" }], false, "target");
         expect(withDirectManualInput).toContain("direct-manual");

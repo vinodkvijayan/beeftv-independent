@@ -133,7 +133,7 @@ func TestTaskTerminalCoordinatorHandlesCancellation(t *testing.T) {
 	if err := coordinator.HandleExecutionFailure(task, context.Canceled, false, false); err != nil {
 		t.Fatalf("handleExecutionFailure() error = %v", err)
 	}
-	if task.Status != model.TaskStatusCancelled || task.Error != "任务已取消" {
+	if task.Status != model.TaskStatusCancelled || task.Error != "Task canceled" {
 		t.Fatalf("unexpected cancelled task state: status=%s error=%q", task.Status, task.Error)
 	}
 	if len(replay.statuses) != 1 || replay.statuses[0] != model.TaskStatusCancelled || len(logger.messages) != 1 || repo.terminalCalls != 1 {

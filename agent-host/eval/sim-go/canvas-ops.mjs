@@ -8,9 +8,9 @@ import { resolveGenerationModel } from './generation.mjs';
 export const CANVAS_OPS = {
   'canvas.get': (state, rawParams) => {
     const canvasId = String(rawParams.canvasId || '').trim();
-    if (!canvasId) throw invalidArg('invalid_params', 'canvasId 必填');
+    if (!canvasId) throw invalidArg('invalid_params', 'canvasId required');
     const doc = state.canvases.get(canvasId);
-    if (!doc) throw notFound('canvas_not_found', `画布不存在: ${canvasId}`);
+    if (!doc) throw notFound('canvas_not_found', `Canvas does not exist:${canvasId}`);
     return { canvasId, canvas: clone(doc) };
   },
   'canvas.search': (state, rawParams) => {
@@ -28,35 +28,35 @@ export const CANVAS_OPS = {
     const canvasId = String(rawParams.canvasId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     const drafts = Array.isArray(rawParams.nodes) ? rawParams.nodes : [];
-    if (!canvasId) throw invalidArg('invalid_params', 'canvasId 必填');
+    if (!canvasId) throw invalidArg('invalid_params', 'canvasId required');
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision <= 0) {
-      throw invalidArg('invalid_params', '写操作必须带上读取时的 expectedRevision');
+      throw invalidArg('invalid_params', 'The write operation must carry the expectedRevision when reading');
     }
     if (drafts.length === 0 || drafts.length > 8) {
-      throw invalidArg('invalid_batch', 'nodes 必须是 1..8 项的数组');
+      throw invalidArg('invalid_batch', 'nodes must be an array of 1..8 items');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const existingTitles = new Set((doc.nodes || []).map((n) => String(n.title || '').trim()).filter(Boolean));
     const batchTitles = new Set();
     for (const draft of drafts) {
       const title = String(draft?.title || '').trim();
       const type = String(draft?.type || '').trim();
-      if (!title) throw invalidArg('invalid_params', '每个节点都需要标题');
+      if (!title) throw invalidArg('invalid_params', 'Each node needs a title');
       if (batchTitles.has(title)) {
         state.counts.duplicateNodeAttempts += 1;
-        throw invalidArg('duplicate_node_title', `同一批次内标题重复: ${title}`);
+        throw invalidArg('duplicate_node_title', `Duplicate titles within the same batch:${title}`);
       }
       batchTitles.add(title);
       if (existingTitles.has(title)) {
         state.counts.duplicateNodeAttempts += 1;
-        throw conflict('duplicate_node_title', `标题已存在: ${title}`);
+        throw conflict('duplicate_node_title', `Title already exists:${title}`);
       }
       if (!NODE_CAPABILITIES[type]) {
-        throw invalidArg('unsupported_node_type', `不支持的节点类型: ${type}`);
+        throw invalidArg('unsupported_node_type', `Unsupported node types:${type}`);
       }
     }
     let cursorX = 120;
@@ -94,34 +94,34 @@ export const CANVAS_OPS = {
     const nodeId = String(rawParams.nodeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     const patch = rawParams.patch;
-    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId 与 nodeId 必填');
+    if (!canvasId || !nodeId) throw invalidArg('invalid_params', 'canvasId and nodeId are required');
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision <= 0) {
-      throw invalidArg('invalid_params', '写操作必须带上读取时的 expectedRevision');
+      throw invalidArg('invalid_params', 'The write operation must carry the expectedRevision when reading');
     }
     if (!patch || typeof patch !== 'object' || Object.keys(patch).length === 0) {
-      throw invalidArg('empty_patch', 'patch 至少要有一个字段');
+      throw invalidArg('empty_patch', 'patch must have at least one field');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_found', `目标节点不存在: ${nodeId}`);
+    if (!node) throw notFound('node_not_found', `The target node does not exist:${nodeId}`);
     const cap = NODE_CAPABILITIES[node.type] || NODE_CAPABILITIES.text;
     node.metadata ||= {};
     if (patch.prompt !== undefined && patch.content !== undefined && patch.prompt !== patch.content) {
-      throw invalidArg('conflicting_patch_fields', 'patch.prompt 与 patch.content 不能同时提交不同内容');
+      throw invalidArg('conflicting_patch_fields', 'patch.prompt and patch.content cannot submit different content at the same time');
     }
     for (const [k, v] of Object.entries(patch)) {
       if (k === 'title') {
-        if (typeof v !== 'string') throw invalidArg('invalid_params', 'title 必须是字符串');
+        if (typeof v !== 'string') throw invalidArg('invalid_params', 'title must be a string');
         node.title = v;
       } else if (k === 'prompt' || k === 'content') {
         if (!cap.patchFields.has(k)) {
-          throw invalidArg('unsupported_field', `${node.type} 节点不支持更新字段 ${k}`);
+          throw invalidArg('unsupported_field', `${node.type} Node does not support update fields${k}`);
         }
-        if (typeof v !== 'string') throw invalidArg('invalid_params', `${k} 必须是字符串`);
+        if (typeof v !== 'string') throw invalidArg('invalid_params', `${k} Must be a string`);
         if (['image', 'video', 'audio'].includes(node.type)) {
           node.metadata.composerContent = v;
           delete node.metadata.promptTemplateOperation;
@@ -130,7 +130,7 @@ export const CANVAS_OPS = {
           node.metadata.content = v;
         }
       } else {
-        throw invalidArg('unsupported_field', `${node.type} 节点不支持更新字段 ${k}`);
+        throw invalidArg('unsupported_field', `${node.type} Node does not support update fields${k}`);
       }
     }
     const saved = saveCanvas(state, canvasId, doc, expectedRevision, 'canvas.node.update', turnId);
@@ -144,36 +144,36 @@ export const CANVAS_OPS = {
     const expectedRevision = Number(rawParams.expectedRevision);
     const patch = rawParams.patch;
     if (!canvasId || !nodeId || !kind || !Number.isSafeInteger(expectedRevision) || expectedRevision <= 0 || !patch || typeof patch !== 'object' || Object.keys(patch).length === 0) {
-      throw invalidArg('invalid_params', '需要画布、节点、类型、当前版本和参数');
+      throw invalidArg('invalid_params', 'Requires canvas, node, type, current version and parameters');
     }
     if (!['image', 'video', 'audio'].includes(kind)) {
-      throw invalidArg('unsupported_node_kind', '仅媒体生成节点支持参数配置');
+      throw invalidArg('unsupported_node_kind', 'Only media generation nodes support parameter configuration');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_found', '节点不在当前画布');
-    if (node.type !== kind) throw invalidArg('node_kind_mismatch', '参数类型与目标节点不一致');
+    if (!node) throw notFound('node_not_found', 'The node is not in the current canvas');
+    if (node.type !== kind) throw invalidArg('node_kind_mismatch', 'The parameter type is inconsistent with the target node');
     const cap = NODE_CAPABILITIES[kind];
     node.metadata ||= {};
     for (const [name, val] of Object.entries(patch)) {
       if (!cap.patchFields.has(name) || name === 'title' || name === 'content') {
-        throw invalidArg('unsupported_field', `该类型不支持参数 ${name}`);
+        throw invalidArg('unsupported_field', `This type does not support parameters${name}`);
       }
       if (name === 'count') {
         const count = Number(val);
         if (!Number.isSafeInteger(count) || count < 1 || count > 8) {
-          throw invalidArg('invalid_parameter', 'count 必须是 1..8 的整数');
+          throw invalidArg('invalid_parameter', 'count must be an integer from 1..8');
         }
         node.metadata.count = count;
         continue;
       }
       if (name === 'prompt') {
         if (typeof val !== 'string') {
-          throw invalidArg('invalid_parameter', 'prompt 必须是字符串');
+          throw invalidArg('invalid_parameter', 'prompt must be a string');
         }
         node.metadata.composerContent = val;
         delete node.metadata.promptTemplateOperation;
@@ -181,12 +181,12 @@ export const CANVAS_OPS = {
         continue;
       }
       if (typeof val !== 'string' || !val.trim()) {
-        throw invalidArg('invalid_parameter', `${name} 必须是有效字符串`);
+        throw invalidArg('invalid_parameter', `${name} Must be a valid string`);
       }
       if (name === 'model') {
         const choice = resolveGenerationModel(state, kind, val);
-        if (choice.kindMismatch) throw invalidArg('generation_model_kind_mismatch', '所选模型不支持该媒体类型');
-        if (!choice.modelKey) throw preconditionFailed('generation_model_unavailable', '所选模型当前不可用');
+        if (choice.kindMismatch) throw invalidArg('generation_model_kind_mismatch', 'The selected model does not support the media type');
+        if (!choice.modelKey) throw preconditionFailed('generation_model_unavailable', 'The selected model is currently unavailable');
         node.metadata.model = choice.modelKey;
         continue;
       }
@@ -202,18 +202,18 @@ export const CANVAS_OPS = {
     const expectedRevision = Number(rawParams.expectedRevision);
     const pos = rawParams.position;
     if (!canvasId || !nodeId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
-      throw invalidArg('invalid_params', 'canvasId、nodeId 和有效 expectedRevision 必填');
+      throw invalidArg('invalid_params', 'canvasId, nodeId and valid expectedRevision are required');
     }
     if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number' || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
-      throw invalidArg('invalid_position', 'position.x 和 position.y 必须是有效坐标');
+      throw invalidArg('invalid_position', 'position.x and position.y must be valid coordinates');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_in_canvas', '节点不属于这个画布');
+    if (!node) throw notFound('node_not_in_canvas', 'The node does not belong to this canvas');
     node.position = { x: pos.x, y: pos.y };
     const saved = saveCanvas(state, canvasId, doc, expectedRevision, 'canvas.node.move', turnId);
     return { canvasId, nodeId, revision: saved.revision };
@@ -224,15 +224,15 @@ export const CANVAS_OPS = {
     const nodeId = String(rawParams.nodeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     if (!canvasId || !nodeId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
-      throw invalidArg('invalid_params', 'canvasId、nodeId 和有效 expectedRevision 必填');
+      throw invalidArg('invalid_params', 'canvasId, nodeId and valid expectedRevision are required');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const idx = (doc.nodes || []).findIndex((n) => n.id === nodeId);
-    if (idx < 0) throw notFound('node_not_in_canvas', '节点不属于这个画布');
+    if (idx < 0) throw notFound('node_not_in_canvas', 'The node does not belong to this canvas');
     doc.nodes.splice(idx, 1);
     const deletedEdgeIds = [];
     doc.connections = (doc.connections || []).filter((edge) => {
@@ -253,23 +253,23 @@ export const CANVAS_OPS = {
     let resourceId = String(rawParams.resourceId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     if (!canvasId || !nodeId || !assetId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
-      throw invalidArg('invalid_params', '画布、节点、素材和当前版本必填');
+      throw invalidArg('invalid_params', 'Canvas, node, material and current version are required');
     }
     const asset = state.assets.get(assetId);
-    if (!asset) throw notFound('asset_not_found', '素材不存在');
+    if (!asset) throw notFound('asset_not_found', 'Material does not exist');
     if (!resourceId) resourceId = asset.resourceId;
     const resource = state.resources.get(resourceId);
-    if (!resource) throw notFound('resource_not_found', '素材资源不存在');
+    if (!resource) throw notFound('resource_not_found', 'The asset does not exist');
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_found', '节点不属于指定画布');
-    if (node.type !== asset.kind) throw invalidArg('node_kind_mismatch', '素材与参考节点类型不一致');
+    if (!node) throw notFound('node_not_found', 'Node does not belong to the specified canvas');
+    if (node.type !== asset.kind) throw invalidArg('node_kind_mismatch', 'The material and reference node types are inconsistent');
     node.metadata ||= {};
-    if (node.metadata.taskId) throw preconditionFailed('node_has_task', '请使用独立参考节点，不覆盖已有任务节点');
+    if (node.metadata.taskId) throw preconditionFailed('node_has_task', 'Please use independent reference nodes and do not overwrite existing task nodes.');
     Object.assign(node.metadata, {
       assetId: asset.id,
       resourceId: resource.id,
@@ -293,22 +293,22 @@ export const CANVAS_OPS = {
     const toNodeId = String(rawParams.toNodeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     if (!canvasId || !fromNodeId || !toNodeId) {
-      throw invalidArg('invalid_params', 'canvasId、fromNodeId、toNodeId 必填');
+      throw invalidArg('invalid_params', 'canvasId, fromNodeId, toNodeId required');
     }
-    if (fromNodeId === toNodeId) throw invalidArg('self_loop', '不能把节点连接到自身');
+    if (fromNodeId === toNodeId) throw invalidArg('self_loop', 'Cannot connect node to itself');
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const fromNode = (doc.nodes || []).find((n) => n.id === fromNodeId);
-    if (!fromNode) throw notFound('node_not_found', `起点节点不存在: ${fromNodeId}`);
+    if (!fromNode) throw notFound('node_not_found', `The starting node does not exist:${fromNodeId}`);
     const toNode = (doc.nodes || []).find((n) => n.id === toNodeId);
-    if (!toNode) throw notFound('node_not_found', `终点节点不存在: ${toNodeId}`);
+    if (!toNode) throw notFound('node_not_found', `The end node does not exist:${toNodeId}`);
     const fromCap = NODE_CAPABILITIES[fromNode.type];
     const toCap = NODE_CAPABILITIES[toNode.type];
     if (!fromCap?.canSource || !toCap?.canTarget || !toCap.acceptedInputKinds.includes(fromCap.inputKind)) {
-      throw invalidArg('invalid_connection', `不支持从 ${fromNode.type} 连接到 ${toNode.type}`);
+      throw invalidArg('invalid_connection', `Not supported from${fromNode.type} Connect to${toNode.type}`);
     }
     const existingEdge = (doc.connections || []).find((e) => e.fromNodeId === fromNodeId && e.toNodeId === toNodeId);
     if (existingEdge) {
@@ -326,15 +326,15 @@ export const CANVAS_OPS = {
     const edgeId = String(rawParams.edgeId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     if (!canvasId || !edgeId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
-      throw invalidArg('invalid_params', 'canvasId、edgeId 和有效 expectedRevision 必填');
+      throw invalidArg('invalid_params', 'canvasId, edgeId and valid expectedRevision are required');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const idx = (doc.connections || []).findIndex((e) => e.id === edgeId);
-    if (idx < 0) throw notFound('edge_not_found', '连接不属于这个画布');
+    if (idx < 0) throw notFound('edge_not_found', 'The connection does not belong to this canvas');
     doc.connections.splice(idx, 1);
     const saved = saveCanvas(state, canvasId, doc, expectedRevision, 'canvas.edge.delete', turnId);
     return { canvasId, revision: saved.revision, deletedEdgeIds: [edgeId] };
@@ -345,12 +345,12 @@ export const CANVAS_OPS = {
     const expectedRevision = Number(rawParams.expectedRevision);
     const timeline = rawParams.timeline;
     if (!canvasId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !timeline) {
-      throw invalidArg('invalid_params', 'canvasId、expectedRevision 和 timeline 必填');
+      throw invalidArg('invalid_params', 'canvasId, expectedRevision and timeline are required');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已经变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     doc.timeline = clone(timeline);
     const saved = saveCanvas(state, canvasId, doc, expectedRevision, 'canvas.timeline.update', turnId);
@@ -360,14 +360,14 @@ export const CANVAS_OPS = {
     const canvasId = String(rawParams.canvasId || '').trim();
     const expectedRevision = Number(rawParams.expectedRevision);
     if (!canvasId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
-      throw invalidArg('invalid_params', 'canvasId 和 expectedRevision 必填');
+      throw invalidArg('invalid_params', 'canvasId and expectedRevision are required');
     }
     const doc = ensureCanvas(state, canvasId);
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
-    if (!doc.timeline) throw invalidArg('invalid_timeline', '画布中没有有效时间线');
+    if (!doc.timeline) throw invalidArg('invalid_timeline', 'There is no valid timeline in the canvas');
     state.seq.task += 1;
     const taskId = `task-render-${state.seq.task}`;
     const task = {
@@ -392,12 +392,12 @@ export const CANVAS_OPS = {
     const expectedRevision = Number(rawParams.expectedRevision);
     const document = rawParams.document;
     if (!canvasId || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !document || typeof document !== 'object') {
-      throw invalidArg('invalid_params', 'canvasId、expectedRevision 和 document 必填');
+      throw invalidArg('invalid_params', 'canvasId, expectedRevision and document are required');
     }
     const doc = clone(ensureCanvas(state, canvasId));
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: doc.revision });
     }
     const merged = { ...doc, ...clone(document), id: canvasId };
     const saved = saveCanvas(state, canvasId, merged, expectedRevision, 'canvas.document.commit', turnId);

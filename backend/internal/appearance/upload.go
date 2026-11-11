@@ -65,7 +65,7 @@ func AssetMaxBytes(slot string) (int64, error) {
 	case AssetVideo:
 		return videoMaxBytes, nil
 	default:
-		return 0, kernel.BadAuthRequest("外观资源类型无效")
+		return 0, kernel.BadAuthRequest("Invalid appearance resource type")
 	}
 }
 
@@ -75,7 +75,7 @@ func ValidateUpload(slot string, header *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 	if header == nil || header.Size <= 0 || header.Size > maxBytes {
-		return "", kernel.BadAuthRequest(fmt.Sprintf("%s大小必须在 %dMB 以内", assetLabel(slot), maxBytes>>20))
+		return "", kernel.BadAuthRequest(fmt.Sprintf("%s size must be within %dMB", assetLabel(slot), maxBytes>>20))
 	}
 	file, err := header.Open()
 	if err != nil {
@@ -85,11 +85,11 @@ func ValidateUpload(slot string, header *multipart.FileHeader) (string, error) {
 	buffer := make([]byte, 512)
 	read, readErr := file.Read(buffer)
 	if readErr != nil && read == 0 {
-		return "", kernel.BadAuthRequest("外观资源内容无法读取")
+		return "", kernel.BadAuthRequest("Appearance resource content cannot be read")
 	}
 	mimeType := detectMIME(slot, buffer[:read], header.Size)
 	if _, exists := allowedMIMETypes(slot)[mimeType]; !exists {
-		return "", kernel.BadAuthRequest(assetLabel(slot) + "文件类型不受支持")
+		return "", kernel.BadAuthRequest(assetLabel(slot) + "File type is not supported")
 	}
 	return mimeType, nil
 }
@@ -116,14 +116,14 @@ func allowedMIMETypes(slot string) map[string]struct{} {
 func assetLabel(slot string) string {
 	switch slot {
 	case AssetLogo:
-		return "浅色模式品牌 Logo"
+		return "Light pattern brand logo"
 	case AssetDarkLogo:
-		return "深色模式品牌 Logo"
+		return "Dark mode branding logo"
 	case AssetPoster:
-		return "视频封面"
+		return "Video cover"
 	case AssetVideo:
-		return "品牌视频"
+		return "brand video"
 	default:
-		return "外观资源"
+		return "Appearance assets"
 	}
 }

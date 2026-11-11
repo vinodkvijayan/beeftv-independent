@@ -27,7 +27,7 @@ export function missingSkillResources(messages, resources = [], contextWindow) {
 
 // 补回消息：用同一个官方格式的技能块，前面写明原因，避免模型当成新要求。
 export function restoredSkillMessage(resources, now = Date.now()) {
-  const text = ['[系统恢复：以下技能之前已加载，因对话被压缩，原文补回。继续按它的步骤、数量和画幅限制执行；用户换了话题就不再适用。]',
+  const text = ['[System recovery: The following skills have been loaded before. Due to the compression of the dialogue, the original text has been added. Continue to follow its steps, quantity, and frame limits; it no longer applies if the user changes the topic. ]',
     ...resources.map(formatSkillBlock)].join('\n\n');
   return { role: 'user', content: [{ type: 'text', text }], timestamp: now };
 }

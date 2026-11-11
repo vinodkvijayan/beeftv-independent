@@ -530,7 +530,7 @@ func TestMediaDiscoveryExplainsEvidenceAndInspectionModes(t *testing.T) {
 			continue
 		}
 		mode := schema.Properties["mode"]
-		for _, word := range []string{"frames", "静态", "video", "连续", "audio", "声音"} {
+		for _, word := range []string{"frames", "static", "video", "continuous", "audio", "sound"} {
 			if !strings.Contains(mode.Description, word) {
 				t.Fatalf("%s mode omitted %s: %s", descriptor.ID, word, mode.Description)
 			}

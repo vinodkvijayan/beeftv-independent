@@ -27,7 +27,7 @@ func (e *Engine) CleanupAfterStartup(ctx context.Context) error {
 		// its executable. Leave retryable records intact until it exits.
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("清理升级文件失败: %w", err)
+			return fmt.Errorf("Failed to clean upgrade files: %w", err)
 		case <-time.After(250 * time.Millisecond):
 		}
 	}
@@ -103,7 +103,7 @@ func readCleanupRecord(path string, value any) error {
 		return err
 	}
 	if !info.Mode().IsRegular() || info.Size() > 64*1024 {
-		return fmt.Errorf("升级记录无效")
+		return fmt.Errorf("The upgrade record is invalid")
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {

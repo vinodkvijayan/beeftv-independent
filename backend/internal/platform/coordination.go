@@ -32,12 +32,12 @@ type channelSlotError struct {
 
 func (e channelSlotError) Error() string {
 	if errors.Is(e.err, context.DeadlineExceeded) {
-		return fmt.Sprintf("等待渠道并发槽位超时（渠道 %s，并发上限 %d）", e.scope, e.limit)
+		return fmt.Sprintf("Timeout waiting for channel concurrency slot (channel %s, concurrency upper limit %d)", e.scope, e.limit)
 	}
 	if errors.Is(e.err, context.Canceled) {
-		return fmt.Sprintf("等待渠道并发槽位已取消（渠道 %s，并发上限 %d）", e.scope, e.limit)
+		return fmt.Sprintf("Waiting for the channel concurrency slot to be canceled (channel %s, concurrency upper limit %d)", e.scope, e.limit)
 	}
-	return fmt.Sprintf("获取渠道并发配额失败（渠道 %s，并发上限 %d）：%v", e.scope, e.limit, e.err)
+	return fmt.Sprintf("Failed to obtain channel concurrency quota (channel %s, concurrency upper limit %d): %v", e.scope, e.limit, e.err)
 }
 
 func (e channelSlotError) Unwrap() error { return e.err }
@@ -108,7 +108,7 @@ func (c *Coordinator) AcquireLease(ctx context.Context, scope string, limit int,
 		return nil, false, err
 	}
 	if limit <= 0 || ttl <= 0 {
-		return nil, false, errors.New("并发租约参数无效")
+		return nil, false, errors.New("Invalid concurrent lease parameter")
 	}
 	lease := &SlotLease{coordinator: c, scope: scope, token: c.instanceID + ":" + kernel.NewID(), ttl: ttl}
 	c.localMu.Lock()
@@ -158,7 +158,7 @@ func (l *SlotLease) Renew(ctx context.Context) error {
 	c.localMu.Lock()
 	defer c.localMu.Unlock()
 	if !c.localSlots[l.scope][l.token].After(now) {
-		return errors.New("并发租约已失效")
+		return errors.New("Concurrency lease expired")
 	}
 	c.localSlots[l.scope][l.token] = now.Add(l.ttl)
 	return nil
@@ -257,18 +257,18 @@ func (s *Service) AcquireChannelSlot(ctx context.Context, channelID string, fall
 	setting, err := s.RuntimeConcurrencySetting()
 	limit := defaultChannelConcurrencyLimit()
 	if err != nil {
-		return nil, limit, channelSlotError{scope: kernel.FirstNonEmpty(strings.TrimSpace(channelID), strings.TrimSpace(fallbackScope), "unknown"), limit: limit, err: fmt.Errorf("读取全局并发配置失败：%w", err)}
+		return nil, limit, channelSlotError{scope: kernel.FirstNonEmpty(strings.TrimSpace(channelID), strings.TrimSpace(fallbackScope), "unknown"), limit: limit, err: fmt.Errorf("Failed to read global concurrency configuration: %w", err)}
 	}
 	limit = setting.ChannelConcurrency
 	scope := strings.TrimSpace(channelID)
 	if scope != "" {
 		channelLimit, err := s.host.ChannelConcurrencyLimit(scope)
 		if err != nil {
-			return nil, limit, channelSlotError{scope: scope, limit: limit, err: fmt.Errorf("读取渠道并发配置失败：%w", err)}
+			return nil, limit, channelSlotError{scope: scope, limit: limit, err: fmt.Errorf("Failed to read channel concurrent configuration: %w", err)}
 		}
 		if channelLimit > 0 {
 			if channelLimit < MinChannelConcurrencyLimit || channelLimit > MaxChannelConcurrencyLimit {
-				return nil, limit, channelSlotError{scope: scope, limit: limit, err: errors.New("渠道并发配置超出 1-999 范围")}
+				return nil, limit, channelSlotError{scope: scope, limit: limit, err: errors.New("Channel concurrency configuration exceeds 1-999 range")}
 			}
 			limit = channelLimit
 		}
@@ -276,10 +276,10 @@ func (s *Service) AcquireChannelSlot(ctx context.Context, channelID string, fall
 		scope = strings.TrimSpace(fallbackScope)
 	}
 	if scope == "" {
-		return nil, limit, channelSlotError{scope: "unknown", limit: limit, err: errors.New("渠道并发范围为空")}
+		return nil, limit, channelSlotError{scope: "unknown", limit: limit, err: errors.New("Channel concurrency range is empty")}
 	}
 	if s.Coordinator == nil {
-		return nil, limit, channelSlotError{scope: scope, limit: limit, err: errors.New("运行时协调器未初始化")}
+		return nil, limit, channelSlotError{scope: scope, limit: limit, err: errors.New("Runtime coordinator not initialized")}
 	}
 	release, err := s.Coordinator.AcquireWithWait(ctx, "channel:"+scope, limit, ttl)
 	if err != nil {
@@ -294,7 +294,7 @@ func (s *Service) Close() error {
 
 func (s *Service) AllowRequest(ctx context.Context, key string, limit int, window time.Duration) (bool, error) {
 	if s.Coordinator == nil {
-		return false, errors.New("运行时协调器未初始化")
+		return false, errors.New("Runtime coordinator not initialized")
 	}
 	return s.Coordinator.Allow(ctx, key, limit, window)
 }
@@ -308,7 +308,7 @@ func (s *Service) RequestRetryAfter(ctx context.Context, key string, window time
 
 func (s *Service) AcquireCustomRelaySlot(ctx context.Context, userID string, limit int, ttl time.Duration) (func(), bool, error) {
 	if s.Coordinator == nil {
-		return nil, false, errors.New("运行时协调器未初始化")
+		return nil, false, errors.New("Runtime coordinator not initialized")
 	}
 	return s.Coordinator.Acquire(ctx, "custom-relay:"+userID, limit, ttl)
 }
@@ -354,7 +354,7 @@ func (s *Service) RecordChannelResult(ctx context.Context, channelID string, fai
 		return err
 	}
 	if s.Coordinator == nil {
-		return errors.New("运行时协调器未初始化")
+		return errors.New("Runtime coordinator not initialized")
 	}
 	s.Coordinator.RecordChannelResult(ctx, channelID, failed, policy.Request.ChannelCircuitFailureCount, time.Duration(policy.Request.ChannelCircuitOpenSeconds)*time.Second)
 	return nil

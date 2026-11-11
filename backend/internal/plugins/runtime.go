@@ -46,7 +46,7 @@ func NewRuntime(dataDir string) (*Runtime, error) {
 
 func NewRuntimeWithStore(dataDir string, store Store) (*Runtime, error) {
 	if store == nil {
-		return nil, fmt.Errorf("插件状态存储未初始化")
+		return nil, fmt.Errorf("Plugin state storage is not initialized")
 	}
 	return newRuntime(dataDir, store, nil)
 }
@@ -57,7 +57,7 @@ func NewRuntimeWithStore(dataDir string, store Store) (*Runtime, error) {
 // only safe for callers that own their registry outright.
 func NewRuntimeWithReferences(dataDir string, store Store, references ReferenceSource) (*Runtime, error) {
 	if store == nil {
-		return nil, fmt.Errorf("插件状态存储未初始化")
+		return nil, fmt.Errorf("Plugin state storage is not initialized")
 	}
 	return newRuntime(dataDir, store, references)
 }
@@ -100,9 +100,9 @@ func (c *Runtime) open() error {
 	}
 	if err := validateAuthorityRecords(stored); err != nil {
 		if c.store != nil && !found {
-			return fmt.Errorf("读取遗留插件 registry 失败：%w", err)
+			return fmt.Errorf("Failed to read legacy plug-in registry: %w", err)
 		}
-		return fmt.Errorf("读取插件 registry 失败：%w", err)
+		return fmt.Errorf("Failed to read plug-in registry: %w", err)
 	}
 	next, err := c.reconcileBuiltIns(stored)
 	if err != nil {
@@ -158,7 +158,7 @@ func (c *Runtime) Registry() *protocol.Registry {
 
 func (c *Runtime) Package(id string) ([]byte, string, error) {
 	if c == nil {
-		return nil, "", fmt.Errorf("插件运行时未初始化")
+		return nil, "", fmt.Errorf("The plugin is not initialized when running")
 	}
 	// Serialize with install/uninstall so the blob cannot vanish mid-read.
 	// Live adapters are materialized from registry Raw, not from these bytes.
@@ -169,17 +169,17 @@ func (c *Runtime) Package(id string) ([]byte, string, error) {
 	packageDir := c.packageDir
 	c.mu.RUnlock()
 	if !ok {
-		return nil, "", fmt.Errorf("插件 %q 不存在", id)
+		return nil, "", fmt.Errorf("Plug-in %q does not exist", id)
 	}
 	if record.PackagePath == "" || strings.TrimSpace(record.PackageSHA256) == "" {
-		return nil, "", fmt.Errorf("插件 %q 没有可下载的包文件", id)
+		return nil, "", fmt.Errorf("There is no downloadable package file for plugin %q", id)
 	}
 	data, err := os.ReadFile(filepath.Join(packageDir, filepath.Base(record.PackagePath)))
 	if err != nil {
-		return nil, "", fmt.Errorf("读取插件包失败：%w", err)
+		return nil, "", fmt.Errorf("Failed to read plug-in package: %w", err)
 	}
 	if pluginHash(data) != strings.TrimSpace(record.PackageSHA256) {
-		return nil, "", fmt.Errorf("插件 %q 包内容与登记哈希不一致", id)
+		return nil, "", fmt.Errorf("The content of the plug-in %q package is inconsistent with the registration hash.", id)
 	}
 	return data, record.FileName, nil
 }

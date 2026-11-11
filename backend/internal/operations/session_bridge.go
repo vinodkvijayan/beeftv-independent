@@ -31,7 +31,7 @@ func GenerationOutputs(repo *repository.Repository, taskID string) ([]localtask.
 	}
 	outputs, err := localtask.DecodeOutputResults(results)
 	if err != nil {
-		return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorDeliveryUnreadable, Message: "任务产物无法读取，不能当作已就绪结果绑定"}
+		return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorDeliveryUnreadable, Message: "The task product cannot be read and cannot be bound as a ready result."}
 	}
 	return outputs, nil
 }
@@ -39,12 +39,12 @@ func GenerationOutputs(repo *repository.Repository, taskID string) ([]localtask.
 func OwnedReadyResource(repo *repository.Repository, userID, resourceID string) (*model.Resource, error) {
 	resourceID = strings.TrimSpace(resourceID)
 	if repo == nil || resourceID == "" {
-		return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorResourceMissing, Message: "任务资源不存在"}
+		return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorResourceMissing, Message: "Task resource does not exist"}
 	}
 	resource, err := repo.ResourceForUser(userID, resourceID)
 	if err == nil {
 		if resource.Status != model.ResourceStatusReady {
-			return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorResourceNotReady, Message: "任务资源未就绪"}
+			return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorResourceNotReady, Message: "Task resources are not ready"}
 		}
 		return resource, nil
 	}
@@ -52,15 +52,15 @@ func OwnedReadyResource(repo *repository.Repository, userID, resourceID string) 
 		return nil, err
 	}
 	if _, lookupErr := repo.Resource(resourceID); lookupErr == nil {
-		return nil, &taskbinding.Error{Status: 403, Reason: localtask.MaterializeErrorResourceForeign, Message: "任务资源不属于当前用户"}
+		return nil, &taskbinding.Error{Status: 403, Reason: localtask.MaterializeErrorResourceForeign, Message: "The task resource does not belong to the current user"}
 	}
-	return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorResourceMissing, Message: "任务资源不存在"}
+	return nil, &taskbinding.Error{Status: 412, Reason: localtask.MaterializeErrorResourceMissing, Message: "Task resource does not exist"}
 }
 
 func OwnedAsset(repo *repository.Repository, userID, assetID string) (*model.Asset, error) {
 	assetID = strings.TrimSpace(assetID)
 	if repo == nil || assetID == "" {
-		return nil, &taskbinding.Error{Status: 412, Reason: "output_not_ready", Message: "任务素材尚未就绪"}
+		return nil, &taskbinding.Error{Status: 412, Reason: "output_not_ready", Message: "Task materials are not ready yet"}
 	}
 	asset, err := repo.AssetForUser(userID, assetID)
 	if err == nil {
@@ -71,9 +71,9 @@ func OwnedAsset(repo *repository.Repository, userID, assetID string) (*model.Ass
 	}
 	existing, lookupErr := repo.Asset(assetID)
 	if lookupErr == nil && existing != nil && existing.UserID != userID {
-		return nil, &taskbinding.Error{Status: 403, Reason: localtask.MaterializeErrorAssetForeign, Message: "任务素材不属于当前用户"}
+		return nil, &taskbinding.Error{Status: 403, Reason: localtask.MaterializeErrorAssetForeign, Message: "The task material does not belong to the current user"}
 	}
-	return nil, &taskbinding.Error{Status: 412, Reason: "output_not_ready", Message: "任务素材尚未就绪"}
+	return nil, &taskbinding.Error{Status: 412, Reason: "output_not_ready", Message: "Task materials are not ready yet"}
 }
 
 func PrepareCanvasNodeBind(repo *repository.Repository, userID string, patch canvas.TaskOutputBind) (canvas.TaskOutputBind, *model.Task, error) {

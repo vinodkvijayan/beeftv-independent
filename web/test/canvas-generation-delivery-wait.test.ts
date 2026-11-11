@@ -11,14 +11,14 @@ function captured(userScope: string, epoch: number) {
 }
 
 function canvasNode(id: string, metadata: CanvasNodeData["metadata"]): CanvasNodeData {
-    return { id, type: CanvasNodeType.Image, title: "镜头", position: { x: 1, y: 1 }, width: 320, height: 220, metadata };
+    return { id, type: CanvasNodeType.Image, title: "lens", position: { x: 1, y: 1 }, width: 320, height: 220, metadata };
 }
 
 function canvasProject(id: string, nodes: CanvasNodeData[], revision = 4): CanvasProject {
     return {
         id,
         revision,
-        title: "画布",
+        title: "canvas",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
         nodes,
@@ -37,7 +37,7 @@ function mediaTask(overrides: Partial<GenerationTask> = {}): GenerationTask {
         id: "task-1",
         type: "canvas_image",
         status: "succeeded",
-        prompt: "猫",
+        prompt: "cat",
         attempts: 1,
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
@@ -164,7 +164,7 @@ describe("bindBackendCanvasGenerationResult waits for delivery", () => {
                 persistDocument: async () => undefined,
                 bindOutput: async (input) => {
                     bindCalls += 1;
-                    if (bindCalls === 1) throw new ApiError("任务产物尚未交付，不能绑定到画布", { status: 412, reason: "output_not_ready" });
+                    if (bindCalls === 1) throw new ApiError("The task product has not been delivered yet and cannot be bound to the canvas", { status: 412, reason: "output_not_ready" });
                     return bindResponse(input.operationId, project, "node-1");
                 },
                 adoptConfirmedProjection: async (adopted) => adopted,
@@ -200,7 +200,7 @@ describe("bindBackendCanvasGenerationResult waits for delivery", () => {
                 bindOutput: async (input) => {
                     operationIds.add(input.operationId);
                     if (++bindCalls > 901) throw new Error("binding escaped its deadline");
-                    throw new ApiError("素材尚未就绪", { status: 412, reason });
+                    throw new ApiError("Material is not ready yet", { status: 412, reason });
                 },
                 refreshTask: async () => deliveredTask,
                 sleep: async (delay) => { elapsed += delay; }, now: () => elapsed,

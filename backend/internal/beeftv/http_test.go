@@ -94,10 +94,10 @@ func TestAuthorizationPollNetworkFailureIsVisibleAndRecovers(t *testing.T) {
 		t.Fatal(err)
 	}
 	deadline := time.Now().Add(2 * time.Second)
-	for svc.Status().ErrorReason != "连接中断，正在重试" && time.Now().Before(deadline) {
+	for svc.Status().ErrorReason != "Connection interrupted, retrying" && time.Now().Before(deadline) {
 		time.Sleep(time.Millisecond)
 	}
-	if status := svc.Status(); status.State != StatePending || status.ErrorReason != "连接中断，正在重试" {
+	if status := svc.Status(); status.State != StatePending || status.ErrorReason != "Connection interrupted, retrying" {
 		t.Fatalf("network failure hidden: %+v", status)
 	}
 	close(resume)
@@ -169,9 +169,9 @@ func TestStartReportsConnectionFailureInsteadOfStorageFailure(t *testing.T) {
 		err    error
 		want   string
 	}{
-		{"network", 0, errors.New("synthetic secret-bearing transport failure"), "无法连接 BeefTV 服务，请检查网络后重试"},
-		{"service", 503, nil, "BeefTV 连接服务暂时不可用，请稍后重试"},
-		{"rate limit", 429, nil, "连接尝试过于频繁，请稍后重试"},
+		{"network", 0, errors.New("synthetic secret-bearing transport failure"), "Unable to connect to BeefTV service, please check the network and try again"},
+		{"service", 503, nil, "BeefTV connection service is temporarily unavailable, please try again later."},
+		{"rate limit", 429, nil, "Connection attempts too frequent, please try again later"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			svc, _, _ := testService(t, &fakeEnterprise{})
@@ -198,7 +198,7 @@ func TestConfirmationFailureOffersRetryWithoutNewAuthorization(t *testing.T) {
 		t.Fatal(err)
 	}
 	failed := waitState(t, svc, StateConnectionError)
-	if !failed.HasCredential || failed.ErrorReason != "连接确认失败，请重试" {
+	if !failed.HasCredential || failed.ErrorReason != "Connection confirmation failed, please try again" {
 		t.Fatalf("failure hidden or credential lost: %+v", failed)
 	}
 	fake.mu.Lock()

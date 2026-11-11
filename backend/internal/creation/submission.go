@@ -10,7 +10,7 @@ import (
 
 func (s *Service) Prepare(userID, id string, cmd Command) (*SubmissionOutput, error) {
 	if cmd.ItemKey == "" || len(cmd.ItemKey) > 160 {
-		return nil, kernel.BadAuthRequest("缺少稳定执行项键")
+		return nil, kernel.BadAuthRequest("Missing stable execution key")
 	}
 	run, err := s.repo.CreationRun(userID, id)
 	if err != nil {
@@ -92,7 +92,7 @@ func (s *Service) buildSubmission(userID string, repo *repository.Repository, ru
 
 func (s *Service) quoteTask(userID string, repo *repository.Repository, req *TaskRequest) (*PreparedTask, error) {
 	if s.deps.Tasks == nil {
-		return nil, kernel.NewAppError(kernel.CodeInternal, "任务准备端口不可用")
+		return nil, kernel.NewAppError(kernel.CodeInternal, "Task preparation port is unavailable")
 	}
 	if err := s.constrainTask(userID, repo, req); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (s *Service) quoteTask(userID string, repo *repository.Repository, req *Tas
 		return nil, err
 	}
 	if prepared == nil || prepared.Task == nil {
-		return nil, kernel.NewAppError(kernel.CodeInternal, "任务准备未返回可执行描述")
+		return nil, kernel.NewAppError(kernel.CodeInternal, "Task preparation did not return an executable description")
 	}
 	if err = matchResolvedSpec(requested, prepared.Config); err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (s *Service) quoteTask(userID string, repo *repository.Repository, req *Tas
 
 func (s *Service) Approve(userID, id string, cmd Command) (map[string]any, error) {
 	if len(cmd.SubmissionIDs) == 0 || len(cmd.SubmissionIDs) > 20 {
-		return nil, kernel.BadAuthRequest("请选择 1 到 20 项生成任务")
+		return nil, kernel.BadAuthRequest("Please select 1 to 20 build tasks")
 	}
 	prepared := map[string]*model.Task{}
 	signatures := map[string]string{}
@@ -150,7 +150,7 @@ func (s *Service) Approve(userID, id string, cmd Command) (map[string]any, error
 			return nil, err
 		}
 		if executionFor(quoted.Task, sig).ConfigHash != SubmissionView(*item).Execution.ConfigHash {
-			return nil, Conflict("执行配置已变化，请重新准备并确认")
+			return nil, Conflict("The execution configuration has changed, please prepare again and confirm")
 		}
 		prepared[sid] = quoted.Task
 		signatures[sid] = sig
@@ -167,7 +167,7 @@ func (s *Service) Approve(userID, id string, cmd Command) (map[string]any, error
 				return e
 			}
 			if item.RevokedAt != nil {
-				return Conflict("执行项已撤销")
+				return Conflict("The execution item has been canceled")
 			}
 			var request TaskRequest
 			if e = json.Unmarshal([]byte(item.RequestJSON), &request); e != nil {
@@ -233,7 +233,7 @@ func (s *Service) Execute(userID, id string, cmd Command) (*model.Task, error) {
 		return nil, err
 	}
 	if executionFor(quoted.Task, signature).ConfigHash != SubmissionView(*item).Execution.ConfigHash {
-		return nil, Conflict("执行配置已变化，请重新确认")
+		return nil, Conflict("The execution configuration has changed, please reconfirm")
 	}
 	input := quoted.Input
 	if input == nil {
@@ -242,7 +242,7 @@ func (s *Service) Execute(userID, id string, cmd Command) (*model.Task, error) {
 		}
 	}
 	if s.deps.Secrets == nil {
-		return nil, kernel.NewAppError(kernel.CodeInternal, "任务密钥保护不可用")
+		return nil, kernel.NewAppError(kernel.CodeInternal, "Task key protection is not available")
 	}
 	if err = s.deps.Secrets.Protect(input); err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (s *Service) Execute(userID, id string, cmd Command) (*model.Task, error) {
 	quoted.Task.InputJSON = string(raw)
 	quoted.Task.CreationSubmissionID = &item.ID
 	if s.deps.Tasks == nil {
-		return nil, kernel.NewAppError(kernel.CodeInternal, "任务准入端口不可用")
+		return nil, kernel.NewAppError(kernel.CodeInternal, "Task access port is unavailable")
 	}
 	var admitted *model.Task
 	err = s.repo.MutateCreationRun(userID, id, func(current *model.CreationRun, repo *repository.Repository) error {
@@ -274,7 +274,7 @@ func (s *Service) Execute(userID, id string, cmd Command) (*model.Task, error) {
 			return nil
 		}
 		if fresh.ApprovedAt == nil || fresh.RevokedAt != nil {
-			return Conflict("任务尚未批准或执行项已撤销")
+			return Conflict("The task has not been approved or the execution item has been canceled")
 		}
 		if e = ValidateSubmissionScope(current, fresh.ProposalVersion, request); e != nil {
 			return e

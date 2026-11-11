@@ -24,7 +24,7 @@ func TestBundledWindowsHEVCWithoutSystemFFmpeg(t *testing.T) {
 	if err != nil || filepath.Base(filepath.Dir(binary)) != "media-runtime" {
 		t.Fatalf("bundle not used: %s %v", binary, err)
 	}
-	src, dst := filepath.Join(t.TempDir(), "源视频.mp4"), filepath.Join(t.TempDir(), "预览.mp4")
+	src, dst := filepath.Join(t.TempDir(), "Source video.mp4"), filepath.Join(t.TempDir(), "preview.mp4")
 	cmd := exec.Command(binary, "-nostdin", "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=64x48:r=5:d=0.4", "-c:v", "libx265", "-x265-params", "pools=1:frame-threads=1", "-tag:v", "hvc1", "-pix_fmt", "yuv420p", src)
 	mediatools.HideConsole(cmd)
 	if out, err := cmd.CombinedOutput(); err != nil {

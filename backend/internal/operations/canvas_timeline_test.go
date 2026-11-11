@@ -53,7 +53,7 @@ func TestTimelineUpdatePreservesOtherFieldsAndRejectsUnauthorizedSources(t *test
 	args := map[string]any{"canvasId": "canvas", "expectedRevision": 4, "timeline": map[string]any{"version": 2, "durationMs": 2000, "tracks": []any{map[string]any{"id": "v", "kind": "video", "muted": true}}, "clips": []any{map[string]any{"id": "clip", "kind": "video", "nodeId": "node", "trackId": "v", "startMs": 0, "durationMs": 2000, "sourceStartMs": 1000, "volume": 0}}}}
 	inputTimeline := args["timeline"].(map[string]any)
 	inputTimeline["output"] = map[string]any{"width": 720, "height": 1280, "fps": 24}
-	inputTimeline["tracks"].([]any)[0].(map[string]any)["label"] = "主画面"
+	inputTimeline["tracks"].([]any)[0].(map[string]any)["label"] = "Home screen"
 	inputTimeline["tracks"].([]any)[0].(map[string]any)["order"] = 4
 	raw, _ := json.Marshal(args)
 	result, err := opCanvasTimelineUpdate(ctx, raw)
@@ -78,7 +78,7 @@ func TestTimelineUpdatePreservesOtherFieldsAndRejectsUnauthorizedSources(t *test
 	if err != nil || plan.Segments[0].SourceID != "media" {
 		t.Fatalf("native render source incorrect: %+v %v", plan, err)
 	}
-	if plan.Output.Width != 720 || plan.Output.Height != 1280 || savedTimeline.Tracks[0].Label != "主画面" || savedTimeline.Tracks[0].Order == nil || *savedTimeline.Tracks[0].Order != 4 {
+	if plan.Output.Width != 720 || plan.Output.Height != 1280 || savedTimeline.Tracks[0].Label != "Home screen" || savedTimeline.Tracks[0].Order == nil || *savedTimeline.Tracks[0].Order != 4 {
 		t.Fatalf("saved timeline lost editable output or tracks: %s", savedRaw)
 	}
 	delete(after, "timeline")

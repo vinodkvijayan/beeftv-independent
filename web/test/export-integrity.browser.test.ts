@@ -43,7 +43,7 @@ test("the actual library export shows a stalled file, suppresses duplicate click
     page.on("pageerror", (error) => errors.push(error.message));
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await page.getByRole("button", { name: "Test missing export" }).waitFor();
         const project = await page.evaluate(() => (window as any).exportFixture.seedBlockingExport());
         await page.route("**/api/canvas-projects/blocked-export", (route) => route.fulfill({ json: { code: 0, data: { project: { ...project, revision: 1 } } } }));
         await page.route("**/api/resources/blocked-export/file*", async (route) => {
@@ -51,16 +51,16 @@ test("the actual library export shows a stalled file, suppresses duplicate click
             await gate;
             await route.fulfill({ status: 200, contentType: "audio/wav", body: "late media bytes" });
         });
-        await page.getByRole("checkbox", { name: "选择 测试 blocked-export" }).check();
+        await page.getByRole("checkbox", { name: "Select test blocked-export" }).check();
         const downloadStarted = page.waitForRequest((request) => request.url().includes("/resources/blocked-export/file"));
-        await page.getByRole("button", { name: "导出", exact: true }).click();
-        await page.getByRole("status").filter({ hasText: "正在读取文件 0/1" }).waitFor();
+        await page.getByRole("button", { name: "Export", exact: true }).click();
+        await page.getByRole("status").filter({ hasText: "Reading file 0/1" }).waitFor();
         await downloadStarted;
-        await page.getByRole("button", { name: "导出", exact: true }).evaluate((button: HTMLButtonElement) => button.click());
-        await page.getByRole("checkbox", { name: "选择 测试 blocked-export" }).uncheck();
-        await page.getByRole("status").filter({ hasText: "正在读取文件 0/1" }).waitFor();
-        await page.getByRole("button", { name: "取消导出", exact: true }).click();
-        await page.getByRole("button", { name: "取消导出", exact: true }).waitFor({ state: "detached" });
+        await page.getByRole("button", { name: "Export", exact: true }).evaluate((button: HTMLButtonElement) => button.click());
+        await page.getByRole("checkbox", { name: "Select test blocked-export" }).uncheck();
+        await page.getByRole("status").filter({ hasText: "Reading file 0/1" }).waitFor();
+        await page.getByRole("button", { name: "Cancel export", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel export", exact: true }).waitFor({ state: "detached" });
         release();
         expect(requests).toBe(1);
         expect((await page.evaluate(() => (window as any).exportFixture.snapshot())).archive).toBe("");
@@ -74,16 +74,16 @@ test("ZIP from real browser storage imports through CanvasPage into a fresh brow
     try {
         const page = await source.newPage();
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await page.getByRole("button", { name: "Test missing export" }).waitFor();
         const archive = await page.evaluate(async () => (window as any).exportFixture.export());
         const imported = await target.newPage();
         await imported.goto(server.url.toString());
-        await imported.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await imported.getByRole("button", { name: "Test missing export" }).waitFor();
         const before = await imported.evaluate(async () => (window as any).exportFixture.snapshot());
         expect(before.projects).toHaveLength(0);
         expect(before.media).toBeNull();
         await imported.locator('input[type="file"]').setInputFiles({ name: "fixture.zip", mimeType: "application/zip", buffer: Buffer.from(archive, "base64") });
-        await imported.getByText("已导入 2 个画布并保存到本地", { exact: true }).waitFor({ timeout: 15_000 });
+        await imported.getByText("2 canvases have been imported and saved locally", { exact: true }).waitFor({ timeout: 15_000 });
         const after = await imported.evaluate(async () => (window as any).exportFixture.snapshot());
         expect(after.projects).toHaveLength(2);
         expect(after.media).toBe("unique archive bytes");
@@ -95,7 +95,7 @@ test("ZIP from real browser storage imports through CanvasPage into a fresh brow
             expect(media.url).not.toBe("blob:expired");
         }
         await imported.reload();
-        await imported.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await imported.getByRole("button", { name: "Test missing export" }).waitFor();
         const reloaded = await imported.evaluate(async () => (window as any).exportFixture.snapshot());
         expect(reloaded.projects).toHaveLength(2);
         expect(reloaded.media).toBe("unique archive bytes");
@@ -108,16 +108,16 @@ test("empty workspace ZIP restores into a fresh empty browser workspace", async 
     try {
         const page = await source.newPage();
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await page.getByRole("button", { name: "Test missing export" }).waitFor();
         const archive = await page.evaluate(async () => (window as any).exportFixture.exportEmpty());
         const imported = await target.newPage();
         await imported.goto(server.url.toString());
-        await imported.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await imported.getByRole("button", { name: "Test missing export" }).waitFor();
         const before = await imported.evaluate(async () => (window as any).exportFixture.snapshot());
         expect(before.projects).toHaveLength(0);
         expect(before.media).toBeNull();
         await imported.locator('input[type="file"]').setInputFiles({ name: "empty.zip", mimeType: "application/zip", buffer: Buffer.from(archive, "base64") });
-        await imported.getByText("已导入 0 个画布并保存到本地", { exact: true }).waitFor({ timeout: 15_000 });
+        await imported.getByText("0 canvases imported and saved locally", { exact: true }).waitFor({ timeout: 15_000 });
         const after = await imported.evaluate(async () => (window as any).exportFixture.snapshot());
         expect(after.projects).toHaveLength(0);
         expect(after.media).toBeNull();
@@ -129,7 +129,7 @@ test("corrupt canvas ZIP fails in an empty workspace and writes no media", async
     try {
         const page = await context.newPage();
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await page.getByRole("button", { name: "Test missing export" }).waitFor();
         await page.locator('input[type="file"]').setInputFiles({
             name: "corrupt.zip",
             mimeType: "application/zip",
@@ -147,7 +147,7 @@ test("missing-file error is actually visible and no archive is saved", async () 
     try {
         const page = await context.newPage();
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "测试缺失导出" }).click();
+        await page.getByRole("button", { name: "Test missing export" }).click();
         await page.getByText(/导出未完成：缺少 1 个文件/).waitFor();
         expect(await page.getByText(/导出未完成：缺少 1 个文件/).innerText()).toContain("audio:fixture:voice");
         expect((await page.evaluate(async () => (window as any).exportFixture.snapshot())).archive).toBe("");
@@ -174,18 +174,18 @@ test("automatic canvas creation failure leaves the opening screen and shows a re
         page.on("pageerror", (error) => pageErrors.push(error.message));
         page.on("console", (entry) => { if (entry.type() === "error") consoleErrors.push(entry.text()); });
         page.on("request", (request) => { if (request.url().includes("/api/")) requests.push(`${request.method()} ${request.url()}`); });
-        await page.route("**/api/ops/**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: 503, msg: "测试保存失败", reason: "storage_unavailable" }) }));
+        await page.route("**/api/ops/**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: 503, msg: "Test save failed", reason: "storage_unavailable" }) }));
         await page.route("**/api/canvas-projects/*", (route) => route.request().method() === "PUT"
-            ? route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: 503, msg: "测试保存失败", reason: "storage_unavailable" }) })
+            ? route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: 503, msg: "Test save failed", reason: "storage_unavailable" }) })
             : route.continue());
         const url = new URL(server.url);
         url.hostname = "127.0.0.1";
         url.search = "?new=1";
         await page.goto(url.toString());
-        await page.getByText("测试保存失败", { exact: true }).waitFor({ timeout: 5000 }).catch(async () => { throw new Error(JSON.stringify({ text: await page.locator("body").innerText(), requests, pageErrors, consoleErrors, messages: await page.evaluate(() => (window as any).creationMessages) })); });
+        await page.getByText("Test save failed", { exact: true }).waitFor({ timeout: 5000 }).catch(async () => { throw new Error(JSON.stringify({ text: await page.locator("body").innerText(), requests, pageErrors, consoleErrors, messages: await page.evaluate(() => (window as any).creationMessages) })); });
         expect(requests.some((entry) => entry.startsWith("PUT ") && entry.includes("/api/canvas-projects/"))).toBe(true);
-        expect(await page.getByText("正在打开画布...", { exact: true }).count()).toBe(0);
-        expect(await page.getByRole("button", { name: "开始创作", exact: true }).count()).toBe(1);
+        expect(await page.getByText("Opening canvas...", { exact: true }).count()).toBe(0);
+        expect(await page.getByRole("button", { name: "Start creating", exact: true }).count()).toBe(1);
         expect(await page.getByTestId("canvas-route").textContent()).toBe("/canvas?mode=new");
 
         // Retry must also wait for a durable receipt before navigating.
@@ -202,7 +202,7 @@ test("automatic canvas creation failure leaves the opening screen and shows a re
             await saveGate;
             await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ code: 0, data: { project: { ...project, revision: 1 } } }) });
         });
-        await page.getByRole("button", { name: "开始创作", exact: true }).click();
+        await page.getByRole("button", { name: "Start creating", exact: true }).click();
         await saveStarted;
         expect(await page.getByTestId("canvas-route").textContent()).toBe("/canvas?mode=new");
         acceptSave();
@@ -216,7 +216,7 @@ test("fresh IndexedDB can initialize app_state and folder pending together", asy
     try {
         const page = await context.newPage();
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "测试缺失导出" }).waitFor();
+        await page.getByRole("button", { name: "Test missing export" }).waitFor();
         const result = await page.evaluate(async () => (window as any).exportFixture.probeSharedStores());
         expect(result.error).toBeUndefined();
         expect(result.journal).toBe("{\"ok\":true}");

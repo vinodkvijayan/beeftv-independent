@@ -196,8 +196,8 @@ test("stalled app_state cache getItem does not block a draft setItem", async () 
         const storage = localForageStorageForScope("owner-a");
         const read = storage.getItem("infinite-canvas:asset_store");
         await entered.promise;
-        await storage.setItem("infinite-canvas:asset_store_drafts", JSON.stringify({ drafts: { asset: { title: "编辑后" } } }));
-        expect([...values.entries()].some(([key, value]) => String(key).includes("asset_store_drafts") && String(value).includes("编辑后"))).toBe(true);
+        await storage.setItem("infinite-canvas:asset_store_drafts", JSON.stringify({ drafts: { asset: { title: "After editing" } } }));
+        expect([...values.entries()].some(([key, value]) => String(key).includes("asset_store_drafts") && String(value).includes("After editing"))).toBe(true);
         gate.resolve();
         await read;
     } finally {

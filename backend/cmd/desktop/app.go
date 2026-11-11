@@ -69,7 +69,7 @@ func (a *DesktopApp) start(ctx context.Context) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.migrating || a.closing {
-		return errors.New("本地工作区正在关闭或迁移，请稍后重试")
+		return errors.New("The local workspace is being shut down or migrated, please try again later")
 	}
 	if a.runtime() != nil {
 		return nil
@@ -110,7 +110,7 @@ func openDesktopRuntime(ctx context.Context, dataDir string) (*bootstrap.Runtime
 	// not stop the desktop from opening; the explicit --harness-runtime path
 	// still fails because it checks that the bridge exists.
 	if err := startDesktopHarness(runtime, dataDir); err != nil {
-		log.Printf("DSH 桥接未启动，不影响桌面使用：%v", err)
+		log.Printf("DSH bridge is not started and does not affect desktop use: %v", err)
 	}
 	return runtime, nil
 }
@@ -184,7 +184,7 @@ func (a *DesktopApp) SaveOwnedArchive(fileName string, entries []bootstrap.Owned
 	return a.saveToChosenPath(fileName, func(path string) error {
 		runtime := a.runtime()
 		if runtime == nil {
-			return errors.New("本地后端尚未就绪")
+			return errors.New("The local backend is not ready yet")
 		}
 		ctx, err := a.dialogContext()
 		if err != nil {
@@ -207,7 +207,7 @@ func (a *DesktopApp) saveToChosenPath(fileName string, write func(path string) e
 		return false, nil
 	}
 	if err := ctx.Err(); err != nil {
-		return false, errors.New("应用已关闭，无法保存文件")
+		return false, errors.New("The app is closed and the file cannot be saved")
 	}
 	if err := write(path); err != nil {
 		return false, err
@@ -219,10 +219,10 @@ func (a *DesktopApp) dialogContext() (context.Context, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	if a.wailsCtx == nil {
-		return nil, errors.New("应用尚未就绪，无法保存文件")
+		return nil, errors.New("The app is not ready yet and the file cannot be saved")
 	}
 	if err := a.wailsCtx.Err(); err != nil {
-		return nil, errors.New("应用已关闭，无法保存文件")
+		return nil, errors.New("The app is closed and the file cannot be saved")
 	}
 	return a.wailsCtx, nil
 }
@@ -240,13 +240,13 @@ func (a *DesktopApp) promptSavePath(ctx context.Context, fileName string) (strin
 func mediaSaveDialogOptions(fileName, platform string) wailsruntime.SaveDialogOptions {
 	options := wailsruntime.SaveDialogOptions{
 		DefaultFilename: fileName,
-		Title:           "保存文件",
+		Title:           "save file",
 	}
 	// Native save panels use this filter to preserve the format when a user
 	// renames a file. Let the panel resolve the extension before overwrite checks.
 	if ext := filepath.Ext(fileName); (platform == "windows" || platform == "darwin") && len(ext) > 1 {
 		options.Filters = []wailsruntime.FileFilter{{
-			DisplayName: strings.ToUpper(ext[1:]) + " 文件 (*" + ext + ")",
+			DisplayName: strings.ToUpper(ext[1:]) + " File(*" + ext + ")",
 			Pattern:     "*" + ext,
 		}}
 	}
@@ -262,7 +262,7 @@ func (a *DesktopApp) copyMedia(resourceID, destPath string) error {
 	}
 	runtime := a.runtime()
 	if runtime == nil {
-		return errors.New("本地后端尚未就绪")
+		return errors.New("The local backend is not ready yet")
 	}
 	return runtime.CopyOwnedResourceTo(resourceID, destPath)
 }
@@ -272,8 +272,8 @@ func (a *DesktopApp) startup(ctx context.Context) {
 	a.wailsCtx = ctx
 	a.mu.Unlock()
 	if err := prepareDesktopApp(a); err != nil {
-		log.Printf("启动本地后端失败: %v", err)
-		wailsruntime.LogErrorf(ctx, "启动本地后端失败: %v", err)
+		log.Printf("Failed to start local backend: %v", err)
+		wailsruntime.LogErrorf(ctx, "Failed to start local backend: %v", err)
 		wailsruntime.Quit(ctx)
 	}
 }
@@ -291,7 +291,7 @@ func (a *DesktopApp) shutdown(_ context.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := a.stop(ctx); err != nil {
-		log.Printf("关闭本地后端失败: %v", err)
+		log.Printf("Failed to close local backend: %v", err)
 	}
 }
 

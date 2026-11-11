@@ -33,11 +33,11 @@ test("canvas does not take a paste from a text field focused inside a canvas con
 test("node clipboard markers are recognized from the shared prefixes", () => {
     expect(isCanvasNodeClipboardMarker(`${CANVAS_NODES_CLIPBOARD_PREFIX}1700000000000:2`)).toBe(true);
     expect(isCanvasNodeClipboardMarker(` ${CANVAS_NODES_JSON_CLIPBOARD_PREFIX}{}`)).toBe(true);
-    expect(isCanvasNodeClipboardMarker("操作说明")).toBe(false);
+    expect(isCanvasNodeClipboardMarker("Operating Instructions")).toBe(false);
 });
 
 test("plain text paste consumes the event without reading a stale system image", async () => {
-    expect(await readCanvasClipboard(event("操作说明"), forbiddenClipboard)).toBe("操作说明");
+    expect(await readCanvasClipboard(event("Operating Instructions"), forbiddenClipboard)).toBe("Operating Instructions");
 });
 
 test("empty paste does not reread previous text or images", async () => {

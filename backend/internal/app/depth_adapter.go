@@ -95,16 +95,16 @@ func (t depthTasks) Complete(task *model.Task, result depthcapture.Result) error
 	}
 	payload, _ := json.Marshal(result)
 	task.Status = model.TaskStatusSucceeded
-	task.Stage = "已完成"
+	task.Stage = "Completed"
 	task.Progress = 100
 	task.ResultJSON = string(payload)
 	completedAt := time.Now()
 	task.CompletedAt = &completedAt
 	if err := t.w.service.repo.SaveTaskCompletion(task, model.TaskStatusRunning, nil); err != nil {
-		return fmt.Errorf("写入深度处理完成态失败: %w", err)
+		return fmt.Errorf("Failed to write depth processing completion status: %w", err)
 	}
 	if err := t.w.service.DeliverSucceededTask(*task); err != nil {
-		_ = t.w.service.log(task.UserID, task.ID, "error", "深度处理成功但结果交付失败", err.Error())
+		_ = t.w.service.log(task.UserID, task.ID, "error", "Depth processing succeeded but result delivery failed", err.Error())
 	}
 	return nil
 }

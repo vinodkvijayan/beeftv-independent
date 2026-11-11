@@ -55,7 +55,7 @@ func (s *Service) contextActor(userID, canvasID, sessionID string) error {
 		return storeUnavailable()
 	}
 	if !durableContextSession.MatchString(sessionID) {
-		return contextError("invalid_skill_session", "请选择有效的助手会话")
+		return contextError("invalid_skill_session", "Please select a valid assistant session")
 	}
 	if err := requireActor(userID, canvasID); err != nil {
 		return err
@@ -129,7 +129,7 @@ func (s *Service) ChangeSkillContextValidated(userID, canvasID string, change Sk
 // across a skill revision. User selections and resets use the normal path.
 func (s *Service) LoadTurnSkillContextValidated(userID, canvasID, turnID string, change SkillContextChange, validate SkillPinValidator) (*SkillContext, error) {
 	if validate == nil || turnID == "" || change.Action != "activate" {
-		return nil, contextError("invalid_skill_context_request", "技能加载参数无效")
+		return nil, contextError("invalid_skill_context_request", "Invalid skill loading parameters")
 	}
 	return s.changeSkillContext(userID, canvasID, change, validate, turnID)
 }
@@ -139,15 +139,15 @@ func (s *Service) changeSkillContext(userID, canvasID string, change SkillContex
 		return nil, err
 	}
 	if strings.TrimSpace(change.RequestID) == "" || len(change.RequestID) > 160 || change.ExpectedRevision < 0 {
-		return nil, contextError("invalid_skill_context_request", "技能请求参数无效")
+		return nil, contextError("invalid_skill_context_request", "Invalid skill request parameters")
 	}
 	switch change.Action {
 	case "activate", "refresh", "clear", "new_scope":
 	default:
-		return nil, contextError("invalid_skill_context_action", "技能操作无效")
+		return nil, contextError("invalid_skill_context_action", "Skill operation is invalid")
 	}
 	if len(change.Pins) > 4 {
-		return nil, contextError("skill_selection_limit", "最多使用 4 个技能")
+		return nil, contextError("skill_selection_limit", "Use up to 4 skills")
 	}
 	seen := map[string]bool{}
 	for _, pin := range change.Pins {
@@ -155,12 +155,12 @@ func (s *Service) changeSkillContext(userID, canvasID string, change SkillContex
 			return nil, err
 		}
 		if seen[pin.SkillID] {
-			return nil, contextError("invalid_skill_selection", "技能重复")
+			return nil, contextError("invalid_skill_selection", "Skill duplication")
 		}
 		seen[pin.SkillID] = true
 	}
 	if (change.Action == "clear" || change.Action == "refresh") && len(change.Pins) > 0 {
-		return nil, contextError("invalid_skill_context_request", "此操作不接受新的技能")
+		return nil, contextError("invalid_skill_context_request", "This operation does not accept new skills")
 	}
 	digestBody, _ := json.Marshal(struct {
 		Action          string
@@ -199,7 +199,7 @@ func (s *Service) changeSkillContext(userID, canvasID string, change SkillContex
 		var receipt model.AssistantSkillContextMutation
 		if err := tx.Where(&key).First(&receipt).Error; err == nil {
 			if receipt.Digest != digest {
-				return contextError("skill_context_request_conflict", "相同请求标识已用于不同技能操作")
+				return contextError("skill_context_request_conflict", "The same request ID has been used for different skill operations")
 			}
 			if json.Unmarshal([]byte(receipt.ResultJSON), &result) != nil {
 				return errCorruptStored()
@@ -213,10 +213,10 @@ func (s *Service) changeSkillContext(userID, canvasID string, change SkillContex
 			return err
 		}
 		if row.Lifecycle != "active" {
-			return contextError("skill_scope_reset_pending", "独立任务正在准备，请重试原请求")
+			return contextError("skill_scope_reset_pending", "The independent task is being prepared, please retry the original request.")
 		}
 		if row.Revision != change.ExpectedRevision {
-			return contextError("skill_context_revision_conflict", "技能状态已变化，请刷新后重试")
+			return contextError("skill_context_revision_conflict", "The skill status has changed, please refresh and try again.")
 		}
 		current, err := contextProjection(*row)
 		if err != nil {
@@ -259,7 +259,7 @@ func (s *Service) changeSkillContext(userID, canvasID string, change SkillContex
 			return update.Error
 		}
 		if update.RowsAffected != 1 {
-			return contextError("skill_context_revision_conflict", "技能状态已变化，请刷新后重试")
+			return contextError("skill_context_revision_conflict", "The skill status has changed, please refresh and try again.")
 		}
 		if skillLoadTurnID != "" {
 			// A runtime tool load does not replace user intent. Carry every still
@@ -297,7 +297,7 @@ func (s *Service) AcknowledgeSkillScope(userID, canvasID, sessionID, scopeID str
 			return err
 		}
 		if row.ScopeID != scopeID || row.Revision != revision {
-			return contextError("skill_context_revision_conflict", "独立任务状态已变化")
+			return contextError("skill_context_revision_conflict", "Independent task status has changed")
 		}
 		if row.Lifecycle == "reset_pending" {
 			if err := tx.Model(row).Update("lifecycle", "active").Error; err != nil {

@@ -23,17 +23,17 @@ func registerCanvasNodeConfigureOps(r *Registry) {
 			switch name {
 			case "count":
 				property["type"] = "integer"
-				property["description"] = "图片生成数量"
+				property["description"] = "Number of pictures generated"
 			case "generateAudio", "watermark", "transparentBackground":
 				property["enum"] = []string{"true", "false"}
 			case "model":
-				property["description"] = "从 model.catalog 选择的完整模型键 channelId::modelKey"
+				property["description"] = "Full model key channelId::modelKey selected from model.catalog"
 			case "size":
-				property["description"] = "图片尺寸或视频画幅比例。视频从 model.catalog 的 capabilityConfig.video.ratios 选择，例如 16:9。视频分辨率使用 vquality"
+				property["description"] = "Image size or video aspect ratio. Video is selected from capabilityConfig.video.ratios in model.catalog, for example 16:9. Video resolution using vquality"
 			case "vquality":
-				property["description"] = "视频输出分辨率。从 model.catalog 的 capabilityConfig.video.resolutions 选择，例如 480p、768p、1080p"
+				property["description"] = "Video output resolution. Select from capabilityConfig.video.resolutions in model.catalog, e.g. 480p, 768p, 1080p"
 			case "seconds":
-				property["description"] = "视频输出时长，单位秒。从 model.catalog 的 capabilityConfig.video.duration 选择，以字符串传入"
+				property["description"] = "Video output duration, in seconds. Select from capabilityConfig.video.duration in model.catalog, passed in as a string"
 			}
 			properties[name] = property
 		}
@@ -43,7 +43,7 @@ func registerCanvasNodeConfigureOps(r *Registry) {
 			"kind": map[string]any{"type": "string", "enum": []string{"image", "video", "audio"}}, "expectedRevision": map[string]any{"type": "integer", "minimum": 1},
 			"patch": map[string]any{"type": "object", "minProperties": 1, "additionalProperties": false, "properties": properties}},
 		"required": []string{"canvasId", "nodeId", "kind", "expectedRevision", "patch"}})
-	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.node.configure", Summary: "设置媒体节点的提示词草稿与生成参数；不启动生成", Scope: ScopeCanvas, Params: params, Handler: opCanvasNodeConfigure})
+	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.node.configure", Summary: "Set the prompt word draft and generation parameters of the media node; do not start generation", Scope: ScopeCanvas, Params: params, Handler: opCanvasNodeConfigure})
 }
 
 func opCanvasNodeConfigure(ctx *Context, raw json.RawMessage) (any, error) {
@@ -58,10 +58,10 @@ func opCanvasNodeConfigure(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if args.CanvasID == "" || args.NodeID == "" || args.ExpectedRevision <= 0 || len(args.Patch) == 0 {
-		return nil, InvalidArg("invalid_params", "需要画布、节点、类型、当前版本和参数")
+		return nil, InvalidArg("invalid_params", "Requires canvas, node, type, current version and parameters")
 	}
 	if args.Kind != "image" && args.Kind != "video" && args.Kind != "audio" {
-		return nil, InvalidArg("unsupported_node_kind", "仅媒体生成节点支持参数配置")
+		return nil, InvalidArg("unsupported_node_kind", "Only media generation nodes support parameter configuration")
 	}
 	canvasRaw, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
 	if err != nil {
@@ -72,14 +72,14 @@ func opCanvasNodeConfigure(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, AsError(err)
 	}
 	if revision := canvasRevision(doc); revision != args.ExpectedRevision {
-		return nil, Conflict("revision_conflict", "画布已变化，请重新读取", map[string]any{"currentRevision": revision})
+		return nil, Conflict("revision_conflict", "The canvas has changed, please read again", map[string]any{"currentRevision": revision})
 	}
 	node := findDocNode(doc, args.NodeID)
 	if node == nil {
-		return nil, NotFound("node_not_found", "节点不在当前画布")
+		return nil, NotFound("node_not_found", "The node is not in the current canvas")
 	}
 	if node["type"] != args.Kind {
-		return nil, InvalidArg("node_kind_mismatch", "参数类型与目标节点不一致")
+		return nil, InvalidArg("node_kind_mismatch", "The parameter type is inconsistent with the target node")
 	}
 	// 节点上已有的草稿参数先铺底、patch 再覆盖：只改 size 时也要能看出节点是不是正在拆图层。
 	base := stringParameters(dependencyMetadata(node))
@@ -110,19 +110,19 @@ func resolveGenerationDraft(ctx *Context, kind string, raw map[string]json.RawMe
 	for name, value := range raw {
 		field, ok := descriptor.PatchFields[name]
 		if !ok || name == "title" || name == "content" {
-			return nil, InvalidArg("unsupported_field", "该类型不支持参数 "+name)
+			return nil, InvalidArg("unsupported_field", "This type does not support parameters"+name)
 		}
 		if name == "count" {
 			var count int
 			if err := json.Unmarshal(value, &count); err != nil || count < 1 || count > 8 {
-				return nil, InvalidArg("invalid_parameter", "count 必须是 1..8 的整数")
+				return nil, InvalidArg("invalid_parameter", "count must be an integer from 1..8")
 			}
 			patch[name] = float64(count)
 			continue
 		}
 		var text string
 		if string(value) == "null" || json.Unmarshal(value, &text) != nil || len([]rune(text)) > field.MaxRunes {
-			return nil, InvalidArg("invalid_parameter", name+" 必须是长度有限的字符串")
+			return nil, InvalidArg("invalid_parameter", name+" Must be a string of limited length")
 		}
 		if err := validateDraftValue(name, text); err != nil {
 			return nil, err
@@ -135,10 +135,10 @@ func resolveGenerationDraft(ctx *Context, kind string, raw map[string]json.RawMe
 			return nil, mapDomainError(err)
 		}
 		if choice.KindMismatch {
-			return nil, InvalidArg("generation_model_kind_mismatch", "所选模型不支持该媒体类型")
+			return nil, InvalidArg("generation_model_kind_mismatch", "The selected model does not support the media type")
 		}
 		if choice.ModelKey == "" || choice.Display == "" {
-			return nil, PreconditionFailed("generation_model_unavailable", "所选模型当前不可用", nil)
+			return nil, PreconditionFailed("generation_model_unavailable", "The selected model is currently unavailable", nil)
 		}
 		patch["model"] = choice.ModelKey
 		if err := validateModelGenerationParameters(ctx.Domain, kind, choice.ModelKey, mergeParameters(base, stringParameters(patch))); err != nil {
@@ -201,7 +201,7 @@ func validateVideoResolutionParameter(domain Domain, modelKey, value string) err
 	if modelcatalog.VideoResolutionNameRequest(capability.Video, value) != "" {
 		return nil
 	}
-	return InvalidArg("invalid_parameter", "当前模型不支持 "+value+" 分辨率，可选 "+strings.Join(capability.Video.Resolutions, "、"))
+	return InvalidArg("invalid_parameter", "The current model does not support"+value+" resolution, optional"+strings.Join(capability.Video.Resolutions, "、"))
 }
 
 func stringParameters(values map[string]any) map[string]string {
@@ -228,7 +228,7 @@ func mergeParameters(base, patch map[string]string) map[string]string {
 }
 
 func validateDraftValue(name, value string) error {
-	invalid := func() error { return InvalidArg("invalid_parameter", name+" 的值无效") }
+	invalid := func() error { return InvalidArg("invalid_parameter", name+" The value of is invalid") }
 	switch name {
 	case "generateAudio", "watermark", "transparentBackground":
 		if value != "true" && value != "false" {

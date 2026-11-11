@@ -22,7 +22,7 @@ import (
 // It never invokes a generation provider or uploads a user's reference media.
 func Check(ctx context.Context, config Config, tempDir string) error {
 	if !config.Enabled {
-		return errors.New("请先启用参考素材对象存储")
+		return errors.New("Please enable reference material object storage first")
 	}
 	if err := config.Validate(); err != nil {
 		return err
@@ -35,7 +35,7 @@ func Check(ctx context.Context, config Config, tempDir string) error {
 func check(ctx context.Context, config Config, tempDir string, client *http.Client) (result error) {
 	picture := image.NewNRGBA(image.Rect(0, 0, 8, 8))
 	if _, err := rand.Read(picture.Pix); err != nil {
-		return errors.New("无法准备存储测试文件")
+		return errors.New("Unable to prepare test file for storage")
 	}
 	var content bytes.Buffer
 	if err := png.Encode(&content, picture); err != nil {
@@ -43,13 +43,13 @@ func check(ctx context.Context, config Config, tempDir string, client *http.Clie
 	}
 	file, err := os.CreateTemp(tempDir, "reference-storage-check-*.png")
 	if err != nil {
-		return errors.New("无法创建存储测试文件，请检查本地磁盘")
+		return errors.New("Unable to create storage test file, please check local disk")
 	}
 	defer os.Remove(file.Name())
 	_, writeErr := file.Write(content.Bytes())
 	closeErr := file.Close()
 	if writeErr != nil || closeErr != nil {
-		return errors.New("无法写入存储测试文件，请检查本地磁盘")
+		return errors.New("Unable to write to storage test file, please check local disk")
 	}
 	digest := sha256.Sum256(content.Bytes())
 	key := fmt.Sprintf("beeftv/references/%x", digest)
@@ -72,25 +72,25 @@ func check(ctx context.Context, config Config, tempDir string, client *http.Clie
 func deleteCheckObject(ctx context.Context, config Config, key string, client *http.Client) error {
 	endpoint, err := objectEndpointURL(config, key)
 	if err != nil {
-		return errors.New("无法清理存储测试文件")
+		return errors.New("Unable to clean storage test files")
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint, nil)
 	if err != nil {
-		return errors.New("无法清理存储测试文件")
+		return errors.New("Unable to clean storage test files")
 	}
 	digest := fmt.Sprintf("%x", sha256.Sum256(nil))
 	request.Header.Set("X-Amz-Content-Sha256", digest)
 	request.URL.Opaque = "//" + request.URL.Host + request.URL.EscapedPath()
 	if err = v4.NewSigner().SignHTTP(ctx, aws.Credentials{AccessKeyID: config.AccessKeyID, SecretAccessKey: config.SecretAccessKey}, request, digest, "s3", config.Region, time.Now(), func(options *v4.SignerOptions) { options.DisableURIPathEscaping = true }); err != nil {
-		return errors.New("存储测试文件清理签名失败")
+		return errors.New("Failed to store test file cleanup signature")
 	}
 	response, err := client.Do(request)
 	if err != nil {
-		return errors.New("存储测试文件未能清理，请检查网络和删除权限")
+		return errors.New("The storage test file failed to be cleaned, please check the network and delete permissions")
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusNotFound && (response.StatusCode < 200 || response.StatusCode >= 300) {
-		return fmt.Errorf("存储测试文件未能清理（HTTP %d），请检查删除权限", response.StatusCode)
+		return fmt.Errorf("The storage test file failed to be cleaned (HTTP %d), please check the deletion permissions", response.StatusCode)
 	}
 	return nil
 }

@@ -57,7 +57,7 @@ func TestAssistantSettingsWriteRejectsUntrustedCallers(t *testing.T) {
 		t.Fatalf("unauthenticated write should be rejected, got %d: %s", unauthenticated.Code, unauthenticated.Body.String())
 	}
 
-	registration, token, err := env.clients.Register("只读测试客户端", agentops.ClientReadOnly)
+	registration, token, err := env.clients.Register("Read-only test client", agentops.ClientReadOnly)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,7 +15,7 @@ beforeAll(async () => {
         define: { "import.meta.env.VITE_CANVAS_LOCAL_MODE": '"true"', "process.env.NODE_ENV": '"production"' },
         plugins: [{ name: "isolated-workspace", setup(builder) {
             builder.onResolve({ filter: /^@\// }, args => ({ path: Bun.resolveSync("../src/" + args.path.slice(2), import.meta.dir) }));
-            builder.onLoad({ filter: /workspace-project-repository\.ts$/ }, () => ({ loader: "ts", contents: `export async function deleteWorkspaceCanvasProjects(ids) { for (const id of ids) { const response = await fetch('/delete/' + id, {method:'DELETE'}); if (!response.ok) throw new Error('删除失败，请重试'); } }` }));
+            builder.onLoad({ filter: /workspace-project-repository\.ts$/ }, () => ({ loader: "ts", contents: `export async function deleteWorkspaceCanvasProjects(ids) { for (const id of ids) { const response = await fetch('/delete/' + id, {method:'DELETE'}); if (!response.ok) throw new Error('Deletion failed, please try again'); } }` }));
             builder.onLoad({ filter: /use-asset-store\.ts$/ }, () => ({ loader: "ts", contents: `export const useAssetStore = select => select({cleanupImages: async () => {}});` }));
             builder.onLoad({ filter: /workspace-mode\.ts$/ }, () => ({ loader: "ts", contents: `export const isLocalWorkspaceMode = () => true;` }));
         } }] });
@@ -38,14 +38,14 @@ beforeAll(async () => {
 afterAll(async () => { release?.(); await browser?.close(); server?.stop(true); });
 beforeEach(() => { calls = []; fail = false; gate = undefined; release = undefined; });
 
-for (const action of ["删除单个", "批量删除"]) test(`${action}: opening and cancelling never deletes`, async () => {
+for (const action of ["Delete a single", "Batch delete"]) test(`${action}: opening and cancelling never deletes`, async () => {
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
         await page.getByRole("button", { name: action, exact: true }).click();
         await page.getByRole("dialog").waitFor();
         expect(calls).toEqual([]);
-        await page.getByRole("button", { name: "取消", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel", exact: true }).click();
         await page.getByRole("dialog").waitFor({ state: "detached" });
         expect(calls).toEqual([]);
     } finally { await page.close(); }
@@ -57,12 +57,12 @@ test("confirmation reads current targets and rejects repeated clicks while pendi
     const requestReceived = new Promise<void>(resolve => { received = resolve; });
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "批量删除", exact: true }).click();
+        await page.getByRole("button", { name: "Batch delete", exact: true }).click();
         await page.evaluate(() => (window as any).__deletion.select(["c2"]));
-        await page.getByRole("button", { name: "删除", exact: true }).evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });
+        await page.getByRole("button", { name: "Delete", exact: true }).evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });
         await requestReceived;
         expect(calls).toEqual(["/delete/c2"]);
-        expect(await page.getByRole("button", { name: "取消", exact: true }).isDisabled()).toBe(true);
+        expect(await page.getByRole("button", { name: "Cancel", exact: true }).isDisabled()).toBe(true);
         release!();
         await page.getByRole("dialog").waitFor({ state: "detached" });
     } finally { received = undefined; release?.(); await page.close(); }
@@ -73,12 +73,12 @@ test("failure stays visible and retry succeeds", async () => {
     try {
         fail = true;
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "删除单个", exact: true }).click();
-        await page.getByRole("button", { name: "删除", exact: true }).click();
+        await page.getByRole("button", { name: "Delete a single", exact: true }).click();
+        await page.getByRole("button", { name: "Delete", exact: true }).click();
         await page.getByRole("alert").waitFor();
         expect(calls).toEqual(["/delete/c1"]);
         fail = false;
-        await page.getByRole("button", { name: "删除", exact: true }).click();
+        await page.getByRole("button", { name: "Delete", exact: true }).click();
         await page.getByRole("dialog").waitFor({ state: "detached" });
         expect(calls).toEqual(["/delete/c1", "/delete/c1"]);
     } finally { await page.close(); }

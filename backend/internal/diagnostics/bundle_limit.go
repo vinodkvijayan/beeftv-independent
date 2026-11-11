@@ -48,7 +48,7 @@ func buildBoundedZIP(brand, id string, manifest manifest, c *collection, limit i
 			c.ModelConfig = nil
 			removed, name = 1, "modelConfig"
 		default:
-			return nil, kernel.BadAuthRequest("诊断包超过大小限制，请缩短时间范围后重试")
+			return nil, kernel.BadAuthRequest("The diagnostic package exceeds the size limit, please shorten the time range and try again.")
 		}
 		coverage := c.Collectors[name]
 		coverage.Status, coverage.Reason = "truncated", "bundle_byte_limit"

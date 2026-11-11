@@ -10,7 +10,7 @@
     "clips": [
       { "id": "still", "kind": "image", "nodeId": "still", "trackId": "v", "startMs": 0, "durationMs": 2000, "volume": 1, "directMedia": { "id": "still", "kind": "image", "storageKey": "resource:still" } },
       { "id": "voice", "kind": "audio", "nodeId": "voice", "trackId": "a", "startMs": 0, "durationMs": 2000, "volume": 1, "directMedia": { "id": "voice", "kind": "audio", "storageKey": "resource:voice" } },
-      { "id": "sub", "kind": "subtitle", "nodeId": "sub", "trackId": "s", "startMs": 500, "durationMs": 1000, "text": "图片" }
+      { "id": "sub", "kind": "subtitle", "nodeId": "sub", "trackId": "s", "startMs": 500, "durationMs": 1000, "text": "pictures" }
     ]
   },
   "sources": [

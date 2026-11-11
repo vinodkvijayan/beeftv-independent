@@ -184,31 +184,31 @@ async function fixtureZip() {
                 app: "infinite-canvas",
                 version: 4,
                 exportedAt: "2026-10-02T00:00:00.000Z",
-                folders: [{ id: "folder-old", name: "剧集", coverPath: "folders/old/cover.png", coverMimeType: "image/png", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" }],
+                folders: [{ id: "folder-old", name: "drama series", coverPath: "folders/old/cover.png", coverMimeType: "image/png", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" }],
                 projects: [{
                     project: {
                         id: "old-canvas",
                         workspaceProjectId: "old-workspace",
                         folderId: "folder-old",
-                        title: "持久画布",
+                        title: "durable canvas",
                         revision: 0,
                         viewport: { x: -17.6638, y: 280.4097, k: 0.3847 },
                         nodes: [{
                             id: "n-video",
                             type: "video",
-                            title: "镜头",
+                            title: "lens",
                             position: { x: 0, y: 0 },
                             width: 320,
                             height: 180,
                             metadata: {
                                 storageKey: "video:clip",
                                 content: "blob:expired",
-                                prompt: "描述里提到 data:image/png 和 blob:expired，但不是媒体文件",
+                                prompt: "The description mentions data:image/png and blob:expired, but not media files",
                             },
                         }, {
                             id: "n-drawing",
                             type: "drawing",
-                            title: "分镜手稿",
+                            title: "Storyboard manuscript",
                             position: { x: 40, y: 0 },
                             width: 240,
                             height: 240,
@@ -218,7 +218,7 @@ async function fixtureZip() {
                         timeline: {
                             version: 2,
                             durationMs: 1000,
-                            tracks: [{ id: "voice", kind: "audio", label: "配音", order: 0 }],
+                            tracks: [{ id: "voice", kind: "audio", label: "Dubbing", order: 0 }],
                             clips: [{
                                 id: "c1",
                                 kind: "audio",
@@ -226,7 +226,7 @@ async function fixtureZip() {
                                 trackId: "voice",
                                 startMs: 0,
                                 durationMs: 1000,
-                                directMedia: { id: "m1", kind: "audio", title: "配音", storageKey: "audio:voice", url: "blob:expired" },
+                                directMedia: { id: "m1", kind: "audio", title: "Dubbing", storageKey: "audio:voice", url: "blob:expired" },
                             }],
                         },
                     },
@@ -290,7 +290,7 @@ test("valid archive restores into isolated SQLite, survives backend restart, and
         const folders = await listFolders();
         expect(folders).toHaveLength(1);
         expect(folders[0].id).not.toBe("folder-old");
-        expect(folders[0].name).toBe("剧集");
+        expect(folders[0].name).toBe("drama series");
         expect(folders[0].coverResourceId).toBeTruthy();
         expect(await readResourceBytes(folders[0].coverResourceId!)).toEqual(folderCoverBytes);
         expect(saved.folderId).toBe(folders[0].id);
@@ -392,8 +392,8 @@ test("missing archive entry and persist failure do not create a saved SQLite can
                 projects: [{
                     project: {
                         id: "broken",
-                        title: "损坏画布",
-                        nodes: [{ id: "n1", type: "video", title: "镜头", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { storageKey: "video:missing" } }],
+                        title: "damage canvas",
+                        nodes: [{ id: "n1", type: "video", title: "lens", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { storageKey: "video:missing" } }],
                         connections: [],
                     },
                     files: [{ storageKey: "video:missing", path: "projects/broken/files/missing.mp4", mimeType: "video/mp4", bytes: 3 }],
@@ -409,11 +409,11 @@ test("missing archive entry and persist failure do not create a saved SQLite can
         const failure = await restoreCanvasArchive(zip, {
             persistProject: async (id) => {
                 await syncLocalCanvasProjectToBackend(id);
-                throw new Error("画布未保存到工作区");
+                throw new Error("Canvas not saved to workspace");
             },
         }).catch((error: unknown) => error);
         expect(failure).not.toBeInstanceOf(AggregateError);
-        expect((failure as Error).message).toBe("画布未保存到工作区");
+        expect((failure as Error).message).toBe("Canvas not saved to workspace");
         expect(useCanvasStore.getState().projects).toEqual([]);
         expect(await listProjects()).toEqual([]);
         const assets = await http.get<{ assets: unknown[] }>("/assets");

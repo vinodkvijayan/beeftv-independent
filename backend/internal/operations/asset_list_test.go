@@ -84,7 +84,7 @@ func (p *assetListProbe) UserAssetsPage(userID string, page int, pageSize int, f
 	return canvas.UserAssetPage{
 		FavoriteTotal: 4,
 		RecentTotal:   5,
-		ProjectCounts: map[string]int64{"海边剧": 2},
+		ProjectCounts: map[string]int64{"seaside drama": 2},
 		Page:          page,
 		PageSize:      pageSize,
 		Total:         3,
@@ -100,14 +100,14 @@ func TestOpAssetListForwardsFavoriteRecentProject(t *testing.T) {
 	if probe.userID != "owner" || probe.page != 2 || probe.size != 20 {
 		t.Fatalf("paging = user %s page %d size %d", probe.userID, probe.page, probe.size)
 	}
-	if !probe.filter.Favorite || !probe.filter.Recent || probe.filter.Project != "海边剧" || probe.filter.Kind != "image" || probe.filter.Category != "material" || probe.filter.Query != "海边" || probe.filter.Generated {
+	if !probe.filter.Favorite || !probe.filter.Recent || probe.filter.Project != "seaside drama" || probe.filter.Kind != "image" || probe.filter.Category != "material" || probe.filter.Query != "seaside" || probe.filter.Generated {
 		t.Fatalf("filter = %#v", probe.filter)
 	}
 	page, ok := result.(canvas.UserAssetPage)
 	if !ok {
 		t.Fatalf("result type %T", result)
 	}
-	if page.Total != 3 || page.FavoriteTotal != 4 || page.RecentTotal != 5 || page.ProjectCounts["海边剧"] != 2 {
+	if page.Total != 3 || page.FavoriteTotal != 4 || page.RecentTotal != 5 || page.ProjectCounts["seaside drama"] != 2 {
 		t.Fatalf("page = %#v", page)
 	}
 }

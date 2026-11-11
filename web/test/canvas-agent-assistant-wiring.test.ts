@@ -19,8 +19,8 @@ function source_string_literals(code: string) {
     return literals.map((literal) => literal.slice(1, -1));
 }
 
-describe("助手前端接线", () => {
-    test("流式对话与停止打到后端真实注册的 /api/assistant/* 路由", () => {
+describe("Assistant front-end wiring", () => {
+    test("Streaming conversations and stopping hitting the real registered /api/assistant/* routes on the backend", () => {
         // 后端 registerAgentProxyRoutes 注册的是 /assistant/chat 与 /assistant/cancel；
         // 曾经写成 /api/agent/* 时每一次发送都只拿到 404，面板永远没有回复。
         // 原生 Wails 的页面 origin 不是后端地址，必须使用当前运行时的 API base。
@@ -32,7 +32,7 @@ describe("助手前端接线", () => {
         expect(source).toContain('http.get<AgentHostStatus>("/assistant/status")');
     });
 
-    test("会话、历史、撤销、重启走契约里的路由，并带 UI 会话头", () => {
+    test("Session, history, revocation, and restart follow the routes in the contract and bring UI session headers.", () => {
         expect(source).toContain('"/assistant/host/restart"');
         expect(source).toContain("/assistant/sessions?canvasId=");
         expect(source).toContain('"/assistant/sessions"');
@@ -42,7 +42,7 @@ describe("助手前端接线", () => {
         expect(source).toContain('"X-Beeftv-Ui-Session": token');
     });
 
-    test("界面文案使用用户语，不出现实现者术语", () => {
+    test("The interface copy uses user language and does not contain implementer terminology.", () => {
         // 只看会渲染给用户的字符串字面量，避免把 DOM 变量名当成文案。
         const files = [copy, sidebar, composer, turn];
         const userFacing = files.flatMap(source_string_literals).filter((text) => /[一-鿿]/.test(text));
@@ -51,31 +51,31 @@ describe("助手前端接线", () => {
             // BeefTV 是用户自己的账户名称，属于产品名，不是实现细节；
             // 先摘掉它再检查术语，避免把品牌名误判成实现术语。
             const scrubbed = text.replaceAll("BeefTV", "");
-            for (const term of ["agent-host", "宿主", "Node", "幂等", "MCP", "revision", "API", "token", "session"]) {
+            for (const term of ["agent-host", "host", "Node", "Idempotent", "MCP", "revision", "API", "token", "session"]) {
                 expect(scrubbed).not.toContain(term);
             }
         }
     });
 
-    test("回合落地后画布立刻拉取最新内容，并点亮改动过的节点", () => {
+    test("After the round lands, the canvas immediately pulls the latest content and lights up the changed nodes.", () => {
         expect(hook).toContain("onCanvasChanged");
         expect(project).toContain("refreshLocalCanvasProjectIfChanged(canvasId).then(() => highlightAssistantNodes(");
     });
 
-    test("发送时冻结选中对象快照，不随后续选择变化", () => {
+    test("Freezes the selected object snapshot when sending and does not allow subsequent selection changes.", () => {
         expect(hook).toContain("const selectedSnapshot = [...selectedNodeIds]");
         expect(hook).toContain("selectedSnapshot");
         // 归属也一起冻结：结果只写回发送时那个画布。
         expect(hook).toContain("const targetCanvas = activeCanvasRef.current");
     });
 
-    test("面板是右侧停靠栏，不再是浮在画布上的绝对定位卡片", () => {
+    test("The panel is the right dock, no longer an absolutely positioned card floating on the canvas", () => {
         expect(project).not.toContain("absolute right-4 top-24");
         expect(project).not.toContain("CanvasAgentAssistantPanel");
         expect(sidebar).toContain('className="canvas-assistant-sidebar"');
     });
 
-    test("面板只使用应用里真实存在的样式变量", () => {
+    test("Panels only use style variables that actually exist in the application", () => {
         const css = read("src/pages/canvas/canvas-assistant-sidebar.css");
         // 这些变量在 globals.css 里从来没有定义过；用它们会让面板变成透明白框。
         for (const missing of ["--bg-elevated", "--text-primary", "--border-color", "--bg-hover", "--text-secondary", "--accent-color", "--shadow-panel", "--bg-subtle", "--bg-input", "--canvas-panel-bg", "--canvas-panel-border"]) {
@@ -87,13 +87,13 @@ describe("助手前端接线", () => {
         expect(css).toContain("var(--muted-foreground)");
     });
 
-    test("外部改动提示搬到顶栏保存状态，面板里不再重复", () => {
+    test("The external change prompt is moved to the top bar to save the state, and is no longer repeated in the panel.", () => {
         expect(syncStatus).toContain("pendingExternalCanvasRevision");
         expect(syncStatus).toContain("acceptExternalCanvasRevision");
         expect(sidebar).not.toContain("pendingExternalCanvasRevision");
     });
 
-    test("助手入口与快捷键都接上了", () => {
+    test("The assistant entrance and shortcut keys are all connected", () => {
         const topBar = read("src/pages/canvas/canvas-project-top-bar.tsx");
         const keyboard = read("src/pages/canvas/use-canvas-keyboard.ts");
         const shortcuts = read("src/lib/canvas/canvas-shortcuts.ts");
@@ -104,11 +104,11 @@ describe("助手前端接线", () => {
         expect(keyboard).toContain('key === "j"');
         expect(keyboard).toContain("onToggleAssistant?.()");
         expect(shortcuts).toContain('id: "assistant"');
-        expect(selectionTools).toContain("问助手");
-        expect(emptyState).toContain("或让助手搭个草案");
+        expect(selectionTools).toContain("Ask the assistant");
+        expect(emptyState).toContain("Or ask your assistant to make a draft");
     });
 
-    test("付费生成由画布既有生成链路执行，面板不自己调模型", () => {
+    test("Paid generation is performed by the existing generation link of the canvas, and the panel does not adjust the model itself.", () => {
         expect(project).toContain("runAssistantProposal");
         expect(project).toContain("useCanvasAssistantProposal");
         expect(proposal).toContain("const generateForThisRun = handleGenerateNodeRef.current");

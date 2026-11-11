@@ -117,7 +117,7 @@ func TestEditorShellReportsPlatformAvailableWithoutPlatformState(t *testing.T) {
 	if !state.PlatformAvailable || !state.CanToggle {
 		t.Fatalf("editor shell should be a user-toggleable application, got %#v", state)
 	}
-	if state.BlockedReason == "管理员已停用该插件" {
+	if state.BlockedReason == "The administrator has disabled this plugin" {
 		t.Fatalf("editor shell reported as admin-disabled: %#v", state)
 	}
 }

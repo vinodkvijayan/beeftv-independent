@@ -29,7 +29,7 @@ func RunAgentToolTask(ctx context.Context, input Input) (map[string]interface{},
 		return RunDeclarativeAgentTask(ctx, input, adapter)
 	}
 	if input.AgentRequests == nil {
-		return nil, errors.New("画布 Agent 工具请求缺少协议参数")
+		return nil, errors.New("Canvas Agent tool request is missing protocol parameters")
 	}
 	request := input.AgentRequests.ChatCompletion
 	path := ChatCompletionsPath
@@ -46,7 +46,7 @@ func RunAgentToolTask(ctx context.Context, input Input) (map[string]interface{},
 		protocol = "claude-api"
 	}
 	if request == nil {
-		return nil, errors.New("画布 Agent 工具请求缺少协议参数")
+		return nil, errors.New("Canvas Agent tool request is missing protocol parameters")
 	}
 	body := CloneStringAnyMap(request)
 	if protocol == "claude-api" && input.AgentRequests.Claude == nil {
@@ -148,13 +148,13 @@ func ParseAgentToolPayload(payload map[string]interface{}, protocol string) (map
 		}
 		result["toolCalls"] = calls
 		if result["text"] == "" && len(calls) == 0 {
-			return nil, errors.New("Claude Agent 接口没有返回内容")
+			return nil, errors.New("Claude Agent interface returns no content")
 		}
 		return result, nil
 	}
 	choices := InterfaceSlice(payload["choices"])
 	if len(choices) == 0 {
-		return nil, errors.New("画布 Agent 接口没有返回 choices")
+		return nil, errors.New("Canvas Agent interface does not return choices")
 	}
 	choice, _ := choices[0].(map[string]interface{})
 	message, _ := choice["message"].(map[string]interface{})
@@ -235,7 +235,7 @@ func hostTextInterface(config Config) (string, error) {
 	}
 	adapter, ok := protocol.Builtins().Resolve(requested)
 	if !ok || !ProtocolCapabilityMatches(adapter.Metadata(), protocol.Capability("text")) {
-		return "", fmt.Errorf("接口类型 %s 未安装", requested)
+		return "", fmt.Errorf("Interface type %s not installed", requested)
 	}
 	return adapter.Metadata().ID, nil
 }
@@ -415,7 +415,7 @@ func RequestTextProvider(ctx context.Context, config Config, path string, body m
 	}
 	result := ProviderTextResult{Text: stringField(parsed, "text"), Reasoning: stringField(parsed, "reasoning")}
 	if result.Text == "" {
-		return ProviderTextResult{}, errors.New("文本接口没有返回内容")
+		return ProviderTextResult{}, errors.New("The text interface returns no content")
 	}
 	return result, nil
 }

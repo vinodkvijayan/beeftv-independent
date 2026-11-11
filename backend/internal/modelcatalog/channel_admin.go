@@ -18,7 +18,7 @@ func (req ChannelRequest) PresentationOnly() bool {
 
 func ValidateChannelSortOrder(value int) error {
 	if value < 0 || value > 999999 {
-		return kernel.BadAuthRequest("排序值必须是 0-999999 的整数，数值越小越靠前")
+		return kernel.BadAuthRequest("The sorting value must be an integer from 0-999999. The smaller the value, the higher it is.")
 	}
 	return nil
 }
@@ -59,10 +59,10 @@ func ApplyChannelRequest(req ChannelRequest, channel model.ModelChannel) (model.
 	name := strings.TrimSpace(req.Name)
 	baseURL := strings.TrimSpace(req.BaseURL)
 	if name == "" {
-		return channel, kernel.BadAuthRequest("请填写渠道名称")
+		return channel, kernel.BadAuthRequest("Please fill in the channel name")
 	}
 	if baseURL == "" {
-		return channel, kernel.BadAuthRequest("请填写 Base URL")
+		return channel, kernel.BadAuthRequest("Please fill in the Base URL")
 	}
 	connectionChanged := strings.TrimRight(baseURL, "/") != strings.TrimRight(channel.BaseURL, "/")
 	if connectionChanged {
@@ -80,7 +80,7 @@ func ApplyChannelRequest(req ChannelRequest, channel model.ModelChannel) (model.
 	if req.PublicAlias != nil {
 		alias := strings.TrimSpace(*req.PublicAlias)
 		if len([]rune(alias)) > 80 {
-			return channel, kernel.BadAuthRequest("前台显示别名不能超过 80 个字符")
+			return channel, kernel.BadAuthRequest("The alias displayed in the foreground cannot exceed 80 characters.")
 		}
 		channel.PublicAlias = alias
 	}
@@ -102,11 +102,11 @@ func ApplyChannelRequest(req ChannelRequest, channel model.ModelChannel) (model.
 		channel.ConcurrencyLimit = 0
 	} else if req.ConcurrencyLimit != nil {
 		if *req.ConcurrencyLimit < platform.MinChannelConcurrencyLimit || *req.ConcurrencyLimit > platform.MaxChannelConcurrencyLimit {
-			return channel, kernel.BadAuthRequest("最大并发数必须是 1-999 的整数")
+			return channel, kernel.BadAuthRequest("The maximum number of concurrencies must be an integer from 1-999")
 		}
 		channel.ConcurrencyLimit = *req.ConcurrencyLimit
 	} else if req.UseGlobalConcurrency != nil {
-		return channel, kernel.BadAuthRequest("请填写渠道最大并发数")
+		return channel, kernel.BadAuthRequest("Please fill in the maximum number of concurrent channels")
 	}
 	channel.ModelsJSON = string(modelsJSON)
 	channel.HeadersJSON = headersJSON
@@ -125,17 +125,17 @@ func ApplyChannelPresentation(req ChannelRequest) error {
 	if req.PublicAlias != nil {
 		alias := strings.TrimSpace(*req.PublicAlias)
 		if len([]rune(alias)) > 80 {
-			return kernel.BadAuthRequest("前台别名不能超过 80 字")
+			return kernel.BadAuthRequest("Front desk alias cannot exceed 80 characters")
 		}
 	}
 	return nil
 }
 
 func DuplicateChannelName(name string) string {
-	const suffix = " - 副本"
+	const suffix = " - Copy"
 	base := []rune(strings.TrimSpace(name))
 	if len(base) == 0 {
-		base = []rune("系统渠道")
+		base = []rune("System channels")
 	}
 	if len(base)+len([]rune(suffix)) > 80 {
 		base = base[:80-len([]rune(suffix))]

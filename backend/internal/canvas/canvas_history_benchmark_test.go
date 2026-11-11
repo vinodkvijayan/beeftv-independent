@@ -24,12 +24,12 @@ func canvasHistoryBenchmarkProject(b testing.TB, count int) model.CanvasProject 
 	for i := range nodes {
 		resourceID := fmt.Sprintf("%032x", i+1)
 		nodes[i] = map[string]any{
-			"id": fmt.Sprintf("node-%04d", i), "type": "image", "title": "素材节点",
+			"id": fmt.Sprintf("node-%04d", i), "type": "image", "title": "Material node",
 			"x": i % 20 * 300, "y": i / 20 * 240, "width": 256, "height": 192,
 			"metadata": map[string]any{
 				"content":    fmt.Sprintf("/api/resources/%s/file", resourceID),
 				"storageKey": "resource:" + resourceID,
-				"assetId":    fmt.Sprintf("asset-%04d", i), "prompt": strings.Repeat("素材描述 ", 32),
+				"assetId":    fmt.Sprintf("asset-%04d", i), "prompt": strings.Repeat("Material description", 32),
 				"naturalWidth": 3840, "naturalHeight": 2160,
 			},
 		}
@@ -37,12 +37,12 @@ func canvasHistoryBenchmarkProject(b testing.TB, count int) model.CanvasProject 
 			connections = append(connections, map[string]any{"id": fmt.Sprintf("edge-%04d", i), "source": fmt.Sprintf("node-%04d", i-1), "target": fmt.Sprintf("node-%04d", i)})
 		}
 	}
-	raw, err := json.Marshal(map[string]any{"id": "canvas", "title": "素材画布", "nodes": nodes, "connections": connections, "viewport": map[string]any{"x": 0, "y": 0, "k": 1}})
+	raw, err := json.Marshal(map[string]any{"id": "canvas", "title": "Material canvas", "nodes": nodes, "connections": connections, "viewport": map[string]any{"x": 0, "y": 0, "k": 1}})
 	if err != nil {
 		b.Fatal(err)
 	}
 	at := time.Date(2026, 10, 22, 0, 0, 0, 0, time.UTC)
-	return model.CanvasProject{ID: "canvas", UserID: "owner", Title: "素材画布", PayloadJSON: string(raw), Revision: 1, CreatedAt: at, UpdatedAt: at}
+	return model.CanvasProject{ID: "canvas", UserID: "owner", Title: "Material canvas", PayloadJSON: string(raw), Revision: 1, CreatedAt: at, UpdatedAt: at}
 }
 
 func BenchmarkBuildCanvasSnapshot(b *testing.B) {

@@ -35,24 +35,24 @@ func UpscaleMediaType(model string) string {
 func ValidateUpscaleInput(input Input) error {
 	kind := input.Mode
 	if (kind != "image" && kind != "video") || input.Config.Model == "" || input.Upscale == nil {
-		return errors.New("超分模型、素材类型或参数无效")
+		return errors.New("Invalid super-resolution model, material type or parameters")
 	}
 	if input.Upscale.Factor < 1 || input.Upscale.Factor > 4 {
-		return errors.New("放大倍数须为 1 至 4 的整数")
+		return errors.New("Magnification must be an integer from 1 to 4")
 	}
 	if kind == "image" && (len(input.ReferenceImages) != 1 || len(input.ReferenceVideos) != 0) || kind == "video" && (len(input.ReferenceVideos) != 1 || len(input.ReferenceImages) != 0) || len(input.ReferenceAudios) != 0 || input.Mask != nil {
-		return errors.New("每个超分任务需要一个同类型素材")
+		return errors.New("Each super mission requires a material of the same type")
 	}
 	source := input.ReferenceImages
 	if kind == "video" {
 		source = input.ReferenceVideos
 	}
 	if !upscaleOwnedSource.MatchString(source[0].StorageKey) || source[0].URL != "" || source[0].DataURL != "" {
-		return errors.New("超分只能使用当前素材库中的图片或视频")
+		return errors.New("Super score can only use pictures or videos in the current material library")
 	}
 	format := input.Upscale.OutputFormat
 	if format != "" && format != "png" && format != "jpeg" {
-		return errors.New("图片输出格式须为 PNG 或 JPEG")
+		return errors.New("Image output format must be PNG or JPEG")
 	}
 	return nil
 }
@@ -80,7 +80,7 @@ func prepareOwnedUpscaleSource(ctx context.Context, input Input) (Input, error) 
 		return input, err
 	}
 	if !managedConnection(input.Config) && !IsBeefTVVideoConfig(ctx, input.Config) {
-		return input, errors.New("AI 超分需要连接官方算力账号")
+		return input, errors.New("AI super score requires connecting to the official computing power account")
 	}
 	runtime, _ := RuntimeFromContext(ctx)
 	if err := HydrateMedia(ctx, runtime.Call.UserID, &input, MediaHydrationPolicy{KeepLocal: true}); err != nil {
@@ -92,14 +92,14 @@ func prepareOwnedUpscaleSource(ctx context.Context, input Input) (Input, error) 
 		media = input.ReferenceVideos
 	}
 	if media[0].StorageKey == "" {
-		return input, errors.New("请先将素材导入素材库，再开始超分")
+		return input, errors.New("Please import the material into the material library first, and then start super score")
 	}
 	data, mime, skip, err := ownedSeedanceMediaReader(ctx, runtime.Call.UserID)(kind, media[0])
 	if err != nil {
 		return input, err
 	}
 	if skip {
-		return input, errors.New("超分素材未通过素材库归属校验")
+		return input, errors.New("Super-resolution material failed to pass material library ownership verification")
 	}
 	deliveryLimit, err := GeneratedFileLimit(ctx)
 	if err != nil {
@@ -112,11 +112,11 @@ func prepareOwnedUpscaleSource(ctx context.Context, input Input) (Input, error) 
 		limit = 200 << 20
 	}
 	if len(data) == 0 || len(data) > limit {
-		return input, errors.New("素材为空或超过超分文件大小限制")
+		return input, errors.New("The material is empty or exceeds the file size limit")
 	}
 	if kind == "image" {
 		if mime != "image/png" && mime != "image/jpeg" && mime != "image/webp" {
-			return input, errors.New("图片仅支持 PNG、JPEG 或 WebP")
+			return input, errors.New("Images only support PNG, JPEG or WebP")
 		}
 		meta, err := upscaleImageConfig(data)
 		if err != nil {
@@ -128,7 +128,7 @@ func prepareOwnedUpscaleSource(ctx context.Context, input Input) (Input, error) 
 		return input, err
 	}
 	if estimatedBytes > deliveryLimit {
-		return input, fmt.Errorf("预计超分结果可能超过本机单个生成资源上限 %s，请降低放大倍数或调高资源上限后重试", formatStorageLimit(deliveryLimit))
+		return input, fmt.Errorf("It is expected that the super-resolution result may exceed the local single generation resource limit %s. Please reduce the magnification or increase the resource limit and try again.", formatStorageLimit(deliveryLimit))
 	}
 	return input, nil
 }
@@ -136,7 +136,7 @@ func prepareOwnedUpscaleSource(ctx context.Context, input Input) (Input, error) 
 func upscaleImageConfig(data []byte) (image.Config, error) {
 	meta, _, err := image.DecodeConfig(bytes.NewReader(data))
 	if err != nil || meta.Width <= 0 || meta.Height <= 0 || int64(meta.Width)*int64(meta.Height) > 32<<20 {
-		return meta, errors.New("图片无法读取或超过 3200 万像素")
+		return meta, errors.New("Image cannot be read or exceeds 32 million pixels")
 	}
 	return meta, nil
 }
@@ -174,7 +174,7 @@ func RunUpscaleTask(ctx context.Context, input Input) (map[string]any, error) {
 		return nil, RequestPreparationError{Cause: err}
 	}
 	if !managedConnection(input.Config) && !IsBeefTVVideoConfig(ctx, input.Config) {
-		return nil, RequestPreparationError{Cause: errors.New("AI 超分需要连接官方算力账号")}
+		return nil, RequestPreparationError{Cause: errors.New("AI super score requires connecting to the official computing power account")}
 	}
 	client, unified, err := useManagedMediaEnvelope(ctx, input.Config, "upscale")
 	if err != nil {
@@ -190,7 +190,7 @@ func RunUpscaleTask(ctx context.Context, input Input) (map[string]any, error) {
 			return nil, RequestPreparationError{Cause: err}
 		}
 		if SubmissionKeyFromContext(ctx) == "" {
-			return nil, RequestPreparationError{Cause: errors.New("超分任务缺少持久操作 ID")}
+			return nil, RequestPreparationError{Cause: errors.New("Super task is missing persistent operation ID")}
 		}
 		createCtx := WithRequestKind(ctx, "create")
 		id, err = managedMediaClient(createCtx, prepared.Config).CreateLegacyUpscale(createCtx, SubmissionKeyFromContext(ctx), legacyUpscaleInput(prepared))
@@ -203,7 +203,7 @@ func RunUpscaleTask(ctx context.Context, input Input) (map[string]any, error) {
 		runtime.ReferenceProgress.ClearReference()
 	}
 	policy := DefaultVideoPollPolicy()
-	policy.QueryStage = "正在确认超分结果"
+	policy.QueryStage = "Confirming super score results"
 	policy.InitialDelay, policy.Interval = 0, 5*time.Second
 	return RunVideoPollLoop(ctx, id, policy, func(ctx context.Context) (VideoPollOutcome, error) {
 		result, _, err := QueryUpscaleResult(ctx, input, id)
@@ -214,7 +214,7 @@ func RunUpscaleTask(ctx context.Context, input Input) (map[string]any, error) {
 func runManagedUpscaleTask(ctx context.Context, client *beeftv.MediaClient, input Input) (map[string]any, error) {
 	runtime, _ := RuntimeFromContext(ctx)
 	if runtime.ManagedMedia == nil {
-		return nil, RequestPreparationError{Cause: errors.New("超分请求缺少持久化提交标识")}
+		return nil, RequestPreparationError{Cause: errors.New("The over-score request lacks a persistent commit identifier.")}
 	}
 	sent, err := runtime.ManagedMedia.Sent(ctx)
 	if err != nil {
@@ -299,7 +299,7 @@ func QueryUpscaleResult(ctx context.Context, input Input, id string) (map[string
 	case "queued", "in_progress", "cancelling", "unknown":
 		return nil, status, nil
 	case "failed", "cancelled":
-		return nil, status, errors.New("超分任务未完成，请查看任务详情")
+		return nil, status, errors.New("The super score task has not been completed, please check the task details")
 	case "completed":
 	default:
 		return nil, status, StatePendingError{TaskID: id, Cause: fmt.Errorf("unknown upscale status")}
@@ -323,7 +323,7 @@ func QueryUpscaleResult(ctx context.Context, input Input, id string) (map[string
 		return map[string]any{"mode": "image", "images": []map[string]any{{"dataUrl": DataURL(mime, data), "mimeType": mime}}}, status, nil
 	}
 	if !strings.HasPrefix(mime, "video/") {
-		return nil, status, VideoDownloadError{TaskID: id, Cause: errors.New("超分结果不是有效视频")}
+		return nil, status, VideoDownloadError{TaskID: id, Cause: errors.New("The super score result is not a valid video")}
 	}
 	data, err = RestoreUpscaleSourceAudio(ctx, input, data)
 	if err != nil {
@@ -337,12 +337,12 @@ func RestoreUpscaleSourceAudio(ctx context.Context, input Input, data []byte) ([
 		return data, nil
 	}
 	if len(input.ReferenceVideos) != 1 {
-		return nil, errors.New("缺少原视频，无法检查音轨")
+		return nil, errors.New("Original video is missing and audio track cannot be checked")
 	}
 	runtime, _ := RuntimeFromContext(ctx)
 	source, _, skip, err := ownedSeedanceMediaReader(ctx, runtime.Call.UserID)("video", Media{StorageKey: input.ReferenceVideos[0].StorageKey})
 	if err != nil || skip {
-		return nil, errors.New("原视频无法读取，暂时不能保留音轨")
+		return nil, errors.New("The original video cannot be read and the audio track cannot be retained temporarily.")
 	}
 	return PreserveUpscaleAudio(ctx, source, data)
 }

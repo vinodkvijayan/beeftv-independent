@@ -19,14 +19,14 @@ func requireAssistantSessions(db *gorm.DB) error {
 		return err
 	}
 	if !has {
-		return fmt.Errorf("助手会话绑定缺失，请启用自动迁移")
+		return fmt.Errorf("Assistant session binding is missing, please enable automatic migration")
 	}
 	has, err = sqliteHasColumn(db, "assistant_turns", "durable_native_sources")
 	if err != nil {
 		return err
 	}
 	if !has {
-		return fmt.Errorf("助手历史素材授权缺失，请启用自动迁移")
+		return fmt.Errorf("Assistant historical material authorization is missing, please enable automatic migration.")
 	}
 	return nil
 }

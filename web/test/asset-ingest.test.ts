@@ -19,14 +19,14 @@ function makeAsset(overrides: Partial<ProjectAsset>): ProjectAsset {
 }
 
 describe("assetToClipKind", () => {
-    test("映射 video/audio/image/text", () => {
+    test("Mapping video/audio/image/text", () => {
         expect(assetToClipKind("video")).toBe("video");
         expect(assetToClipKind("audio")).toBe("audio");
         expect(assetToClipKind("image")).toBe("image");
         expect(assetToClipKind("text")).toBe("text");
     });
 
-    test("未知媒体类型返回 null", () => {
+    test("Unknown media type returns null", () => {
         expect(assetToClipKind("archive")).toBeNull();
         expect(assetToClipKind("")).toBeNull();
     });
@@ -35,7 +35,7 @@ describe("assetToClipKind", () => {
 describe("makeClipFromAsset", () => {
     const options = { trackId: "track-video-1", startMs: 12_000, id: "asset:ast-1:1" };
 
-    test("生成 video clip 且 directMedia 引用资产", () => {
+    test("Generate video clip and directMedia reference assets", () => {
         const clip = makeClipFromAsset(makeAsset({}), options);
         expect(clip).not.toBeNull();
         expect(clip).toMatchObject({
@@ -55,28 +55,28 @@ describe("makeClipFromAsset", () => {
         });
     });
 
-    test("默认时长可覆盖", () => {
+    test("Default duration can be overridden", () => {
         const clip = makeClipFromAsset(makeAsset({}), { ...options, defaultDurationMs: 500 });
         expect(clip?.durationMs).toBe(500);
     });
 
-    test("无 id 时使用 asset 前缀", () => {
+    test("Use asset prefix when there is no id", () => {
         const clip = makeClipFromAsset(makeAsset({}), { trackId: options.trackId, startMs: 0 });
         expect(clip?.id).toBe("asset:ast-1");
     });
 
-    test("audio 资产映射到 audio kind", () => {
+    test("audio assets map to audio kind", () => {
         const clip = makeClipFromAsset(makeAsset({ mediaType: "audio", category: "audio" }), options);
         expect(clip?.kind).toBe("audio");
         expect(clip?.directMedia?.kind).toBe("audio");
     });
 
-    test("text 与未知媒体类型不入轨", () => {
+    test("text is out of bounds with an unknown media type", () => {
         expect(makeClipFromAsset(makeAsset({ mediaType: "text" }), options)).toBeNull();
         expect(makeClipFromAsset(makeAsset({ mediaType: "script" }), options)).toBeNull();
     });
 
-    test("输入资产不被修改", () => {
+    test("Input assets are not modified", () => {
         const asset = makeAsset({});
         const before = JSON.stringify(asset);
         makeClipFromAsset(asset, options);

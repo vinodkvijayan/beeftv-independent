@@ -8,10 +8,10 @@ import type { GenerationTask } from "@/services/api/task-center";
 function conversationDoc(id: string, messageId: string, extra: Record<string, unknown> = {}): StoredCreationConversation {
     return {
         id,
-        title: "创作对话",
+        title: "creative dialogue",
         messages: [
-            { id: "user-1", role: "user", content: "镜头" },
-            { id: messageId, role: "assistant", status: "done", content: "图片已生成", taskIds: ["task-1"], resultUrls: ["/api/resources/res-1/file"], ...extra },
+            { id: "user-1", role: "user", content: "lens" },
+            { id: messageId, role: "assistant", status: "done", content: "Image has been generated", taskIds: ["task-1"], resultUrls: ["/api/resources/res-1/file"], ...extra },
         ],
     };
 }
@@ -21,7 +21,7 @@ function succeededTask(): GenerationTask {
         id: "task-1",
         type: "canvas_image",
         status: "succeeded",
-        prompt: "猫",
+        prompt: "cat",
         attempts: 1,
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
@@ -38,7 +38,7 @@ function receipt(document: StoredCreationConversation, extra: Partial<Conversati
         taskId: "task-1",
         outputIndex: 0,
         bindingStatus: "bound",
-        content: "图片已生成",
+        content: "Image has been generated",
         resultUrls: ["/api/resources/res-1/file"],
         revision: 4,
         conversation: document,
@@ -70,7 +70,7 @@ describe("bindBackendConversationMessageResult", () => {
             },
         });
 
-        expect(bound.content).toBe("图片已生成");
+        expect(bound.content).toBe("Image has been generated");
         expect(bound.resultUrls).toEqual(["/api/resources/res-1/file"]);
         expect(bound.conversation?.id).toBe("conv-1");
         expect(seen).toEqual(["attach", "adopt"]);
@@ -94,7 +94,7 @@ describe("bindBackendConversationMessageResult", () => {
                         messageId: "msg-1",
                         taskId: "task-1",
                         bindingStatus: "deleted",
-                        historical: { content: "图片已生成", resultUrls: ["/api/resources/res-old/file"] },
+                        historical: { content: "Image has been generated", resultUrls: ["/api/resources/res-old/file"] },
                     },
                 }),
                 adoptConfirmedConversation: async () => {
@@ -109,7 +109,7 @@ describe("bindBackendConversationMessageResult", () => {
     });
 
     test("replaced task keeps the current conversation and does not overlay the old result", async () => {
-        const current = conversationDoc("conv-1", "msg-1", { taskIds: ["task-b"], content: "视频已生成", resultUrls: ["/api/resources/res-b/file"] });
+        const current = conversationDoc("conv-1", "msg-1", { taskIds: ["task-b"], content: "Video has been generated", resultUrls: ["/api/resources/res-b/file"] });
         const bound = await bindBackendConversationMessageResult({
             conversationId: "conv-1",
             messageId: "msg-1",
@@ -123,7 +123,7 @@ describe("bindBackendConversationMessageResult", () => {
                     result: receipt(current, {
                         bindingStatus: "replaced",
                         taskId: "task-1",
-                        historical: { taskId: "task-1", content: "图片已生成" },
+                        historical: { taskId: "task-1", content: "Image has been generated" },
                     }),
                 }),
                 adoptConfirmedConversation: async (_id, document) => document,
@@ -132,7 +132,7 @@ describe("bindBackendConversationMessageResult", () => {
         const message = (bound.conversation?.messages as Array<Record<string, unknown>> | undefined)?.find((item) => item.id === "msg-1");
         expect(bound.receipt.bindingStatus).toBe("replaced");
         expect(message?.taskIds).toEqual(["task-b"]);
-        expect(message?.content).toBe("视频已生成");
+        expect(message?.content).toBe("Video has been generated");
     });
 
     test("bound receipt without revision throws instead of adopting a local fallback", async () => {

@@ -27,7 +27,7 @@ async function page() {
     return page;
 }
 
-test("只读远景点击不启动节点编辑", async () => {
+test("Read-only vista click does not start node editing", async () => {
     const p = await page();
     try {
         await p.evaluate(() => (window as any).setLodReadOnly(true));
@@ -37,7 +37,7 @@ test("只读远景点击不启动节点编辑", async () => {
     } finally { await p.close(); }
 }, 15000);
 
-test("远景节点上的空格拖动保留平移，不拖动节点", async () => {
+test("Space dragging on the distant view node retains translation without dragging the node", async () => {
     const p = await page();
     try {
         await p.keyboard.down("Space");
@@ -53,7 +53,7 @@ test("远景节点上的空格拖动保留平移，不拖动节点", async () =>
     } finally { await p.close(); }
 }, 15000);
 
-test("远景点击提升后立即按住拖动，不提前打开预览", async () => {
+test("Immediately after clicking and dragging the distant view, the preview will not be opened in advance.", async () => {
     const p = await page();
     try {
         await p.mouse.click(150, 150);
@@ -65,7 +65,7 @@ test("远景点击提升后立即按住拖动，不提前打开预览", async ()
     } finally { await p.close(); }
 }, 15000);
 
-test("远景节点提升成卡片后，正常双击只打开一次", async () => {
+test("After the vision node is upgraded to a card, it can only be opened once by double-clicking it normally.", async () => {
     const p = await page();
     try {
         await p.mouse.dblclick(150, 150, { delay: 100 });
@@ -73,7 +73,7 @@ test("远景节点提升成卡片后，正常双击只打开一次", async () =>
     } finally { await p.close(); }
 }, 15000);
 
-test("远景缩略图一次临时解码失败后可以重新加载", async () => {
+test("The distant view thumbnail can be reloaded after a temporary decoding failure.", async () => {
     const p = await page();
     try {
         const result = await p.evaluate(() => (window as any).lodRetryProbe());

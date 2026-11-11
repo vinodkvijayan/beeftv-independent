@@ -6,7 +6,7 @@ const root = dirname(fileURLToPath(import.meta.url));
 const contractStart = "<!-- BEEFTV_PLUGIN_MANIFEST_START -->";
 const contractEnd = "<!-- BEEFTV_PLUGIN_MANIFEST_END -->";
 const recursiveDocumentationPlaceholder =
-  "<当前插件的完整 documentation，由 README.md 与 docs/interface.md 拼接而成；为避免 JSON 递归，此处不重复展开正文。>";
+  "<The complete documentation of the current plug-in is composed of README.md and docs/interface.md; in order to avoid JSON recursion, the text will not be expanded repeatedly here. >";
 
 function normalizeNewlines(document) {
   return document.replace(/\r\n?/g, "\n");
@@ -25,13 +25,11 @@ function withoutGeneratedContract(document) {
 function renderContract(manifest) {
   const contract = JSON.parse(JSON.stringify(manifest));
   contract.documentation = recursiveDocumentationPlaceholder;
-  return `${contractStart}
-## Manifest 完整接口定义
+  return `${contractStart}## Manifest complete interface definition
 
-以下 JSON 与插件包内实际 \`manifest.json\` 逐字段一致，覆盖插件身份、权限、配置、鉴权、参数、校验、创建、Agent、查询、取消、结果下载、响应和 Agent 响应映射。\`documentation\` 字段的值就是当前完整文档；为避免文档在自身内部无限递归，JSON 中仅用等义占位文本表示正文。
+The following JSON is consistent field by field with the actual \`manifest.json\` in the plug-in package, covering plug-in identity, permissions, configuration, authentication, parameters, verification, creation, Agent, query, cancellation, result download, response and Agent response mapping. The value of the \`documentation\` field is the current complete document; in order to avoid infinite recursion of the document within itself, only equivalent placeholder text is used to represent the main text in JSON.
 
-\`\`\`json
-${JSON.stringify(contract, null, 2)}
+\`\`\`json${JSON.stringify(contract, null, 2)}
 \`\`\`
 ${contractEnd}`;
 }

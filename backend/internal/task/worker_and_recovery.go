@@ -291,7 +291,7 @@ func ExecuteRouteAttemptLoop(ctx context.Context, deps RouteExecuteDeps, task *m
 		}
 		nextAttempt, routeErr := deps.NextAfterFailure(task, attempt, execution.Err)
 		if routeErr != nil {
-			_ = deps.WriteLog(task.UserID, task.ID, "warn", "备用路由不可用，保留原始失败", routeErr.Error())
+			_ = deps.WriteLog(task.UserID, task.ID, "warn", "Alternate route unavailable, retaining original failed", routeErr.Error())
 			break
 		}
 		if nextAttempt == nil {
@@ -300,9 +300,9 @@ func ExecuteRouteAttemptLoop(ctx context.Context, deps RouteExecuteDeps, task *m
 		task.RouteID = nextAttempt.RouteID
 		attempt = nextAttempt
 		if task.Type == "canvas_image" {
-			_ = deps.WriteLog(task.UserID, task.ID, "warn", "上游限流，正在重试原图片请求", nextAttempt.ID)
+			_ = deps.WriteLog(task.UserID, task.ID, "warn", "Upstream current limit, original image request is being retried.", nextAttempt.ID)
 		} else {
-			_ = deps.WriteLog(task.UserID, task.ID, "warn", "上游未创建任务，切换备用能力路由", nextAttempt.RouteID)
+			_ = deps.WriteLog(task.UserID, task.ID, "warn", "No task is created in the upstream, switch the backup capability route", nextAttempt.RouteID)
 		}
 	}
 	execution.ProviderSucceeded = execution.Err == nil
@@ -312,14 +312,14 @@ func ExecuteRouteAttemptLoop(ctx context.Context, deps RouteExecuteDeps, task *m
 func FailTimelineTask(repo *repository.Repository, logInfo func(userID, taskID, msg, extra string), task *model.Task, stage string, message string) error {
 	done, err := repo.UpdateTaskTerminalState(task.ID, task.LeaseOwner, model.TaskStatusRunning, model.TaskStatusFailed, stage, message, time.Now(), task.FailureDiagnostics)
 	if err != nil {
-		return fmt.Errorf("写入转写失败态失败: %w", err)
+		return fmt.Errorf("Write transfer failure status failed: %w", err)
 	}
 	if !done {
-		return fmt.Errorf("时间线任务状态或租约已变化：%w", repository.ErrTaskStateConflict)
+		return fmt.Errorf("Timeline task status or lease changed: %w", repository.ErrTaskStateConflict)
 	}
-	label := "时间线转写失败"
+	label := "Timeline transcription failed"
 	if task.Type == model.TaskTypeDepthCapture {
-		label = "深度处理失败"
+		label = "Depth processing failed"
 	}
 	if logInfo != nil {
 		logInfo(task.UserID, task.ID, fmt.Sprintf("%s: %s", label, message), "")
@@ -329,7 +329,7 @@ func FailTimelineTask(repo *repository.Repository, logInfo func(userID, taskID, 
 
 func UpdateTimelineTaskProgress(repo *repository.Repository, task *model.Task, stage string, progress int) error {
 	if err := repo.UpdateTaskProgressForLease(task.ID, task.LeaseOwner, stage, progress); err != nil {
-		return fmt.Errorf("更新转写进度失败: %w", err)
+		return fmt.Errorf("Failed to update transcoding progress: %w", err)
 	}
 	return nil
 }
@@ -346,30 +346,30 @@ func ProcessTimelineTranscription(
 	baseURL := strings.TrimSpace(os.Getenv(transcription.BaseURLEnv))
 	var input TimelineTranscriptionInput
 	if err := json.Unmarshal([]byte(task.InputJSON), &input); err != nil || strings.TrimSpace(input.ResourceID) == "" {
-		return FailTimelineTask(repo, logInfo, task, "转写失败", "任务缺少有效的资源引用")
+		return FailTimelineTask(repo, logInfo, task, "Transcription failed", "The task is missing a valid resource reference")
 	}
 	if input.Model == "" && baseURL == "" {
-		return FailTimelineTask(repo, logInfo, task, "转写失败", "未配置本地转写服务：请设置 CANVAS_WHISPER_BASE_URL 指向 whisper.cpp 服务")
+		return FailTimelineTask(repo, logInfo, task, "Transcription failed", "The local transliteration service is not configured: please set CANVAS_WHISPER_BASE_URL to point to the whisper.cpp service")
 	}
 	if err := requireFeature(); err != nil {
-		return FailTimelineTask(repo, logInfo, task, "转写失败", "字幕转写暂未开放")
+		return FailTimelineTask(repo, logInfo, task, "Transcription failed", "Subtitle transcription is not available yet")
 	}
-	logInfo(task.UserID, task.ID, "时间线转写任务开始", "")
+	logInfo(task.UserID, task.ID, "Timeline transcription task begins", "")
 	executor := newExecutor(task.UserID, baseURL)
 	if input.Model != "" {
 		if task.Attempts > 1 {
-			return FailTimelineTask(repo, logInfo, task, "转写已中断", "上次云端转写结果未确认，未重复提交。请检查原任务和用量后重新创建转写")
+			return FailTimelineTask(repo, logInfo, task, "Transcription interrupted", "The last cloud transcription result has not been confirmed and has not been resubmitted. Please check the original task and usage before re-creating the transcription")
 		}
 		if beef == nil {
-			return FailTimelineTask(repo, logInfo, task, "转写失败", "请先连接 BeefTV")
+			return FailTimelineTask(repo, logInfo, task, "Transcription failed", "Please connect to BeefTV first")
 		}
 		cred, err := beef.Resolve()
 		if err != nil || input.ManagedTokenID == "" || cred.TokenID != input.ManagedTokenID {
-			return FailTimelineTask(repo, logInfo, task, "转写失败", "BeefTV 连接已改变，请重新提交转写")
+			return FailTimelineTask(repo, logInfo, task, "Transcription failed", "BeefTV connection has changed, please resubmit the transcription")
 		}
 		executor.Client = transcription.NewClient(cred.BaseURL)
 		if _, err := outbound.ValidateOutboundURL(cred.BaseURL); err != nil {
-			return FailTimelineTask(repo, logInfo, task, "转写失败", "云端转写地址不可用，请重新连接 BeefTV")
+			return FailTimelineTask(repo, logInfo, task, "Transcription failed", "The cloud transcribing address is unavailable, please reconnect to BeefTV")
 		}
 		executor.Client.HTTP = outbound.OutboundHTTPClient(20 * time.Minute)
 		executor.Client.Model, executor.Client.APIKey = input.Model, cred.APIKey
@@ -378,28 +378,28 @@ func ProcessTimelineTranscription(
 		return UpdateTimelineTaskProgress(repo, task, stage, percent)
 	})
 	if err != nil {
-		return FailTimelineTask(repo, logInfo, task, "转写失败", err.Error())
+		return FailTimelineTask(repo, logInfo, task, "Transcription failed", err.Error())
 	}
 	payload, err := json.Marshal(result)
 	if err != nil {
-		return FailTimelineTask(repo, logInfo, task, "转写失败", "转写结果序列化失败")
+		return FailTimelineTask(repo, logInfo, task, "Transcription failed", "Transcription result serialization failed")
 	}
 	task.Status = model.TaskStatusSucceeded
-	task.Stage = "转写完成"
+	task.Stage = "Transcription completed"
 	task.Progress = 100
 	task.ResultJSON = string(payload)
 	completedAt := time.Now()
 	task.CompletedAt = &completedAt
 	if err := repo.SaveTaskCompletion(task, model.TaskStatusRunning, nil); err != nil {
-		return fmt.Errorf("写入转写完成态失败: %w", err)
+		return fmt.Errorf("Failed to write the transfer completion status: %w", err)
 	}
-	logInfo(task.UserID, task.ID, fmt.Sprintf("时间线转写完成，段落 %d", len(result.Segments)), "")
+	logInfo(task.UserID, task.ID, fmt.Sprintf("Timeline transcription completed, paragraph %d", len(result.Segments)), "")
 	return nil
 }
 
 func BindTranscriptionModel(beef *beeftv.Service, modelID string) (string, error) {
 	if beef == nil {
-		return "", kernel.BadAuthRequest("请先连接 BeefTV")
+		return "", kernel.BadAuthRequest("Please connect to BeefTV first")
 	}
 	cred, err := beef.Resolve()
 	if err != nil {
@@ -422,11 +422,11 @@ func BindTranscriptionModel(beef *beeftv.Service, modelID string) (string, error
 		}
 	}
 	if !available {
-		return "", kernel.BadAuthRequest("该模型不支持音视频转写，请刷新模型列表")
+		return "", kernel.BadAuthRequest("This model does not support audio and video transcription, please refresh the model list")
 	}
 	next, err := beef.Resolve()
 	if err != nil || next.TokenID != cred.TokenID || next.AccountID != cred.AccountID {
-		return "", kernel.BadAuthRequest("BeefTV 连接已改变，请重新提交转写")
+		return "", kernel.BadAuthRequest("BeefTV connection has changed, please resubmit the transcription")
 	}
 	return cred.TokenID, nil
 }
@@ -448,7 +448,7 @@ type TimelineRenderResult struct {
 
 func CompileTimelineRenderPlan(userID string, req TimelineRenderPlanRequest) (*editing.Plan, error) {
 	if strings.TrimSpace(userID) == "" {
-		return nil, kernel.Unauthorized("未登录")
+		return nil, kernel.Unauthorized("Not logged in")
 	}
 	plan, err := editing.Compile(req.Timeline, req.Sources, req.Options)
 	if err != nil {
@@ -472,11 +472,11 @@ func ProcessTimelineRender(
 ) error {
 	var input TimelineRenderInput
 	if err := json.Unmarshal([]byte(task.InputJSON), &input); err != nil {
-		return FailTimelineTask(repo, logInfo, task, "渲染失败", "任务缺少有效的时间线快照")
+		return FailTimelineTask(repo, logInfo, task, "Rendering failed", "Task is missing a valid timeline snapshot")
 	}
 	plan, err := editing.Compile(input.Timeline, nil, input.Options)
 	if err != nil {
-		return FailTimelineTask(repo, logInfo, task, "渲染失败", err.Error())
+		return FailTimelineTask(repo, logInfo, task, "Rendering failed", err.Error())
 	}
 	var (
 		renderCleanup func()
@@ -500,7 +500,7 @@ func ProcessTimelineRender(
 		}
 		file, openErr := os.Open(rendered.Path)
 		if openErr != nil {
-			return localasset.RecoveredArtifact{}, fmt.Errorf("读取渲染产物失败")
+			return localasset.RecoveredArtifact{}, fmt.Errorf("Failed to read rendering product")
 		}
 		renderFile = file
 		return localasset.RecoveredArtifact{
@@ -510,12 +510,12 @@ func ProcessTimelineRender(
 		}, nil
 	})
 	if err != nil {
-		return FailTimelineTask(repo, logInfo, task, "渲染失败", err.Error())
+		return FailTimelineTask(repo, logInfo, task, "Rendering failed", err.Error())
 	}
 	if resource == nil {
-		return FailTimelineTask(repo, logInfo, task, "渲染失败", "保存渲染产物失败")
+		return FailTimelineTask(repo, logInfo, task, "Rendering failed", "Failed to save rendering product")
 	}
-	if err := UpdateTimelineTaskProgress(repo, task, "写入资源…", 85); err != nil {
+	if err := UpdateTimelineTaskProgress(repo, task, "Writing resources…", 85); err != nil {
 		return err
 	}
 	result := TimelineRenderResult{
@@ -528,22 +528,22 @@ func ProcessTimelineRender(
 	}
 	payload, err := json.Marshal(result)
 	if err != nil {
-		return FailTimelineTask(repo, logInfo, task, "渲染失败", "渲染结果序列化失败")
+		return FailTimelineTask(repo, logInfo, task, "Rendering failed", "Rendering result serialization failed")
 	}
 	task.Status = model.TaskStatusSucceeded
-	task.Stage = "渲染完成"
+	task.Stage = "Rendering completed"
 	task.Progress = 100
 	task.ResultJSON = string(payload)
 	completedAt := time.Now()
 	task.CompletedAt = &completedAt
 	if err := repo.SaveTaskCompletion(task, model.TaskStatusRunning, nil); err != nil {
-		return fmt.Errorf("写入渲染完成态失败: %w", err)
+		return fmt.Errorf("Failed to write rendering completion status: %w", err)
 	}
 	if deliver != nil {
 		if err := deliver(*task); err != nil {
-			return fmt.Errorf("本地渲染完成后的素材交付失败：%w", err)
+			return fmt.Errorf("Material delivery failed after local rendering was completed: %w", err)
 		}
 	}
-	logInfo(task.UserID, task.ID, fmt.Sprintf("时间线渲染完成，时长 %.1fs", float64(resource.DurationMs)/1000), "")
+	logInfo(task.UserID, task.ID, fmt.Sprintf("Timeline rendering completed, duration %.1fs", float64(resource.DurationMs)/1000), "")
 	return nil
 }

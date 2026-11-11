@@ -112,7 +112,7 @@ func decodeEnvelope(t *testing.T, recorder *httptest.ResponseRecorder) (map[stri
 		Reason string         `json:"reason"`
 	}
 	if err := json.Unmarshal(recorder.Body.Bytes(), &envelope); err != nil {
-		t.Fatalf("响应不是合法 JSON：%s", recorder.Body.String())
+		t.Fatalf("Response is not valid JSON: %s", recorder.Body.String())
 	}
 	return envelope.Data, envelope.Reason
 }
@@ -127,24 +127,24 @@ func TestOpsGateAcceptsRegisteredClientWithoutLaunchToken(t *testing.T) {
 
 	listing := harness.call(requestOptions{method: "GET", path: "/ops", clientID: registration.ID, clientToken: token})
 	if listing.Code != http.StatusOK {
-		t.Fatalf("已登记客户端应能列出操作，得到 %d %s", listing.Code, listing.Body.String())
+		t.Fatalf("Registered clients should be able to list the operations and get %d %s", listing.Code, listing.Body.String())
 	}
 
 	// 操作入口也放行：这里画布不存在，所以失败原因必须是业务错误，不是被守卫拦下。
 	operation := harness.call(requestOptions{method: "POST", path: "/ops/canvas.get",
 		body: `{"params":{"canvasId":"missing"}}`, clientID: registration.ID, clientToken: token})
 	if _, reason := decodeEnvelope(t, operation); reason == "desktop_token_required" {
-		t.Fatalf("已登记客户端在操作入口被启动令牌守卫拦下：%d %s", operation.Code, operation.Body.String())
+		t.Fatalf("The registered client was blocked by the activation token guard at the operation entrance: %d %s", operation.Code, operation.Body.String())
 	}
 
 	// 生成单查询入口对已登记客户端放行，但批准入口必须拒绝客户端凭据自批。
 	orders := harness.call(requestOptions{method: "GET", path: "/ops/orders", clientID: registration.ID, clientToken: token})
 	if orders.Code != http.StatusOK {
-		t.Fatalf("已登记客户端应能查询生成单，得到 %d %s", orders.Code, orders.Body.String())
+		t.Fatalf("The registered client should be able to query the generated order and get %d %s", orders.Code, orders.Body.String())
 	}
 	selfApprove := harness.call(requestOptions{method: "POST", path: "/ops/orders/gp-test/approve", clientID: registration.ID, clientToken: token})
 	if _, reason := decodeEnvelope(t, selfApprove); selfApprove.Code != http.StatusForbidden || reason != "agent_token_cannot_approve" {
-		t.Fatalf("客户端凭据批准生成单应被 agent_token_cannot_approve 拒绝，得到 %d %s", selfApprove.Code, selfApprove.Body.String())
+		t.Fatalf("The client credential approval generated ticket should be rejected by agent_token_cannot_approve and get %d %s", selfApprove.Code, selfApprove.Body.String())
 	}
 	ownerTok, err := agentops.EnsureOwnerToken(harness.dataDir)
 	if err != nil {
@@ -152,7 +152,7 @@ func TestOpsGateAcceptsRegisteredClientWithoutLaunchToken(t *testing.T) {
 	}
 	ownerApprove := harness.call(requestOptions{method: "POST", path: "/ops/orders/gp-missing/approve", extraHeaders: map[string]string{"X-Beeftv-Owner": ownerTok}})
 	if _, reason := decodeEnvelope(t, ownerApprove); ownerApprove.Code != http.StatusNotFound || reason != "generation_order_not_found" {
-		t.Fatalf("本机 Owner 凭据应穿过启动令牌守卫进入生成单批准路由，得到 %d %s", ownerApprove.Code, ownerApprove.Body.String())
+		t.Fatalf("The native Owner credentials should be passed through the startup token guard into the generated single approval route, resulting in %d %s", ownerApprove.Code, ownerApprove.Body.String())
 	}
 }
 
@@ -168,14 +168,14 @@ func TestOpsGateRejectsBogusClientCredentials(t *testing.T) {
 		clientID    string
 		clientToken string
 	}{
-		{"未登记的 ID", "client-does-not-exist", token},
-		{"登记过的 ID 配错误 token", registration.ID, "0000000000000000"},
-		{"空 token", registration.ID, ""},
+		{"Unregistered ID", "client-does-not-exist", token},
+		{"The registered ID is matched with the wrong token", registration.ID, "0000000000000000"},
+		{"Empty token", registration.ID, ""},
 	}
 	for _, item := range cases {
 		recorder := harness.call(requestOptions{method: "GET", path: "/ops", clientID: item.clientID, clientToken: item.clientToken})
 		if recorder.Code != http.StatusForbidden {
-			t.Fatalf("%s 应被拒绝，得到 %d %s", item.name, recorder.Code, recorder.Body.String())
+			t.Fatalf("%s should be rejected and get %d %s", item.name, recorder.Code, recorder.Body.String())
 		}
 	}
 }
@@ -198,10 +198,10 @@ func TestClientCredentialsOnOtherRoutesStillNeedLaunchToken(t *testing.T) {
 	} {
 		recorder := harness.call(requestOptions{method: item.method, path: item.path, clientID: registration.ID, clientToken: token})
 		if recorder.Code != http.StatusForbidden {
-			t.Fatalf("%s %s 不该对客户端凭据开放，得到 %d", item.method, item.path, recorder.Code)
+			t.Fatalf("%s %s should not be open to client credentials, got %d", item.method, item.path, recorder.Code)
 		}
 		if _, reason := decodeEnvelope(t, recorder); reason != "desktop_token_required" {
-			t.Fatalf("%s %s 的失败原因应为 desktop_token_required，得到 %q", item.method, item.path, reason)
+			t.Fatalf("The failure reason for %s %s should be desktop_token_required, get %q", item.method, item.path, reason)
 		}
 	}
 }
@@ -216,7 +216,7 @@ func TestOpsGateExemptionIsLoopbackOnly(t *testing.T) {
 	recorder := harness.call(requestOptions{method: "GET", path: "/ops",
 		clientID: registration.ID, clientToken: token, remoteAddr: "203.0.113.7:44321"})
 	if recorder.Code != http.StatusForbidden {
-		t.Fatalf("外部来源应被拒绝，得到 %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("External sources should be rejected, getting %d %s", recorder.Code, recorder.Body.String())
 	}
 }
 
@@ -226,92 +226,92 @@ func TestAgentClientIssueUseAndRevoke(t *testing.T) {
 
 	created := harness.desktopUI("POST", "/agent-clients", `{"kind":"codex","mode":"read-only","label":"我的 Codex"}`)
 	if created.Code != http.StatusOK {
-		t.Fatalf("桌面界面应能签发凭据，得到 %d %s", created.Code, created.Body.String())
+		t.Fatalf("The desktop interface should be able to issue credentials and get %d %s", created.Code, created.Body.String())
 	}
 	data, _ := decodeEnvelope(t, created)
 	token, _ := data["token"].(string)
 	if token == "" {
-		t.Fatal("签发响应必须带一次性 token")
+		t.Fatal("The signed response must carry a one-time token")
 	}
 	client, _ := data["client"].(map[string]any)
 	clientID, _ := client["id"].(string)
 	if clientID == "" {
-		t.Fatalf("签发响应缺少客户端 ID：%s", created.Body.String())
+		t.Fatalf("Signing response is missing client ID: %s", created.Body.String())
 	}
 	if client["kind"] != "codex" || client["mode"] != "read-only" {
-		t.Fatalf("签发响应的 kind/mode 不对：%v", client)
+		t.Fatalf("The kind/mode of the issuing response is wrong: %v", client)
 	}
 	if client["lastUsedAt"] != nil {
-		t.Fatalf("新签发的凭据不该有使用时间：%v", client["lastUsedAt"])
+		t.Fatalf("Newly issued credentials should not have a usage time: %v", client["lastUsedAt"])
 	}
 	setup, _ := data["setup"].(map[string]any)
 	command, _ := setup["command"].(string)
 	if !strings.Contains(command, "codex mcp add") || !strings.Contains(command, "mcp serve") {
-		t.Fatalf("codex 接入命令不可用：%q", command)
+		t.Fatalf("codex access command is not available: %q", command)
 	}
 	if !strings.Contains(command, clientID) || !strings.Contains(command, token) {
-		t.Fatal("接入命令必须带上这个客户端自己的凭据")
+		t.Fatal("The access command must bring the client's own credentials.")
 	}
 	if strings.Contains(command, harness.rt.LaunchToken()) {
-		t.Fatal("接入命令绝不能包含桌面启动令牌")
+		t.Fatal("The access command must not contain the desktop launch token")
 	}
 	if !strings.Contains(command, "--read-only") {
-		t.Fatalf("只读客户端的接入命令应带 --read-only：%q", command)
+		t.Fatalf("The read-only client access command should carry --read-only: %q", command)
 	}
 
 	// 签发出来的凭据立刻能进操作层，不需要桌面启动令牌。
 	used := harness.call(requestOptions{method: "GET", path: "/ops", clientID: clientID, clientToken: token})
 	if used.Code != http.StatusOK {
-		t.Fatalf("新签发的凭据应能立即使用，得到 %d %s", used.Code, used.Body.String())
+		t.Fatalf("The newly issued credentials should be usable immediately, getting %d %s", used.Code, used.Body.String())
 	}
 
 	// 用过之后列表里要能看到最近使用时间，并且永远不返回 token 或哈希。
 	listing := harness.desktopUI("GET", "/agent-clients", "")
 	if listing.Code != http.StatusOK {
-		t.Fatalf("桌面界面应能列出客户端，得到 %d %s", listing.Code, listing.Body.String())
+		t.Fatalf("The desktop interface should be able to list the clients and get %d %s", listing.Code, listing.Body.String())
 	}
 	if strings.Contains(listing.Body.String(), token) || strings.Contains(listing.Body.String(), "tokenHash") {
-		t.Fatal("列表泄露了凭据")
+		t.Fatal("List leaked credentials")
 	}
 	listed, _ := decodeEnvelope(t, listing)
 	clients, _ := listed["clients"].([]any)
 	if len(clients) != 1 {
-		t.Fatalf("应有 1 个客户端，得到 %d", len(clients))
+		t.Fatalf("Should have 1 client, got %d", len(clients))
 	}
 	first, _ := clients[0].(map[string]any)
 	if first["lastUsedAt"] == nil {
-		t.Fatal("用过的凭据应记录最近使用时间")
+		t.Fatal("Used credentials should record the last time they were used")
 	}
 	cli, _ := listed["cli"].(map[string]any)
 	if _, ok := cli["path"].(string); !ok {
-		t.Fatalf("列表必须给出 CLI 路径：%v", cli)
+		t.Fatalf("The list must give the CLI path: %v", cli)
 	}
 	if _, ok := cli["available"].(bool); !ok {
-		t.Fatalf("列表必须说明 CLI 是否随包可用：%v", cli)
+		t.Fatalf("The list must indicate whether the CLI is available with the package: %v", cli)
 	}
 	if install, _ := cli["installCommand"].(string); install == "" {
-		t.Fatal("列表必须给出把 CLI 接到 PATH 的命令")
+		t.Fatal("The list must give the command to connect the CLI to PATH")
 	}
 
 	// 吊销：立刻失效，并从列表里消失。
 	revoked := harness.desktopUI("DELETE", "/agent-clients/"+clientID, "")
 	if revoked.Code != http.StatusOK {
-		t.Fatalf("桌面界面应能吊销凭据，得到 %d %s", revoked.Code, revoked.Body.String())
+		t.Fatalf("The desktop interface should be able to revoke credentials and get %d %s", revoked.Code, revoked.Body.String())
 	}
 	afterRevoke := harness.call(requestOptions{method: "GET", path: "/ops", clientID: clientID, clientToken: token})
 	if afterRevoke.Code != http.StatusForbidden {
-		t.Fatalf("已吊销的凭据必须立即失效，得到 %d %s", afterRevoke.Code, afterRevoke.Body.String())
+		t.Fatalf("Revoked credentials must be invalidated immediately, resulting in %d %s", afterRevoke.Code, afterRevoke.Body.String())
 	}
 	if _, reason := decodeEnvelope(t, afterRevoke); reason != "desktop_token_required" {
-		t.Fatalf("已吊销凭据应回落到启动令牌守卫，得到 %q", reason)
+		t.Fatalf("Revoked credentials should fall back to starting the token guard, getting %q", reason)
 	}
 	emptyListing, _ := decodeEnvelope(t, harness.desktopUI("GET", "/agent-clients", ""))
 	if remaining, _ := emptyListing["clients"].([]any); len(remaining) != 0 {
-		t.Fatalf("已吊销的客户端不该继续出现在列表里：%v", remaining)
+		t.Fatalf("Revoked clients should no longer appear in the list: %v", remaining)
 	}
 	// 重复吊销按未找到处理，不把存在性变成探测手段。
 	if again := harness.desktopUI("DELETE", "/agent-clients/"+clientID, ""); again.Code != http.StatusNotFound {
-		t.Fatalf("重复吊销应返回未找到，得到 %d %s", again.Code, again.Body.String())
+		t.Fatalf("Repeated revocation should return not found, getting %d %s", again.Code, again.Body.String())
 	}
 }
 
@@ -352,13 +352,13 @@ func TestAgentClientSetupShapes(t *testing.T) {
 	} {
 		recorder := harness.desktopUI("POST", "/agent-clients", `{"kind":"`+item.kind+`","mode":"`+item.mode+`"}`)
 		if recorder.Code != http.StatusOK {
-			t.Fatalf("%s 签发失败：%d %s", item.kind, recorder.Code, recorder.Body.String())
+			t.Fatalf("%s issuance failed: %d %s", item.kind, recorder.Code, recorder.Body.String())
 		}
 		data, _ := decodeEnvelope(t, recorder)
 		setup, _ := data["setup"].(map[string]any)
 		value, _ := setup[item.wantKey].(string)
 		if !strings.Contains(value, item.wantInner) {
-			t.Fatalf("%s 的 setup.%s 不可用：%q", item.kind, item.wantKey, value)
+			t.Fatalf("setup.%s for %s is not available: %q", item.kind, item.wantKey, value)
 		}
 		if item.wantKey == "json" {
 			var config struct {
@@ -379,13 +379,13 @@ func TestAgentClientSetupShapes(t *testing.T) {
 			}
 		}
 		if title, _ := setup["title"].(string); title == "" {
-			t.Fatalf("%s 的 setup 缺少标题", item.kind)
+			t.Fatalf("The setup for %s is missing a header", item.kind)
 		}
 		if item.mode == "read-write" && strings.Contains(value, "--read-only") {
-			t.Fatalf("读写客户端的配置不该带 --read-only：%q", value)
+			t.Fatalf("The configuration of the read and write client should not include --read-only: %q", value)
 		}
 		if item.mode == "read-only" && !strings.Contains(value, "--read-only") {
-			t.Fatalf("只读客户端的配置应带 --read-only：%q", value)
+			t.Fatalf("Read-only clients should be configured with --read-only:%q", value)
 		}
 	}
 }
@@ -396,11 +396,11 @@ func TestAgentClientRoutesNeedDesktopUITrust(t *testing.T) {
 	recorder := harness.call(requestOptions{method: "GET", path: "/agent-clients",
 		origin: "wails://wails", launchToken: harness.rt.LaunchToken()})
 	if recorder.Code != http.StatusForbidden {
-		t.Fatalf("只有启动令牌不该能管理凭据，得到 %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("Only startup token should not be able to manage credentials, get %d %s", recorder.Code, recorder.Body.String())
 	}
 	if unknown := harness.call(requestOptions{method: "GET", path: "/agent-clients",
 		origin: "wails://attacker", launchToken: harness.rt.LaunchToken(), uiBootstrap: harness.rt.UIBootstrapToken()}); unknown.Code != http.StatusForbidden {
-		t.Fatalf("未知 Origin 不该能管理凭据，得到 %d", unknown.Code)
+		t.Fatalf("Unknown Origin should not be able to manage credentials, got %d", unknown.Code)
 	}
 }
 
@@ -409,13 +409,13 @@ func TestAgentClientRejectsUnknownMode(t *testing.T) {
 	harness := newDesktopHarness(t)
 	recorder := harness.desktopUI("POST", "/agent-clients", `{"kind":"codex","mode":"admin"}`)
 	if recorder.Code == http.StatusOK {
-		t.Fatalf("非法 mode 被接受了：%s", recorder.Body.String())
+		t.Fatalf("Illegal mode accepted: %s", recorder.Body.String())
 	}
 	if _, reason := decodeEnvelope(t, recorder); reason != "invalid_mode" {
-		t.Fatalf("非法 mode 的原因应为 invalid_mode，得到 %q", reason)
+		t.Fatalf("The reason for illegal mode should be invalid_mode and get %q", reason)
 	}
 	listing, _ := decodeEnvelope(t, harness.desktopUI("GET", "/agent-clients", ""))
 	if clients, _ := listing["clients"].([]any); len(clients) != 0 {
-		t.Fatalf("失败的签发不该留下记录：%v", clients)
+		t.Fatalf("Failed issuance should not leave a record: %v", clients)
 	}
 }

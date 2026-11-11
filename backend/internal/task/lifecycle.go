@@ -32,7 +32,7 @@ func (s *Service) retry(userID, id string, refresh *retryCredentialRefresh) (*mo
 		return nil, drainError(DrainRetryMessage)
 	}
 	if s.store == nil {
-		return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	task, err := s.store.TaskForUser(userID, id)
 	if err != nil {
@@ -140,14 +140,14 @@ func (s *Service) retry(userID, id string, refresh *retryCredentialRefresh) (*mo
 	if err != nil {
 		return nil, err
 	}
-	s.log(userID, task.ID, "info", "任务已重新入队", "")
+	s.log(userID, task.ID, "info", "Task has been requeued", "")
 	return presentTask(s.deps.Present, *task)
 }
 
 func (s *Service) Cancel(ctx context.Context, userID, id string) (*model.Task, error) {
 	_ = ctx
 	if s.store == nil {
-		return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	if s.deps.Runtime == nil || s.deps.Present == nil {
 		return nil, unavailable()
@@ -160,7 +160,7 @@ func (s *Service) Cancel(ctx context.Context, userID, id string) (*model.Task, e
 		if task.Status == model.TaskStatusCancelled {
 			return presentTask(s.deps.Present, *task)
 		}
-		return nil, fmt.Errorf("任务当前状态为 %s，无法取消", task.Status)
+		return nil, fmt.Errorf("The current status of the task is %s and cannot be canceled", task.Status)
 	}
 
 	s.hydrateProviderRequestID(task)
@@ -181,17 +181,17 @@ func (s *Service) Cancel(ctx context.Context, userID, id string) (*model.Task, e
 	}
 
 	task.Status = model.TaskStatusCancelled
-	task.Stage = "任务已取消"
-	task.Error = "任务已取消"
+	task.Stage = "Task canceled"
+	task.Error = "Task canceled"
 	task.CompletedAt = &now
 	s.deps.Runtime.StopLocalWait(task.ID)
 
 	if s.deps.TextReplay != nil {
 		if err := s.deps.TextReplay.Finalize(task.ID, model.TaskStatusCancelled); err != nil {
-			s.log(task.UserID, task.ID, "error", "取消任务后归并文本回放失败", err.Error())
+			s.log(task.UserID, task.ID, "error", "Merging text playback fails after canceling the task", err.Error())
 		}
 	}
-	s.log(task.UserID, task.ID, "warn", "用户主动取消任务", "")
+	s.log(task.UserID, task.ID, "warn", "User actively cancels task", "")
 
 	if task.ProviderRequestID != "" && s.deps.Provider != nil {
 		cancelTask := *task
@@ -199,7 +199,7 @@ func (s *Service) Cancel(ctx context.Context, userID, id string) (*model.Task, e
 			requestCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 			if err := s.deps.Provider.RequestCancel(requestCtx, &cancelTask); err != nil {
-				s.log(cancelTask.UserID, cancelTask.ID, "error", "发送上游取消请求失败", err.Error())
+				s.log(cancelTask.UserID, cancelTask.ID, "error", "Failed to send upstream cancellation request", err.Error())
 			}
 		}
 		started := false

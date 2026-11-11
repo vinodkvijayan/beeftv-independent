@@ -115,7 +115,7 @@ func TestInstallPublicSkillViaGitHubRootAndSubdir(t *testing.T) {
 		w := zip.NewWriter(&buf)
 		_ = w.SetComment(commitSHA)
 		entry, _ := w.Create("agent-browser-" + commitSHA + "/SKILL.md")
-		_, _ = entry.Write([]byte("---\nname: agent-browser\ndescription: Browser automation skill\n---\n# 浏览器自动化\n\n步骤说明。\n"))
+		_, _ = entry.Write([]byte("---\nname: agent-browser\ndescription: Browser automation skill\n---\n# Browser Automation\n\nStep instructions."))
 		_ = w.Close()
 		return buf.Bytes()
 	}
@@ -150,7 +150,7 @@ func TestInstallPublicSkillViaGitHubRootAndSubdir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("InstallGitHubSkill failed for public directory skill: %v", err)
 	}
-	if installed.SourceType != "github" || installed.SourceURL != "https://github.com/vercel-labs/agent-browser" || installed.SkillName != "浏览器自动化" {
+	if installed.SourceType != "github" || installed.SourceURL != "https://github.com/vercel-labs/agent-browser" || installed.SkillName != "browser automation" {
 		t.Fatalf("unexpected installed skill: %+v", installed)
 	}
 }

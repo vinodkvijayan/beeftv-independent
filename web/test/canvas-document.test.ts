@@ -2,47 +2,47 @@ import { describe, expect, test } from "bun:test";
 import { decodeNovelText, splitTextIntoChapters } from "../src/lib/canvas/canvas-document";
 
 describe("splitTextIntoChapters", () => {
-    test("识别常见中文、Markdown、装饰符与英文标题", () => {
-        const chapters = splitTextIntoChapters(`书名与作者
+    test("Recognize common Chinese, Markdown, decorators and English titles", () => {
+        const chapters = splitTextIntoChapters(`Book title and author
 
-第 1 章 初入江湖
-第一章正文
+Chapter 1 Entering the world for the first time
+Chapter 1 Text
 
-＃ 第２章 风雨欲来
-第二章正文
+# Chapter 2 The storm is coming
+Chapter 2 Text
 
-【第三章】再会故人
-第三章正文
+【Chapter 3】Seeing old friends again
+Chapter 3 Text
 
-卷四 山河故人
-第四章正文
+Volume Four: Old Friend of Mountains and Rivers
+Chapter 4 Text
 
-Epilogue: 重逢
-尾声正文`);
+Epilogue: Reunion
+Epilogue text`);
 
-        expect(chapters.map((chapter) => chapter.title)).toEqual(["序章", "第 1 章 初入江湖", "第２章 风雨欲来", "【第三章】再会故人", "卷四 山河故人", "Epilogue: 重逢"]);
-        expect(chapters[0].plainText).toBe("书名与作者");
-        expect(chapters[2].plainText).toBe("第二章正文");
+        expect(chapters.map((chapter) => chapter.title)).toEqual(["Prologue", "Chapter 1 Entering the world for the first time", "Chapter 2 The storm is coming", "【Chapter 3】Seeing old friends again", "Volume Four: Old Friend of Mountains and Rivers", "Epilogue: Reunion"]);
+        expect(chapters[0].plainText).toBe("Book title and author");
+        expect(chapters[2].plainText).toBe("Chapter 2 Text");
     });
 
-    test("普通正文和未识别文本保持为单个章节", () => {
-        const text = "这是第一章中发生的故事。\n角色继续前行。";
+    test("Normal text and unrecognized text remain as single chapters", () => {
+        const text = "This is what happened in the first chapter.\nThe characters move on.";
         const chapters = splitTextIntoChapters(text);
 
         expect(chapters).toHaveLength(1);
-        expect(chapters[0].title).toBe("第 1 章");
+        expect(chapters[0].title).toBe("Chapter 1");
         expect(chapters[0].plainText).toBe(text);
     });
 });
 
 describe("decodeNovelText", () => {
-    test("解码带 BOM 的 UTF-16LE", () => {
+    test("Decode UTF-16LE with BOM", () => {
         const bytes = new Uint8Array([0xff, 0xfe, 0x2c, 0x7b, 0x00, 0x4e, 0xe0, 0x7a]);
-        expect(decodeNovelText(bytes.buffer)).toBe("第一章");
+        expect(decodeNovelText(bytes.buffer)).toBe("Chapter 1");
     });
 
-    test("UTF-8 严格解码失败后回退到 GB18030", () => {
+    test("Fallback to GB18030 after UTF-8 strict decoding fails", () => {
         const bytes = new Uint8Array([0xb5, 0xda, 0xd2, 0xbb, 0xd5, 0xc2, 0x0a, 0xd5, 0xfd, 0xce, 0xc4]);
-        expect(decodeNovelText(bytes.buffer)).toBe("第一章\n正文");
+        expect(decodeNovelText(bytes.buffer)).toBe("Chapter 1\nText");
     });
 });

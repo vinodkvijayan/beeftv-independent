@@ -17,7 +17,7 @@ type CacheStore interface {
 func (s *Service) ClearCache(userID string) (int, error) {
 	store, ok := s.store.(CacheStore)
 	if !ok {
-		return 0, fmt.Errorf("视频预览缓存暂时无法清理")
+		return 0, fmt.Errorf("The video preview cache cannot be cleared temporarily.")
 	}
 	s.cacheMu.Lock()
 	defer s.cacheMu.Unlock()
@@ -31,7 +31,7 @@ func (s *Service) ClearCache(userID string) (int, error) {
 		if row.PlaybackObjectKey != "" {
 			key, err := copyObjectKey(row.ID)
 			if err != nil || key != row.PlaybackObjectKey {
-				return cleared, fmt.Errorf("视频预览缓存记录无效，无法清理")
+				return cleared, fmt.Errorf("The video preview cache record is invalid and cannot be cleared.")
 			}
 			path, err = s.copyPath(row.PlaybackObjectKey)
 			if err != nil {
@@ -82,7 +82,7 @@ func (s *Service) Prepare(resource *model.Resource) error {
 	if resource.PlaybackStatus == model.PlaybackStatusFailed || missing {
 		store, ok := s.store.(CacheStore)
 		if !ok {
-			return fmt.Errorf("视频预览暂时无法重新准备")
+			return fmt.Errorf("Video preview cannot be prepared again at the moment")
 		}
 		if err := store.ResetPlaybackCopy(resource.UserID, resource.ID, resource.PlaybackObjectKey); err != nil {
 			return err

@@ -29,7 +29,7 @@ describe("storyboardCostTargets", () => {
     const nodes = [script, frame, clip];
     const rows = [createStoryboardRow(1, { durationSeconds: 7, imageNodeId: frame.id, videoNodeId: clip.id }), createStoryboardRow(2, { durationSeconds: 6 })];
 
-    test("图片按实际提交的节点估算：已有节点用自己的尺寸、画质和张数，新节点用模型默认值", () => {
+    test("Pictures are estimated based on the actual submitted nodes: existing nodes use their own size, image quality and number of pictures, and new nodes use the model default values.", () => {
         const targets = storyboardCostTargets(config, "image", script, rows, nodes, []);
         expect(targets.map((target) => [target.modelKey, target.parameters?.size, target.parameters?.quality, target.parameters?.count])).toEqual([
             ["ch::shot-image", "1536x1024", "medium", "2"],
@@ -37,7 +37,7 @@ describe("storyboardCostTargets", () => {
         ]);
     });
 
-    test("视频用所选视频模型和每个镜头的时长，已有视频节点保留自己的分辨率", () => {
+    test("The video uses the selected video model and the duration of each shot. Existing video nodes retain their own resolution.", () => {
         const targets = storyboardCostTargets(config, "text_to_video", script, rows, nodes, [], "ch::shot-video");
         expect(targets.map((target) => [target.modelKey, target.kind, target.parameters?.seconds, target.parameters?.count])).toEqual([
             ["ch::shot-video", "video", "7", "1"],
@@ -46,7 +46,7 @@ describe("storyboardCostTargets", () => {
         expect(targets[0].parameters?.vquality).not.toBe(targets[1].parameters?.vquality);
     });
 
-    test("首帧只在首帧生视频时算作参考图", () => {
+    test("The first frame is only counted as a reference image when the first frame of the video is generated.", () => {
         const [textToVideo] = storyboardCostTargets(config, "text_to_video", script, rows, nodes, [], "ch::shot-video");
         const [imageToVideo] = storyboardCostTargets(config, "image_to_video", script, rows, nodes, [], "ch::shot-video");
         expect([textToVideo.referenceImages, imageToVideo.referenceImages]).toEqual([0, 1]);

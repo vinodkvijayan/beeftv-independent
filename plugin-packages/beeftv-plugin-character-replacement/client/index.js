@@ -118,21 +118,21 @@ export async function arrangeCharacterReplacementOnCanvas(host, config = {}) {
   const controlNodeId = String(config.controlNodeId || "").trim();
 
   const missingReferences = [];
-  if (!sourceKeyframeNodeId) missingReferences.push("sourceKeyframeNodeId（原关键帧图节点）");
-  if (!targetCharacterNodeId) missingReferences.push("targetCharacterNodeId（目标角色参考图节点）");
-  if (!sourceVideoNodeId) missingReferences.push("sourceVideoNodeId（原镜头视频节点）");
+  if (!sourceKeyframeNodeId) missingReferences.push("sourceKeyframeNodeId (original keyframe graph node)");
+  if (!targetCharacterNodeId) missingReferences.push("targetCharacterNodeId (target character reference graph node)");
+  if (!sourceVideoNodeId) missingReferences.push("sourceVideoNodeId (original lens video node)");
   if (config.requireReferences && missingReferences.length > 0) {
-    throw new Error(`缺少必需的上游参考节点：${missingReferences.join("、")}`);
+    throw new Error(`Required upstream reference node is missing:${missingReferences.join("、")}`);
   }
 
-  const shotTitle = String(config.shotTitle || "镜头 1").trim() || "镜头 1";
+  const shotTitle = String(config.shotTitle || "Shot 1").trim() || "Shot 1";
   let canvasId = await resolveActiveCanvasIdAsync(host, config.canvasId);
   if (!canvasId && config.autoCreateCanvas) {
     canvasId = `canvas-char-${Date.now().toString(36)}`;
-    await createInitialCanvasDocument(host, canvasId, `${shotTitle} · AI 角色替换画布`);
+    await createInitialCanvasDocument(host, canvasId, `${shotTitle} · AI character replacement canvas`);
   }
   if (!canvasId) {
-    throw new Error("请先打开一个画布或在替换工作室填写目标画布 ID 后再执行角色替换编排");
+    throw new Error("Please open a canvas first or fill in the target canvas ID in the replacement studio before performing role replacement arrangement.");
   }
   rememberCanvasId(host, canvasId);
 
@@ -141,7 +141,7 @@ export async function arrangeCharacterReplacementOnCanvas(host, config = {}) {
     snap = await host.ops.call("canvas.get", { canvasId });
   } catch (err) {
     if (config.autoCreateCanvas) {
-      await createInitialCanvasDocument(host, canvasId, `${shotTitle} · AI 角色替换画布`);
+      await createInitialCanvasDocument(host, canvasId, `${shotTitle} · AI character replacement canvas`);
       snap = await host.ops.call("canvas.get", { canvasId });
     } else {
       throw err;
@@ -165,33 +165,33 @@ export async function arrangeCharacterReplacementOnCanvas(host, config = {}) {
     if (!sourceKeyframeNodeId) {
       inputSlotOrder.push("sourceKeyframe");
       inputDrafts.push({
-        title: uniqueNodeTitle(`${shotTitle} · 原视频关键帧（图1）`, existingTitles),
+        title: uniqueNodeTitle(`${shotTitle} · Original video key frames (Figure 1)`, existingTitles),
         type: "image",
-        prompt: `原视频被替换人物关键帧：${String(config.sourceDescription || "原镜头人物").trim()}`,
+        prompt: `The original video was replaced with character key frames:${String(config.sourceDescription || "Characters in the original shot").trim()}`,
       });
     }
     if (!targetCharacterNodeId) {
       inputSlotOrder.push("targetCharacter");
       inputDrafts.push({
-        title: uniqueNodeTitle(`${shotTitle} · 目标角色参考图（图2）`, existingTitles),
+        title: uniqueNodeTitle(`${shotTitle} ·Target character reference picture (Figure 2)`, existingTitles),
         type: "image",
-        prompt: `目标替换角色正面清晰参考图：${String(config.targetDescription || "目标角色").trim()}`,
+        prompt: `Clear reference picture of the front of the target replacement character:${String(config.targetDescription || "target role").trim()}`,
       });
     }
     if (config.promptMode === "positioning" && !locationGuideNodeId) {
       inputSlotOrder.push("locationGuide");
       inputDrafts.push({
-        title: uniqueNodeTitle(`${shotTitle} · 人物框选定位图（图3）`, existingTitles),
+        title: uniqueNodeTitle(`${shotTitle} · Character frame selection bitmap (Figure 3)`, existingTitles),
         type: "image",
-        prompt: "多人场景人物红框定位辅助图（A框标识待替换人物区域）",
+        prompt: "Auxiliary diagram of red frame positioning of characters in multi-player scenes (frame A marks the area of the character to be replaced)",
       });
     }
     if (!sourceVideoNodeId) {
       inputSlotOrder.push("sourceVideo");
       inputDrafts.push({
-        title: uniqueNodeTitle(`${shotTitle} · 原镜头视频（视频1）`, existingTitles),
+        title: uniqueNodeTitle(`${shotTitle} · Original footage video (Video 1)`, existingTitles),
         type: "video",
-        prompt: `原镜头待替换视频片段：${String(config.sourceDescription || "原镜头人物动作与运镜").trim()}`,
+        prompt: `Original footage to be replaced:${String(config.sourceDescription || "Character movements and movements in original shots").trim()}`,
       });
     }
     if (inputDrafts.length > 0) {
@@ -211,9 +211,9 @@ export async function arrangeCharacterReplacementOnCanvas(host, config = {}) {
         if (slot === "sourceVideo") sourceVideoNodeId = createdId;
       });
       missingReferences.length = 0;
-      if (!sourceKeyframeNodeId) missingReferences.push("sourceKeyframeNodeId（原关键帧图节点）");
-      if (!targetCharacterNodeId) missingReferences.push("targetCharacterNodeId（目标角色参考图节点）");
-      if (!sourceVideoNodeId) missingReferences.push("sourceVideoNodeId（原镜头视频节点）");
+      if (!sourceKeyframeNodeId) missingReferences.push("sourceKeyframeNodeId (original keyframe graph node)");
+      if (!targetCharacterNodeId) missingReferences.push("targetCharacterNodeId (target character reference graph node)");
+      if (!sourceVideoNodeId) missingReferences.push("sourceVideoNodeId (original lens video node)");
     }
   }
 
@@ -225,8 +225,8 @@ export async function arrangeCharacterReplacementOnCanvas(host, config = {}) {
     ...config,
     hasLocationGuideImage,
   });
-  const keyframeTitle = uniqueNodeTitle(`${shotTitle} · 关键帧换人`, existingTitles);
-  const videoTitle = uniqueNodeTitle(`${shotTitle} · 视频角色替换`, existingTitles);
+  const keyframeTitle = uniqueNodeTitle(`${shotTitle} · Keyframe substitution`, existingTitles);
+  const videoTitle = uniqueNodeTitle(`${shotTitle} ·Video character replacement`, existingTitles);
 
   const created = await host.ops.call("canvas.nodes.create", {
     canvasId,
@@ -324,7 +324,7 @@ export async function arrangeCharacterReplacementOnCanvas(host, config = {}) {
 export async function spliceReplacedShotsIntoTimeline(host, params = {}) {
   const canvasId = await resolveActiveCanvasIdAsync(host, params.canvasId);
   if (!canvasId) {
-    throw new Error("请先打开目标画布或在替换工作室填写目标画布 ID 后再执行全片时间线回插");
+    throw new Error("Please open the target canvas first or fill in the target canvas ID in the replacement studio before performing full timeline reinsertion.");
   }
   rememberCanvasId(host, canvasId);
 
@@ -355,7 +355,7 @@ export async function spliceReplacedShotsIntoTimeline(host, params = {}) {
       resolvedFullDurationMs = detectedFullDurationMs;
     } else if (Math.abs(callerFullDurationMs - detectedFullDurationMs) > 250) {
       throw new Error(
-        `填写的全片总时长（${callerFullDurationMs}ms）与原全片节点实际时长（${detectedFullDurationMs}ms）不一致，请核对后重试`,
+        `Fill in the total duration of the film (${callerFullDurationMs}ms) and the actual duration of the original full-slice node (${detectedFullDurationMs}ms) are inconsistent, please check and try again.`,
       );
     }
   }
@@ -410,7 +410,7 @@ export function activate(host) {
     const pluginData = node?.metadata?.pluginData || {};
 
     const [shotTitle, setShotTitle] = React.useState(
-      () => String(pluginData.shotTitle || node.title || "镜头 1"),
+      () => String(pluginData.shotTitle || node.title || "Shot 1"),
     );
     const [position, setPosition] = React.useState(
       () => normalizePosition(pluginData.position || "left"),
@@ -518,13 +518,13 @@ export function activate(host) {
         });
         const warnSuffix =
           res.missingReferences?.length > 0
-            ? `（提示：尚未绑定 ${res.missingReferences.join("、")}，生成前请手动连线）`
+            ? `(Tip: Not yet bound${res.missingReferences.join("、")}, please connect manually before generating)`
             : "";
-        const msg = `已创建两阶段换人节点：关键帧 (${res.keyframeNodeId}) → 视频元素替换 (${res.videoNodeId})${warnSuffix}`;
+        const msg = `Two-stage substitution node has been created: keyframe (${res.keyframeNodeId}) → video element replacement (${res.videoNodeId})${warnSuffix}`;
         setStatusText(msg);
         host.ui?.notify?.(msg, "success");
       } catch (err) {
-        const msg = err?.message || "创建角色替换管线失败";
+        const msg = err?.message || "Creating role replacement pipeline failed";
         setStatusText(msg);
         host.ui?.notify?.(msg, "error");
       } finally {
@@ -583,7 +583,7 @@ export function activate(host) {
           h(
             "span",
             { style: { fontSize: 13, fontWeight: 700 } },
-            "🎭 AI 角色替换（关键帧+视频双阶段）",
+            "🎭 AI character replacement (key frame + video dual stage)",
           ),
           h(
             "button",
@@ -608,7 +608,7 @@ export function activate(host) {
                 cursor: "pointer",
               },
             },
-            "打开替换工作室",
+            "Open replacement studio",
           ),
         ),
         h(
@@ -618,7 +618,7 @@ export function activate(host) {
             type: "text",
             "data-testid": "character-replacement-shot-input",
             value: shotTitle,
-            placeholder: "镜头名称（如：镜头 1）",
+            placeholder: "Lens name (e.g. Lens 1)",
             onChange: (e) => {
               setShotTitle(e.target.value);
               syncPluginData({ shotTitle: e.target.value });
@@ -683,7 +683,7 @@ export function activate(host) {
           type: "text",
           "data-testid": "character-replacement-source-desc-input",
           value: sourceDescription,
-          placeholder: "原画面被替换人物特征（如：穿黑西装的男人）",
+          placeholder: "Character features are replaced in the original picture (for example: a man in a black suit)",
           onChange: (e) => {
             setSourceDescription(e.target.value);
             syncPluginData({ sourceDescription: e.target.value });
@@ -695,7 +695,7 @@ export function activate(host) {
           type: "text",
           "data-testid": "character-replacement-target-desc-input",
           value: targetDescription,
-          placeholder: "目标新角色描述（如：戴银框眼镜酒红西装霸总）",
+          placeholder: "Target new role description (e.g.: boss wearing silver-rimmed glasses and burgundy suit)",
           onChange: (e) => {
             setTargetDescription(e.target.value);
             syncPluginData({ targetDescription: e.target.value });
@@ -707,7 +707,7 @@ export function activate(host) {
           ? h("textarea", {
               "data-testid": "character-replacement-manual-prompt-input",
               value: manualPrompt,
-              placeholder: "输入自定义关键帧换人提示词…",
+              placeholder: "Enter a custom keyframe substitution prompt word...",
               rows: 2,
               onChange: (e) => {
                 setManualPrompt(e.target.value);
@@ -722,7 +722,7 @@ export function activate(host) {
               type: "text",
               "data-testid": "character-replacement-guide-node-input",
               value: locationGuideNodeId,
-              placeholder: "定位图节点 ID（连接后作为图3）",
+              placeholder: "Locate graph node ID (connected as Figure 3)",
               onChange: (e) => {
                 setLocationGuideNodeId(e.target.value);
                 syncPluginData({ locationGuideNodeId: e.target.value });
@@ -738,7 +738,7 @@ export function activate(host) {
             type: "text",
             "data-testid": "character-replacement-keyframe-node-input",
             value: sourceKeyframeNodeId,
-            placeholder: "原关键帧节点ID",
+            placeholder: "Original keyframe node ID",
             onChange: (e) => {
               setSourceKeyframeNodeId(e.target.value);
               syncPluginData({ sourceKeyframeNodeId: e.target.value });
@@ -750,7 +750,7 @@ export function activate(host) {
             type: "text",
             "data-testid": "character-replacement-target-node-input",
             value: targetCharacterNodeId,
-            placeholder: "目标角色图节点ID",
+            placeholder: "Target role graph node ID",
             onChange: (e) => {
               setTargetCharacterNodeId(e.target.value);
               syncPluginData({ targetCharacterNodeId: e.target.value });
@@ -762,7 +762,7 @@ export function activate(host) {
             type: "text",
             "data-testid": "character-replacement-video-node-input",
             value: sourceVideoNodeId,
-            placeholder: "原视频节点ID",
+            placeholder: "Original video node ID",
             onChange: (e) => {
               setSourceVideoNodeId(e.target.value);
               syncPluginData({ sourceVideoNodeId: e.target.value });
@@ -824,7 +824,7 @@ export function activate(host) {
               cursor: submitting ? "wait" : "pointer",
             },
           },
-          submitting ? "正在编排双阶段替换节点…" : "一键编排关键帧+视频替换管线",
+          submitting ? "Orchestrating dual-phase replacement nodes..." : "One-click keyframe arrangement + video replacement pipeline",
         ),
       ),
     );
@@ -846,12 +846,12 @@ export function activate(host) {
       };
     }, []);
     const [activeStep, setActiveStep] = React.useState(1);
-    const [shotTitle, setShotTitle] = React.useState("镜头 1");
+    const [shotTitle, setShotTitle] = React.useState("Shot 1");
     const [position, setPosition] = React.useState("left");
     const [genderHint, setGenderHint] = React.useState("male");
-    const [sourceDescription, setSourceDescription] = React.useState("穿黑色西装的男人");
+    const [sourceDescription, setSourceDescription] = React.useState("man in black suit");
     const [targetDescription, setTargetDescription] = React.useState(
-      "戴银框眼镜、穿酒红色丝绒西装的年轻霸总",
+      "A young boss wearing silver-rimmed glasses and a burgundy velvet suit",
     );
     const [replacementScope, setReplacementScope] = React.useState("full-person");
     const [promptMode, setPromptMode] = React.useState("regular");
@@ -926,14 +926,14 @@ export function activate(host) {
         setReplacedVideoNodeId(res.videoNodeId);
         const hasMissing = res.missingReferences?.length > 0;
         const warnText = hasMissing
-          ? `（注意：尚未绑定 ${res.missingReferences.join("、")}，生成前请在画布连线）`
+          ? `(Note: Not yet bound${res.missingReferences.join("、")}, please connect the lines on the canvas before generating)`
           : "";
-        const msg = `已在画布（${res.canvasId}）创建「${shotTitle}」两阶段替换管线：关键帧节点 ${res.keyframeNodeId} → 视频元素替换节点 ${res.videoNodeId}${warnText}`;
+        const msg = `Already on the canvas (${res.canvasId}) create "${shotTitle}"Two-stage replacement pipeline: keyframe nodes${res.keyframeNodeId} → Video element replacement node${res.videoNodeId}${warnText}`;
         setStudioMessageTone(hasMissing ? "warning" : "success");
         setStudioMessage(msg);
         host.ui?.notify?.(msg, hasMissing ? "warning" : "success");
       } catch (err) {
-        const msg = err?.message || "推送画布管线失败";
+        const msg = err?.message || "Push canvas pipeline failed";
         setStudioMessageTone("error");
         setStudioMessage(msg);
         host.ui?.notify?.(msg, "error");
@@ -980,12 +980,12 @@ export function activate(host) {
             },
           ],
         });
-        const msg = `已将替换视频 (${replacedVideoNodeId}) 无损回插至画布（${res.canvasId}）全片时间线 ${rangeStartSec}s ~ ${rangeEndSec}s（共 ${res.timeline.clips.length} 个片段，版本 r${res.revision}）`;
+        const msg = `Replaced video (${replacedVideoNodeId}) Losslessly inserted back to the canvas (${res.canvasId})Full film timeline${rangeStartSec}s ~ ${rangeEndSec}s (total${res.timeline.clips.length} fragments, version r${res.revision}）`;
         setStudioMessageTone("success");
         setStudioMessage(msg);
         host.ui?.notify?.(msg, "success");
       } catch (err) {
-        const msg = err?.message || "回插全片时间线失败";
+        const msg = err?.message || "Failed to insert back the entire film timeline";
         setStudioMessageTone("error");
         setStudioMessage(msg);
         host.ui?.notify?.(msg, "error");
@@ -1052,12 +1052,12 @@ export function activate(host) {
           h(
             "h2",
             { style: { margin: 0, fontSize: compact ? 16 : 20, fontWeight: 700 } },
-            "🎭 AI 角色替换工作室",
+            "🎭 AI character replacement studio",
           ),
           h(
             "p",
             { style: { margin: "4px 0 0", fontSize: 12, opacity: 0.78 } },
-            "两阶段高保真角色替换：Step 1 角色映射与范围锁定 → Step 2 关键帧精准换人 → Step 3 Seedance 2.5 视频元素替换 → Step 4 全片时间线无损回插",
+            "Two-stage high-fidelity character replacement: Step 1 Character mapping and range locking → Step 2 Key frame precise substitution → Step 3 Seedance 2.5 video element replacement → Step 4 Lossless reinsertion of the entire film timeline",
           ),
         ),
         h(
@@ -1073,7 +1073,7 @@ export function activate(host) {
                 host.storage?.set?.("lastCanvasId", e.target.value.trim());
               }
             },
-            placeholder: "目标画布 ID（留空自动绑定或新建）",
+            placeholder: "Target canvas ID (leave blank to automatically bind or create a new one)",
             style: { ...inputStyle, width: compact ? 160 : 210 },
           }),
           targetCanvasId
@@ -1094,14 +1094,14 @@ export function activate(host) {
                     cursor: "pointer",
                   },
                 },
-                "打开目标画布 →",
+                "Open target canvas →",
               )
             : null,
           [
-            { step: 1, label: "1. 角色与范围绑定" },
-            { step: 2, label: "2. 关键帧提示词与定位框" },
-            { step: 3, label: "3. 视频动作替换管线" },
-            { step: 4, label: "4. 全片区间无损回插" },
+            { step: 1, label: "1. Role and scope binding" },
+            { step: 2, label: "2. Key frame prompt words and positioning boxes" },
+            { step: 3, label: "3. Video action replacement pipeline" },
+            { step: 4, label: "4. Lossless interpolation across the entire film" },
           ].map((tab) =>
             h(
               "button",
@@ -1156,7 +1156,7 @@ export function activate(host) {
               h(
                 "div",
                 { style: { fontWeight: 600, fontSize: 14 } },
-                "镜头与角色绑定参数",
+                "Lens and character binding parameters",
               ),
               h(
                 "div",
@@ -1166,7 +1166,7 @@ export function activate(host) {
                   "data-testid": "studio-shot-title-input",
                   value: shotTitle,
                   onChange: (e) => setShotTitle(e.target.value),
-                  placeholder: "镜头名称",
+                  placeholder: "Lens name",
                   style: inputStyle,
                 }),
                 h(
@@ -1233,7 +1233,7 @@ export function activate(host) {
                 "data-testid": "studio-source-desc-input",
                 value: sourceDescription,
                 onChange: (e) => setSourceDescription(e.target.value),
-                placeholder: "原视频被替换人物描述（如：左边穿黑西装的男人）",
+                placeholder: "The original video has been replaced with a character description (for example: the man in a black suit on the left)",
                 style: inputStyle,
               }),
               h("input", {
@@ -1241,7 +1241,7 @@ export function activate(host) {
                 "data-testid": "studio-target-desc-input",
                 value: targetDescription,
                 onChange: (e) => setTargetDescription(e.target.value),
-                placeholder: "目标替换角色描述（如：戴银框眼镜酒红丝绒西装霸总）",
+                placeholder: "Target replacement character description (e.g.: boss wearing silver-rimmed glasses and burgundy velvet suit)",
                 style: inputStyle,
               }),
               promptMode === "manual"
@@ -1249,7 +1249,7 @@ export function activate(host) {
                     "data-testid": "studio-manual-prompt-input",
                     value: manualPrompt,
                     onChange: (e) => setManualPrompt(e.target.value),
-                    placeholder: "输入自定义关键帧换人提示词…",
+                    placeholder: "Enter a custom keyframe substitution prompt word...",
                     rows: 3,
                     style: { ...inputStyle, resize: "vertical" },
                   })
@@ -1260,7 +1260,7 @@ export function activate(host) {
                     "data-testid": "studio-guide-node-input",
                     value: locationGuideNodeId,
                     onChange: (e) => setLocationGuideNodeId(e.target.value),
-                    placeholder: "定位图节点 ID（连接后作为图3）",
+                    placeholder: "Locate graph node ID (connected as Figure 3)",
                     style: inputStyle,
                   })
                 : null,
@@ -1277,21 +1277,21 @@ export function activate(host) {
                   type: "text",
                   value: sourceKeyframeNodeId,
                   onChange: (e) => setSourceKeyframeNodeId(e.target.value),
-                  placeholder: "原关键帧节点 ID（可选）",
+                  placeholder: "Original keyframe node ID (optional)",
                   style: inputStyle,
                 }),
                 h("input", {
                   type: "text",
                   value: targetCharacterNodeId,
                   onChange: (e) => setTargetCharacterNodeId(e.target.value),
-                  placeholder: "目标角色图节点 ID（可选）",
+                  placeholder: "Target actor graph node ID (optional)",
                   style: inputStyle,
                 }),
                 h("input", {
                   type: "text",
                   value: sourceVideoNodeId,
                   onChange: (e) => setSourceVideoNodeId(e.target.value),
-                  placeholder: "原镜头视频节点 ID（可选）",
+                  placeholder: "Original shot video node ID (optional)",
                   style: inputStyle,
                 }),
               ),
@@ -1313,8 +1313,8 @@ export function activate(host) {
                   },
                 },
                 working
-                  ? "正在向目标画布编排节点…"
-                  : "一键在目标画布生成「关键帧换人 + 视频替换」双阶段管线",
+                  ? "Arranging nodes to target canvas..."
+                  : "Generate a two-stage pipeline of \"keyframe substitution + video substitution\" on the target canvas with one click",
               ),
             ),
             h(
@@ -1332,12 +1332,12 @@ export function activate(host) {
               h(
                 "div",
                 { style: { fontWeight: 600, fontSize: 14 } },
-                "编译后双阶段提示词预览",
+                "Dual-stage prompt word preview after compilation",
               ),
               h(
                 "div",
                 { style: { fontSize: 12, opacity: 0.78 } },
-                "阶段一（Step 2 关键帧人物替换提示词）：",
+                "Stage 1 (Step 2 Keyframe character replacement prompt words):",
               ),
               h(
                 "pre",
@@ -1358,7 +1358,7 @@ export function activate(host) {
               h(
                 "div",
                 { style: { fontSize: 12, opacity: 0.78 } },
-                "阶段二（Step 3 Seedance 2.5 元素替换 replace_element 提示词）：",
+                "Stage 2 (Step 3 Seedance 2.5 element replacement replace_element prompt word):",
               ),
               h(
                 "pre",
@@ -1390,11 +1390,11 @@ export function activate(host) {
                     h(
                       "span",
                       { style: { fontSize: 12, opacity: 0.8 } },
-                      `多人定位辅助图（${compiled.locationGuide.width}x${compiled.locationGuide.height}）：`,
+                      `Multi-person positioning assistance map (${compiled.locationGuide.width}x${compiled.locationGuide.height}）：`,
                     ),
                     h("img", {
                       src: compiled.locationGuide.dataUrl,
-                      alt: "人物定位图",
+                      alt: "Character positioning map",
                       style: {
                         width: "100%",
                         maxHeight: 160,
@@ -1424,12 +1424,12 @@ export function activate(host) {
             h(
               "div",
               { style: { fontWeight: 600, fontSize: 15 } },
-              "Step 4 · 全片时间线区间无损回插（完整插入全片）",
+              "Step 4 · Lossless back-insertion of the entire timeline interval (complete insertion into the entire film)",
             ),
             h(
               "p",
               { style: { margin: 0, fontSize: 12, opacity: 0.8 } },
-              "将替换完成的单镜头视频节点按精确起止秒数切入原全片视频，自动生成「原片前段 → 替换镜头 → 原片后段」的完整时间线，保留画布既有字幕/BGM 轨道，并可选择保留原片连续同期声轨。",
+              "Cut the replaced single-shot video node into the original full-film video according to the precise start and end seconds, and automatically generate a complete timeline of \"original film front part → replacement shot → original film back part\", retain the existing subtitles/BGM track on the canvas, and optionally retain the original film's continuous and simultaneous sound track.",
             ),
             h(
               "div",
@@ -1439,7 +1439,7 @@ export function activate(host) {
                 "data-testid": "studio-full-video-node-input",
                 value: fullVideoNodeId,
                 onChange: (e) => setFullVideoNodeId(e.target.value),
-                placeholder: "原全片视频节点 ID（必填）",
+                placeholder: "Original full video node ID (required)",
                 style: inputStyle,
               }),
               h("input", {
@@ -1447,7 +1447,7 @@ export function activate(host) {
                 "data-testid": "studio-full-duration-input",
                 value: fullDurationSec,
                 onChange: (e) => setFullDurationSec(e.target.value),
-                placeholder: "原全片总时长（秒，留空自动读取节点时长）",
+                placeholder: "The total duration of the original film (seconds, leave blank to automatically read the node duration)",
                 style: inputStyle,
               }),
             ),
@@ -1465,7 +1465,7 @@ export function activate(host) {
                 "data-testid": "studio-replaced-video-node-input",
                 value: replacedVideoNodeId,
                 onChange: (e) => setReplacedVideoNodeId(e.target.value),
-                placeholder: "替换后镜头视频节点 ID（必填）",
+                placeholder: "Lens video node ID after replacement (required)",
                 style: inputStyle,
               }),
               h("input", {
@@ -1473,7 +1473,7 @@ export function activate(host) {
                 "data-testid": "studio-range-start-input",
                 value: rangeStartSec,
                 onChange: (e) => setRangeStartSec(e.target.value),
-                placeholder: "替换起点（秒，如 3）",
+                placeholder: "Replace starting point (seconds, e.g. 3)",
                 style: inputStyle,
               }),
               h("input", {
@@ -1481,7 +1481,7 @@ export function activate(host) {
                 "data-testid": "studio-range-end-input",
                 value: rangeEndSec,
                 onChange: (e) => setRangeEndSec(e.target.value),
-                placeholder: "替换终点（秒，如 8）",
+                placeholder: "Replace endpoint (seconds, e.g. 8)",
                 style: inputStyle,
               }),
             ),
@@ -1502,7 +1502,7 @@ export function activate(host) {
                 checked: keepOriginalAudio,
                 onChange: (e) => setKeepOriginalAudio(e.target.checked),
               }),
-              "保留原全片连续原声轨（静音视频片段轨，叠加完整原片音轨防接缝断音）",
+              "Retain the continuous original soundtrack of the entire film (mute the video clip track, superimpose the complete original film audio track to prevent seams and interruptions)",
             ),
             h(
               "button",
@@ -1522,8 +1522,8 @@ export function activate(host) {
                 },
               },
               working
-                ? "正在写入全片时间线…"
-                : "一键将替换镜头无损回插至全片时间线",
+                ? "Writing full film timeline..."
+                : "Insert replacement footage losslessly back into the entire film timeline with just one click",
             ),
           ),
 
@@ -1550,9 +1550,9 @@ export function activate(host) {
   host.contribute("canvas.node", {
     id: "character-replacement",
     type: "character-replacement",
-    label: "角色替换",
-    title: "AI 角色替换",
-    defaultTitle: "AI 角色替换",
+    label: "Role replacement",
+    title: "AI role replacement",
+    defaultTitle: "AI role replacement",
     defaultWidth: 380,
     defaultHeight: 460,
     defaultSize: { width: 380, height: 460 },
@@ -1564,8 +1564,8 @@ export function activate(host) {
   // 2. canvas.addNodeMenu — 添加节点菜单入口
   host.contribute("canvas.addNodeMenu", {
     id: "character-replacement-add",
-    label: "AI 角色替换",
-    title: "AI 角色替换",
+    label: "AI role replacement",
+    title: "AI role replacement",
     nodeType: "character-replacement",
     section: "node",
     defaultOrder: 48,
@@ -1576,8 +1576,8 @@ export function activate(host) {
   // 3. canvas.toolbar.main — 画布主工具栏按钮
   host.contribute("canvas.toolbar.main", {
     id: "character-replacement-toolbar",
-    label: "角色替换工作室",
-    title: "打开 AI 角色替换工作室",
+    label: "character replacement studio",
+    title: "Open the AI character replacement studio",
     category: "create",
     defaultVisible: true,
     defaultOrder: 48,
@@ -1596,8 +1596,8 @@ export function activate(host) {
   // 4. canvas.sidePanel — 画布侧栏面板
   host.contribute("canvas.sidePanel", {
     id: "character-replacement-side-panel",
-    label: "角色替换",
-    title: "AI 角色替换工作室",
+    label: "Role replacement",
+    title: "AI character replacement studio",
     order: 48,
     render: () => h(CharacterReplacementStudioWorkbench, { compact: true }),
     component: () => h(CharacterReplacementStudioWorkbench, { compact: true }),
@@ -1607,8 +1607,8 @@ export function activate(host) {
   host.contribute("app.page", {
     id: "character-replacement-studio-page",
     path: "/p/beeftv-plugin-character-replacement",
-    title: "AI 角色替换工作室",
-    label: "AI 角色替换工作室",
+    title: "AI character replacement studio",
+    label: "AI character replacement studio",
     render: () => h(CharacterReplacementStudioWorkbench, { compact: false }),
     component: () => h(CharacterReplacementStudioWorkbench, { compact: false }),
   });
@@ -1616,7 +1616,7 @@ export function activate(host) {
   // 6. app.sidebar — 全局导航入口
   host.contribute("app.sidebar", {
     id: "character-replacement-sidebar",
-    label: "角色替换工作室",
+    label: "character replacement studio",
     path: "/p/beeftv-plugin-character-replacement",
     order: 48,
   });
@@ -1625,7 +1625,7 @@ export function activate(host) {
   host.contribute("assistant.toolCard", {
     id: "character-replacement-tool-card",
     toolName: "character_replacement_arrange",
-    label: "AI 角色替换管线编排",
+    label: "AI role replacement pipeline orchestration",
     render: ({ args, result, status }) =>
       h(
         "div",
@@ -1642,12 +1642,12 @@ export function activate(host) {
         h(
           "div",
           { style: { fontWeight: 600 } },
-          `🎭 AI 角色替换 · ${args?.shotTitle || "当前镜头"}`,
+          `🎭 AI character replacement ·${args?.shotTitle || "current shot"}`,
         ),
         h(
           "div",
           { style: { marginTop: 4, opacity: 0.85 } },
-          `范围：${args?.replacementScope || "full-person"} · 位置：${args?.position || "single"} · 状态：${status || "completed"}`,
+          `Scope:${args?.replacementScope || "full-person"} · Location:${args?.position || "single"} · Status:${status || "completed"}`,
         ),
         result
           ? h(
@@ -1663,7 +1663,7 @@ export function activate(host) {
   host.contribute("assistant.toolCard", {
     id: "character-replacement-splice-tool-card",
     toolName: "character_replacement_splice_timeline",
-    label: "全片角色替换区间回插",
+    label: "Interpolation of character replacement intervals throughout the film",
     render: ({ args, result, status }) =>
       h(
         "div",
@@ -1680,12 +1680,12 @@ export function activate(host) {
         h(
           "div",
           { style: { fontWeight: 600 } },
-          `🎬 全片区间回插 · 原片节点 ${args?.fullVideoNodeId || ""}`,
+          `🎬 Full slice interval back-insertion · Original slice node${args?.fullVideoNodeId || ""}`,
         ),
         h(
           "div",
           { style: { marginTop: 4, opacity: 0.85 } },
-          `替换镜头数：${Array.isArray(args?.replacements) ? args.replacements.length : 0} · 状态：${status || "completed"}`,
+          `Number of replacement lenses:${Array.isArray(args?.replacements) ? args.replacements.length : 0} · Status:${status || "completed"}`,
         ),
         result
           ? h(

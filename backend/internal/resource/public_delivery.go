@@ -111,20 +111,20 @@ func (l configLifecycle) WithStorageLock(fn func() error) error {
 
 func DirectURL(resource *model.Resource, expiresAt time.Time, keyFn func() ([]byte, error)) (string, error) {
 	if resource == nil {
-		return "", errors.New("资源不存在")
+		return "", errors.New("Resource does not exist")
 	}
 	if resource.Status != model.ResourceStatusReady {
-		return "", kernel.BadAuthRequest("资源尚未上传完成")
+		return "", kernel.BadAuthRequest("The resource has not been uploaded yet")
 	}
 	if resource.Provider != "local" {
-		return "", kernel.BadAuthRequest("资源不在本地存储中")
+		return "", kernel.BadAuthRequest("Resource is not in local storage")
 	}
 	return SignedPublicURL(resource, expiresAt, keyFn)
 }
 
 func SignedPublicURL(resource *model.Resource, expiresAt time.Time, keyFn func() ([]byte, error)) (string, error) {
 	if resource == nil {
-		return "", errors.New("资源不存在")
+		return "", errors.New("Resource does not exist")
 	}
 	baseURL, err := PublicBaseURL()
 	if err != nil {
@@ -157,25 +157,25 @@ func SignedHTTPSPublicURL(resource *model.Resource, expiresAt time.Time, keyFn f
 		return "", err
 	}
 	if baseURL.Scheme != "https" {
-		return "", kernel.BadAuthRequest("私网或 HTTP S3 用于上游资源时，服务器公开访问地址必须使用 HTTPS")
+		return "", kernel.BadAuthRequest("When private network or HTTP S3 is used for upstream resources, the public access address of the server must use HTTPS")
 	}
 	return SignedPublicURL(resource, expiresAt, keyFn)
 }
 
 func VerifyPublicSignature(resourceID, expires, signature string, keyFn func() ([]byte, error)) error {
 	if strings.TrimSpace(signature) == "" || !DecimalDigits(expires) {
-		return kernel.Forbidden("匿名下载链接无效")
+		return kernel.Forbidden("Anonymous download link is invalid")
 	}
 	expiresAt, err := strconv.ParseInt(expires, 10, 64)
 	if err != nil || time.Now().UTC().Unix() > expiresAt {
-		return kernel.Forbidden("匿名下载链接已过期")
+		return kernel.Forbidden("Anonymous download link has expired")
 	}
 	expected, err := SignPublic(resourceID, expires, keyFn)
 	if err != nil {
 		return err
 	}
 	if !hmac.Equal([]byte(expected), []byte(signature)) {
-		return kernel.Forbidden("匿名下载链接无效")
+		return kernel.Forbidden("Anonymous download link is invalid")
 	}
 	return nil
 }
@@ -193,7 +193,7 @@ func SignPublic(resourceID, expires string, keyFn func() ([]byte, error)) (strin
 func PublicBaseURL() (*url.URL, error) {
 	raw := strings.TrimSpace(os.Getenv("CANVAS_PUBLIC_BASE_URL"))
 	if raw == "" {
-		return nil, kernel.BadAuthRequest("本地资源尚未配置上游可访问地址，请设置 CANVAS_PUBLIC_BASE_URL")
+		return nil, kernel.BadAuthRequest("The local resource has not been configured with an upstream accessible address, please set CANVAS_PUBLIC_BASE_URL")
 	}
 	return ValidatePublicBaseURL(raw)
 }
@@ -212,10 +212,10 @@ func ValidatePublicBaseURL(raw string) (*url.URL, error) {
 		return nil, err
 	}
 	if parsed.RawQuery != "" || parsed.Fragment != "" {
-		return nil, kernel.BadAuthRequest("服务器访问地址不能包含查询参数或片段")
+		return nil, kernel.BadAuthRequest("Server access address cannot contain query parameters or fragments")
 	}
 	if strings.HasSuffix(strings.TrimRight(parsed.Path, "/"), "/api") {
-		return nil, kernel.BadAuthRequest("服务器访问地址请填写根地址，不要包含 /api")
+		return nil, kernel.BadAuthRequest("Please fill in the root address for server access address, do not include /api")
 	}
 	return parsed, nil
 }
@@ -223,7 +223,7 @@ func ValidatePublicBaseURL(raw string) (*url.URL, error) {
 func OpenPublicRange(repo *repository.Repository, domain *localasset.Service, id, expires, signature, rangeHeader string, keyFn func() ([]byte, error)) (*assets.ResourceStream, error) {
 	resource, err := repo.Resource(id)
 	if err != nil || resource.Provider != "local" {
-		return nil, kernel.Forbidden("匿名下载链接无效")
+		return nil, kernel.Forbidden("Anonymous download link is invalid")
 	}
 	if err := VerifyPublicSignature(resource.ID, expires, signature, keyFn); err != nil {
 		return nil, err
@@ -266,14 +266,14 @@ func DownloadRemote(rawURL string, maxBytes int64) (RemotePayload, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return RemotePayload{}, fmt.Errorf("远程资源下载失败：%s", resp.Status)
+		return RemotePayload{}, fmt.Errorf("Remote resource download failed: %s", resp.Status)
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, maxBytes))
 	if err != nil {
 		return RemotePayload{}, err
 	}
 	if int64(len(data)) >= maxBytes {
-		return RemotePayload{}, kernel.BadAuthRequest(fmt.Sprintf("远程资源必须小于 %s", localasset.FormatStorageLimit(maxBytes)))
+		return RemotePayload{}, kernel.BadAuthRequest(fmt.Sprintf("The remote resource must be smaller than %s", localasset.FormatStorageLimit(maxBytes)))
 	}
 	mimeType := strings.TrimSpace(resp.Header.Get("Content-Type"))
 	if idx := strings.Index(mimeType, ";"); idx >= 0 {

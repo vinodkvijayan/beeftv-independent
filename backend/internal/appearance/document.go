@@ -12,7 +12,7 @@ import (
 
 func (s *Service) read() (*model.SystemSetting, Setting, error) {
 	if s == nil || s.settings == nil {
-		return nil, Setting{}, errors.New("外观配置尚未初始化")
+		return nil, Setting{}, errors.New("Appearance configuration has not been initialized yet")
 	}
 	setting, err := s.settings.SystemSetting(SettingKey)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -23,7 +23,7 @@ func (s *Service) read() (*model.SystemSetting, Setting, error) {
 	}
 	value := DefaultSetting()
 	if strings.TrimSpace(setting.ValueJSON) == "" || json.Unmarshal([]byte(setting.ValueJSON), &value) != nil {
-		return nil, Setting{}, errors.New("外观配置格式无效")
+		return nil, Setting{}, errors.New("Appearance configuration format is invalid")
 	}
 	return setting, normalizeDocument(value), nil
 }

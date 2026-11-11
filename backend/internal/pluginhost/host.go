@@ -179,7 +179,7 @@ func start(node, script string) (*process, error) {
 		return nil, err
 	}
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("启动插件宿主失败：%w", err)
+		return nil, fmt.Errorf("Failed to start plug-in host: %w", err)
 	}
 	p := &process{cmd: cmd, stdin: stdin, done: make(chan struct{}), waiting: map[int64]chan reply{}, loaded: map[string]string{}}
 	go p.read(stdout)
@@ -208,7 +208,7 @@ func (p *process) read(stdout io.Reader) {
 	}
 	waitErr := p.cmd.Wait()
 	p.mu.Lock()
-	p.failure = fmt.Errorf("插件宿主已退出：%v", waitErr)
+	p.failure = fmt.Errorf("The plug-in host has exited: %v", waitErr)
 	for id, ch := range p.waiting {
 		delete(p.waiting, id)
 		close(ch)
@@ -328,7 +328,7 @@ func (p *process) exitError() error {
 	if p.failure != nil {
 		return p.failure
 	}
-	return errors.New("插件宿主已退出")
+	return errors.New("Plugin host has exited")
 }
 
 func (p *process) exited() bool {
@@ -431,7 +431,7 @@ func resolveCommand() (string, string, error) {
 	}
 	node, err := exec.LookPath("node")
 	if err != nil {
-		return "", "", errors.New("找不到运行插件需要的 Node")
+		return "", "", errors.New("The Node required to run the plugin cannot be found")
 	}
 	dir, _ := os.Getwd()
 	for range 6 {
@@ -441,5 +441,5 @@ func resolveCommand() (string, string, error) {
 		}
 		dir = filepath.Dir(dir)
 	}
-	return "", "", errors.New("找不到插件宿主脚本 " + scriptName)
+	return "", "", errors.New("Plugin host script not found" + scriptName)
 }

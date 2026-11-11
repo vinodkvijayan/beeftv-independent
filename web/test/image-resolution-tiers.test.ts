@@ -18,7 +18,7 @@ const sizes = [
 ];
 
 describe("image resolution tiers", () => {
-    test("精确像素预设保持请求原值，比例协议发送比例", () => {
+    test("The exact pixel preset keeps the original value of the request, and the scale protocol sends the scale.", () => {
         const profile = defaultImageCapabilityConfig("openai-image", "test");
         profile.size = { parameter: "size", values: ["1920x1080", "3840x2160", "2160x3840", "1824x1024"], default: "1920x1080", allowCustom: false };
         expect(imageResolutionChoices(profile.size.values)).toEqual(["1k", "2k", "4k"]);
@@ -27,9 +27,9 @@ describe("image resolution tiers", () => {
         profile.size = { parameter: "aspect_ratio", values: ["16:9"], default: "16:9", allowCustom: false };
         expect(resolveImageRequestSize(profile, undefined, "16:9")).toEqual({ parameter: "aspect_ratio", value: "16:9" });
         profile.size = { parameter: "size", values: [], default: "auto", allowCustom: true };
-        expect(() => resolveImageRequestSize(profile, undefined, "1920x1080")).toThrow("16 的倍数");
+        expect(() => resolveImageRequestSize(profile, undefined, "1920x1080")).toThrow("Multiples of 16");
     });
-    test("将 Xiaobaishu 的精确尺寸整理为 1K、2K、4K 各十种比例", () => {
+    test("Organize the precise dimensions of Xiaobaishu into ten ratios of 1K, 2K, and 4K", () => {
         const options = buildImageResolutionOptions(sizes);
 
         expect(options.filter((item) => item.tier === "1k")).toHaveLength(10);
@@ -38,26 +38,26 @@ describe("image resolution tiers", () => {
         expect(imageResolutionOption(options, "1536x2752")).toMatchObject({ tier: "2k", ratio: "9:16" });
     });
 
-    test("切换档位时按相同比例还原精确像素并显示比例与档位", () => {
+    test("Restore accurate pixels to the same ratio when switching gears and display the ratio and gear", () => {
         const options = buildImageResolutionOptions(sizes);
 
         expect(imageSizeForResolution(options, "4k", "9:16")).toBe("2160x3840");
         expect(formatImageResolutionSize("1536x2752", options)).toBe("9:16 · 2K");
     });
 
-    test("保留自动尺寸并在摘要中显示中文标签", () => {
+    test("Keep automatic dimensions and show Chinese labels in summary", () => {
         const values = ["auto", ...sizes];
 
         expect(imageResolutionChoices(values)).toEqual(["auto", "1k", "2k", "4k"]);
         expect(buildImageResolutionOptions(values)).toHaveLength(30);
-        expect(formatImageResolutionSize("auto", [])).toBe("自动");
+        expect(formatImageResolutionSize("auto", [])).toBe("automatic");
     });
 
-    test("允许自定义尺寸时仍保留自动与分辨率预设", () => {
+    test("Allow custom sizes while retaining automatic and resolution presets", () => {
         expect(supportsImageResolutionPresets({ parameter: "size", values: ["auto", ...sizes], allowCustom: true })).toBe(true);
     });
 
-    test("默认图片能力为 OpenAI 兼容模型提供完整 1K、2K、4K 档位", () => {
+    test("Default image capabilities provide full 1K, 2K, and 4K gears for OpenAI compatible models", () => {
         const profile = defaultImageCapabilityConfig("openai-image", "gpt-image-2-4K");
 
         expect(supportsImageResolutionPresets(profile.size)).toBe(true);
@@ -67,7 +67,7 @@ describe("image resolution tiers", () => {
 
     // Agnes 图像的 size 是官方必填项，但取分辨率档位，画面比例走独立的 ratio 字段，
     // 所以界面必须同时保留比例和档位两个选择器，不能退化成 OpenAI 的像素尺寸。
-    test("Agnes 图像按比例加档位选择尺寸，并关闭上游不支持的输出开关", () => {
+    test("Agnes image selects the size proportionally and scales, and turns off the output switch that is not supported by the upstream", () => {
         const profile = defaultImageCapabilityConfig("agnes-image", "agnes-image-2.1-flash");
 
         expect(profile.size.parameter).toBe("aspect_ratio");
@@ -82,7 +82,7 @@ describe("image resolution tiers", () => {
         expect(profile.references.maskSupported).toBe(false);
     });
 
-    test("识别适合全景图的 2:1 自定义尺寸", () => {
+    test("Identify 2:1 custom dimensions for panoramas", () => {
         const options = buildImageResolutionOptions(["1440x720", "2048x1024", "3840x1920"]);
 
         expect(options.map((item) => item.tier)).toEqual(["1k", "2k", "4k"]);

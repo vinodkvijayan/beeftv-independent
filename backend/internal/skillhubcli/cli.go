@@ -46,15 +46,15 @@ func parse(args []string) (arguments, error) {
 			a.options[key] = "true"
 		case "market", "release", "target", "capabilities", "page", "page-size", "output", "agent", "scope", "project", "state", "metadata", "content-hash", "archive-sha256", "revision", "preview-digest":
 			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "--") {
-				return a, fail("invalid_arguments", "缺少 --"+key+" 的值")
+				return a, fail("invalid_arguments", "Missing --"+key+" value")
 			}
 			if _, exists := a.options[key]; exists {
-				return a, fail("invalid_arguments", "参数重复：--"+key)
+				return a, fail("invalid_arguments", "Parameter duplication: --"+key)
 			}
 			i++
 			a.options[key] = args[i]
 		default:
-			return a, fail("invalid_arguments", "未知参数："+arg)
+			return a, fail("invalid_arguments", "Unknown parameters:"+arg)
 		}
 	}
 	return a, nil
@@ -79,7 +79,7 @@ func Run(ctx context.Context, args []string, out io.Writer) error {
 		}
 		message := remote.Message
 		if message == "" {
-			message = "技能市场请求失败"
+			message = "Skill Market request failed"
 		}
 		return &Error{Code: code, Reason: remote.Reason, Message: message, RetryAfter: remote.RetryAfter}
 	}
@@ -92,7 +92,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		return err
 	}
 	if a.command == "help" || a.command == "--help" || a.options["help"] == "true" {
-		_, err = io.WriteString(out, "beeftv skills — 无需运行 BeefTV 的技能市场客户端\n\nsearch QUERY [--target codex|claude-code|beeftv] [--json]\nshow SKILL_ID --release RELEASE_ID\nfetch SKILL_ID --release RELEASE_ID --output DIRECTORY\ninstall SKILL_ID --release RELEASE_ID --agent codex|claude-code --scope project|user\ninspect DIRECTORY --metadata FILE\nauthorize --state FILE\npoll --state FILE\nupload DIRECTORY --metadata FILE --state FILE --confirm-upload --content-hash HASH --archive-sha256 HASH\npreview|status|revoke --state FILE\nsubmit --state FILE --confirm-submit --revision NUMBER --preview-digest DIGEST\n\n公共查询不登录。投稿需浏览器授权，上传和发布分别确认。\n所有网络命令可使用 --market 指定可信 HTTPS 市场或本机测试服务。\n")
+		_, err = io.WriteString(out, "beeftv skills — A skills marketplace client that doesn’t require running BeefTV\n\nsearch QUERY [--target codex|claude-code|beeftv] [--json]\nshow SKILL_ID --release RELEASE_ID\nfetch SKILL_ID --release RELEASE_ID --output DIRECTORY\ninstall SKILL_ID --release RELEASE_ID --agent codex|claude-code --scope project|user\ninspect DIRECTORY --metadata FILE\nauthorize --state FILE\npoll --state FILE\nupload DIRECTORY --metadata FILE --state FILE --confirm-upload --content-hash HASH --archive-sha256 HASH\npreview|status|revoke --state FILE\nsubmit --state FILE --confirm-submit --revision NUMBER --preview-digest DIGEST\n\nPublic inquiries do not log in. Submission requires browser authorization, and uploading and publishing are confirmed separately.\nAll network commands can use --market to specify a trusted HTTPS market or native test service.")
 		return err
 	}
 	base := a.options["market"]
@@ -125,7 +125,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		return emit(out, result)
 	case "show", "fetch", "install":
 		if len(a.positional) != 1 || a.options["release"] == "" {
-			return fail("release_required", "请指定技能 ID 和 --release 发布版本 ID")
+			return fail("release_required", "Please specify the skill ID and --release release ID")
 		}
 		target := a.options["target"]
 		if a.command == "install" {
@@ -141,7 +141,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		}
 		if a.command == "install" {
 			if discovery.Compatibility.Status != "supported" {
-				return fail("capability_check_required", "目标助手尚不满足这个版本声明的使用要求，请先检查详情")
+				return fail("capability_check_required", "Target Assistant does not yet meet the usage requirements stated in this version, please check the details first")
 			}
 			available := map[string]bool{}
 			for _, v := range capabilities {
@@ -149,11 +149,11 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 			}
 			for _, required := range r.Requirements {
 				if !available[required] {
-					return fail("capability_check_required", "目标助手缺少声明的能力："+required)
+					return fail("capability_check_required", "Goal helpers lack the ability to declare:"+required)
 				}
 			}
 			if r.MinClientVersion != "" {
-				return fail("client_version_unverified", "该技能要求特定客户端版本，请先在目标应用确认兼容性")
+				return fail("client_version_unverified", "This skill requires a specific client version, please confirm compatibility in the target application first")
 			}
 		}
 		data, err := c.Archive(ctx, r.DownloadURL)
@@ -172,7 +172,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 			}
 		}
 		if destination == "" {
-			return fail("output_required", "fetch 需要 --output 目标目录")
+			return fail("output_required", "fetch requires --output target directory")
 		}
 		installed, err := writeRelease(destination, files, r, c.BaseURL())
 		if err != nil {
@@ -182,6 +182,6 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 	case "inspect", "publish", "authorize", "poll", "upload", "preview", "submit", "status", "revoke":
 		return runPublishing(ctx, c, a, out)
 	default:
-		return fail("unknown_command", fmt.Sprintf("未知技能命令：%s", a.command))
+		return fail("unknown_command", fmt.Sprintf("Unknown skill command: %s", a.command))
 	}
 }

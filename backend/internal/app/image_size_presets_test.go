@@ -29,17 +29,17 @@ func TestImageSizePresetsValidationAndRoundTrip(t *testing.T) {
 		edit func(*ImageCapabilityConfig)
 		want string
 	}{
-		{"invalid tier", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Tier = "8k" }, "档位"},
-		{"zero ratio", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Ratio = "0:9" }, "比例"},
-		{"mismatched ratio", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Ratio = "9:16" }, "不一致"},
+		{"invalid tier", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Tier = "8k" }, "gear"},
+		{"zero ratio", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Ratio = "0:9" }, "Proportion"},
+		{"mismatched ratio", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Ratio = "9:16" }, "inconsistent"},
 		{"tiny size", func(p *ImageCapabilityConfig) {
 			p.Size.Presets[0].Width = 16
 			p.Size.Presets[0].Height = 16
 			p.Size.Presets[0].Size = "16x16"
-		}, "像素"},
-		{"size mismatch", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Size = "1024x1024" }, "像素"},
-		{"not supported", func(p *ImageCapabilityConfig) { p.Size.Values = []string{"1824x1024"} }, "支持值"},
-		{"duplicate equivalent ratio", func(p *ImageCapabilityConfig) { p.Size.Presets[1].Tier = "1k"; p.Size.Presets[1].Ratio = "32:18" }, "重复"},
+		}, "Pixel"},
+		{"size mismatch", func(p *ImageCapabilityConfig) { p.Size.Presets[0].Size = "1024x1024" }, "Pixel"},
+		{"not supported", func(p *ImageCapabilityConfig) { p.Size.Values = []string{"1824x1024"} }, "Support value"},
+		{"duplicate equivalent ratio", func(p *ImageCapabilityConfig) { p.Size.Presets[1].Tier = "1k"; p.Size.Presets[1].Ratio = "32:18" }, "Repeat"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var p ImageCapabilityConfig

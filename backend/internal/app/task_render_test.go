@@ -54,7 +54,7 @@ func seedRunningRenderTask(t *testing.T, db *gorm.DB, inputJSON string) *model.T
 		UserID:    "usr-render-test",
 		Type:      model.TaskTypeTimelineRender,
 		Status:    model.TaskStatusRunning,
-		Stage:     "已领取",
+		Stage:     "Received",
 		InputJSON: inputJSON,
 	}
 	if err := db.Create(task).Error; err != nil {
@@ -137,7 +137,7 @@ func TestCreateTimelineRenderTaskRejectsNoMedia(t *testing.T) {
 		Tracks:     []editing.Track{{ID: "track-t1", Kind: "text", Visible: &visible}},
 		Clips: []editing.Clip{{
 			ID: "clip-t1", Kind: "text", TrackID: "track-t1", StartMs: 0,
-			DurationMs: 1000, Text: "字幕",
+			DurationMs: 1000, Text: "subtitles",
 		}},
 	}
 	_, err := svc.CreateTimelineRenderTask("usr-render-test", TimelineRenderCreateRequest{Timeline: textOnly})
@@ -214,7 +214,7 @@ func TestTimelineRenderFailsFastWhenSourceUnreadable(t *testing.T) {
 		t.Fatalf("status = %q, want failed", stored.Status)
 	}
 	if !strings.Contains(stored.Error, "时间线引用的媒体") {
-		t.Fatalf("error = %q, want mention of 无法读取时间线引用的媒体", stored.Error)
+		t.Fatalf("error = %q, want mention of Unable to read media referenced by timeline", stored.Error)
 	}
 }
 

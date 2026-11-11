@@ -46,7 +46,7 @@ func NewTemplates(repo *repository.Repository, recipes Recipes, mu *sync.Mutex) 
 func BadRequest(message string) error { return kernel.BadAuthRequest(message) }
 
 func NotFound() error {
-	return kernel.NewAppError(kernel.CodeNotFound, "工作流或运行记录不存在")
+	return kernel.NewAppError(kernel.CodeNotFound, "Workflow or run record does not exist")
 }
 
 func NormalizeRevision(n int) int {
@@ -82,7 +82,7 @@ func PersistReferences(tx *gorm.DB, owner, user string, refs map[string]bool) er
 			return e
 		}
 		if count != 1 {
-			return BadRequest("工作流素材已被移除，请重新保存素材")
+			return BadRequest("Workflow material has been removed, please save the material again")
 		}
 	}
 	return tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&rows).Error
@@ -170,7 +170,7 @@ func (t *Templates) Prepare(user string, d Definition, id string, revision int) 
 	var existing *model.CanvasWorkflow
 	if id != "" {
 		if revision < 1 {
-			return d, BadRequest("编辑校验需要有效的模板版本")
+			return d, BadRequest("Edit verification requires a valid template version")
 		}
 		row, e := t.RevisionRow(user, id, revision)
 		if e != nil {
@@ -198,7 +198,7 @@ func (t *Templates) Create(user string, req CreateRequest) (Template, error) {
 	defer t.mu.Unlock()
 	req.Name = strings.TrimSpace(req.Name)
 	if req.Name == "" || len([]rune(req.Name)) > 100 || len(req.Description) > 4000 {
-		return Template{}, BadRequest("请输入 1–100 字的工作流名称，说明不超过 4000 字节")
+		return Template{}, BadRequest("Please enter a workflow name of 1–100 words and a description of no more than 4000 bytes")
 	}
 	compiled, e := t.recipes.Compile(user, req.Definition, nil, true)
 	if e != nil {
@@ -229,14 +229,14 @@ func (t *Templates) Update(user, id string, req UpdateRequest) (Template, error)
 	defer t.mu.Unlock()
 	req.Name = strings.TrimSpace(req.Name)
 	if req.Name == "" || len([]rune(req.Name)) > 100 || len(req.Description) > 4000 {
-		return Template{}, BadRequest("工作流名称或说明无效")
+		return Template{}, BadRequest("Invalid workflow name or description")
 	}
 	var row model.CanvasWorkflow
 	if e := t.repo.DB().Where("id = ? AND user_id = ?", id, user).First(&row).Error; e != nil {
 		return Template{}, NotFound()
 	}
 	if req.ExpectedRevision != NormalizeRevision(row.Revision) {
-		return Template{}, kernel.NewAppError(kernel.CodeConflict, "工作流已更新，请保留草稿并重新载入比较")
+		return Template{}, kernel.NewAppError(kernel.CodeConflict, "Workflow updated, please keep draft and reload comparison")
 	}
 	compiled, e := t.recipes.Compile(user, req.Definition, &row, true)
 	if e != nil {
@@ -261,7 +261,7 @@ func (t *Templates) Update(user, id string, req UpdateRequest) (Template, error)
 			return result.Error
 		}
 		if result.RowsAffected != 1 {
-			return kernel.NewAppError(kernel.CodeConflict, "工作流版本冲突")
+			return kernel.NewAppError(kernel.CodeConflict, "Workflow version conflict")
 		}
 		if e := tx.Create(snapshot(row)).Error; e != nil {
 			return e

@@ -5,7 +5,7 @@ import { CanvasTimelinePreview } from "@/components/canvas/canvas-timeline-previ
 import { canvasThemes } from "@/lib/canvas-theme";
 import type { TimelineClip, TimelineTrack } from "@/types/timeline";
 
-const tracks: TimelineTrack[] = [{ id: "video", kind: "video", label: "视频", order: 0 }];
+const tracks: TimelineTrack[] = [{ id: "video", kind: "video", label: "video", order: 0 }];
 const clips: TimelineClip[] = [{
     id: "clip",
     kind: "video",
@@ -13,7 +13,7 @@ const clips: TimelineClip[] = [{
     trackId: "video",
     startMs: 0,
     durationMs: 2000,
-    directMedia: { id: "media", kind: "video", title: "片段", url: "/video.mp4" },
+    directMedia: { id: "media", kind: "video", title: "fragment", url: "/video.mp4" },
 }];
 
 function render(playheadMs: number) {
@@ -32,12 +32,12 @@ function render(playheadMs: number) {
     );
 }
 
-test("播放头落在视频片段上但视频尚未解析时，预览显示正在准备而不是无视频片段", () => {
+test("When the playhead is dropped on a video clip but the video has not yet been parsed, the preview shows preparing instead of no video clip", () => {
     const markup = render(500);
-    expect(markup).toContain("正在准备视频");
-    expect(markup).not.toContain("该位置无视频片段");
+    expect(markup).toContain("Preparing video");
+    expect(markup).not.toContain("There is no video clip at this location");
 });
 
-test("播放头不在任何视频片段上时才显示无视频片段", () => {
-    expect(render(3000)).toContain("该位置无视频片段");
+test("No video clips are displayed until the playhead is not on any video clips", () => {
+    expect(render(3000)).toContain("There is no video clip at this location");
 });

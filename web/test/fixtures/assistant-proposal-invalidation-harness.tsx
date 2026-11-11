@@ -13,7 +13,7 @@ function Harness() {
     const assistant = useCanvasAssistant({ canvasId: "proposal-test" });
     Object.assign(window, { proposalFixture: { refresh: assistant.reloadHistory } });
     return <App><div style={{ height: "100vh", display: "flex" }}>
-        <CanvasAssistantSidebar assistant={assistant} canvasTitle="提案有效性测试" dockable readOnly={false} selectedNodeIds={[]} references={[]}
+        <CanvasAssistantSidebar assistant={assistant} canvasTitle="Proposal Validity Test" dockable readOnly={false} selectedNodeIds={[]} references={[]}
             onLocateNodes={() => {}} onRunProposal={() => { throw new Error("This fixture never submits generation"); }} onOpenModelSettings={() => {}} />
     </div></App>;
 }

@@ -16,7 +16,7 @@ func (s *operationSession) OpenMediaResource(ctx context.Context, userID, resour
 	}
 	_, reader, err := s.service.OpenResource(userID, resourceID)
 	if err != nil {
-		return nil, operations.PreconditionFailed("media_read_failed", "素材暂时无法读取", nil)
+		return nil, operations.PreconditionFailed("media_read_failed", "The material cannot be read temporarily", nil)
 	}
 	return reader, err
 }

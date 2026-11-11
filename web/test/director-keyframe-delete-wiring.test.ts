@@ -19,58 +19,58 @@ function slice(source: string, from: string, to: string) {
     return source.slice(start, end);
 }
 
-describe("workbench 接入时间轴关键帧删除", () => {
-    test("DirectorSequencer 拿到的是 deleteKeyframe，而不是空实现", () => {
+describe("Workbench access timeline keyframe deletion", () => {
+    test("DirectorSequencer gets deleteKeyframe instead of empty implementation", () => {
         const element = slice(workbench, "<DirectorSequencer", "/>");
         expect(element).toContain("onDeleteKeyframe={deleteKeyframe}");
         expect(element).not.toContain("onDeleteKeyframe={() =>");
     });
 
-    test("缓动更新通过 workbench commit 接入，未命中不制造历史", () => {
+    test("Easing updates are accessed through workbench commit, and misses do not create history.", () => {
         const element = slice(workbench, "<DirectorSequencer", "/>");
         expect(element).toContain("onSetKeyframeEasing={setKeyframeEasing}");
-        const handler = slice(workbench, "const setKeyframeEasing = useCallback", "* 快捷键执行器");
+        const handler = slice(workbench, "const setKeyframeEasing = useCallback", "* Shortcut key executor");
         expect(handler).toContain("setDirectorSceneKeyframeEasing(current, target, easing) === current");
         expect(handler).toContain("commit((scene) => setDirectorSceneKeyframeEasing(scene, target, easing));");
     });
 
-    test("deleteKeyframe 未命中时不进 commit：不记历史、不产生修订", () => {
-        const handler = slice(workbench, "const deleteKeyframe = useCallback", "* 快捷键执行器");
+    test("DeleteKeyframe does not enter when it is not hit. Commit: does not remember the history and does not generate revisions.", () => {
+        const handler = slice(workbench, "const deleteKeyframe = useCallback", "* Shortcut key executor");
         expect(handler).toContain("removeDirectorSceneKeyframe(current, target) === current) return;");
         expect(handler).toContain("commit((scene) => removeDirectorSceneKeyframe(scene, target));");
     });
 
-    test("删除走 commit，因此进历史、可撤销、并触发 canonical 保存", () => {
+    test("Deletion is done through commit, so it goes into history, can be undone, and triggers canonical saving.", () => {
         // commit 自身的语义：入历史 + writeAndPublish（coordinator 保存 + 镜像项目）。
-        const commit = slice(workbench, "const commit = useCallback", "/** 暂存型手势");
+        const commit = slice(workbench, "const commit = useCallback", "/** Temporary gesture");
         expect(commit).toContain("setHistory((items) => [...items.slice(-49), structuredClone(current)]);");
         expect(commit).toContain("writeAndPublish(touchDirectorScene(updater(current)));");
     });
 });
 
-describe("workbench 快捷键接线", () => {
-    const effect = slice(workbench, "// 导演台是全屏浮层，快捷键挂在 window", "/** 对象 transform 编辑的唯一入口");
+describe("workbench shortcut key wiring", () => {
+    const effect = slice(workbench, "// The director's desk is a full-screen floating layer, and the shortcut keys are hung in the window", "/** The only entry point for object transform editing");
 
-    test("监听挂在 window keydown，并随 open 装卸", () => {
+    test("Monitoring is hung on window keydown and loaded and unloaded with open", () => {
         expect(effect).toContain("if (!open) return;");
         expect(effect).toContain('window.addEventListener("keydown", onKeyDown);');
         expect(effect).toContain('window.removeEventListener("keydown", onKeyDown);');
     });
 
-    test("交互控件语境由 blocksDirectorShortcut 判定后交给解析器", () => {
+    test("The interactive control context is determined by blocksDirectorShortcut and handed over to the parser.", () => {
         expect(effect).toContain("isInteractiveTarget: blocksDirectorShortcut(event.target),");
         // 旧的 text-only 判定不得残留：它放过 BUTTON/A/role 型控件。
         expect(workbench).not.toContain("isDirectorTextEntryTarget");
     });
 
-    test("删除键始终由导演台消费，其他快捷键仍按执行结果处理", () => {
+    test("The delete key is always consumed by the director console, and other shortcut keys are still processed according to the execution results.", () => {
         expect(effect).toContain('if (action.kind === "delete-selected")');
         expect(effect).toContain("event.preventDefault();");
         expect(effect).toContain("event.stopImmediatePropagation();");
         expect(effect).toContain("if (handled) event.preventDefault();");
     });
 
-    test("每个动作都落到已存在的真实执行路径", () => {
+    test("Each action falls on an existing real execution path", () => {
         const runner = slice(workbench, "const runShortcut = (action: DirectorShortcutAction)", "const runShortcutRef");
         expect(runner).toContain("setTransformMode(action.mode);");
         expect(runner).toContain("resolveDirectorDeleteDecision({ pathKeyframe: selectedPathKeyframe, camera: selectedCamera, object: selectedObject, light: selectedLight })");
@@ -82,7 +82,7 @@ describe("workbench 快捷键接线", () => {
         expect(runner).toContain("redo();");
     });
 
-    test("没有可操作对象/历史时返回 false，把按键交还浏览器", () => {
+    test("Return false when there is no operable object/history and return the button to the browser", () => {
         const runner = slice(workbench, "const runShortcut = (action: DirectorShortcutAction)", "const runShortcutRef");
         expect(runner).toContain("if (!history.length) return false;");
         expect(runner).toContain("if (!future.length) return false;");
@@ -90,7 +90,7 @@ describe("workbench 快捷键接线", () => {
         expect(runner).toContain("if (!selectedObjectId && !selectedLightId && !selectedBone) return false;");
     });
 
-    test("扩展菜单各操作与场景列表点选后释放焦点，保留 W/E/R/Delete 快捷键", () => {
+    test("After each operation and scene list of the extended menu is clicked, the focus is released and the W/E/R/Delete shortcut keys are retained.", () => {
         // 场景对象添加统一从场景面板进入；dock 菜单承载视图与工作台操作。
         const toolMenu = slice(dock, "const toolMenuItems:", "return (");
         expect((toolMenu.match(/releaseMenuFocus\(domEvent\.detail\)/g) || []).length).toBe(10);
@@ -98,36 +98,36 @@ describe("workbench 快捷键接线", () => {
         expect(sceneRow).toContain("releaseDirectorFocusAfterPointer(event)");
     });
 
-    test("焦点释放规则集中在共享 helper，各按钮不自写 blur", () => {
+    test("The focus release rules focus on shared helpers, and each button does not write blur by itself.", () => {
         // 判据（keyboard detail === 0 保留焦点）必须只有一处，否则迟早走偏。
         expect(dock).toContain("releaseDirectorFocusAfterPointer({ detail, currentTarget: document.activeElement as HTMLElement })");
         expect(dock).not.toContain("event.currentTarget.blur()");
         expect(workbench).not.toContain("if (event.detail !== 0) event.currentTarget.blur();");
     });
 
-    test("时间轴轨道行点选后也释放焦点：与场景列表同源的 select-then-Delete 流程", () => {
-        const row = slice(sequencer, "function SequencerRow(", "* 关键帧渲染为真实 button");
+    test("The timeline track row also releases focus after being clicked: the select-then-Delete process that has the same origin as the scene list", () => {
+        const row = slice(sequencer, "function SequencerRow(", "* Keyframes are rendered as real buttons");
         expect(row).toContain("releaseDirectorFocusAfterPointer(event)");
     });
 
-    test("关键帧按钮绝不释放焦点：它自己拥有 Enter/Space/Delete/Backspace", () => {
+    test("Keyframe button never releases focus: it owns Enter/Space/Delete/Backspace", () => {
         // 关键帧 blur 掉焦点会让键盘连续删除失效，且与它的 stopPropagation 设计冲突。
         const trackKeys = slice(sequencer, "function TrackKeys(", "function TrackBar(");
         expect(trackKeys).not.toContain("releaseDirectorFocusAfterPointer");
     });
 });
 
-describe("时间轴关键帧入口可见、可选择、可键盘删除", () => {
+describe("Timeline keyframe entry is visible, selectable, and can be deleted with the keyboard", () => {
     const trackKeys = slice(sequencer, "function TrackKeys(", "function TrackBar(");
 
-    test("可编辑关键帧是真实 button，不是惰性 span", () => {
+    test("Editable keyframes are real buttons, not lazy spans", () => {
         expect(trackKeys).toContain('type="button"');
         expect(trackKeys).toContain("director-sequencer-key is-actionable");
         expect(trackKeys).toContain('aria-label={`选择 ${key.label ?? "关键帧"} ${key.time.toFixed(2)}s 的关键帧`}');
         expect(trackKeys).toContain("aria-pressed=");
     });
 
-    test("普通点击与 Enter/Space 只选择定位，Delete/Backspace 才删除，且都不冒泡", () => {
+    test("Ordinary clicks and Enter/Space only select positioning, and Delete/Backspace deletes them without bubbling.", () => {
         expect(trackKeys).toContain('if (!["Enter", " ", "Delete", "Backspace"].includes(event.key)) return;');
         expect(trackKeys).toContain("event.preventDefault();");
         expect(trackKeys).toContain("event.stopPropagation();");
@@ -136,20 +136,20 @@ describe("时间轴关键帧入口可见、可选择、可键盘删除", () => {
         expect(trackKeys).toContain("onSelectKey?.(key);");
     });
 
-    test("没有 target 的轨道保持只读，不渲染删除按钮", () => {
+    test("Tracks without target remain read-only and do not render delete buttons", () => {
         expect(trackKeys).toContain("const target = onDeleteKey && key.target;");
         expect(trackKeys).toContain("if (!target) {");
     });
 
-    test("命中区扩大且有 focus-visible 焦点环", () => {
+    test("The hit area is expanded and has a focus-visible focus ring", () => {
         expect(styles).toContain(".director-sequencer-key.is-actionable");
         expect(styles).toContain(".director-sequencer-key.is-actionable::after");
         expect(styles).toContain(".director-sequencer-key.is-actionable:focus-visible");
         expect(styles).toContain(".director-sequencer-key.is-actionable.is-selected");
     });
 
-    test("hover/focus 只用语义 token，不新增硬编码颜色", () => {
-        const block = slice(styles, "/* 可删除关键帧：", ".director-sequencer-clip {");
+    test("hover/focus only uses semantic tokens and does not add hard-coded colors.", () => {
+        const block = slice(styles, "/* Keyframes can be deleted:", ".director-sequencer-clip {");
         expect(block).toContain("outline: var(--stroke-2) solid var(--control-focus-ring);");
         expect(block).toContain("color-mix(in srgb, var(--control-focus-ring) 55%, transparent)");
         // rgba / 十六进制字面值一律不允许出现在新增块里。
@@ -158,51 +158,51 @@ describe("时间轴关键帧入口可见、可选择、可键盘删除", () => {
     });
 });
 
-describe("三类轨道都有删除入口，概览轨保持只读", () => {
-    test("主机位一级轨可删除关键帧，时间轴不重复渲染 Camera Cut 概览轨", () => {
-        const cameraRow = slice(sequencer, '<MainTrackLabel name="主机位"', "{cameraKeys.length &&");
+describe("All three types of tracks have deletion entries, and the overview track remains read-only.", () => {
+    test("Keyframes can be deleted on the host level track, and the timeline will not render the Camera Cut overview track repeatedly.", () => {
+        const cameraRow = slice(sequencer, '<MainTrackLabel name="Host bit"', "{cameraKeys.length &&");
         expect(cameraRow).toContain("<TrackKeys duration={duration} keys={cameraKeys}");
         expect(cameraRow).toContain("onDeleteKey={deleteTrackKey}");
         expect(sequencer).not.toContain('label="Camera Cut"');
     });
 
-    test("摄影机关键帧带 camera 删除目标", () => {
+    test("Camera keyframes with camera delete target", () => {
         expect(sequencer).toContain('target: { track: "camera", cameraId: camera.id, keyframeId: key.id }');
     });
 
-    test("对象 transform 与骨骼帧各自带正确目标", () => {
+    test("Object transforms and bone frames each have the correct target", () => {
         expect(sequencer).toContain('target: { track: "object-transform" as const, objectId: object.id, keyframeId: key.id }');
         expect(sequencer).toContain('target: { track: "object-bone" as const, objectId: object.id, bone: track.bone, keyframeId: key.id }');
     });
 
-    test("折叠状态下的对象汇总轨也可删除，否则收起后就删不掉", () => {
+    test("The object summary track in the collapsed state can also be deleted, otherwise it cannot be deleted after it is collapsed.", () => {
         const summaryRow = slice(sequencer, "<SequencerRow label={object.name} icon={isExpanded", "</SequencerRow>");
         expect(summaryRow).toContain("keys={[...transformKeys, ...boneTrackKeys]}");
         expect(summaryRow).toContain("onDeleteKey={deleteTrackKey}");
     });
 
-    test("展开后的 Transform 子轨与骨骼子轨都可删除", () => {
+    test("Both the expanded Transform sub-track and bone sub-track can be deleted.", () => {
         const transformRow = slice(sequencer, 'label="Transform" icon="◇"', "</SequencerRow>");
         expect(transformRow).toContain("onDeleteKey={deleteTrackKey}");
         const boneRow = slice(sequencer, "label={directorBoneLabel(track.bone)}", "</SequencerRow>");
         expect(boneRow).toContain("onDeleteKey={deleteTrackKey}");
     });
 
-    test("非演员对象（立方体/模型/立牌）的 transform 轨同样可删除", () => {
+    test("The transform rails of non-actor objects (cubes/models/stands) can also be deleted", () => {
         const plainRow = slice(sequencer, 'icon="□"', "</SequencerRow>");
         expect(plainRow).toContain("onDeleteKey={deleteTrackKey}");
         expect(sequencer).toContain('target: { track: "object-transform", objectId: object.id, keyframeId: key.id }');
     });
 
-    test("所选关键帧提供 step/linear/smooth 缓动切换与显式删除按钮", () => {
-        expect(sequencer).toContain('aria-label="关键帧缓动"');
-        expect(sequencer).toContain('<option value="step">保持</option>');
-        expect(sequencer).toContain('<option value="linear">线性</option>');
-        expect(sequencer).toContain('<option value="smooth">平滑</option>');
-        expect(sequencer).toContain('aria-label="删除所选关键帧"');
+    test("Selected keyframes provide step/linear/smooth easing switching and explicit delete buttons", () => {
+        expect(sequencer).toContain('aria-label="Keyframe easing"');
+        expect(sequencer).toContain('<option value="step">Keep</option>');
+        expect(sequencer).toContain('<option value="linear">Linear</option>');
+        expect(sequencer).toContain('<option value="smooth">Smooth</option>');
+        expect(sequencer).toContain('aria-label="Delete selected keyframes"');
     });
 
-    test("切换摄影机或外部删帧后清除陈旧选择，顶部控件不能误改不可见轨道", () => {
+    test("Clear old selections after switching cameras or externally deleting frames. The top controls cannot accidentally change invisible tracks.", () => {
         expect(sequencer).toContain("directorKeyframeTargetExists(selectedKey.target, camera, objects)");
         expect(sequencer).toContain("setSelectedKey((current) => current?.target && !directorKeyframeTargetExists(current.target, camera, objects) ? null : current);");
         expect(sequencer).toContain("camera?.id === target.cameraId && camera.keyframes.some");

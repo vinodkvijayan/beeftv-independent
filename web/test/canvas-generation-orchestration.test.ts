@@ -34,14 +34,14 @@ describe("canvasNodeRetryPlan", () => {
         const empty: CanvasNodeData = {
             id: "script",
             type: CanvasNodeType.Script,
-            title: "分镜",
+            title: "Storyboard",
             position: { x: 0, y: 0 },
             width: 920,
             height: 360,
             metadata: { prompt: "  " },
         };
         expect(canvasNodeRetryPlan(empty, []).kind).toBe("script-empty");
-        expect(canvasNodeRetryPlan({ ...empty, metadata: { composerContent: "一场雨" } }, [])).toEqual({ kind: "script", prompt: "一场雨" });
+        expect(canvasNodeRetryPlan({ ...empty, metadata: { composerContent: "a rain" } }, [])).toEqual({ kind: "script", prompt: "a rain" });
     });
 
     test("image batch root and child plans keep the failed children and root id", () => {
@@ -95,7 +95,7 @@ describe("createImageNodeFromTextSource", () => {
         const source: CanvasNodeData = {
             id: "text-1",
             type: CanvasNodeType.Text,
-            title: "文本",
+            title: "text",
             position: { x: 10, y: 20 },
             width: 350,
             height: 350,
@@ -111,15 +111,15 @@ describe("createImageNodeFromTextSource", () => {
         const source: CanvasNodeData = {
             id: "text-1",
             type: CanvasNodeType.Text,
-            title: "文本",
+            title: "text",
             position: { x: 10, y: 20 },
             width: 350,
             height: 350,
-            metadata: { content: "一座桥" },
+            metadata: { content: "a bridge" },
         };
         const created = createImageNodeFromTextSource({
             sourceId: source.id,
-            prompt: "一座桥",
+            prompt: "a bridge",
             nodes: [source],
             connections: [],
             config: { imageModel: "test-model", size: "720x405" },
@@ -148,7 +148,7 @@ describe("insertCanvasGenerationHistoryTask", () => {
             id: "task-history",
             type: "canvas_image",
             status: "succeeded",
-            prompt: "历史图片",
+            prompt: "historical pictures",
             resultJson: JSON.stringify({ mode: "image", images: [{ dataUrl: "data:image/png;base64,abc", storageKey: "resource:history" }] }),
             createdAt: "2026-10-01T00:00:00.000Z",
             updatedAt: "2026-10-01T00:00:00.000Z",

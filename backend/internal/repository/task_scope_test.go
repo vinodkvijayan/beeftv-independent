@@ -108,11 +108,11 @@ func seedScopeCanvas(t *testing.T, db *gorm.DB, canvas model.CanvasProject) mode
 }
 
 func queuedScopeTask(id, userID, projectID string) *model.Task {
-	return &model.Task{ID: id, UserID: userID, ProjectID: projectID, Type: "canvas_text", Status: model.TaskStatusQueued, Prompt: "生成"}
+	return &model.Task{ID: id, UserID: userID, ProjectID: projectID, Type: "canvas_text", Status: model.TaskStatusQueued, Prompt: "generate"}
 }
 
 func failedScopeTask(id, userID, projectID string) *model.Task {
-	return &model.Task{ID: id, UserID: userID, ProjectID: projectID, Type: "canvas_text", Status: model.TaskStatusFailed, Prompt: "生成"}
+	return &model.Task{ID: id, UserID: userID, ProjectID: projectID, Type: "canvas_text", Status: model.TaskStatusFailed, Prompt: "generate"}
 }
 
 func countTasks(t *testing.T, db *gorm.DB, id string) int64 {
@@ -126,9 +126,9 @@ func countTasks(t *testing.T, db *gorm.DB, id string) int64 {
 
 func TestRequireTaskScopeActiveTxAllowsEmptyAndOwnedTargets(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	personal := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-personal", UserID: "user-1", Title: "个人画布"})
-	active := seedScopeProject(t, db, model.Project{ID: "project-active", UserID: "user-1", Name: "在产"})
-	linked := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-linked", UserID: "user-1", ProjectID: active.ID, Title: "项目画布"})
+	personal := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-personal", UserID: "user-1", Title: "personal canvas"})
+	active := seedScopeProject(t, db, model.Project{ID: "project-active", UserID: "user-1", Name: "in production"})
+	linked := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-linked", UserID: "user-1", ProjectID: active.ID, Title: "project canvas"})
 	for _, id := range []string{"", personal.ID, active.ID, linked.ID} {
 		if err := repo.RequireTaskScopeActive("user-1", id); err != nil {
 			t.Fatalf("id %q error = %v", id, err)
@@ -138,11 +138,11 @@ func TestRequireTaskScopeActiveTxAllowsEmptyAndOwnedTargets(t *testing.T) {
 
 func TestRequireTaskScopeActiveTxRejectsUnknownForeignArchivedDeleted(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	archived := seedScopeProject(t, db, model.Project{ID: "project-archived", UserID: "user-1", Name: "旧项目", Status: model.ProjectStatusArchived})
-	foreignProject := seedScopeProject(t, db, model.Project{ID: "project-foreign", UserID: "user-2", Name: "别人的项目"})
-	archivedCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-archived", UserID: "user-1", ProjectID: archived.ID, Title: "旧画布"})
-	foreignCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-foreign", UserID: "user-2", Title: "别人的画布"})
-	deleted := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-deleted", UserID: "user-1", Title: "将被删除"})
+	archived := seedScopeProject(t, db, model.Project{ID: "project-archived", UserID: "user-1", Name: "old project", Status: model.ProjectStatusArchived})
+	foreignProject := seedScopeProject(t, db, model.Project{ID: "project-foreign", UserID: "user-2", Name: "other people's projects"})
+	archivedCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-archived", UserID: "user-1", ProjectID: archived.ID, Title: "old canvas"})
+	foreignCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-foreign", UserID: "user-2", Title: "someone else's canvas"})
+	deleted := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-deleted", UserID: "user-1", Title: "will be deleted"})
 	if err := db.Delete(&model.CanvasProject{}, "id = ?", deleted.ID).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -163,8 +163,8 @@ func TestRequireTaskScopeActiveTxRejectsUnknownForeignArchivedDeleted(t *testing
 
 func TestCreateTaskWithActiveLimitAdmitsOwnedCanvasAndProject(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	personal := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-personal", UserID: "user-1", Title: "个人画布"})
-	active := seedScopeProject(t, db, model.Project{ID: "project-active", UserID: "user-1", Name: "在产"})
+	personal := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-personal", UserID: "user-1", Title: "personal canvas"})
+	active := seedScopeProject(t, db, model.Project{ID: "project-active", UserID: "user-1", Name: "in production"})
 	for _, item := range []struct {
 		id        string
 		projectID string
@@ -181,14 +181,14 @@ func TestCreateTaskWithActiveLimitAdmitsOwnedCanvasAndProject(t *testing.T) {
 
 func TestCreateTaskWithActiveLimitRejectsInvalidScopeWithoutInsert(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	archived := seedScopeProject(t, db, model.Project{ID: "project-archived", UserID: "user-1", Name: "旧项目", Status: model.ProjectStatusArchived})
-	foreign := seedScopeProject(t, db, model.Project{ID: "project-foreign", UserID: "user-2", Name: "别人的项目"})
-	foreignCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-foreign", UserID: "user-2", Title: "别人的画布"})
-	deletedProject := seedScopeProject(t, db, model.Project{ID: "project-deleted", UserID: "user-1", Name: "已删"})
+	archived := seedScopeProject(t, db, model.Project{ID: "project-archived", UserID: "user-1", Name: "old project", Status: model.ProjectStatusArchived})
+	foreign := seedScopeProject(t, db, model.Project{ID: "project-foreign", UserID: "user-2", Name: "other people's projects"})
+	foreignCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-foreign", UserID: "user-2", Title: "someone else's canvas"})
+	deletedProject := seedScopeProject(t, db, model.Project{ID: "project-deleted", UserID: "user-1", Name: "Deleted"})
 	if err := db.Delete(&model.Project{}, "id = ?", deletedProject.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	orphanedCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-orphan-link", UserID: "user-1", ProjectID: deletedProject.ID, Title: "悬空画布"})
+	orphanedCanvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-orphan-link", UserID: "user-1", ProjectID: deletedProject.ID, Title: "hanging canvas"})
 	cases := []struct {
 		id        string
 		projectID string
@@ -213,7 +213,7 @@ func TestCreateTaskWithActiveLimitRejectsInvalidScopeWithoutInsert(t *testing.T)
 
 func TestRetryTaskFailsClosedOnDeletedCanvas(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-retry", UserID: "user-1", Title: "画布"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-retry", UserID: "user-1", Title: "canvas"})
 	failed := failedScopeTask("task-retry-deleted", "user-1", canvas.ID)
 	if err := db.Create(failed).Error; err != nil {
 		t.Fatal(err)
@@ -242,7 +242,7 @@ func TestRetryTaskFailsClosedOnDeletedCanvas(t *testing.T) {
 
 func TestRetryTaskAdmitsOwnedCanvas(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-retry-ok", UserID: "user-1", Title: "画布"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-retry-ok", UserID: "user-1", Title: "canvas"})
 	failed := failedScopeTask("task-retry-ok", "user-1", canvas.ID)
 	if err := db.Create(failed).Error; err != nil {
 		t.Fatal(err)
@@ -255,7 +255,7 @@ func TestRetryTaskAdmitsOwnedCanvas(t *testing.T) {
 
 func TestCreateTaskReplayAfterTargetDeletionReturnsReceipt(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-replay", UserID: "user-1", Title: "画布"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-replay", UserID: "user-1", Title: "canvas"})
 	op := "client-op-replay"
 	original := queuedScopeTask("task-replay", "user-1", canvas.ID)
 	original.ClientOperationID = &op
@@ -289,7 +289,7 @@ func TestCreateTaskReplayAfterTargetDeletionReturnsReceipt(t *testing.T) {
 
 func TestCreateTaskAndDeleteCanvasDoNotAdmitDeletedScope(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-race", UserID: "user-1", Title: "画布"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-race", UserID: "user-1", Title: "canvas"})
 	task := queuedScopeTask("task-race", "user-1", canvas.ID)
 	var createErr, deleteErr error
 	var wg sync.WaitGroup
@@ -333,7 +333,7 @@ func TestCreateTaskAndDeleteCanvasDoNotAdmitDeletedScope(t *testing.T) {
 
 func TestRetryTaskAndDeleteCanvasDoNotRequeueDeletedScope(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-retry-race", UserID: "user-1", Title: "画布"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-retry-race", UserID: "user-1", Title: "canvas"})
 	failed := failedScopeTask("task-retry-race", "user-1", canvas.ID)
 	if err := db.Create(failed).Error; err != nil {
 		t.Fatal(err)
@@ -371,7 +371,7 @@ func TestRetryTaskAndDeleteCanvasDoNotRequeueDeletedScope(t *testing.T) {
 
 func TestCreateTaskAndArchiveProjectDoNotAdmitArchivedScope(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	project := seedScopeProject(t, db, model.Project{ID: "project-race", UserID: "user-1", Name: "在产"})
+	project := seedScopeProject(t, db, model.Project{ID: "project-race", UserID: "user-1", Name: "in production"})
 	task := queuedScopeTask("task-archive-race", "user-1", project.ID)
 	var createErr, archiveErr error
 	var wg sync.WaitGroup
@@ -407,8 +407,8 @@ func TestCreateTaskAndArchiveProjectDoNotAdmitArchivedScope(t *testing.T) {
 
 func TestCreateLinkedCanvasValidatesBusinessProjectInSameTransaction(t *testing.T) {
 	repo, db := newTaskScopeRepo(t)
-	project := seedScopeProject(t, db, model.Project{ID: "project-linked-race", UserID: "user-1", Name: "在产"})
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-linked-race", UserID: "user-1", ProjectID: project.ID, Title: "项目画布"})
+	project := seedScopeProject(t, db, model.Project{ID: "project-linked-race", UserID: "user-1", Name: "in production"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-linked-race", UserID: "user-1", ProjectID: project.ID, Title: "project canvas"})
 	task := queuedScopeTask("task-linked-race", "user-1", canvas.ID)
 	var createErr, archiveErr error
 	var wg sync.WaitGroup
@@ -435,7 +435,7 @@ func TestCreateLinkedCanvasValidatesBusinessProjectInSameTransaction(t *testing.
 
 func TestRetryAfterCanvasDeleteSurvivesReopen(t *testing.T) {
 	repo, db, path := newTaskScopeRepoAt(t, filepath.Join(t.TempDir(), "task-scope-reopen.db"))
-	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-reopen", UserID: "user-1", Title: "画布"})
+	canvas := seedScopeCanvas(t, db, model.CanvasProject{ID: "canvas-reopen", UserID: "user-1", Title: "canvas"})
 	admitted := queuedScopeTask("task-reopen-canvas", "user-1", canvas.ID)
 	if err := repo.CreateTaskWithActiveLimit(admitted, 8); err != nil {
 		t.Fatal(err)
@@ -472,7 +472,7 @@ func TestRetryAfterCanvasDeleteSurvivesReopen(t *testing.T) {
 
 func TestRetryAfterProjectDeleteSurvivesReopen(t *testing.T) {
 	repo, db, path := newTaskScopeRepoAt(t, filepath.Join(t.TempDir(), "task-scope-project-reopen.db"))
-	project := seedScopeProject(t, db, model.Project{ID: "project-reopen", UserID: "user-1", Name: "在产"})
+	project := seedScopeProject(t, db, model.Project{ID: "project-reopen", UserID: "user-1", Name: "in production"})
 	admitted := queuedScopeTask("task-reopen-project", "user-1", project.ID)
 	if err := repo.CreateTaskWithActiveLimit(admitted, 8); err != nil {
 		t.Fatal(err)

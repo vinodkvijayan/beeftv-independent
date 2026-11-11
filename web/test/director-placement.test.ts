@@ -31,123 +31,123 @@ function scaled(object: DirectorObject, scale: DirectorVec3) {
     return { ...object, transform: { ...object.transform, scale } };
 }
 
-describe("连续新增不重叠（B 回归）", () => {
-    test("默认场景演员之外连续加 6 个立方体，两两不相交", () => {
-        const placed: DirectorObject[] = [createDirectorActor("演员 1", [0, 0, 0])];
-        for (let index = 0; index < 6; index += 1) placed.push(place(createDirectorObject("box", `立方体 ${index}`), placed));
+describe("Continuous new additions without overlap (B regression)", () => {
+    test("In addition to the default scene actors, 6 cubes are added consecutively, and no two cubes intersect.", () => {
+        const placed: DirectorObject[] = [createDirectorActor("actor 1", [0, 0, 0])];
+        for (let index = 0; index < 6; index += 1) placed.push(place(createDirectorObject("box", `cube${index}`), placed));
         placed.forEach((a, i) => placed.slice(i + 1).forEach((b) => expect(overlapsXZ(a, b)).toBe(false)));
     });
 
-    test("混合 kind 连续新增：actor / model / billboard / primitive 互不相交", () => {
+    test("Mixed kinds are added continuously: actor / model / billboard / primitive are mutually exclusive", () => {
         const placed: DirectorObject[] = [];
-        placed.push(place(createDirectorActor("演员 1", [0, 0, 0]), placed));
-        placed.push(place(createDirectorModel({ name: "模型", storageKey: undefined, url: "u", mimeType: undefined, assetId: undefined }), placed));
-        placed.push(place(createDirectorBillboard("立牌", "u"), placed));
-        placed.push(place(createDirectorObject("sphere", "球体"), placed));
-        placed.push(place(createDirectorActor("演员 2", [0, 0, 0]), placed));
+        placed.push(place(createDirectorActor("actor 1", [0, 0, 0]), placed));
+        placed.push(place(createDirectorModel({ name: "model", storageKey: undefined, url: "u", mimeType: undefined, assetId: undefined }), placed));
+        placed.push(place(createDirectorBillboard("Stand up sign", "u"), placed));
+        placed.push(place(createDirectorObject("sphere", "sphere"), placed));
+        placed.push(place(createDirectorActor("Actor 2", [0, 0, 0]), placed));
         placed.forEach((a, i) => placed.slice(i + 1).forEach((b) => expect(overlapsXZ(a, b)).toBe(false)));
     });
 
-    test("默认 actor 与默认 model 都在原点时不再重叠", () => {
-        const actor = createDirectorActor("演员 1", [0, 0, 0]);
-        const model = place(createDirectorModel({ name: "模型", storageKey: undefined, url: "u", mimeType: undefined, assetId: undefined }), [actor]);
+    test("The default actor and default model no longer overlap when both are at the origin.", () => {
+        const actor = createDirectorActor("actor 1", [0, 0, 0]);
+        const model = place(createDirectorModel({ name: "model", storageKey: undefined, url: "u", mimeType: undefined, assetId: undefined }), [actor]);
         expect(overlapsXZ(actor, model)).toBe(false);
     });
 
-    test("隐藏对象同样占位", () => {
-        const hidden = { ...createDirectorObject("box", "隐藏"), visible: false };
-        const next = place(createDirectorObject("box", "新的"), [hidden]);
+    test("Hidden objects also occupy space", () => {
+        const hidden = { ...createDirectorObject("box", "hide"), visible: false };
+        const next = place(createDirectorObject("box", "new"), [hidden]);
         expect(overlapsXZ(hidden, next)).toBe(false);
     });
 });
 
-describe("占位尺寸与缩放", () => {
-    test("footprint 随 scale.x/z 放大，且不使用 scale.y", () => {
+describe("Placeholder size and scaling", () => {
+    test("The footprint is enlarged with scale.x/z and does not use scale.y", () => {
         const base = directorObjectFootprint(createDirectorObject("box", "b"));
         const wide = directorObjectFootprint(scaled(createDirectorObject("box", "b"), [3, 9, 2]));
         expect(wide.width).toBeCloseTo(base.width * 3, 6);
         expect(wide.depth).toBeCloseTo(base.depth * 2, 6);
     });
 
-    test("负缩放按绝对值占位，不产生负尺寸", () => {
+    test("Negative scaling takes place according to the absolute value and does not produce negative dimensions.", () => {
         const mirrored = directorObjectFootprint(scaled(createDirectorObject("box", "b"), [-3, 1, -2]));
         expect(mirrored.width).toBeCloseTo(3, 6);
         expect(mirrored.depth).toBeCloseTo(2, 6);
     });
 
-    test("大缩放对象周围留出更大空隙", () => {
-        const big = scaled(createDirectorObject("box", "大"), [6, 1, 6]);
-        const next = place(createDirectorObject("box", "小"), [big]);
+    test("Leave more space around large scaled objects", () => {
+        const big = scaled(createDirectorObject("box", "Big"), [6, 1, 6]);
+        const next = place(createDirectorObject("box", "small"), [big]);
         expect(overlapsXZ(big, next)).toBe(false);
         expect(Math.hypot(next.transform.position[0], next.transform.position[2])).toBeGreaterThan(3);
     });
 
-    test("billboard 用宽而浅的占位", () => {
-        const footprint = directorObjectFootprint(createDirectorBillboard("立牌", "u"));
+    test("billboard uses wide and shallow placeholders", () => {
+        const footprint = directorObjectFootprint(createDirectorBillboard("Stand up sign", "u"));
         expect(footprint.width).toBeGreaterThan(footprint.depth);
     });
 });
 
-describe("只改 XZ、确定性与拥挤回退", () => {
-    test("保留调用方给定的 Y", () => {
+describe("Only change XZ, determinism and congestion fallback", () => {
+    test("retain the Y given by the caller", () => {
         expect(place(createDirectorObject("box", "b"), [createDirectorObject("box", "a")]).transform.position[1]).toBeCloseTo(0.5, 6);
-        expect(place(createDirectorActor("演员", [0, 0, 0]), [createDirectorActor("已有", [0, 0, 0])]).transform.position[1]).toBeCloseTo(0, 6);
-        expect(place(createDirectorBillboard("立牌", "u"), [createDirectorBillboard("已有", "u")]).transform.position[1]).toBeCloseTo(1.1, 6);
+        expect(place(createDirectorActor("actor", [0, 0, 0]), [createDirectorActor("Already have", [0, 0, 0])]).transform.position[1]).toBeCloseTo(0, 6);
+        expect(place(createDirectorBillboard("Stand up sign", "u"), [createDirectorBillboard("Already have", "u")]).transform.position[1]).toBeCloseTo(1.1, 6);
     });
 
-    test("同样输入得到同样输出（确定性）", () => {
-        const existing = [createDirectorObject("box", "a"), createDirectorActor("演员", [2, 0, 0])];
-        const first = resolveDirectorPlacement({ object: createDirectorObject("box", "新"), existing });
-        const second = resolveDirectorPlacement({ object: createDirectorObject("box", "新"), existing });
+    test("Same input gets the same output (deterministic)", () => {
+        const existing = [createDirectorObject("box", "a"), createDirectorActor("actor", [2, 0, 0])];
+        const first = resolveDirectorPlacement({ object: createDirectorObject("box", "new"), existing });
+        const second = resolveDirectorPlacement({ object: createDirectorObject("box", "new"), existing });
         expect(first).toEqual(second);
     });
 
-    test("空场景保留原始期望位置", () => {
+    test("An empty scene retains the original desired position", () => {
         expect(resolveDirectorPlacement({ object: createDirectorObject("box", "b"), existing: [] })).toEqual([0, 0.5, 0]);
     });
 
-    test("极端拥挤时回退位置必须与所有对象都不相交", () => {
+    test("When extremely crowded, the retreat position must not intersect with all objects.", () => {
         const crowd: DirectorObject[] = [];
         for (let x = -20; x <= 20; x += 1) {
             for (let z = -20; z <= 20; z += 1) {
                 crowd.push({ ...createDirectorObject("box", `c-${x}-${z}`), transform: { position: [x, 0.5, z], rotation: [0, 0, 0], scale: [1, 1, 1] } });
             }
         }
-        const placed = place(createDirectorObject("box", "新"), crowd);
+        const placed = place(createDirectorObject("box", "new"), crowd);
         placed.transform.position.forEach((value) => expect(Number.isFinite(value)).toBe(true));
         expect(placed.transform.position[1]).toBeCloseTo(0.5, 6);
         // 核心性质：兜底不是「随便给一点」，必须真的不与任何既有占位相交。
         crowd.forEach((item) => expect(overlapsXZ(placed, item)).toBe(false));
     });
 
-    test("超大 scale 超出 ring 搜索半径时兜底仍不相交", () => {
+    test("When the extremely large scale exceeds the search radius of the ring, the pockets still do not intersect.", () => {
         // ring 最大半径 24*0.75 = 18；用远大于它的占位强制走兜底分支。
-        const huge = scaled(createDirectorObject("box", "巨大"), [80, 1, 80]);
-        const placed = place(createDirectorObject("box", "新"), [huge]);
+        const huge = scaled(createDirectorObject("box", "huge"), [80, 1, 80]);
+        const placed = place(createDirectorObject("box", "new"), [huge]);
         expect(overlapsXZ(placed, huge)).toBe(false);
         expect(placed.transform.position[1]).toBeCloseTo(0.5, 6);
     });
 
-    test("多个超大占位混合时兜底位于全部占位之外", () => {
-        const first = { ...scaled(createDirectorObject("box", "大 1"), [60, 1, 60]), transform: { position: [0, 0.5, 0] as DirectorVec3, rotation: [0, 0, 0] as DirectorVec3, scale: [60, 1, 60] as DirectorVec3 } };
-        const second = { ...scaled(createDirectorObject("box", "大 2"), [40, 1, 40]), transform: { position: [70, 0.5, 10] as DirectorVec3, rotation: [0, 0, 0] as DirectorVec3, scale: [40, 1, 40] as DirectorVec3 } };
-        const placed = place(createDirectorObject("box", "新"), [first, second]);
+    test("When multiple oversized placeholders are mixed, the bottom of the pocket is outside all the placeholders.", () => {
+        const first = { ...scaled(createDirectorObject("box", "Big 1"), [60, 1, 60]), transform: { position: [0, 0.5, 0] as DirectorVec3, rotation: [0, 0, 0] as DirectorVec3, scale: [60, 1, 60] as DirectorVec3 } };
+        const second = { ...scaled(createDirectorObject("box", "Big 2"), [40, 1, 40]), transform: { position: [70, 0.5, 10] as DirectorVec3, rotation: [0, 0, 0] as DirectorVec3, scale: [40, 1, 40] as DirectorVec3 } };
+        const placed = place(createDirectorObject("box", "new"), [first, second]);
         [first, second].forEach((item) => expect(overlapsXZ(placed, item)).toBe(false));
     });
 
-    test("非法输入不产生 NaN", () => {
-        const broken = { ...createDirectorObject("box", "坏"), transform: { position: [Number.NaN, Number.NaN, Number.NaN] as DirectorVec3, rotation: [0, 0, 0] as DirectorVec3, scale: [Number.NaN, 1, 1] as DirectorVec3 } };
+    test("Illegal input does not generate NaN", () => {
+        const broken = { ...createDirectorObject("box", "bad"), transform: { position: [Number.NaN, Number.NaN, Number.NaN] as DirectorVec3, rotation: [0, 0, 0] as DirectorVec3, scale: [Number.NaN, 1, 1] as DirectorVec3 } };
         resolveDirectorPlacement({ object: broken, existing: [createDirectorObject("box", "a")] }).forEach((value) => expect(Number.isFinite(value)).toBe(true));
     });
 });
 
-describe("地面锚点归一化", () => {
-    test("有限数值成为合法地面点", () => {
+describe("Ground anchor normalization", () => {
+    test("Finite values become legal ground points", () => {
         expect(finiteDirectorGroundPoint(1.5, -2.25)).toEqual({ x: 1.5, z: -2.25 });
         expect(finiteDirectorGroundPoint(0, 0)).toEqual({ x: 0, z: 0 });
     });
 
-    test("NaN / ±Infinity / 非数值一律不可用", () => {
+    test("NaN / ±Infinity / non-numeric values are not available", () => {
         expect(finiteDirectorGroundPoint(Number.NaN, 0)).toBeNull();
         expect(finiteDirectorGroundPoint(0, Number.NaN)).toBeNull();
         expect(finiteDirectorGroundPoint(Number.POSITIVE_INFINITY, 0)).toBeNull();
@@ -158,8 +158,8 @@ describe("地面锚点归一化", () => {
     });
 });
 
-describe("放置来源优先级", () => {
-    test("pointer 存在时优先于 orbit target", () => {
+describe("Place source priority", () => {
+    test("pointer takes precedence over orbit target when present", () => {
         const anchor = resolveDirectorPlacementAnchor({
             intent: { pointer: { x: 3, z: -4 }, orbitTarget: { x: 9, z: 9 } },
             fallback: [0, 0.5, 0],
@@ -167,7 +167,7 @@ describe("放置来源优先级", () => {
         expect(anchor).toEqual([3, 0.5, -4]);
     });
 
-    test("pointer 缺失时回退 orbit target", () => {
+    test("Fallback to orbit target when pointer is missing", () => {
         const anchor = resolveDirectorPlacementAnchor({
             intent: { pointer: null, orbitTarget: { x: -2.5, z: 6 } },
             fallback: [0, 0.5, 0],
@@ -175,19 +175,19 @@ describe("放置来源优先级", () => {
         expect(anchor).toEqual([-2.5, 0.5, 6]);
     });
 
-    test("两者都不可用时保留对象原始 XZ", () => {
+    test("Keep object original XZ when neither is available", () => {
         expect(resolveDirectorPlacementAnchor({ intent: emptyDirectorPlacementIntent, fallback: [7, 0.5, -8] })).toEqual([7, 0.5, -8]);
         expect(resolveDirectorPlacementAnchor({ intent: null, fallback: [7, 0.5, -8] })).toEqual([7, 0.5, -8]);
     });
 
-    test("上下文不可用返回 null intent 时不抛异常且退回默认原点", () => {
+    test("When the context is unavailable and null intent is returned, no exception will be thrown and the default origin will be returned.", () => {
         expect(resolveDirectorPlacementAnchor({ intent: null, fallback: [0, 0, 0] })).toEqual([0, 0, 0]);
     });
 
-    test("fallback 自身 XZ 非有限时归零，Y 仍保留", () => {
+    test("fallback itself XZ returns to zero non-finitely, Y remains", () => {
         expect(resolveDirectorPlacementAnchor({ intent: null, fallback: [Number.NaN, 1.1, Number.NaN] })).toEqual([0, 1.1, 0]);
     });
-    test("非法 pointer 不得遮蔽合法 orbit target", () => {
+    test("Illegal pointers must not obscure legal orbit targets", () => {
         const cases: DirectorGroundPoint[] = [
             { x: Number.NaN, z: 0 },
             { x: 0, z: Number.NaN },
@@ -205,7 +205,7 @@ describe("放置来源优先级", () => {
         }
     });
 
-    test("非法 pointer + 非法 orbit 时回退到合法 fallback XZ", () => {
+    test("Fallback to legal fallback XZ when illegal pointer + illegal orbit", () => {
         expect(
             resolveDirectorPlacementAnchor({
                 intent: { pointer: { x: Number.NaN, z: Number.NaN }, orbitTarget: { x: Number.POSITIVE_INFINITY, z: 3 } },
@@ -214,7 +214,7 @@ describe("放置来源优先级", () => {
         ).toEqual([7, 0.5, -8]);
     });
 
-    test("三个来源全非法时归零且仍保留构造器 Y", () => {
+    test("Return to zero if all three sources are illegal and still retain constructor Y", () => {
         expect(
             resolveDirectorPlacementAnchor({
                 intent: { pointer: { x: Number.NaN, z: 0 }, orbitTarget: { x: Number.NaN, z: 0 } },
@@ -223,7 +223,7 @@ describe("放置来源优先级", () => {
         ).toEqual([0, 1.1, 0]);
     });
 
-    test("合法 pointer 含 0 不被误判为缺失", () => {
+    test("A legal pointer containing 0 will not be misjudged as missing.", () => {
         expect(
             resolveDirectorPlacementAnchor({
                 intent: { pointer: { x: 0, z: 0 }, orbitTarget: { x: 9, z: 9 } },
@@ -232,7 +232,7 @@ describe("放置来源优先级", () => {
         ).toEqual([0, 0.5, 0]);
     });
 
-    test("非法 orbit 不影响合法 pointer", () => {
+    test("Illegal orbits do not affect legal pointers", () => {
         expect(
             resolveDirectorPlacementAnchor({
                 intent: { pointer: { x: 3, z: -4 }, orbitTarget: { x: Number.NaN, z: Number.NaN } },
@@ -241,7 +241,7 @@ describe("放置来源优先级", () => {
         ).toEqual([3, 0.5, -4]);
     });
 
-    test("非有限 fallback Y 归零，XZ 来源仍生效", () => {
+    test("Non-finite fallback Y resets to zero, XZ source still takes effect", () => {
         expect(
             resolveDirectorPlacementAnchor({
                 intent: { pointer: { x: 2, z: 2 }, orbitTarget: null },
@@ -251,15 +251,15 @@ describe("放置来源优先级", () => {
     });
 });
 
-describe("网格吸附", () => {
-    test("开启后 XZ 贴到半单位格，保留 Y；关闭时位置不变", () => {
+describe("Grid adsorption", () => {
+    test("When turned on, XZ is pasted to the half-unit cell and Y is retained; when turned off, the position remains unchanged.", () => {
         expect(placement.snapDirectorGroundPosition([1.26, 0.7, -0.74], true)).toEqual([1.5, 0.7, -0.5]);
         expect(placement.snapDirectorGroundPosition([1.26, 0.7, -0.74], false)).toEqual([1.26, 0.7, -0.74]);
     });
 
-    test("碰撞避让后的新增对象仍在网格上，且不与占位重叠", () => {
-        const existing = [createDirectorObject("box", "已有", [1.5, 0.5, -0.5])];
-        const object = createDirectorObject("box", "新", [1.26, 0.5, -0.74]);
+    test("The newly added objects after collision avoidance are still on the grid and do not overlap with the placeholders.", () => {
+        const existing = [createDirectorObject("box", "Already have", [1.5, 0.5, -0.5])];
+        const object = createDirectorObject("box", "new", [1.26, 0.5, -0.74]);
         const position = resolveDirectorPlacement({ object, existing, gridSnap: true });
         expect(position[0] * 2).toBeInteger();
         expect(position[2] * 2).toBeInteger();
@@ -268,37 +268,37 @@ describe("网格吸附", () => {
     });
 });
 
-describe("锚点不改变构造器 Y", () => {
+describe("Anchor point does not change constructor Y", () => {
     const pointer = { pointer: { x: 4, z: 5 }, orbitTarget: null };
 
-    test("primitive 保持 0.5", () => {
-        const box = createDirectorObject("box", "立方体");
+    test("primitive remains 0.5", () => {
+        const box = createDirectorObject("box", "cube");
         expect(box.transform.position[1]).toBe(0.5);
         expect(resolveDirectorPlacementAnchor({ intent: pointer, fallback: box.transform.position })[1]).toBe(0.5);
     });
 
-    test("actor 保持 0", () => {
-        const actor = createDirectorActor("演员");
+    test("actor remains 0", () => {
+        const actor = createDirectorActor("actor");
         expect(resolveDirectorPlacementAnchor({ intent: pointer, fallback: actor.transform.position })[1]).toBe(0);
     });
 
-    test("model 保持 0", () => {
-        const model = createDirectorModel({ name: "模型", assetId: "a", storageKey: "k", url: "u", mimeType: "model/gltf-binary" });
+    test("model remains 0", () => {
+        const model = createDirectorModel({ name: "model", assetId: "a", storageKey: "k", url: "u", mimeType: "model/gltf-binary" });
         expect(resolveDirectorPlacementAnchor({ intent: pointer, fallback: model.transform.position })[1]).toBe(0);
     });
 
-    test("billboard 保持 1.1", () => {
-        const billboard = createDirectorBillboard("立牌", "https://example.invalid/a.png");
+    test("billboard remains 1.1", () => {
+        const billboard = createDirectorBillboard("Stand up sign", "https://example.invalid/a.png");
         expect(billboard.transform.position[1]).toBe(1.1);
         expect(resolveDirectorPlacementAnchor({ intent: pointer, fallback: billboard.transform.position })[1]).toBe(1.1);
     });
 
-    test("四种 kind 的锚点 XZ 都来自 pointer", () => {
+    test("The anchor points XZ of the four kinds all come from pointer", () => {
         const objects = [
-            createDirectorObject("box", "立方体"),
-            createDirectorActor("演员"),
-            createDirectorModel({ name: "模型", assetId: "a", storageKey: "k", url: "u", mimeType: "model/gltf-binary" }),
-            createDirectorBillboard("立牌", "https://example.invalid/a.png"),
+            createDirectorObject("box", "cube"),
+            createDirectorActor("actor"),
+            createDirectorModel({ name: "model", assetId: "a", storageKey: "k", url: "u", mimeType: "model/gltf-binary" }),
+            createDirectorBillboard("Stand up sign", "https://example.invalid/a.png"),
         ];
         for (const object of objects) {
             const anchor = resolveDirectorPlacementAnchor({ intent: pointer, fallback: object.transform.position });
@@ -307,16 +307,16 @@ describe("锚点不改变构造器 Y", () => {
     });
 });
 
-describe("锚点与碰撞避让组合", () => {
-    test("锚点空闲时精确落在锚点 XZ", () => {
-        const box = createDirectorObject("box", "立方体");
+describe("Anchor point and collision avoidance combination", () => {
+    test("The anchor point falls exactly on anchor point XZ when idle", () => {
+        const box = createDirectorObject("box", "cube");
         const anchored = { ...box, transform: { ...box.transform, position: resolveDirectorPlacementAnchor({ intent: { pointer: { x: 6, z: -6 }, orbitTarget: null }, fallback: box.transform.position }) } };
         expect(resolveDirectorPlacement({ object: anchored, existing: [] })).toEqual([6, 0.5, -6]);
     });
 
-    test("锚点被占用时从锚点向外避让，且仍保持 Y", () => {
-        const occupant = createDirectorObject("box", "占位", [6, 0.5, -6]);
-        const box = createDirectorObject("box", "立方体");
+    test("When the anchor point is occupied, move away from the anchor point while still maintaining Y", () => {
+        const occupant = createDirectorObject("box", "Placeholder", [6, 0.5, -6]);
+        const box = createDirectorObject("box", "cube");
         const anchored = { ...box, transform: { ...box.transform, position: resolveDirectorPlacementAnchor({ intent: { pointer: { x: 6, z: -6 }, orbitTarget: null }, fallback: box.transform.position }) } };
         const placed = resolveDirectorPlacement({ object: anchored, existing: [occupant] });
 
@@ -327,23 +327,23 @@ describe("锚点与碰撞避让组合", () => {
         expect(Math.hypot(placed[0] - 6, placed[2] + 6)).toBeLessThan(3);
     });
 
-    test("避让结果对同一输入确定", () => {
-        const occupant = createDirectorObject("box", "占位", [6, 0.5, -6]);
-        const box = createDirectorObject("box", "立方体");
+    test("Avoidance results are determined for the same input", () => {
+        const occupant = createDirectorObject("box", "Placeholder", [6, 0.5, -6]);
+        const box = createDirectorObject("box", "cube");
         const anchored = { ...box, transform: { ...box.transform, position: resolveDirectorPlacementAnchor({ intent: { pointer: { x: 6, z: -6 }, orbitTarget: null }, fallback: box.transform.position }) } };
         const first = resolveDirectorPlacement({ object: anchored, existing: [occupant] });
         const second = resolveDirectorPlacement({ object: anchored, existing: [occupant] });
         expect(first).toEqual(second);
     });
 
-    test("锚点周围极端拥挤时兜底仍不相交且不改 Y", () => {
+    test("When the area around the anchor point is extremely crowded, the bottom pockets still do not intersect and the Y does not change.", () => {
         const crowd: DirectorObject[] = [];
         for (let x = -10; x <= 10; x += 1) {
             for (let z = -10; z <= 10; z += 1) {
-                crowd.push(createDirectorObject("box", `占位 ${x}:${z}`, [6 + x, 0.5, -6 + z]));
+                crowd.push(createDirectorObject("box", `Placeholder${x}:${z}`, [6 + x, 0.5, -6 + z]));
             }
         }
-        const box = createDirectorObject("box", "立方体");
+        const box = createDirectorObject("box", "cube");
         const anchored = { ...box, transform: { ...box.transform, position: resolveDirectorPlacementAnchor({ intent: { pointer: { x: 6, z: -6 }, orbitTarget: null }, fallback: box.transform.position }) } };
         const placed = resolveDirectorPlacement({ object: anchored, existing: crowd });
         const settled = { ...anchored, transform: { ...anchored.transform, position: placed } };
@@ -352,9 +352,9 @@ describe("锚点与碰撞避让组合", () => {
         expect(crowd.some((item) => overlapsXZ(settled, item))).toBe(false);
     });
 
-    test("orbit 回退来源同样参与避让", () => {
-        const occupant = createDirectorObject("box", "占位", [-3, 0.5, 2]);
-        const box = createDirectorObject("box", "立方体");
+    test("The orbit fallback source also participates in avoidance", () => {
+        const occupant = createDirectorObject("box", "Placeholder", [-3, 0.5, 2]);
+        const box = createDirectorObject("box", "cube");
         const anchored = { ...box, transform: { ...box.transform, position: resolveDirectorPlacementAnchor({ intent: { pointer: null, orbitTarget: { x: -3, z: 2 } }, fallback: box.transform.position }) } };
         const placed = resolveDirectorPlacement({ object: anchored, existing: [occupant] });
 

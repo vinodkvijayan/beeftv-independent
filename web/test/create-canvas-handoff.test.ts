@@ -8,8 +8,8 @@ import { removeCreationConversationSnapshot, updateCreationConversationSnapshot 
 
 test("Create exposes one accessible copy action beside each displayed user prompt", async () => {
     const source = await Bun.file(new URL("../src/pages/create/creation-workspace.tsx", import.meta.url)).text();
-    expect(source).toContain('aria-label="复制提示词"');
-    expect(source).toContain('copyText(visiblePrompt, "提示词已复制")');
+    expect(source).toContain('aria-label="Copy prompt word"');
+    expect(source).toContain('copyText(visiblePrompt, "The prompt word has been copied")');
 });
 
 test("Create submit button does not forward the browser click event as retry context", async () => {
@@ -19,7 +19,7 @@ test("Create submit button does not forward the browser click event as retry con
 });
 
 test("Create keeps optimistic messages when the first local task binds immediately", () => {
-    const initial = [{ id: "conversation-0001", title: "新创作", updatedAt: "2026-08-14T00:00:00.000Z", messages: [] as Array<Record<string, unknown>> }];
+    const initial = [{ id: "conversation-0001", title: "new creation", updatedAt: "2026-08-14T00:00:00.000Z", messages: [] as Array<Record<string, unknown>> }];
     const optimistic = updateCreationConversationSnapshot(initial, "conversation-0001", (conversation) => ({
         ...conversation,
         messages: [
@@ -379,7 +379,7 @@ test("Create forwards owned result assets through one new canvas and the project
     expect(createPage).toContain("await saveCreationConversations(next)");
     expect(createPage.indexOf("await saveCreationConversations(next)")).toBeLessThan(createPage.indexOf("navigate(`/canvas/${result.id}?${params.toString()}`)"));
     expect(createPage).toContain("await deleteCreationConversation(conversation.id)");
-    expect(createPage).toContain("toastRef.current.error(error instanceof Error ? error.message : \"对话保存失败\")");
+    expect(createPage).toContain("toastRef.current.error(error instanceof Error? error.message: \"Conversation saving failed\")");
     expect(createPage).toContain("loadLocalCreationConversationDrafts<CreationConversation>()");
     expect(createPage).toContain("CreationConflictBanner");
     expect(canvasIndex).toContain('const handoffMode = mode === "handoff"');

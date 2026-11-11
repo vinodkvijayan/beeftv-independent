@@ -9,20 +9,20 @@ import (
 )
 
 const (
-	msgLeaseExpired      = "执行控制权已过期，请在当前页面重新接管"
-	msgLeaseHeld         = "当前执行权仍由其他会话持有，过期或释放后才能接管"
-	msgEpochChanged      = "执行代次已变化"
-	msgUnknownAction     = "未知创作操作"
-	msgMissingClientKey  = "缺少稳定会话键"
-	msgClientKeyConflict = "同一会话键的内容不同"
-	msgNotFound          = "创作记录不存在或无权访问"
-	msgStateChanged      = "创作状态已变化，请重新读取后继续"
-	msgActiveTaskLimit   = "同时排队或运行的任务已达到上限"
-	msgModelUpdated      = "模型已更新或停用，请重新准备执行项"
-	msgJSONLimit         = "创作内容超过限制或格式无效"
-	msgSecretsInRecord   = "创作记录不能包含密钥、内嵌媒体或临时签名链接"
-	msgAdmitNilTask      = "任务准入未返回可保存的任务"
-	msgProtectedInput    = "任务输入无法保存"
+	msgLeaseExpired      = "Execution control has expired, please take over again on the current page"
+	msgLeaseHeld         = "The current execution right is still held by other sessions and cannot be taken over until it expires or is released."
+	msgEpochChanged      = "The execution generation has changed"
+	msgUnknownAction     = "Unknown authoring operation"
+	msgMissingClientKey  = "Missing stable session key"
+	msgClientKeyConflict = "The contents of the same session key are different"
+	msgNotFound          = "Creation record does not exist or is not accessible"
+	msgStateChanged      = "The creation status has changed, please read again and continue."
+	msgActiveTaskLimit   = "The number of tasks queued or running at the same time has reached the limit."
+	msgModelUpdated      = "The model has been updated or deactivated, please prepare the execution items again"
+	msgJSONLimit         = "The creative content exceeds the limit or the format is invalid"
+	msgSecretsInRecord   = "Authoring records cannot contain keys, embedded media, or temporary signature links"
+	msgAdmitNilTask      = "Task admission did not return saveable tasks"
+	msgProtectedInput    = "Task input cannot be saved"
 )
 
 func Conflict(message string) error {

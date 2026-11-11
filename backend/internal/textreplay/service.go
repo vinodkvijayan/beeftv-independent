@@ -54,20 +54,20 @@ func (s *Service) Append(userID, taskID, content string) (*model.TaskTextDelta, 
 		return nil, err
 	}
 	if !textTask(task.Type) {
-		return nil, kernel.BadAuthRequest("只有文本生成任务支持增量回放")
+		return nil, kernel.BadAuthRequest("Only text generation tasks support incremental playback")
 	}
 	if strings.TrimSpace(content) == "" {
-		return nil, kernel.BadAuthRequest("文本增量不能为空")
+		return nil, kernel.BadAuthRequest("Text increment cannot be empty")
 	}
 	if len([]byte(content)) > MaxEventBytes {
-		return nil, kernel.BadAuthRequest("单条文本增量不能超过 64KB")
+		return nil, kernel.BadAuthRequest("A single text increment cannot exceed 64KB")
 	}
 	item, err := s.store.AppendDelta(userID, taskID, content, s.now().Add(DraftRetention), defaultLimits())
 	if errors.Is(err, repository.ErrTextReplayQuotaExceeded) {
-		return nil, kernel.BadAuthRequest("文本回放增量已达到配额，请等待任务归并后继续")
+		return nil, kernel.BadAuthRequest("The text playback increment has reached the quota, please wait for the tasks to be merged before continuing.")
 	}
 	if errors.Is(err, repository.ErrTextReplayClosed) {
-		return nil, kernel.BadAuthRequest("已结束任务不能继续写入文本增量")
+		return nil, kernel.BadAuthRequest("The ended task cannot continue to write text increments")
 	}
 	return item, err
 }
@@ -104,10 +104,10 @@ func (s *Service) Complete(userID, taskID, text string) (*model.Task, error) {
 		return nil, errors.New("text replay store is not initialized")
 	}
 	if strings.TrimSpace(text) == "" {
-		return nil, kernel.BadAuthRequest("文本内容不能为空")
+		return nil, kernel.BadAuthRequest("Text content cannot be empty")
 	}
 	if len([]byte(text)) > MaxTaskBytes {
-		return nil, kernel.BadAuthRequest("文本内容过大")
+		return nil, kernel.BadAuthRequest("Text content is too large")
 	}
 	if _, err := s.store.TaskForUser(userID, taskID); err != nil {
 		return nil, err
@@ -118,10 +118,10 @@ func (s *Service) Complete(userID, taskID, text string) (*model.Task, error) {
 		return nil, err
 	}
 	if !completed {
-		return nil, kernel.BadAuthRequest("该文本任务已结束或不属于你，无法完成")
+		return nil, kernel.BadAuthRequest("The text task has ended or does not belong to you and cannot be completed.")
 	}
 	if compactErr := s.Finalize(taskID, model.TaskStatusSucceeded); compactErr != nil {
-		s.log(userID, taskID, "error", "文本回放窗口更新失败", compactErr.Error())
+		s.log(userID, taskID, "error", "Text playback window update failed", compactErr.Error())
 	}
 	return s.store.TaskForUser(userID, taskID)
 }

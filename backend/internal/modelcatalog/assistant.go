@@ -81,11 +81,11 @@ func SplitModelKey(value string) (channelID, modelID string) {
 func AssistantReasonMessage(reason string) string {
 	switch reason {
 	case AssistantReasonCredentialMissing:
-		return "该渠道还没有可用的密钥"
+		return "There is no key available for this channel yet"
 	case AssistantReasonProtocolUnsupported:
-		return "该模型的协议不支持内置助手会话"
+		return "This model's protocol does not support built-in assistant sessions"
 	default:
-		return "尚未选择可用的助手文本模型"
+		return "No available helper text model has been selected yet"
 	}
 }
 

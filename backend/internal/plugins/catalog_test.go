@@ -89,9 +89,9 @@ func TestProviderCatalogUsesPerRuntimeRegistry(t *testing.T) {
 
 func TestForUserHidesSystemPluginsWhenFeatureDisabled(t *testing.T) {
 	svc := New(RuntimeForTest(map[string]Record{
-		"bundled":  {Source: "bundled", Metadata: protocol.Metadata{ID: "bundled", Name: "系统协议", Version: "1"}},
-		"uploaded": {Source: OriginUploaded, Metadata: protocol.Metadata{ID: "uploaded", Name: "自定义协议", Version: "1"}},
-		"app":      {Source: "bundled", Metadata: protocol.Metadata{ID: AIArtCritique, Name: "官方应用", Version: "1"}},
+		"bundled":  {Source: "bundled", Metadata: protocol.Metadata{ID: "bundled", Name: "System protocol", Version: "1"}},
+		"uploaded": {Source: OriginUploaded, Metadata: protocol.Metadata{ID: "uploaded", Name: "Custom protocol", Version: "1"}},
+		"app":      {Source: "bundled", Metadata: protocol.Metadata{ID: AIArtCritique, Name: "Official app", Version: "1"}},
 	}), nil)
 	user := &model.User{ID: "user-1", Role: model.UserRoleUser}
 	visible := svc.ForUser(user, false)

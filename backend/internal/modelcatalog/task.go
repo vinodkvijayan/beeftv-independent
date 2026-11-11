@@ -31,16 +31,16 @@ func ValidateConfiguredTask(input TaskInput, lookup ChannelModelLookup) (TaskInp
 		return input, nil
 	}
 	if lookup == nil {
-		return input, kernel.BadAuthRequest("当前系统渠道模型未配置或已停用")
+		return input, kernel.BadAuthRequest("The current system channel model is not configured or disabled")
 	}
 	item, err := lookup(channelID, ProviderChannelModelKey(input.Config.ChannelModelKey, input.Config.Model))
 	if err != nil {
-		return input, kernel.BadAuthRequest("当前系统渠道模型未配置或已停用")
+		return input, kernel.BadAuthRequest("The current system channel model is not configured or disabled")
 	}
 	profile, err := DecodeModelCapabilityConfig(item.CapabilityConfigJSON)
 	if input.Mode == "image" {
 		if err != nil {
-			return input, kernel.BadAuthRequest("当前图片模型能力参数无效")
+			return input, kernel.BadAuthRequest("The current image model capability parameter is invalid")
 		}
 		imageProfile := DefaultImageCapabilityConfig(string(item.Protocol), kernel.FirstNonEmpty(item.ProviderModelKey, item.ModelKey))
 		if profile != nil && profile.Image != nil {
@@ -49,11 +49,11 @@ func ValidateConfiguredTask(input TaskInput, lookup ChannelModelLookup) (TaskInp
 		return input, validateImageTask(applyModelSpecificImageCapability(imageProfile, string(item.Protocol), kernel.FirstNonEmpty(item.ProviderModelKey, item.ModelKey), input.Config.APIFormat), input)
 	}
 	if err != nil || profile == nil || profile.Video == nil {
-		return input, kernel.BadAuthRequest("当前视频模型尚未配置能力参数")
+		return input, kernel.BadAuthRequest("The current video model has not been configured with capability parameters.")
 	}
 	normalized, normalizeErr := NormalizeModelCapabilityConfigForModel("video", string(item.Protocol), kernel.FirstNonEmpty(item.ProviderModelKey, item.ModelKey), profile)
 	if normalizeErr != nil || normalized == nil || normalized.Video == nil {
-		return input, kernel.BadAuthRequest("当前视频模型能力参数无效")
+		return input, kernel.BadAuthRequest("The current video model capability parameter is invalid")
 	}
 	applyFixedVideoResolution(&input, normalized.Video)
 	return input, validateVideoTask(normalized.Video, input)

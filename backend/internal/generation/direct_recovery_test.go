@@ -40,7 +40,7 @@ func TestVideoDownloadReportsDeliveryBeforeFetching(t *testing.T) {
 	var events []string
 	ctx := WithRuntime(context.Background(), Runtime{Stages: stageRecorder{events: &events}})
 	_, _, err := RunVideoDownload(ctx, "original", DefaultVideoPollPolicy(), func(context.Context) ([]byte, string, error) {
-		if len(events) != 1 || events[0] != "正在取回生成结果" {
+		if len(events) != 1 || events[0] != "Retrieving generated results" {
 			t.Fatalf("download began without a delivery stage: %v", events)
 		}
 		return []byte("video"), "video/mp4", nil

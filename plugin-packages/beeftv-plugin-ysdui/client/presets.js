@@ -2,7 +2,7 @@
 
 export const DEFAULT_BASE_URL = "https://tokenhub.ysdui.cn";
 export const YSDUI_CHANNEL_ID = "ysdui";
-export const YSDUI_CHANNEL_NAME = "银盛云枢壹算";
+export const YSDUI_CHANNEL_NAME = "Yinsheng Yunshu One Calculation";
 
 const DEFAULT_VIDEO_REFERENCES = {
   promptMaxChars: 2000,
@@ -147,7 +147,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "deepseek-v4.1-flash-1017",
     displayName: "DeepSeek V4.1 Flash (1017)",
-    family: "DeepSeek 文本",
+    family: "DeepSeek text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -156,7 +156,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "deepseek-v4.1-flash",
     displayName: "DeepSeek V4.1 Flash",
-    family: "DeepSeek 文本",
+    family: "DeepSeek text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -165,7 +165,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "deepseek-v4-pro-0813",
     displayName: "DeepSeek V4 Pro",
-    family: "DeepSeek 文本",
+    family: "DeepSeek text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -174,7 +174,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "qwen3.8-max",
     displayName: "Qwen 3.8 Max",
-    family: "Qwen 文本",
+    family: "Qwen text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -183,7 +183,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "qwen3.8-flash",
     displayName: "Qwen 3.8 Flash",
-    family: "Qwen 文本",
+    family: "Qwen text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -192,7 +192,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "qwen3.7-max",
     displayName: "Qwen 3.7 Max",
-    family: "Qwen 文本",
+    family: "Qwen text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -201,7 +201,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "qwen3.7-plus",
     displayName: "Qwen 3.7 Plus",
-    family: "Qwen 文本",
+    family: "Qwen text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -210,7 +210,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "glm-5.3",
     displayName: "GLM-5.3",
-    family: "GLM 文本",
+    family: "GLM text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -219,7 +219,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "glm-5.3-flash",
     displayName: "GLM-5.3 Flash",
-    family: "GLM 文本",
+    family: "GLM text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -228,7 +228,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "kimi-k3",
     displayName: "Kimi K3",
-    family: "Kimi 文本",
+    family: "Kimi text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -237,7 +237,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "kimi-k2.6",
     displayName: "Kimi K2.6",
-    family: "Kimi 文本",
+    family: "Kimi text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -246,7 +246,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "kimi-k2.7-code",
     displayName: "Kimi K2.7 Code",
-    family: "Kimi 文本",
+    family: "Kimi text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -255,7 +255,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "minimax-m3",
     displayName: "MiniMax M3",
-    family: "MiniMax 文本",
+    family: "MiniMax text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -264,7 +264,7 @@ export const YSDUI_PRESET_MODELS = [
   {
     model: "minimax-m2.7",
     displayName: "MiniMax M2.7",
-    family: "MiniMax 文本",
+    family: "MiniMax text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -272,8 +272,8 @@ export const YSDUI_PRESET_MODELS = [
   },
   {
     model: "hy3",
-    displayName: "混元 3.0",
-    family: "混元 文本",
+    displayName: "Hunyuan 3.0",
+    family: "Hunyuan text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -281,8 +281,8 @@ export const YSDUI_PRESET_MODELS = [
   },
   {
     model: "hy-role",
-    displayName: "混元 Role",
-    family: "混元 文本",
+    displayName: "Hunyuan Role",
+    family: "Hunyuan text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -290,8 +290,8 @@ export const YSDUI_PRESET_MODELS = [
   },
   {
     model: "hy-mt2-pro",
-    displayName: "混元 MT2 Pro",
-    family: "混元 文本",
+    displayName: "Hunyuan MT2 Pro",
+    family: "Hunyuan text",
     capability: "text",
     protocol: "chat-completion",
     endpoint: "POST /v1/chat/completions",
@@ -406,8 +406,8 @@ export const YSDUI_PRESET_MODELS = [
   },
   {
     model: "hy-image-v3.0",
-    displayName: "混元 Image 3.0",
-    family: "混元 Image",
+    displayName: "Hunyuan Image 3.0",
+    family: "Hunyuan Image",
     capability: "image",
     protocol: "ysdui-image",
     endpoint: "POST /v1/images/generations",

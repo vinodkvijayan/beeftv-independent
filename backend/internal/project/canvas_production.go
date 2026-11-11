@@ -47,7 +47,7 @@ func productionError(reason, message string) error {
 // Reading a proposed association never creates workflow rows or moves a canvas.
 func (s *Service) CanvasProductionContext(userID, projectID, canvasID, unitID, shotID, stepKey string) (CanvasProductionContext, error) {
 	if strings.TrimSpace(unitID) == "" {
-		return CanvasProductionContext{}, kernel.BadAuthRequest("请选择制作章节")
+		return CanvasProductionContext{}, kernel.BadAuthRequest("Please select a chapter to create")
 	}
 	if _, err := s.Active(userID, projectID); err != nil {
 		return CanvasProductionContext{}, err
@@ -57,18 +57,18 @@ func (s *Service) CanvasProductionContext(userID, projectID, canvasID, unitID, s
 		return CanvasProductionContext{}, err
 	}
 	if canvas.ProjectID != "" && canvas.ProjectID != projectID {
-		return CanvasProductionContext{}, productionError("production_canvas_project_conflict", "画布已经属于其他项目，请先明确调整归属")
+		return CanvasProductionContext{}, productionError("production_canvas_project_conflict", "The canvas already belongs to other projects, please clearly adjust the ownership first.")
 	}
 	shot, err := s.repo.ShotForProject(projectID, strings.TrimSpace(shotID))
 	if err != nil {
 		return CanvasProductionContext{}, err
 	}
 	if shot.UnitID != strings.TrimSpace(unitID) || shot.CurrentRevisionID == "" {
-		return CanvasProductionContext{}, kernel.BadAuthRequest("镜头不属于所选章节或没有可用版本")
+		return CanvasProductionContext{}, kernel.BadAuthRequest("Shot does not belong to selected chapter or no version is available")
 	}
 	artifact := workflowArtifactType(stepKey)
 	if artifact == "" {
-		return CanvasProductionContext{}, kernel.BadAuthRequest("请选择分镜、预演、视频或交付阶段")
+		return CanvasProductionContext{}, kernel.BadAuthRequest("Please select storyboard, pre-show, video or delivery stage")
 	}
 	result := CanvasProductionContext{ProjectID: projectID, CanvasID: canvas.ID, UnitID: shot.UnitID, ShotID: shot.ID, ShotRevisionID: shot.CurrentRevisionID, StepKey: strings.TrimSpace(stepKey), ArtifactType: artifact}
 	if _, err := s.repo.CanvasUnitLink(projectID, canvas.ID, shot.UnitID); err == nil {
@@ -105,17 +105,17 @@ func (s *Service) RegisterCanvasProductionTask(userID, projectID, canvasID strin
 			return err
 		}
 		if strings.TrimSpace(req.ShotRevisionID) == "" || req.ShotRevisionID != current.ShotRevisionID {
-			return productionError("production_revision_conflict", "镜头已变化，请查看当前版本后重新确认关联")
+			return productionError("production_revision_conflict", "The lens has changed, please check the current version and reconfirm the association.")
 		}
 		task, err := bound.repo.TaskForUser(userID, strings.TrimSpace(req.TaskID))
 		if err != nil {
 			return err
 		}
 		if task.ProjectID != canvasID {
-			return productionError("production_task_canvas_mismatch", "只能关联当前画布的生成任务")
+			return productionError("production_task_canvas_mismatch", "Can only be associated with the generation task of the current canvas")
 		}
 		if task.Status != model.TaskStatusSucceeded {
-			return productionError("production_output_not_ready", "原任务尚未完成，请等待原任务结果")
+			return productionError("production_output_not_ready", "The original task has not been completed, please wait for the result of the original task")
 		}
 		outputs := localtask.CanonicalOutputs(task.ResultJSON, task.Type)
 		resourceID, mediaType := "", ""
@@ -124,27 +124,27 @@ func (s *Service) RegisterCanvasProductionTask(userID, projectID, canvasID strin
 				continue
 			}
 			if req.ResourceID == "" && len(outputs) > 1 {
-				return productionError("production_output_selection_required", "这个任务有多个产物，请明确选择要关联的素材")
+				return productionError("production_output_selection_required", "This task has multiple products, please clearly select the material to be associated")
 			}
 			resourceID = output.ResourceID
 			mediaType = output.MediaType
 			break
 		}
 		if resourceID == "" {
-			return productionError("production_output_not_ready", "原任务尚无本地可用素材，请恢复原任务结果后再关联")
+			return productionError("production_output_not_ready", "The original task has no locally available materials. Please restore the original task results and then connect again.")
 		}
 		resource, err := bound.repo.ResourceForUser(userID, resourceID)
 		if err != nil {
 			return err
 		}
 		if resource.Status != model.ResourceStatusReady {
-			return productionError("production_output_not_ready", "素材仍在下载或保存，请等待原素材恢复")
+			return productionError("production_output_not_ready", "The material is still being downloaded or saved, please wait for the original material to be restored.")
 		}
 		if resource.Kind != mediaType {
-			return productionError("production_output_type_mismatch", "原任务素材的类型校验失败")
+			return productionError("production_output_type_mismatch", "The type verification of the original task material failed.")
 		}
 		if ((current.StepKey == "storyboard" || current.StepKey == "previz") && mediaType != "image") || ((current.StepKey == "video" || current.StepKey == "delivery") && mediaType != "video") {
-			return productionError("production_output_type_mismatch", "所选素材类型与制作阶段不一致")
+			return productionError("production_output_type_mismatch", "The selected material type is inconsistent with the production stage")
 		}
 		links, err := bound.repo.ProductionLinksForTask(task.ID)
 		if err != nil {
@@ -152,7 +152,7 @@ func (s *Service) RegisterCanvasProductionTask(userID, projectID, canvasID strin
 		}
 		for _, link := range links {
 			if link.ProjectID != projectID || link.ShotID != current.ShotID || link.ArtifactType != current.ArtifactType {
-				return productionError("production_task_already_linked", "此任务已有其他制作记录，请使用该记录中的素材")
+				return productionError("production_task_already_linked", "This task already has other production records, please use the materials in that record")
 			}
 		}
 		artifacts, err := bound.repo.ShotArtifactsForTask(task.ID)
@@ -161,10 +161,10 @@ func (s *Service) RegisterCanvasProductionTask(userID, projectID, canvasID strin
 		}
 		for _, artifact := range artifacts {
 			if artifact.ResourceID != resourceID {
-				return productionError("production_task_already_linked", "此任务已关联其他产物，请使用已有制作记录")
+				return productionError("production_task_already_linked", "This task is associated with other products, please use existing production records")
 			}
 			if artifact.RevisionID != current.ShotRevisionID {
-				return productionError("production_output_revision_mismatch", "此任务已登记在旧镜头版本中，原素材仍保留，请查看已有制作记录")
+				return productionError("production_output_revision_mismatch", "This task has been registered in the old lens version, and the original footage is still retained. Please check the existing production records.")
 			}
 		}
 		if !current.Linked {

@@ -15,7 +15,7 @@ beforeAll(async () => {
         "@/lib/app-routing": 'export const appPathname = () => "/";',
         "@/lib/workspace-route-modules": 'export const preloadWorkspaceRoute = () => {};',
         "@/components/ui/aceternity/full-screen-loader": 'export const FullScreenLoader = ({label}) => <div role="status">{label}</div>;',
-        "@/components/layout/workspace-state": 'export const WorkspaceErrorState = ({title,onRetry}) => <div role="alert">{title}<button onClick={onRetry}>重新加载</button></div>;',
+        "@/components/layout/workspace-state": 'export const WorkspaceErrorState = ({title,onRetry}) => <div role="alert">{title}<button onClick={onRetry}>Reload</button></div>;',
     };
     const build = await Bun.build({
         entrypoints: [import.meta.dir + "/fixtures/workspace-bootstrap-harness.tsx"], target: "browser",
@@ -40,10 +40,10 @@ afterAll(async () => { await browser?.close(); server?.stop(true); });
 test("session-ready cannot expose generation until canonical credentials are restored", async () => {
     const page = await browser.newPage(); await page.goto(server.url.toString());
     await page.waitForFunction(() => (window as any).sessionReady && (window as any).finishRestore);
-    expect(await page.getByRole("button", { name: "开始创作" }).count()).toBe(0);
-    expect(await page.getByRole("status").textContent()).toContain("正在准备");
+    expect(await page.getByRole("button", { name: "Start creating" }).count()).toBe(0);
+    expect(await page.getByRole("status").textContent()).toContain("Preparing");
     await page.evaluate(() => (window as any).finishRestore());
-    await page.getByRole("button", { name: "开始创作" }).waitFor();
+    await page.getByRole("button", { name: "Start creating" }).waitFor();
     expect(await page.getByRole("status").count()).toBe(0);
     await page.close();
 });
@@ -53,8 +53,8 @@ test("failed canonical restore shows retry without exposing blank-credential gen
     await page.waitForFunction(() => Boolean((window as any).failRestore));
     await page.evaluate(() => (window as any).failRestore());
     await page.getByRole("alert").waitFor();
-    expect(await page.getByRole("button", { name: "开始创作" }).count()).toBe(0);
-    expect(await page.getByRole("button", { name: "重新加载" }).count()).toBe(1);
+    expect(await page.getByRole("button", { name: "Start creating" }).count()).toBe(0);
+    expect(await page.getByRole("button", { name: "reload" }).count()).toBe(1);
     expect(await page.evaluate(() => (window as any).writes || 0)).toBe(0);
     await page.close();
 });
@@ -65,11 +65,11 @@ test("fresh embedded scope hydrates canonical canvases after session selection a
     await page.goto(server.url.toString());
     await page.waitForFunction(() => (window as any).sessionReady && (window as any).finishProjection);
     expect(await page.evaluate(() => (window as any).projectionScope)).toBe("canonical-workspace");
-    expect(await page.getByRole("button", { name: "开始创作" }).count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Start creating" }).count()).toBe(0);
     await page.evaluate(() => (window as any).finishProjection());
     await page.waitForFunction(() => Boolean((window as any).finishRestore));
     await page.evaluate(() => (window as any).finishRestore());
-    await page.getByRole("button", { name: "开始创作" }).waitFor();
+    await page.getByRole("button", { name: "Start creating" }).waitFor();
     expect(await page.evaluate(() => (window as any).canvasProjects)).toEqual(["server-canvas"]);
     await page.close();
 });
@@ -83,6 +83,6 @@ test("embedded bootstrap failure cannot fall back to the shared local namespace"
     await page.getByRole("alert").waitFor();
     expect(await page.evaluate(() => (window as any).sessionReady)).toBeUndefined();
     expect(await page.evaluate(() => (window as any).projectionScope)).toBeUndefined();
-    expect(await page.getByRole("button", { name: "开始创作" }).count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Start creating" }).count()).toBe(0);
     await page.close();
 });

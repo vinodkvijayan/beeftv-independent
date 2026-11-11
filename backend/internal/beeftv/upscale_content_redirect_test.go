@@ -17,10 +17,10 @@ func TestUpscaleContentRejectsPrivateAndInvalidRedirects(t *testing.T) {
 	// and loopback is allowed for the first hop. Loopback redirect targets are
 	// therefore covered by TestStorageRedirectHopPolicyInProduction instead.
 	for name, tc := range map[string]struct{ target, want string }{
-		"private range":   {"https://10.0.0.8/saved", "内网"},
-		"link-local":      {"https://169.254.169.254/latest/meta-data", "链路本地"},
-		"credentials":     {"https://user:pass@storage.example.com/saved", "认证信息"},
-		"non-http scheme": {"file:///etc/passwd", "地址无效"},
+		"private range":   {"https://10.0.0.8/saved", "Intranet"},
+		"link-local":      {"https://169.254.169.254/latest/meta-data", "link local"},
+		"credentials":     {"https://user:pass@storage.example.com/saved", "Certification information"},
+		"non-http scheme": {"file:///etc/passwd", "Invalid address"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			var hops atomic.Int32

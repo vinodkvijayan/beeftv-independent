@@ -133,10 +133,10 @@ func syncPluginCanvasCapabilities(plugins map[string]Record) {
 			}
 			patchFields := map[string]capability.PatchField{
 				"title": {
-					Path: "title", Kind: "string", Label: "节点名称", Order: 10, Description: "节点标题", MaxRunes: 240,
+					Path: "title", Kind: "string", Label: "Node name", Order: 10, Description: "Node title", MaxRunes: 240,
 				},
 				"content": {
-					Path: "metadata.content", Kind: "string", Label: "内容", Order: 20, Description: "节点内容", MaxRunes: 16000,
+					Path: "metadata.content", Kind: "string", Label: "content", Order: 20, Description: "Node content", MaxRunes: 16000,
 				},
 			}
 			for idx, field := range node.Fields {

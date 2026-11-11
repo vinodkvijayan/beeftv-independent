@@ -85,7 +85,7 @@ func TestGenerationDeliveryResumesCutArtifactAndBindsNode(t *testing.T) {
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	svc := NewLocal(repository.New(db), t.TempDir())
@@ -93,10 +93,10 @@ func TestGenerationDeliveryResumesCutArtifactAndBindsNode(t *testing.T) {
 	canvasID := "canvas-resume"
 	nodeID := "node-resume"
 	encoded, err := json.Marshal(map[string]any{
-		"id": canvasID, "title": "交付画布", "revision": 0,
+		"id": canvasID, "title": "delivery canvas", "revision": 0,
 		"nodes": []any{
 			map[string]any{
-				"id": nodeID, "type": "image", "title": "镜头", "position": map[string]any{"x": 1, "y": 1},
+				"id": nodeID, "type": "image", "title": "lens", "position": map[string]any{"x": 1, "y": 1},
 				"width": 320, "height": 220, "metadata": map[string]any{"taskId": "task-resume", "status": "loading"},
 			},
 		},

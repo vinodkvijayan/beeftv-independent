@@ -15,9 +15,9 @@ describe("CanvasVideoCropEditor", () => {
         );
 
         expect(html).toContain('data-video-crop-inline="true"');
-        expect(html).toContain('aria-label="视频裁切选区"');
-        expect(html).toContain('aria-label="取消裁切"');
-        expect(html).toContain('aria-label="确认裁切"');
+        expect(html).toContain('aria-label="Video cropping selection"');
+        expect(html).toContain('aria-label="Cancel cropping"');
+        expect(html).toContain('aria-label="Confirm cutting"');
         expect(html).toContain("bg-white text-black");
         expect(html).toContain('stroke="#111111"');
         expect(html).not.toContain("fixed inset-0");

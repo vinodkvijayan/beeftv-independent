@@ -1,44 +1,44 @@
 import { describe, expect, test } from "bun:test";
 import { canvasSyncStatusView } from "@/pages/canvas/canvas-sync-status";
 
-describe("本地画布保存状态", () => {
-    test("排队和提交中都显示正在保存，不提前说已保存", () => {
+describe("Local canvas save state", () => {
+    test("Both queuing and submission show that it is being saved, but it does not say that it has been saved in advance.", () => {
         for (const phase of ["pending", "saving", "uploading"] as const) {
-            expect(canvasSyncStatusView(true, { phase })).toEqual({ label: "正在保存", tone: "saving", detail: "正在保存到本机。" });
+            expect(canvasSyncStatusView(true, { phase })).toEqual({ label: "Saving", tone: "saving", detail: "Saving to local machine." });
         }
     });
 
-    test("服务端接受后才显示已保存在本地", () => {
-        expect(canvasSyncStatusView(true, { phase: "done", message: "画布已保存" })).toEqual({ label: "已保存在本地", tone: "saved", detail: "画布已保存在本机。" });
-        expect(canvasSyncStatusView(true, undefined).label).toBe("已保存在本地");
+    test("After the server accepts it, it will be displayed as saved locally.", () => {
+        expect(canvasSyncStatusView(true, { phase: "done", message: "Canvas saved" })).toEqual({ label: "Saved locally", tone: "saved", detail: "The canvas is saved locally." });
+        expect(canvasSyncStatusView(true, undefined).label).toBe("Saved locally");
     });
 
-    test("保存失败时说明修改还在本机，并给出重试", () => {
-        expect(canvasSyncStatusView(true, { phase: "error", message: "保存没有完成，修改仍保留在本机。" })).toEqual({
-            label: "保存失败",
+    test("If the save fails, it means that the modification is still on the local machine and a retry will be given.", () => {
+        expect(canvasSyncStatusView(true, { phase: "error", message: "The save is not completed and the modifications are still retained on this machine." })).toEqual({
+            label: "Save failed",
             tone: "failed",
-            detail: "保存没有完成，修改仍保留在本机。",
+            detail: "The save is not completed and the modifications are still retained on this machine.",
             action: "retry-save",
         });
     });
 
-    test("冲突时显示未保存，给出「使用最新版本」并说明会先存草稿", () => {
-        const view = canvasSyncStatusView(true, { phase: "conflict", message: "画布已被其他入口修改，本次改动未提交；现有内容已保留在本机" });
-        expect(view.label).toBe("版本冲突 · 未保存");
+    test("If there is a conflict, it will show that it has not been saved, and it will give \"use the latest version\" and explain that the draft will be saved first.", () => {
+        const view = canvasSyncStatusView(true, { phase: "conflict", message: "The canvas has been modified by other entries and this change has not been submitted; the existing content has been retained on this machine" });
+        expect(view.label).toBe("Version conflict · not saved");
         expect(view.tone).toBe("failed");
         expect(view.action).toBe("use-latest");
-        expect(view.note).toContain("草稿");
+        expect(view.note).toContain("draft");
         // 本地模式不把内部入口说法带给用户。
-        expect(`${view.detail}${view.note}`).not.toContain("入口");
+        expect(`${view.detail}${view.note}`).not.toContain("entrance");
     });
 });
 
-describe("云端画布保存状态保持原样", () => {
-    test("冲突、未同步、保存中、已保存", () => {
-        expect(canvasSyncStatusView(false, { phase: "conflict", message: "冲突" })).toMatchObject({ label: "版本冲突 · 未同步", tone: "failed", detail: "冲突", action: "load-cloud" });
-        expect(canvasSyncStatusView(false, undefined)).toMatchObject({ label: "尚未同步", tone: "failed", detail: "尚未确认云端保存，请保留本地内容" });
-        expect(canvasSyncStatusView(false, { phase: "saving" })).toMatchObject({ label: "正在保存", tone: "saving" });
-        expect(canvasSyncStatusView(false, { phase: "done" })).toMatchObject({ label: "已保存", tone: "saved", detail: "画布已同步到云端", note: undefined });
-        expect(canvasSyncStatusView(false, { phase: "error" })).toMatchObject({ label: "云端未保存", tone: "failed" });
+describe("Cloud canvas save status remains intact", () => {
+    test("Conflict, not synchronized, saving, saved", () => {
+        expect(canvasSyncStatusView(false, { phase: "conflict", message: "conflict" })).toMatchObject({ label: "Version conflict · Not synchronized", tone: "failed", detail: "conflict", action: "load-cloud" });
+        expect(canvasSyncStatusView(false, undefined)).toMatchObject({ label: "Not synced yet", tone: "failed", detail: "Cloud saving has not been confirmed yet, please keep local content" });
+        expect(canvasSyncStatusView(false, { phase: "saving" })).toMatchObject({ label: "Saving", tone: "saving" });
+        expect(canvasSyncStatusView(false, { phase: "done" })).toMatchObject({ label: "saved", tone: "saved", detail: "Canvas has been synced to the cloud", note: undefined });
+        expect(canvasSyncStatusView(false, { phase: "error" })).toMatchObject({ label: "Not saved in cloud", tone: "failed" });
     });
 });

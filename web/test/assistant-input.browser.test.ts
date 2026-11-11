@@ -23,7 +23,7 @@ const mediaRequests: { path: string; token: string | null }[] = [];
 let holdFirstPreview = true, releaseFirstPreview: (() => void) | null = null;
 let markFirstPreviewStarted!: () => void;
 const firstPreviewStarted = new Promise<void>(resolve => { markFirstPreviewStarted = resolve; });
-const selectedSkill = { skillId: "story", versionId: "story-v1", contentHash: "a".repeat(64), skillName: "分镜", version: "1.0", status: 1, isAdded: true };
+const selectedSkill = { skillId: "story", versionId: "story-v1", contentHash: "a".repeat(64), skillName: "Storyboard", version: "1.0", status: 1, isAdded: true };
 let installedSkills = [selectedSkill];
 const skillInstalls: { sourceType: string; isPrivate: string; fileName: string }[] = [];
 beforeAll(async () => {
@@ -76,7 +76,7 @@ beforeAll(async () => {
             return ok({ resource: { id, status: "ready", provider: "local", kind: file?.kind || "video", playbackStatus: file?.kind === "video" ? "ready" : "none" } });
         }
         if (pathname.startsWith("/api/assets/") && req.method === "PUT") {
-            if (failNextAsset) { failNextAsset = false; return Response.json({ code: 500, message: "素材登记失败" }, { status: 500 }); }
+            if (failNextAsset) { failNextAsset = false; return Response.json({ code: 500, message: "Material registration failed" }, { status: 500 }); }
             const body = await req.json();
             registeredAssets.push(body.asset);
             return ok({ asset: { id: body.asset.id } });
@@ -88,7 +88,7 @@ beforeAll(async () => {
         if (pathname.endsWith("/skills/install")) {
             const form = await req.formData();
             skillInstalls.push({ sourceType: String(form.get("sourceType")), isPrivate: String(form.get("isPrivate")), fileName: (form.get("file") as File).name });
-            const skill = { ...selectedSkill, skillId: "coffee", skillName: "咖啡审片", versionId: "coffee-v2", version: "2.0", contentHash: "b".repeat(64) };
+            const skill = { ...selectedSkill, skillId: "coffee", skillName: "Coffee review", versionId: "coffee-v2", version: "2.0", contentHash: "b".repeat(64) };
             installedSkills = [skill];
             return ok({ skill });
         }
@@ -96,7 +96,7 @@ beforeAll(async () => {
         if (pathname.endsWith("/assistant/ui-session")) return ok({ token: "synthetic-only", expiresAt: new Date(Date.now() + 1800000).toISOString() });
         if (pathname.endsWith("/assistant/status")) return ok({ available: true });
         if (pathname.endsWith("/assistant/sessions")) return ok({ currentSessionId: "s1", sessions: [] });
-        if (pathname.endsWith("/assistant/history")) return ok({ sessionId: "s1", turns, active: running && !cancelled ? { turnId: "busy", userText: "继续创作", permissionMode: activePermissionMode, selectedNodeIds: [], attachments: [], skills: [], supplements: [], status: "running", createdAt: "2026-10-08" } : null });
+        if (pathname.endsWith("/assistant/history")) return ok({ sessionId: "s1", turns, active: running && !cancelled ? { turnId: "busy", userText: "Keep creating", permissionMode: activePermissionMode, selectedNodeIds: [], attachments: [], skills: [], supplements: [], status: "running", createdAt: "2026-10-08" } : null });
         if (pathname.endsWith("/assistant/steer")) { supplements.push(await req.json()); return ok({ accepted: true }); }
         if (pathname.endsWith("/assistant/cancel")) { cancelled = true; running = false; return ok({ accepted: true }); }
         if (pathname.includes("/assistant/turns/") && pathname.endsWith("/undo")) {
@@ -107,11 +107,11 @@ beforeAll(async () => {
         if (pathname.endsWith("/assistant/chat")) {
             const body = await req.json(); chats.push(body);
             const mainChange = { revisionBefore: 1, revisionAfter: 2, createdNodeIds: ["main-new"], updatedNodeIds: [], deletedNodeIds: ["gone"], createdEdgeIds: [], deletedEdgeIds: ["old-edge"] };
-            const change = body.message === "改两个画布" ? { ...mainChange, canvasChanges: [
+            const change = body.message === "Change two canvases" ? { ...mainChange, canvasChanges: [
                 { ...mainChange, canvasId: "input-canvas", operationIds: ["op1"] },
                 { revisionBefore: 4, revisionAfter: 5, createdNodeIds: ["other-new"], updatedNodeIds: [], createdEdgeIds: [], timelineUpdated: true, canvasId: "other-canvas", operationIds: ["op2"] },
             ] } : null;
-            const turn = { turnId: "t" + chats.length, userText: body.message, permissionMode: body.permissionMode, selectedNodeIds: [], reply: "已读取提供的参考素材。", attachments: body.attachments, skills: body.skills,
+            const turn = { turnId: "t" + chats.length, userText: body.message, permissionMode: body.permissionMode, selectedNodeIds: [], reply: "The provided reference material has been read.", attachments: body.attachments, skills: body.skills,
                 toolCalls: [], proposals: [], change, error: null, cancelled: false, createdAt: "2026-10-08" };
             turns.push(turn);
             return new Response(JSON.stringify({ type: "turn_end", ...turn }) + "\n", { headers: { "content-type": "application/x-ndjson" } });
@@ -127,61 +127,61 @@ beforeEach(() => { registeredAssets.length = 0; });
 
 test("real Sidebar handles file, paste, drop, attachment-only, purpose/range, draft restore and busy supplement", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 900 } }); await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="添加参考素材"]')?.disabled);
+    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="Add reference material"]')?.disabled);
     await page.locator('input[type="file"]').setInputFiles({ name: "portrait.jpg", mimeType: "image/jpeg", buffer: jpeg });
-    await page.getByRole("combobox", { name: "portrait.jpg 的用途" }).waitFor();
-    await page.getByText("正在读取预览…", { exact: true }).waitFor({ timeout: 3000 }).catch(async error => { throw new Error(error.message + " BODY " + await page.locator("body").innerText() + " MEDIA " + JSON.stringify(mediaRequests)); });
+    await page.getByRole("combobox", { name: "The purpose of portrait.jpg" }).waitFor();
+    await page.getByText("Loading preview…", { exact: true }).waitFor({ timeout: 3000 }).catch(async error => { throw new Error(error.message + " BODY " + await page.locator("body").innerText() + " MEDIA " + JSON.stringify(mediaRequests)); });
     await firstPreviewStarted;
     expect(releaseFirstPreview).not.toBeNull(); releaseFirstPreview!();
     await page.waitForFunction(() => { const image = document.querySelector<HTMLImageElement>('img[alt="portrait.jpg"]'); return image?.src.startsWith("blob:") && image.complete && image.naturalWidth === 64; });
     expect(mediaRequests.some(item => item.token === "synthetic-desktop-preview" && item.path.includes("proxy=1"))).toBe(true);
-    await page.getByRole("combobox", { name: "portrait.jpg 的用途" }).click();
-    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("首帧", { exact: true }).waitFor();
+    await page.getByRole("combobox", { name: "The purpose of portrait.jpg" }).click();
+    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("first frame", { exact: true }).waitFor();
     const imagePurposes = await (await page.waitForFunction(() => { const labels = [...document.querySelectorAll(".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content")].map(item => item.textContent); return labels.length === 6 ? labels : null; })).jsonValue();
-    expect(imagePurposes).toContain("首帧"); expect(imagePurposes).toContain("人物参考");
-    expect(imagePurposes).not.toContain("声音参考"); expect(imagePurposes).not.toContain("节奏参考");
-    await page.getByRole("combobox", { name: "portrait.jpg 的用途" }).press("Escape");
-    await page.getByRole("button", { name: "选择技能", exact: true }).click(); await page.getByRole("button", { name: "分镜 · 1.0", exact: true }).click();
-    await page.getByRole("button", { name: "发送", exact: true }).click();
-    await page.getByText("已读取提供的参考素材。", { exact: true }).waitFor();
+    expect(imagePurposes).toContain("first frame"); expect(imagePurposes).toContain("Character reference");
+    expect(imagePurposes).not.toContain("sound reference"); expect(imagePurposes).not.toContain("rhythm reference");
+    await page.getByRole("combobox", { name: "The purpose of portrait.jpg" }).press("Escape");
+    await page.getByRole("button", { name: "Select skills", exact: true }).click(); await page.getByRole("button", { name: "Storyboard · 1.0", exact: true }).click();
+    await page.getByRole("button", { name: "send", exact: true }).click();
+    await page.getByText("The provided reference material has been read.", { exact: true }).waitFor();
     expect(chats[0]?.message).toBe(""); expect(chats[0]?.attachments[0]?.assetId).toBeDefined();
     expect(chats[0]?.references).toEqual([{ kind: "asset", id: chats[0]?.attachments[0]?.assetId }]);
     expect(chats[0]?.skills).toEqual([{ skillId: "story", versionId: "story-v1", contentHash: "a".repeat(64) }]);
     await page.evaluate(bytes => { const transfer = new DataTransfer(); transfer.items.add(new File([new Uint8Array(bytes)], "paste.png", { type: "image/png" })); document.querySelector('.canvas-assistant-composer')!.dispatchEvent(new ClipboardEvent("paste", { bubbles: true, clipboardData: transfer })); }, [...png]);
-    await page.getByRole("combobox", { name: "paste.png 的用途" }).waitFor();
+    await page.getByRole("combobox", { name: "The purpose of paste.png" }).waitFor();
     await page.evaluate(bytes => { const transfer = new DataTransfer(); transfer.items.add(new File([new Uint8Array(bytes)], "motion.mp4", { type: "video/mp4" })); document.querySelector('.canvas-assistant-composer')!.dispatchEvent(new DragEvent("drop", { bubbles: true, dataTransfer: transfer })); }, [...video]);
-    await page.getByRole("combobox", { name: "motion.mp4 的用途" }).waitFor();
+    await page.getByRole("combobox", { name: "What is motion.mp4 used for?" }).waitFor();
     await page.waitForFunction(() => { const video = document.querySelector<HTMLVideoElement>('video[aria-label="motion.mp4"]'); return video?.src.startsWith("blob:") && video.readyState >= 1 && video.videoWidth === 64; });
     expect(mediaRequests.some(item => item.path.includes("variant=playback") && item.token === "synthetic-desktop-preview")).toBe(true);
-    await page.getByRole("combobox", { name: "motion.mp4 的用途" }).click(); await page.locator('.ant-select-item-option-content').getByText("运镜参考", { exact: true }).click();
-    await page.getByRole("spinbutton", { name: "motion.mp4 起始秒" }).fill("0"); await page.getByRole("spinbutton", { name: "motion.mp4 结束秒" }).fill("0.2");
-    await page.getByRole("spinbutton", { name: "motion.mp4 结束秒" }).press("Tab");
+    await page.getByRole("combobox", { name: "What is motion.mp4 used for?" }).click(); await page.locator('.ant-select-item-option-content').getByText("Mirror movement reference", { exact: true }).click();
+    await page.getByRole("spinbutton", { name: "motion.mp4 starting seconds" }).fill("0"); await page.getByRole("spinbutton", { name: "motion.mp4 end seconds" }).fill("0.2");
+    await page.getByRole("spinbutton", { name: "motion.mp4 end seconds" }).press("Tab");
     await page.waitForFunction(async () => (await (window as any).assistantInputFixture.draft())?.attachments.some((item: any) => item.name === "motion.mp4" && item.end === 0.2));
-    await page.reload(); await page.getByRole("combobox", { name: "motion.mp4 的用途" }).waitFor();
-    expect(await page.getByRole("spinbutton", { name: "motion.mp4 结束秒" }).inputValue()).toBe("0.2");
-    await page.getByRole("button", { name: "画布素材", exact: true }).click(); await page.getByRole("button", { name: "画布人像", exact: true }).click();
-    await page.getByRole("button", { name: "发送", exact: true }).click();
+    await page.reload(); await page.getByRole("combobox", { name: "What is motion.mp4 used for?" }).waitFor();
+    expect(await page.getByRole("spinbutton", { name: "motion.mp4 end seconds" }).inputValue()).toBe("0.2");
+    await page.getByRole("button", { name: "Canvas material", exact: true }).click(); await page.getByRole("button", { name: "Canvas portrait", exact: true }).click();
+    await page.getByRole("button", { name: "send", exact: true }).click();
     await page.waitForFunction(() => document.querySelectorAll('.canvas-assistant-log .canvas-assistant-reply').length === 2);
     expect(chats[1]?.attachments.some((item: any) => item.name === "motion.mp4" && item.purpose === "motion" && item.end === 0.2)).toBe(true);
     expect(chats[1]?.attachments.some((item: any) => item.nodeId === "n1" && item.resourceId === "existing")).toBe(true);
-    running = true; await page.reload(); await page.getByRole("button", { name: "停止", exact: true }).waitFor();
+    running = true; await page.reload(); await page.getByRole("button", { name: "stop", exact: true }).waitFor();
     await page.locator('input[type="file"]').setInputFiles({ name: "beat.wav", mimeType: "audio/wav", buffer: wav });
-    await page.getByRole("combobox", { name: "beat.wav 的用途" }).waitFor();
+    await page.getByRole("combobox", { name: "What beat.wav does" }).waitFor();
     await page.waitForFunction(() => { const audio = document.querySelector<HTMLAudioElement>('audio[aria-label="beat.wav"]'); return audio?.src.startsWith("blob:") && audio.readyState >= 1; });
     expect(mediaRequests.every(item => item.token === "synthetic-desktop-preview")).toBe(true);
-    await page.getByRole("combobox", { name: "beat.wav 的用途" }).click();
-    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("声音参考", { exact: true }).waitFor();
+    await page.getByRole("combobox", { name: "What beat.wav does" }).click();
+    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("sound reference", { exact: true }).waitFor();
     const audioPurposes = await (await page.waitForFunction(() => { const labels = [...document.querySelectorAll(".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content")].map(item => item.textContent); return labels.length === 3 ? labels : null; })).jsonValue();
-    expect(audioPurposes).toEqual(["仅分析", "节奏参考", "声音参考"]);
-    expect(audioPurposes).not.toContain("首帧"); expect(audioPurposes).not.toContain("人物参考");
-    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("声音参考", { exact: true }).click();
-    await page.getByRole("button", { name: /^补\s*充$/ }).click({ timeout: 8000 }).catch(async error => { throw new Error(error.message + " UI " + await page.locator('body').innerText()); }); await page.getByText("助手已收到补充要求。", { exact: true }).waitFor({ timeout: 8000 });
+    expect(audioPurposes).toEqual(["Analyze only", "rhythm reference", "sound reference"]);
+    expect(audioPurposes).not.toContain("first frame"); expect(audioPurposes).not.toContain("Character reference");
+    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("sound reference", { exact: true }).click();
+    await page.getByRole("button", { name: /^补\s*充$/ }).click({ timeout: 8000 }).catch(async error => { throw new Error(error.message + " UI " + await page.locator('body').innerText()); }); await page.getByText("The assistant has received the supplemental request.", { exact: true }).waitFor({ timeout: 8000 });
     expect(supplements).toHaveLength(1); expect(supplements[0]?.message).toBe(""); expect(supplements[0]?.attachments[0]?.kind).toBe("audio"); expect(supplements[0]?.attachments[0]?.purpose).toBe("sound");
     expect(chats).toHaveLength(2);
     running = false;
-    turns.push({ turnId: "busy", userText: "继续创作", selectedNodeIds: [], reply: "补充的音频已加入本次创作。", attachments: [], skills: [], supplements: [], supplementInputs: supplements.map(item => ({ message: item.message, attachments: item.attachments, skills: item.skills })), toolCalls: [], proposals: [], change: null, error: null, cancelled: false, createdAt: "2026-10-08" });
-    await page.getByText("补充的音频已加入本次创作。", { exact: true }).waitFor({ timeout: 8000 });
-    expect(await page.getByRole("button", { name: "停止", exact: true }).count()).toBe(0);
+    turns.push({ turnId: "busy", userText: "Keep creating", selectedNodeIds: [], reply: "Supplementary audio has been added to this production.", attachments: [], skills: [], supplements: [], supplementInputs: supplements.map(item => ({ message: item.message, attachments: item.attachments, skills: item.skills })), toolCalls: [], proposals: [], change: null, error: null, cancelled: false, createdAt: "2026-10-08" });
+    await page.getByText("Supplementary audio has been added to this production.", { exact: true }).waitFor({ timeout: 8000 });
+    expect(await page.getByRole("button", { name: "stop", exact: true }).count()).toBe(0);
     expect(chats).toHaveLength(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: "/tmp/beeftv-assistant-input-ui.png" }); await page.close();
@@ -192,22 +192,22 @@ test("real Sidebar handles file, paste, drop, attachment-only, purpose/range, dr
 test("asset registration failure remains unsent; explicit upload retry keeps its idempotency key and invalid range blocks send", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
     await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="添加参考素材"]')?.disabled);
+    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="Add reference material"]')?.disabled);
     const before = chats.length, firstKey = uploadKeys.length;
     failNextAsset = true;
     await page.locator('input[type="file"]').setInputFiles({ name: "retry.png", mimeType: "image/png", buffer: png });
-    await page.getByRole("button", { name: "重试上传", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Retry upload", exact: true }).waitFor();
     expect(await page.evaluate(() => (window as any).assistantInputFixture.assets())).toEqual([]);
     expect(await page.evaluate(() => (window as any).assistantInputFixture.libraryInvalidated())).toBe(false);
-    expect(await page.getByRole("button", { name: "发送", exact: true }).isDisabled()).toBe(true);
+    expect(await page.getByRole("button", { name: "send", exact: true }).isDisabled()).toBe(true);
     expect(chats).toHaveLength(before);
-    await page.getByRole("button", { name: "重试上传", exact: true }).click();
-    await page.getByRole("combobox", { name: "retry.png 的用途" }).waitFor();
+    await page.getByRole("button", { name: "Retry upload", exact: true }).click();
+    await page.getByRole("combobox", { name: "Purpose of retry.png" }).waitFor();
     expect(uploadKeys[firstKey]).not.toBe(""); expect(uploadKeys[firstKey + 1]).toBe(uploadKeys[firstKey]);
     await page.locator('input[type="file"]').setInputFiles({ name: "range.wav", mimeType: "audio/wav", buffer: wav });
-    await page.getByRole("spinbutton", { name: "range.wav 结束秒" }).fill("3");
-    await page.getByText("结束时间超过素材时长", { exact: true }).waitFor();
-    expect(await page.getByRole("button", { name: "发送", exact: true }).isDisabled()).toBe(true);
+    await page.getByRole("spinbutton", { name: "range.wav end seconds" }).fill("3");
+    await page.getByText("The end time exceeds the material duration", { exact: true }).waitFor();
+    expect(await page.getByRole("button", { name: "send", exact: true }).isDisabled()).toBe(true);
     expect(chats).toHaveLength(before);
     await page.waitForFunction(async () => (await (window as any).assistantInputFixture.draft())?.attachments.some((item: any) => item.name === "range.wav" && item.end === 3));
     await page.evaluate(() => new Promise<void>((resolve, reject) => {
@@ -223,24 +223,24 @@ test("asset registration failure remains unsent; explicit upload retry keeps its
     }));
     await page.reload();
     const legacy = page.locator('.canvas-assistant-attachment').filter({ hasText: "range.wav" });
-    await legacy.locator('.ant-select').getByText("首帧", { exact: true }).waitFor({ timeout: 4000 }).catch(async error => { throw new Error(error.message + " UI " + await page.locator("body").innerText()); });
-    expect(await legacy.locator('.ant-select').innerText()).toBe("首帧");
-    await page.getByRole("combobox", { name: "range.wav 的用途" }).click();
-    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("声音参考", { exact: true }).waitFor();
-    expect(await (await page.waitForFunction(() => { const labels = [...document.querySelectorAll(".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content")].map(item => item.textContent); return labels.length === 3 ? labels : null; })).jsonValue()).toEqual(["仅分析", "节奏参考", "声音参考"]);
-    await page.getByRole("combobox", { name: "range.wav 的用途" }).press("Escape");
+    await legacy.locator('.ant-select').getByText("first frame", { exact: true }).waitFor({ timeout: 4000 }).catch(async error => { throw new Error(error.message + " UI " + await page.locator("body").innerText()); });
+    expect(await legacy.locator('.ant-select').innerText()).toBe("first frame");
+    await page.getByRole("combobox", { name: "What range.wav does" }).click();
+    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("sound reference", { exact: true }).waitFor();
+    expect(await (await page.waitForFunction(() => { const labels = [...document.querySelectorAll(".ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content")].map(item => item.textContent); return labels.length === 3 ? labels : null; })).jsonValue()).toEqual(["Analyze only", "rhythm reference", "sound reference"]);
+    await page.getByRole("combobox", { name: "What range.wav does" }).press("Escape");
     await page.waitForFunction(async () => (await (window as any).assistantInputFixture.draft())?.attachments.some((item: any) => item.name === "range.wav" && item.purpose === "first-frame"));
-    expect(await legacy.locator('.ant-select').innerText()).toBe("首帧");
+    expect(await legacy.locator('.ant-select').innerText()).toBe("first frame");
     await page.close();
 }, 15000);
 
 test("native-local Sidebar publishes accepted uploads for immediate @ reuse, and removal preserves ownership", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
     await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="添加参考素材"]')?.disabled);
+    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="Add reference material"]')?.disabled);
     expect(await page.evaluate(() => (window as any).assistantInputFixture.nativeLocal())).toBe(true);
     await page.locator('input[type="file"]').setInputFiles({ name: "reuse.jpg", mimeType: "image/jpeg", buffer: jpeg });
-    await page.getByRole("combobox", { name: "reuse.jpg 的用途" }).waitFor();
+    await page.getByRole("combobox", { name: "Purpose of reuse.jpg" }).waitFor();
     const registered = await page.evaluate(() => (window as any).assistantInputFixture.assets());
     expect(registered).toHaveLength(1);
     expect(registered[0]).toMatchObject({ title: "reuse.jpg", kind: "image" });
@@ -248,15 +248,15 @@ test("native-local Sidebar publishes accepted uploads for immediate @ reuse, and
     expect(registeredAssets.find(asset => asset.id === registered[0].id)?.data).toEqual(registered[0].data);
     expect(uploadMetadata.find(upload => upload.name === "reuse.jpg")).toMatchObject({ width: "64", height: "48" });
     expect(await page.evaluate(() => (window as any).assistantInputFixture.libraryInvalidated())).toBe(true);
-    await page.getByRole("button", { name: "移除 reuse.jpg", exact: true }).click();
+    await page.getByRole("button", { name: "Remove reuse.jpg", exact: true }).click();
     expect(await page.evaluate(() => (window as any).assistantInputFixture.assets())).toEqual(registered);
-    await page.getByRole("textbox", { name: "给助手的消息" }).fill("@reuse");
+    await page.getByRole("textbox", { name: "Message to Assistant" }).fill("@reuse");
     await page.locator('.canvas-resource-mention-item').getByText("reuse.jpg", { exact: true }).click();
     const before = chats.length;
     const sent = page.waitForResponse(response => response.url().endsWith("/assistant/chat"));
-    await page.getByRole("button", { name: "发送", exact: true }).click();
+    await page.getByRole("button", { name: "send", exact: true }).click();
     await sent;
-    await page.getByText("已读取提供的参考素材。", { exact: true }).last().waitFor();
+    await page.getByText("The provided reference material has been read.", { exact: true }).last().waitFor();
     expect(chats).toHaveLength(before + 1);
     expect(chats[before]?.message).toContain(`@[asset:${registered[0].id}]`);
     expect(chats[before]?.references).toEqual([{ kind: "asset", id: registered[0].id }]);
@@ -268,9 +268,9 @@ test("native-local Sidebar publishes accepted uploads for immediate @ reuse, and
 test("missing resource duration is recovered from a real twelve-second WAV for registration, draft and range validation", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
     await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="添加参考素材"]')?.disabled);
+    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('button[aria-label="Add reference material"]')?.disabled);
     await page.locator('input[type="file"]').setInputFiles({ name: "twelve-seconds.wav", mimeType: "audio/wav", buffer: longWav });
-    await page.getByRole("combobox", { name: "twelve-seconds.wav 的用途" }).waitFor();
+    await page.getByRole("combobox", { name: "The purpose of twelve-seconds.wav" }).waitFor();
     await page.waitForFunction(async () => (await (window as any).assistantInputFixture.draft())?.attachments.some((item: any) => item.name === "twelve-seconds.wav" && item.durationMs === 12000));
     expect(uploadMetadata.find(upload => upload.name === "twelve-seconds.wav")?.durationMs).toBe("12000");
     const draft = await page.evaluate(() => (window as any).assistantInputFixture.draft());
@@ -278,9 +278,9 @@ test("missing resource duration is recovered from a real twelve-second WAV for r
     expect(registeredAssets.find(asset => asset.title === "twelve-seconds.wav")?.data.durationMs).toBe(12000);
     expect((await page.evaluate(() => (window as any).assistantInputFixture.assets()))[0].data.durationMs).toBe(12000);
     const before = chats.length;
-    await page.getByRole("spinbutton", { name: "twelve-seconds.wav 结束秒" }).fill("12.1");
-    await page.getByText("结束时间超过素材时长", { exact: true }).waitFor();
-    expect(await page.getByRole("button", { name: "发送", exact: true }).isDisabled()).toBe(true);
+    await page.getByRole("spinbutton", { name: "twelve-seconds.wav end seconds" }).fill("12.1");
+    await page.getByText("The end time exceeds the material duration", { exact: true }).waitFor();
+    expect(await page.getByRole("button", { name: "send", exact: true }).isDisabled()).toBe(true);
     expect(chats).toHaveLength(before);
     await page.close();
 }, 15000);
@@ -289,37 +289,37 @@ test("permission choices persist; trusted active mode locks the turn and supplem
     running = false; cancelled = false;
     const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
     await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    const selector = page.getByRole("combobox", { name: "助手权限" });
-    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="助手权限"]')?.disabled);
+    const selector = page.getByRole("combobox", { name: "Assistant permissions" });
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="Assistant permissions"]')?.disabled);
     const selectedText = () => selector.locator('xpath=ancestor::div[contains(@class,"ant-select")][1]').innerText();
-    expect(await selectedText()).toBe("当前画布");
+    expect(await selectedText()).toBe("current canvas");
     await selector.click();
-    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("完全访问", { exact: true }).click();
-    await page.getByRole("textbox", { name: "给助手的消息" }).fill("查看全部项目");
+    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("full access", { exact: true }).click();
+    await page.getByRole("textbox", { name: "Message to Assistant" }).fill("View all projects");
     const sent = page.waitForResponse(response => response.url().endsWith("/assistant/chat"));
-    await page.getByRole("button", { name: "发送", exact: true }).click(); await sent;
+    await page.getByRole("button", { name: "send", exact: true }).click(); await sent;
     expect(chats.at(-1)?.permissionMode).toBe("full-access");
     await page.reload();
-    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="助手权限"]')?.disabled);
-    expect(await selectedText()).toBe("完全访问");
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="Assistant permissions"]')?.disabled);
+    expect(await selectedText()).toBe("full access");
     activePermissionMode = "read-only"; running = true;
-    await page.reload(); await page.getByRole("button", { name: "停止", exact: true }).waitFor();
+    await page.reload(); await page.getByRole("button", { name: "stop", exact: true }).waitFor();
     expect(await selector.isDisabled()).toBe(true);
-    expect(await selectedText()).toBe("只读");
+    expect(await selectedText()).toBe("read only");
     await selector.locator('xpath=ancestor::div[contains(@class,"ant-select")][1]').hover();
-    await page.getByRole("tooltip").getByText("本轮权限已固定，结束后可更改", { exact: true }).waitFor();
-    await page.getByRole("textbox", { name: "给助手的消息" }).fill("继续分析");
+    await page.getByRole("tooltip").getByText("Permissions for this round have been fixed and can be changed after the end", { exact: true }).waitFor();
+    await page.getByRole("textbox", { name: "Message to Assistant" }).fill("Continue analysis");
     const supplemented = page.waitForResponse(response => response.url().endsWith("/assistant/steer"));
     await page.getByRole("button", { name: /^补\s*充$/ }).click(); await supplemented;
     expect(supplements.at(-1)?.permissionMode).toBeUndefined();
     activePermissionMode = undefined;
-    await page.reload(); await page.getByRole("button", { name: "停止", exact: true }).waitFor();
-    expect(await selectedText()).toBe("当前画布"); // Legacy active turns keep their original scope.
+    await page.reload(); await page.getByRole("button", { name: "stop", exact: true }).waitFor();
+    expect(await selectedText()).toBe("current canvas"); // Legacy active turns keep their original scope.
     expect(await selector.isDisabled()).toBe(true);
     running = false;
     await page.reload();
-    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="助手权限"]')?.disabled);
-    expect(await selectedText()).toBe("完全访问");
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="Assistant permissions"]')?.disabled);
+    expect(await selectedText()).toBe("full access");
     // 助手侧栏有 220ms 的进场位移动画，动画期间页面会短暂比视口宽；这里等它出现并停稳，
     // 断言的是稳定后的布局，不会因为恰好取到动画中间一帧而失败。
     await page.waitForFunction(() => {
@@ -334,14 +334,14 @@ test("permission choices persist; trusted active mode locks the turn and supplem
 test("external Agent connection has no permission chooser and submits only the client kind", async () => {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    await page.getByRole("button", { name: "连接外部 Agent", exact: true }).click();
+    await page.getByRole("button", { name: "Connect to external agent", exact: true }).click();
     const panel = page.locator(".agent-connect-panel");
-    await panel.getByText("连接后可使用 BeefTV 的全部创作工具。每次操作的审批由 Codex 负责。", { exact: true }).waitFor();
+    await panel.getByText("Once connected, you’ll have access to all of BeefTV’s creative tools. Approval of each operation is the responsibility of Codex.", { exact: true }).waitFor();
     expect(await panel.getByRole("radio").count()).toBe(0);
     const connected = page.waitForResponse(response => response.url().endsWith("/agent-clients"));
-    await panel.getByRole("button", { name: "生成连接配置", exact: true }).click(); await connected;
+    await panel.getByRole("button", { name: "Generate connection configuration", exact: true }).click(); await connected;
     expect(externalConnections.at(-1)).toEqual({ kind: "codex" });
-    await panel.getByRole("status").filter({ hasText: "等待工具连接" }).waitFor();
+    await panel.getByRole("status").filter({ hasText: "Waiting for tool to connect" }).waitFor();
     await page.screenshot({ path: "/tmp/beeftv-external-agent-connect.png" });
     await page.close();
 }, 15000);
@@ -350,24 +350,24 @@ test("cross-canvas receipts report every target and one atomic undo refreshes al
     running = false;
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="助手权限"]')?.disabled);
-    await page.getByRole("combobox", { name: "助手权限" }).click();
-    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("完全访问", { exact: true }).click();
-    await page.getByRole("textbox", { name: "给助手的消息" }).fill("改两个画布");
-    await page.getByRole("button", { name: "发送", exact: true }).click();
-    await page.getByText("修改了 2 个画布，新建 2 个节点，删除 1 个节点，删除 1 条线，修改时间线", { exact: true }).waitFor();
-    await page.getByText("撤销会恢复这 2 个画布本轮的全部改动。", { exact: true }).waitFor();
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[aria-label="Assistant permissions"]')?.disabled);
+    await page.getByRole("combobox", { name: "Assistant permissions" }).click();
+    await page.locator('.ant-select-dropdown:visible .ant-select-item-option-content').getByText("full access", { exact: true }).click();
+    await page.getByRole("textbox", { name: "Message to Assistant" }).fill("Change two canvases");
+    await page.getByRole("button", { name: "send", exact: true }).click();
+    await page.getByText("Modified 2 canvases, created 2 new nodes, deleted 1 node, deleted 1 line, modified the timeline", { exact: true }).waitFor();
+    await page.getByText("Undoing will revert all changes made to these two canvases this round.", { exact: true }).waitFor();
     expect(await page.evaluate(() => (window as any).assistantInputFixture.changedCanvases())).toEqual(["input-canvas", "other-canvas"]);
-    await page.getByRole("button", { name: "在画布上查看", exact: true }).click();
+    await page.getByRole("button", { name: "View on canvas", exact: true }).click();
     expect(await page.evaluate(() => (window as any).assistantInputFixture.locatedNodes())).toEqual([["main-new"]]);
     const before = undoRequests.length;
     rejectNextUndo = true;
-    await page.getByRole("button", { name: "撤销这一轮", exact: true }).click();
-    await page.getByText("其中一个画布后来又改过，这一轮未撤销。", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Undo this round", exact: true }).click();
+    await page.getByText("One of the canvases was later changed and this round was not undone.", { exact: true }).waitFor();
     expect(undoRequests).toHaveLength(before + 1);
     expect(await page.evaluate(() => (window as any).assistantInputFixture.changedCanvases())).toEqual(["input-canvas", "other-canvas"]);
-    await page.getByRole("button", { name: "撤销这一轮", exact: true }).click();
-    await page.getByText("已撤销这一轮全部画布改动", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Undo this round", exact: true }).click();
+    await page.getByText("All canvas changes in this round have been undone", { exact: true }).waitFor();
     expect(undoRequests).toHaveLength(before + 2);
     expect(undoRequests.at(-1)).toEqual({ canvasId: "input-canvas" });
     expect(await page.evaluate(() => (window as any).assistantInputFixture.changedCanvases())).toEqual(["input-canvas", "other-canvas", "input-canvas", "other-canvas"]);
@@ -380,22 +380,22 @@ for (const mode of ["markdown", "zip"] as const) {
         running = false; installedSkills = [];
         const page = await browser.newPage();
         await page.goto(server.url.toString().replace("localhost", "127.0.0.1"));
-        await page.getByRole("button", { name: "选择技能", exact: true }).click();
-        await page.getByText("还没有已安装的技能。", { exact: true }).waitFor();
-        await page.getByRole("button", { name: "安装技能", exact: true }).click();
-        const dialog = page.getByRole("dialog", { name: "安装技能" });
-        expect(await dialog.getByText("公开状态", { exact: true }).isVisible()).toBe(false);
-        expect(await dialog.getByRole("button", { name: "从空白创建单文件技能" }).count()).toBe(0);
-        if (mode === "zip") await dialog.getByText("ZIP 技能包", { exact: true }).click();
+        await page.getByRole("button", { name: "Select skills", exact: true }).click();
+        await page.getByText("There are no skills installed yet.", { exact: true }).waitFor();
+        await page.getByRole("button", { name: "Installation skills", exact: true }).click();
+        const dialog = page.getByRole("dialog", { name: "Installation skills" });
+        expect(await dialog.getByText("public status", { exact: true }).isVisible()).toBe(false);
+        expect(await dialog.getByRole("button", { name: "Create single file from blank skill" }).count()).toBe(0);
+        if (mode === "zip") await dialog.getByText("ZIP skill pack", { exact: true }).click();
         await dialog.locator('input[type="file"]').setInputFiles({ name: mode === "zip" ? "coffee.zip" : "SKILL.md", mimeType: mode === "zip" ? "application/zip" : "text/markdown", buffer: Buffer.from("# Coffee review\nCheck the actual video.") });
-        await dialog.getByRole("button", { name: "安装技能", exact: true }).click();
+        await dialog.getByRole("button", { name: "Installation skills", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
-        await page.getByRole("button", { name: "移除技能 咖啡审片", exact: true }).waitFor();
-        await page.getByRole("button", { name: "咖啡审片 · 2.0", exact: true }).waitFor();
+        await page.getByRole("button", { name: "Remove skill coffee review", exact: true }).waitFor();
+        await page.getByRole("button", { name: "Coffee review · 2.0", exact: true }).waitFor();
         expect(skillInstalls.at(-1)).toEqual({ sourceType: mode, isPrivate: "true", fileName: mode === "zip" ? "coffee.zip" : "SKILL.md" });
-        await page.getByRole("textbox", { name: "给助手的消息" }).fill("请审查咖啡短片");
+        await page.getByRole("textbox", { name: "Message to Assistant" }).fill("Please review the coffee short video");
         const sent = page.waitForResponse(response => response.url().endsWith("/assistant/chat"));
-        await page.getByRole("button", { name: "发送", exact: true }).click(); await sent;
+        await page.getByRole("button", { name: "send", exact: true }).click(); await sent;
         expect(chats.at(-1)?.skills).toEqual([{ skillId: "coffee", versionId: "coffee-v2", contentHash: "b".repeat(64) }]);
         await page.close();
     }, 20000);

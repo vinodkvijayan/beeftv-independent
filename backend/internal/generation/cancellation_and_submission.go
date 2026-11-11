@@ -55,7 +55,7 @@ func StartProviderCancellationReconciliation(ctx context.Context, runLoop func(f
 				}
 				reconcileCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 				if err := reconcile(reconcileCtx, task); err != nil && logTask != nil {
-					_ = logTask(task.UserID, task.ID, "error", "上游取消状态对账失败", err.Error())
+					_ = logTask(task.UserID, task.ID, "error", "Upstream cancellation status reconciliation failed", err.Error())
 				}
 				cancel()
 			}
@@ -65,7 +65,7 @@ func StartProviderCancellationReconciliation(ctx context.Context, runLoop func(f
 
 func RequestProviderCancellation(ctx context.Context, repo *repository.Repository, task *model.Task, hydrateID func(*model.Task), decryptInput func(string) (string, error), resolveConfig func(Config) (Config, error), bindTaskCtx func(context.Context, model.Task) context.Context, logTask func(userID, taskID, level, msg, payload string) error) error {
 	if task == nil || task.ID == "" {
-		return errors.New("任务取消状态无效")
+		return errors.New("Task cancellation status is invalid")
 	}
 	if hydrateID != nil {
 		hydrateID(task)
@@ -82,14 +82,14 @@ func RequestProviderCancellation(ctx context.Context, repo *repository.Repositor
 		return err
 	}
 	if task.ProviderRequestID == "" {
-		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("上游未返回任务 ID，无法发送取消请求"), logTask)
+		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("Upstream did not return task ID and could not send cancellation request"), logTask)
 	}
 	input, err := ProviderCancellationInput(task, decryptInput, resolveConfig)
 	if err != nil {
-		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("读取上游取消配置失败")+"："+err.Error(), logTask)
+		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("Failed to read upstream deconfiguration")+"："+err.Error(), logTask)
 	}
 	if !SupportsProviderCancellation(input.Config.InterfaceType) && UpscaleMediaType(input.Config.Model) == "" {
-		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("当前上游协议不支持取消"), logTask)
+		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("The current upstream agreement does not support cancellation"), logTask)
 	}
 	requestCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	defer cancel()
@@ -101,21 +101,21 @@ func RequestProviderCancellation(ctx context.Context, repo *repository.Repositor
 	}
 	requestCtx = WithProviderRequestKind(requestCtx, "cancel")
 	if err := CancelProviderTask(requestCtx, input.Config, task.ProviderRequestID); err != nil {
-		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("上游取消请求结果不明确")+"："+SafeProviderLogError(err), logTask)
+		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("Upstream cancellation request result is unclear")+"："+SafeProviderLogError(err), logTask)
 	}
 	if logTask != nil {
-		_ = logTask(task.UserID, task.ID, "info", "已请求上游取消，等待供应商确认", task.ProviderRequestID)
+		_ = logTask(task.UserID, task.ID, "info", "Cancellation requested from upstream, waiting for supplier confirmation", task.ProviderRequestID)
 	}
 	return nil
 }
 
 func ReconcileProviderCancellation(ctx context.Context, repo *repository.Repository, task *model.Task, decryptInput func(string) (string, error), resolveConfig func(Config) (Config, error), bindTaskCtx func(context.Context, model.Task) context.Context, logTask func(userID, taskID, level, msg, payload string) error) error {
 	if task.ProviderCancelAttempts >= ProviderCancellationMaxAttempts {
-		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("上游取消状态长时间未确认"), logTask)
+		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("The upstream cancellation status has not been confirmed for a long time"), logTask)
 	}
 	input, err := ProviderCancellationInput(task, decryptInput, resolveConfig)
 	if err != nil {
-		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("读取上游对账配置失败")+"："+err.Error(), logTask)
+		return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("Failed to read upstream reconciliation configuration")+"："+err.Error(), logTask)
 	}
 	queryTask := *task
 	data, _ := json.Marshal(input)
@@ -128,7 +128,7 @@ func ReconcileProviderCancellation(ctx context.Context, repo *repository.Reposit
 	outcome, providerStatus, err := QueryProviderCancellation(queryCtx, input.Config, task.ProviderRequestID)
 	if err != nil {
 		if task.ProviderCancelAttempts >= ProviderCancellationMaxAttempts-1 {
-			return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("连续查询上游取消状态失败")+"："+SafeProviderLogError(err), logTask)
+			return MarkProviderCancellationUncertain(repo, task, providerCancellationUncertainMessage("Continuous query of upstream cancellation status failed")+"："+SafeProviderLogError(err), logTask)
 		}
 		next := time.Now().Add(30 * time.Second)
 		return repo.UpdateTaskProviderCancellation(task.ID, model.ProviderCancelStatusRequested, model.ProviderCancelStatusRequested, SafeProviderLogError(err), &next, nil)
@@ -140,18 +140,18 @@ func ReconcileProviderCancellation(ctx context.Context, repo *repository.Reposit
 			return err
 		}
 		if logTask != nil {
-			_ = logTask(task.UserID, task.ID, "info", "上游已确认取消", providerStatus)
+			_ = logTask(task.UserID, task.ID, "info", "Cancellation confirmed by upstream", providerStatus)
 		}
 	case ProviderCancellationSucceeded:
-		errorText := "取消请求发出前上游已完成"
+		errorText := "Upstream completed before cancellation request was issued"
 		if err := repo.UpdateTaskProviderCancellation(task.ID, model.ProviderCancelStatusRequested, model.ProviderCancelStatusUncertain, errorText, nil, nil); err != nil {
 			return err
 		}
 		if logTask != nil {
-			_ = logTask(task.UserID, task.ID, "warn", "上游任务在取消确认前已完成", providerStatus)
+			_ = logTask(task.UserID, task.ID, "warn", "Upstream task completed before deconfirmation", providerStatus)
 		}
 	case ProviderCancellationFailed:
-		errorText := "上游任务已失败，取消状态无法确认"
+		errorText := "The upstream task has failed and the cancellation status cannot be confirmed"
 		if err := repo.UpdateTaskProviderCancellation(task.ID, model.ProviderCancelStatusRequested, model.ProviderCancelStatusUncertain, errorText, nil, nil); err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func ProviderCancellationUncertainMessage(base string) string {
 }
 
 func providerCancellationUncertainMessage(base string) string {
-	return base + "，取消状态待确认"
+	return base + ", the cancellation status is pending confirmation"
 }
 
 func DeferProviderCancellation(repo *repository.Repository, task *model.Task, errorText string) error {
@@ -184,7 +184,7 @@ func MarkProviderCancellationUncertain(repo *repository.Repository, task *model.
 		return err
 	}
 	if logTask != nil {
-		_ = logTask(task.UserID, task.ID, "warn", "上游取消无法确认", message)
+		_ = logTask(task.UserID, task.ID, "warn", "Upstream cancellation cannot be confirmed", message)
 	}
 	return nil
 }
@@ -222,7 +222,7 @@ func CancelProviderTask(ctx context.Context, config Config, providerRequestID st
 		path := "/contents/generations/tasks/" + url.PathEscape(providerRequestID)
 		return DeleteProviderTask(ctx, config, path)
 	default:
-		return errors.New("当前上游协议不支持取消")
+		return errors.New("The current upstream agreement does not support cancellation")
 	}
 }
 
@@ -238,7 +238,7 @@ func DeleteProviderTask(ctx context.Context, config Config, path string) error {
 		return err
 	}
 	if len(bytes.TrimSpace(data)) > 0 && !json.Valid(data) {
-		return errors.New("上游取消接口返回了无法识别的内容")
+		return errors.New("The upstream cancellation interface returned unrecognized content")
 	}
 	return nil
 }
@@ -300,7 +300,7 @@ func QueryProviderCancellation(ctx context.Context, config Config, providerReque
 			return ProviderCancellationPending, firstNonEmpty(status, "unknown"), nil
 		}
 	default:
-		return "", "", errors.New("当前上游协议不支持取消状态查询")
+		return "", "", errors.New("The current upstream protocol does not support cancellation status query")
 	}
 }
 
@@ -341,7 +341,7 @@ func ResolveManagedBeefTVSecrets(input map[string]any, beef *beeftv.Service, rea
 		var structured *kernel.AppError
 		if errors.As(err, &structured) && structured.Reason == "local_credential_failed" {
 			copied := *structured
-			copied.Message = "尚未提交生成。" + structured.Message
+			copied.Message = "The build has not been submitted yet." + structured.Message
 			return nil, &copied
 		}
 		return nil, err
@@ -506,7 +506,7 @@ func ValidatePortraitTaskQuote(dataDir string, input map[string]any, lookupCred 
 		return nil
 	}
 	unavailable := func() error {
-		return BadAuthRequest("真人素材版当前模型或所选分辨率报价不可用，请刷新模型列表后重新选择")
+		return BadAuthRequest("The current model or the selected resolution quotation for the real-life material version is not available. Please refresh the model list and select again.")
 	}
 	if !PortraitModel(modelID) || (modelKey != "" && modelKey != modelID) {
 		return unavailable()
@@ -615,7 +615,7 @@ func UpscaleConfig(name string, lookupCred func() (string, string, string, strin
 		return Config{}, err
 	}
 	if key == "" {
-		return Config{}, BadAuthRequest("请先连接官方算力账号")
+		return Config{}, BadAuthRequest("Please connect to the official computing power account first")
 	}
 	return Config{BaseURL: base, APIKey: key, CredentialRef: beeftv.CredentialRef, Model: name, InterfaceType: "newapi"}, nil
 }
@@ -628,7 +628,7 @@ func UpscaleInput(ctx context.Context, user string, request topaz.Request, ensur
 	var input Input
 	resource, err := ensureMetadata(ctx, user, request.ResourceID)
 	if err != nil || resource == nil || resource.Status != model.ResourceStatusReady {
-		return input, nil, BadAuthRequest("输入素材不存在或未就绪")
+		return input, nil, BadAuthRequest("Input material does not exist or is not ready")
 	}
 	kind := localasset.NormalizeKind(resource.Kind, resource.MimeType)
 	if err := topaz.Validate(request, kind); err != nil {
@@ -677,7 +677,7 @@ func EstimateMediaUpscale(ctx context.Context, user string, request topaz.Reques
 
 func BuildMediaUpscaleTaskPayload(ctx context.Context, user string, request topaz.Request, ensureMetadata func(context.Context, string, string) (*model.Resource, error), lookupCred func() (string, string, string, string, error)) (Input, map[string]any, error) {
 	if strings.TrimSpace(request.ClientOperationID) == "" {
-		return Input{}, nil, BadAuthRequest("缺少本次确认的操作 ID")
+		return Input{}, nil, BadAuthRequest("The operation ID for this confirmation is missing")
 	}
 	input, _, err := UpscaleInput(ctx, user, request, ensureMetadata, lookupCred)
 	if err != nil {

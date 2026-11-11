@@ -25,11 +25,11 @@ func TestTokenAndConnectionDecodeNumericIDsFromWire(t *testing.T) {
 	if err := json.Unmarshal(connectionRaw, &view); err != nil {
 		t.Fatal(err)
 	}
-	accountID, err = positiveIdentity(view.Account.ID, "企业账号无效")
+	accountID, err = positiveIdentity(view.Account.ID, "The enterprise account is invalid")
 	if err != nil {
 		t.Fatal(err)
 	}
-	tokenID, err = positiveIdentity(view.TokenID, "企业授权凭证无效")
+	tokenID, err = positiveIdentity(view.TokenID, "The enterprise authorization certificate is invalid")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,8 +1,8 @@
-# 异步音频任务兼容协议
+# Asynchronous audio task compatible protocol
 
-该插件定义一个简化的 OpenAI 风格异步音频合同：JSON 创建任务，轮询任务资源，成功后读取媒体 URL。它不是 OpenAI 官方 Speech API，也不代表某个固定供应商。
+This plugin defines a simplified OpenAI-style asynchronous audio contract: JSON creates a task, polls the task resource, and reads the media URL on success. It is not the official OpenAI Speech API, nor does it represent a fixed vendor.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,23 +13,23 @@ Authorization: Bearer <CHANNEL_API_KEY>
 Content-Type: application/json
 ```
 
-## 模型、声音与计费
+## Models, Sounds and Billing
 
-模型 ID、任务类型、声音、语言、格式、时长限制、音色克隆权限和计费完全由实现该兼容接口的渠道决定。插件没有供应商白名单；管理员必须用该部署的接口文档校对。
+Model IDs, task types, sounds, languages, formats, duration limits, patch cloning permissions, and billing are entirely determined by the channel implementing this compatible interface. Plugins do not have a vendor whitelist; administrators must check with the deployment's interface documentation.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-当前创建正文只包含：
+The current creation body only contains:
 
 ```json
 {"model":"YOUR_ASYNC_AUDIO_MODEL","prompt":"低沉克制的男声旁白：风暴即将到来。"}
 ```
 
-没有映射 `voice`、`format`、`speed`、参考音频、歌词或音乐结构。若模型依赖这些字段，当前插件不适用。
+There is no mapping of `voice`, `format`, `speed`, reference audio, lyrics or musical structure. If the model depends on these fields, the current plugin is not applicable.
 
-## 创建、轮询与结果
+## Creation, polling and results
 
 ```bash
 curl "{channel_base_url}/v1/audio/tasks" \
@@ -38,15 +38,15 @@ curl "{channel_base_url}/v1/audio/tasks" \
   -d '{"model":"YOUR_ASYNC_AUDIO_MODEL","prompt":"雨声环境音，逐渐增强"}'
 ```
 
-创建响应需包含任务 ID，查询路径使用该 ID。轮询 parser 按音频类型提取 `audios`、`audio_url`、`audioUrl`、`result_url` 或 `url`，不会把音频误写入视频结果。若部署返回其他深层结构，必须增加该渠道 fixture 和明确映射。
+The creation response needs to contain the task ID, which is used by the query path. The polling parser extracts `audios`, `audio_url`, `audioUrl`, `result_url` or `url` by audio type without accidentally writing the audio into the video result. If the deployment returns other deep structures, the channel fixture must be added and mapped explicitly.
 
-## 错误与安全
+## Bugs and Security
 
-任务不存在、模型不支持、输入过长、声音授权或内容审核失败应原样返回。涉及真人声音克隆时必须确认授权；参考音频和生成链接不得写入公开日志。结果 URL 应尽快转存。
+Tasks that do not exist, models that are not supported, inputs that are too long, voice authorization, or content moderation failures should be returned unchanged. Authorization must be confirmed when real-person voice cloning is involved; reference audio and generated links must not be written to public logs. The resulting URL should be dumped as soon as possible.
 
-## 官方资料与边界
+## Official information and boundaries
 
-- 本页以宿主当前 adapter 为唯一字段事实源。
-- 渠道部署方必须提供真实的模型、声音、错误码和计费文档；没有这些资料时不能对用户承诺能力。
+- This page uses the host's current adapter as the only field source of fact.
+- The channel deployer must provide real models, sounds, error codes and billing documents; without these materials, capabilities cannot be promised to users.
 
 {{CONTRACT}}

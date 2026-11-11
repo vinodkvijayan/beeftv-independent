@@ -450,8 +450,8 @@ func TestManagedImageEndedTaskDoesNotEnterRecovery(t *testing.T) {
 					t.Fatal(err)
 				}
 				outcomeResult := executionFailureOutcome(svc.terminalCoordinator(), &candidate, tc.err, false, false, false)
-				if !outcomeResult.Applied || candidate.RecoveryOutcome == nil || *candidate.RecoveryOutcome != localtask.RecoveryNoResult || candidate.Stage != "任务失败" {
-					t.Fatalf("Applied=%v Stage=%q RecoveryOutcome=%v, want Applied=true Stage=任务失败 RecoveryOutcome=%q", outcomeResult.Applied, candidate.Stage, candidate.RecoveryOutcome, localtask.RecoveryNoResult)
+				if !outcomeResult.Applied || candidate.RecoveryOutcome == nil || *candidate.RecoveryOutcome != localtask.RecoveryNoResult || candidate.Stage != "Task failed" {
+					t.Fatalf("Applied=%v Stage=%q RecoveryOutcome=%v, want Applied=true Stage=Task failed RecoveryOutcome=%q", outcomeResult.Applied, candidate.Stage, candidate.RecoveryOutcome, localtask.RecoveryNoResult)
 				}
 				failed := candidate
 				failed.LeaseOwner = ""

@@ -92,7 +92,7 @@ func (t *testTasks) Prepare(userID string, req TaskRequest) (*PreparedTask, erro
 	raw, _ := json.Marshal(input)
 	task := &model.Task{
 		ID: kernel.NewID(), UserID: userID, ProjectID: req.ProjectID, Type: req.Type,
-		Status: model.TaskStatusQueued, Stage: "等待队列调度", Progress: 5,
+		Status: model.TaskStatusQueued, Stage: "Waiting for queue scheduling", Progress: 5,
 		Prompt: req.Prompt, Model: req.Model, InputJSON: string(raw),
 	}
 	config, _ := input["config"].(map[string]any)
@@ -143,7 +143,7 @@ func newHarness(t *testing.T) *harness {
 		Tasks: h.tasks, Secrets: testSecrets{}, Quota: h.quota, Media: testMedia{}, Kinds: testKinds{},
 		Now: func() time.Time { return h.clock }, NewID: kernel.NewID,
 	})
-	if err = db.Create(&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "受控测试"}).Error; err != nil {
+	if err = db.Create(&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "controlled testing"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err = db.Create(&model.ChannelModel{ID: "cm", ChannelID: "channel", ModelKey: "text-test", Capability: "text", Protocol: model.ChannelInterfaceChatCompletion, CapabilityConfigJSON: `{"version":1,"text":{"references":{"maxImages":4}}}`, Enabled: true}).Error; err != nil {
@@ -162,7 +162,7 @@ func newHarness(t *testing.T) *harness {
 }
 
 func textTask() TaskRequest {
-	return TaskRequest{Type: "canvas_text", Prompt: "只输出测试", Model: "text-test", Input: map[string]any{"mode": "text", "prompt": "只输出测试", "config": map[string]any{"channelId": "channel", "model": "text-test"}}}
+	return TaskRequest{Type: "canvas_text", Prompt: "Only output tests", Model: "text-test", Input: map[string]any{"mode": "text", "prompt": "Only output tests", "config": map[string]any{"channelId": "channel", "model": "text-test"}}}
 }
 
 func (h *harness) cmd() Command {
@@ -187,7 +187,7 @@ func TestExpiredLeaseAndStaleProposalRejected(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ops := []CanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "计划", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "已批准"}}}
+	ops := []CanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "plan", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "Approved"}}}
 	if _, err = h.svc.Change(h.user, h.runID, "proposal-approve", Command{Guard: h.guard, Revision: run.Revision, ProposalVersion: 1, Proposal: json.RawMessage(`{"title":"计划"}`), Ops: ops}); err != nil {
 		t.Fatal(err)
 	}
@@ -265,7 +265,7 @@ func TestCanvasCommitRollbackRetainsRevision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ops := []CanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "计划", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "已批准"}}}
+	ops := []CanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "plan", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "Approved"}}}
 	if _, err = h.svc.Change(h.user, h.runID, "proposal-approve", Command{Guard: h.guard, Revision: run.Revision, ProposalVersion: 1, Proposal: json.RawMessage(`{"title":"计划"}`), Ops: ops}); err != nil {
 		t.Fatal(err)
 	}
@@ -566,7 +566,7 @@ func TestCommitCanvasMediaUsesTransactionRepository(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc["nodes"] = []any{map[string]any{"id": "img", "type": "image", "title": "图", "metadata": map[string]any{
+	doc["nodes"] = []any{map[string]any{"id": "img", "type": "image", "title": "Figure", "metadata": map[string]any{
 		"assetId": "asset-1", "storageKey": "resource:res-1", "content": "/api/resources/res-1/file",
 	}}}
 	injected, err := json.Marshal(doc)
@@ -615,7 +615,7 @@ func seedApprovedCanvas(t *testing.T, h *harness) (string, string, json.RawMessa
 	if err != nil {
 		t.Fatal(err)
 	}
-	ops := []CanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "计划", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "已批准"}}}
+	ops := []CanvasOp{{Type: "add_node", ID: "node", NodeType: "text", Title: "plan", Position: map[string]any{"x": float64(0), "y": float64(0)}, Metadata: map[string]any{"content": "Approved"}}}
 	if _, err = h.svc.Change(h.user, h.runID, "proposal-approve", Command{Guard: h.guard, Revision: run.Revision, ProposalVersion: 1, Proposal: json.RawMessage(`{"title":"计划"}`), Ops: ops}); err != nil {
 		t.Fatal(err)
 	}

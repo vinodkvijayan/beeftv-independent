@@ -28,9 +28,9 @@ type referenceReporter struct {
 }
 
 func referenceMediaLabel(kind string, index int) string {
-	label := map[string]string{"image": "参考图片", "video": "参考视频", "audio": "参考音频"}[kind]
+	label := map[string]string{"image": "Reference pictures", "video": "Reference video", "audio": "Reference audio"}[kind]
 	if label == "" {
-		label = "参考素材"
+		label = "Reference material"
 	}
 	return label + " " + strconv.Itoa(index+1)
 }

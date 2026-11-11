@@ -1,15 +1,15 @@
-## 改动摘要
+## Summary of changes
 
-<!-- 说明解决的问题和外部行为变化。 -->
+<!-- Describe the problem solved and the external behavior change. -->
 
-## 风险与兼容性
+## Risks and Compatibility
 
-<!-- 说明数据、权限、费用、部署或兼容性影响。 -->
+<!-- Describe data, permissions, cost, deployment, or compatibility implications. -->
 
-## 验证
+## Verify
 
-<!-- 列出已完成的检查；涉及 UI 时附关键路径截图。 -->
+<!-- List completed checks; attach key path screenshots when UI is involved. -->
 
-- [ ] 未提交密钥、数据库、日志或本机配置
-- [ ] 保留上游署名和许可证通知
-- [ ] 已检查权限、资源归属和失败语义
+- [ ] No keys, databases, logs, or native configurations committed
+- [ ] Preserve upstream attribution and license notice
+- [ ] Permissions, resource ownership and failure semantics checked

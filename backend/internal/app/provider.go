@@ -62,7 +62,7 @@ func (s *Service) processCanvasGenerationTask(ctx context.Context, userID string
 	var input canvasGenerationInput
 	defer func() { recordTaskDiagnosticInput(ctx, input) }()
 	if err := json.Unmarshal([]byte(rawInput), &input); err != nil {
-		return nil, fmt.Errorf("任务输入解析失败：%w", err)
+		return nil, fmt.Errorf("Task input parsing failed: %w", err)
 	}
 	ctx = s.enrichGenerationRuntime(ctx, generation.CallMeta{UserID: userID, TaskID: taskExecutionID(ctx), ProjectID: taskProjectID, TaskType: taskType})
 	if strings.TrimSpace(input.Prompt) == "" {

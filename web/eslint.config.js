@@ -2,8 +2,8 @@ import babelParser from "@babel/eslint-parser";
 
 // 这不是风格检查。锁住已退场的 AntD 用法和已知会导致旧 WebView 崩溃的 API。
 // 用 Babel 解析 TS/TSX：typescript-eslint 8 在 TypeScript 7 上会直接拒绝启动。
-const emptyMessage = "列表和面板空态用 @/components/ui/product/empty-state 的 EmptyState，不要再引入 antd Empty。";
-const confirmMessage = "命令式确认必须走 App.useApp().modal.confirm，静态 Modal.confirm 拿不到主题和 App 上下文。";
+const emptyMessage = "Use the EmptyState of @/components/ui/product/empty-state for list and panel empty states, and do not introduce antd Empty.";
+const confirmMessage = "Imperative confirmation must go through App.useApp().modal.confirm. Static Modal.confirm cannot get the theme and App context.";
 
 // 源码里还有 react-hooks/exhaustive-deps 的 disable 注释。本闸门不启用 hooks 规则，
 // 只挂一个空规则，避免 ESLint 把未知规则名当成错误。
@@ -27,7 +27,7 @@ export default [
         rules: {
             "no-restricted-properties": ["error", {
                 property: "toSorted",
-                message: "桌面 WebView 可能不支持 toSorted；对 filter/map 等新数组使用 sort，原数组需先复制。",
+                message: "Desktop WebView may not support toSorted; to use sort on new arrays such as filter/map, the original array needs to be copied first.",
             }],
         },
     },

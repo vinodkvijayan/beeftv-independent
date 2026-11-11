@@ -93,7 +93,7 @@ func TestGenerationDownloadCanPauseAndResumeWithoutRegenerating(t *testing.T) {
 		t.Fatalf("download calls: %d", calls.Load())
 	}
 	got, err = svc.Task(task.UserID, task.ID)
-	if err != nil || got.Stage != "生成完成" {
+	if err != nil || got.Stage != "Generation completed" {
 		t.Fatalf("resumed delivery kept a downloading stage: %+v %v", got, err)
 	}
 	var count int64
@@ -104,7 +104,7 @@ func TestGenerationDownloadCanPauseAndResumeWithoutRegenerating(t *testing.T) {
 }
 
 func TestGenerationDownloadCompletedProjectionClearsStaleStage(t *testing.T) {
-	for _, stage := range []string{"正在取回结果", "delivery_paused", "delivery_timed_out", "任务完成"} {
+	for _, stage := range []string{"Retrieving results", "delivery_paused", "delivery_timed_out", "Mission accomplished"} {
 		t.Run(stage, func(t *testing.T) {
 			svc, db := newGenerationDeliveryMediaService(t, filepath.Join(t.TempDir(), "delivery.db"), t.TempDir())
 			defer closeDB(t, db)
@@ -119,8 +119,8 @@ func TestGenerationDownloadCompletedProjectionClearsStaleStage(t *testing.T) {
 				t.Fatal(err)
 			}
 			task.Stage = stage
-			want := "生成完成"
-			if stage == "任务完成" {
+			want := "Generation completed"
+			if stage == "Mission accomplished" {
 				want = stage
 			}
 			got, err := svc.Task(task.UserID, task.ID)

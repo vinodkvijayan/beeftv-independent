@@ -27,7 +27,7 @@ useUserStore.setState({
     user: {
         id: "owner-a",
         username: "remote-user",
-        displayName: "账号 A",
+        displayName: "Account A",
         role: "user",
         status: "active",
     },
@@ -45,7 +45,7 @@ function makeProject(id: string, status: Project["status"]): Project {
     return {
         id,
         userId: "owner-a",
-        name: id === "project-a" ? "项目甲" : "项目乙",
+        name: id === "project-a" ? "Project A" : "Project B",
         type: "short-drama",
         aspectRatio: "9:16",
         sourceType: "blank",

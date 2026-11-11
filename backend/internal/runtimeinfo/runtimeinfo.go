@@ -109,7 +109,7 @@ func Load(dataDir string) (Info, error) {
 		return Info{}, err
 	}
 	if dataDirHash != "" && info.DataDirHash != dataDirHash {
-		return Info{}, errors.New("运行时描述文件不属于指定工作区")
+		return Info{}, errors.New("The runtime description file does not belong to the specified workspace")
 	}
 	return info, nil
 }
@@ -147,7 +147,7 @@ func DefaultDataDir() (string, error) {
 	}
 	root, err := os.UserConfigDir()
 	if err != nil {
-		return "", fmt.Errorf("定位用户应用数据目录: %w", err)
+		return "", fmt.Errorf("Locate user application data directory: %w", err)
 	}
 	return desktopstorage.Resolve(filepath.Join(root, "BeefTV"))
 }

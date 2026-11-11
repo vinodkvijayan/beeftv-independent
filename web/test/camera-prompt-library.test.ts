@@ -23,9 +23,9 @@ describe("camera prompt contract", () => {
             apertureF: APERTURES[0],
         };
 
-        expect(() => buildCameraPrompt({ ...valid, cameraId: "unknown-camera" })).toThrow("不支持的相机配置");
-        expect(() => buildCameraPrompt({ ...valid, lensId: "unknown-lens" })).toThrow("不支持的镜头配置");
-        expect(() => buildCameraPrompt({ ...valid, focalLengthMm: 47 })).toThrow("不支持的焦距");
-        expect(() => buildCameraPrompt({ ...valid, apertureF: 3.2 })).toThrow("不支持的光圈");
+        expect(() => buildCameraPrompt({ ...valid, cameraId: "unknown-camera" })).toThrow("Unsupported camera configuration");
+        expect(() => buildCameraPrompt({ ...valid, lensId: "unknown-lens" })).toThrow("Unsupported lens configuration");
+        expect(() => buildCameraPrompt({ ...valid, focalLengthMm: 47 })).toThrow("Unsupported focal length");
+        expect(() => buildCameraPrompt({ ...valid, apertureF: 3.2 })).toThrow("Unsupported aperture");
     });
 });

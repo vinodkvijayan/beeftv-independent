@@ -40,17 +40,17 @@ for (const httpStatus of [400, 500]) {
             page.on("pageerror", (error) => errors.push(error.message));
             try {
                 await page.goto(server.url.toString());
-                await page.getByRole("button", { name: "提交测试任务", exact: true }).click();
-                const notice = page.getByRole("region", { name: "生成错误" });
-                await notice.getByText("本地数据库无法读写", { exact: true }).waitFor();
+                await page.getByRole("button", { name: "Submit test task", exact: true }).click();
+                const notice = page.getByRole("region", { name: "generate error" });
+                await notice.getByText("The local database cannot be read or written", { exact: true }).waitFor();
                 expect(await notice.getAttribute("data-category")).toBe("local_storage");
-                expect(await notice.getByText("本地数据库无法读写", { exact: true }).isVisible()).toBe(true);
-                expect(await notice.getByText("请重启应用；若仍失败，请保留排查信息并联系支持，不要重复生成", { exact: true }).isVisible()).toBe(true);
-                expect(await notice.getByRole("button", { name: "复制排查信息", exact: true }).isVisible()).toBe(true);
-                expect(await notice.getByRole("button", { name: "重新生成", exact: true }).count()).toBe(0);
-                expect(await notice.innerText()).not.toContain("模型不接受当前参数");
+                expect(await notice.getByText("The local database cannot be read or written", { exact: true }).isVisible()).toBe(true);
+                expect(await notice.getByText("Please restart the application; if it still fails, please retain the troubleshooting information and contact support, and do not generate it again.", { exact: true }).isVisible()).toBe(true);
+                expect(await notice.getByRole("button", { name: "Copy troubleshooting information", exact: true }).isVisible()).toBe(true);
+                expect(await notice.getByRole("button", { name: "Regenerate", exact: true }).count()).toBe(0);
+                expect(await notice.innerText()).not.toContain("Model does not accept current parameters");
                 expect(await notice.innerText()).not.toContain("failure_diagnostics");
-                expect(await page.getByRole("status", { name: "重试次数" }).innerText()).toBe("0");
+                expect(await page.getByRole("status", { name: "Number of retries" }).innerText()).toBe("0");
                 expect(submissions).toBe(1);
                 expect(errors).toEqual([]);
             } finally {

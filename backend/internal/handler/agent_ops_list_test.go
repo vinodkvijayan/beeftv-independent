@@ -27,13 +27,13 @@ func TestOpsListingKeepsOwnerAndExternalCatalogFull(t *testing.T) {
 		want = append(want, descriptor.ID)
 	}
 	if !reflect.DeepEqual(ownerListing, want) {
-		t.Fatalf("owner 能力发现应为 %v，得到 %v", want, ownerListing)
+		t.Fatalf("The owner capability discovery should be %v and got %v", want, ownerListing)
 	}
 	if !listingHas(ownerListing, "canvas.document.commit") {
-		t.Fatalf("owner 应包含文档提交: %v", ownerListing)
+		t.Fatalf("owner should contain document submission: %v", ownerListing)
 	}
 	if !listingHas(ownerListing, "asset.list") || !listingHas(ownerListing, "canvas.search") {
-		t.Fatalf("owner 应包含工作区级操作: %v", ownerListing)
+		t.Fatalf("owner should contain workspace level operations: %v", ownerListing)
 	}
 
 	reg, token, err := env.clients.RegisterKind("codex", "cli", agentops.ClientReadWrite)
@@ -42,7 +42,7 @@ func TestOpsListingKeepsOwnerAndExternalCatalogFull(t *testing.T) {
 	}
 	externalListing := getOps(t, env, map[string]string{"X-Beeftv-Client": reg.ID, "Authorization": "Bearer " + token})
 	if !reflect.DeepEqual(externalListing, want) {
-		t.Fatalf("外部客户端能力发现应为 %v，得到 %v", want, externalListing)
+		t.Fatalf("External client capability discovery should be %v, got %v", want, externalListing)
 	}
 
 	hostListing := getOps(t, env, map[string]string{"X-Beeftv-Agent-Token": assistantTestHostToken})
@@ -53,10 +53,10 @@ func TestOpsListingKeepsOwnerAndExternalCatalogFull(t *testing.T) {
 		}
 	}
 	if !reflect.DeepEqual(hostListing, wantHost) {
-		t.Fatalf("宿主回合外能力发现应为 %v，得到 %v", wantHost, hostListing)
+		t.Fatalf("The host's out-of-turn ability discovery should be %v, getting %v", wantHost, hostListing)
 	}
 	if !listingHas(hostListing, "asset.list") || !listingHas(hostListing, "canvas.search") || !listingHas(hostListing, "canvas.document.commit") {
-		t.Fatalf("宿主应能装载完整画布能力，回合内再按Go权限选择: %v", hostListing)
+		t.Fatalf("The host should be able to load the complete canvas capability, and then press Go permission during the round to select: %v", hostListing)
 	}
 }
 
@@ -132,7 +132,7 @@ func TestExternalWritesListAndUndoRoutes(t *testing.T) {
 			"canvasId":         canvasID,
 			"nodeId":           "n1",
 			"expectedRevision": rev0,
-			"patch":            map[string]any{"title": "Codex 改过的镜头"},
+			"patch":            map[string]any{"title": "Codex modified lens"},
 		},
 	})
 	req := httptest.NewRequest(http.MethodPost, "http://127.0.0.1:18090/api/ops/canvas.node.update", bytes.NewReader(updateBody))

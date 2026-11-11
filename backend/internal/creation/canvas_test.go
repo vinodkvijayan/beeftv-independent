@@ -30,10 +30,10 @@ func TestApprovedUpdateDoesNotOverwriteLaterManualEdit(t *testing.T) {
 
 func TestSubmissionScopeRejectsChangedModelSpecAndReferences(t *testing.T) {
 	now := time.Now()
-	ops := []CanvasOp{{Type: "add_node", ID: "v", NodeType: "video", Metadata: map[string]any{"prompt": "短片", "model": "managed-video", "size": "9:16", "seconds": "15", "referenceNodeIds": []any{"ref"}}}}
+	ops := []CanvasOp{{Type: "add_node", ID: "v", NodeType: "video", Metadata: map[string]any{"prompt": "short film", "model": "managed-video", "size": "9:16", "seconds": "15", "referenceNodeIds": []any{"ref"}}}}
 	b, _ := json.Marshal(ops)
 	run := &model.CreationRun{CanvasID: "canvas", Status: "running", ApprovedProposalVersion: 1, ApprovedProposalHash: "hash", ApprovedOperationsJSON: string(b), ApprovedAt: &now}
-	request := TaskRequest{Type: "canvas_video", ProjectID: "canvas", Prompt: "短片", Model: "managed-video", Input: map[string]any{"nodeId": "v", "config": map[string]any{"size": "9:16", "videoSeconds": "15"}, "referenceImages": []any{map[string]any{"id": "ref"}}}}
+	request := TaskRequest{Type: "canvas_video", ProjectID: "canvas", Prompt: "short film", Model: "managed-video", Input: map[string]any{"nodeId": "v", "config": map[string]any{"size": "9:16", "videoSeconds": "15"}, "referenceImages": []any{map[string]any{"id": "ref"}}}}
 	if err := ValidateSubmissionScope(run, 1, request); err != nil {
 		t.Fatal(err)
 	}

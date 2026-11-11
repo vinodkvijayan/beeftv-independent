@@ -88,7 +88,7 @@ func integrationClients(clients agentClientRegistry, kind agentops.ClientKind) (
 }
 
 func registryUnreadable(kind agentops.ClientKind) error {
-	return agentops.PreconditionFailed("registry_unreadable", "没能读取 BeefTV 的连接记录，暂时无法确认 "+integrationName(kind)+" 的连接状态。请稍后重试。", nil)
+	return agentops.PreconditionFailed("registry_unreadable", "Failed to read BeefTV connection record, cannot confirm at the moment"+integrationName(kind)+" connection status. Please try again later.", nil)
 }
 
 func integrationDetected(manager *agentconnect.Manager, kind agentops.ClientKind, cliPath, dataDir string) bool {
@@ -155,13 +155,13 @@ func integrationFailure(kind agentops.ClientKind, err error) error {
 	name := integrationName(kind)
 	switch {
 	case errors.Is(err, agentconnect.ErrAgentNotFound):
-		return agentops.PreconditionFailed("agent_not_found", "没有检测到 "+name+" 的命令行。安装后打开一次，再回到这里接入。", nil)
+		return agentops.PreconditionFailed("agent_not_found", "not detected"+name+" command line. After installation, open it once and then come back here to access it.", nil)
 	case errors.Is(err, agentconnect.ErrUnsafeCommand):
-		return agentops.PreconditionFailed("agent_command_unsafe", "这台电脑上的 "+name+" 命令行无法安全调用，不能自动接入。请使用手动连接。", nil)
+		return agentops.PreconditionFailed("agent_command_unsafe", "on this computer"+name+" The command line cannot be called safely and cannot be automatically accessed. Please use manual connection.", nil)
 	case errors.Is(err, agentconnect.ErrUnsupported):
-		return agentops.PreconditionFailed("unsupported_agent", "这里只能接入 Claude Code 或 Codex。", nil)
+		return agentops.PreconditionFailed("unsupported_agent", "Only Claude Code or Codex can be accessed here.", nil)
 	default:
-		return agentops.PreconditionFailed("agent_cli_failed", "没能通过 "+name+" 的命令行完成配置。请确认它已正确安装后重试。", nil)
+		return agentops.PreconditionFailed("agent_cli_failed", "failed to pass"+name+" The command line completes the configuration. Please make sure it is installed correctly and try again.", nil)
 	}
 }
 
@@ -219,12 +219,12 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 			Kind string `json:"kind"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
-			failAgentOps(c, agentops.InvalidArg("invalid_request", "请求体无效"))
+			failAgentOps(c, agentops.InvalidArg("invalid_request", "The request body is invalid"))
 			return
 		}
 		kind := integrationKind(req.Kind)
 		if kind == "" {
-			failAgentOps(c, agentops.InvalidArg("unsupported_agent", "这里只能接入 Claude Code 或 Codex。"))
+			failAgentOps(c, agentops.InvalidArg("unsupported_agent", "Only Claude Code or Codex can be accessed here."))
 			return
 		}
 		lock := locks.forKind(kind)
@@ -233,7 +233,7 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 
 		cliPath, available := integrationCLIPath()
 		if !available {
-			failAgentOps(c, agentops.PreconditionFailed("cli_unavailable", "安装文件不完整，无法连接外部工具。请重新下载并完整解压 BeefTV。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("cli_unavailable", "The installation file is incomplete and external tools cannot be connected. Please re-download and fully unzip BeefTV.", nil))
 			return
 		}
 		dataDir, err := filepath.Abs(svc.DataDir())
@@ -243,7 +243,7 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 		}
 		manager := newIntegrationManager(dataDir)
 		if !manager.Available() {
-			failAgentOps(c, agentops.PreconditionFailed("home_unavailable", "找不到当前用户目录，无法写入配置。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("home_unavailable", "The current user directory cannot be found and the configuration cannot be written.", nil))
 			return
 		}
 		// Validate the complete call before issuing a credential or removing
@@ -268,7 +268,7 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 		tokenFile, err := manager.WriteToken(kind, token)
 		if err != nil {
 			if cleanupErr := cleanupAfterTokenWriteFailure(clients, reg.ID); cleanupErr != nil {
-				failAgentOps(c, agentops.PreconditionFailed("connect_cleanup_failed", "没能保存连接凭据，也没能撤销刚生成的连接。请重启 BeefTV 后重试。", nil))
+				failAgentOps(c, agentops.PreconditionFailed("connect_cleanup_failed", "The connection credentials could not be saved, nor could the newly created connection be revoked. Please restart BeefTV and try again.", nil))
 				return
 			}
 			failAgentOps(c, integrationFailure(kind, err))
@@ -277,7 +277,7 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 		spec := agentconnect.Launch(cliPath, dataDir, tokenFile, reg.Mode, reg.ID)
 		if err := manager.Connect(kind, spec); err != nil {
 			if cleanupErr := cleanupFailedConnect(manager, clients, kind, reg.ID); cleanupErr != nil {
-				failAgentOps(c, agentops.PreconditionFailed("connect_cleanup_failed", "没能写入 "+integrationName(kind)+" 配置，也没能撤销刚生成的连接。请重启 BeefTV 后重试。", nil))
+				failAgentOps(c, agentops.PreconditionFailed("connect_cleanup_failed", "failed to write"+integrationName(kind)+" Configuration, it also failed to cancel the newly generated connection. Please restart BeefTV and try again.", nil))
 				return
 			}
 			failAgentOps(c, integrationFailure(kind, err))
@@ -293,11 +293,11 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 			_ = cleanupFailedConnect(manager, clients, kind, reg.ID)
 			_ = manager.RemoveConfig(kind)
 			_ = manager.RemoveSkill(kind)
-			failAgentOps(c, agentops.PreconditionFailed("state_write_failed", "没能保存连接状态。请重试。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("state_write_failed", "Failed to save connection state. Please try again.", nil))
 			return
 		}
 		if failed := revokeOtherIntegrationClients(clients, kind, reg.ID); len(failed) > 0 {
-			failAgentOps(c, agentops.PreconditionFailed("revoke_failed", "已接入 "+integrationName(kind)+"，但没能清理旧连接。再点一次接入即可重试。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("revoke_failed", "Already connected"+integrationName(kind)+", but failed to clean up old connections. Click to connect again to try again.", nil))
 			return
 		}
 		ok(c, gin.H{"integration": integrationView(manager, clients, kind, cliPath, dataDir)})
@@ -309,7 +309,7 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 		}
 		kind := integrationKind(c.Param("kind"))
 		if kind == "" {
-			failAgentOps(c, agentops.InvalidArg("unsupported_agent", "这里只能接入 Claude Code 或 Codex。"))
+			failAgentOps(c, agentops.InvalidArg("unsupported_agent", "Only Claude Code or Codex can be accessed here."))
 			return
 		}
 		lock := locks.forKind(kind)
@@ -337,15 +337,15 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 			}
 		}
 		if len(failed) > 0 {
-			failAgentOps(c, agentops.PreconditionFailed("revoke_failed", "没能断开 "+integrationName(kind)+"。请再试一次。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("revoke_failed", "failed to disconnect"+integrationName(kind)+". Please try again.", nil))
 			return
 		}
 		if err := manager.DeleteToken(kind); err != nil {
-			failAgentOps(c, agentops.PreconditionFailed("token_delete_failed", "没能删除连接凭据。请再试一次。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("token_delete_failed", "Failed to delete connection credentials. Please try again.", nil))
 			return
 		}
 		if err := manager.DeleteRecord(kind); err != nil {
-			failAgentOps(c, agentops.PreconditionFailed("state_write_failed", "没能保存断开状态。请再试一次。", nil))
+			failAgentOps(c, agentops.PreconditionFailed("state_write_failed", "Failed to save disconnected state. Please try again.", nil))
 			return
 		}
 
@@ -354,7 +354,7 @@ func registerAgentIntegrationRoutes(r gin.IRouter, svc ownerCredentialDirs, clie
 		warning := ""
 		if err := manager.RemoveConfig(kind); err != nil {
 			name := integrationName(kind)
-			warning = "BeefTV 已停止接受 " + name + " 的访问。" + name + " 里的 BeefTV 连接没能自动移除，可以在它的 MCP 设置里手动删除。"
+			warning = "BeefTV has stopped accepting" + name + " visit." + name + "The BeefTV connection in is not automatically removed and can be removed manually in its MCP settings."
 		}
 		_ = manager.RemoveSkill(kind)
 		cliPath, _ := integrationCLIPath()

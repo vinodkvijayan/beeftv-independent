@@ -255,12 +255,12 @@ func TestGrokImageQueueRejectsMaskAndMultipleReferences(t *testing.T) {
 				t.Fatal(err)
 			}
 			input := canvasGenerationInput{Mode: "image", Prompt: "edit", Config: providerConfig{BaseURL: server.URL, APIKey: "fixture", Model: "grok-imagine-image", InterfaceType: "grok-image"}, ReferenceImages: []providerMedia{{DataURL: tinyPNGDataURL}}}
-			want := "蒙版"
+			want := "Mask"
 			if kind == "mask" {
 				input.Mask = &providerMedia{DataURL: tinyPNGDataURL}
 			} else {
 				input.ReferenceImages = append(input.ReferenceImages, providerMedia{DataURL: tinyPNGDataURL})
-				want = "最多支持 1 张"
+				want = "Supports up to 1 picture"
 			}
 			raw, _ := json.Marshal(input)
 			_, err := s.processCanvasGenerationTask(withTaskExecutionID(context.Background(), "preflight"), "user", "", "canvas_image", "", string(raw))

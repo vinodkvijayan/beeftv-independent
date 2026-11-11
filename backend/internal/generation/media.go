@@ -20,7 +20,7 @@ func HydrateMedia(ctx context.Context, userID string, input *Input, policy Media
 		groupPolicy := mediaPolicyForKind(ctx, *input, []string{"image", "video", "audio"}[kind], policy)
 		for index := range group {
 			if err := HydrateOne(ctx, userID, &group[index], groupPolicy); err != nil {
-				return fmt.Errorf("%s %d：%w", []string{"参考图片", "参考视频", "参考音频"}[kind], index+1, err)
+				return fmt.Errorf("%s %d：%w", []string{"Reference pictures", "Reference video", "Reference audio"}[kind], index+1, err)
 			}
 		}
 	}
@@ -36,24 +36,24 @@ func HydrateOne(ctx context.Context, userID string, media *Media, policy MediaHy
 	}
 	if !strings.HasPrefix(media.StorageKey, "resource:") {
 		if policy.RequireURL && (strings.HasPrefix(strings.TrimSpace(media.DataURL), "data:") || strings.HasPrefix(strings.TrimSpace(media.URL), "data:")) {
-			return errors.New("当前渠道暂不支持直接使用本地素材，请使用可访问的 HTTPS 素材链接，或选择支持本地素材的渠道")
+			return errors.New("The current channel does not support the direct use of local materials. Please use an accessible HTTPS material link, or choose a channel that supports local materials.")
 		}
 		return nil
 	}
 	runtime, ok := RuntimeFromContext(ctx)
 	if !ok || runtime.Resources == nil {
-		return errors.New("读取任务参考资源失败：资源端口未接入")
+		return errors.New("Failed to read task reference resources: the resource port is not connected")
 	}
 	resourceID := strings.TrimPrefix(media.StorageKey, "resource:")
 	resource, err := runtime.Resources.Lookup(userID, resourceID)
 	if err != nil {
-		return fmt.Errorf("读取任务参考资源失败：%w", err)
+		return fmt.Errorf("Failed to read task reference resources: %w", err)
 	}
 	if resource.Status != "ready" {
-		return errors.New("任务参考资源尚未上传完成")
+		return errors.New("Task reference resources have not been uploaded yet")
 	}
 	if runtime.Resources.LocalMode() && resource.UsesObjectStorage() {
-		return errors.New("本地工作区检测到旧的远程素材记录，请重新导入到本地资源目录")
+		return errors.New("The local workspace has detected old remote material records, please re-import them to the local resource directory.")
 	}
 	if policy.KeepLocal {
 		media.URL = ""
@@ -87,11 +87,11 @@ func HydrateOne(ctx context.Context, userID string, media *Media, policy MediaHy
 	useObjectURL := policy.RequireURL || (policy.PreferURL && resource.UsesObjectStorage())
 	if useObjectURL {
 		if runtime.Resources.LocalMode() && policy.RequireURL {
-			return errors.New("当前模型协议要求公网素材地址，本地工作区请改用支持内嵌素材的模型")
+			return errors.New("The current model protocol requires public network material addresses. Please use a model that supports embedded materials in the local workspace instead.")
 		}
 		signedURL, err := runtime.Resources.PublicURL(resource, time.Now().Add(ResourceURLTTL))
 		if err != nil {
-			return fmt.Errorf("生成参考素材地址失败：%w", err)
+			return fmt.Errorf("Failed to generate reference material address: %w", err)
 		}
 		media.URL = signedURL
 		media.DataURL = ""
@@ -103,7 +103,7 @@ func HydrateOne(ctx context.Context, userID string, media *Media, policy MediaHy
 	}
 	resource, body, err := runtime.Resources.Open(userID, resourceID)
 	if err != nil {
-		return fmt.Errorf("读取任务参考资源失败：%w", err)
+		return fmt.Errorf("Failed to read task reference resources: %w", err)
 	}
 	defer body.Close()
 	resourceLimit := MaxResponseBytes
@@ -119,7 +119,7 @@ func HydrateOne(ctx context.Context, userID string, media *Media, policy MediaHy
 		return err
 	}
 	if int64(len(data)) > resourceLimit {
-		return fmt.Errorf("任务参考资源超过 %s", formatStorageLimit(resourceLimit))
+		return fmt.Errorf("The task reference resource exceeds %s", formatStorageLimit(resourceLimit))
 	}
 	mimeType := NormalizedMediaMIMEType(firstNonEmpty(media.MimeType, resource.MimeType), data)
 	media.DataURL = DataURL(mimeType, data)
@@ -153,11 +153,11 @@ func MediaBytes(media Media) ([]byte, string, error) {
 		value = media.URL
 	}
 	if !strings.HasPrefix(value, "data:") {
-		return nil, "", errors.New("后端任务队列需要 data URL 形式的本地参考素材")
+		return nil, "", errors.New("The backend task queue requires local reference material in the form of a data URL")
 	}
 	header, encoded, ok := strings.Cut(value, ",")
 	if !ok {
-		return nil, "", errors.New("data URL 格式错误")
+		return nil, "", errors.New("data URL format error")
 	}
 	mimeType := strings.TrimPrefix(strings.Split(strings.TrimPrefix(header, "data:"), ";")[0], " ")
 	raw, err := base64.StdEncoding.DecodeString(encoded)
@@ -197,16 +197,16 @@ func OpenAIImageInputURL(media Media) (string, error) {
 		return value, nil
 	}
 	if strings.HasPrefix(value, "data:") {
-		return "", errors.New("参考图片 MIME 类型无效，请重新读取或上传图片")
+		return "", errors.New("The MIME type of the reference image is invalid, please re-read or upload the image")
 	}
 	value = strings.TrimSpace(media.URL)
 	if strings.HasPrefix(value, "data:image/") || IsPublicMediaURL(value) {
 		return value, nil
 	}
 	if strings.HasPrefix(value, "data:") {
-		return "", errors.New("参考图片 MIME 类型无效，请重新读取或上传图片")
+		return "", errors.New("The MIME type of the reference image is invalid, please re-read or upload the image")
 	}
-	return "", errors.New("OpenAI 文本多模态参考图片需要公网 URL 或 base64 data URL")
+	return "", errors.New("OpenAI text multi-modal reference images require public URL or base64 data URL")
 }
 
 func OpenAIVideoInputURL(media Media) (string, error) {
@@ -215,16 +215,16 @@ func OpenAIVideoInputURL(media Media) (string, error) {
 		return value, nil
 	}
 	if strings.HasPrefix(value, "data:") {
-		return "", errors.New("参考视频 MIME 类型无效，请重新读取或上传视频")
+		return "", errors.New("The reference video MIME type is invalid, please re-read or upload the video")
 	}
 	value = strings.TrimSpace(media.URL)
 	if strings.HasPrefix(value, "data:video/") || IsPublicMediaURL(value) {
 		return value, nil
 	}
 	if strings.HasPrefix(value, "data:") {
-		return "", errors.New("参考视频 MIME 类型无效，请重新读取或上传视频")
+		return "", errors.New("The reference video MIME type is invalid, please re-read or upload the video")
 	}
-	return "", errors.New("文本多模态参考视频需要公网 URL 或 base64 data URL")
+	return "", errors.New("Text multi-modal reference video requires public URL or base64 data URL")
 }
 
 func openAIImageInputURL(media Media) (string, error) { return OpenAIImageInputURL(media) }

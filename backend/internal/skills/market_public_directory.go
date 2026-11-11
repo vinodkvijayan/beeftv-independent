@@ -246,7 +246,7 @@ func (s *Service) MarketPublicSearch(ctx context.Context, query string) (*Public
 	}
 	notice := ""
 	if usedFallback {
-		notice = "无法连接公共技能目录，当前展示内置热门技能快照。"
+		notice = "Unable to connect to the public skill directory, currently displaying snapshots of built-in popular skills."
 	}
 	return &PublicMarketSearchResult{
 		Items:    items,

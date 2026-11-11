@@ -26,10 +26,10 @@ const (
 
 var (
 	errBeefTVSeedanceUploadRedirect    = beeftv.ErrUploadRedirect
-	errBeefTVSeedanceUploadUnavailable = errors.New("暂时无法接收参考素材")
+	errBeefTVSeedanceUploadUnavailable = errors.New("Unable to receive reference material at the moment")
 	errBeefTVSeedanceUploadIncomplete  = beeftv.ErrUploadIncomplete
-	errBeefTVSeedanceUploadFormat      = errors.New("无法识别文件。图片用 PNG、JPEG、WebP、GIF、BMP 或 TIFF。视频用 MP4 或 MOV。音频用 MP3 或 WAV。")
-	errBeefTVSeedanceUploadEmpty       = errors.New("参考素材为空，请重新导入")
+	errBeefTVSeedanceUploadFormat      = errors.New("File not recognized. Use PNG, JPEG, WebP, GIF, BMP or TIFF for images. For videos use MP4 or MOV. For audio use MP3 or WAV.")
+	errBeefTVSeedanceUploadEmpty       = errors.New("The reference material is empty, please re-import it")
 )
 
 const (
@@ -69,7 +69,7 @@ func PrepareBeefTVVideoReferences(ctx context.Context, config Config, input *Inp
 			media := &group.items[index]
 			if strings.HasPrefix(media.URL, "asset://") {
 				if managedConnection(config) || requiresBeefTVHTTPReferences(ctx, config) {
-					return RequestPreparationError{Cause: errors.New("当前模型需要可访问的参考素材链接，请重新导入。本次尚未开始生成")}
+					return RequestPreparationError{Cause: errors.New("The current model requires an accessible reference material link, please re-import it. This time the generation has not started yet")}
 				}
 				continue
 			}
@@ -103,7 +103,7 @@ func PrepareBeefTVVideoReferences(ctx context.Context, config Config, input *Inp
 						return nil, "", 0, err
 					}
 					if skip {
-						return nil, "", 0, errors.New("参考素材未能读取")
+						return nil, "", 0, errors.New("Reference material could not be read")
 					}
 					return io.NopCloser(bytes.NewReader(data)), mime, int64(len(data)), nil
 				}
@@ -126,13 +126,13 @@ func PrepareBeefTVVideoReferences(ctx context.Context, config Config, input *Inp
 				}
 			}
 			if ref.MaxBytes > 0 && ref.Bytes > ref.MaxBytes {
-				return RequestPreparationError{Cause: fmt.Errorf("参考素材文件不能超过 %.0fMB", float64(ref.MaxBytes)/(1<<20))}
+				return RequestPreparationError{Cause: fmt.Errorf("The reference material file cannot exceed %.0fMB", float64(ref.MaxBytes)/(1<<20))}
 			}
 			link, err := client.UploadReference(uploadCtx, ref)
 			if err != nil {
 				upload := referenceMediaUploadError(uploadCtx, err)
 				if BeefTVSeedancePreuploadUnavailable(upload) {
-					upload.Detail = "参考素材上传暂不可用，本次尚未开始生成。请稍后重试或使用可访问的图片链接"
+					upload.Detail = "Reference material upload is temporarily unavailable, and generation has not started yet. Please try again later or use an accessible image link"
 				}
 				return RequestPreparationError{Cause: upload}
 			}
@@ -177,7 +177,7 @@ func ReadBeefTVSeedanceInlineMedia(_ string, media Media) ([]byte, string, bool,
 		return data, firstNonEmpty(media.MimeType, mimeType), false, nil
 	}
 	if strings.HasPrefix(media.StorageKey, "resource:") {
-		return nil, "", false, errors.New("参考素材未能读取，请重新提交")
+		return nil, "", false, errors.New("The reference material could not be read, please resubmit.")
 	}
 	return nil, "", true, nil
 }
@@ -200,18 +200,18 @@ func ownedSeedanceMediaReader(ctx context.Context, userID string) BeefTVSeedance
 		}
 		runtime, ok := RuntimeFromContext(ctx)
 		if !ok || runtime.Resources == nil {
-			return nil, "", false, errors.New("读取任务参考资源失败：资源端口未接入")
+			return nil, "", false, errors.New("Failed to read task reference resources: the resource port is not connected")
 		}
 		resourceID := strings.TrimPrefix(media.StorageKey, "resource:")
 		resource, body, err := runtime.Resources.Open(userID, resourceID)
 		if err != nil {
-			return nil, "", false, fmt.Errorf("读取任务参考资源失败：%w", err)
+			return nil, "", false, fmt.Errorf("Failed to read task reference resources: %w", err)
 		}
 		defer body.Close()
 		max := BeefTVSeedanceKindMaxBytes(kind)
 		data, err := io.ReadAll(io.LimitReader(body, max+1))
 		if err != nil {
-			return nil, "", false, fmt.Errorf("读取任务参考资源失败：%w", err)
+			return nil, "", false, fmt.Errorf("Failed to read task reference resources: %w", err)
 		}
 		return data, firstNonEmpty(media.MimeType, resource.MimeType), false, nil
 	}
@@ -241,7 +241,7 @@ func CreateBeefTVSeedanceUpload(ctx context.Context, config Config, request Beef
 }
 
 func CompleteBeefTVSeedanceUpload(ctx context.Context, config Config, session BeefTVSeedanceUploadSession, data []byte) (BeefTVSeedanceUploadComplete, error) {
-	uploaded, err := managedMediaClient(ctx, config).CompleteUpload(ctx, session, data, "参考素材")
+	uploaded, err := managedMediaClient(ctx, config).CompleteUpload(ctx, session, data, "Reference material")
 	if err != nil {
 		return uploaded, referenceMediaUploadError(ctx, err)
 	}
@@ -337,7 +337,7 @@ func MapBeefTVSeedanceUploadError(err error, completing bool) error {
 			if completing {
 				return errBeefTVSeedanceUploadIncomplete
 			}
-			return errors.New("请检查文件类型、大小后再提交")
+			return errors.New("Please check the file type and size before submitting")
 		}
 	}
 	if completing {
@@ -390,11 +390,11 @@ func ValidateBeefTVSeedanceMediaSize(kind string, size int64) error {
 	if size > max {
 		switch kind {
 		case "image":
-			return errors.New("参考图片不能超过 30MB")
+			return errors.New("Reference image cannot exceed 30MB")
 		case "video":
-			return errors.New("参考视频不能超过 200MB")
+			return errors.New("Reference video cannot exceed 200MB")
 		case "audio":
-			return errors.New("参考音频不能超过 15MB")
+			return errors.New("Reference audio cannot exceed 15MB")
 		default:
 			return errBeefTVSeedanceUploadFormat
 		}

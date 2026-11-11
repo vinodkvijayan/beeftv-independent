@@ -18,7 +18,7 @@ function capabilities(overrides: Partial<ModelCapabilityConfig>): ModelCapabilit
     return overrides as unknown as ModelCapabilityConfig;
 }
 
-test("视频模式按官方分类型取上限，不再合成总数", () => {
+test("The video mode takes the upper limit according to the official classification type and no longer combines the total number.", () => {
     const limits = creationReferenceLimitsFor(
         "video",
         capabilities({
@@ -27,10 +27,10 @@ test("视频模式按官方分类型取上限，不再合成总数", () => {
     );
 
     assert.deepEqual(limits, { image: 9, video: 3, audio: 3 });
-    assert.equal(creationReferenceLimitsLabel(limits), "参考图 9 张、参考视频 3 个、参考音频 3 段");
+    assert.equal(creationReferenceLimitsLabel(limits), "9 reference pictures, 3 reference videos, 3 reference audio clips");
 });
 
-test("视频模式不支持参考素材时三类都取 0，不能退化成总数上限", () => {
+test("When the video mode does not support reference materials, all three categories are set to 0 and cannot be reduced to the upper limit of the total number.", () => {
     const limits = creationReferenceLimitsFor(
         "video",
         capabilities({ video: { operations: ["text_to_video"], references: { maxImages: 9, maxVideos: 3, maxAudios: 3 } } } as unknown as Partial<ModelCapabilityConfig>),
@@ -39,7 +39,7 @@ test("视频模式不支持参考素材时三类都取 0，不能退化成总数
     assert.deepEqual(limits, { image: 0, video: 0, audio: 0 });
 });
 
-test("图片模式只限制参考图", () => {
+test("Picture mode only limits reference pictures", () => {
     const limits = creationReferenceLimitsFor("image", capabilities({ image: { references: { maxImages: 4 } } } as unknown as Partial<ModelCapabilityConfig>));
 
     assert.equal(creationReferenceLimit(limits, "image"), 4);
@@ -47,7 +47,7 @@ test("图片模式只限制参考图", () => {
     assert.equal(creationReferenceLimit(limits, "audio"), 0);
 });
 
-test("文字模式显式配置过能力时跟随它声明的图片、视频上限，音频和文档不设上限", () => {
+test("When the ability is explicitly configured in text mode, it follows the upper limit of images and videos declared by it, but there is no upper limit for audio and documents.", () => {
     const limits = creationReferenceLimitsFor(
         "text",
         capabilities({ text: { references: { maxImages: 2, maxVideos: 1 } } } as unknown as Partial<ModelCapabilityConfig>),
@@ -60,7 +60,7 @@ test("文字模式显式配置过能力时跟随它声明的图片、视频上�
     assert.equal(creationReferenceLimit(limits, "file"), undefined);
 });
 
-test("没配 capabilityConfig 的文字模型拿到默认的 0，不能被当成不支持参考素材", () => {
+test("Text models without capabilityConfig get the default value of 0 and cannot be regarded as not supporting reference materials.", () => {
     // 自定义文字渠道没有能力配置时，modelCapabilityConfigFor 补出的是 0/0。
     const defaulted = capabilities({ text: { references: { maxImages: 0, maxVideos: 0 } } } as unknown as Partial<ModelCapabilityConfig>);
     const limits = creationReferenceLimitsFor("text", defaulted, { textReferencesDeclared: false });
@@ -77,7 +77,7 @@ test("没配 capabilityConfig 的文字模型拿到默认的 0，不能被当成
     assert.equal(creationReferenceHasRoom(limits, { image: 99, video: 99, audio: 0, file: 0 }, "image"), true);
 });
 
-test("文字模型显式声明 0 张参考图时仍然按声明拦截", () => {
+test("When the text model explicitly declares 0 reference images, it is still intercepted according to the declaration.", () => {
     const limits = creationReferenceLimitsFor(
         "text",
         capabilities({ text: { references: { maxImages: 0, maxVideos: 0 } } } as unknown as Partial<ModelCapabilityConfig>),
@@ -85,10 +85,10 @@ test("文字模型显式声明 0 张参考图时仍然按声明拦截", () => {
     );
 
     assert.equal(creationReferenceLimit(limits, "image"), 0);
-    assert.equal(creationReferenceKindMessage(limits, attachment("image-0", "image")), "当前模型不支持参考图");
+    assert.equal(creationReferenceKindMessage(limits, attachment("image-0", "image")), "The current model does not support reference drawings");
 });
 
-test("9 张图 + 3 个视频 + 3 段音频同时可选，不会因为合计超 9 被砍", () => {
+test("9 pictures + 3 videos + 3 audios are optional at the same time, and will not be cut off because the total exceeds 9", () => {
     const attachments = [
         ...Array.from({ length: 9 }, (_, index) => attachment(`image-${index}`, "image")),
         ...Array.from({ length: 3 }, (_, index) => attachment(`video-${index}`, "video")),
@@ -102,7 +102,7 @@ test("9 张图 + 3 个视频 + 3 段音频同时可选，不会因为合计超 9
     assert.equal(referenceOverflowKind(seedanceLimits, attachments), undefined);
 });
 
-test("超出某一类时只丢这一类，并说明是哪一类", () => {
+test("If it exceeds a certain category, only drop this category and explain which category it is.", () => {
     const attachments = [
         ...Array.from({ length: 10 }, (_, index) => attachment(`image-${index}`, "image")),
         attachment("video-0", "video"),
@@ -112,11 +112,11 @@ test("超出某一类时只丢这一类，并说明是哪一类", () => {
 
     assert.equal(fitted.attachments.filter((item) => item.type.startsWith("video")).length, 1);
     assert.deepEqual(fitted.dropped.map((item) => item.id), ["image-9"]);
-    assert.equal(creationReferenceKindMessage(seedanceLimits, fitted.dropped[0]), "参考图最多 9 张");
+    assert.equal(creationReferenceKindMessage(seedanceLimits, fitted.dropped[0]), "Up to 9 reference pictures");
     assert.equal(referenceOverflowKind(seedanceLimits, attachments), "image");
 });
 
-test("低于上限时不裁剪，引用标记也跟着一起清掉", () => {
+test("When it is lower than the upper limit, it will not be cropped, and the reference marks will also be cleared together.", () => {
     const attachments = [attachment("image-0", "image"), attachment("audio-0", "audio")];
     const references = [
         { id: "ref-image", attachmentId: "image-0" },
@@ -129,7 +129,7 @@ test("低于上限时不裁剪，引用标记也跟着一起清掉", () => {
     assert.deepEqual(reconciled.removedReferences.map((item: { id: string }) => item.id), ["ref-audio"]);
 });
 
-test("还有空位时允许继续添加", () => {
+test("Allow more to be added when there are still vacancies", () => {
     const counts = { image: 9, video: 1, audio: 3, file: 0 };
 
     assert.equal(creationReferenceHasRoom(seedanceLimits, counts, "image"), false);

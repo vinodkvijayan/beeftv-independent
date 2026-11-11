@@ -112,7 +112,7 @@ func envBool(key string, fallback bool) (bool, error) {
 	}
 	parsed, err := strconv.ParseBool(value)
 	if err != nil {
-		return false, fmt.Errorf("%s 必须是 true 或 false", key)
+		return false, fmt.Errorf("%s must be true or false", key)
 	}
 	return parsed, nil
 }
@@ -124,7 +124,7 @@ func envDuration(key string, fallback time.Duration) (time.Duration, error) {
 	}
 	parsed, err := time.ParseDuration(value)
 	if err != nil || parsed <= 0 {
-		return 0, fmt.Errorf("%s 必须是正数时长，例如 10m", key)
+		return 0, fmt.Errorf("%s must be a positive duration, such as 10m", key)
 	}
 	return parsed, nil
 }
@@ -146,7 +146,7 @@ func cors() (gin.HandlerFunc, error) {
 	return func(c *gin.Context) {
 		origin := strings.TrimSpace(c.GetHeader("Origin"))
 		if origin != "" && !allowedOriginWithPolicy(c, origin, policy) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "data": nil, "msg": "不允许的跨域来源"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "data": nil, "msg": "Not allowed cross-origin sources"})
 			return
 		}
 		if origin != "" {

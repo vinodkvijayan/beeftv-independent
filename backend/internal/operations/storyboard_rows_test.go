@@ -54,31 +54,31 @@ func TestOpStoryboardRowsAppendForwardsDrafts(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(probe.appended) != 1 {
-		t.Fatalf("rows 转发 = %#v", probe.appended)
+		t.Fatalf("rows forward = %#v", probe.appended)
 	}
 	draft := probe.appended[0]
-	if draft.PlotDescription == nil || *draft.PlotDescription != "夜巷回头" {
+	if draft.PlotDescription == nil || *draft.PlotDescription != "Turn back at night" {
 		t.Fatalf("plotDescription = %#v", draft.PlotDescription)
 	}
 	if draft.DurationSeconds == nil || *draft.DurationSeconds != 8 {
 		t.Fatalf("durationSeconds = %#v", draft.DurationSeconds)
 	}
-	if draft.MustHave == nil || len(*draft.MustHave) != 1 || (*draft.MustHave)[0] != "霓虹灯" {
+	if draft.MustHave == nil || len(*draft.MustHave) != 1 || (*draft.MustHave)[0] != "neon light" {
 		t.Fatalf("mustHave = %#v", draft.MustHave)
 	}
 	if draft.Dialogue != nil {
-		t.Fatalf("未给出的字段应为 nil: %#v", draft.Dialogue)
+		t.Fatalf("Fields not given should be nil: %#v", draft.Dialogue)
 	}
 	payload := result.(map[string]any)
 	if payload["revision"] != int64(6) {
-		t.Fatalf("回执 revision = %#v", payload["revision"])
+		t.Fatalf("Receipt revision = %#v", payload["revision"])
 	}
 	created, ok := payload["created"].([]canvas.StoryboardRowIdentity)
 	if !ok || len(created) != 1 || created[0].ID != "shot-new" {
-		t.Fatalf("回执 created = %#v", payload["created"])
+		t.Fatalf("receipt created = %#v", payload["created"])
 	}
 	if payload["rowCount"] != 3 {
-		t.Fatalf("回执 rowCount = %#v", payload["rowCount"])
+		t.Fatalf("Receipt rowCount = %#v", payload["rowCount"])
 	}
 }
 
@@ -89,7 +89,7 @@ func TestOpStoryboardRowsAppendRejectsUnknownField(t *testing.T) {
 		json.RawMessage(`{"canvasId":"c1","nodeId":"script","expectedRevision":5,"rows":[{"characters":[]}]}`))
 	opErr, ok := err.(*Error)
 	if !ok || opErr.Reason != "unknown_field" {
-		t.Fatalf("应拒绝白名单外字段，实际 %v", err)
+		t.Fatalf("Fields outside the whitelist should be rejected, actual %v", err)
 	}
 }
 
@@ -102,25 +102,25 @@ func TestOpStoryboardRowUpdateForwardsPatches(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(probe.updated) != 1 || probe.updated[0].RowID != "shot-1" {
-		t.Fatalf("patches 转发 = %#v", probe.updated)
+		t.Fatalf("patches forward = %#v", probe.updated)
 	}
-	if probe.updated[0].Dialogue == nil || *probe.updated[0].Dialogue != "新台词" {
+	if probe.updated[0].Dialogue == nil || *probe.updated[0].Dialogue != "new lines" {
 		t.Fatalf("dialogue = %#v", probe.updated[0].Dialogue)
 	}
 	payload := result.(map[string]any)
 	if payload["revision"] != int64(7) {
-		t.Fatalf("回执 revision = %#v", payload["revision"])
+		t.Fatalf("Receipt revision = %#v", payload["revision"])
 	}
 	if _, present := payload["alsoChanged"]; present {
-		t.Fatalf("没有连带改动时不应出现 alsoChanged: %#v", payload)
+		t.Fatalf("AlsoChanged: %#v should not appear when there are no associated changes.", payload)
 	}
 }
 
 // 领域报告的连带改动必须原样进入模型可见回执，且只列实际改到的节点和字段。
 func TestOpStoryboardRowUpdateForwardsAlsoChanged(t *testing.T) {
 	probe := &storyboardProbe{alsoChanged: []writechange.Node{
-		{NodeID: "img-1", Title: "镜1首帧", Fields: []string{"composerContent"}},
-		{NodeID: "vid-2", Title: "镜2视频", Fields: []string{"composerContent", "prompt"}},
+		{NodeID: "img-1", Title: "Mirror 1 first frame", Fields: []string{"composerContent"}},
+		{NodeID: "vid-2", Title: "mirror 2 video", Fields: []string{"composerContent", "prompt"}},
 	}}
 	result, err := opStoryboardRowUpdate(&Context{UserID: "owner", Domain: probe},
 		json.RawMessage(`{"canvasId":"c1","nodeId":"script","expectedRevision":6,"patches":[
@@ -187,7 +187,7 @@ func TestOpStoryboardRowRemoveForwardsRowIds(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(probe.removed) != 1 || probe.removed[0] != "shot-1" {
-		t.Fatalf("rowIds 转发 = %#v", probe.removed)
+		t.Fatalf("rowIds forward = %#v", probe.removed)
 	}
 }
 
@@ -196,14 +196,14 @@ func TestOpStoryboardRowsRequireTarget(t *testing.T) {
 	probe := &storyboardProbe{}
 	if _, err := opStoryboardRowsAppend(&Context{UserID: "owner", Domain: probe},
 		json.RawMessage(`{"canvasId":"","nodeId":"","expectedRevision":1,"rows":[{}]}`)); err == nil {
-		t.Fatal("缺少 canvasId/nodeId 应被拒绝")
+		t.Fatal("Missing canvasId/nodeId should be rejected")
 	}
 	if _, err := opStoryboardRowUpdate(&Context{UserID: "owner", Domain: probe},
 		json.RawMessage(`{"canvasId":"c1","expectedRevision":1,"patches":[{"rowId":"r"}]}`)); err == nil {
-		t.Fatal("缺少 nodeId 应被拒绝")
+		t.Fatal("Missing nodeId should be rejected")
 	}
 	if _, err := opStoryboardRowRemove(&Context{UserID: "owner", Domain: probe},
 		json.RawMessage(`{"canvasId":"c1","expectedRevision":1,"rowIds":["r"]}`)); err == nil {
-		t.Fatal("缺少 nodeId 应被拒绝")
+		t.Fatal("Missing nodeId should be rejected")
 	}
 }

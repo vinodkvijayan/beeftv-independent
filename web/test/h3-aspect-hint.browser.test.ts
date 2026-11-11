@@ -46,10 +46,10 @@ async function open(width = 1280, dark = false) {
     return page;
 }
 
-async function assertLocked(page: Page, frame = "首帧", savedSize = "9:16") {
-    await page.getByRole("button", { name: new RegExp(`高级设置：.*随${frame}图片`) }).click();
+async function assertLocked(page: Page, frame = "first frame", savedSize = "9:16") {
+    await page.getByRole("button", { name: new RegExp(`Advanced settings: .*Subject to${frame}pictures`) }).click();
     const panel = page.locator(".canvas-image-settings-popover");
-    const help = `视频比例由${frame}图片决定。需要其他比例时，请先裁切或扩图，再生成视频。`;
+    const help = `The video ratio is given by${frame}Pictures decide. If you need other ratios, please crop or enlarge the image first and then generate the video.`;
     await panel.getByText(help, { exact: true }).waitFor();
     expect(await panel.getByRole("button", { name: "9:16", exact: true }).count()).toBe(0);
     expect(await panel.getByText(/^W\s/).count()).toBe(0);
@@ -64,7 +64,7 @@ async function assertLocked(page: Page, frame = "首帧", savedSize = "9:16") {
 async function assertCharacterWarning(page: Page) {
     await page.getByRole("button", { name: /高级设置：.*16:9/ }).click();
     const panel = page.locator(".canvas-image-settings-popover");
-    await panel.getByText("角色卡带参考图时，不能与指定的首尾帧同时使用。请移除角色卡，或取消首尾帧指定后再生成。", { exact: true }).waitFor();
+    await panel.getByText("When using a character cassette with a reference image, it cannot be used at the same time as the specified first and last frames. Please remove the character card, or cancel the specification of the first and last frames before generating again.", { exact: true }).waitFor();
     expect(await panel.getByRole("button", { name: "9:16", exact: true }).isVisible()).toBe(true);
 }
 
@@ -72,33 +72,33 @@ test("actual prompt panel updates keyframe hints, reconnects and changes H3 mode
     const page = await open();
     try {
         await assertLocked(page);
-        await page.getByRole("button", { name: "只用尾帧", exact: true }).click();
-        await assertLocked(page, "尾帧");
-        await page.getByRole("button", { name: "首尾帧", exact: true }).click();
+        await page.getByRole("button", { name: "Only use last frame", exact: true }).click();
+        await assertLocked(page, "last frame");
+        await page.getByRole("button", { name: "First and last frames", exact: true }).click();
         await assertLocked(page);
-        await page.getByRole("button", { name: "断开图片", exact: true }).click();
+        await page.getByRole("button", { name: "disconnect picture", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*9:16/ }).click();
         await page.locator(".canvas-image-settings-popover").getByRole("button", { name: "16:9", exact: true }).click();
         expect(await page.getByTestId("saved-size").textContent()).toBe("16:9");
-        await page.getByRole("button", { name: "接入图片", exact: true }).click();
+        await page.getByRole("button", { name: "Access pictures", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*随首帧图片/ }).waitFor();
         await page.getByRole("button", { name: "minimax-h3-max", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*随首帧图片/ }).waitFor();
         await page.getByRole("button", { name: "minimax-h3", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*随首帧图片/ }).waitFor();
-        await page.getByRole("button", { name: "指定首帧", exact: true }).click();
-        await page.getByRole("button", { name: "加入角色卡", exact: true }).click();
+        await page.getByRole("button", { name: "Specify first frame", exact: true }).click();
+        await page.getByRole("button", { name: "Add character card", exact: true }).click();
         await assertCharacterWarning(page);
-        await page.getByRole("button", { name: "只用尾帧", exact: true }).click();
+        await page.getByRole("button", { name: "Only use last frame", exact: true }).click();
         await assertCharacterWarning(page);
-        await page.getByRole("button", { name: "普通参考", exact: true }).click();
+        await page.getByRole("button", { name: "general reference", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*16:9/ }).click();
         await page.locator(".canvas-image-settings-popover").getByRole("button", { name: "9:16", exact: true }).click();
         expect(await page.getByTestId("saved-size").textContent()).toBe("9:16");
         await page.getByRole("button", { name: "minimax-h3-max-turbo", exact: true }).click();
-        await page.getByRole("button", { name: "仅角色卡", exact: true }).click();
+        await page.getByRole("button", { name: "Only character cards", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*9:16/ }).click();
-        await page.getByText("首尾帧生成时，比例随实际参考图；多素材参考生成使用所选比例。", { exact: true }).waitFor();
+        await page.getByText("When the first and last frames are generated, the scale follows the actual reference image; multi-material reference generation uses the selected scale.", { exact: true }).waitFor();
         expect(errors).toEqual([]);
     } finally { await page.close(); }
 }, 30000);
@@ -108,7 +108,7 @@ test("keyframe explanation fits light desktop and dark 390px panels", async () =
         const page = await open(width, dark);
         try {
             await assertLocked(page);
-            expect(await page.getByText("视频比例由首帧图片决定。需要其他比例时，请先裁切或扩图，再生成视频。", { exact: true }).evaluate((element) => getComputedStyle(element).fontSize)).toBe("12px");
+            expect(await page.getByText("The video ratio is determined by the first frame of the image. If you need other ratios, please crop or enlarge the image first and then generate the video.", { exact: true }).evaluate((element) => getComputedStyle(element).fontSize)).toBe("12px");
             expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
             if (process.env.BEEFTV_UI_EVIDENCE_DIR) {
                 mkdirSync(process.env.BEEFTV_UI_EVIDENCE_DIR, { recursive: true });
@@ -124,15 +124,15 @@ test("Max and Turbo reference ratios remain editable alongside H3 advanced contr
     try {
         for (const model of ["minimax-h3-max", "minimax-h3-max-turbo"]) {
             await page.getByRole("button", { name: model, exact: true }).click();
-            await page.getByRole("button", { name: "普通参考", exact: true }).click();
+            await page.getByRole("button", { name: "general reference", exact: true }).click();
             await page.getByRole("button", { name: /高级设置：.*9:16/ }).click();
             const panel = page.locator(".canvas-image-settings-popover");
             await panel.getByRole("button", { name: "16:9", exact: true }).click();
             expect(await page.getByTestId("saved-size").textContent()).toBe("16:9");
             await panel.getByRole("button", { name: "9:16", exact: true }).click();
-            await panel.getByText("MiniMax H3 高级设置", { exact: true }).click();
-            await panel.getByRole("spinbutton", { name: "随机种子", exact: true }).fill("42");
-            await panel.getByRole("spinbutton", { name: "随机种子", exact: true }).press("Tab");
+            await panel.getByText("MiniMax H3 Advanced Settings", { exact: true }).click();
+            await panel.getByRole("spinbutton", { name: "random seed", exact: true }).fill("42");
+            await panel.getByRole("spinbutton", { name: "random seed", exact: true }).press("Tab");
             expect(await page.getByTestId("saved-seed").textContent()).toBe("42");
             await page.getByRole("button", { name: /高级设置：.*9:16/ }).click();
         }
@@ -143,17 +143,17 @@ test("Max and Turbo reference ratios remain editable alongside H3 advanced contr
 test("Styles keyframes lock ratios and unresolved character views leave them editable", async () => {
     const page = await open();
     try {
-        await page.getByRole("button", { name: "加入角色卡", exact: true }).click();
+        await page.getByRole("button", { name: "Add character card", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*9:16/ }).click();
         const panel = page.locator(".canvas-image-settings-popover");
-        await panel.getByText("首尾帧生成时，比例随实际参考图；多素材参考生成使用所选比例。", { exact: true }).waitFor();
+        await panel.getByText("When the first and last frames are generated, the scale follows the actual reference image; multi-material reference generation uses the selected scale.", { exact: true }).waitFor();
         await panel.getByRole("button", { name: "16:9", exact: true }).click();
         expect(await page.getByTestId("saved-size").textContent()).toBe("16:9");
-        await page.getByRole("button", { name: "断开图片", exact: true }).click();
-        await page.getByRole("button", { name: "接入图片", exact: true }).click();
-        await page.getByRole("button", { name: "H3 手绘", exact: true }).click();
-        await assertLocked(page, "首帧", "16:9");
-        await page.getByRole("button", { name: "断开图片", exact: true }).click();
+        await page.getByRole("button", { name: "disconnect picture", exact: true }).click();
+        await page.getByRole("button", { name: "Access pictures", exact: true }).click();
+        await page.getByRole("button", { name: "H3 hand drawn", exact: true }).click();
+        await assertLocked(page, "first frame", "16:9");
+        await page.getByRole("button", { name: "disconnect picture", exact: true }).click();
         await page.getByRole("button", { name: /高级设置：.*16:9/ }).click();
         await panel.getByRole("button", { name: "9:16", exact: true }).click();
         expect(await page.getByTestId("saved-size").textContent()).toBe("9:16");

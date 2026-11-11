@@ -21,8 +21,8 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
                 genderHint: "female",
                 promptMode: "regular",
             });
-            expect(prompt).toContain("图1");
-            expect(prompt).toContain("图2");
+            expect(prompt).toContain("Figure 1");
+            expect(prompt).toContain("Figure 2");
             expect(prompt.length).toBeGreaterThan(20);
         }
 
@@ -34,8 +34,8 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
             hasLocationGuideImage: true,
         });
         expect(pkgWithGuide.promptMode).toBe("positioning");
-        expect(pkgWithGuide.prompt).toContain("图3为人物定位图");
-        expect(pkgWithGuide.prompt).toContain("定位图A框");
+        expect(pkgWithGuide.prompt).toContain("Figure 3 shows the character positioning diagram");
+        expect(pkgWithGuide.prompt).toContain("Positioning diagram A box");
         expect(pkgWithGuide.locationGuide?.dataUrl).toStartWith("data:image/svg+xml;charset=utf-8,");
 
         // Without a connected guide image node, positioning mode must not reference a non-existent 图3
@@ -46,15 +46,15 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
             promptMode: "positioning",
             hasLocationGuideImage: false,
         });
-        expect(pkgWithoutGuide.prompt).not.toContain("图3为人物定位图");
-        expect(pkgWithoutGuide.prompt).toContain("右侧区域");
+        expect(pkgWithoutGuide.prompt).not.toContain("Figure 3 shows the character positioning diagram");
+        expect(pkgWithoutGuide.prompt).toContain("right area");
 
         // Manual prompt mode uses caller's manualPrompt verbatim
         const manualPkg = buildCharacterReplacementPackage({
             promptMode: "manual",
-            manualPrompt: "自定义指令：把图1右边的角色换成图2的古装剑客，保留斗笠。",
+            manualPrompt: "Custom instructions: Replace the character on the right side of Picture 1 with the costumed swordsman in Picture 2, and keep the hat.",
         });
-        expect(manualPkg.prompt).toBe("自定义指令：把图1右边的角色换成图2的古装剑客，保留斗笠。");
+        expect(manualPkg.prompt).toBe("Custom instructions: Replace the character on the right side of Picture 1 with the costumed swordsman in Picture 2, and keep the hat.");
     });
 
     test("builds valid SVG location guide data URL and sanitizes untrusted color inputs", () => {
@@ -84,10 +84,10 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
             replacementScope: "full-person",
             position: "left",
             genderHint: "male",
-            extraNotes: "保持古装衣摆飘动与打斗动作节奏",
+            extraNotes: "Keep the flowing hems of ancient costumes and the rhythm of fighting movements",
         });
-        expect(videoPrompt).toContain("左边的男人");
-        expect(videoPrompt).toContain("保持古装衣摆飘动与打斗动作节奏");
+        expect(videoPrompt).toContain("man on the left");
+        expect(videoPrompt).toContain("Keep the flowing hems of ancient costumes and the rhythm of fighting movements");
     });
 
     test("arranges two-stage workflow, connects locationGuideNodeId, falls back to stored canvasId, and validates required references", async () => {
@@ -110,7 +110,7 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
                         return {
                             canvas: {
                                 revision,
-                                nodes: [{ id: "existing-1", title: "已有节点" }],
+                                nodes: [{ id: "existing-1", title: "Already have nodes" }],
                                 connections: [],
                             },
                         };
@@ -137,15 +137,15 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
 
         await expect(
             arrangeCharacterReplacementOnCanvas(fakeHost, {
-                shotTitle: "镜头 3",
+                shotTitle: "Shot 3",
                 requireReferences: true,
             }),
         ).rejects.toThrow(/缺少必需的上游参考节点/);
 
         const result = await arrangeCharacterReplacementOnCanvas(fakeHost, {
-            shotTitle: "镜头 3",
-            sourceDescription: "右边的蓝衣女侠",
-            targetDescription: "红衣女刺客林婉",
+            shotTitle: "Shot 3",
+            sourceDescription: "The woman in blue on the right",
+            targetDescription: "Lin Wan, the female assassin in red",
             position: "right",
             genderHint: "female",
             replacementScope: "full-person",
@@ -160,7 +160,7 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
         expect(result.canvasId).toBe("canvas-from-storage");
         expect(result.keyframeNodeId).toBe("node-1");
         expect(result.videoNodeId).toBe("node-2");
-        expect(result.keyframePrompt).toContain("图3为人物定位图");
+        expect(result.keyframePrompt).toContain("Figure 3 shows the character positioning diagram");
         expect(result.missingReferences).toEqual([]);
 
         // Check Step 3 video node configuration sets videoEditOperation = "replace_element"
@@ -185,11 +185,11 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
                 version: 2,
                 durationMs: 15000,
                 tracks: [
-                    { id: "track-video-old", kind: "video", label: "旧视频轨", order: 0, visible: true, muted: false },
-                    { id: "track-sub-1", kind: "subtitle", label: "中文字幕", order: 2, visible: true, muted: false },
+                    { id: "track-video-old", kind: "video", label: "old video track", order: 0, visible: true, muted: false },
+                    { id: "track-sub-1", kind: "subtitle", label: "Chinese subtitles", order: 2, visible: true, muted: false },
                 ],
                 clips: [
-                    { id: "sub-1", kind: "subtitle", trackId: "track-sub-1", nodeId: "node-full-ep1", startMs: 1000, durationMs: 2500, text: "台词一" },
+                    { id: "sub-1", kind: "subtitle", trackId: "track-sub-1", nodeId: "node-full-ep1", startMs: 1000, durationMs: 2500, text: "Line 1" },
                 ],
             },
             replacements: [
@@ -213,21 +213,21 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
         expect(timeline.tracks[0]).toMatchObject({
             id: "track-video-main",
             kind: "video",
-            label: "视频主轨",
+            label: "Video main track",
             order: 0,
             muted: true,
         });
         expect(timeline.tracks[1]).toMatchObject({
             id: "track-audio-original",
             kind: "audio",
-            label: "原片音轨",
+            label: "original film soundtrack",
             order: 1,
             muted: false,
         });
         expect(timeline.tracks[2]).toMatchObject({
             id: "track-sub-1",
             kind: "subtitle",
-            label: "中文字幕",
+            label: "Chinese subtitles",
         });
 
         const videoClips = timeline.clips.filter((c: any) => c.kind === "video");
@@ -249,7 +249,7 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
 
         const subClips = timeline.clips.filter((c: any) => c.kind === "subtitle");
         expect(subClips).toHaveLength(1);
-        expect(subClips[0].text).toBe("台词一");
+        expect(subClips[0].text).toBe("Line 1");
     });
 
     test("rejects overlapping or mismatched durations and auto-reads fullDurationMs in spliceReplacedShotsIntoTimeline", async () => {
@@ -357,7 +357,7 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
         };
 
         const fullRes = await arrangeCharacterReplacementOnCanvas(fakeHost, {
-            shotTitle: "镜头 A",
+            shotTitle: "Lens A",
             autoCreateCanvas: true,
             autoCreateInputNodes: true,
         });
@@ -370,12 +370,12 @@ describe("beeftv-plugin-character-replacement compiler & pipeline", () => {
         partialInputs = true;
         const partialRes = await arrangeCharacterReplacementOnCanvas(fakeHost, {
             canvasId: "canvas-existing",
-            shotTitle: "镜头 B",
+            shotTitle: "Shot B",
             autoCreateInputNodes: true,
         });
         expect(partialRes.sourceKeyframeNodeId).toBe("node-kf-in");
         expect(partialRes.targetCharacterNodeId).toBe("node-char-in");
         expect(partialRes.sourceVideoNodeId).toBe("");
-        expect(partialRes.missingReferences).toEqual(["sourceVideoNodeId（原镜头视频节点）"]);
+        expect(partialRes.missingReferences).toEqual(["sourceVideoNodeId (original lens video node)"]);
     });
 });

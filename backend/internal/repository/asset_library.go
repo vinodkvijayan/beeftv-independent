@@ -16,8 +16,8 @@ var ErrAssetFolderAssignmentConflict = errors.New("asset folder assignment confl
 const (
 	assetFolderAssignmentAttempts = 3
 	userAssetRecentDuration       = 30 * 24 * time.Hour
-	userAssetLinkedProjectLabel   = "已关联项目"
-	userAssetUnlinkedProjectLabel = "未关联项目"
+	userAssetLinkedProjectLabel   = "Linked projects"
+	userAssetUnlinkedProjectLabel = "No associated projects"
 )
 
 type UserAssetPageFilter struct {
@@ -159,7 +159,7 @@ func userAssetFilteredQuery(query *gorm.DB, filter UserAssetPageFilter, includeS
 
 func userAssetGeneratedSQL() string {
 	return `(kind IN ('image','video','audio') AND (
-		json_extract(payload_json, '$.source') = '生成任务'
+		json_extract(payload_json, '$.source') = 'Generate task'
 		OR json_type(payload_json, '$.metadata.generationEffectKey') = 'text'
 	))`
 }

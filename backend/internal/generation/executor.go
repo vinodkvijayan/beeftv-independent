@@ -23,11 +23,11 @@ func Execute(ctx context.Context, input Input) (map[string]any, error) {
 	promptTemplateOperation := metadataString(input.Metadata, "promptTemplateOperation")
 	if input.Mode != "video" && promptTemplateOperation != "" {
 		if runtime.Prompt == nil {
-			return nil, errors.New("编译用户提示词失败：提示词端口未接入")
+			return nil, errors.New("Failed to compile user prompt word: prompt word port is not connected")
 		}
 		compiled, err := runtime.Prompt.Compile(userID, promptTemplateOperation, metadataStringValues(input.Metadata["promptTemplateVariables"]))
 		if err != nil {
-			return nil, fmt.Errorf("编译用户提示词失败：%w", err)
+			return nil, fmt.Errorf("Failed to compile user prompt words: %w", err)
 		}
 		input.Prompt = compiled
 	}
@@ -42,7 +42,7 @@ func Execute(ctx context.Context, input Input) (map[string]any, error) {
 		}
 		input.Config = config
 	} else if strings.TrimSpace(input.Config.ChannelID) != "" {
-		return nil, errors.New("无法解析系统渠道配置")
+		return nil, errors.New("Unable to parse system channel configuration")
 	}
 	applyCanvasTextStreaming(runtime.Call.TaskType, &input)
 	if input.Upscale != nil {
@@ -54,7 +54,7 @@ func Execute(ctx context.Context, input Input) (map[string]any, error) {
 
 	if input.Mode == "image" && input.Metadata != nil && strings.TrimSpace(metadataString(input.Metadata, "styleProfileJson")) != "" {
 		if runtime.Style == nil {
-			return nil, errors.New("项目画风执行配置无效：画风端口未接入")
+			return nil, errors.New("Project style execution configuration is invalid: the style port is not connected")
 		}
 		if err := runtime.Style.Apply(userID, runtime.Call.ProjectID, &input); err != nil {
 			return nil, err
@@ -100,7 +100,7 @@ func Execute(ctx context.Context, input Input) (map[string]any, error) {
 			return nil, err
 		}
 		if preparing {
-			if err := setExecutionStage(ctx, runtime, "正在准备参考素材"); err != nil {
+			if err := setExecutionStage(ctx, runtime, "Preparing reference materials"); err != nil {
 				return nil, err
 			}
 		}
@@ -158,14 +158,14 @@ func Execute(ctx context.Context, input Input) (map[string]any, error) {
 		}
 	}
 	if preparing || (input.Mode == "video" && !resumed) {
-		if err := setExecutionStage(ctx, runtime, "正在提交生成任务"); err != nil {
+		if err := setExecutionStage(ctx, runtime, "Submitting build task"); err != nil {
 			return nil, err
 		}
 	}
 	result, taskErr := dispatch(ctx, input)
 	if taskErr == nil && input.Mode == "text" && promptTemplateOperation != "" {
 		if runtime.Prompt == nil {
-			return nil, errors.New("提示词结果无法校验")
+			return nil, errors.New("Prompt word result cannot be verified")
 		}
 		taskErr = runtime.Prompt.ValidateResult(promptTemplateOperation, result)
 	}
@@ -186,7 +186,7 @@ func dispatch(ctx context.Context, input Input) (map[string]any, error) {
 	case "audio":
 		return RunAudioTask(ctx, input)
 	default:
-		return nil, fmt.Errorf("不支持的生成模式：%s", input.Mode)
+		return nil, fmt.Errorf("Unsupported build mode: %s", input.Mode)
 	}
 }
 
@@ -216,19 +216,19 @@ func applyCanvasTextStreaming(taskType string, input *Input) {
 func validatePreparedInput(ctx context.Context, input Input) error {
 	if ((input.Mode == "image" || input.Mode == "video" || input.Mode == "audio") && managedConnection(input.Config)) || (input.Mode == "video" && IsBeefTVVideoConfig(ctx, input.Config)) {
 		if strings.TrimSpace(input.Config.BaseURL) == "" || strings.TrimSpace(input.Config.APIKey) == "" || strings.TrimSpace(input.Config.Model) == "" {
-			return errors.New("后端生成任务缺少 Base URL、API Key 或模型名")
+			return errors.New("Backend build task is missing Base URL, API Key or model name")
 		}
 		return nil
 	}
 	if input.Config.APIFormat == "gemini" && input.Config.InterfaceType != string(model.ChannelInterfaceGeminiVeo) && input.Config.InterfaceType != string(model.ChannelInterfaceGeminiImage) {
 		_, hasDeclarativeAgent := agentProtocolAdapterForContext(ctx, input.Config.InterfaceType)
 		if input.AgentRequests == nil || !hasDeclarativeAgent {
-			return errors.New("后端任务队列暂不支持该 Gemini 调用格式，请选择已安装的 Gemini 协议插件")
+			return errors.New("The backend task queue currently does not support this Gemini calling format. Please select the installed Gemini protocol plug-in.")
 		}
 	}
 	missingKey := strings.TrimSpace(input.Config.APIKey) == "" && !interfaceNeedsNoKey(ctx, input.Config.InterfaceType)
 	if strings.TrimSpace(input.Config.BaseURL) == "" || missingKey || strings.TrimSpace(input.Config.Model) == "" {
-		return errors.New("后端生成任务缺少 Base URL、API Key 或模型名")
+		return errors.New("Backend build task is missing Base URL, API Key or model name")
 	}
 	if err := validateInterfaceForContext(ctx, input.Mode, input.Config.InterfaceType); err != nil {
 		// This local check precedes the create request. A resumed provider task,
@@ -271,13 +271,13 @@ func validateInterfaceForContext(ctx context.Context, mode, interfaceType string
 func requireTaskRuntime(ctx context.Context) error {
 	runtime, ok := RuntimeFromContext(ctx)
 	if !ok {
-		return errors.New("无法执行生成任务，请重试")
+		return errors.New("Unable to execute build task, please try again")
 	}
 	if strings.TrimSpace(runtime.Call.UserID) == "" || strings.TrimSpace(runtime.Call.TaskID) == "" {
-		return errors.New("生成任务缺少用户或任务身份")
+		return errors.New("Build task is missing user or task identity")
 	}
 	if runtime.Images == nil || runtime.Receipts == nil || runtime.Limits == nil {
-		return errors.New("无法执行生成任务，请重试")
+		return errors.New("Unable to execute build task, please try again")
 	}
 	return nil
 }

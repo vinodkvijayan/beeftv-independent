@@ -23,7 +23,7 @@ func requireAssistantContinuations(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("助手接续回执缺失列 %s", column)
+			return fmt.Errorf("Assistant connection receipt missing column %s", column)
 		}
 	}
 	if err := requireSQLitePrimaryKey(db, stmt.Schema.Table, []string{"id"}); err != nil {
@@ -34,7 +34,7 @@ func requireAssistantContinuations(db *gorm.DB) error {
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("助手接续回合唯一索引缺失")
+		return fmt.Errorf("The unique index of the assistant's continuation round is missing")
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func requireAssistantContinuationIntentFence(db *gorm.DB) error {
 		return err
 	}
 	if !has {
-		return fmt.Errorf("助手接续意图状态缺失，请启用自动迁移")
+		return fmt.Errorf("Assistant connection intent status is missing, please enable automatic migration")
 	}
 	return nil
 }

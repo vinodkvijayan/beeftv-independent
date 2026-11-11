@@ -55,20 +55,20 @@ func writeTestInfo(t *testing.T, dataDir string, info Info) {
 func TestWriteDiscoverRemove(t *testing.T) {
 	dir := t.TempDir()
 	if _, found := Discover(dir); found {
-		t.Fatal("没有运行时文件时不该发现地址")
+		t.Fatal("Address should not be discovered without runtime file")
 	}
 	if err := Write(dir, "http://127.0.0.1:53211/api", "v1.6.1"); err != nil {
 		t.Fatal(err)
 	}
 	info, found := Discover(dir)
 	if !found {
-		t.Fatal("应能发现本进程写下的地址")
+		t.Fatal("The address written by this process should be found")
 	}
 	if info.BaseURL != "http://127.0.0.1:53211/api" || info.Version != "v1.6.1" {
-		t.Fatalf("发现的内容不对：%+v", info)
+		t.Fatalf("The content found is incorrect: %+v", info)
 	}
 	if info.PID != os.Getpid() {
-		t.Fatalf("PID 应为写入进程，得到 %d", info.PID)
+		t.Fatalf("PID should be writing process, got %d", info.PID)
 	}
 	// 只给本机用户读：里面是当前工作区的入口地址。
 	stat, err := os.Stat(testPath(t, dir))
@@ -76,13 +76,13 @@ func TestWriteDiscoverRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 	if runtime.GOOS != "windows" && stat.Mode().Perm() != 0o600 {
-		t.Fatalf("运行时文件权限应为 0600，得到 %v", stat.Mode().Perm())
+		t.Fatalf("At runtime the file permissions should be 0600 and I get %v", stat.Mode().Perm())
 	}
 	if err := Remove(dir); err != nil {
 		t.Fatal(err)
 	}
 	if _, found := Discover(dir); found {
-		t.Fatal("退出后不该继续发现地址")
+		t.Fatal("Address discovery should not continue after exiting")
 	}
 	// 重复清理是幂等的。
 	if err := Remove(dir); err != nil {
@@ -96,7 +96,7 @@ func TestDiscoverIgnoresDeadProcess(t *testing.T) {
 	stale := Info{BaseURL: "http://127.0.0.1:53211/api", PID: deadPID(t), Version: "v1.0.0"}
 	writeTestInfo(t, dir, stale)
 	if _, found := Discover(dir); found {
-		t.Fatal("进程已退出的运行时文件应被忽略")
+		t.Fatal("Runtime files whose processes have exited should be ignored")
 	}
 }
 
@@ -109,7 +109,7 @@ func TestRemoveLeavesAnotherInstanceAlone(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(testPath(t, dir)); err != nil {
-		t.Fatal("另一个实例的运行时文件被删掉了")
+		t.Fatal("The runtime file of another instance was deleted")
 	}
 }
 
@@ -119,17 +119,17 @@ func TestDiscoverIgnoresGarbageAndEmptyBaseURL(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, found := Discover(dir); found {
-		t.Fatal("损坏的运行时文件应被忽略")
+		t.Fatal("Corrupted runtime files should be ignored")
 	}
 	if err := Remove(dir); err == nil {
-		t.Fatal("损坏文件不能证明属于本进程，不应删除")
+		t.Fatal("Damaged files cannot be proven to belong to this process and should not be deleted")
 	}
 	if _, err := os.Stat(testPath(t, dir)); err != nil {
-		t.Fatal("损坏文件被误删")
+		t.Fatal("Corrupted files accidentally deleted")
 	}
 	writeTestInfo(t, dir, Info{PID: os.Getpid()})
 	if _, found := Discover(dir); found {
-		t.Fatal("没有地址的运行时文件应被忽略")
+		t.Fatal("Runtime files without addresses should be ignored")
 	}
 }
 
@@ -141,7 +141,7 @@ func TestDefaultDataDirHonorsOverrides(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got != filepath.Join("tmp", "desktop-data") {
-		t.Fatalf("应使用桌面数据目录覆盖，得到 %q", got)
+		t.Fatalf("Desktop data directory override should be used, resulting in %q", got)
 	}
 	// CLI 侧的显式指定优先级更高：用来连非默认目录的工作区。
 	t.Setenv("BEEFTV_DATA_DIR", filepath.Join("tmp", "cli-data"))
@@ -150,7 +150,7 @@ func TestDefaultDataDirHonorsOverrides(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got != filepath.Join("tmp", "cli-data") {
-		t.Fatalf("BEEFTV_DATA_DIR 应优先，得到 %q", got)
+		t.Fatalf("BEEFTV_DATA_DIR should take precedence, getting %q", got)
 	}
 }
 
@@ -181,13 +181,13 @@ func TestExplicitDataDirIgnoresHostAppData(t *testing.T) {
 
 func TestProcessAlive(t *testing.T) {
 	if !ProcessAlive(os.Getpid()) {
-		t.Fatal("当前进程应判定为存活")
+		t.Fatal("The current process should be determined to be alive")
 	}
 	if ProcessAlive(0) || ProcessAlive(-1) {
-		t.Fatal("非法 PID 不该判定为存活")
+		t.Fatal("Illegal PID should not be judged as alive")
 	}
 	if ProcessAlive(deadPID(t)) {
-		t.Fatal("已退出的进程不该判定为存活")
+		t.Fatal("Exited processes should not be considered alive")
 	}
 }
 

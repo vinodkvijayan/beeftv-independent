@@ -61,10 +61,10 @@ func readMarketJSON(file string, out any) error {
 		return err
 	}
 	if !info.Mode().IsRegular() || info.Size() > 1<<20 {
-		return kernel.BadAuthRequest("投稿文件无效，请重新连接账号")
+		return kernel.BadAuthRequest("The submission file is invalid, please reconnect your account.")
 	}
 	if err = privatefile.Check(file, info); err != nil {
-		return kernel.BadAuthRequest("投稿文件权限异常，请重新连接账号")
+		return kernel.BadAuthRequest("The submission file permissions are abnormal, please reconnect your account.")
 	}
 	b, e := os.ReadFile(file)
 	if e != nil {
@@ -76,7 +76,7 @@ func (s *Service) marketToken(user string, c *skillhub.Client) (string, error) {
 	var a marketAuth
 	e := readMarketJSON(filepath.Join(s.marketUserDir(user), "authorization.json"), &a)
 	if e != nil || a.AccessToken == "" || a.Endpoint != c.BaseURL() || time.Now().After(a.ExpiresAt) {
-		return "", &skillhub.Error{Status: 401, Reason: "publishing_authorization_required", Message: "请先连接技能投稿账号"}
+		return "", &skillhub.Error{Status: 401, Reason: "publishing_authorization_required", Message: "Please connect to your skills submission account first"}
 	}
 	return a.AccessToken, nil
 }
@@ -93,7 +93,7 @@ func (s *Service) MarketAuthorization(ctx context.Context, user string, start bo
 	websiteURL := website.String()
 	if start {
 		var a skillhub.Authorization
-		e = c.JSON(ctx, "POST", "authorizations", "", "", map[string]string{"clientName": "BeefTV 创作助手"}, &a)
+		e = c.JSON(ctx, "POST", "authorizations", "", "", map[string]string{"clientName": "BeefTV Creation Assistant"}, &a)
 		if e != nil {
 			return nil, e
 		}
@@ -120,7 +120,7 @@ func (s *Service) MarketAuthorization(ctx context.Context, user string, start bo
 		return nil, e
 	}
 	if t.AccessToken == "" || t.ExpiresIn <= 0 {
-		return nil, kernel.BadAuthRequest("投稿授权未完成")
+		return nil, kernel.BadAuthRequest("Submission authorization is not completed")
 	}
 	e = writeMarketJSON(file, marketAuth{Endpoint: c.BaseURL(), AccessToken: t.AccessToken, ExpiresAt: time.Now().Add(time.Duration(t.ExpiresIn) * time.Second)})
 	return map[string]any{"connected": e == nil, "websiteUrl": websiteURL}, e

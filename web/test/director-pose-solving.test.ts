@@ -17,8 +17,8 @@ function distance(a: [number, number, number], b: [number, number, number]) {
     return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }
 
-describe("导演台语义姿势与 IK", () => {
-    test("蹲下与跪姿显式降低骨盆并声明地面接触目标", () => {
+describe("Semantic gestures and IK on the director's desk", () => {
+    test("Squatting and kneeling positions explicitly lower the pelvis and declare a ground contact target", () => {
         expect(typeof poseApi.resolveDirectorPoseTargets).toBe("function");
         const squat = poseApi.resolveDirectorPoseTargets("squat");
         const single = poseApi.resolveDirectorPoseTargets("kneel_single");
@@ -34,7 +34,7 @@ describe("导演台语义姿势与 IK", () => {
         expect(double.knees?.rightKnee?.[1]).toBeLessThanOrEqual(0.08);
     });
 
-    test("接触型上肢姿势给出明确末端目标", () => {
+    test("Contact upper body postures give clear end goals", () => {
         const think = poseApi.resolveDirectorPoseTargets("think");
         const crossed = poseApi.resolveDirectorPoseTargets("arms_crossed");
         const phone = poseApi.resolveDirectorPoseTargets("phone");
@@ -50,7 +50,7 @@ describe("导演台语义姿势与 IK", () => {
         expect(reach.hands?.rightHand?.[2]).toBeGreaterThan(0.25);
     });
 
-    test("跑步循环左右脚交替抬起并在一个周期后闭合", () => {
+    test("During the running cycle, the left and right feet are lifted alternately and closed after one cycle.", () => {
         const start = poseApi.resolveDirectorPoseTargets("run", 0);
         const half = poseApi.resolveDirectorPoseTargets("run", start.period! / 2);
         const end = poseApi.resolveDirectorPoseTargets("run", start.period!);
@@ -62,7 +62,7 @@ describe("导演台语义姿势与 IK", () => {
         expect(distance(start.hands!.leftHand!, end.hands!.leftHand!)).toBeLessThan(1e-6);
     });
 
-    test("两段 IK 在可达目标上保持两段骨长并朝极向量弯曲", () => {
+    test("Two-segment IK maintains two bone lengths on the reachable target and bends toward the polar vector", () => {
         expect(typeof poseApi.resolveDirectorTwoBoneJoint).toBe("function");
         const start: [number, number, number] = [0, 1, 0];
         const end: [number, number, number] = [0.15, 0.1, 0];

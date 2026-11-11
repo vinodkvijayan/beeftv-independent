@@ -190,7 +190,7 @@ func newJSONRequest(ctx context.Context, method, rawURL string, config Config, b
 	if body != nil {
 		data, err := json.Marshal(body)
 		if err != nil {
-			return nil, fmt.Errorf("序列化上游请求失败：%w", err)
+			return nil, fmt.Errorf("Serialization upstream request failed: %w", err)
 		}
 		reader = bytes.NewReader(data)
 	}
@@ -212,7 +212,7 @@ func DoJSON(req *http.Request, target interface{}) error {
 		return err
 	}
 	if !strings.Contains(mimeType, "json") && !json.Valid(data) {
-		return ResponseDecodeError{Err: fmt.Errorf("接口返回非 JSON 内容：%s", mimeType)}
+		return ResponseDecodeError{Err: fmt.Errorf("The interface returns non-JSON content: %s", mimeType)}
 	}
 	if err := json.Unmarshal(data, target); err != nil {
 		return ResponseDecodeError{Err: err}
@@ -312,7 +312,7 @@ func doBinaryWithAdmission(req *http.Request, onChunk func(string, []byte), admi
 		channelID = runtime.Call.ChannelID
 		limit, err := runtime.Limits.GeneratedFileBytes(req.Context())
 		if err != nil {
-			return nil, "", fmt.Errorf("读取生成资源限制失败：%w", err)
+			return nil, "", fmt.Errorf("Failed to read build resource limit: %w", err)
 		}
 		responseLimit = limit
 		observation.ResponseLimitBytes = responseLimit
@@ -321,7 +321,7 @@ func doBinaryWithAdmission(req *http.Request, onChunk func(string, []byte), admi
 		if usesGenerationCircuit {
 			open, err := runtime.Limits.CircuitOpen(req.Context(), channelID)
 			if err != nil {
-				return nil, "", fmt.Errorf("读取渠道熔断状态失败：%w", err)
+				return nil, "", fmt.Errorf("Failed to read channel circuit breaker status: %w", err)
 			}
 			if open {
 				return nil, "", CircuitOpenError{}
@@ -417,7 +417,7 @@ func doBinaryWithAdmission(req *http.Request, onChunk func(string, []byte), admi
 	observation.RequestID = firstNonEmpty(resp.Header.Get("X-Request-Id"), resp.Header.Get("Request-Id"), resp.Header.Get("X-Oneapi-Request-Id"))
 	if resp.ContentLength > responseLimit {
 		observation.Outcome = "response_limit"
-		return nil, "", fmt.Errorf("上游响应超过 %s 限制", formatStorageLimit(responseLimit))
+		return nil, "", fmt.Errorf("Upstream response exceeds %s limit", formatStorageLimit(responseLimit))
 	}
 	mimeType := resp.Header.Get("Content-Type")
 	var buffered bytes.Buffer
@@ -438,7 +438,7 @@ func doBinaryWithAdmission(req *http.Request, onChunk func(string, []byte), admi
 			}
 			if int64(buffered.Len()+readCount) > responseLimit {
 				observation.Outcome = "response_limit"
-				return nil, "", fmt.Errorf("上游响应超过 %s 限制", formatStorageLimit(responseLimit))
+				return nil, "", fmt.Errorf("Upstream response exceeds %s limit", formatStorageLimit(responseLimit))
 			}
 			_, _ = buffered.Write(chunk[:readCount])
 			if onChunk != nil {
@@ -455,7 +455,7 @@ func doBinaryWithAdmission(req *http.Request, onChunk func(string, []byte), admi
 	data := buffered.Bytes()
 	observation.Body = data
 	if int64(len(data)) > responseLimit {
-		return nil, "", fmt.Errorf("上游响应超过 %s 限制", formatStorageLimit(responseLimit))
+		return nil, "", fmt.Errorf("Upstream response exceeds %s limit", formatStorageLimit(responseLimit))
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		if usesGenerationCircuit {

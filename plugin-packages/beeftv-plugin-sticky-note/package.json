@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-sticky-note",
   "version": "0.1.1",
-  "description": "在画布上放置可换色、可编辑的便签卡片，并支持创作助手直接创建和修改便签。",
+  "description": "Place color-changeable and editable note cards on the canvas, and support creative assistants to create and modify notes directly.",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {
@@ -29,7 +29,7 @@
     ]
   },
   "beeftv": {
-    "name": "画布便签",
+    "name": "canvas sticky notes",
     "client": "./client/index.js",
     "surfaces": [
       "node"
@@ -42,8 +42,8 @@
       "canvasNodes": [
         {
           "id": "sticky-note",
-          "label": "画布便签",
-          "defaultTitle": "便签",
+          "label": "canvas sticky notes",
+          "defaultTitle": "Notes",
           "defaultSize": {
             "width": 240,
             "height": 180
@@ -60,7 +60,7 @@
             }
           },
           "renderer": "client",
-          "description": "可切换配色的画布便签卡片"
+          "description": "Canvas note cards with switchable colors"
         }
       ]
     }

@@ -29,7 +29,7 @@ beforeAll(async () => {
             const terminal = capturedPhase !== "running";
             const data = path.endsWith("/logs")
                 ? [{ level: "info", message: terminal ? "completed" : "running", createdAt: "2026-09-29T15:00:00Z" }]
-                : { id, type: "video", status: capturedPhase, stage: terminal ? capturedPhase : "分析视频", progress: terminal ? 100 : 35, prompt: "test", attempts: 1, createdAt: "2026-09-29T15:00:00Z", startedAt: "2026-09-29T15:00:01Z", updatedAt: "2026-09-29T15:00:02Z", ...(terminal ? { completedAt: "2026-09-29T15:00:03Z" } : {}) };
+                : { id, type: "video", status: capturedPhase, stage: terminal ? capturedPhase : "Analyze video", progress: terminal ? 100 : 35, prompt: "test", attempts: 1, createdAt: "2026-09-29T15:00:00Z", startedAt: "2026-09-29T15:00:01Z", updatedAt: "2026-09-29T15:00:02Z", ...(terminal ? { completedAt: "2026-09-29T15:00:03Z" } : {}) };
             return Response.json({ code: 0, data });
         }
         return new Response('<div id="root"></div><script type="module" src="/harness.js"></script>', { headers: { "Content-Type": "text/html" } });

@@ -203,7 +203,7 @@ const journal = await import(journalPath);
 
 const project = (overrides: Partial<Project> = {}): Project => ({
     id: "canvas-a",
-    title: "画布 A",
+    title: "Canvas A",
     createdAt: "2026-09-22T08:00:00.000Z",
     updatedAt: "2026-09-22T08:00:00.000Z",
     revision: 0,
@@ -240,7 +240,7 @@ describe("local workspace stale backend protection", () => {
             store.resetProjects([local]); request.setRemoteProject(project()); request.setRequestFailure(path);
             expect(await repository.hydrateLocalCanvasProjectsFromBackend()).toBe(false);
             expect(store.projects[0]).toEqual(local);
-            expect(health.getCanvasHydrationHealth().error).toContain("现有数据已保留");
+            expect(health.getCanvasHydrationHealth().error).toContain("Existing data has been retained");
             expect(health.getCanvasHydrationHealth().loading).toBe(false);
             request.setRequestFailure("");
             await repository.hydrateLocalCanvasProjectsFromBackend();

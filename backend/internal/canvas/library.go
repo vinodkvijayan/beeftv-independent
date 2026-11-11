@@ -87,7 +87,7 @@ func (s *Service) UpsertUserCanvasFolder(userID string, id string, raw json.RawM
 		UpdatedAt       string `json:"updatedAt"`
 	}
 	if err := json.Unmarshal(raw, &payload); err != nil {
-		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("文件夹数据格式错误")
+		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("Folder data format error")
 	}
 	folderID := strings.TrimSpace(id)
 	if folderID == "" {
@@ -97,17 +97,17 @@ func (s *Service) UpsertUserCanvasFolder(userID string, id string, raw json.RawM
 		folderID = kernel.NewID()
 	}
 	if utf8.RuneCountInString(folderID) > 80 {
-		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("文件夹 ID 无效")
+		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("Invalid folder ID")
 	}
 	if payload.ID != "" && strings.TrimSpace(payload.ID) != folderID {
-		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("文件夹 ID 与请求路径不一致")
+		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("Folder ID does not match requested path")
 	}
 	name := strings.TrimSpace(payload.Name)
 	if name == "" {
-		name = "未命名文件夹"
+		name = "unnamed folder"
 	}
 	if utf8.RuneCountInString(name) > canvasFolderNameMaxRunes {
-		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("文件夹名称过长")
+		return model.CanvasLibraryFolder{}, kernel.BadAuthRequest("Folder name is too long")
 	}
 	coverID := strings.TrimSpace(payload.CoverResourceID)
 	now := time.Now().UTC()
@@ -116,7 +116,7 @@ func (s *Service) UpsertUserCanvasFolder(userID string, id string, raw json.RawM
 		CreatedAt: parseClientTime(payload.CreatedAt, now), UpdatedAt: now,
 	}
 	err := s.withWriteTx(func(svc *Service) error {
-		if err := svc.ownedReadyResource(userID, coverID, "封面"); err != nil {
+		if err := svc.ownedReadyResource(userID, coverID, "cover"); err != nil {
 			return err
 		}
 		existing, existingErr := svc.repo.CanvasLibraryFolderIncludingDeleted(userID, folderID)
@@ -146,12 +146,12 @@ func (s *Service) UpsertUserCanvasFolder(userID string, id string, raw json.RawM
 func (s *Service) DeleteUserCanvasFolder(userID, id string) error {
 	folderID := strings.TrimSpace(id)
 	if folderID == "" {
-		return kernel.BadAuthRequest("文件夹 ID 无效")
+		return kernel.BadAuthRequest("Invalid folder ID")
 	}
 	return s.withWriteTx(func(svc *Service) error {
 		existing, err := svc.repo.CanvasLibraryFolderIncludingDeleted(userID, folderID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return kernel.NotFound("文件夹不存在")
+			return kernel.NotFound("Folder does not exist")
 		}
 		if err != nil {
 			return err
@@ -183,7 +183,7 @@ func (s *Service) DeleteUserCanvasFolder(userID, id string) error {
 		}
 		if err := svc.repo.TombstoneCanvasLibraryFolder(userID, folderID, now); err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return kernel.NotFound("文件夹不存在")
+				return kernel.NotFound("Folder does not exist")
 			}
 			if errors.Is(err, repository.ErrCanvasLibraryFolderDeleted) {
 				return nil
@@ -215,7 +215,7 @@ func (s *Service) UserCanvasDrawing(userID, canvasID, drawingID string) (CanvasD
 	}
 	item, err := s.repo.CanvasDrawingForUser(userID, canvasID, strings.TrimSpace(drawingID))
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return CanvasDrawingDocument{}, kernel.NotFound("画板不存在")
+		return CanvasDrawingDocument{}, kernel.NotFound("Artboard does not exist")
 	}
 	if err != nil {
 		return CanvasDrawingDocument{}, err
@@ -235,37 +235,37 @@ func (s *Service) UpsertUserCanvasDrawing(userID, canvasID, drawingID string, ra
 		Render            *CanvasDrawingRender `json:"render"`
 	}
 	if err := json.Unmarshal(raw, &payload); err != nil {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板数据格式错误")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("Artboard data format error")
 	}
 	id := strings.TrimSpace(drawingID)
 	if id == "" {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板 ID 无效")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("Invalid artboard ID")
 	}
 	if utf8.RuneCountInString(id) > canvasDrawingIDMaxRunes {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板 ID 无效")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("Invalid artboard ID")
 	}
 	if payload.DrawingID != "" && strings.TrimSpace(payload.DrawingID) != id {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板 ID 与请求路径不一致")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("The artboard ID is inconsistent with the requested path")
 	}
 	if payload.Revision == nil {
-		return CanvasDrawingDocument{}, kernel.NewAppError(http.StatusPreconditionRequired, "缺少画板版本，请保留本地草稿后重新加载")
+		return CanvasDrawingDocument{}, kernel.NewAppError(http.StatusPreconditionRequired, "The artboard version is missing, please keep the local draft and reload it.")
 	}
 	if *payload.Revision < 0 || *payload.Revision >= 9007199254740991 {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板版本无效")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("Artboard version is invalid")
 	}
 	engine := strings.TrimSpace(payload.Engine)
 	if engine == "" {
 		engine = canvasDrawingEngineExcal
 	}
 	if engine != canvasDrawingEngineExcal {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板引擎无效")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("Artboard engine is invalid")
 	}
 	snapshot := payload.Snapshot
 	if len(snapshot) == 0 {
 		snapshot = json.RawMessage(`{}`)
 	}
 	if !json.Valid(snapshot) {
-		return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板数据格式错误")
+		return CanvasDrawingDocument{}, kernel.BadAuthRequest("Artboard data format error")
 	}
 	previewID := strings.TrimSpace(payload.PreviewResourceID)
 	render := payload.Render
@@ -273,7 +273,7 @@ func (s *Service) UpsertUserCanvasDrawing(userID, canvasID, drawingID string, ra
 	if render != nil {
 		renderID = strings.TrimSpace(render.ResourceID)
 		if render.Background != "" && render.Background != "white" {
-			return CanvasDrawingDocument{}, kernel.BadAuthRequest("画板成品背景无效")
+			return CanvasDrawingDocument{}, kernel.BadAuthRequest("The finished artboard background is invalid")
 		}
 	}
 	pageCount := payload.PageCount
@@ -305,11 +305,11 @@ func (s *Service) UpsertUserCanvasDrawing(userID, canvasID, drawingID string, ra
 			return err
 		}
 		row.CanvasID = canvasRow.ID
-		if err := svc.ownedReadyResource(userID, previewID, "画板预览"); err != nil {
+		if err := svc.ownedReadyResource(userID, previewID, "Artboard preview"); err != nil {
 			return err
 		}
 		if render != nil {
-			if err := svc.ownedReadyResource(userID, renderID, "画板成品"); err != nil {
+			if err := svc.ownedReadyResource(userID, renderID, "Finished drawing board"); err != nil {
 				return err
 			}
 		}
@@ -366,7 +366,7 @@ func (s *Service) UpsertUserCanvasDrawing(userID, canvasID, drawingID string, ra
 func (s *Service) DeleteUserCanvasDrawing(userID, canvasID, drawingID string) error {
 	id := strings.TrimSpace(drawingID)
 	if id == "" {
-		return kernel.BadAuthRequest("画板 ID 无效")
+		return kernel.BadAuthRequest("Invalid artboard ID")
 	}
 	return s.withWriteTx(func(svc *Service) error {
 		if _, err := svc.ownedCanvas(userID, canvasID); err != nil {
@@ -374,7 +374,7 @@ func (s *Service) DeleteUserCanvasDrawing(userID, canvasID, drawingID string) er
 		}
 		err := svc.repo.TombstoneCanvasDrawing(userID, canvasID, id, time.Now().UTC())
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return kernel.NotFound("画板不存在")
+			return kernel.NotFound("Artboard does not exist")
 		}
 		if errors.Is(err, repository.ErrCanvasDrawingDeleted) {
 			return nil
@@ -386,11 +386,11 @@ func (s *Service) DeleteUserCanvasDrawing(userID, canvasID, drawingID string) er
 func (s *Service) ownedCanvas(userID, canvasID string) (*model.CanvasProject, error) {
 	id := strings.TrimSpace(canvasID)
 	if id == "" {
-		return nil, kernel.BadAuthRequest("画布 ID 无效")
+		return nil, kernel.BadAuthRequest("Invalid canvas ID")
 	}
 	project, err := s.repo.CanvasProjectForUser(userID, id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, kernel.NotFound("画布不存在或无权访问")
+		return nil, kernel.NotFound("Canvas does not exist or does not have access")
 	}
 	if err != nil {
 		return nil, err
@@ -405,13 +405,13 @@ func (s *Service) ownedReadyResource(userID, id, label string) error {
 	}
 	resource, err := s.repo.ResourceForUser(userID, id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return kernel.BadAuthRequest(label + "资源不存在")
+		return kernel.BadAuthRequest(label + "Resource does not exist")
 	}
 	if err != nil {
 		return err
 	}
 	if resource.Status != model.ResourceStatusReady {
-		return kernel.BadAuthRequest(label + "资源尚未就绪")
+		return kernel.BadAuthRequest(label + "The resource is not ready yet")
 	}
 	return nil
 }
@@ -423,7 +423,7 @@ func (s *Service) requireCanvasLibraryFolder(userID, folderID string) error {
 	}
 	_, err := s.repo.CanvasLibraryFolderForUser(userID, folderID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return kernel.BadAuthRequest("画布文件夹不存在")
+		return kernel.BadAuthRequest("Canvas folder does not exist")
 	}
 	return err
 }
@@ -483,19 +483,19 @@ func drawingWriteMatches(existing, next model.CanvasDrawing) bool {
 }
 
 func drawingRevisionConflict() error {
-	return kernel.NewAppError(http.StatusConflict, "画板已有更新，已停止覆盖；请保留本地草稿并加载最新版本")
+	return kernel.NewAppError(http.StatusConflict, "The artboard has been updated and overwriting has stopped; please keep the local draft and load the latest version")
 }
 
 func drawingDeletedError() error {
 	return &kernel.AppError{
 		Status: http.StatusConflict, Code: kernel.CodeConflict,
-		Reason: kernel.ReasonFailedPrecondition, Message: "画板已删除，不能重新导入",
+		Reason: kernel.ReasonFailedPrecondition, Message: "The artboard has been deleted and cannot be re-imported",
 	}
 }
 
 func folderDeletedError() error {
 	return &kernel.AppError{
 		Status: http.StatusConflict, Code: kernel.CodeConflict,
-		Reason: kernel.ReasonFailedPrecondition, Message: "文件夹已删除，不能重新导入",
+		Reason: kernel.ReasonFailedPrecondition, Message: "The folder has been deleted and cannot be re-imported",
 	}
 }

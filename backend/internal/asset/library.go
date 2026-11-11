@@ -51,7 +51,7 @@ func (l *Library) WithHost(host Host) *Library {
 
 func (l *Library) requireHost() error {
 	if l == nil || l.host == nil {
-		return kernel.NewAppError(kernel.CodeInternal, "素材库暂不可用，请稍后重试")
+		return kernel.NewAppError(kernel.CodeInternal, "The material library is temporarily unavailable, please try again later.")
 	}
 	return nil
 }
@@ -86,14 +86,14 @@ func (l *Library) UserAssets(userID string) ([]json.RawMessage, error) {
 
 func (l *Library) UserAssetsByIDs(userID string, ids []string) ([]json.RawMessage, error) {
 	if len(ids) > 100 {
-		return nil, kernel.BadAuthRequest("每次最多读取 100 个素材")
+		return nil, kernel.BadAuthRequest("Read up to 100 materials at a time")
 	}
 	unique := make([]string, 0, len(ids))
 	seen := make(map[string]bool, len(ids))
 	for _, id := range ids {
 		id = strings.TrimSpace(id)
 		if id == "" || len(id) > 80 {
-			return nil, kernel.BadAuthRequest("素材 ID 无效")
+			return nil, kernel.BadAuthRequest("Invalid asset ID")
 		}
 		if !seen[id] {
 			seen[id] = true

@@ -14,7 +14,7 @@ describe("LibTV canvas minimap contract", () => {
     test("exposes a stable accessible minimap surface", () => {
         const minimap = readFileSync(resolve(root, "src/components/canvas/canvas-mini-map.tsx"), "utf8");
         expect(minimap).toContain("data-canvas-minimap");
-        expect(minimap).toContain('aria-label="画布小地图"');
+        expect(minimap).toContain('aria-label="Canvas minimap"');
         expect(minimap).toContain("borderColor: theme.toolbar.border");
     });
 });

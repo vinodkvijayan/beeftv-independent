@@ -25,7 +25,7 @@ window.go = {
             StorageSettings: async () => usage,
             ChooseStorageDirectory: async () => "D:\\BeefTV",
             MigrateStorage: async (path) => {
-                if (params.has("migration-error")) throw new Error("迁移未完成，原数据已保留，但工作区未能重新打开。请重启 BeefTV\n\nopen C:\\private\\data: fixture failure");
+                if (params.has("migration-error")) throw new Error("The migration is not completed, the original data has been retained, but the workspace cannot be reopened. Please restart BeefTV\n\nopen C:\\private\\data: fixture failure");
                 usage = { ...usage, dataDir: path, previousDir: initial.dataDir, previousBytes: initial.usedBytes };
                 localStorage.setItem("fixture-usage", JSON.stringify(usage));
                 return usage;
@@ -33,7 +33,7 @@ window.go = {
             CleanupPreviousStorage: async () => {
                 if (params.has("cleanup-error")) {
                     usage = { ...usage, previousBytes: 2048 };
-                    throw new Error("临时文件仍在使用中，请重启 BeefTV 后再次清理。当前存储目录不受影响\n\nfixture sharing violation");
+                    throw new Error("The temporary file is still in use, please restart BeefTV and clean it again. The current storage directory is not affected\n\nfixture sharing violation");
                 }
                 usage = { ...usage, previousDir: undefined };
                 localStorage.setItem("fixture-usage", JSON.stringify(usage));
@@ -46,11 +46,11 @@ window.go = {
                 return { ...config };
             },
             UploadReferenceMedia: async (ids) => {
-                if (params.has("reject")) throw new Error("公网地址不可读取");
+                if (params.has("reject")) throw new Error("The public network address cannot be read");
                 return Object.fromEntries(ids.map((id) => [id, `https://cdn.example.com/${id}`]));
             },
             TestReferenceStorage: async () => {
-                if (params.has("test-error")) throw new Error("素材已上传，但公网地址不可读取（HTTP 403），请检查公开读取设置");
+                if (params.has("test-error")) throw new Error("The material has been uploaded, but the public address cannot be read (HTTP 403). Please check the public read settings.");
             },
         },
     },
@@ -63,7 +63,7 @@ function Harness() {
     const generate = async () => {
         try {
             const resolve = createReferenceLinkResolver(modal);
-            const value = await resolve([{ key: "image", label: "参考图片", resourceID: "owned-image" }]);
+            const value = await resolve([{ key: "image", label: "Reference pictures", resourceID: "owned-image" }]);
             setResult(value?.image || "cancelled");
         } catch (error) {
             setResult(String(error));
@@ -73,7 +73,7 @@ function Harness() {
         <main className="settings-page space-y-8" style={{ padding: 16, maxWidth: 900, margin: "auto" }}>
             {params.has("transport") ? <ReferenceMediaTransportFields value={transport} onChange={setTransport} /> : <StorageSettingsPane />}
             <ReferenceStoragePane />
-            {!params.has("transport") && <><button onClick={() => setOpen(true)}>添加测试素材</button><button onClick={() => void generate()}>生成测试</button><output>{result}</output></>}
+            {!params.has("transport") && <><button onClick={() => setOpen(true)}>Add test material</button><button onClick={() => void generate()}>Generate tests</button><output>{result}</output></>}
             <CanvasUploadModal
                 open={open}
                 onClose={() => setOpen(false)}

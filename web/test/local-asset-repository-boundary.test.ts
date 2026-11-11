@@ -18,9 +18,9 @@ function sampleAsset(id = "asset-1"): Asset {
     return {
         id,
         kind: "image",
-        title: "画布图片",
+        title: "canvas image",
         coverUrl: "/api/resources/res-1/file",
-        tags: ["生成"],
+        tags: ["generate"],
         category: "material",
         status: "confirmed",
         source: "Canvas",
@@ -167,10 +167,10 @@ describe("workspace asset repository runtime boundary", () => {
             await withAdapter(async (config) => {
                 urls.push(`${String(config.method || "get").toLowerCase()} ${String(config.url || "")}`);
                 if (String(config.url || "").includes("/assets/asset-1") && String(config.method).toLowerCase() === "put") {
-                    return envelope({ asset: { id: "asset-1", title: "画布图片", category: "material", status: "confirmed", createdAt: asset.createdAt, updatedAt: asset.updatedAt } });
+                    return envelope({ asset: { id: "asset-1", title: "canvas image", category: "material", status: "confirmed", createdAt: asset.createdAt, updatedAt: asset.updatedAt } });
                 }
                 if (String(config.url || "").includes("/projects/project-1/assets") && String(config.method).toLowerCase() === "post") {
-                    return envelope({ asset: { id: "asset-1", title: "画布图片", category: "material", status: "confirmed", versionCount: 1, usages: [], position: 0, updatedAt: asset.updatedAt, mediaType: "image" } });
+                    return envelope({ asset: { id: "asset-1", title: "canvas image", category: "material", status: "confirmed", versionCount: 1, usages: [], position: 0, updatedAt: asset.updatedAt, mediaType: "image" } });
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
@@ -195,7 +195,7 @@ describe("workspace asset repository runtime boundary", () => {
         try {
             await withAdapter(async (config) => {
                 urls.push(`${String(config.method || "get").toLowerCase()} ${String(config.url || "")}`);
-                return envelope({ asset: { id: "asset-1", title: "画布图片", category: "material", status: "confirmed", createdAt: asset.createdAt, updatedAt: asset.updatedAt } });
+                return envelope({ asset: { id: "asset-1", title: "canvas image", category: "material", status: "confirmed", createdAt: asset.createdAt, updatedAt: asset.updatedAt } });
             }, async () => {
                 await persistWorkspaceAssetLink({ asset });
             });
@@ -214,12 +214,12 @@ describe("workspace asset repository runtime boundary", () => {
         const asset: Asset = {
             id: "asset-1",
             kind: "text",
-            title: "文本",
+            title: "text",
             coverUrl: "",
             tags: [],
             category: "other",
             status: "confirmed",
-            source: "手动添加",
+            source: "Add manually",
             data: { content: "hello" },
             createdAt: "2026-10-02T00:00:00.000Z",
             updatedAt: "2026-10-02T00:00:00.000Z",
@@ -246,12 +246,12 @@ describe("workspace asset repository runtime boundary", () => {
         const asset: Asset = {
             id: "asset-1",
             kind: "text",
-            title: "文本",
+            title: "text",
             coverUrl: "",
             tags: [],
             category: "other",
             status: "confirmed",
-            source: "手动添加",
+            source: "Add manually",
             data: { content: "hello" },
             createdAt: "2026-10-02T00:00:00.000Z",
             updatedAt: "2026-10-02T00:00:00.000Z",
@@ -259,8 +259,8 @@ describe("workspace asset repository runtime boundary", () => {
         useAssetStore.setState({ assets: [asset] });
         try {
             await withAdapter(async (config) => {
-                throw new axios.AxiosError("没有权限", "ERR_BAD_REQUEST", config, undefined, {
-                    data: { code: 403, data: null, msg: "没有权限" },
+                throw new axios.AxiosError("No permission", "ERR_BAD_REQUEST", config, undefined, {
+                    data: { code: 403, data: null, msg: "No permission" },
                     status: 403,
                     statusText: "Error",
                     headers: {},
@@ -283,17 +283,17 @@ describe("workspace asset repository runtime boundary", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "草稿",
+                title: "draft",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "hello" },
             });
             await withAdapter(async (config) => {
                 urls.push(`${String(config.method || "get").toLowerCase()} ${String(config.url || "")}`);
-                return envelope({ asset: { id, title: "草稿", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                return envelope({ asset: { id, title: "draft", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
             }, async () => {
                 await persistWorkspaceAssetChanges();
             });

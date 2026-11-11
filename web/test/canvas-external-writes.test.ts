@@ -21,8 +21,8 @@ afterEach(() => {
     delete apiClient.defaults.headers.common["X-Desktop-Token"];
 });
 
-describe("桌面端实时画布 SSE 与外部改动记录", () => {
-    test("浏览器画布事件使用嵌入运行时的 API 前缀", () => {
+describe("Desktop real-time canvas SSE and external change logging", () => {
+    test("Browser canvas events use API prefixes embedded in the runtime", () => {
         configureApiRuntime("/beeftv/app/session-1/api");
         globalThis.window = { location: { protocol: "http:" } } as Window & typeof globalThis;
         let capturedUrl = "";
@@ -39,7 +39,7 @@ describe("桌面端实时画布 SSE 与外部改动记录", () => {
         expect(closed).toBe(true);
     });
 
-    test("Wails 协议或桌面端 Token 下通过流式 fetch 实时接收 canvas.updated", async () => {
+    test("Receive canvas.updated in real time through streaming fetch under Wails protocol or desktop Token", async () => {
         configureApiRuntime("http://127.0.0.1:18090/api", "desktop-secret-token");
         globalThis.window = {
             location: { protocol: "wails:" },
@@ -75,7 +75,7 @@ describe("桌面端实时画布 SSE 与外部改动记录", () => {
         expect(updates).toBe(1);
     });
 
-    test("读取外部改动列表与按写入记录撤销", async () => {
+    test("Reading external changelists and undoing by writing records", async () => {
         const calls: Array<{ method?: string; url?: string; params?: unknown; data?: unknown }> = [];
         apiClient.defaults.adapter = async (config) => {
             calls.push({
@@ -100,7 +100,7 @@ describe("桌面端实时画布 SSE 与外部改动记录", () => {
                                     revisionBefore: 3,
                                     revisionAfter: 4,
                                     changedNodeIds: ["n1"],
-                                    summary: "修改 镜头 1",
+                                    summary: "Modify shot 1",
                                     createdAt: "2026-11-01T10:00:00Z",
                                 },
                             ],
@@ -148,7 +148,7 @@ describe("桌面端实时画布 SSE 与外部改动记录", () => {
         });
     });
 
-    test("外部画布事件广播唤醒对应画布订阅者", () => {
+    test("External canvas event broadcast wakes up the corresponding canvas subscriber", () => {
         const seen: string[] = [];
         const off = subscribeExternalCanvasEvent((canvasId) => seen.push(canvasId));
         notifyExternalCanvasEvent("c-alpha");

@@ -20,6 +20,6 @@ func TestFrozenImageDispatchDoesNotFollowPostRedirect(t *testing.T) {
 	req.Header.Set("Idempotency-Key", "original-key")
 	_, _, err := DoBinaryWithDispatchAdmission(req, func() error { return nil })
 	if err == nil || forwarded.Load() != 0 {
-		t.Fatalf("冻结 POST 被转发到未经核实的渠道: forwarded=%d err=%v", forwarded.Load(), err)
+		t.Fatalf("Freeze POST forwarded to unverified channel: forwarded=%d err=%v", forwarded.Load(), err)
 	}
 }

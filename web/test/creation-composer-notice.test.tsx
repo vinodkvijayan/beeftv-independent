@@ -67,8 +67,8 @@ function render(notice?: string, currentConfig = config) {
     );
 }
 
-test("被拦下的说明显示在输入框内，而不是被全局隐藏的 Toast 里", () => {
-    const text = "输出时长为 3 秒，当前模型只支持 4–15 秒；请改成 4–15 秒后再提交";
+test("The blocked description is displayed in the input box instead of the globally hidden Toast.", () => {
+    const text = "The output time is 3 seconds, and the current model only supports 4–15 seconds; please change it to 4–15 seconds before submitting.";
     const html = render(text);
     expect(html).toContain("creation-composer-notice");
     expect(html).toContain('role="alert"');
@@ -77,6 +77,6 @@ test("被拦下的说明显示在输入框内，而不是被全局隐藏的 Toas
     expect(html.indexOf("creation-composer-notice")).toBeLessThan(html.indexOf("creation-submit"));
 });
 
-test("没有拦截说明时不渲染这段提示", () => {
+test("This prompt will not be rendered when there is no interception description.", () => {
     expect(render()).not.toContain("creation-composer-notice");
 });

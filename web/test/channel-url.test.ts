@@ -17,7 +17,7 @@ const parityCases: Array<[base: string, path: string, expected: string]> = [
     ["https://host/openai/v1", "/v1/images/generations", "https://host/openai/v1/images/generations"],
 ];
 
-describe("joinChannelUrl 与后端 channelurl.Join 一致", () => {
+describe("joinChannelUrl is consistent with the backend channelurl.Join", () => {
     for (const [base, path, expected] of parityCases) {
         test(`${base} + ${path}`, () => {
             expect(joinChannelUrl(base, path, "/v1")).toBe(expected);
@@ -26,11 +26,11 @@ describe("joinChannelUrl 与后端 channelurl.Join 一致", () => {
 });
 
 describe("buildApiUrl", () => {
-    test("系统代理渠道直接拼相对路径", () => {
+    test("System agent channels directly create relative paths", () => {
         expect(buildApiUrl("/api/ai/system/channel-1", "/models")).toBe("/api/ai/system/channel-1/models");
     });
 
-    test("普通渠道走同一套版本前缀规则", () => {
+    test("Ordinary channels follow the same set of version prefix rules", () => {
         expect(buildApiUrl("https://host/api/v1/", "/v1/chat/completions")).toBe("https://host/v1/chat/completions");
     });
 });

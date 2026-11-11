@@ -14,15 +14,15 @@ export function beginTurn(state, {
   sessionId = '',
 } = {}) {
   const id = String(turnId || `turn-${state.turns.size + 1}`).trim();
-  if (!id) throw invalidArg('invalid_turn_id', 'turnId 必填');
+  if (!id) throw invalidArg('invalid_turn_id', 'turnId required');
   if (!['read-only', 'canvas', 'full-access'].includes(permissionMode)) {
-    throw invalidArg('invalid_permission_mode', '助手权限无效');
+    throw invalidArg('invalid_permission_mode', 'Assistant permission is invalid');
   }
   const doc = ensureCanvas(state, canvasId);
   const existing = state.turns.get(id);
   if (existing) {
     if (existing.canvasId !== canvasId || existing.permissionMode !== permissionMode) {
-      throw conflict('turn_id_collision', '同一轮次标识已用于不同的范围或身份');
+      throw conflict('turn_id_collision', 'The same round ID has been used for different scopes or identities');
     }
     return existing;
   }
@@ -55,12 +55,12 @@ export function authorizeTurnForOp(state, turnId, descriptor, params) {
   }
   if (!rec || !rec.open || rec.undone) {
     state.counts.scopeDenied += 1;
-    throw permissionDenied('turn_not_open', '助手当前回合未开启或已结束');
+    throw permissionDenied('turn_not_open', 'The assistant\'s current round is not started or has ended');
   }
   const mode = rec.permissionMode || 'canvas';
   if (mode === 'read-only' && (!descriptor.readOnly || descriptor.id === 'canvas.generation.propose')) {
     state.counts.scopeDenied += 1;
-    throw permissionDenied('scope_denied', '本轮助手只能读取');
+    throw permissionDenied('scope_denied', 'This round of assistants can only read');
   }
   const targetCanvasId = params?.canvasId;
   if (targetCanvasId && descriptor.id !== 'canvas.search') {
@@ -68,7 +68,7 @@ export function authorizeTurnForOp(state, turnId, descriptor, params) {
       const canReadRef = descriptor.readOnly && descriptor.id === 'canvas.get' && rec.referencedCanvasIds.includes(targetCanvasId);
       if (!canReadRef) {
         state.counts.scopeDenied += 1;
-        throw permissionDenied('scope_denied', `画布参数与当前会话不一致（${targetCanvasId} ≠ ${rec.canvasId}）`);
+        throw permissionDenied('scope_denied', `The canvas parameters are inconsistent with the current session (${targetCanvasId} ≠ ${rec.canvasId}）`);
       }
     }
   }
@@ -81,7 +81,7 @@ export function undoTurn(state, turnId = null, canvasId = state.defaultCanvasId)
     const candidates = [...state.turns.values()].filter((t) => t.canvasId === canvasId && !t.undone);
     target = candidates.at(-1) || null;
   }
-  if (!target) throw notFound('turn_not_found', '未找到可撤销的回合');
+  if (!target) throw notFound('turn_not_found', 'Undoable round not found');
   if (target.undone) return { turnId: target.turnId, undone: true, revision: ensureCanvas(state, target.canvasId).revision };
 
   const current = ensureCanvas(state, target.canvasId);

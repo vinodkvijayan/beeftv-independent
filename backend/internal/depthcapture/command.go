@@ -52,9 +52,9 @@ func probeCUDA(ctx context.Context, python, toolDir, modelRuntime, goos string, 
 	}
 	var exit *exec.ExitError
 	if errors.As(err, &exit) {
-		return fmt.Errorf("CUDA 真实模型探针失败: %w", ClassifyWorkerExit(exit.ExitCode(), strings.TrimSpace(string(output))))
+		return fmt.Errorf("CUDA real model probe failed: %w", ClassifyWorkerExit(exit.ExitCode(), strings.TrimSpace(string(output))))
 	}
-	return fmt.Errorf("无法运行 CUDA 真实模型探针: %w", err)
+	return fmt.Errorf("Unable to run CUDA real model probe: %w", err)
 }
 
 func runCommand(ctx context.Context, python, toolDir, modelRuntime, device, inputPath, outputDir, goos string, onLine func(string), configure func(*exec.Cmd)) error {
@@ -76,12 +76,12 @@ func runCommand(ctx context.Context, python, toolDir, modelRuntime, device, inpu
 	}
 	stdout, err := command.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("无法启动深度处理组件: %w", err)
+		return fmt.Errorf("Unable to start depth processing component: %w", err)
 	}
 	var stderr bytes.Buffer
 	command.Stderr = &stderr
 	if err := command.Start(); err != nil {
-		return fmt.Errorf("无法启动深度处理组件: %w", err)
+		return fmt.Errorf("Unable to start depth processing component: %w", err)
 	}
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {

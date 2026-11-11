@@ -32,24 +32,24 @@ afterAll(async () => { await browser?.close(); });
 
 async function mount() {
     await page.goto("https://beeftv-title.test/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "编辑节点名称：原名称", exact: true }).click({ timeout: 2000 });
+    await page.getByRole("button", { name: "Edit node name: original name", exact: true }).click({ timeout: 2000 });
 }
 
 test("clicking canvas background commits a rename even when canvas suppresses native focus", async () => {
     await mount();
-    await page.getByRole("textbox", { name: "节点名称", exact: true }).fill("雨夜街景");
+    await page.getByRole("textbox", { name: "Node name", exact: true }).fill("Rainy night street scene");
     await page.getByTestId("canvas-background").click({ position: { x: 800, y: 500 } });
-    expect(await page.getByTestId("saved-title").innerText()).toBe("雨夜街景");
-    expect(await page.getByRole("textbox", { name: "节点名称", exact: true }).count()).toBe(0);
+    expect(await page.getByTestId("saved-title").innerText()).toBe("Rainy night street scene");
+    expect(await page.getByRole("textbox", { name: "Node name", exact: true }).count()).toBe(0);
     expect(await page.getByTestId("commits").innerText()).toBe("1");
 }, 15000);
 
 test("Escape cancels a rename without saving on the following outside click", async () => {
     await mount();
-    const input = page.getByRole("textbox", { name: "节点名称", exact: true });
-    await input.fill("不要保存");
+    const input = page.getByRole("textbox", { name: "Node name", exact: true });
+    await input.fill("don't save");
     await input.press("Escape");
     await page.getByTestId("canvas-background").click({ position: { x: 800, y: 500 } });
-    expect(await page.getByTestId("saved-title").innerText()).toBe("原名称");
+    expect(await page.getByTestId("saved-title").innerText()).toBe("original name");
     expect(await page.getByTestId("commits").innerText()).toBe("0");
 }, 15000);

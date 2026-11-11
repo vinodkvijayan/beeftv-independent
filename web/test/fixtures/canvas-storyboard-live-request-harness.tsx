@@ -17,8 +17,8 @@ const pageUi = createCanvasPageUiStore();
 useConfigStore.setState({ isAiConfigReady: () => true });
 
 const initialNodes: CanvasNodeData[] = [
-    { id: "style", type: CanvasNodeType.Text, title: "画风", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { workflowKind: "styleboard", content: "写实电影感", stylePresetId: "cinematic" } },
-    { id: "script", type: CanvasNodeType.Script, title: "分镜", position: { x: 400, y: 0 }, width: 640, height: 420, metadata: { status: "idle" } },
+    { id: "style", type: CanvasNodeType.Text, title: "style of painting", position: { x: 0, y: 0 }, width: 320, height: 180, metadata: { workflowKind: "styleboard", content: "Realistic movie feel", stylePresetId: "cinematic" } },
+    { id: "script", type: CanvasNodeType.Script, title: "Storyboard", position: { x: 400, y: 0 }, width: 640, height: 420, metadata: { status: "idle" } },
 ];
 
 type StoryboardHarness = {
@@ -71,7 +71,7 @@ function Harness() {
         window.storyboardHarness = {
             generate() {
                 settledRef.current = "pending";
-                void latest.current.storyboard.generateScriptRows("script", "拆分镜头").then((result) => { settledRef.current = result ?? undefined; });
+                void latest.current.storyboard.generateScriptRows("script", "split shot").then((result) => { settledRef.current = result ?? undefined; });
             },
             remoteLoad(extra) {
                 // Remote copy = the live graph the client already autosaved plus nodes this client never saw.
@@ -82,7 +82,7 @@ function Harness() {
             takeOver() {
                 // Another generation path claims the script node through the shared request registry.
                 latest.current.generation.startGenerationRequest("script", "script", "script");
-                setNodes((current) => current.map((node) => (node.id === "script" ? { ...node, metadata: { ...node.metadata, status: "loading", taskStage: "接管" } } : node)));
+                setNodes((current) => current.map((node) => (node.id === "script" ? { ...node, metadata: { ...node.metadata, status: "loading", taskStage: "take over" } } : node)));
             },
             snapshot() {
                 return { nodes: nodesRef.current, settled: settledRef.current };

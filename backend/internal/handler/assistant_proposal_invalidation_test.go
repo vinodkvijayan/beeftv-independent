@@ -31,13 +31,13 @@ func TestAssistantProposalInvalidationUsesDurableIntentOnHistoryTerminalAndRun(t
 					t.Error(err)
 				}
 				w.Header().Set("Content-Type", "application/x-ndjson")
-				json.NewEncoder(w).Encode(map[string]any{"type": "turn_end", "turnId": id, "sessionId": session, "reply": "方案已准备好", "proposalsInvalidated": true})
+				json.NewEncoder(w).Encode(map[string]any{"type": "turn_end", "turnId": id, "sessionId": session, "reply": "Plan is ready", "proposalsInvalidated": true})
 			default:
 				w.WriteHeader(404)
 			}
 		})
 	})
-	body := `{"canvasId":"` + env.canvasID + `","sessionId":"` + session + `","message":"制作一张图片"}`
+	body := `{"canvasId":"` + env.canvasID + `","sessionId":"` + session + `","message":"Create a picture"}`
 	run := func(id string, want int) {
 		t.Helper()
 		response := env.call(t, http.MethodPost, "/assistant/turns/"+id+"/proposals/gp-fixture/run", `{"canvasId":"`+env.canvasID+`"}`)

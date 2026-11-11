@@ -114,20 +114,20 @@ func (s *Service) requestDeviceCode() (deviceCodeResponse, error) {
 		Hostname:      s.hostname,
 	}, nil)
 	if err != nil {
-		return deviceCodeResponse{}, fmt.Errorf("无法连接 BeefTV 服务，请检查网络后重试")
+		return deviceCodeResponse{}, fmt.Errorf("Unable to connect to BeefTV service, please check the network and try again")
 	}
 	if response.StatusCode >= 300 {
 		if response.StatusCode == http.StatusTooManyRequests {
-			return deviceCodeResponse{}, fmt.Errorf("连接尝试过于频繁，请稍后重试")
+			return deviceCodeResponse{}, fmt.Errorf("Connection attempts too frequent, please try again later")
 		}
 		if response.StatusCode >= 500 {
-			return deviceCodeResponse{}, fmt.Errorf("BeefTV 连接服务暂时不可用，请稍后重试")
+			return deviceCodeResponse{}, fmt.Errorf("BeefTV connection service is temporarily unavailable, please try again later.")
 		}
-		return deviceCodeResponse{}, fmt.Errorf("BeefTV 服务未接受连接，请更新应用后重试")
+		return deviceCodeResponse{}, fmt.Errorf("BeefTV service did not accept the connection, please update the app and try again")
 	}
 	var result deviceCodeResponse
 	if err := json.Unmarshal(raw, &result); err != nil || strings.TrimSpace(result.DeviceCode) == "" || strings.TrimSpace(result.UserCode) == "" {
-		return deviceCodeResponse{}, fmt.Errorf("企业授权响应无效")
+		return deviceCodeResponse{}, fmt.Errorf("Invalid enterprise authorization response")
 	}
 	if result.ExpiresIn <= 0 {
 		result.ExpiresIn = 900
@@ -152,12 +152,12 @@ func (s *Service) requestDeviceCode() (deviceCodeResponse, error) {
 func (s *Service) pollToken(deviceCode string) (tokenSuccess, string, error) {
 	response, raw, err := s.postJSON("/api/oauth/device/token", tokenRequest{ClientID: ClientID, DeviceCode: deviceCode}, nil)
 	if err != nil {
-		return tokenSuccess{}, "", fmt.Errorf("查询授权状态失败")
+		return tokenSuccess{}, "", fmt.Errorf("Failed to query authorization status")
 	}
 	if response.StatusCode == http.StatusOK {
 		var result tokenSuccess
 		if err := json.Unmarshal(raw, &result); err != nil {
-			return tokenSuccess{}, "", fmt.Errorf("企业授权响应无效")
+			return tokenSuccess{}, "", fmt.Errorf("Invalid enterprise authorization response")
 		}
 		return result, "", nil
 	}
@@ -169,9 +169,9 @@ func (s *Service) pollToken(deviceCode string) (tokenSuccess, string, error) {
 }
 
 var (
-	errAckTransient = fmt.Errorf("确认企业授权失败")
-	errAckExpired   = fmt.Errorf("授权已过期，请重新连接")
-	errAckRejected  = fmt.Errorf("授权被拒绝")
+	errAckTransient = fmt.Errorf("Confirm enterprise authorization failed")
+	errAckExpired   = fmt.Errorf("Authorization has expired, please reconnect")
+	errAckRejected  = fmt.Errorf("Authorization denied")
 )
 
 func (s *Service) acknowledge(deviceCode string) error {
@@ -244,7 +244,7 @@ func (s *Service) remoteConnection(apiKey string) (connectionView, int, error) {
 	}
 	var view connectionView
 	if err := json.Unmarshal(raw, &view); err != nil {
-		return connectionView{}, response.StatusCode, fmt.Errorf("企业连接信息无效")
+		return connectionView{}, response.StatusCode, fmt.Errorf("Invalid enterprise connection information")
 	}
 	return view, response.StatusCode, nil
 }
@@ -262,7 +262,7 @@ func (s *Service) revokeRemote(apiKey string) error {
 	defer response.Body.Close()
 	_, _ = io.Copy(io.Discard, io.LimitReader(response.Body, 1<<16))
 	if response.StatusCode != http.StatusNoContent && response.StatusCode != http.StatusOK && response.StatusCode != http.StatusUnauthorized {
-		return fmt.Errorf("断开企业连接失败")
+		return fmt.Errorf("Failed to disconnect from enterprise")
 	}
 	return nil
 }
@@ -297,22 +297,22 @@ func (s *Service) fetchModelList(apiKey string) ([]CatalogModel, error) {
 	request.Header.Set("Accept", "application/json")
 	response, err := s.httpClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("读取模型列表失败")
+		return nil, fmt.Errorf("Failed to read model list")
 	}
 	defer response.Body.Close()
 	raw, err := io.ReadAll(io.LimitReader(response.Body, 4<<20))
 	if err != nil {
-		return nil, fmt.Errorf("读取模型列表失败")
+		return nil, fmt.Errorf("Failed to read model list")
 	}
 	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
 		return nil, errRevoked
 	}
 	if response.StatusCode >= 300 {
-		return nil, fmt.Errorf("读取模型列表失败")
+		return nil, fmt.Errorf("Failed to read model list")
 	}
 	var payload modelsPayload
 	if err := json.Unmarshal(raw, &payload); err != nil {
-		return nil, fmt.Errorf("模型列表无效")
+		return nil, fmt.Errorf("Invalid model list")
 	}
 	models := make([]CatalogModel, 0, len(payload.Data))
 	seen := map[string]bool{}
@@ -405,19 +405,19 @@ func validateTokenSuccess(origin string, token tokenSuccess) (accountID, tokenID
 		return "", "", err
 	}
 	if token.Market != "enterprise" {
-		return "", "", errors.New("企业授权市场无效")
+		return "", "", errors.New("Enterprise licensing market is ineffective")
 	}
 	if token.Group != "enterprise" {
-		return "", "", errors.New("企业授权分组无效")
+		return "", "", errors.New("Enterprise authorization group is invalid")
 	}
 	if strings.TrimSpace(token.APIKey) == "" {
-		return "", "", errors.New("企业授权密钥无效")
+		return "", "", errors.New("Invalid enterprise authorization key")
 	}
-	accountID, err = positiveIdentity(token.Account.ID, "企业账号无效")
+	accountID, err = positiveIdentity(token.Account.ID, "The enterprise account is invalid")
 	if err != nil {
 		return "", "", err
 	}
-	tokenID, err = positiveIdentity(token.TokenID, "企业授权凭证无效")
+	tokenID, err = positiveIdentity(token.TokenID, "The enterprise authorization certificate is invalid")
 	if err != nil {
 		return "", "", err
 	}

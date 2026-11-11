@@ -38,7 +38,7 @@ func seedRunningTimelineTask(t *testing.T, db *gorm.DB, inputJSON string) *model
 		UserID:    "usr-timeline-test",
 		Type:      model.TaskTypeTimelineTranscription,
 		Status:    model.TaskStatusRunning,
-		Stage:     "已领取",
+		Stage:     "Received",
 		InputJSON: inputJSON,
 	}
 	if err := db.Create(task).Error; err != nil {
@@ -103,7 +103,7 @@ func TestTimelineTranscriptionRejectsMissingResourceRef(t *testing.T) {
 		t.Fatalf("status = %q, want failed", stored.Status)
 	}
 	if !strings.Contains(stored.Error, "资源引用") {
-		t.Fatalf("error = %q, want mention of 资源引用", stored.Error)
+		t.Fatalf("error = %q, want mention of resource citation", stored.Error)
 	}
 }
 
@@ -154,7 +154,7 @@ func TestCreateTimelineTranscriptionTaskRejectsForeignResource(t *testing.T) {
 
 	_, err := svc.CreateTimelineTranscriptionTask("usr-b", TimelineTranscriptionCreateRequest{ResourceID: "res-owner-a"})
 	if err == nil || !strings.Contains(err.Error(), "媒体") {
-		t.Fatalf("want 无法读取待转写媒体 error, got %v", err)
+		t.Fatalf("want Unable to read media to be transcribed error, got %v", err)
 	}
 	// 另一用户自己的音视频资源可正常创建。
 	seedResource(t, db, "res-b", "usr-b", "audio/mpeg")
@@ -169,7 +169,7 @@ func TestCreateTimelineTranscriptionTaskRejectsNonTranscribable(t *testing.T) {
 
 	_, err := svc.CreateTimelineTranscriptionTask("usr-img", TimelineTranscriptionCreateRequest{ResourceID: "res-img"})
 	if err == nil || !strings.Contains(err.Error(), "音视频") {
-		t.Fatalf("want 仅支持音视频 error, got %v", err)
+		t.Fatalf("want only supports audio and video error, got %v", err)
 	}
 }
 

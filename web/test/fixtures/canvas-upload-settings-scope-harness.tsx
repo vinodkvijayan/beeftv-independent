@@ -45,7 +45,7 @@ function mediaNode(assetId?: string): CanvasNodeData {
     return {
         id: "media-1",
         type: CanvasNodeType.Image,
-        title: "上传图片",
+        title: "Upload pictures",
         position: { x: 0, y: 0 },
         width: 8,
         height: 8,
@@ -97,7 +97,7 @@ function Harness() {
         });
         if (result.confirmed) {
             setPersistState("saved");
-            message.success("文件已添加到画布");
+            message.success("File added to canvas");
             return;
         }
         if (result.applied) {
@@ -124,7 +124,7 @@ function Harness() {
             }
             harnessWindow.__uploadSettingsHarness!.writes.push(`save:${mountedProjectId}`);
             setSettingsState("saved");
-            message.success("项目设置已保存");
+            message.success("Project settings saved");
         } catch (error) {
             if (!shouldApplyProjectSettingsMutation({
                 mountedProjectId,
@@ -135,7 +135,7 @@ function Harness() {
                 return;
             }
             setSettingsState("error");
-            message.error(error instanceof Error ? error.message : "项目设置保存失败");
+            message.error(error instanceof Error ? error.message : "Failed to save project settings");
         }
     };
 

@@ -17,7 +17,7 @@ func (a *DesktopApp) OpenUpdateLogDirectory() error {
 	a.mu.RUnlock()
 	info, err := os.Stat(dir)
 	if err != nil || !info.IsDir() {
-		return errors.New("数据目录无法打开，请在存储设置中检查当前目录。")
+		return errors.New("The data directory cannot be opened, please check the current directory in the storage settings.")
 	}
 	var command *exec.Cmd
 	switch runtime.GOOS {
@@ -29,7 +29,7 @@ func (a *DesktopApp) OpenUpdateLogDirectory() error {
 		command = exec.Command("xdg-open", dir)
 	}
 	if err := command.Start(); err != nil {
-		return errors.New("无法打开日志文件夹，请在存储设置中查看当前目录。")
+		return errors.New("Unable to open log folder, please check the current directory in storage settings.")
 	}
 	go func() { _ = command.Wait() }()
 	return nil

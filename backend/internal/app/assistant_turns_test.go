@@ -22,24 +22,24 @@ func newAssistantTurnService(t *testing.T) (*Service, string, int64) {
 	db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "turns.db")),
 		&gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
-		t.Fatalf("打开临时库失败: %v", err)
+		t.Fatalf("Failed to open temporary library: %v", err)
 	}
 	if err := database.MigrateLocalSchema(db); err != nil {
-		t.Fatalf("迁移失败: %v", err)
+		t.Fatalf("Migration failed: %v", err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
-		t.Fatalf("创建工作区失败: %v", err)
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
+		t.Fatalf("Failed to create workspace: %v", err)
 	}
 	service := NewLocal(repository.New(db), t.TempDir())
-	doc := map[string]any{"id": "canvas-1", "title": "撤销回归", "revision": 0,
-		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "原节点", "position": map[string]any{"x": 0, "y": 0}}},
+	doc := map[string]any{"id": "canvas-1", "title": "Undo return", "revision": 0,
+		"nodes":       []any{map[string]any{"id": "n1", "type": "text", "title": "original node", "position": map[string]any{"x": 0, "y": 0}}},
 		"connections": []any{}}
 	encoded, err := json.Marshal(doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := service.UpsertUserCanvasProject("local", encoded); err != nil {
-		t.Fatalf("写入初始画布失败: %v", err)
+		t.Fatalf("Failed to write to initial canvas: %v", err)
 	}
 	return service, "canvas-1", canvasRevisionOf(t, service, "canvas-1")
 }
@@ -48,7 +48,7 @@ func canvasRevisionOf(t *testing.T, service *Service, canvasID string) int64 {
 	t.Helper()
 	raw, err := service.UserCanvasProject("local", canvasID)
 	if err != nil {
-		t.Fatalf("读取画布失败: %v", err)
+		t.Fatalf("Failed to read canvas: %v", err)
 	}
 	var doc map[string]any
 	if err := json.Unmarshal(raw, &doc); err != nil {
@@ -77,7 +77,7 @@ func appendNode(t *testing.T, service *Service, canvasID, nodeID string) int64 {
 	}
 	summary, err := service.UpsertUserCanvasProject("local", encoded)
 	if err != nil {
-		t.Fatalf("写入画布失败: %v", err)
+		t.Fatalf("Failed to write to canvas: %v", err)
 	}
 	return summary.Revision
 }
@@ -124,7 +124,7 @@ func recordTurnReceipt(t *testing.T, service *Service, turnID, opID, op string, 
 func settleTurn(t *testing.T, service *Service, turnID string) {
 	t.Helper()
 	if err := service.FinalizeAssistantTurn(turnID); err != nil {
-		t.Fatalf("结算回合失败: %v", err)
+		t.Fatalf("Failed to settle round: %v", err)
 	}
 }
 
@@ -134,10 +134,10 @@ func TestUndoAssistantTurnRestoresPreTurnDocumentAsNewRevision(t *testing.T) {
 
 	before, err := service.BeginAssistantTurn("local", canvasID, turnID, AssistantTurnInput{})
 	if err != nil {
-		t.Fatalf("轮前快照失败: %v", err)
+		t.Fatalf("Pre-round snapshot failed: %v", err)
 	}
 	if before != revision {
-		t.Fatalf("轮前版本应为 %d，得到 %d", revision, before)
+		t.Fatalf("Pre-round version should be %d, get %d", revision, before)
 	}
 	after := appendNode(t, service, canvasID, "n2")
 	recordTurnReceipt(t, service, turnID, "op-create-n2", "canvas.nodes.create",
@@ -146,10 +146,10 @@ func TestUndoAssistantTurnRestoresPreTurnDocumentAsNewRevision(t *testing.T) {
 
 	restored, err := service.AssistantTurns().Undo("local", canvasID, turnID)
 	if err != nil {
-		t.Fatalf("撤销失败: %v", err)
+		t.Fatalf("Undo failed: %v", err)
 	}
 	if restored <= after {
-		t.Fatalf("撤销必须产生新版本（> %d），得到 %d", after, restored)
+		t.Fatalf("Undoing must produce a new version (> %d), giving %d", after, restored)
 	}
 	reopened := NewLocal(repository.New(service.Database()), service.dataDir)
 	if !reopened.AssistantTurnUndone("local", canvasID, turnID) {
@@ -160,13 +160,13 @@ func TestUndoAssistantTurnRestoresPreTurnDocumentAsNewRevision(t *testing.T) {
 	}
 	ids := nodeIDs(t, service, canvasID)
 	if len(ids) != 1 || ids[0] != "n1" {
-		t.Fatalf("撤销后应回到轮前节点集合，得到 %v", ids)
+		t.Fatalf("After revocation, we should return to the set of nodes before the round and get %v", ids)
 	}
 
 	if _, err := service.AssistantTurns().Undo("local", canvasID, turnID); err == nil {
-		t.Fatal("重复撤销应被拒")
+		t.Fatal("Repeated revocations should be rejected")
 	} else if turnErr, isTurnErr := err.(*AssistantTurnError); !isTurnErr || turnErr.Reason != AssistantTurnReasonAlreadyUndone {
-		t.Fatalf("重复撤销原因应为 %s，得到 %v", AssistantTurnReasonAlreadyUndone, err)
+		t.Fatalf("Duplicate cancellation reason should be %s, got %v", AssistantTurnReasonAlreadyUndone, err)
 	}
 }
 
@@ -188,7 +188,7 @@ func TestUndoAssistantTurnRejectsLaterCanvasChanges(t *testing.T) {
 	_, err = service.AssistantTurns().Undo("local", canvasID, turnID)
 	turnErr, isTurnErr := err.(*AssistantTurnError)
 	if !isTurnErr || turnErr.Reason != AssistantTurnReasonCanvasChanged {
-		t.Fatalf("原因应为 %s，得到 %v", AssistantTurnReasonCanvasChanged, err)
+		t.Fatalf("Reason should be %s, get %v", AssistantTurnReasonCanvasChanged, err)
 	}
 }
 
@@ -299,14 +299,14 @@ func TestUndoAssistantTurnReasonsForMissingAndUnchangedTurns(t *testing.T) {
 	service, canvasID, _ := newAssistantTurnService(t)
 
 	if _, err := service.AssistantTurns().Undo("local", canvasID, "0011223344556677"); err == nil {
-		t.Fatal("不存在的轮次应被拒")
+		t.Fatal("Non-existent rounds should be rejected")
 	} else if turnErr, isTurnErr := err.(*AssistantTurnError); !isTurnErr || turnErr.Reason != AssistantTurnReasonNotFound {
-		t.Fatalf("原因应为 %s，得到 %v", AssistantTurnReasonNotFound, err)
+		t.Fatalf("Reason should be %s, get %v", AssistantTurnReasonNotFound, err)
 	}
 
 	// 非十六进制轮次标识不能变成路径片段。
 	if _, err := service.AssistantTurns().Undo("local", canvasID, "../../etc/passwd"); err == nil {
-		t.Fatal("非法轮次标识应被拒")
+		t.Fatal("Illegal round flags should be rejected")
 	}
 
 	turnID := "abcdefabcdef0000"
@@ -316,9 +316,9 @@ func TestUndoAssistantTurnReasonsForMissingAndUnchangedTurns(t *testing.T) {
 	// 这一轮没写画布：轮记录要留下，撤销按「没有改动」拒绝，而不是说轮次不存在。
 	settleTurn(t, service, turnID)
 	if _, err := service.AssistantTurns().Undo("local", canvasID, turnID); err == nil {
-		t.Fatal("没有改动的轮次应被拒")
+		t.Fatal("Rounds without changes should be rejected")
 	} else if turnErr, isTurnErr := err.(*AssistantTurnError); !isTurnErr || turnErr.Reason != AssistantTurnReasonNoChange {
-		t.Fatalf("原因应为 %s，得到 %v", AssistantTurnReasonNoChange, err)
+		t.Fatalf("Reason should be %s, get %v", AssistantTurnReasonNoChange, err)
 	}
 }
 
@@ -335,10 +335,10 @@ func TestUndoAssistantTurnIsScopedToOwnerAndCanvas(t *testing.T) {
 		map[string]any{"canvasId": canvasID, "revision": after, "created": []any{map[string]any{"id": "n2", "title": "n2"}}})
 	settleTurn(t, service, turnID)
 	if _, err := service.AssistantTurns().Undo("other-user", canvasID, turnID); err == nil {
-		t.Fatal("其他用户不应能撤销这一轮")
+		t.Fatal("Other users should not be able to undo this round")
 	}
 	if _, err := service.AssistantTurns().Undo("local", "canvas-other", turnID); err == nil {
-		t.Fatal("其他画布不应能撤销这一轮")
+		t.Fatal("Other canvases should not be able to undo this round")
 	}
 }
 

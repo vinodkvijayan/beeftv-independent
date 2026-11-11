@@ -15,7 +15,7 @@ describe("LibTV canvas connection visibility", () => {
 
     test("exposes the toggle in the appearance controls", () => {
         const controls = readFileSync(resolve(root, "src/components/canvas/canvas-appearance-controls.tsx"), "utf8");
-        expect(controls).toContain("显示连线");
+        expect(controls).toContain("Show connections");
         expect(controls).toContain("onShowConnectionsChange");
     });
 
@@ -25,9 +25,9 @@ describe("LibTV canvas connection visibility", () => {
         const zoomControls = readFileSync(resolve(root, "src/components/canvas/canvas-zoom-controls.tsx"), "utf8");
 
         expect(topBar).not.toContain('aria-label={showConnections ? "隐藏节点连线" : "显示节点连线"}');
-        expect(topBar).not.toContain('aria-label="切换小地图" aria-pressed={isMiniMapOpen}');
-        expect(zoomControls).toContain('{ id: "zoom-connections", label: showConnections ? "隐藏节点连线" : "显示节点连线"');
-        expect(zoomControls).toContain('{ id: "zoom-minimap", label: "切换小地图", icon: <Map />');
+        expect(topBar).not.toContain('aria-label="Switch minimap" aria-pressed={isMiniMapOpen}');
+        expect(zoomControls).toContain('{ id: "zoom-connections", label: showConnections ? "Hide node connections" : "Show node connections"');
+        expect(zoomControls).toContain('{ id: "zoom-minimap", label: "Switch minimap", icon: <Map />');
         expect(project).toContain("showConnections={showConnections}");
         expect(project).toContain("onToggleConnections={toggleConnections}");
     });

@@ -25,7 +25,7 @@ func TestCancelTaskCancelsRunningTask(t *testing.T) {
 		ID:        "running-task",
 		UserID:    "user-1",
 		Status:    model.TaskStatusRunning,
-		Stage:     "调用生成模型",
+		Stage:     "Call the generated model",
 		StartedAt: &startedAt,
 	}
 	if err := db.Create(&task).Error; err != nil {
@@ -58,7 +58,7 @@ func TestCancelTaskCancelsQueuedTask(t *testing.T) {
 	if err := db.AutoMigrate(&model.Task{}); err != nil {
 		t.Fatal(err)
 	}
-	task := model.Task{ID: "queued-task", UserID: "user-1", Status: model.TaskStatusQueued, Stage: "等待队列调度"}
+	task := model.Task{ID: "queued-task", UserID: "user-1", Status: model.TaskStatusQueued, Stage: "Waiting for queue scheduling"}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestCancelTaskRejectsTaskWithProviderRequestID(t *testing.T) {
 	}
 
 	svc := &Service{repo: repository.New(db)}
-	if _, err := svc.CancelTask(context.Background(), task.UserID, task.ID); err == nil || err.Error() != "任务当前状态为 failed，无法取消" {
+	if _, err := svc.CancelTask(context.Background(), task.UserID, task.ID); err == nil || err.Error() != "The current status of the task is failed and cannot be canceled." {
 		t.Fatalf("CancelTask() error = %v", err)
 	}
 

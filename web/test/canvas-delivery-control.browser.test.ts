@@ -4,7 +4,7 @@ import { chromium, type Browser, type Page } from "playwright";
 let browser: Browser;
 let page: Page;
 let server: ReturnType<typeof Bun.serve>;
-let stage = "正在取回结果";
+let stage = "Retrieving results";
 let writes: string[] = [];
 let releaseCancellation: (() => void) | undefined;
 let holdCancellation = false;
@@ -35,17 +35,17 @@ beforeAll(async () => {
                     if (holdCancellation) await new Promise<void>((resolve) => { releaseCancellation = resolve; });
                     stage = "delivery_paused";
                 }
-                if (path.endsWith("/recover") && recoverReply === "error") return Response.json({ code: 50000, msg: "上游暂不可用" }, { status: 500 });
+                if (path.endsWith("/recover") && recoverReply === "error") return Response.json({ code: 50000, msg: "Upstream is temporarily unavailable" }, { status: 500 });
                 if (path.endsWith("/recover") && queryErrorAfterRecover) queryError = true;
                 if (path.endsWith("/recover")) {
-                    stage = "正在取回结果";
+                    stage = "Retrieving results";
                     if (recoverReply === "failed") {
                         taskStatus = "failed";
                         stage = "failed";
                         taskOutcome = { phase: "failed", regenerate: "confirm", reason: "input_rejected" };
                     } else if (recoverReply === "running") {
                         taskStatus = "running";
-                        stage = "生成中";
+                        stage = "Generating";
                         taskOutcome = undefined;
                     } else {
                         taskStatus = "succeeded";
@@ -53,16 +53,16 @@ beforeAll(async () => {
                     }
                 }
             } else if (queryError) {
-                return Response.json({ code: 50000, msg: "查询失败" }, { status: 500 });
+                return Response.json({ code: 50000, msg: "Query failed" }, { status: 500 });
             } else if (holdQuery) {
                 holdQuery = false;
                 await new Promise<void>((resolve) => { releaseQuery = resolve; });
             } else if (taskStatus === "running" && ++runningPolls >= 2) {
                 taskStatus = "succeeded";
-                stage = "正在取回结果";
+                stage = "Retrieving results";
             }
             const failed = taskStatus === "failed";
-            return Response.json({ code: 0, data: { id: "task-test", type: "canvas_video", status: taskStatus, stage, progress: failed ? 0 : 100, prompt: "test", attempts: 1, createdAt: new Date().toISOString(), outcome: taskOutcome, error: failed ? "内容未通过审核" : undefined, errorCode: failed ? "content_policy_violation" : undefined, outputs: taskStatus === "succeeded" ? [{ outputIndex: 0, mediaType: "video", materializationErrorCode: stage === "delivery_paused" ? stage : undefined }] : [] } });
+            return Response.json({ code: 0, data: { id: "task-test", type: "canvas_video", status: taskStatus, stage, progress: failed ? 0 : 100, prompt: "test", attempts: 1, createdAt: new Date().toISOString(), outcome: taskOutcome, error: failed ? "Content failed review" : undefined, errorCode: failed ? "content_policy_violation" : undefined, outputs: taskStatus === "succeeded" ? [{ outputIndex: 0, mediaType: "video", materializationErrorCode: stage === "delivery_paused" ? stage : undefined }] : [] } });
         }
         if (path.startsWith("/api/")) return Response.json({ code: 0, data: [] });
         return new Response('<div id="root"></div><script type="module" src="/harness.js"></script>', { headers: { "Content-Type": "text/html" } });
@@ -70,20 +70,20 @@ beforeAll(async () => {
     browser = await chromium.launch({ headless: true });
 }, 30_000);
 
-beforeEach(async () => { await page?.close(); stage = "正在取回结果"; taskStatus = "succeeded"; taskOutcome = undefined; recoverReply = "succeeded"; runningPolls = 0; queryError = false; queryErrorAfterRecover = false; queries = 0; writes = []; holdCancellation = false; releaseCancellation = undefined; holdQuery = false; releaseQuery = undefined; page = await browser.newPage(); });
+beforeEach(async () => { await page?.close(); stage = "Retrieving results"; taskStatus = "succeeded"; taskOutcome = undefined; recoverReply = "succeeded"; runningPolls = 0; queryError = false; queryErrorAfterRecover = false; queries = 0; writes = []; holdCancellation = false; releaseCancellation = undefined; holdQuery = false; releaseQuery = undefined; page = await browser.newPage(); });
 afterAll(async () => { releaseCancellation?.(); releaseQuery?.(); await browser?.close(); server?.stop(true); });
 
 for (const oldContent of [false, true]) {
     test(`stop and resume original delivery with retained old content=${oldContent}`, async () => {
         await page.goto(server.url + (oldContent ? "?old" : ""));
-        await page.getByRole("button", { name: "停止取回结果", exact: true }).click();
-        await page.getByRole("dialog").getByRole("button", { name: "停止取回", exact: true }).click();
-        await page.getByRole("button", { name: "继续取回", exact: true }).waitFor();
+        await page.getByRole("button", { name: "Stop retrieving results", exact: true }).click();
+        await page.getByRole("dialog").getByRole("button", { name: "Stop retrieval", exact: true }).click();
+        await page.getByRole("button", { name: "Continue to retrieve", exact: true }).waitFor();
         const paused = JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata;
         expect(paused.status).toBe("error");
         expect(paused.taskOutcome?.phase).toBe("retrievable");
-        await page.getByRole("button", { name: "继续取回", exact: true }).click();
-        await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata.taskStage === "正在取回结果");
+        await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
+        await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata.taskStage === "Retrieving results");
         const resumed = JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata;
         expect(resumed.status).toBe("loading");
         expect(resumed.taskId).toBe("task-test");
@@ -93,11 +93,11 @@ for (const oldContent of [false, true]) {
 
 test("resume delivery yields the node when another request takes it over", async () => {
     await page.goto(server.url.toString());
-    await page.getByRole("button", { name: "停止取回结果", exact: true }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "停止取回", exact: true }).click();
-    await page.getByRole("button", { name: "继续取回", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Stop retrieving results", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Stop retrieval", exact: true }).click();
+    await page.getByRole("button", { name: "Continue to retrieve", exact: true }).waitFor();
     holdQuery = true;
-    await page.getByRole("button", { name: "继续取回", exact: true }).click();
+    await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
     const deadline = Date.now() + 3000;
     while (!releaseQuery && Date.now() < deadline) await Bun.sleep(10);
     expect(releaseQuery).toBeDefined();
@@ -109,15 +109,15 @@ test("resume delivery yields the node when another request takes it over", async
     expect(writes).toEqual(["/api/tasks/task-test/cancel"]);
     const metadata = JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata;
     expect(metadata.status).toBe("loading");
-    expect(metadata.taskStage).toBe("接管");
+    expect(metadata.taskStage).toBe("take over");
 }, 15_000);
 
 for (const owner of ["canvas", "account"]) {
     for (const afterRequest of [false, true]) {
         test(`discard old cancellation after ${owner} switch, request started=${afterRequest}`, async () => {
             await page.goto(server.url.toString());
-            await page.getByRole("button", { name: "停止取回结果", exact: true }).click();
-            const confirm = page.getByRole("dialog").getByRole("button", { name: "停止取回", exact: true });
+            await page.getByRole("button", { name: "Stop retrieving results", exact: true }).click();
+            const confirm = page.getByRole("dialog").getByRole("button", { name: "Stop retrieval", exact: true });
             if (afterRequest) {
                 holdCancellation = true;
                 await confirm.click();
@@ -128,11 +128,11 @@ for (const owner of ["canvas", "account"]) {
             // Simulate route/account changes while the actual AntD dialog lives.
             await page.evaluate((owner) => document.getElementById(`switch-${owner}`)!.click(), owner);
             if (afterRequest) releaseCancellation?.();
-            else await page.getByRole("dialog").getByRole("button", { name: "继续等待", exact: true }).click({ timeout: 5000 }).catch(() => {});
+            else await page.getByRole("dialog").getByRole("button", { name: "Keep waiting", exact: true }).click({ timeout: 5000 }).catch(() => {});
             await page.getByRole("dialog").waitFor({ state: "hidden" });
             expect(writes).toHaveLength(afterRequest ? 1 : 0);
             expect(JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata.status).toBe("loading");
-            expect(await page.getByText("已停止取回", { exact: true }).count()).toBe(0);
+            expect(await page.getByText("Retrieval has stopped", { exact: true }).count()).toBe(0);
         }, 15_000);
     }
 }
@@ -147,7 +147,7 @@ test("resume shows the original task's final failure instead of a pending retrie
     useUnknownSubmission();
     recoverReply = "failed";
     await page.goto(server.url + "?unknown");
-    await page.getByRole("button", { name: "继续取回", exact: true }).click();
+    await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata.taskOutcome?.phase === "failed", undefined, { timeout: 5000 });
     const metadata = JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata;
     expect(metadata.status).toBe("error");
@@ -159,12 +159,12 @@ test("resume waits for an original task that is still running", async () => {
     useUnknownSubmission();
     recoverReply = "running";
     await page.goto(server.url + "?unknown");
-    await page.getByRole("button", { name: "继续取回", exact: true }).click();
+    await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata.taskStatus === "running", undefined, { timeout: 5000 });
     expect(JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata.status).toBe("loading");
     await page.waitForFunction(() => {
         const metadata = JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata;
-        return metadata.taskStatus === "succeeded" && metadata.taskStage === "正在取回结果";
+        return metadata.taskStatus === "succeeded" && metadata.taskStage === "Retrieving results";
     }, undefined, { timeout: 10_000 });
     const metadata = JSON.parse(await page.locator("#snapshot").innerText()).nodes[0].metadata;
     expect(metadata.status).not.toBe("error");
@@ -178,7 +178,7 @@ test("a failed recover call keeps the original task's conclusion", async () => {
     useUnknownSubmission();
     recoverReply = "error";
     await page.goto(server.url + "?unknown");
-    await page.getByRole("button", { name: "继续取回", exact: true }).click();
+    await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
     await page.waitForFunction(() => document.getElementById("snapshot")!.textContent!.includes("submission_unknown") && JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata.status === "error", undefined, { timeout: 5000 });
     expect((await nodeMetadata()).taskOutcome).toEqual({ phase: "retrievable", regenerate: "blocked", reason: "submission_unknown" });
     expect(writes).toEqual(["/api/tasks/task-test/recover"]);
@@ -193,7 +193,7 @@ for (const scenario of ["query fails", "running task becomes unreachable"]) {
             queryErrorAfterRecover = true;
         }
         await page.goto(server.url + "?unknown");
-        await page.getByRole("button", { name: "继续取回", exact: true }).click();
+        await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
         const deadline = Date.now() + 5000;
         while (queries === 0 && Date.now() < deadline) await Bun.sleep(10);
         expect(queries).toBeGreaterThan(0);
@@ -201,17 +201,17 @@ for (const scenario of ["query fails", "running task becomes unreachable"]) {
         await waitForNodeError();
         const metadata = await nodeMetadata();
         expect(metadata.taskOutcome).toEqual({ phase: "retrievable", regenerate: "blocked", reason: "submission_unknown" });
-        expect(metadata.errorDetails).toBe("提交结果待确认");
-        await page.getByRole("button", { name: "继续取回", exact: true }).waitFor();
+        expect(metadata.errorDetails).toBe("Submit results to be confirmed");
+        await page.getByRole("button", { name: "Continue to retrieve", exact: true }).waitFor();
     }, 30_000);
 }
 
 test("a succeeded task whose result is unrecoverable follows the backend conclusion", async () => {
     taskStatus = "succeeded";
-    stage = "任务完成";
+    stage = "Mission accomplished";
     taskOutcome = { phase: "failed", regenerate: "confirm", reason: "result_unrecoverable" };
     await page.goto(server.url + "?unknown");
-    await page.getByRole("button", { name: "继续取回", exact: true }).click();
+    await page.getByRole("button", { name: "Continue to retrieve", exact: true }).click();
     await page.waitForFunction(() => JSON.parse(document.getElementById("snapshot")!.textContent!).nodes[0].metadata.taskOutcome?.reason === "result_unrecoverable", undefined, { timeout: 5000 });
     const metadata = await nodeMetadata();
     expect(metadata.status).toBe("error");

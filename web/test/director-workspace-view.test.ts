@@ -2,10 +2,10 @@ import { afterEach, describe, expect, test } from "bun:test";
 
 import { useDirectorWorkbenchStore } from "../src/stores/canvas/use-director-workbench-store";
 
-describe("导演台工作区视图", () => {
+describe("Director's desk workspace view", () => {
     afterEach(() => useDirectorWorkbenchStore.getState().reset());
 
-    test("成片预演使用当前镜头并显示时间线，返回场景调度时恢复原视图状态", () => {
+    test("The final preview uses the current shot and displays the timeline, and restores the original view state when returning to scene scheduling.", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("camera");
         store.getState().setRenderMode("depth");
@@ -25,7 +25,7 @@ describe("导演台工作区视图", () => {
         expect(store.getState().renderMode).toBe("depth");
     });
 
-    test("从场景调度切入预演不会改动持久化场景或历史状态字段", () => {
+    test("Switching from scene scheduling to preview will not change the persistent scene or historical status fields.", () => {
         const before = useDirectorWorkbenchStore.getState();
         before.setWorkspaceView("preview");
         const after = useDirectorWorkbenchStore.getState();

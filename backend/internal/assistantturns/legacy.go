@@ -50,15 +50,15 @@ func (s *Service) readLegacyFile(turnID string) (Record, error) {
 	}
 	var file legacyFile
 	if err := json.Unmarshal(raw, &file); err != nil {
-		return Record{}, &Error{Reason: ReasonCorruptFile, Message: "轮次记录损坏，已保留现场"}
+		return Record{}, &Error{Reason: ReasonCorruptFile, Message: "The round record is damaged and the scene has been reserved."}
 	}
 	id := NormalizeTurnID(turnID)
 	fileID := NormalizeTurnID(file.TurnID)
 	if fileID == "" || fileID != id {
-		return Record{}, &Error{Reason: ReasonOwnership, Message: "轮次文件标识与记录不一致"}
+		return Record{}, &Error{Reason: ReasonOwnership, Message: "The round file identification is inconsistent with the record"}
 	}
 	if file.UserID == "" || file.CanvasID == "" {
-		return Record{}, &Error{Reason: ReasonOwnership, Message: "轮次文件缺少用户或画布身份"}
+		return Record{}, &Error{Reason: ReasonOwnership, Message: "Round file is missing user or canvas identity"}
 	}
 	createdAt := time.Now().UTC()
 	if file.CreatedAt != "" {
@@ -121,7 +121,7 @@ func (s *Service) importLegacyIfMissing(tx *gorm.DB, turnID string) (Record, err
 	}
 	inserted, err := s.store.Insert(tx, recordToModel(rec, s.now()))
 	if err != nil {
-		return Record{}, fmt.Errorf("导入轮次文件失败: %w", err)
+		return Record{}, fmt.Errorf("Failed to import round file: %w", err)
 	}
 	if !inserted {
 		existing, getErr := s.store.Get(tx, rec.TurnID)
@@ -133,7 +133,7 @@ func (s *Service) importLegacyIfMissing(tx *gorm.DB, turnID string) (Record, err
 			return Record{}, recErr
 		}
 		if got.UserID != rec.UserID || got.CanvasID != rec.CanvasID {
-			return Record{}, &Error{Reason: ReasonOwnership, Message: "轮次文件与已有记录归属不一致"}
+			return Record{}, &Error{Reason: ReasonOwnership, Message: "The round file is inconsistent with the ownership of existing records"}
 		}
 		return got, nil
 	}

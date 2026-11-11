@@ -41,7 +41,7 @@ func SanitizeAPICallPayload(data []byte, contentType string) string {
 		}
 	}
 	if strings.HasPrefix(mediaType, "image/") || strings.HasPrefix(mediaType, "video/") || strings.HasPrefix(mediaType, "audio/") || mediaType == "application/octet-stream" {
-		return fmt.Sprintf("[%s 二进制报文，共 %d 字节]", kernel.DefaultString(mediaType, "未知类型"), len(data))
+		return fmt.Sprintf("[%s 二进制报文，共 %d 字节]", kernel.DefaultString(mediaType, "unknown type"), len(data))
 	}
 	return truncateAPICallPayload(string(data))
 }
@@ -117,7 +117,7 @@ func sanitizeAPICallJSON(value any, key string) any {
 	case string:
 		if strings.HasPrefix(typed, "data:") {
 			mediaType := strings.TrimPrefix(strings.SplitN(typed, ";", 2)[0], "data:")
-			return fmt.Sprintf("[内嵌媒体 %s，共 %d 字符]", kernel.DefaultString(mediaType, "未知类型"), len(typed))
+			return fmt.Sprintf("[内嵌媒体 %s，共 %d 字符]", kernel.DefaultString(mediaType, "unknown type"), len(typed))
 		}
 		if strings.Contains(normalizedKey, "base64") || strings.Contains(normalizedKey, "b64") {
 			return fmt.Sprintf("[内嵌编码数据，共 %d 字符]", len(typed))

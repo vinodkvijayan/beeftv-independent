@@ -29,7 +29,7 @@ func TestCanvasProjectExportRevisionAndPortableReceipt(t *testing.T) {
 		t.Fatal(err)
 	}
 	value := result.(map[string]any)
-	if value["resourceId"] != "archive" || value["fileName"] != "雨夜_书店.zip" || value["sourceRevision"] != int64(4) || value["editable"] != true {
+	if value["resourceId"] != "archive" || value["fileName"] != "Rainy Night_Bookstore.zip" || value["sourceRevision"] != int64(4) || value["editable"] != true {
 		t.Fatalf("bad receipt %+v", value)
 	}
 	r := NewRegistry(nil, nil)

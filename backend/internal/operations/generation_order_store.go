@@ -195,14 +195,14 @@ func SubmittedOrderResponse(order *GenerationOrder) map[string]any {
 
 func LookupOrderForApprovalInDB(db *gorm.DB, userID, proposalID string) (*GenerationOrder, error) {
 	if strings.TrimSpace(proposalID) == "" {
-		return nil, InvalidArg("missing_proposal_id", "proposalId 必填")
+		return nil, InvalidArg("missing_proposal_id", "proposalId required")
 	}
 	existing, err := LookupGenerationOrderInTx(db, userID, proposalID)
 	if err != nil {
 		return nil, err
 	}
 	if existing == nil {
-		return nil, NotFound("generation_order_not_found", "生成单不存在: "+proposalID)
+		return nil, NotFound("generation_order_not_found", "The generated order does not exist:"+proposalID)
 	}
 	return existing, nil
 }
@@ -213,7 +213,7 @@ func ApproveExternalGenerationOrderInTx(tx *gorm.DB, domain Domain, userID, prop
 		return nil, err
 	}
 	if order == nil {
-		return nil, NotFound("generation_order_not_found", "生成单不存在: "+proposalID)
+		return nil, NotFound("generation_order_not_found", "The generated order does not exist:"+proposalID)
 	}
 	if order.Status == GenerationOrderSubmitted {
 		return SubmittedOrderResponse(order), nil
@@ -228,7 +228,7 @@ func ApproveExternalGenerationOrderInTx(tx *gorm.DB, domain Domain, userID, prop
 	}
 	if order.CanvasRevision > 0 && canvasRevision(doc) != order.CanvasRevision {
 		expected := order.CanvasRevision
-		opErr := Conflict("revision_conflict", "画布已变化，请重新生成提议后再批准", nil)
+		opErr := Conflict("revision_conflict", "The canvas has changed, please regenerate the proposal before approving it", nil)
 		EnrichCanvasConflictErrorInTx(tx, domain, userID, order.CanvasID, &expected, raw, opErr)
 		return nil, opErr
 	}
@@ -242,15 +242,15 @@ func ApproveExternalGenerationOrderInTx(tx *gorm.DB, domain Domain, userID, prop
 			return nil, resolveErr
 		}
 		if order.ModelConfigRevision > 0 && choice.Revision != order.ModelConfigRevision {
-			return nil, Conflict("generation_config_changed", "模型配置已变化，请重新生成提议后再批准", nil)
+			return nil, Conflict("generation_config_changed", "The model configuration has changed. Please regenerate the proposal before approving it.", nil)
 		}
 	}
 	if len(order.Targets) > 0 && !generationTargetsContainBatch(order.Targets, batchTargets) {
-		return nil, Conflict("production_changed", "制作方案已变化，请重新确认", nil)
+		return nil, Conflict("production_changed", "The production plan has changed, please reconfirm", nil)
 	}
 	port, ok := domain.(ExternalGenerationAdmission)
 	if !ok {
-		return nil, Unsupported("generation_unavailable", "当前工作区不能提交生成")
+		return nil, Unsupported("generation_unavailable", "The current workspace cannot be submitted for generation")
 	}
 	admitted, err := port.SubmitExternalGeneration(userID, "approve:"+order.ProposalID, order.CanvasID, batchTargets)
 	if err != nil {
@@ -313,7 +313,7 @@ func ValidateProductionTask(task *model.Task, canvasID string, target Generation
 		return err
 	}
 	if task.ProjectID != canvasID || task.Type != "canvas_"+target.Kind || task.Prompt != target.Prompt || original.Metadata["assistantProductionTargetHash"] != ProductionTargetHash(target) {
-		return Conflict("production_task_changed", "原制作任务与确认记录不一致，请先检查原任务", nil)
+		return Conflict("production_task_changed", "The original production task is inconsistent with the confirmation record, please check the original task first", nil)
 	}
 	return nil
 }

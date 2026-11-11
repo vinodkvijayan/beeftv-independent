@@ -53,7 +53,7 @@ type funcAdminGate struct {
 
 func (g funcAdminGate) RequireAdmin(user *model.User) error {
 	if g.requireAdmin == nil {
-		return kernel.Unauthorized("请先登录")
+		return kernel.Unauthorized("Please log in first")
 	}
 	return g.requireAdmin(user)
 }

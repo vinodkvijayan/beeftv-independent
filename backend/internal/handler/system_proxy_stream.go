@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var errSystemProxyResponseTooLarge = errors.New("系统渠道流式响应超过配置上限")
+var errSystemProxyResponseTooLarge = errors.New("System channel streaming response exceeds configuration limit")
 
 func isSystemProxyEventStream(resp *http.Response) bool {
 	mediaType, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))

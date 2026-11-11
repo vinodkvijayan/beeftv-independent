@@ -56,7 +56,7 @@ function currentTurnView(messages = [], scenarios = []) {
       if (messages[index].role !== 'user') continue;
       const text = extractMessageText(messages[index]).trim();
       const hasImage = Array.isArray(messages[index].content) && messages[index].content.some((part) => part && (part.type === 'image_url' || part.type === 'image'));
-      if (!text || text.startsWith('以下是前述工具返回的素材内容') || isTransientStudioTailMessage(messages[index]) || (hasImage && !text.includes('BEEFTV_CONTEXT:'))) continue;
+      if (!text || text.startsWith('The following is the material content returned by the aforementioned tools') || isTransientStudioTailMessage(messages[index]) || (hasImage && !text.includes('BEEFTV_CONTEXT:'))) continue;
       if (!text.includes('BEEFTV_SUPPLEMENT:')) lastUser = index;
     }
   }
@@ -107,11 +107,11 @@ function fakeDirectorReply(res, body, scenarios) {
   const tool = (name) => lastTool(toolResults, name);
 
   // 第 3 轮：保存时间线并本地渲染成片。不新建画布节点，避免把成片硬塞进分镜行。
-  if (scenarioText?.includes('剪成一个成片')) {
+  if (scenarioText?.includes('cut into pieces')) {
     if (!hasTool(toolResults, 'canvas_get')) return sendToolCall(res, model, 'canvas_get', {}, toolResults);
     const nodes = nodesOf(tool('canvas_get'));
     const videos = nodes.filter((node) => node.type === 'video').slice(0, 2);
-    if (videos.length === 0) return sendText(res, model, '画布上还没有可剪的视频。');
+    if (videos.length === 0) return sendText(res, model, 'There are no videos to cut on the canvas yet.');
     const timeline = {
       version: 2,
       tracks: [{ id: 'video-track', kind: 'video' }],
@@ -126,11 +126,11 @@ function fakeDirectorReply(res, body, scenarios) {
     if (!hasTool(toolResults, 'canvas_timeline_render')) {
       return sendToolCall(res, model, 'canvas_timeline_render', { expectedRevision: renderRevision }, toolResults);
     }
-    return sendText(res, model, '两个镜头已剪成一个成片并渲染完成，成片文件已保存。');
+    return sendText(res, model, 'The two shots have been cut into one final film and rendered, and the final film file has been saved.');
   }
 
   // 第 2 轮：查看首帧，再为两个镜头准备视频草稿并登记方案。
-  if (scenarioText?.includes('首帧图出来了') || scenarioText?.includes('每个镜头 5 秒')) {
+  if (scenarioText?.includes('The first frame of the picture is out') || scenarioText?.includes('5 seconds per shot')) {
     if (!hasTool(toolResults, 'canvas_get')) return sendToolCall(res, model, 'canvas_get', {}, toolResults);
     const nodes = nodesOf(tool('canvas_get'));
     const script = nodes.find((node) => node.type === 'script');
@@ -141,7 +141,7 @@ function fakeDirectorReply(res, body, scenarios) {
     const rows = script?.metadata?.storyboard?.rows || [];
     const rowIds = rows.map((row) => row.id).filter(Boolean);
     if (!hasTool(toolResults, 'canvas_script_prepare')) {
-      if (!script || rowIds.length === 0) return sendText(res, model, '画布上还没有可继续的分镜。');
+      if (!script || rowIds.length === 0) return sendText(res, model, 'There is no storyboard to continue on the canvas yet.');
       return sendToolCall(res, model, 'canvas_script_prepare', {
         expectedRevision: revision, nodeId: script.id, rowIds,
         video: { model: VIDEO_MODEL, generateAudio: 'false' },
@@ -151,11 +151,11 @@ function fakeDirectorReply(res, body, scenarios) {
     const shots = prepared?.data?.result?.shots || [];
     const videoIds = shots.map((shot) => shot.videoNodeId).filter(Boolean);
     if (!hasTool(toolResults, 'canvas_generation_propose')) {
-      if (videoIds.length === 0) return sendText(res, model, '视频草稿没有建出来，请检查分镜。');
+      if (videoIds.length === 0) return sendText(res, model, 'The video draft has not been created, please check the storyboard.');
       return sendToolCall(res, model, 'canvas_generation_propose', { kind: 'video', nodeIds: videoIds,
-        note: '两个镜头各 5 秒，请确认后开始生成视频' }, toolResults);
+        note: 'The two shots are 5 seconds each, please confirm before starting to generate the video' }, toolResults);
     }
-    return sendText(res, model, '首帧画面没有发现明显问题。两个镜头的视频方案已登记，确认后即可生成。');
+    return sendText(res, model, 'No obvious problems were found in the first frame. The video plan of the two lenses has been registered and can be generated after confirmation.');
   }
 
   // 第 1 轮：分镜 + 两张首帧图方案。
@@ -164,14 +164,14 @@ function fakeDirectorReply(res, body, scenarios) {
     return sendToolCall(res, model, 'canvas_script_prepare', {
       expectedRevision: revision,
       script: {
-        title: '清晨海边',
+        title: 'Early morning seaside',
         rows: [
-          { durationSeconds: 5, plotDescription: '清晨海边，一只柴犬追着浪花跑',
-            imageGenerationPrompt: '清晨海边，柴犬沿着浪花奔跑，金色阳光，竖屏 9:16，写实电影感',
-            videoMotionPrompt: '镜头低角度跟随柴犬沿浪花奔跑，海水飞溅' },
-          { durationSeconds: 5, plotDescription: '浪花退去，柴犬停在沙滩上看向远方',
-            imageGenerationPrompt: '清晨海边，浪花退去的沙滩，柴犬停下看向远方，竖屏 9:16，写实电影感',
-            videoMotionPrompt: '镜头缓慢推近停在沙滩上的柴犬，背景浪花轻轻起伏' },
+          { durationSeconds: 5, plotDescription: 'On the beach in the early morning, a Shiba Inu chases the waves',
+            imageGenerationPrompt: 'On the beach in the early morning, Shiba Inu runs along the waves, golden sunlight, vertical screen 9:16, realistic movie feel',
+            videoMotionPrompt: 'The camera follows the Shiba Inu from a low angle as it runs along the waves, with sea water splashing.' },
+          { durationSeconds: 5, plotDescription: 'The waves receded, and the Shiba Inu stopped on the beach and looked into the distance.',
+            imageGenerationPrompt: 'On the beach in the early morning, the waves recede, the Shiba Inu stops and looks into the distance, vertical screen 9:16, realistic movie feel',
+            videoMotionPrompt: 'The camera slowly zooms in on the Shiba Inu parked on the beach, with the waves gently undulating in the background.' },
         ],
       },
       image: { model: IMAGE_MODEL, size: '9:16' },
@@ -180,11 +180,11 @@ function fakeDirectorReply(res, body, scenarios) {
   const prepared = tool('canvas_script_prepare');
   const imageIds = (prepared?.data?.result?.shots || []).map((shot) => shot.imageNodeId).filter(Boolean);
   if (!hasTool(toolResults, 'canvas_generation_propose')) {
-    if (imageIds.length === 0) return sendText(res, model, '首帧草稿没有建出来，请检查分镜。');
+    if (imageIds.length === 0) return sendText(res, model, 'The first frame draft has not been created, please check the storyboard.');
     return sendToolCall(res, model, 'canvas_generation_propose', { kind: 'image', nodeIds: imageIds,
-      note: '两张首帧图，请确认后开始生成' }, toolResults);
+      note: 'Two first frame pictures, please confirm before starting the generation' }, toolResults);
   }
-  return sendText(res, model, '分镜和两张首帧图的生成方案已准备好，请在卡片里确认。');
+  return sendText(res, model, 'The storyboards and two first frame images are ready, please confirm in the card.');
 }
 
 

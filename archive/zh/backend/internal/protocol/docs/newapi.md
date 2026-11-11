@@ -1,8 +1,8 @@
-# OpenAI Videos 兼容协议
+# OpenAI Videos Compatible Protocol
 
-该插件实现 `/v1/videos` 异步视频合同：以 multipart 创建任务，取得任务 ID 后查询同一路径下的任务资源。它用于 Sora/OpenAI Videos 风格渠道；模型、尺寸、时长、价格和保留期由实际渠道决定。
+This plug-in implements the `/v1/videos` asynchronous video contract: create a task with multipart, obtain the task ID, and query the task resources under the same path. It is used for Sora/OpenAI Videos style channels; model, size, duration, price, and retention are determined by the actual channel.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,17 +13,17 @@ Authorization: Bearer <API_KEY>
 Content-Type: multipart/form-data
 ```
 
-## 模型与能力边界
+## Model and capability boundaries
 
-模型名必须是部署服务实际开放的视频模型。插件不把任意 `sora-*` 或 `sd-*` 名称视为可用，也不提供价格表。当前实现支持文生视频和单组参考图输入，不发送参考视频、参考音频、独立音频开关或水印。
+The model name must be the video model actually opened by the deployment service. The plugin does not consider any `sora-*` or `sd-*` names to be available, nor does it provide a price list. The current implementation supports Vincent video and single set of reference image input, and does not send reference video, reference audio, independent audio switches or watermarks.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-`duration -> seconds`，发送为十进制字符串；`aspectRatio -> size`，这里应填写上游尺寸而不是只写 `16:9`；`images -> input_reference` multipart 部件。空字段不发送。
+`duration -> seconds`, sent as a decimal string; `aspectRatio -> size`, the upstream size should be filled in here instead of just writing `16:9`; `images -> input_reference` multipart part. Empty fields are not sent.
 
-## 文生视频示例
+## Vincent Video Example
 
 ```bash
 curl -X POST "{channel_base_url}/v1/videos" \
@@ -34,7 +34,7 @@ curl -X POST "{channel_base_url}/v1/videos" \
   -F "size=1280x720"
 ```
 
-## 图片参考示例
+## Image reference example
 
 ```bash
 curl -X POST "{channel_base_url}/v1/videos" \
@@ -46,7 +46,7 @@ curl -X POST "{channel_base_url}/v1/videos" \
   -F "input_reference=@character.png"
 ```
 
-## 创建、轮询与下载
+## Create, poll and download
 
 ```json
 {"id":"task_xxx","status":"queued"}
@@ -56,11 +56,11 @@ curl -X POST "{channel_base_url}/v1/videos" \
 curl "{channel_base_url}/v1/videos/task_xxx" -H "Authorization: Bearer <API_KEY>"
 ```
 
-完成响应可在顶层或嵌套对象提供 `url`、`video_url`、`result_url` 或视频数组。失败消息从 `message`、`error`、`fail_reason` 提取。当前插件没有取消接口，也不会自动删除上游任务；轮询间隔和下载有效期必须服从渠道说明。
+The completion response can provide `url`, `video_url`, `result_url`, or a video array at the top level or in a nested object. Failure messages are extracted from `message`, `error`, `fail_reason`. The current plug-in does not have a cancellation interface, nor will it automatically delete upstream tasks; the polling interval and download validity period must comply with the channel instructions.
 
-## 官方与兼容资料
+## Official and compatible information
 
 - [OpenAI Videos API reference](https://developers.openai.com/api/reference/resources/videos)
-- 若渠道是 NewAPI 或其他兼容实现，还必须核对该部署的版本说明；路径相同不等于字段和模型完全一致。
+- If the channel is NewAPI or other compatible implementation, the version description of the deployment must also be checked; the same path does not mean that the fields and models are completely consistent.
 
 {{CONTRACT}}

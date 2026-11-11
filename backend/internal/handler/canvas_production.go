@@ -43,7 +43,7 @@ func registerCanvasProductionRoutes(r *gin.RouterGroup, svc canvasProductionServ
 		decoder := json.NewDecoder(c.Request.Body)
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&req) != nil || !errors.Is(decoder.Decode(new(any)), io.EOF) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("制作记录参数无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Invalid production record parameters"))
 			return
 		}
 		result, err := svc.ProjectService().RegisterCanvasProductionTask(user.ID, c.Param("id"), c.Param("canvasId"), req)

@@ -5,16 +5,16 @@ import { applyCanvasOperations, canvasOperationPostconditionMessage, verifyCanva
 import { CanvasNodeType } from "@/types/canvas";
 
 const config = { imageModel: "image-model", videoModel: "video-model", audioModel: "audio-model" } as never;
-const snapshot: CanvasSnapshot = { projectId: "p", title: "空画布", nodes: [], connections: [], selectedNodeIds: [], viewport: { x: 0, y: 0, k: 1 } };
+const snapshot: CanvasSnapshot = { projectId: "p", title: "empty canvas", nodes: [], connections: [], selectedNodeIds: [], viewport: { x: 0, y: 0, k: 1 } };
 
 describe("canvas workflow builder", () => {
     it("creates semantic media nodes, non-overlapping layout and real edges", () => {
         const ops = buildCanvasWorkflowOps({
-            title: "搞笑修仙小说流水线",
+            title: "Funny immortality novel assembly line",
             nodes: [
-                { ref: "characters", kind: "character_cards", title: "角色拆分图片卡片", prompt: "拆分搞笑修仙小说中的主要角色，并生成角色图片卡片" },
-                { ref: "views", kind: "character_three_view", title: "角色三视图", prompt: "基于角色卡片生成正面、侧面、背面三视图", referenceRefs: ["characters"] },
-                { ref: "video", kind: "storyboard_video", title: "分镜剧情视频", prompt: "基于角色三视图制作分镜剧情视频", referenceRefs: ["views"] },
+                { ref: "characters", kind: "character_cards", title: "Character split picture card", prompt: "Split the main characters in the funny immortality novel and generate character picture cards" },
+                { ref: "views", kind: "character_three_view", title: "Three views of the character", prompt: "Generate front, side and back views based on character cards", referenceRefs: ["characters"] },
+                { ref: "video", kind: "storyboard_video", title: "Storyboard story video", prompt: "Create a storyboard video based on three views of the character", referenceRefs: ["views"] },
             ],
         }, snapshot, config);
         const after = applyCanvasOperations(snapshot, ops);
@@ -28,29 +28,29 @@ describe("canvas workflow builder", () => {
         expect(result.connectionCount).toBe(2);
         expect(result.expectedConnectionCount).toBe(2);
         expect(result.overlapWarnings).toEqual([]);
-        expect(canvasOperationPostconditionMessage(result)).toContain("实际新增 2 条");
+        expect(canvasOperationPostconditionMessage(result)).toContain("Actually 2 new items were added");
     });
 
     it("rejects workflow-shaped text batches", () => {
-        expect(looksLikeWorkflowRequest("创建一个工作流并连线")).toBe(true);
-        expect(looksLikeWorkflowRequest("写一段角色介绍")).toBe(false);
+        expect(looksLikeWorkflowRequest("Create a workflow and wire it up")).toBe(true);
+        expect(looksLikeWorkflowRequest("Write a character introduction")).toBe(false);
     });
 
     it("infers useful prompts for semantic media stages when the model omits them", () => {
         const ops = buildCanvasWorkflowOps({
-            title: "搞笑修仙小说流水线",
-            nodes: [{ ref: "cards", kind: "character_cards", title: "角色拆分图片卡片" }],
+            title: "Funny immortality novel assembly line",
+            nodes: [{ ref: "cards", kind: "character_cards", title: "Character split picture card" }],
         }, snapshot, config);
         const node = ops.find((op) => op.type === "add_node");
-        expect(node?.metadata?.prompt).toContain("拆分主要角色");
+        expect(node?.metadata?.prompt).toContain("Split the main characters");
     });
 
     it("supports per-node generation without running every media node", () => {
         const ops = buildCanvasWorkflowOps({
             nodes: [
-                { ref: "cards", kind: "character_cards", title: "角色卡片", prompt: "生成角色卡片" },
-                { ref: "views", kind: "character_three_view", title: "角色三视图", prompt: "生成三视图", runGeneration: true },
-                { ref: "video", kind: "storyboard_video", title: "分镜视频", prompt: "生成分镜视频" },
+                { ref: "cards", kind: "character_cards", title: "character card", prompt: "Generate character cards" },
+                { ref: "views", kind: "character_three_view", title: "Three views of the character", prompt: "Generate three views", runGeneration: true },
+                { ref: "video", kind: "storyboard_video", title: "Storyboard video", prompt: "Generate storyboard video" },
             ],
         }, snapshot, config);
         expect(ops.filter((op) => op.type === "run_generation")).toHaveLength(1);
@@ -60,10 +60,10 @@ describe("canvas workflow builder", () => {
     it("can connect a new workflow node to an existing canvas resource", () => {
         const existing: CanvasSnapshot = {
             ...snapshot,
-            nodes: [{ id: "asset-1", type: CanvasNodeType.Image, title: "角色原画", position: { x: 0, y: 0 }, width: 560, height: 380, metadata: { status: "success", storageKey: "resource:character-1" } }],
+            nodes: [{ id: "asset-1", type: CanvasNodeType.Image, title: "Character original painting", position: { x: 0, y: 0 }, width: 560, height: 380, metadata: { status: "success", storageKey: "resource:character-1" } }],
         };
         const ops = buildCanvasWorkflowOps({
-            nodes: [{ ref: "views", kind: "character_three_view", title: "角色三视图", prompt: "基于已有角色原画生成正面、侧面、背面三视图", referenceNodeIds: ["asset-1"] }],
+            nodes: [{ ref: "views", kind: "character_three_view", title: "Three views of the character", prompt: "Generate three views of the front, side and back based on the original character painting", referenceNodeIds: ["asset-1"] }],
         }, existing, config);
         const after = applyCanvasOperations(existing, ops);
         expect(after.connections).toHaveLength(1);

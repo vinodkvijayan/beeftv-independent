@@ -14,7 +14,7 @@ import (
 func RegisterTaskRoutes(r *gin.RouterGroup, svc *app.Service, hostedProfile ...bool) {
 	registerMediaUpscaleRoutes(r, svc)
 	r.POST("/tasks", func(c *gin.Context) {
-		if !requireTrustedDesktopWritePrincipal(c, "任务只能由当前桌面界面创建") {
+		if !requireTrustedDesktopWritePrincipal(c, "Tasks can only be created from the current desktop interface") {
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -42,7 +42,7 @@ func RegisterTaskRoutes(r *gin.RouterGroup, svc *app.Service, hostedProfile ...b
 		ok(c, task)
 	})
 	r.POST("/timeline/transcriptions", func(c *gin.Context) {
-		if !requireTrustedDesktopWritePrincipal(c, "字幕转写只能由当前桌面界面创建") {
+		if !requireTrustedDesktopWritePrincipal(c, "Subtitle transcription can only be created from the current desktop interface") {
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -70,7 +70,7 @@ func RegisterTaskRoutes(r *gin.RouterGroup, svc *app.Service, hostedProfile ...b
 		ok(c, task)
 	})
 	r.POST("/timeline/renders", func(c *gin.Context) {
-		if !requireTrustedDesktopWritePrincipal(c, "时间线渲染只能由当前桌面界面创建") {
+		if !requireTrustedDesktopWritePrincipal(c, "Timeline rendering can only be created by the current desktop interface") {
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -121,7 +121,7 @@ func RegisterTaskRoutes(r *gin.RouterGroup, svc *app.Service, hostedProfile ...b
 		ok(c, plan)
 	})
 	r.POST("/depth-captures", func(c *gin.Context) {
-		if !requireTrustedDesktopWritePrincipal(c, "深度捕捉只能由当前桌面界面创建") {
+		if !requireTrustedDesktopWritePrincipal(c, "Depth captures can only be created from the current desktop interface") {
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -198,7 +198,7 @@ func RegisterTaskRoutes(r *gin.RouterGroup, svc *app.Service, hostedProfile ...b
 	})
 	registerTaskTextReplayRoutes(r, svc, svc.TextReplay())
 	r.POST("/tasks/:id/retry", func(c *gin.Context) {
-		if !requireTrustedDesktopWritePrincipal(c, "任务只能由当前桌面界面重试") {
+		if !requireTrustedDesktopWritePrincipal(c, "Tasks can only be retried from the current desktop interface") {
 			return
 		}
 		user, err := currentUser(c, svc)

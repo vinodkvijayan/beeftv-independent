@@ -3,14 +3,14 @@ import { expect, test } from "bun:test";
 import { generationErrorMessage, generationFailureMetadata } from "../src/lib/generation-error";
 
 test("local generation errors do not expose hosted object-storage wording", () => {
-    expect(generationErrorMessage("OSS 上传失败：对象存储不可用")).toBe("本地参考素材保存失败，请检查本地资源目录后重试");
-    expect(generationErrorMessage("参考图片上传失败")).toBe("本地参考素材保存失败，请检查本地资源目录后重试");
+    expect(generationErrorMessage("OSS upload failed: Object storage is unavailable")).toBe("Failed to save local reference material. Please check the local resource directory and try again.");
+    expect(generationErrorMessage("Reference image upload failed")).toBe("Failed to save local reference material. Please check the local resource directory and try again.");
 });
 
 test("HTTP 402 explains the upstream billing cause and exposes a stable canvas error code", () => {
-    const raw = "模型服务请求失败（HTTP 402）";
-    expect(generationErrorMessage(raw)).toContain("计费或额度");
-    expect(generationErrorMessage(raw)).not.toContain("余额不足");
+    const raw = "Model service request failed (HTTP 402)";
+    expect(generationErrorMessage(raw)).toContain("Billing or quota");
+    expect(generationErrorMessage(raw)).not.toContain("Insufficient balance");
     expect(generationFailureMetadata(raw, "prompt")).toEqual({
         errorDetails: generationErrorMessage(raw),
         generationErrorCode: "quota_unknown",
@@ -19,6 +19,6 @@ test("HTTP 402 explains the upstream billing cause and exposes a stable canvas e
 });
 
 test("HTTP 402 keeps the classified upstream cause without exposing its raw body", () => {
-    expect(generationErrorMessage({ status: 402, data: { error: { message: "subscription required api_key=PRIVATE" } } })).toContain("计费或额度");
+    expect(generationErrorMessage({ status: 402, data: { error: { message: "subscription required api_key=PRIVATE" } } })).toContain("Billing or quota");
     expect(generationErrorMessage({ status: 402, data: { error: { message: "subscription required api_key=PRIVATE" } } })).not.toContain("PRIVATE");
 });

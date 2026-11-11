@@ -44,7 +44,7 @@ func TestSkillScriptProposalApprovalAndSessionAlwaysAllow(t *testing.T) {
 	var zipBuf bytes.Buffer
 	zw := zip.NewWriter(&zipBuf)
 	for name, content := range map[string]string{
-		"SKILL.md":       "---\nname: 脚本审批测试\ndescription: 验证脚本确认与本对话始终允许\n---\n运行 scripts/echo.js",
+		"SKILL.md":       "---\nname: script approval test\ndescription: Validation script confirms that this conversation is always allowed\n---\nRun scripts/echo.js",
 		"scripts/echo.js": "console.log('ECHO:' + process.argv.slice(2).join(','));",
 	} {
 		f, err := zw.Create(name)
@@ -79,7 +79,7 @@ func TestSkillScriptProposalApprovalAndSessionAlwaysAllow(t *testing.T) {
 		Pin:        pin,
 		ScriptPath: "scripts/echo.js",
 		Args:       []string{"hello", "world"},
-		Note:       "测试首次确认",
+		Note:       "Test first confirmed",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -174,7 +174,7 @@ func TestSkillScriptRunOperationAuthorizationAndIdempotentReplay(t *testing.T) {
 	var zipBuf bytes.Buffer
 	zw := zip.NewWriter(&zipBuf)
 	for name, content := range map[string]string{
-		"SKILL.md":          "---\nname: 计数器脚本\ndescription: 验证 opId 幂等与权限边界\n---\n运行 scripts/count.js",
+		"SKILL.md":          "---\nname: counter script\ndescription: Verify opId idempotence and permission boundaries\n---\nRun scripts/count.js",
 		"scripts/count.js":  "const fs=require('fs'),p=require('path');const f=p.join(process.env.BEEFTV_OUTPUT_DIR,'count.txt');const n=fs.existsSync(f)?Number(fs.readFileSync(f,'utf8'))+1:1;fs.writeFileSync(f,String(n));console.log('COUNT:'+n);",
 	} {
 		f, err := zw.Create(name)

@@ -58,7 +58,7 @@ func (s *Service) ValidateImageTaskRetry(task *model.Task) error {
 	row, err := s.repo.ImageSubmission(attempt.ID, task.ID, task.UserID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		if attempt.DispatchState == "accepted" || attempt.DispatchState == "submission_unknown" {
-			return kernel.BadAuthRequest("图片请求可能已经生成，请保留任务记录并联系支持查询结果，不要重复提交")
+			return kernel.BadAuthRequest("The image request may have already been generated. Please keep the task record and contact support to query the results. Do not submit again.")
 		}
 		return nil
 	}
@@ -68,7 +68,7 @@ func (s *Service) ValidateImageTaskRetry(task *model.Task) error {
 	if attempt.DispatchState == "rejected_no_job" && !row.ResponseAccepted {
 		return nil
 	}
-	return kernel.BadAuthRequest("图片请求可能已经生成，请保留任务记录并联系支持查询结果，不要重复提交")
+	return kernel.BadAuthRequest("The image request may have already been generated. Please keep the task record and contact support to query the results. Do not submit again.")
 }
 
 func DefiniteImageThrottle(err error) bool {
@@ -217,7 +217,7 @@ func imageTaskEnded(err error) bool {
 }
 
 func (s *Service) DeferImageRecovery(task model.Task) error {
-	stage, delay := "正在恢复图片结果", 15*time.Second
+	stage, delay := "Recovering image results", 15*time.Second
 	attempt, err := s.repo.LatestRouteAttempt(task.ID)
 	if err != nil {
 		return err
@@ -227,7 +227,7 @@ func (s *Service) DeferImageRecovery(task model.Task) error {
 		return err
 	}
 	if row.ResponseAccepted {
-		stage = "图片已生成，保存失败，将稍后重试"
+		stage = "Image has been generated, failed to save, will try again later"
 		delay = min(15*time.Minute, time.Minute*time.Duration(1<<min(max(row.SendCount-1, 0), 4)))
 	}
 	if task.FailureDiagnostics != nil {
@@ -267,7 +267,7 @@ func PrepareImageSubmission(s *Service, req *http.Request) (*model.ImageSubmissi
 	}
 	key, _ := req.Context().Value(SubmissionKeyContext{}).(string)
 	if key == "" {
-		return nil, true, errors.New("图片请求缺少持久化提交标识")
+		return nil, true, errors.New("Image request missing persistent commit flag")
 	}
 	row, err := s.repo.ImageSubmission(attemptID, task.ID, task.UserID)
 	if err == nil {
@@ -277,7 +277,7 @@ func PrepareImageSubmission(s *Service, req *http.Request) (*model.ImageSubmissi
 		return nil, true, err
 	}
 	if req.Body == nil {
-		return nil, true, errors.New("图片请求内容为空")
+		return nil, true, errors.New("Image request content is empty")
 	}
 	body, err := io.ReadAll(io.LimitReader(req.Body, MaxRequestBytes+1))
 	_ = req.Body.Close()
@@ -285,7 +285,7 @@ func PrepareImageSubmission(s *Service, req *http.Request) (*model.ImageSubmissi
 		return nil, true, err
 	}
 	if len(body) > MaxRequestBytes {
-		return nil, true, errors.New("图片请求超过 64 MiB，暂未提交")
+		return nil, true, errors.New("Image request exceeds 64 MiB and has not been submitted yet")
 	}
 	header := req.Header.Clone()
 	header.Del("X-Idempotency-Key")
@@ -304,19 +304,19 @@ func PrepareImageSubmission(s *Service, req *http.Request) (*model.ImageSubmissi
 		protocol = beeftv.MediaProtocolVersion
 		var envelope beeftv.MediaRequest
 		if json.Unmarshal(body, &envelope) != nil || envelope.TaskRef != key || (envelope.MediaType != "image" && envelope.MediaType != "video" && envelope.MediaType != "upscale" && envelope.MediaType != "audio") {
-			return nil, true, errors.New("媒体请求的持久化身份或类型无效")
+			return nil, true, errors.New("The media request has an invalid persistence identity or type.")
 		}
 		var input generation.Input
 		plain, err := s.secrets.DecryptInputJSON(task.InputJSON)
 		if err != nil || json.Unmarshal([]byte(plain), &input) != nil {
-			return nil, true, errors.New("媒体任务的原始输入不可用")
+			return nil, true, errors.New("The original input for the media task is not available")
 		}
 		kind := input.Mode
 		if input.Upscale != nil {
 			kind = "upscale"
 		}
 		if kind != envelope.MediaType {
-			return nil, true, errors.New("媒体请求与原始任务类型不一致")
+			return nil, true, errors.New("The media request is inconsistent with the original task type")
 		}
 		mediaType = envelope.MediaType
 	}
@@ -375,17 +375,17 @@ func (s *Service) SendImageSubmissionWithMode(ctx context.Context, task model.Ta
 		maxSends = 0
 	}
 	if row.TaskID != task.ID || row.UserID != task.UserID {
-		return nil, "", imageRecoveryError{errors.New("图片任务归属不一致")}
+		return nil, "", imageRecoveryError{errors.New("Image task ownership is inconsistent")}
 	}
 	if FrozenRequestExpired(row) || (!singleReplay && !row.ResponseAccepted && row.SendCount >= MaxSends) {
-		return nil, "", imageRecoveryError{errors.New("图片结果恢复等待已结束")}
+		return nil, "", imageRecoveryError{errors.New("Picture result recovery wait has ended")}
 	}
 	wire, err := s.ImageSubmissionWire(row)
 	if err != nil {
 		return nil, "", imageRecoveryError{err}
 	}
 	if managedFrozenImage(task, wire) {
-		return nil, "", imageRecoveryError{errors.New("BeefTV 图片任务只能按原编号查询")}
+		return nil, "", imageRecoveryError{errors.New("BeefTV picture tasks can only be queried by original number")}
 	}
 	deadline := time.Now().Add(RecoveryWait)
 	if expires := row.CreatedAt.Add(RecoveryLifetime); expires.Before(deadline) {
@@ -412,7 +412,7 @@ func (s *Service) SendImageSubmissionWithMode(ctx context.Context, task model.Ta
 			}
 		}
 		if !RecoverableImageEndpoint(req) || req.Header.Get("Idempotency-Key") == "" {
-			return nil, "", imageRecoveryError{errors.New("图片恢复记录无效")}
+			return nil, "", imageRecoveryError{errors.New("Picture recovery record is invalid")}
 		}
 		data, mime, sendErr := send(req, func() error {
 			if err := ctx.Err(); err != nil {
@@ -496,7 +496,7 @@ func (s *Service) SendImageSubmissionWithMode(ctx context.Context, task model.Ta
 		if errors.As(sendErr, &upstream) && upstream.RetryAfter > delay {
 			delay = upstream.RetryAfter
 		}
-		if err := s.repo.UpdateTaskProgressForLease(task.ID, task.LeaseOwner, "正在恢复图片结果", 0); err != nil {
+		if err := s.repo.UpdateTaskProgressForLease(task.ID, task.LeaseOwner, "Recovering image results", 0); err != nil {
 			return nil, "", imageRecoveryError{err}
 		}
 		if err := wait(ctx, delay); err != nil {
@@ -574,7 +574,7 @@ func (s *Service) RecoverImageSubmission(ctx context.Context, task model.Task) (
 	}
 	images, err := generation.ImageDataURLs(payload)
 	if err != nil {
-		return nil, true, imageRecoveryError{fmt.Errorf("恢复图片响应: %w", err)}
+		return nil, true, imageRecoveryError{fmt.Errorf("Recovery image response: %w", err)}
 	}
 	return map[string]interface{}{"mode": "image", "images": images}, true, nil
 }

@@ -20,7 +20,7 @@ function videoNode(storageKey = "video:clip"): CanvasNodeData {
     return {
         id: "n-video",
         type: "video",
-        title: "镜头",
+        title: "lens",
         position: { x: 0, y: 0 },
         width: 320,
         height: 180,
@@ -28,7 +28,7 @@ function videoNode(storageKey = "video:clip"): CanvasNodeData {
             storageKey,
             content: "blob:expired",
             assetId: "source-asset",
-            prompt: "描述里提到 data:image/png 和 blob:expired，但不是媒体文件",
+            prompt: "The description mentions data:image/png and blob:expired, but not media files",
         },
     };
 }
@@ -37,7 +37,7 @@ function drawingNode(): CanvasNodeData {
     return {
         id: "n-drawing",
         type: "drawing",
-        title: "分镜手稿",
+        title: "Storyboard manuscript",
         position: { x: 40, y: 0 },
         width: 240,
         height: 240,
@@ -49,7 +49,7 @@ function textNode(): CanvasNodeData {
     return {
         id: "n-text",
         type: "text",
-        title: "说明",
+        title: "Description",
         position: { x: 80, y: 0 },
         width: 200,
         height: 80,
@@ -61,7 +61,7 @@ function timeline(): TimelineProject {
     return {
         version: 2,
         durationMs: 1000,
-        tracks: [{ id: "voice", kind: "audio", label: "配音", order: 0 }],
+        tracks: [{ id: "voice", kind: "audio", label: "Dubbing", order: 0 }],
         clips: [{
             id: "c1",
             kind: "audio",
@@ -69,7 +69,7 @@ function timeline(): TimelineProject {
             trackId: "voice",
             startMs: 0,
             durationMs: 1000,
-            directMedia: { id: "m1", kind: "audio", title: "配音", storageKey: "audio:voice", url: "blob:expired", assetId: "source-clip-asset" },
+            directMedia: { id: "m1", kind: "audio", title: "Dubbing", storageKey: "audio:voice", url: "blob:expired", assetId: "source-clip-asset" },
         }],
     };
 }
@@ -79,14 +79,14 @@ function archiveData(overrides: Record<string, unknown> = {}) {
         app: "infinite-canvas",
         version: 4,
         exportedAt: "2026-10-02T00:00:00.000Z",
-        folders: [{ id: "folder-old", name: "剧集", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" }],
+        folders: [{ id: "folder-old", name: "drama series", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" }],
         projects: [{
             project: {
                 id: "old-canvas",
                 workspaceProjectId: "old-workspace",
                 projectId: "source-business",
                 folderId: "folder-old",
-                title: "测试画布",
+                title: "test canvas",
                 nodes: [videoNode(), drawingNode(), textNode()],
                 connections: [],
                 timeline: timeline(),
@@ -150,7 +150,7 @@ function memoryHost(overrides: Partial<CanvasArchiveRestoreHost> = {}) {
                 revision: 0,
                 workspaceProjectId: id,
                 folderId: project.folderId,
-                title: project.title || "导入画布",
+                title: project.title || "Import canvas",
                 createdAt: "2026-10-02T00:00:00.000Z",
                 updatedAt: "2026-10-02T00:00:00.000Z",
                 nodes: (project.nodes || []) as CanvasNodeData[],
@@ -170,7 +170,7 @@ function memoryHost(overrides: Partial<CanvasArchiveRestoreHost> = {}) {
             if (index >= 0) projects[index] = { ...projects[index], ...patch };
         },
         persistProject: async (id) => {
-            if (!projects.some((project) => project.id === id)) throw new Error("画布未保存到工作区");
+            if (!projects.some((project) => project.id === id)) throw new Error("Canvas not saved to workspace");
         },
         deleteProjects: async (ids) => {
             deleted.push(...ids);
@@ -226,7 +226,7 @@ test("preflight rejects missing media, invalid project, version, duplicate IDs, 
             app: "infinite-canvas",
             version: 4,
             projects: [{
-                project: { id: "broken", title: "损坏画布", nodes: [videoNode()], connections: [] },
+                project: { id: "broken", title: "damage canvas", nodes: [videoNode()], connections: [] },
                 files: [{ storageKey: "video:clip", path: "projects/broken/files/missing.mp4", mimeType: "video/mp4", bytes: 3 }],
             }],
         }),
@@ -236,15 +236,15 @@ test("preflight rejects missing media, invalid project, version, duplicate IDs, 
 
     const invalidProject = await createZip([{
         name: "projects.json",
-        data: JSON.stringify({ app: "infinite-canvas", version: 4, projects: [{ project: { title: "无编号" }, files: [] }] }),
+        data: JSON.stringify({ app: "infinite-canvas", version: 4, projects: [{ project: { title: "No number" }, files: [] }] }),
     }]);
-    await expect(openCanvasArchive(invalidProject)).rejects.toThrow("缺少编号");
+    await expect(openCanvasArchive(invalidProject)).rejects.toThrow("missing number");
 
     const badVersion = await createZip([{
         name: "projects.json",
         data: JSON.stringify({ app: "infinite-canvas", version: 2, projects: [] }),
     }]);
-    await expect(openCanvasArchive(badVersion)).rejects.toThrow("不支持的画布备份版本");
+    await expect(openCanvasArchive(badVersion)).rejects.toThrow("Unsupported canvas backup version");
 
     const duplicate = await createZip([{
         name: "projects.json",
@@ -252,12 +252,12 @@ test("preflight rejects missing media, invalid project, version, duplicate IDs, 
             app: "infinite-canvas",
             version: 4,
             projects: [
-                { project: { id: "same", title: "一", nodes: [], connections: [] }, files: [] },
-                { project: { id: "same", title: "二", nodes: [], connections: [] }, files: [] },
+                { project: { id: "same", title: "one", nodes: [], connections: [] }, files: [] },
+                { project: { id: "same", title: "two", nodes: [], connections: [] }, files: [] },
             ],
         }),
     }]);
-    await expect(openCanvasArchive(duplicate)).rejects.toThrow("重复的画布");
+    await expect(openCanvasArchive(duplicate)).rejects.toThrow("Duplicate canvas");
 
     const duplicateDrawing = await createZip([{
         name: "projects.json",
@@ -265,7 +265,7 @@ test("preflight rejects missing media, invalid project, version, duplicate IDs, 
             app: "infinite-canvas",
             version: 4,
             projects: [{
-                project: { id: "drawn", title: "重复画板", nodes: [drawingNode()], connections: [] },
+                project: { id: "drawn", title: "Repeat artboard", nodes: [drawingNode()], connections: [] },
                 files: [],
                 drawingDocuments: [
                     { drawingId: "sketch", version: 2, engine: "excalidraw", snapshot: {}, revision: 1, updatedAt: "2026-10-02T00:00:00.000Z", shapeCount: 0, pageCount: 1 },
@@ -274,7 +274,7 @@ test("preflight rejects missing media, invalid project, version, duplicate IDs, 
             }],
         }),
     }]);
-    await expect(openCanvasArchive(duplicateDrawing)).rejects.toThrow("重复画板");
+    await expect(openCanvasArchive(duplicateDrawing)).rejects.toThrow("Repeat artboard");
 
     const dataKey = await createZip([
         {
@@ -283,14 +283,14 @@ test("preflight rejects missing media, invalid project, version, duplicate IDs, 
                 app: "infinite-canvas",
                 version: 4,
                 projects: [{
-                    project: { id: "data", title: "内嵌", nodes: [{ ...videoNode(), metadata: { storageKey: "data:image/png;base64,AAAA" } }], connections: [] },
+                    project: { id: "data", title: "Embedded", nodes: [{ ...videoNode(), metadata: { storageKey: "data:image/png;base64,AAAA" } }], connections: [] },
                     files: [{ storageKey: "data:image/png;base64,AAAA", path: "a.bin", mimeType: "image/png", bytes: 1 }],
                 }],
             }),
         },
         { name: "a.bin", data: new Uint8Array([1]) },
     ]);
-    await expect(openCanvasArchive(dataKey)).rejects.toThrow("无效的媒体引用");
+    await expect(openCanvasArchive(dataKey)).rejects.toThrow("Invalid media reference");
 });
 
 test("archive zip bounds match the existing desktop extraction limits", () => {
@@ -304,9 +304,9 @@ test("zip traversal and duplicate confined paths fail before restore writes", as
         "../secret.txt": new Uint8Array([1]),
         "projects.json": encoder.encode(JSON.stringify({ app: "infinite-canvas", version: 4, projects: [] })),
     })]);
-    await expect(openCanvasArchive(traversal)).rejects.toThrow("越界路径");
+    await expect(openCanvasArchive(traversal)).rejects.toThrow("out of bounds path");
 
-    await expect(createZip([{ name: "same", data: "A" }, { name: "same", data: "B" }])).rejects.toThrow("重名文件");
+    await expect(createZip([{ name: "same", data: "A" }, { name: "same", data: "B" }])).rejects.toThrow("File with duplicate name");
 });
 
 test("production restore remaps media and timeline, preserves drawings, and ignores prompt data/blob strings", async () => {
@@ -316,7 +316,7 @@ test("production restore remaps media and timeline, preserves drawings, and igno
     expect(result.count).toBe(1);
     expect(result.projectIds).toEqual(["imported-1"]);
     expect(result.projectIds).not.toContain("old-canvas");
-    expect(folders).toEqual([{ id: "folder-1", name: "剧集" }]);
+    expect(folders).toEqual([{ id: "folder-1", name: "drama series" }]);
     expect(projects).toHaveLength(1);
     expect(projects[0].id).toBe("imported-1");
     expect(projects[0].workspaceProjectId).toBe("imported-1");
@@ -343,16 +343,16 @@ test("production restore remaps media and timeline, preserves drawings, and igno
 test("persist failure does not report saved and rolls back this attempt", async () => {
     const { host, folders, projects, deleted } = memoryHost({
         persistProject: async () => {
-            const operation = Object.values(useOperationProgress.getState().entries).find(item => item.title === "导入画布备份");
+            const operation = Object.values(useOperationProgress.getState().entries).find(item => item.title === "Import canvas backup");
             expect(operation?.phase).toBe("processing");
-            throw new Error("画布未保存到工作区");
+            throw new Error("Canvas not saved to workspace");
         },
     });
-    await expect(restoreCanvasArchive(await validZip(), host)).rejects.toThrow("画布未保存到工作区");
+    await expect(restoreCanvasArchive(await validZip(), host)).rejects.toThrow("Canvas not saved to workspace");
     expect(projects).toEqual([]);
     expect(folders).toEqual([]);
     expect(deleted).toEqual(["imported-1"]);
-    expect(Object.values(useOperationProgress.getState().entries).find(item => item.title === "导入画布备份")?.phase).toBe("error");
+    expect(Object.values(useOperationProgress.getState().entries).find(item => item.title === "Import canvas backup")?.phase).toBe("error");
 });
 
 test("retrying a valid archive creates new IDs and never reuses archive workspace IDs", async () => {
@@ -388,20 +388,20 @@ test("readback mismatch is an explicit restore failure", () => {
         nodes: [videoNode("resource:new")],
         timeline: timeline(),
     };
-    expect(() => assertRestoredCanvasMatches(intended, { ...intended, id: "other" } as CanvasProject)).toThrow("画布未保存到工作区");
-    expect(() => assertRestoredCanvasMatches(intended, { ...intended, folderId: "other" } as CanvasProject)).toThrow("画布文件夹未保存到工作区");
-    expect(() => assertRestoredCanvasMatches(intended, { ...intended, timeline: undefined } as CanvasProject)).toThrow("画布时间线未保存到工作区");
+    expect(() => assertRestoredCanvasMatches(intended, { ...intended, id: "other" } as CanvasProject)).toThrow("Canvas not saved to workspace");
+    expect(() => assertRestoredCanvasMatches(intended, { ...intended, folderId: "other" } as CanvasProject)).toThrow("Canvas folder not saved to workspace");
+    expect(() => assertRestoredCanvasMatches(intended, { ...intended, timeline: undefined } as CanvasProject)).toThrow("Canvas timeline not saved to workspace");
 });
 
 test("restore readback rejects missing text, layout, or director content even with identical media references", () => {
-    const intended = { id: "canvas", title: "原文", nodes: [textNode()], connections: [], directorScenes: [{ id: "scene", title: "场景" }] } as CanvasProject;
+    const intended = { id: "canvas", title: "Original text", nodes: [textNode()], connections: [], directorScenes: [{ id: "scene", title: "scene" }] } as CanvasProject;
     for (const patch of [
-        { title: "旧标题" },
-        { nodes: [{ ...textNode(), metadata: { content: "丢失的正文" } }] },
+        { title: "old title" },
+        { nodes: [{ ...textNode(), metadata: { content: "missing text" } }] },
         { nodes: [{ ...textNode(), position: { x: 99, y: 99 } }] },
         { directorScenes: [] },
         { connections: [{ id: "unexpected", source: "a", target: "b" }] },
-    ]) expect(() => assertRestoredCanvasMatches(intended, { ...intended, ...patch })).toThrow("画布内容未完整保存到工作区");
+    ]) expect(() => assertRestoredCanvasMatches(intended, { ...intended, ...patch })).toThrow("The canvas content is not completely saved to the workspace");
     expect(() => assertRestoredCanvasMatches(intended, { ...intended, revision: 8, updatedAt: "server-time" })).not.toThrow();
 });
 
@@ -409,8 +409,8 @@ test("canonical restore readback permits local viewport differences without rela
     const intended = { id: "canvas", nodes: [textNode()], viewport: { x: -17, y: 280, k: 0.38 } } as CanvasProject;
     const saved = { ...intended, viewport: { x: 0, y: 0, k: 1 } };
     expect(() => assertRestoredCanvasMatches(intended, saved, "backend")).not.toThrow();
-    expect(() => assertRestoredCanvasMatches(intended, saved)).toThrow("画布内容未完整保存到工作区");
-    expect(() => assertRestoredCanvasMatches(intended, { ...saved, nodes: [] }, "backend")).toThrow("画布内容未完整保存到工作区");
+    expect(() => assertRestoredCanvasMatches(intended, saved)).toThrow("The canvas content is not completely saved to the workspace");
+    expect(() => assertRestoredCanvasMatches(intended, { ...saved, nodes: [] }, "backend")).toThrow("The canvas content is not completely saved to the workspace");
 });
 
 test("restore remaps director panorama, object, and screenshot media into the destination workspace", async () => {
@@ -513,19 +513,19 @@ test("drawing failure waits for all sibling writes before deleting the imported 
 
 test("drawing receipt must contain the saved snapshot", async () => {
     const state = memoryHost({ loadDrawing: async (_projectId, drawingId) => ({ drawingId, revision: 1 }) });
-    await expect(restoreCanvasArchive(await validZip(), state.host)).rejects.toThrow("画板未保存到工作区");
+    await expect(restoreCanvasArchive(await validZip(), state.host)).rejects.toThrow("Artboard not saved to workspace");
     expect(state.projects).toEqual([]);
 });
 
 test("folder covers require archive bytes before any writes and restore under the new folder ID", async () => {
-    const data = archiveData({ folders: [{ id: "folder-old", name: "剧集", coverPath: "folders/old/cover.jpg", coverMimeType: "image/jpeg" }] });
+    const data = archiveData({ folders: [{ id: "folder-old", name: "drama series", coverPath: "folders/old/cover.jpg", coverMimeType: "image/jpeg" }] });
     const archive = await openCanvasArchive(await validZip());
     archive.data = data as typeof archive.data;
     let restored: { id: string; bytes: number[]; mime: string } | undefined;
     const state = memoryHost({ restoreFolderCover: async (id, blob) => {
         restored = { id, bytes: [...new Uint8Array(await blob.arrayBuffer())], mime: blob.type };
     } });
-    await expect(restoreCanvasArchive(archive, state.host)).rejects.toThrow("压缩包缺少文件夹封面");
+    await expect(restoreCanvasArchive(archive, state.host)).rejects.toThrow("The compressed package is missing the folder cover");
     expect(state.folders).toEqual([]);
     archive.files.set("folders/old/cover.jpg", new Blob([new Uint8Array([7, 8, 9])]));
     await restoreCanvasArchive(archive, state.host);
@@ -537,6 +537,6 @@ test("native canonical restore reports local saving rather than cloud synchroniz
     const state = memoryHost({ usesCanonicalBackend: true, onProjectProgress: (_id, value) => { if (value) progress.push(value); } });
     await restoreCanvasArchive(await validZip(), state.host);
     expect(progress.length).toBeGreaterThan(0);
-    expect(progress.every((value) => value.phase === "saving" && value.message.includes("本地"))).toBe(true);
+    expect(progress.every((value) => value.phase === "saving" && value.message.includes("Local"))).toBe(true);
 });
 

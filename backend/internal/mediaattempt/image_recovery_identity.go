@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-var ErrIdentityUnavailable = errors.New("原图片渠道或凭据身份已不可用")
+var ErrIdentityUnavailable = errors.New("The original image channel or credential identity is no longer available")
 
 type localConfiguredChannel struct {
 	ID      string                    `json:"id"`

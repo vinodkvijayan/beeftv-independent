@@ -18,7 +18,7 @@ describe("Seedream model capabilities", () => {
         expect(p.references.maxImages).toBe(14);
         expect(p.transparentBackground.supported).toBe(false);
     });
-    test("国内 doubao 前缀的 Pro / Flash 不会被当成 Lite", () => {
+    test("Pro/Flash with doubao prefix in China will not be regarded as Lite", () => {
         const pro = seedreamImageCapability("beeftv::doubao-seedream-5-0-pro-260628")!;
         expect(pro.size.values).toEqual(["1K", "1.5K", "2K"]);
         expect(pro.references.maxImages).toBe(10);

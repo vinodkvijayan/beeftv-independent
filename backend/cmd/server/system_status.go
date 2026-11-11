@@ -89,7 +89,7 @@ func registerSystemStatusRoutes(api *gin.RouterGroup, status *systemStatus) {
 	startup := func(c *gin.Context) {
 		snapshot := status.snapshot(c.Request.Context())
 		if !snapshot.Started {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "data": snapshot, "msg": "服务仍在启动"})
+			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "data": snapshot, "msg": "Service is still starting"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"code": 0, "data": snapshot, "msg": "ok"})
@@ -97,7 +97,7 @@ func registerSystemStatusRoutes(api *gin.RouterGroup, status *systemStatus) {
 	ready := func(c *gin.Context) {
 		snapshot := status.snapshot(c.Request.Context())
 		if !snapshot.Ready {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "data": snapshot, "msg": "服务暂未就绪"})
+			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "data": snapshot, "msg": "The service is not ready yet"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"code": 0, "data": snapshot, "msg": "ok"})

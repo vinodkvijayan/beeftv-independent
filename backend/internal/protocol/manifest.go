@@ -737,7 +737,7 @@ func validateManifestRequest(rules []ManifestValidation, request GenerationReque
 	for _, rule := range rules {
 		value, err := evaluateManifestValue(rule.Assert, env)
 		if err != nil {
-			return fmt.Errorf("协议参数校验表达式错误：%w", err)
+			return fmt.Errorf("Protocol parameter verification expression error: %w", err)
 		}
 		if !manifestTruthy(value) {
 			return fmt.Errorf("%s", strings.TrimSpace(rule.Message))

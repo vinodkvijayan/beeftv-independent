@@ -86,7 +86,7 @@ describe("auto-download-preference", () => {
         const first = await triggerAutoDownloadForCompletedTask({
             taskId: "task-vid-1001",
             url: "https://cdn.example.com/outputs/scene-01.mp4",
-            title: "第一镜：雨夜街角",
+            title: "First shot: Street corner on a rainy night",
             mediaType: "video",
             mimeType: "video/mp4",
             download: async (options) => {
@@ -97,7 +97,7 @@ describe("auto-download-preference", () => {
         const second = await triggerAutoDownloadForCompletedTask({
             taskId: "task-vid-1001",
             url: "https://cdn.example.com/outputs/scene-01.mp4",
-            title: "第一镜：雨夜街角",
+            title: "First shot: Street corner on a rainy night",
             mediaType: "video",
             mimeType: "video/mp4",
             download: async (options) => {
@@ -108,7 +108,7 @@ describe("auto-download-preference", () => {
         expect(first).toBe(true);
         expect(second).toBe(false);
         expect(downloads).toHaveLength(1);
-        expect(downloads[0]?.fileName).toBe("第一镜：雨夜街角_vid-1001.mp4");
+        expect(downloads[0]?.fileName).toBe("First shot: Street corner on a rainy night_vid-1001.mp4");
         expect(hasTaskBeenAutoDownloaded("task-vid-1001")).toBe(true);
 
         const storedSession = JSON.parse(window.sessionStorage.getItem(AUTO_DOWNLOADED_TASK_IDS_SESSION_KEY) || "[]") as string[];
@@ -122,7 +122,7 @@ describe("auto-download-preference", () => {
         const triggered = await triggerAutoDownloadForCompletedTask({
             taskId: "task-img-2002",
             url: "https://cdn.example.com/outputs/frame.png",
-            title: "分镜首帧",
+            title: "First frame of storyboard",
             mediaType: "image",
             download: async () => {
                 called = true;
@@ -139,10 +139,10 @@ describe("auto-download-preference", () => {
             buildAutoDownloadFileName({
                 taskId: "task_abcdef12",
                 url: "https://example.com/file.webp?token=1",
-                title: "角色立绘/女主",
+                title: "Character painting/heroine",
                 mediaType: "image",
             }),
-        ).toBe("角色立绘_女主_abcdef12.webp");
+        ).toBe("Character painting_heroine_abcdef12.webp");
 
         expect(
             buildAutoDownloadFileName({
@@ -151,7 +151,7 @@ describe("auto-download-preference", () => {
                 mediaType: "audio",
                 mimeType: "audio/wav",
             }),
-        ).toBe("生成音频_audio99.wav");
+        ).toBe("Generate audio_audio99.wav");
     });
 });
 
@@ -160,7 +160,7 @@ describe("asset-detail-drawer prompt helpers", () => {
         const asset = {
             id: "asset-1",
             kind: "image",
-            title: "赛博朋克街景",
+            title: "Cyberpunk street scene",
             category: "environment",
             tags: [],
             createdAt: "2026-11-04T00:00:00.000Z",
@@ -202,6 +202,6 @@ describe("asset-detail-drawer prompt helpers", () => {
         });
         expect(ok).toBe(true);
         expect(copiedText).toBe("Neon-lit rainy alley, cinematic wide shot, 35mm lens");
-        expect(toastText).toBe("已复制生成提示词");
+        expect(toastText).toBe("Prompt word has been copied and generated");
     });
 });

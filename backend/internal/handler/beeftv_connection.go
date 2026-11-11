@@ -132,5 +132,5 @@ func requestBeefTV(c *gin.Context, connections beefTVConnections) (*beeftv.Servi
 			return connection, nil
 		}
 	}
-	return nil, errors.New("企业连接服务尚未初始化")
+	return nil, errors.New("Enterprise Connectivity Service has not been initialized yet")
 }

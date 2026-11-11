@@ -31,26 +31,26 @@ type UpdateState struct {
 }
 
 var (
-	ErrPreparationTimeout = errors.New("准备更新超时，请重试；当前版本未被替换。")
-	ErrDisabled           = errors.New("自动更新未开启")
-	ErrBusy               = errors.New("已有更新操作正在进行")
-	ErrNotAvailable       = errors.New("没有可下载的更新")
-	ErrNotReady           = errors.New("更新尚未准备好安装")
-	ErrInvalidSignature   = errors.New("更新信息无法验证")
-	ErrTampered           = errors.New("更新文件损坏或被篡改")
-	ErrWrongPlatform      = errors.New("没有适合当前系统的更新包")
-	ErrUnsupported        = errors.New("当前系统不支持自动更新")
-	ErrNoDowngrade        = errors.New("更新源版本不是更新的版本")
-	ErrTimeout            = errors.New("网络长时间没有响应")
-	ErrInvalidArchive     = errors.New("更新包格式无效")
-	ErrInstallFailed      = errors.New("安装更新失败")
-	ErrIncompleteConfig   = errors.New("更新配置不完整")
-	ErrProxyUnavailable   = errors.New("连不上代理，请检查代理软件")
-	ErrNetworkOffline     = errors.New("连不上更新服务器，请检查网络")
-	ErrSecureConnection   = errors.New("安全连接失败，请检查代理设置")
-	ErrServerBusy         = errors.New("更新服务器暂时不可用")
-	ErrConnectionDropped  = errors.New("网络连接中断")
-	ErrNetworkUnstable    = errors.New("网络不稳定，已保留下载进度")
+	ErrPreparationTimeout = errors.New("Preparing for update timed out, please try again; the current version has not been replaced.")
+	ErrDisabled           = errors.New("Automatic updates are not turned on")
+	ErrBusy               = errors.New("There is an update operation in progress")
+	ErrNotAvailable       = errors.New("No updates available for download")
+	ErrNotReady           = errors.New("The update is not ready to install yet")
+	ErrInvalidSignature   = errors.New("Update information cannot be verified")
+	ErrTampered           = errors.New("The update file is corrupted or tampered with")
+	ErrWrongPlatform      = errors.New("There is no update package suitable for the current system")
+	ErrUnsupported        = errors.New("The current system does not support automatic updates")
+	ErrNoDowngrade        = errors.New("The update source version is not the updated version")
+	ErrTimeout            = errors.New("The network does not respond for a long time")
+	ErrInvalidArchive     = errors.New("The update package format is invalid")
+	ErrInstallFailed      = errors.New("Installation update failed")
+	ErrIncompleteConfig   = errors.New("Update configuration is incomplete")
+	ErrProxyUnavailable   = errors.New("Unable to connect to the proxy, please check the proxy software")
+	ErrNetworkOffline     = errors.New("Unable to connect to the update server, please check the network")
+	ErrSecureConnection   = errors.New("Secure connection failed, please check proxy settings")
+	ErrServerBusy         = errors.New("The update server is temporarily unavailable")
+	ErrConnectionDropped  = errors.New("Network connection interrupted")
+	ErrNetworkUnstable    = errors.New("The network is unstable and the download progress has been retained.")
 )
 
 func (s UpdateState) clone() UpdateState {
@@ -58,12 +58,12 @@ func (s UpdateState) clone() UpdateState {
 }
 
 func preparationTimeoutMessage(phase string) string {
-	stage := "准备安装"
+	stage := "Ready to install"
 	switch phase {
 	case "verifying":
-		stage = "校验更新包"
+		stage = "Verify update package"
 	case "extracting":
-		stage = "解压更新包"
+		stage = "Unzip the update package"
 	}
-	return stage + "超时，当前版本未被替换。请重试；再次失败时请导出诊断包。"
+	return stage + "Timed out and the current version was not replaced. Please try again; if it fails again, export the diagnostic package."
 }

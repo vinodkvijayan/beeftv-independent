@@ -25,7 +25,7 @@ func TestAssistantRealGenerationEndToEnd(t *testing.T) {
 		t.Skip("spawns the real agent host and local task worker")
 	}
 	if os.Getenv("BEEFTV_REAL_GEN") != "1" && strings.TrimSpace(os.Getenv("BEEFTV_REAL_GEN_URL")) == "" {
-		t.Skip("设置 BEEFTV_REAL_GEN=1 跑本地假生成；设置 BEEFTV_REAL_GEN_URL 跑真实生成")
+		t.Skip("Set BEEFTV_REAL_GEN=1 to run local fake generation; set BEEFTV_REAL_GEN_URL to run real generation")
 	}
 	harness := newE2EGenerationHarness(t, false)
 	reportRaw := harness.runDriver(t, map[string]any{
@@ -35,7 +35,7 @@ func TestAssistantRealGenerationEndToEnd(t *testing.T) {
 	}, true)
 	assertCompleteGenerationReport(t, reportRaw)
 	if harness.fake && harness.upstream.contentHits.Load() < 2 {
-		t.Fatalf("假上游返回的绝对 content 地址没有经代理下载: hits=%d", harness.upstream.contentHits.Load())
+		t.Fatalf("The absolute content address returned by the fake upstream is not downloaded through the proxy: hits=%d", harness.upstream.contentHits.Load())
 	}
 }
 
@@ -65,7 +65,7 @@ func newE2EGenerationHarness(t *testing.T, forceFake bool) *e2eGenerationHarness
 		upstreamURL = ""
 	}
 	if !fake && upstreamKey == "" {
-		t.Fatal("设置 BEEFTV_REAL_GEN_URL 时必须同时通过 BEEFTV_REAL_GEN_KEY 提供密钥")
+		t.Fatal("Setting BEEFTV_REAL_GEN_URL must also provide the key via BEEFTV_REAL_GEN_KEY")
 	}
 	if err := e2eValidateConfirmDelay(fake); err != nil {
 		t.Fatal(err)
@@ -106,7 +106,7 @@ func newE2EGenerationHarness(t *testing.T, forceFake bool) *e2eGenerationHarness
 	}
 
 	canvasID := "real-gen-canvas"
-	canvas, _ := json.Marshal(map[string]any{"id": canvasID, "title": "真实生成测评", "revision": 0, "nodes": []any{}, "connections": []any{}})
+	canvas, _ := json.Marshal(map[string]any{"id": canvasID, "title": "Really generated evaluation", "revision": 0, "nodes": []any{}, "connections": []any{}})
 	if _, err := env.service.UpsertUserCanvasProject(owner.ID, canvas); err != nil {
 		t.Fatal(err)
 	}
@@ -143,9 +143,9 @@ func newE2EGenerationHarness(t *testing.T, forceFake bool) *e2eGenerationHarness
 		fake: fake, upstreamURL: upstreamURL, upstreamKey: upstreamKey, upstream: upstream, provider: provider,
 		maxTasks: maxTasks, maxVideoSeconds: maxVideoSeconds,
 		messages: []string{
-			"做一个两镜头的竖屏短片：清晨海边，一只柴犬追着浪花跑。先给我分镜和两张首帧图的方案。",
-			"首帧图出来了，帮我检查一下画面有没有问题。没问题就给这两个镜头做视频方案，每个镜头 5 秒。",
-			"把两个镜头剪成一个成片。",
+			"Make a two-shot vertical screen short film: On the beach in the early morning, a Shiba Inu runs after the waves. First, give me the plan for the storyboard and the two first frames.",
+			"The first frame of the picture is out. Please help me check if there is any problem with the picture. No problem, just make a video plan for these two shots, 5 seconds each.",
+			"Cut the two shots into one film.",
 		},
 	}
 }
@@ -208,12 +208,12 @@ func (h *e2eGenerationHarness) runDriver(t *testing.T, extra map[string]any, exp
 	printable := redactSecret(log.String(), h.upstreamKey)
 	if expectSuccess && runErr != nil {
 		if raw, readErr := os.ReadFile(filepath.Join(out, "report.json")); readErr == nil {
-			t.Fatalf("real generation driver failed: %v; 结果缺口: %s\n%s", runErr, generationReportGapSummary(raw), printable)
+			t.Fatalf("real generation driver failed: %v; Result gap: %s\n%s", runErr, generationReportGapSummary(raw), printable)
 		}
 		t.Fatalf("real generation driver failed: %v\n%s", runErr, printable)
 	}
 	if !expectSuccess && runErr == nil {
-		t.Fatalf("driver 预期失败但成功退出:\n%s", printable)
+		t.Fatalf("The driver expected to fail but exited successfully:\n%s", printable)
 	}
 	t.Logf("results in %s\n%s", out, printable)
 
@@ -222,7 +222,7 @@ func (h *e2eGenerationHarness) runDriver(t *testing.T, extra map[string]any, exp
 		t.Fatal(err)
 	}
 	if h.upstreamKey != "" && strings.Contains(string(reportRaw), h.upstreamKey) {
-		t.Fatal("报告里出现了上游密钥，必须脱敏")
+		t.Fatal("The upstream key appears in the report and must be desensitized")
 	}
 	return reportRaw
 }

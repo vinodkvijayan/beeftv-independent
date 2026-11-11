@@ -6,7 +6,7 @@ const faceDetection = readFileSync(new URL("../src/lib/canvas/canvas-face-detect
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 test("explicit slim release preserves clear optional-media degradation", () => {
-    expect(videoMerge).toContain("精简版未包含 FFmpeg");
-    expect(faceDetection).toContain("精简版未包含自动人脸识别");
+    expect(videoMerge).toContain("Lite version does not include FFmpeg");
+    expect(faceDetection).toContain("Lite version does not include automatic face recognition");
     expect(packageJson.scripts["build:slim"]).toContain("BEEFTV_FULL_MEDIA_RESOURCES=0");
 });

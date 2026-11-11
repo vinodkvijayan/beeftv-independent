@@ -50,22 +50,22 @@ func writeAssistantConfig(t *testing.T, body string) *Service {
 func TestResolveAssistantProviderUsesChannelCredential(t *testing.T) {
 	service := writeAssistantConfig(t, `{"schemaVersion":1,"revision":1,"config":{
 		"apiKey":"","baseUrl":"https://beeftv.app","textModel":"custom::my-text",
-		"channels":[{"id":"custom","name":"自建","enabled":true,"apiKey":"channel-secret",
+		"channels":[{"id":"custom","name":"self-built","enabled":true,"apiKey":"channel-secret",
 			"baseUrl":"https://relay.example.com/v1",
 			"modelProfiles":[{"capability":"text","model":"my-text","protocol":"chat-completion"}]}]}}`)
 
 	provider, err := service.ResolveAssistantProvider()
 	if err != nil {
-		t.Fatalf("应解析成功: %v", err)
+		t.Fatalf("Should parse successfully: %v", err)
 	}
 	if provider.ChannelID != "custom" || provider.Model != "my-text" || provider.Protocol != "chat-completion" {
-		t.Fatalf("渠道模型解析错误: %#v", provider)
+		t.Fatalf("Channel model parsing error: %#v", provider)
 	}
 	if provider.APIKey != "channel-secret" || provider.BaseURL != "https://relay.example.com/v1" {
-		t.Fatalf("凭据与地址应来自渠道: channel=%s base=%s hasKey=%t", provider.ChannelID, provider.BaseURL, provider.APIKey != "")
+		t.Fatalf("The credentials and address should come from the channel: channel=%s base=%s hasKey=%t", provider.ChannelID, provider.BaseURL, provider.APIKey != "")
 	}
-	if provider.ChannelName != "自建" {
-		t.Fatalf("渠道名应可展示，得到 %q", provider.ChannelName)
+	if provider.ChannelName != "Self-built" {
+		t.Fatalf("The channel name should be displayable, get %q", provider.ChannelName)
 	}
 }
 
@@ -80,10 +80,10 @@ func TestResolveAssistantProviderPrefersAssistantModel(t *testing.T) {
 
 	provider, err := service.ResolveAssistantProvider()
 	if err != nil {
-		t.Fatalf("应解析成功: %v", err)
+		t.Fatalf("Should parse successfully: %v", err)
 	}
 	if provider.Model != "claude-x" || provider.Protocol != "claude-api" {
-		t.Fatalf("应使用 assistantModel 及其协议: %#v", provider)
+		t.Fatalf("AssistantModel and its protocol should be used: %#v", provider)
 	}
 }
 
@@ -97,7 +97,7 @@ func TestResolveAssistantProviderRejectsUnresolvableExplicitModel(t *testing.T) 
 	provider, err := service.ResolveAssistantProvider()
 	unavailable, ok := err.(*AssistantUnavailableError)
 	if !ok || unavailable.Reason != AssistantReasonModelNotConfigured || provider.Model != "" || provider.APIKey != "" {
-		t.Fatalf("显式失效模型应拒绝发送: %v", err)
+		t.Fatalf("Explicit failure models should be rejected: %v", err)
 	}
 }
 
@@ -110,10 +110,10 @@ func TestResolveAssistantProviderDefaultsMissingProtocolToChatCompletion(t *test
 
 	provider, err := service.ResolveAssistantProvider()
 	if err != nil {
-		t.Fatalf("缺省协议应可用: %v", err)
+		t.Fatalf("Default protocol should be available: %v", err)
 	}
 	if provider.Protocol != "chat-completion" {
-		t.Fatalf("缺省协议应为 chat-completion，得到 %q", provider.Protocol)
+		t.Fatalf("The default protocol should be chat-completion, getting %q", provider.Protocol)
 	}
 }
 
@@ -126,10 +126,10 @@ func TestResolveAssistantProviderNormalizesResponsesProtocol(t *testing.T) {
 
 	provider, err := service.ResolveAssistantProvider()
 	if err != nil {
-		t.Fatalf("应解析成功: %v", err)
+		t.Fatalf("Should parse successfully: %v", err)
 	}
 	if provider.Protocol != "responses" {
-		t.Fatalf("协议应归一为 responses，得到 %q", provider.Protocol)
+		t.Fatalf("The protocols should be normalized to responses, giving %q", provider.Protocol)
 	}
 }
 
@@ -139,23 +139,23 @@ func TestResolveAssistantProviderReasons(t *testing.T) {
 		config     string
 		wantReason string
 	}{
-		{"没有任何模型", `{"schemaVersion":1,"revision":1,"config":{"channels":[]}}`, AssistantReasonModelNotConfigured},
-		{"渠道没有密钥", `{"schemaVersion":1,"revision":1,"config":{"textModel":"custom::chat-x","channels":[{"id":"custom","enabled":true,"apiKey":"","baseUrl":"https://relay.example.com","modelProfiles":[{"capability":"text","model":"chat-x","protocol":"chat-completion"}]}]}}`, AssistantReasonCredentialMissing},
-		{"协议不支持", `{"schemaVersion":1,"revision":1,"config":{"textModel":"custom::img-x","channels":[{"id":"custom","enabled":true,"apiKey":"k","baseUrl":"https://relay.example.com","modelProfiles":[{"capability":"text","model":"img-x","protocol":"newapi-channel-1"}]}]}}`, AssistantReasonProtocolUnsupported},
+		{"no model", `{"schemaVersion":1,"revision":1,"config":{"channels":[]}}`, AssistantReasonModelNotConfigured},
+		{"Channel has no key", `{"schemaVersion":1,"revision":1,"config":{"textModel":"custom::chat-x","channels":[{"id":"custom","enabled":true,"apiKey":"","baseUrl":"https://relay.example.com","modelProfiles":[{"capability":"text","model":"chat-x","protocol":"chat-completion"}]}]}}`, AssistantReasonCredentialMissing},
+		{"The protocol is not supported", `{"schemaVersion":1,"revision":1,"config":{"textModel":"custom::img-x","channels":[{"id":"custom","enabled":true,"apiKey":"k","baseUrl":"https://relay.example.com","modelProfiles":[{"capability":"text","model":"img-x","protocol":"newapi-channel-1"}]}]}}`, AssistantReasonProtocolUnsupported},
 	}
 	for _, item := range cases {
 		t.Run(item.name, func(t *testing.T) {
 			service := writeAssistantConfig(t, item.config)
 			_, err := service.ResolveAssistantProvider()
 			if err == nil {
-				t.Fatal("应返回不可用原因")
+				t.Fatal("The unavailability reason should be returned")
 			}
 			unavailable, isUnavailable := err.(*AssistantUnavailableError)
 			if !isUnavailable {
-				t.Fatalf("错误类型应是 *AssistantUnavailableError，得到 %T", err)
+				t.Fatalf("Error type should be *AssistantUnavailableError, got %T", err)
 			}
 			if unavailable.Reason != item.wantReason {
-				t.Fatalf("reason 应为 %s，得到 %s", item.wantReason, unavailable.Reason)
+				t.Fatalf("reason should be %s, get %s", item.wantReason, unavailable.Reason)
 			}
 		})
 	}
@@ -167,13 +167,13 @@ func TestAssistantGenerationModelStripsChannelPrefix(t *testing.T) {
 
 	display, modelKey := service.AssistantGenerationModel("image")
 	if display != "gpt-image-2" || modelKey != "beeftv::gpt-image-2" {
-		t.Fatalf("图片模型解析错误: display=%q modelKey=%q", display, modelKey)
+		t.Fatalf("Image model parsing error: display=%q modelKey=%q", display, modelKey)
 	}
 	display, modelKey = service.AssistantGenerationModel("video")
 	if display != "wan3.0-video" || modelKey != "beeftv::wan3.0-video" {
-		t.Fatalf("视频模型解析错误: display=%q modelKey=%q", display, modelKey)
+		t.Fatalf("Video model parsing error: display=%q modelKey=%q", display, modelKey)
 	}
 	if display, _ := service.AssistantGenerationModel("audio"); display != "" {
-		t.Fatalf("只支持 image/video，得到 %q", display)
+		t.Fatalf("Only supports image/video, get %q", display)
 	}
 }

@@ -9,17 +9,17 @@ for (const width of [1440, 390]) for (const dark of [false, true]) test(`referen
     page.on("pageerror", (error) => errors.push(error.message));
     try {
         await page.goto(server.url + "?transport&auto" + (dark ? "&dark" : ""));
-        await page.getByRole("combobox", { name: "图片传输方式" }).click();
-        await page.getByText("直接传素材", { exact: true }).click();
-        await page.getByRole("combobox", { name: "视频传输方式" }).click();
-        await page.locator(".ant-select-dropdown:visible").getByText("手动填写 HTTPS 链接", { exact: true }).click();
-        await page.getByRole("button", { name: "保存并测试上传" }).click();
-        await page.getByText("存储测试通过", { exact: true }).waitFor();
-        await page.getByText("上传、公开读取和测试文件清理均已通过", { exact: true }).waitFor();
+        await page.getByRole("combobox", { name: "Picture transfer method" }).click();
+        await page.getByText("Directly upload materials", { exact: true }).click();
+        await page.getByRole("combobox", { name: "Video transmission method" }).click();
+        await page.locator(".ant-select-dropdown:visible").getByText("Manually fill in the HTTPS link", { exact: true }).click();
+        await page.getByRole("button", { name: "Save and test upload" }).click();
+        await page.getByText("Storage test passed", { exact: true }).waitFor();
+        await page.getByText("Upload, public read and test file cleanup all passed", { exact: true }).waitFor();
         expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
         await page.screenshot({ path: import.meta.dir + `/../../output/reference-transport-${width}-${dark}.png`, fullPage: true });
-        await page.getByRole("textbox", { name: "S3 端点" }).fill("https://changed.example.com");
-        expect(await page.getByText("存储测试通过", { exact: true }).count()).toBe(0);
+        await page.getByRole("textbox", { name: "S3 endpoint" }).fill("https://changed.example.com");
+        expect(await page.getByText("Storage test passed", { exact: true }).count()).toBe(0);
         expect(errors).toEqual([]);
     } finally { await page.close(); }
 }, 30000);
@@ -28,10 +28,10 @@ test("failed storage check keeps an actionable HTTP status", async () => {
     const page = await browser.newPage();
     try {
         await page.goto(server.url + "?transport&auto&test-error");
-        await page.getByRole("button", { name: "保存并测试上传" }).click();
-        await page.getByText("存储测试未通过", { exact: true }).waitFor();
+        await page.getByRole("button", { name: "Save and test upload" }).click();
+        await page.getByText("Storage test failed", { exact: true }).waitFor();
         await page.getByText(/HTTP 403/).waitFor();
-        expect(await page.getByText("存储测试通过", { exact: true }).count()).toBe(0);
+        expect(await page.getByText("Storage test passed", { exact: true }).count()).toBe(0);
     } finally { await page.close(); }
 }, 30000);
 
@@ -45,7 +45,7 @@ for (const width of [1440, 390]) for (const dark of [false, true]) test(`storage
         await secret.waitFor({ state: "visible" });
         const geometry = () => secret.evaluate(input => {
             const wrapper = input.closest(".ant-input-affix-wrapper")!;
-            const ordinary = document.querySelector('input[aria-label="存储桶公网地址"]')!;
+            const ordinary = document.querySelector('input[aria-label="bucket public network address"]')!;
             return {
                 password: wrapper.getBoundingClientRect().height,
                 ordinary: ordinary.getBoundingClientRect().height,
@@ -112,7 +112,7 @@ beforeAll(async () => {
                 if (req.method === "PATCH") {
                     if (rejectNextCanvasLimitPatch) {
                         rejectNextCanvasLimitPatch = false;
-                        return Response.json({ code: 500, msg: "容量配置写入失败" }, { status: 500 });
+                        return Response.json({ code: 500, msg: "Failed to write capacity configuration" }, { status: 500 });
                     }
                     const body = (await req.json()) as { canvasDocumentMB?: number };
                     fixtureCanvasDocumentMB = Number(body.canvasDocumentMB ?? 64);
@@ -139,11 +139,11 @@ test("migration restart advice stays visible while technical details are collaps
     const page = await browser.newPage();
     try {
         await page.goto(server.url + "?migration-error");
-        await page.getByRole("button", { name: "选择文件夹", exact: true }).click();
-        await page.getByRole("button", { name: "迁移旧数据并使用新目录" }).click();
-        await page.getByText("迁移未完成，原数据已保留，但工作区未能重新打开。请重启 BeefTV", { exact: true }).waitFor();
+        await page.getByRole("button", { name: "Select folder", exact: true }).click();
+        await page.getByRole("button", { name: "Migrate old data and use new directory" }).click();
+        await page.getByText("The migration is not completed, the original data has been retained, but the workspace cannot be reopened. Please restart BeefTV", { exact: true }).waitFor();
         expect(await page.getByText(/fixture failure/).isVisible()).toBe(false);
-        await page.getByText("错误详情", { exact: true }).click();
+        await page.getByText("Error details", { exact: true }).click();
         expect(await page.getByText(/fixture failure/).isVisible()).toBe(true);
     } finally {
         await page.close();
@@ -155,14 +155,14 @@ test("failed cleanup closes stale confirmation and retains honest retry state", 
         await page.goto(server.url + "?cleanup-error");
         expect(await page.getByText(/原目录可能已部分清理/).count()).toBe(0);
         await page.screenshot({ path: import.meta.dir + "/../../output/storage-before-cleanup.png" });
-        await page.getByRole("button", { name: "清理原目录，释放磁盘空间" }).click();
-        await page.getByRole("button", { name: "确认并清理", exact: true }).click();
+        await page.getByRole("button", { name: "Clean up the original directory and free up disk space" }).click();
+        await page.getByRole("button", { name: "Confirm and clean", exact: true }).click();
         await page.getByRole("dialog").waitFor({ state: "detached" });
-        await page.getByText("临时文件仍在使用中，请重启 BeefTV 后再次清理。当前存储目录不受影响", { exact: true }).waitFor();
+        await page.getByText("The temporary file is still in use, please restart BeefTV and clean it again. The current storage directory is not affected", { exact: true }).waitFor();
         expect(await page.getByText(/原数据仍保留在/).count()).toBe(0);
         await page.getByText(/请保留当前存储目录/).waitFor();
         await page.screenshot({ path: import.meta.dir + "/../../output/storage-cleanup-interrupted.png" });
-        await page.getByRole("button", { name: "清理原目录，释放磁盘空间" }).click();
+        await page.getByRole("button", { name: "Clean up the original directory and free up disk space" }).click();
         await page.getByText(/可释放约 0.0 GB/).waitFor();
     } finally {
         await page.close();
@@ -176,28 +176,28 @@ for (const width of [1440, 390])
             page.on("pageerror", (error) => errors.push(error.message));
             try {
                 await page.goto(server.url + (dark ? "?dark" : ""));
-                await page.getByRole("button", { name: "选择文件夹", exact: true }).click();
-                expect(await page.getByRole("textbox", { name: "新存储目录" }).inputValue()).toBe("D:\\BeefTV");
-                await page.getByRole("button", { name: "迁移旧数据并使用新目录" }).click();
-                await page.getByText("当前目录：D:\\BeefTV", { exact: true }).waitFor();
-                await page.getByRole("button", { name: "清理原目录，释放磁盘空间" }).click();
-                await page.getByRole("button", { name: "确认并清理", exact: true }).click();
-                await page.getByRole("button", { name: "清理原目录，释放磁盘空间" }).waitFor({ state: "detached" });
-                await page.getByRole("button", { name: "添加测试素材" }).click();
-                const input = page.getByRole("textbox", { name: "在线素材地址" });
+                await page.getByRole("button", { name: "Select folder", exact: true }).click();
+                expect(await page.getByRole("textbox", { name: "New storage directory" }).inputValue()).toBe("D:\\BeefTV");
+                await page.getByRole("button", { name: "Migrate old data and use new directory" }).click();
+                await page.getByText("Current directory: D:\\BeefTV", { exact: true }).waitFor();
+                await page.getByRole("button", { name: "Clean up the original directory and free up disk space" }).click();
+                await page.getByRole("button", { name: "Confirm and clean", exact: true }).click();
+                await page.getByRole("button", { name: "Clean up the original directory and free up disk space" }).waitFor({ state: "detached" });
+                await page.getByRole("button", { name: "Add test material" }).click();
+                const input = page.getByRole("textbox", { name: "Online material address" });
                 await input.fill("http://cdn.example.com/image.png");
-                expect(await page.getByRole("button", { name: "添加链接", exact: true }).isDisabled()).toBe(true);
+                expect(await page.getByRole("button", { name: "Add link", exact: true }).isDisabled()).toBe(true);
                 await input.fill("https://cdn.example.com/image.png");
                 const bounds = await page.getByRole("dialog").boundingBox();
                 expect(bounds!.x).toBeGreaterThanOrEqual(0);
                 expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
                 await page.screenshot({ path: import.meta.dir + `/../../output/storage-url-${width}-${dark}.png` });
-                await page.getByRole("button", { name: "添加链接", exact: true }).click();
+                await page.getByRole("button", { name: "Add link", exact: true }).click();
                 await page.getByText("image:https://cdn.example.com/image.png", { exact: true }).waitFor();
-                await page.getByRole("textbox", { name: "S3 端点", exact: true }).fill("https://s3.example.com");
+                await page.getByRole("textbox", { name: "S3 endpoint", exact: true }).fill("https://s3.example.com");
                 await page.getByRole("textbox", { name: "Secret Access Key", exact: true }).fill("fixture-secret");
-                await page.getByRole("button", { name: "保存对象存储配置" }).click();
-                await page.getByPlaceholder("已保存，留空保持").waitFor();
+                await page.getByRole("button", { name: "Save object storage configuration" }).click();
+                await page.getByPlaceholder("Saved, leave blank to keep").waitFor();
                 expect(await page.getByRole("textbox", { name: "Secret Access Key", exact: true }).inputValue()).toBe("");
                 expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
                 expect(errors).toEqual([]);
@@ -210,12 +210,12 @@ test("enabled own storage supplies links and public-read failures allow manual H
         const page = await browser.newPage();
         try {
             await page.goto(server.url + "?auto" + (reject ? "&reject" : ""));
-            await page.getByRole("button", { name: "生成测试", exact: true }).click();
+            await page.getByRole("button", { name: "Generate tests", exact: true }).click();
             if (reject) {
-                await page.getByText("对象存储上传未完成", { exact: true }).waitFor();
-                expect(await page.getByRole("button", { name: "使用链接并生成" }).isDisabled()).toBe(true);
-                await page.getByRole("textbox", { name: "参考图片", exact: true }).fill("https://cdn.example.com/manual-image");
-                await page.getByRole("button", { name: "使用链接并生成" }).click();
+                await page.getByText("Object storage upload not completed", { exact: true }).waitFor();
+                expect(await page.getByRole("button", { name: "Use link and generate" }).isDisabled()).toBe(true);
+                await page.getByRole("textbox", { name: "Reference pictures", exact: true }).fill("https://cdn.example.com/manual-image");
+                await page.getByRole("button", { name: "Use link and generate" }).click();
             }
             await page.getByText(reject ? "https://cdn.example.com/manual-image" : "https://cdn.example.com/owned-image", { exact: true }).waitFor();
             expect(await page.getByRole("dialog").count()).toBe(0);
@@ -228,17 +228,17 @@ test("custom single-canvas capacity limit can be customized or set to unlimited"
     const page = await browser.newPage();
     try {
         await page.goto(String(server.url) + "?reject-canvas-limit");
-        const input = page.getByRole("textbox", { name: "单画布容量上限（MB）" });
+        const input = page.getByRole("textbox", { name: "Maximum capacity of a single canvas (MB)" });
         await input.waitFor({ state: "visible" });
         expect(await input.inputValue()).toBe("64");
         await input.fill("128");
-        await page.getByRole("button", { name: "保存容量设置", exact: true }).click();
-        await page.getByRole("alert").filter({ hasText: "容量配置写入失败" }).waitFor();
+        await page.getByRole("button", { name: "Save capacity settings", exact: true }).click();
+        await page.getByRole("alert").filter({ hasText: "Failed to write capacity configuration" }).waitFor();
         await page.getByText(/当前生效上限：64 MB/).waitFor();
         await input.fill("256");
-        await page.getByRole("button", { name: "保存容量设置", exact: true }).click();
+        await page.getByRole("button", { name: "Save capacity settings", exact: true }).click();
         await page.getByText(/当前生效上限：256 MB/).waitFor();
-        await page.getByRole("button", { name: "不限制", exact: true }).click();
+        await page.getByRole("button", { name: "no limit", exact: true }).click();
         await page.getByText(/当前生效上限：不限制/).waitFor();
         expect(await input.inputValue()).toBe("0");
     } finally {

@@ -3,24 +3,24 @@ import { Type } from "typebox";
 
 const SCENE_TEMPLATES = [
   {
-    suffix: "极简棚拍主图",
+    suffix: "Minimalist studio photo shoot",
     buildPrompt: (title: string, points: string) =>
-      `电商高转化极简棚拍主图，主体为「${title}」，突出卖点：${points}。商业级柔光箱布光，立体阴影，主体居中清晰，细节锐利，高级纯净背景。`,
+      `The main image of the minimalist studio shoot for e-commerce with high conversion, the subject is "${title}”, highlighting the selling points:${points}. Commercial-grade softbox lighting, three-dimensional shadows, clear and centered subject, sharp details, and high-end pure background.`,
   },
   {
-    suffix: "真实生活场景图",
+    suffix: "Real life scene pictures",
     buildPrompt: (title: string, points: string) =>
-      `电商真实生活场景主图，主体为「${title}」，核心卖点：${points}。自然柔和日光，贴合真实使用情境，画面富有生活品质感与代入感。`,
+      `The main picture of the real life scene of e-commerce, the subject is "${title}", core selling points:${points}. Natural and soft sunlight fits the real usage situation, and the picture is full of quality of life and sense of substitution.`,
   },
   {
-    suffix: "细节特写卖点图",
+    suffix: "Detailed close-up selling point picture",
     buildPrompt: (title: string, points: string) =>
-      `电商微距材质与细节特写图，展示「${title}」的核心工艺与卖点：${points}。浅景深，高质感纹理，清晰呈现材质细节与品质光泽。`,
+      `Close-up of e-commerce macro materials and details, showing "${title}"The core craftsmanship and selling points:${points}. Shallow depth of field, high-quality texture, clearly showing material details and quality luster.`,
   },
   {
-    suffix: "氛围感海报主图",
+    suffix: "Atmosphere poster main image",
     buildPrompt: (title: string, points: string) =>
-      `电商视觉氛围海报主图，围绕「${title}」与核心卖点「${points}」构图，光影层次丰富，品牌视觉张力强，预留舒适视觉呼吸空间。`,
+      `The main image of the e-commerce visual atmosphere poster revolves around "${title}"And core selling points"${points}"The composition is rich in light and shadow levels, the brand's visual tension is strong, and it leaves room for comfortable visual breathing.`,
   },
 ];
 
@@ -41,33 +41,33 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
 export default function registerEcommerceHeroExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "ecommerce_hero_arrange",
-    label: "一键编排商品主图",
+    label: "Arrange product main images with one click",
     description:
-      "在当前画布创建「一键商品主图」节点及指定数量（1~4 张）的电商场景主图节点，自动建立连线，并可选择直接发起图片生成提议。",
+      "Create a \"One-click product main image\" node and a specified number (1~4) of e-commerce scene main image nodes on the current canvas, automatically establish a connection, and you can choose to directly initiate an image generation proposal.",
     parameters: Type.Object({
-      productTitle: Type.String({ description: "商品名称，例如「无线降噪耳机」" }),
+      productTitle: Type.String({ description: "Product name, such as \"Wireless Noise Canceling Headphones\"" }),
       sellingPoints: Type.String({
-        description: "核心卖点描述，例如「48dB 深度降噪、金属磨砂腔体、40 小时续航」",
+        description: "Description of core selling points, such as \"48dB deep noise reduction, metal matte cavity, 40 hours of battery life\"",
       }),
       sceneStyle: Type.Optional(
         Type.String({
-          description: "场景风格：studio（棚拍质感）| lifestyle（生活场景）| festival（节日促销）",
+          description: "Scene style: studio (studio shooting texture) | lifestyle (life scene) | festival (festival promotion)",
         }),
       ),
       sceneCount: Type.Optional(
         Type.Number({
-          description: "需要生成的场景图张数（1 到 4，默认 2）",
+          description: "Number of scene graphs to be generated (1 to 4, default 2)",
           minimum: 1,
           maximum: 4,
           default: 2,
         }),
       ),
       expectedRevision: Type.Optional(
-        Type.Number({ description: "当前画布版本号（未传时自动读取）" }),
+        Type.Number({ description: "Current canvas version number (automatically read if not transmitted)" }),
       ),
       proposeGeneration: Type.Optional(
         Type.Boolean({
-          description: "创建并连线后是否立即发起图片生成提议（canvas_generation_propose）",
+          description: "Whether to initiate image generation proposal (canvas_generation_propose) immediately after creation and connection",
         }),
       ),
     }),
@@ -79,20 +79,20 @@ export default function registerEcommerceHeroExtension(pi: ExtensionAPI) {
         const read = await ctx.executeTool("canvas_get", {});
         const readText = extractText(read.result);
         if (read.isError) {
-          throw new Error(`读取画布失败：${readText}`);
+          throw new Error(`Failed to read canvas:${readText}`);
         }
         revision = Number(/"revision"\s*:\s*(\d+)/.exec(readText)?.[1]);
       }
       if (!Number.isSafeInteger(revision)) {
-        throw new Error("无法确定当前画布 revision");
+        throw new Error("Unable to determine current canvas revision");
       }
 
       const selectedScenes = SCENE_TEMPLATES.slice(0, count);
       const nodesToCreate = [
         {
           type: "ecommerce-hero",
-          title: `${params.productTitle} · 商品主图配置`,
-          prompt: `商品：${params.productTitle}\n卖点：${params.sellingPoints}\n场景数：${count} 张`,
+          title: `${params.productTitle} · Product main image configuration`,
+          prompt: `Product:${params.productTitle}Selling Points:${params.sellingPoints}Number of scenes:${count} Zhang`,
           pluginData: {
             productTitle: params.productTitle,
             sellingPoints: params.sellingPoints,
@@ -102,7 +102,7 @@ export default function registerEcommerceHeroExtension(pi: ExtensionAPI) {
         },
         ...selectedScenes.map((scene, index) => ({
           type: "image",
-          title: `${params.productTitle} · 主图 ${index + 1}（${scene.suffix}）`,
+          title: `${params.productTitle} · Main picture${index + 1}（${scene.suffix}）`,
           prompt: scene.buildPrompt(params.productTitle, params.sellingPoints),
         })),
       ];
@@ -113,7 +113,7 @@ export default function registerEcommerceHeroExtension(pi: ExtensionAPI) {
       });
       const createdText = extractText(createdRes.result);
       if (createdRes.isError) {
-        throw new Error(`创建商品主图节点失败：${createdText}`);
+        throw new Error(`Failed to create product main image node:${createdText}`);
       }
 
       const parsedCreated =
@@ -155,11 +155,11 @@ export default function registerEcommerceHeroExtension(pi: ExtensionAPI) {
         const proposeRes = await ctx.executeTool("canvas_generation_propose", {
           nodeIds: createdImageNodeIds,
           kind: "image",
-          note: "一键商品主图生成提议",
+          note: "One-click product main image generation proposal",
         });
         const proposeText = extractText(proposeRes.result);
         if (proposeRes.isError) {
-          throw new Error(`发起商品主图生成提议失败：${proposeText}`);
+          throw new Error(`Failed to initiate product main image generation proposal:${proposeText}`);
         }
         const parsedPropose =
           (proposeRes.result.structuredContent as Record<string, unknown> | undefined) ||
@@ -174,7 +174,7 @@ export default function registerEcommerceHeroExtension(pi: ExtensionAPI) {
         content: [
           {
             type: "text",
-            text: `已为「${params.productTitle}」编排 1 个商品主图节点与 ${createdImageNodeIds.length} 张场景主图节点${proposalId ? `，并已登记生成提议（${proposalId}）` : ""}。`,
+            text: `has been "${params.productTitle}"Organize 1 product main image node and${createdImageNodeIds.length} Scene main picture node${proposalId ? `, and has registered to generate proposals (${proposalId}）` : ""}。`,
           },
         ],
         details: {

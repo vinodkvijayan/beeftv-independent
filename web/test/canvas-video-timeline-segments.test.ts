@@ -31,7 +31,7 @@ const timeline: TimelineProject = {
             trackId: "video",
             startMs: 0,
             durationMs: 3_000,
-            title: "源视频",
+            title: "Source video",
             sourceStartMs: 2_000,
             sourceDurationMs: 3_000,
         },
@@ -40,10 +40,10 @@ const timeline: TimelineProject = {
 };
 
 describe("buildTimelineImportSegments", () => {
-    test("下游节点能从上游视频节点导入时间线片段", () => {
-        const source = videoNode("source-video", "源视频");
-        const segment = videoNode("segment-video", "片段");
-        const target = videoNode("target-video", "结果");
+    test("Downstream nodes can import timeline clips from upstream video nodes", () => {
+        const source = videoNode("source-video", "Source video");
+        const segment = videoNode("segment-video", "fragment");
+        const target = videoNode("target-video", "result");
         const nodes = [target, segment, source];
         const connections = [connection("source-video", "segment-video"), connection("segment-video", "target-video")];
         const result = buildTimelineImportSegments(target, nodes, connections, timeline, 10_000);
@@ -53,9 +53,9 @@ describe("buildTimelineImportSegments", () => {
         expect(result.segments[0]).toMatchObject({ startMs: 2_000, endMs: 5_000, sourceNodeId: "source-video" });
     });
 
-    test("旧数据 nodeId 不一致时按唯一标题回退匹配", () => {
-        const source = videoNode("source-video", "源视频");
-        const target = videoNode("target-video", "结果");
+    test("When old data nodeId is inconsistent, fallback matching based on unique title", () => {
+        const source = videoNode("source-video", "Source video");
+        const target = videoNode("target-video", "result");
         const nodes = [target, source];
         const connections = [connection("source-video", "target-video")];
         const oldTimeline: TimelineProject = {
@@ -68,8 +68,8 @@ describe("buildTimelineImportSegments", () => {
         expect(result.segments[0].sourceNodeId).toBe("source-video");
     });
 
-    test("没有匹配片段时返回错误", () => {
-        const target = videoNode("target-video", "结果");
+    test("Returns an error if there is no matching fragment", () => {
+        const target = videoNode("target-video", "result");
         const result = buildTimelineImportSegments(target, [target], [], timeline, 10_000);
         expect(result.ok).toBe(false);
     });

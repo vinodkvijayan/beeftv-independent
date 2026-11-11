@@ -56,21 +56,21 @@ func DecideExistingAttempt(task *model.Task, attempts []model.RouteAttempt, imag
 		if existing.ProviderRequestID != "" || task.ProviderRequestID != "" {
 			return ExistingAttemptDecision{Action: AttemptReuseAccepted, Attempt: existing, SyncProviderRequest: task.ProviderRequestID == ""}
 		}
-		return ExistingAttemptDecision{Action: AttemptUncertain, Error: DispatchUncertainError{Message: "上游已接受请求，但没有可恢复的任务 ID"}}
+		return ExistingAttemptDecision{Action: AttemptUncertain, Error: DispatchUncertainError{Message: "The request was accepted by the upstream but there is no resumable task ID"}}
 	case "submission_unknown":
 		if existing.ProviderRequestID != "" || task.ProviderRequestID != "" {
 			return ExistingAttemptDecision{Action: AttemptReuseAccepted, Attempt: existing, SyncProviderRequest: task.ProviderRequestID == "", MarkAccepted: true}
 		}
-		return ExistingAttemptDecision{Action: AttemptUncertain, Error: DispatchUncertainError{Message: "上一次提交结果不明确，为避免重复创建上游任务已停止自动重发"}}
+		return ExistingAttemptDecision{Action: AttemptUncertain, Error: DispatchUncertainError{Message: "The result of the last submission is unclear. To avoid repeated creation of upstream tasks, automatic resending has been stopped."}}
 	case "rejected_no_job":
 		if task.Type == "canvas_image" && existing.FailureCode == "image_throttled" && existing.AttemptNumber < 3 {
 			return ExistingAttemptDecision{Action: AttemptRetryImage, Attempt: existing}
 		}
 		if task.Type == "canvas_image" {
-			return ExistingAttemptDecision{Action: AttemptFail, Error: errors.New("上游已拒绝本次图片请求，请查看失败原因")}
+			return ExistingAttemptDecision{Action: AttemptFail, Error: errors.New("The upstream has rejected this image request, please check the reason for the failure.")}
 		}
 		if task.LogicalModelID == "" {
-			return ExistingAttemptDecision{Action: AttemptFail, Error: errors.New("上游已拒绝本次请求，请检查渠道配置后再试")}
+			return ExistingAttemptDecision{Action: AttemptFail, Error: errors.New("The upstream has rejected this request. Please check the channel configuration and try again.")}
 		}
 		return ExistingAttemptDecision{Action: AttemptSwitchRoute, Attempt: existing}
 	}
@@ -118,7 +118,7 @@ func MarkRouteAttemptDispatching(store RouteStore, attempt *model.RouteAttempt) 
 		return nil
 	}
 	if err := store.MarkRouteAttemptDispatching(attempt.ID); err != nil {
-		return DispatchUncertainError{Message: "提交状态未能独占确认，为避免重复创建上游任务已停止自动重发"}
+		return DispatchUncertainError{Message: "The submission status cannot be confirmed exclusively. To avoid repeated creation of upstream tasks, automatic resending has been stopped."}
 	}
 	attempt.Status, attempt.DispatchState = "dispatching", "submission_unknown"
 	return nil
@@ -130,17 +130,17 @@ func (r *Router) RoutedModelForTaskSelection(store RouteStore, task *model.Task)
 		return nil, err
 	}
 	if !route.Enabled || route.Weight <= 0 || route.LogicalModelRevisionID != task.LogicalModelRevisionID {
-		return nil, errors.New("任务使用的模型服务配置已失效")
+		return nil, errors.New("The model service configuration used by the task has expired")
 	}
 	if route.ChannelModelID != task.ChannelModelID {
-		return nil, errors.New("任务使用的模型服务配置已失效")
+		return nil, errors.New("The model service configuration used by the task has expired")
 	}
 	channelModel, err := store.ChannelModel(task.ChannelModelID)
 	if err != nil {
 		return nil, err
 	}
 	if !channelModel.Enabled {
-		return nil, errors.New("任务使用的模型服务配置已失效")
+		return nil, errors.New("The model service configuration used by the task has expired")
 	}
 	if _, err := store.SystemChannel(channelModel.ChannelID); err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (r *Router) RoutedModelForTaskSelection(store RouteStore, task *model.Task)
 		return nil, err
 	}
 	if revision.LogicalModelID != logicalModel.ID {
-		return nil, errors.New("任务前台模型版本不一致")
+		return nil, errors.New("The task frontend model version is inconsistent")
 	}
 	productSpec, err := DecodeCapabilitySpec(revision.CapabilitySpecJSON)
 	if err != nil {
@@ -166,14 +166,14 @@ func (r *Router) RoutedModelForTaskSelection(store RouteStore, task *model.Task)
 	}
 	capabilitySpec, err := channelModelCapabilitySpec(*channelModel)
 	if err != nil || r.LogicalRouteBlocked(CachedLogicalRoute{Route: *route, CapabilitySpec: capabilitySpec, ChannelModel: *channelModel}) {
-		return nil, errors.New("当前模型服务暂不可用")
+		return nil, errors.New("The current model service is temporarily unavailable")
 	}
 	return &RoutedModel{LogicalModel: *logicalModel, Revision: *revision, Route: *route, ChannelModel: *channelModel, Defaults: defaults}, nil
 }
 
 func (r *Router) SwitchTaskToNextRoute(store RouteStore, codec TaskInputCodec, task *model.Task, attempts []model.RouteAttempt) (*model.RouteAttempt, error) {
 	if codec.Decrypt == nil {
-		return nil, kernel.BadAuthRequest("任务输入格式无效，无法恢复模型服务")
+		return nil, kernel.BadAuthRequest("The task input format is invalid and the model service cannot be restored.")
 	}
 	decrypted, err := codec.Decrypt(task.InputJSON)
 	if err != nil {
@@ -181,7 +181,7 @@ func (r *Router) SwitchTaskToNextRoute(store RouteStore, codec TaskInputCodec, t
 	}
 	var input map[string]any
 	if err := json.Unmarshal([]byte(decrypted), &input); err != nil {
-		return nil, kernel.BadAuthRequest("任务输入格式无效，无法恢复模型服务")
+		return nil, kernel.BadAuthRequest("The task input format is invalid and the model service cannot be restored.")
 	}
 	logicalModel, err := store.LogicalModel(task.LogicalModelID)
 	if err != nil {
@@ -189,7 +189,7 @@ func (r *Router) SwitchTaskToNextRoute(store RouteStore, codec TaskInputCodec, t
 	}
 	revision, err := store.LogicalModelRevision(task.LogicalModelRevisionID)
 	if err != nil || revision.LogicalModelID != logicalModel.ID {
-		return nil, errors.New("任务前台模型版本不存在或归属不一致")
+		return nil, errors.New("The task front-end model version does not exist or the ownership is inconsistent")
 	}
 	productSpec, err := DecodeCapabilitySpec(revision.CapabilitySpecJSON)
 	if err != nil {
@@ -202,7 +202,7 @@ func (r *Router) SwitchTaskToNextRoute(store RouteStore, codec TaskInputCodec, t
 	intent := ModelRequestIntentFromTaskInput(input, task.Type, task.Operation)
 	intent.Options = mergeIntentDefaults(intent.Options, defaults)
 	if match := MatchCapability(productSpec, intent); !match.Matched {
-		return nil, kernel.BadAuthRequest("任务参数不再符合前台模型能力：" + strings.Join(match.Reasons, "；"))
+		return nil, kernel.BadAuthRequest("Task parameters no longer meet the capabilities of the front-end model:" + strings.Join(match.Reasons, "；"))
 	}
 	routes, err := store.LogicalModelRoutes(revision.ID, false)
 	if err != nil {
@@ -252,7 +252,7 @@ func (r *Router) SwitchTaskToNextRoute(store RouteStore, codec TaskInputCodec, t
 	}
 	eligible := r.EligibleLogicalRoutes(candidates, intent, tried)
 	if len(eligible) == 0 {
-		return nil, kernel.BadAuthRequest("当前模型暂时无法满足这组输入和参数")
+		return nil, kernel.BadAuthRequest("The current model is temporarily unable to satisfy this set of inputs and parameters")
 	}
 	selected := WeightedRoute(eligible)
 	variant := channelModelVariantForIntent(selected.ChannelModel, intent)
@@ -327,29 +327,29 @@ func (r *Router) PrepareLogicalTaskRetry(store RouteStore, codec TaskInputCodec,
 
 func (r *Router) ResolveArchivedTaskRoute(store RouteStore, task *model.Task, intent ModelRequestIntent) (*RoutedModel, error) {
 	if task == nil || task.LogicalModelID == "" || task.LogicalModelRevisionID == "" || task.RouteID == "" || task.ChannelModelID == "" {
-		return nil, kernel.BadAuthRequest("历史任务缺少完整的模型服务快照，无法重试")
+		return nil, kernel.BadAuthRequest("The historical task lacks a complete model service snapshot and cannot be retried.")
 	}
 	logicalModel, err := store.LogicalModel(task.LogicalModelID)
 	if err != nil {
 		return nil, err
 	}
 	if logicalModel.ArchivedAt == nil {
-		return nil, kernel.BadAuthRequest("任务模型已恢复为可用模型，请重新选择后重试")
+		return nil, kernel.BadAuthRequest("The task model has been restored to an available model, please reselect and try again")
 	}
 	revision, err := store.LogicalModelRevision(task.LogicalModelRevisionID)
 	if err != nil || revision.LogicalModelID != logicalModel.ID {
-		return nil, kernel.BadAuthRequest("历史任务前台模型版本不存在或归属不一致")
+		return nil, kernel.BadAuthRequest("The historical task front-end model version does not exist or the ownership is inconsistent.")
 	}
 	route, err := store.LogicalModelRoute(task.RouteID)
 	if err != nil || route.LogicalModelRevisionID != revision.ID || route.ChannelModelID != task.ChannelModelID || !route.Enabled || route.Weight <= 0 {
-		return nil, kernel.BadAuthRequest("历史任务原模型供应线路已失效，无法重试")
+		return nil, kernel.BadAuthRequest("The original model supply line of the historical mission has expired and cannot be retried.")
 	}
 	channelModel, err := store.ChannelModel(task.ChannelModelID)
 	if err != nil || !channelModel.Enabled {
-		return nil, kernel.BadAuthRequest("历史任务原模型服务已失效，无法重试")
+		return nil, kernel.BadAuthRequest("The original model service of the historical task has expired and cannot be retried.")
 	}
 	if _, err := store.SystemChannel(channelModel.ChannelID); err != nil {
-		return nil, kernel.BadAuthRequest("历史任务原模型渠道已失效，无法重试")
+		return nil, kernel.BadAuthRequest("The original model channel of the historical task has expired and cannot be retried.")
 	}
 	productSpec, err := DecodeCapabilitySpec(revision.CapabilitySpecJSON)
 	if err != nil {
@@ -361,11 +361,11 @@ func (r *Router) ResolveArchivedTaskRoute(store RouteStore, task *model.Task, in
 	}
 	intent.Options = mergeIntentDefaults(intent.Options, defaults)
 	if match := MatchCapability(productSpec, intent); !match.Matched {
-		return nil, kernel.BadAuthRequest("历史任务不再符合前台模型能力：" + strings.Join(match.Reasons, "；"))
+		return nil, kernel.BadAuthRequest("Historical tasks no longer meet the foreground model capabilities:" + strings.Join(match.Reasons, "；"))
 	}
 	capabilitySpec, err := channelModelCapabilitySpec(*channelModel)
 	if err != nil || r.LogicalRouteBlocked(CachedLogicalRoute{Route: *route, CapabilitySpec: capabilitySpec, ChannelModel: *channelModel}) {
-		return nil, kernel.BadAuthRequest("历史任务原模型供应线路暂不可用，无法重试")
+		return nil, kernel.BadAuthRequest("The original model supply line of the historical mission is temporarily unavailable and cannot be retried.")
 	}
 	return &RoutedModel{LogicalModel: *logicalModel, Revision: *revision, Route: *route, ChannelModel: *channelModel, Defaults: defaults}, nil
 }

@@ -35,14 +35,14 @@ func (s *Service) CreateCanvas(userID, id string, cmd Command) (map[string]any, 
 			return err
 		}
 		if run.Status == "paused" || run.Status == "cancelled" {
-			return Conflict("请先恢复创作任务")
+			return Conflict("Please resume creation tasks first")
 		}
 		if run.ApprovedAt == nil {
-			return Conflict("请先确认方案")
+			return Conflict("Please confirm the plan first")
 		}
 		if run.CanvasID != "" {
 			if _, err := repo.CanvasProjectForUser(userID, run.CanvasID); err != nil {
-				return Conflict("已关联画布失效，请核对后继续")
+				return Conflict("The associated canvas is invalid, please check before continuing.")
 			}
 			out = map[string]any{"run": RunView(*run), "canvasId": run.CanvasID}
 			return nil
@@ -50,14 +50,14 @@ func (s *Service) CreateCanvas(userID, id string, cmd Command) (map[string]any, 
 		now := s.deps.now()
 		cid := s.deps.newID()
 		doc := map[string]any{
-			"id": cid, "title": "智能创作",
+			"id": cid, "title": "Intelligent creation",
 			"createdAt": now.Format(time.RFC3339Nano), "updatedAt": now.Format(time.RFC3339Nano),
 			"nodes": []any{}, "connections": []any{}, "chatSessions": []any{}, "activeChatId": nil,
 			"backgroundMode": "dots", "showImageInfo": true,
 			"viewport": map[string]any{"x": 0, "y": 0, "k": 1}, "directorScenes": []any{},
 		}
 		raw, _ := json.Marshal(doc)
-		project := model.CanvasProject{ID: cid, UserID: userID, Title: "智能创作", PayloadJSON: string(raw), CreatedAt: now, UpdatedAt: now}
+		project := model.CanvasProject{ID: cid, UserID: userID, Title: "Intelligent creation", PayloadJSON: string(raw), CreatedAt: now, UpdatedAt: now}
 		if err := s.validateCanvasQuota(userID, repo, true, int64(len(raw))); err != nil {
 			return err
 		}
@@ -74,14 +74,14 @@ func (s *Service) CreateCanvas(userID, id string, cmd Command) (map[string]any, 
 }
 
 func (s *Service) CommitCanvas(userID, id string, cmd Command) (map[string]any, error) {
-	if err := canvas.ValidateSyncedPayload(cmd.Document, "画布"); err != nil {
+	if err := canvas.ValidateSyncedPayload(cmd.Document, "canvas"); err != nil {
 		return nil, err
 	}
 	if err := ValidateJSON(cmd.Document); err != nil {
 		return nil, err
 	}
 	if s.deps.Media == nil {
-		return nil, kernel.NewAppError(kernel.CodeInternal, "画布媒体校验不可用")
+		return nil, kernel.NewAppError(kernel.CodeInternal, "Canvas media validation is not available")
 	}
 	doc, err := parseDocument(string(cmd.Document))
 	if err != nil {
@@ -96,10 +96,10 @@ func (s *Service) CommitCanvas(userID, id string, cmd Command) (map[string]any, 
 			return err
 		}
 		if run.Status == "paused" || run.Status == "cancelled" {
-			return Conflict("请先恢复创作任务")
+			return Conflict("Please resume creation tasks first")
 		}
 		if run.ApprovedAt == nil {
-			return Conflict("当前方案尚未批准")
+			return Conflict("The current plan has not been approved yet")
 		}
 		project, err := repo.CanvasProjectForUser(userID, run.CanvasID)
 		if err != nil {
@@ -110,7 +110,7 @@ func (s *Service) CommitCanvas(userID, id string, cmd Command) (map[string]any, 
 			return err
 		}
 		if Hash(before) != cmd.ExpectedSnapshotHash {
-			return Conflict("画布已变化，请重新读取后核对")
+			return Conflict("The canvas has changed, please check again after reading it.")
 		}
 		var ops []CanvasOp
 		if err = json.Unmarshal([]byte(run.ApprovedOperationsJSON), &ops); err != nil {
@@ -135,7 +135,7 @@ func (s *Service) CommitCanvas(userID, id string, cmd Command) (map[string]any, 
 
 func (s *Service) validateCanvasQuota(userID string, repo *repository.Repository, creating bool, delta int64) error {
 	if s.deps.Quota == nil {
-		return kernel.NewAppError(kernel.CodeInternal, "创作配额服务不可用")
+		return kernel.NewAppError(kernel.CodeInternal, "Authoring quota service is unavailable")
 	}
 	return s.deps.Quota.ValidateCanvas(userID, repo, creating, delta)
 }
@@ -205,12 +205,12 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 			continue
 		}
 		if !reflect.DeepEqual(value, after[key]) {
-			return Conflict("画布提交修改了方案外内容")
+			return Conflict("Canvas commit modified unplanned content")
 		}
 	}
 	for key := range after {
 		if _, ok := before[key]; !ok && key != "updatedAt" {
-			return Conflict("画布提交包含方案外字段")
+			return Conflict("Canvas submission contains out-of-scheme fields")
 		}
 	}
 	oldNodes, err := documentObjects(before["nodes"])
@@ -248,7 +248,7 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 	for id, old := range oldNodes {
 		next := newNodes[id]
 		if next == nil {
-			return Conflict("不允许删除已有节点")
+			return Conflict("Deletion of existing nodes is not allowed")
 		}
 		if reflect.DeepEqual(old, next) {
 			continue
@@ -263,14 +263,14 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 						continue
 					}
 					if !reflect.DeepEqual(old[key], baseline[key]) && !reflect.DeepEqual(old[key], want) {
-						return Conflict("节点已被手工编辑，请重新确认修改范围")
+						return Conflict("The node has been manually edited, please reconfirm the modification scope.")
 					}
 				}
 				baselineMeta, _ := baseline["metadata"].(map[string]any)
 				patchMeta, _ := op.Patch["metadata"].(map[string]any)
 				for key, want := range MergeMaps(patchMeta, op.Metadata) {
 					if !reflect.DeepEqual(metadata[key], baselineMeta[key]) && !reflect.DeepEqual(metadata[key], want) {
-						return Conflict("节点内容已被手工编辑，请重新确认")
+						return Conflict("The node content has been manually edited, please reconfirm")
 					}
 				}
 			}
@@ -289,13 +289,13 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 			continue
 		}
 		if !approved[id] {
-			return Conflict("不能修改方案外节点")
+			return Conflict("Cannot modify nodes outside the plan")
 		}
 		actualMeta, _ := next["metadata"].(map[string]any)
 		withoutMeta := MergeMaps(next, nil)
 		withoutMeta["metadata"] = metadata
 		if !reflect.DeepEqual(expected, withoutMeta) {
-			return Conflict("节点字段超出批准范围")
+			return Conflict("Node field exceeds approved range")
 		}
 		if err := ValidateResultMetadata(repo, userID, run.ID, id, metadata, actualMeta); err != nil {
 			return err
@@ -307,16 +307,16 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 		}
 		op, ok := add[id]
 		if !ok {
-			return Conflict("节点未获方案批准")
+			return Conflict("The node is not approved by the plan")
 		}
 		expected := AddedNode(op)
 		if !reflect.DeepEqual(expected, node) {
-			return Conflict("新增节点参数与批准方案不同")
+			return Conflict("The new node parameters are different from the approved plan")
 		}
 	}
 	for id, edge := range oldEdges {
 		if !reflect.DeepEqual(edge, newEdges[id]) {
-			return Conflict("不允许修改或删除已有连线")
+			return Conflict("Modification or deletion of existing connections is not allowed")
 		}
 	}
 	for id, edge := range newEdges {
@@ -325,7 +325,7 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 		}
 		op, ok := edges[id]
 		if !ok {
-			return Conflict("连线未获批准")
+			return Conflict("Connection not approved")
 		}
 		expected := map[string]any{"id": id, "fromNodeId": op.FromNodeID, "toNodeId": op.ToNodeID}
 		if op.FromHandleID != "" {
@@ -335,7 +335,7 @@ func ValidateCanvasDiff(repo *repository.Repository, userID string, run *model.C
 			expected["toHandleId"] = op.ToHandleID
 		}
 		if !reflect.DeepEqual(expected, edge) || newNodes[op.FromNodeID] == nil || newNodes[op.ToNodeID] == nil {
-			return Conflict("连线参数与批准范围不同")
+			return Conflict("Connection parameters are different from approved range")
 		}
 	}
 	return nil
@@ -347,7 +347,7 @@ func ValidateResultMetadata(repo *repository.Repository, userID, runID, nodeID s
 		taskID = stringValue(after["generationTaskId"])
 	}
 	if taskID == "" {
-		return Conflict("结果回写缺少真实任务")
+		return Conflict("Result writeback lacks real tasks")
 	}
 	items, err := repo.CreationSubmissions(userID, runID)
 	if err != nil {
@@ -366,14 +366,14 @@ func ValidateResultMetadata(repo *repository.Repository, userID, runID, nodeID s
 		}
 	}
 	if !found {
-		return Conflict("任务不属于当前创作节点")
+		return Conflict("The task does not belong to the current creation node")
 	}
 	task, err := repo.TaskForUser(userID, taskID)
 	if err != nil {
 		return err
 	}
 	if task.Status != model.TaskStatusSucceeded {
-		return Conflict("生成任务尚未成功")
+		return Conflict("The build task has not been successful yet")
 	}
 	var result any
 	if err = json.Unmarshal([]byte(task.ResultJSON), &result); err != nil {
@@ -381,18 +381,18 @@ func ValidateResultMetadata(repo *repository.Repository, userID, runID, nodeID s
 	}
 	storageKey := stringValue(after["storageKey"])
 	if !strings.HasPrefix(storageKey, "resource:") || !resultContains(result, []string{"storageKey"}, storageKey) {
-		return Conflict("回写素材不是任务生成资源")
+		return Conflict("Write-back materials are not task-generated resources")
 	}
 	resource, err := repo.ResourceForUser(userID, strings.TrimPrefix(storageKey, "resource:"))
 	if err != nil {
 		return err
 	}
 	if resource.Status != model.ResourceStatusReady {
-		return Conflict("任务资源尚未就绪")
+		return Conflict("Task resources are not ready yet")
 	}
 	for key := range before {
 		if _, ok := after[key]; !ok {
-			return Conflict("结果回写不能移除已有字段")
+			return Conflict("Result writeback cannot remove existing fields")
 		}
 	}
 	for key, value := range after {
@@ -402,11 +402,11 @@ func ValidateResultMetadata(repo *repository.Repository, userID, runID, nodeID s
 		switch key {
 		case "taskId", "generationTaskId":
 			if value != taskID {
-				return Conflict("任务引用不匹配")
+				return Conflict("Task reference mismatch")
 			}
 		case "status":
 			if value != "success" {
-				return Conflict("结果状态不匹配")
+				return Conflict("Result status does not match")
 			}
 		case "assetId":
 			owned, e := repo.AssetsForUserIDs(userID, []string{stringValue(value)})
@@ -414,7 +414,7 @@ func ValidateResultMetadata(repo *repository.Repository, userID, runID, nodeID s
 				return e
 			}
 			if len(owned) != 1 || !assets.DocumentReferences(owned[0].PayloadJSON, map[string]struct{}{resource.ID: {}}) {
-				return Conflict("素材记录不属于任务结果资源")
+				return Conflict("Material records do not belong to task result resources")
 			}
 		case "content", "storageKey", "naturalWidth", "naturalHeight", "durationMs", "bytes", "mimeType":
 			resourceValue := map[string]any{
@@ -431,10 +431,10 @@ func ValidateResultMetadata(repo *repository.Repository, userID, runID, nodeID s
 				"durationMs": {"durationMs"}, "bytes": {"bytes", "size"}, "mimeType": {"mimeType"},
 			}
 			if !resultContains(result, keys[key], value) {
-				return Conflict("回写资源字段不属于真实任务结果")
+				return Conflict("Write-back resource fields do not belong to the real task results")
 			}
 		default:
-			return Conflict("结果回写试图修改手工字段")
+			return Conflict("Result writeback attempts to modify manual fields")
 		}
 	}
 	return nil

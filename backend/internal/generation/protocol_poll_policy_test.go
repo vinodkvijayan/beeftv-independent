@@ -140,8 +140,8 @@ func TestNotifyPollReceiptUsesModalityNeutralCopy(t *testing.T) {
 		level   string
 		message string
 	}{
-		{VideoPollEventRetrying, "warn", "上游任务查询暂时异常，正在继续查询原任务"},
-		{VideoPollEventRecovered, "info", "上游任务查询已恢复"},
+		{VideoPollEventRetrying, "warn", "The upstream task query is temporarily abnormal, and the original task is continuing to be queried."},
+		{VideoPollEventRecovered, "info", "Upstream task query has been restored"},
 	} {
 		t.Run(string(tc.event), func(t *testing.T) {
 			var gotUser, gotTask, gotLevel, gotMessage, gotPayload string

@@ -178,7 +178,7 @@ func sanitizedPluginView(view View) View {
 	view.Manifest.Configuration = protocol.ManifestConfiguration{}
 	view.Manifest.Contributes = protocol.ManifestContributions{}
 	if strings.TrimSpace(view.Error) == "" {
-		view.Error = "插件清单无法展示"
+		view.Error = "Plug-in list cannot be displayed"
 	}
 	return view
 }

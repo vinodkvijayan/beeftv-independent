@@ -16,7 +16,7 @@ import (
 func Probe(ctx context.Context, path string) (SourceFacts, error) {
 	bin, err := mediatools.ResolveFFprobe()
 	if err != nil {
-		return SourceFacts{}, fmt.Errorf("媒体探测依赖未安装（需要 ffprobe）")
+		return SourceFacts{}, fmt.Errorf("Media detection dependencies are not installed (requires ffprobe)")
 	}
 	cmd := exec.CommandContext(ctx, bin,
 		"-v", "error", "-show_entries", "stream=codec_type:format=duration",
@@ -24,7 +24,7 @@ func Probe(ctx context.Context, path string) (SourceFacts, error) {
 	mediatools.HideConsole(cmd)
 	output, runErr := cmd.Output()
 	if runErr != nil {
-		return SourceFacts{}, fmt.Errorf("媒体音轨探测失败: %w", runErr)
+		return SourceFacts{}, fmt.Errorf("Media track detection failed: %w", runErr)
 	}
 	var parsed struct {
 		Streams []struct {
@@ -35,7 +35,7 @@ func Probe(ctx context.Context, path string) (SourceFacts, error) {
 		} `json:"format"`
 	}
 	if err := json.Unmarshal(output, &parsed); err != nil {
-		return SourceFacts{}, fmt.Errorf("无法解析素材：%w", err)
+		return SourceFacts{}, fmt.Errorf("Unable to parse material: %w", err)
 	}
 	facts := SourceFacts{}
 	for _, stream := range parsed.Streams {

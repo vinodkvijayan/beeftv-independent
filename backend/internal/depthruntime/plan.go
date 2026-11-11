@@ -11,7 +11,7 @@ import (
 	"infinite-canvas/backend/internal/desktopstorage"
 )
 
-var ErrNotInstalled = errors.New("深度捕捉组件尚未安装，请在设置的存储页面下载后再使用")
+var ErrNotInstalled = errors.New("The depth capture component has not been installed yet. Please download it from the storage page of settings before using it.")
 
 const modelSize = int64(116440756)
 const modelSHA = "13379300b739e659f076a59d52e9801bd8d38c541a7e71f73bbca4dcfb013609"
@@ -85,21 +85,21 @@ func loadArtifacts(ctx context.Context, options EnsureOptions) (Manifest, Artifa
 		manifest = *options.FallbackManifest
 	}
 	if (windows && manifest.Version != 2) || (!windows && manifest.Version != 1) {
-		return Manifest{}, Artifact{}, fmt.Errorf("不支持的深度组件清单版本 %d", manifest.Version)
+		return Manifest{}, Artifact{}, fmt.Errorf("Unsupported deep component manifest version %d", manifest.Version)
 	}
 	artifact := manifest.Runtime
 	if windows {
 		var ok bool
 		artifact, ok = manifest.Runtimes[options.Platform+"/"+options.Variant]
 		if !ok {
-			return Manifest{}, Artifact{}, errors.New("深度组件清单缺少对应的 Windows 运行包")
+			return Manifest{}, Artifact{}, errors.New("The deep component list lacks the corresponding Windows runtime package")
 		}
 		if artifact.Files <= 0 || artifact.ExpandedSize <= 0 {
-			return Manifest{}, Artifact{}, errors.New("Windows 深度组件清单缺少解压体积或文件数")
+			return Manifest{}, Artifact{}, errors.New("Windows deep component inventory is missing the decompression volume or number of files")
 		}
 	}
 	if artifact.Size <= 0 || manifest.Model.Size <= 0 {
-		return Manifest{}, Artifact{}, errors.New("深度组件清单缺少下载大小")
+		return Manifest{}, Artifact{}, errors.New("Deep component manifest missing download size")
 	}
 	return manifest, artifact, nil
 }

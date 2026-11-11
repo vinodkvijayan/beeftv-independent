@@ -4,8 +4,8 @@ import { resolve } from "node:path";
 
 test("create empty state keeps the banner and composer in document flow", () => {
     const styles = readFileSync(resolve(import.meta.dir, "../src/styles/globals.css"), "utf8");
-    const layoutStart = styles.indexOf("/* 空态布局收敛：保持图片区、文案和输入区的文档流顺序");
-    const layoutEnd = styles.indexOf("/* ===== 素材库", layoutStart);
+    const layoutStart = styles.indexOf("/* Empty layout convergence: maintain the document flow order of the picture area, copywriting and input area");
+    const layoutEnd = styles.indexOf("/* ===== Material library", layoutStart);
     const layout = styles.slice(layoutStart, layoutEnd);
 
     expect(layoutStart).toBeGreaterThanOrEqual(0);

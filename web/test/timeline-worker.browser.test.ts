@@ -107,7 +107,7 @@ for (const mode of ["editor", "canvas"] as const) test.skipIf(!enabled)(`${mode}
     const page = await pageFor(`?mode=${mode}`);
     try {
         const download = page.waitForEvent("download", { timeout: 180_000 });
-        const button = page.getByRole("button", { name: mode === "editor" ? "本地导出（ffmpeg.wasm）" : "生成新片段", exact: true });
+        const button = page.getByRole("button", { name: mode === "editor" ? "Local export (ffmpeg.wasm)" : "Generate new fragment", exact: true });
         await button.evaluate((element) => { (element as HTMLElement).click(); (element as HTMLElement).click(); });
         const failure = page.waitForFunction(() => Array.from(document.querySelectorAll(".ant-message-error, p")).map((node) => node.textContent || "").find((text) => /失败|不足|缺少|无效|过长/.test(text)), undefined, { timeout: 180_000 }).then(async (handle) => { throw new Error(String(await handle.jsonValue())); });
         const result = await Promise.race([download, failure]);
@@ -138,11 +138,11 @@ for (const mode of ["editor", "canvas"] as const) {
     test.skipIf(!enabled)(`${mode}: cancel button and unmount stop the actual encoding Worker`, async () => {
         const page = await pageFor(`?mode=${mode}`); let downloads = 0; page.on("download", () => downloads++);
         try {
-            const name = mode === "editor" ? "本地导出（ffmpeg.wasm）" : "生成新片段";
+            const name = mode === "editor" ? "Local export (ffmpeg.wasm)" : "Generate new fragment";
             await page.getByRole("button", { name, exact: true }).click();
             await page.waitForFunction(() => (window as any).workerReceipt.exec > 0);
-            await page.getByRole("button", { name: "取消导出", exact: true }).click();
-            await page.getByRole("button", { name: "取消导出", exact: true }).waitFor({ state: "hidden" });
+            await page.getByRole("button", { name: "Cancel export", exact: true }).click();
+            await page.getByRole("button", { name: "Cancel export", exact: true }).waitFor({ state: "hidden" });
             expect(downloads).toBe(0); expect((await receipt(page)).terminated).toBe(1);
             await page.getByRole("button", { name, exact: true }).click();
             await page.waitForFunction(() => (window as any).workerReceipt.started === 2);
@@ -156,7 +156,7 @@ for (const mode of ["editor", "canvas"] as const) {
         for (const query of ["broken", "longSubtitle"]) {
             const page = await pageFor(`?mode=${mode}&${query}=1`); let downloads = 0; page.on("download", () => downloads++);
             try {
-                await page.getByRole("button", { name: mode === "editor" ? "本地导出（ffmpeg.wasm）" : "生成新片段", exact: true }).click();
+                await page.getByRole("button", { name: mode === "editor" ? "Local export (ffmpeg.wasm)" : "Generate new fragment", exact: true }).click();
                 await page.waitForFunction(() => (window as any).workerReceipt.terminated === 1);
                 await page.getByText(query === "broken" ? /无法解析素材|素材缺少所需音视频轨/ : /字幕过长，请拆分后导出/).first().waitFor();
                 const text = await page.locator("body").innerText();
@@ -173,7 +173,7 @@ test.skipIf(!enabled)("actual FFmpeg output failure rejects without download and
     try {
         await page.evaluate(() => { void (window as any).timelineWorker.run("missing-directory/export.mp4"); });
         await page.waitForFunction(() => Boolean((window as any).timelineWorker.receipt.error), undefined, { timeout: 90_000 });
-        expect((await receipt(page)).error).toContain("字幕烧录失败");
+        expect((await receipt(page)).error).toContain("Subtitle burning failed");
         expect(downloads).toBe(0); expect((await receipt(page)).terminated).toBe(1);
     } finally { await page.close(); }
 }, 120_000);

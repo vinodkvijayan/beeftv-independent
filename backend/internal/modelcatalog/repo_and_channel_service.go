@@ -258,7 +258,7 @@ func SaveAdminChannelOrder(repo *repository.Repository, requireAdmin func(*model
 		return err
 	}
 	if req.IDs == nil || req.ExpectedIDs == nil || len(req.IDs) > 10000 {
-		return kernel.BadAuthRequest("请重新加载完整排序列表")
+		return kernel.BadAuthRequest("Please reload the complete sorted list")
 	}
 	err := repo.SaveChannelOrder(channelID, req.IDs, req.ExpectedIDs)
 	if errors.Is(err, repository.ErrChannelOrderChanged) {
@@ -305,7 +305,7 @@ func UpdateAdminChannelModelSort(repo *repository.Repository, requireAdmin func(
 		return err
 	}
 	if req.SortOrder == nil {
-		return kernel.BadAuthRequest("请填写排序值")
+		return kernel.BadAuthRequest("Please fill in the sorting value")
 	}
 	if err := ValidateChannelSortOrder(*req.SortOrder); err != nil {
 		return err
@@ -549,7 +549,7 @@ func SaveAdminChannelModelInRepo(
 		return nil, conflictErr
 	}
 	if conflict != nil && conflict.ID != strings.TrimSpace(id) {
-		return nil, kernel.BadAuthRequest("该渠道已存在模型 " + modelKey + "，请直接编辑已有模型")
+		return nil, kernel.BadAuthRequest("A model already exists for this channel" + modelKey + ", please edit the existing model directly")
 	}
 	var existing *model.ChannelModel
 	if strings.TrimSpace(id) != "" {
@@ -591,7 +591,7 @@ func DeleteAdminChannelModelsInRepo(
 	}
 	if _, err := repo.AdminSystemChannel(channelID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, kernel.BadAuthRequest("系统渠道不存在或已删除")
+			return 0, kernel.BadAuthRequest("The system channel does not exist or has been deleted")
 		}
 		return 0, err
 	}
@@ -608,10 +608,10 @@ func DeleteAdminChannelModelsInRepo(
 	}
 	deleted, err := repo.DeleteChannelModels(channelID, modelIDs, time.Now())
 	if errors.Is(err, repository.ErrChannelModelInUse) {
-		return 0, kernel.BadAuthRequest("所选渠道模型中有模型仍被前台模型供应线路或进行中任务使用，本次未删除任何模型")
+		return 0, kernel.BadAuthRequest("Some of the selected channel models are still used by front-end model supply lines or ongoing tasks. No models have been deleted this time.")
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return 0, kernel.BadAuthRequest("所选渠道模型中存在已删除或不属于当前渠道的记录，请刷新后重试")
+		return 0, kernel.BadAuthRequest("There are records in the selected channel model that have been deleted or do not belong to the current channel. Please refresh and try again.")
 	}
 	if err == nil && invalidate != nil {
 		invalidate()

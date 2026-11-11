@@ -26,7 +26,7 @@ func ProbeLocal(ctx context.Context, path string) (MediaMetadata, error) {
 	var facts MediaMetadata
 	info, err := os.Stat(path)
 	if err != nil || !info.Mode().IsRegular() {
-		return facts, fmt.Errorf("媒体文件无法读取")
+		return facts, fmt.Errorf("Media file cannot be read")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 	defer cancel()
@@ -45,7 +45,7 @@ func ProbeLocal(ctx context.Context, path string) (MediaMetadata, error) {
 		return facts, ctx.Err()
 	}
 	if err != nil {
-		return facts, fmt.Errorf("无法检查媒体，请确认素材完整且媒体工具可用")
+		return facts, fmt.Errorf("Unable to check media, please confirm that the material is complete and the media tools are available")
 	}
 	var parsed struct {
 		Streams []struct {
@@ -60,7 +60,7 @@ func ProbeLocal(ctx context.Context, path string) (MediaMetadata, error) {
 		} `json:"format"`
 	}
 	if err := json.Unmarshal(output, &parsed); err != nil {
-		return facts, fmt.Errorf("无法解析媒体检查结果")
+		return facts, fmt.Errorf("Unable to parse media check results")
 	}
 	facts.DurationMs = probeDuration(parsed.Format.Duration)
 	facts.FormatName = parsed.Format.FormatName

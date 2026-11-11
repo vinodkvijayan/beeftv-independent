@@ -32,7 +32,7 @@ describe("manual channel protocol defaults", () => {
 
         const channel = createModelChannel({
             id: "manual",
-            name: "QA故障回归",
+            name: "QA bug regression",
             baseUrl: "https://qa-beeftv.invalid/v1",
             apiKey: "fakekey",
             apiFormat: "openai",

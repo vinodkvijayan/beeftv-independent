@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var errDownloadStalled = errors.New("下载源长时间没有响应，请检查网络后继续下载")
+var errDownloadStalled = errors.New("The download source has not responded for a long time. Please check the network and continue downloading.")
 
 type Artifact struct {
 	URLs         []string       `json:"urls"`
@@ -43,7 +43,7 @@ func Download(ctx context.Context, artifact Artifact, target string, report func
 		return err
 	}
 	if artifact.Size <= 0 || len(strings.TrimSpace(artifact.SHA256)) != 64 || (len(artifact.URLs) == 0 && len(artifact.Parts) == 0) {
-		return errors.New("深度组件下载描述无效")
+		return errors.New("Deepin component download description is invalid")
 	}
 	if err := os.MkdirAll(filepath.Dir(target), 0o750); err != nil {
 		return err
@@ -64,7 +64,7 @@ func Download(ctx context.Context, artifact Artifact, target string, report func
 			return ctx.Err()
 		}
 		if err := os.Remove(temporary); err != nil {
-			return fmt.Errorf("清理损坏的组件缓存失败: %w", err)
+			return fmt.Errorf("Cleaning corrupted component cache failed: %w", err)
 		}
 	}
 	var lastErr error
@@ -95,27 +95,27 @@ func Download(ctx context.Context, artifact Artifact, target string, report func
 				return err
 			}
 			if err := publishVerifiedDownload(temporary, target); err != nil {
-				return fmt.Errorf("发布深度组件失败: %w", err)
+				return fmt.Errorf("Failed to publish deep component: %w", err)
 			}
 			return nil
 		}
 	}
-	return fmt.Errorf("深度组件下载失败: %w", lastErr)
+	return fmt.Errorf("Deepin component download failed: %w", lastErr)
 }
 
 func downloadParts(ctx context.Context, artifact Artifact, target string, report func(Progress)) error {
 	if len(artifact.Parts) > 16 {
-		return errors.New("深度组件分片数量超过限制")
+		return errors.New("The number of deep component shards exceeds the limit")
 	}
 	var total int64
 	for _, part := range artifact.Parts {
 		if part.Size <= 0 || part.Size >= 2<<30 || len(part.URLs) == 0 || len(strings.TrimSpace(part.SHA256)) != 64 {
-			return errors.New("深度组件分片描述无效")
+			return errors.New("Deep component shard description is invalid")
 		}
 		total += part.Size
 	}
 	if total != artifact.Size {
-		return errors.New("深度组件分片大小与完整包不一致")
+		return errors.New("Deep component fragment size is inconsistent with the full package")
 	}
 	var downloaded int64
 	for index, part := range artifact.Parts {
@@ -131,7 +131,7 @@ func downloadParts(ctx context.Context, artifact Artifact, target string, report
 				}
 			})
 			if err != nil {
-				return fmt.Errorf("下载深度组件分片 %d 失败: %w", index+1, err)
+				return fmt.Errorf("Downloading deep component shard %d failed: %w", index+1, err)
 			}
 		}
 		downloaded += part.Size
@@ -163,13 +163,13 @@ func downloadParts(ctx context.Context, artifact Artifact, target string, report
 		return err
 	}
 	if err := verifyFileContext(ctx, assembled, artifact); err != nil {
-		return fmt.Errorf("重组深度组件校验失败: %w", err)
+		return fmt.Errorf("Reassembly depth component verification failed: %w", err)
 	}
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 	if err := publishVerifiedDownload(assembled, target); err != nil {
-		return fmt.Errorf("发布完整深度组件失败: %w", err)
+		return fmt.Errorf("Failed to publish full depth component: %w", err)
 	}
 	for index := range artifact.Parts {
 		_ = os.Remove(fmt.Sprintf("%s.part-%03d", target, index+1))
@@ -211,7 +211,7 @@ func downloadSourceWithIdleTimeout(ctx context.Context, source string, temporary
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK && response.StatusCode != http.StatusPartialContent {
-		return fmt.Errorf("下载源返回 HTTP %d", response.StatusCode)
+		return fmt.Errorf("Download source returns HTTP %d", response.StatusCode)
 	}
 	flags := os.O_CREATE | os.O_WRONLY
 	if response.StatusCode == http.StatusPartialContent && offset > 0 {
@@ -274,14 +274,14 @@ func verifyFileContext(ctx context.Context, path string, artifact Artifact) erro
 		return err
 	}
 	if info.Size() != artifact.Size {
-		return fmt.Errorf("下载大小不匹配: got %d want %d", info.Size(), artifact.Size)
+		return fmt.Errorf("Download size mismatch: got %d want %d", info.Size(), artifact.Size)
 	}
 	hash := sha256.New()
 	if _, err := io.Copy(hash, contextReader{ctx, file}); err != nil {
 		return err
 	}
 	if !strings.EqualFold(hex.EncodeToString(hash.Sum(nil)), artifact.SHA256) {
-		return errors.New("SHA-256 校验失败")
+		return errors.New("SHA-256 check failed")
 	}
 	return nil
 }

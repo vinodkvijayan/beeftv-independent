@@ -65,7 +65,7 @@ func RegisterWorkspaceRoutes(r *gin.RouterGroup, bootstrap workspaceBootstrap) {
 			"capabilities":    contract.Capabilities,
 			"workspace": gin.H{
 				"id":      scope.ID,
-				"name":    "本地工作区",
+				"name":    "local workspace",
 				"owner":   "local",
 				"storage": "sqlite",
 			},
@@ -102,7 +102,7 @@ func RegisterWorkspaceRoutes(r *gin.RouterGroup, bootstrap workspaceBootstrap) {
 		}
 		var config map[string]any
 		if err := json.Unmarshal(body, &config); err != nil {
-			fail(c, http.StatusInternalServerError, errors.New("本地模型配置损坏"))
+			fail(c, http.StatusInternalServerError, errors.New("Local model configuration is corrupted"))
 			return
 		}
 		ok(c, gin.H{"config": redactModelConfig(c, bootstrap, config)})
@@ -114,7 +114,7 @@ func RegisterWorkspaceRoutes(r *gin.RouterGroup, bootstrap workspaceBootstrap) {
 		}
 		body, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, 2<<20))
 		if err != nil {
-			fail(c, http.StatusBadRequest, errors.New("本地模型配置读取失败"))
+			fail(c, http.StatusBadRequest, errors.New("Failed to read local model configuration"))
 			return
 		}
 		var envelope struct {
@@ -122,11 +122,11 @@ func RegisterWorkspaceRoutes(r *gin.RouterGroup, bootstrap workspaceBootstrap) {
 			ExpectedRevision *int64          `json:"expectedRevision"`
 		}
 		if err := json.Unmarshal(body, &envelope); err != nil || len(envelope.Config) == 0 || string(envelope.Config) == "null" {
-			fail(c, http.StatusBadRequest, errors.New("本地模型配置格式错误"))
+			fail(c, http.StatusBadRequest, errors.New("Local model configuration format error"))
 			return
 		}
 		if _, external := externalBusiness(c); external && envelope.ExpectedRevision == nil {
-			fail(c, http.StatusBadRequest, errors.New("修改模型配置需要 expectedRevision"))
+			fail(c, http.StatusBadRequest, errors.New("Modifying model configuration requires expectedRevision"))
 			return
 		}
 		envelope.Config = preserveManagedModelConfig(c, bootstrap, envelope.Config)
@@ -157,12 +157,12 @@ func RegisterWorkspaceRoutes(r *gin.RouterGroup, bootstrap workspaceBootstrap) {
 		}
 		body, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, 512<<10))
 		if err != nil {
-			fail(c, http.StatusBadRequest, errors.New("模型能力草稿读取失败"))
+			fail(c, http.StatusBadRequest, errors.New("Model capability draft read failed"))
 			return
 		}
 		var draft modelcatalog.ModelCapabilityDraft
 		if err := json.Unmarshal(body, &draft); err != nil {
-			fail(c, http.StatusBadRequest, errors.New("模型能力草稿格式错误"))
+			fail(c, http.StatusBadRequest, errors.New("Model capability draft format error"))
 			return
 		}
 		normalized, err := requestModelCapability(c, bootstrap).NormalizeModelCapabilityDraft(draft)
@@ -229,5 +229,5 @@ func workspaceForLocalRequest(c *gin.Context, connections beefTVConnections) (wo
 	if connections.IsLocalMode() {
 		return workspace.Context{ID: "local"}, nil
 	}
-	return workspace.Context{}, errors.New("本地工作区未初始化")
+	return workspace.Context{}, errors.New("The local workspace is not initialized")
 }

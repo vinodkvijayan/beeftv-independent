@@ -65,7 +65,7 @@ func runManagedImageTask(ctx context.Context, input Input) (map[string]any, erro
 	runtime, _ := RuntimeFromContext(ctx)
 	client := managedMediaClient(ctx, input.Config)
 	if runtime.ManagedMedia == nil || SubmissionKeyFromContext(ctx) == "" {
-		return nil, RequestPreparationError{Cause: errors.New("图片请求缺少持久化提交标识")}
+		return nil, RequestPreparationError{Cause: errors.New("Image request missing persistent commit flag")}
 	}
 	request := beeftv.MediaRequest{TaskRef: SubmissionKeyFromContext(ctx), MediaType: "image", Model: input.Config.Model, Operation: "generate", Options: managedImageOptions(input)}
 	request.Input.Prompt = WithSystemPrompt(input.Config, input.Prompt)
@@ -90,7 +90,7 @@ func runManagedImageTask(ctx context.Context, input Input) (map[string]any, erro
 func executeManagedMedia(ctx context.Context, client *beeftv.MediaClient, request beeftv.MediaRequest, refs []beeftv.LocalMediaReference) (map[string]any, error) {
 	runtime, _ := RuntimeFromContext(ctx)
 	if runtime.ManagedMedia == nil || request.TaskRef == "" {
-		return nil, RequestPreparationError{Cause: errors.New("媒体请求缺少持久化提交标识")}
+		return nil, RequestPreparationError{Cause: errors.New("Media request is missing persistent commit identifier")}
 	}
 	result, err := client.Execute(ctx, request, refs)
 	if err != nil {
@@ -122,10 +122,10 @@ func managedReference(media Media, role string) beeftv.LocalMediaReference {
 
 func validateManagedImageReference(input *Input, size int64) error {
 	if size <= 0 {
-		return errors.New("参考素材为空")
+		return errors.New("Reference material is empty")
 	}
 	if input.ImageCapability != nil && input.ImageCapability.References.MaxImageBytes > 0 && size > input.ImageCapability.References.MaxImageBytes {
-		return errors.New("参考图片文件超过当前模型大小限制")
+		return errors.New("The reference image file exceeds the current model size limit")
 	}
 	return nil
 }
@@ -326,7 +326,7 @@ func managedMediaClient(ctx context.Context, config Config) *beeftv.MediaClient 
 	}
 	client.Open = func(_ context.Context, key string) (io.ReadCloser, string, int64, error) {
 		if runtime.Resources == nil || !strings.HasPrefix(key, "resource:") {
-			return nil, "", 0, errors.New("参考素材资源端口未接入")
+			return nil, "", 0, errors.New("The reference material resource port is not connected")
 		}
 		info, body, err := runtime.Resources.Open(runtime.Call.UserID, strings.TrimPrefix(key, "resource:"))
 		return body, info.MimeType, info.Size, err

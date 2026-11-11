@@ -15,14 +15,14 @@ func validateBaseURL(raw string) (*url.URL, error) {
 	}
 	parsed, err := url.Parse(value)
 	if err != nil || parsed.Scheme != "http" || parsed.User != nil || parsed.Path != "" && parsed.Path != "/" || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return nil, kernel.BadAuthRequest("Eagle 地址必须是 http://127.0.0.1:41595")
+		return nil, kernel.BadAuthRequest("Eagle address must be http://127.0.0.1:41595")
 	}
 	host := strings.ToLower(parsed.Hostname())
 	if host != "127.0.0.1" && host != "localhost" && host != "::1" {
-		return nil, kernel.BadAuthRequest("为避免内网代理风险，Eagle 插件只允许连接本机地址")
+		return nil, kernel.BadAuthRequest("In order to avoid the risk of intranet proxy, the Eagle plug-in only allows connection to the local address")
 	}
 	if parsed.Port() != "41595" {
-		return nil, kernel.BadAuthRequest("当前 Eagle 插件只支持默认端口 41595")
+		return nil, kernel.BadAuthRequest("Currently the Eagle plug-in only supports the default port 41595")
 	}
 	parsed.Path = ""
 	return parsed, nil

@@ -151,10 +151,10 @@ func migrateLocalSchema(db *gorm.DB, beforeApply func(int64) error) error {
 		return err
 	}
 	if current > CurrentSchemaVersion {
-		return fmt.Errorf("数据库版本 %d 高于当前程序支持的 %d，拒绝降级迁移", current, CurrentSchemaVersion)
+		return fmt.Errorf("The database version %d is higher than the %d supported by the current program, and downgrade migration is refused.", current, CurrentSchemaVersion)
 	}
 	if err := db.AutoMigrate(&localSchemaMigration{}); err != nil {
-		return fmt.Errorf("初始化本地结构版本表: %w", err)
+		return fmt.Errorf("Initialize local structure version table: %w", err)
 	}
 	frozen, err := listSchemaMigrations(db)
 	if err != nil {
@@ -182,7 +182,7 @@ func migrateLocalSchema(db *gorm.DB, beforeApply func(int64) error) error {
 		}
 		if beforeApply != nil {
 			if err := beforeApply(migration.version); err != nil {
-				return fmt.Errorf("迁移 v%d %s 前置检查: %w", migration.version, migration.name, err)
+				return fmt.Errorf("Migrate v%d %s Pre-check: %w", migration.version, migration.name, err)
 			}
 		}
 		if err := db.Transaction(func(tx *gorm.DB) error {
@@ -194,7 +194,7 @@ func migrateLocalSchema(db *gorm.DB, beforeApply func(int64) error) error {
 			}
 			return assertLedgerImmutable(tx, frozen)
 		}); err != nil {
-			return fmt.Errorf("执行本地数据库迁移 v%d %s: %w", migration.version, migration.name, err)
+			return fmt.Errorf("Perform local database migration v%d %s: %w", migration.version, migration.name, err)
 		}
 		frozen, err = listSchemaMigrations(db)
 		if err != nil {
@@ -207,12 +207,12 @@ func migrateLocalSchema(db *gorm.DB, beforeApply func(int64) error) error {
 	}
 	if current >= 6 && db.Migrator().HasColumn("agent_op_records", "payload_hash") {
 		if err := ensureAgentOpRecordsTable(db); err != nil {
-			return fmt.Errorf("补齐 Agent 操作记录字段: %w", err)
+			return fmt.Errorf("Complete the Agent operation record field: %w", err)
 		}
 	}
 	if current >= 11 {
 		if err := ensureCreationConversationsIndexes(db); err != nil {
-			return fmt.Errorf("补齐创作对话索引: %w", err)
+			return fmt.Errorf("Complete the creative dialogue index: %w", err)
 		}
 	}
 	return requireReconciledSchema(db)
@@ -241,14 +241,14 @@ func migrateProductAgentSchema(tx *gorm.DB) error {
 
 func migrateUploadReservationWitness(tx *gorm.DB) error {
 	if err := tx.AutoMigrate(&model.UserUploadReservation{}); err != nil {
-		return fmt.Errorf("迁移上传预留恢复索引: %w", err)
+		return fmt.Errorf("Migration upload reserved recovery index: %w", err)
 	}
 	return backfillUnattributedLegacyUploads(tx)
 }
 
 func migrateLocalCoreSchema(tx *gorm.DB) error {
 	if err := tx.AutoMigrate(LocalModels()...); err != nil {
-		return fmt.Errorf("迁移本地工作区结构: %w", err)
+		return fmt.Errorf("Migrate local workspace structure: %w", err)
 	}
 	if err := ensureLocalWorkspace(tx); err != nil {
 		return err
@@ -276,7 +276,7 @@ func currentSchemaVersion(db *gorm.DB) (int64, error) {
 	}
 	var version int64
 	if err := db.Model(&localSchemaMigration{}).Select("COALESCE(MAX(version), 0)").Scan(&version).Error; err != nil {
-		return 0, fmt.Errorf("读取本地结构版本: %w", err)
+		return 0, fmt.Errorf("Read local structure version: %w", err)
 	}
 	return version, nil
 }
@@ -295,7 +295,7 @@ func listSchemaMigrations(db *gorm.DB) ([]localSchemaMigration, error) {
 	}
 	var rows []localSchemaMigration
 	if err := db.Order("version").Find(&rows).Error; err != nil {
-		return nil, fmt.Errorf("读取本地结构迁移记录: %w", err)
+		return nil, fmt.Errorf("Read local structure migration record: %w", err)
 	}
 	return rows, nil
 }
@@ -304,10 +304,10 @@ func assertLedgerImmutable(db *gorm.DB, frozen []localSchemaMigration) error {
 	for _, old := range frozen {
 		var actual localSchemaMigration
 		if err := db.First(&actual, "version = ?", old.Version).Error; err != nil {
-			return fmt.Errorf("历史迁移身份丢失: v%d %s: %w", old.Version, old.Name, err)
+			return fmt.Errorf("Historical migration identity loss: v%d %s: %w", old.Version, old.Name, err)
 		}
 		if actual.Name != old.Name || !actual.AppliedAt.Equal(old.AppliedAt) {
-			return fmt.Errorf("历史迁移身份被改写: v%d 原 %s %s 现 %s %s", old.Version, old.Name, old.AppliedAt.UTC().Format(time.RFC3339Nano), actual.Name, actual.AppliedAt.UTC().Format(time.RFC3339Nano))
+			return fmt.Errorf("The historical migration identity was rewritten: v%d formerly %s %s now %s %s", old.Version, old.Name, old.AppliedAt.UTC().Format(time.RFC3339Nano), actual.Name, actual.AppliedAt.UTC().Format(time.RFC3339Nano))
 		}
 	}
 	return nil
@@ -333,7 +333,7 @@ func backupBeforeDestructiveMigration(db *gorm.DB, version int64) error {
 		File string
 	}
 	if err := db.Raw("PRAGMA database_list").Scan(&databases).Error; err != nil {
-		return fmt.Errorf("读取 SQLite 数据库路径: %w", err)
+		return fmt.Errorf("Read SQLite database path: %w", err)
 	}
 	databasePath := ""
 	for _, item := range databases {
@@ -348,12 +348,12 @@ func backupBeforeDestructiveMigration(db *gorm.DB, version int64) error {
 	}
 	backupDir := filepath.Join(filepath.Dir(databasePath), "backups")
 	if err := os.MkdirAll(backupDir, 0o700); err != nil {
-		return fmt.Errorf("创建数据库备份目录: %w", err)
+		return fmt.Errorf("Create database backup directory: %w", err)
 	}
 	backupPath := filepath.Join(backupDir, fmt.Sprintf("before-schema-v%d-%s.db", version, time.Now().UTC().Format("20060102T150405.000000000Z")))
 	quotedPath := strings.ReplaceAll(backupPath, "'", "''")
 	if err := db.Exec("VACUUM INTO '" + quotedPath + "'").Error; err != nil {
-		return fmt.Errorf("创建破坏性迁移前备份: %w", err)
+		return fmt.Errorf("Create a destructive pre-migration backup: %w", err)
 	}
 	return nil
 }
@@ -376,7 +376,7 @@ func migrateLegacyChannelModelVariants(db *gorm.DB) error {
 	if err := db.Table("channel_model_price_tiers").Select(
 		"id, channel_model_id, selector_key, selector_json, resolution, video_seconds, provider_model_key, enabled, created_at, updated_at, deleted_at",
 	).Find(&items).Error; err != nil {
-		return fmt.Errorf("读取旧模型规格: %w", err)
+		return fmt.Errorf("Read old model specifications: %w", err)
 	}
 	for _, item := range items {
 		selectorJSON := strings.TrimSpace(item.SelectorJSON)
@@ -395,7 +395,7 @@ func migrateLegacyChannelModelVariants(db *gorm.DB) error {
 			CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt, DeletedAt: item.DeletedAt,
 		}
 		if err := db.Where("id = ?", variant.ID).FirstOrCreate(&variant).Error; err != nil {
-			return fmt.Errorf("迁移模型规格 %s: %w", item.ID, err)
+			return fmt.Errorf("Migration model specifications %s: %w", item.ID, err)
 		}
 	}
 	return nil
@@ -409,7 +409,7 @@ func migrateLegacyCreationSubmissions(db *gorm.DB) error {
 	}
 	var items []legacySubmission
 	if err := db.Table("creation_submissions").Select("id, quote_json, price_signature").Find(&items).Error; err != nil {
-		return fmt.Errorf("读取旧创作执行项: %w", err)
+		return fmt.Errorf("Read old creation execution: %w", err)
 	}
 	for _, item := range items {
 		legacy := struct {
@@ -424,7 +424,7 @@ func migrateLegacyCreationSubmissions(db *gorm.DB) error {
 		if err := db.Table("creation_submissions").Where("id = ?", item.ID).Updates(map[string]any{
 			"execution_json": string(execution), "config_signature": item.PriceSignature,
 		}).Error; err != nil {
-			return fmt.Errorf("迁移创作执行项 %s: %w", item.ID, err)
+			return fmt.Errorf("Migrate creation execution item %s: %w", item.ID, err)
 		}
 	}
 	for _, column := range []string{"quote_json", "price_signature", "expires_at"} {
@@ -433,7 +433,7 @@ func migrateLegacyCreationSubmissions(db *gorm.DB) error {
 			// avoids GORM's SQLite table-rebuild path dereferencing a nil schema
 			// when the retired column is intentionally absent from the Go model.
 			if err := db.Exec("ALTER TABLE creation_submissions DROP COLUMN " + column).Error; err != nil {
-				return fmt.Errorf("删除创作执行项旧字段 %s: %w", column, err)
+				return fmt.Errorf("Delete the old field %s of the creation execution item: %w", column, err)
 			}
 		}
 	}
@@ -442,11 +442,11 @@ func migrateLegacyCreationSubmissions(db *gorm.DB) error {
 
 func RequireLocalSchema(db *gorm.DB) error {
 	if !db.Migrator().HasTable(&model.AssistantContinuation{}) {
-		return fmt.Errorf("本地工作区数据库结构缺失，请启用自动迁移")
+		return fmt.Errorf("The local workspace database structure is missing, please enable automatic migration")
 	}
 	for _, table := range []any{&model.Workspace{}, &model.Resource{}, &model.Project{}, &model.CanvasProject{}, &model.Task{}, &model.AgentOpRecord{}, &model.ImageSubmission{}, &model.AssistantTurn{}, &model.CreationConversation{}, &model.CanvasLibraryFolder{}, &model.CanvasDrawing{}, &model.AssistantSkillContext{}, &model.AssistantSkillContextMutation{}} {
 		if !db.Migrator().HasTable(table) {
-			return fmt.Errorf("本地工作区数据库结构缺失，请启用自动迁移")
+			return fmt.Errorf("The local workspace database structure is missing, please enable automatic migration")
 		}
 	}
 	version, err := currentSchemaVersion(db)
@@ -454,16 +454,16 @@ func RequireLocalSchema(db *gorm.DB) error {
 		return err
 	}
 	if version >= 13 && !db.Migrator().HasTable(&model.UserUploadReservation{}) {
-		return fmt.Errorf("本地工作区数据库结构缺失，请启用自动迁移")
+		return fmt.Errorf("The local workspace database structure is missing, please enable automatic migration")
 	}
 	if version != CurrentSchemaVersion {
-		return fmt.Errorf("本地工作区数据库版本为 %d，期望 %d，请启用自动迁移", version, CurrentSchemaVersion)
+		return fmt.Errorf("The local workspace database version is %d, expecting %d, please enable automatic migration", version, CurrentSchemaVersion)
 	}
 	for _, col := range []string{"recovery_outcome", "beef_usage_state", "beef_billing_state", "beef_reconcile_deadline", "image_job_id"} {
 		if has, err := sqliteHasColumn(db, "tasks", col); err != nil {
 			return err
 		} else if !has {
-			return fmt.Errorf("本地任务结构缺失列 %s", col)
+			return fmt.Errorf("Local task structure missing column %s", col)
 		}
 	}
 	if err := requireAssistantContinuations(db); err != nil {
@@ -480,7 +480,7 @@ func requireReconciledSchema(db *gorm.DB) error {
 		return err
 	}
 	if !db.Migrator().HasTable("image_submissions") || !db.Migrator().HasTable("agent_op_records") {
-		return fmt.Errorf("本地图片恢复或 Agent 操作表缺失，请从备份恢复或使用修复迁移")
+		return fmt.Errorf("Local image recovery or Agent operation table is missing, please restore from backup or use repair migration")
 	}
 	for _, column := range []string{"failure_diagnostics", "client_operation_id", "client_operation_hash"} {
 		has, err := sqliteHasColumn(db, "tasks", column)
@@ -488,7 +488,7 @@ func requireReconciledSchema(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("本地任务结构缺失列 %s", column)
+			return fmt.Errorf("Local task structure missing column %s", column)
 		}
 	}
 	hasTurnID, err := sqliteHasColumn(db, "agent_op_records", "turn_id")
@@ -496,7 +496,7 @@ func requireReconciledSchema(db *gorm.DB) error {
 		return err
 	}
 	if !hasTurnID {
-		return fmt.Errorf("本地 Agent 幂等或回合归属结构缺失")
+		return fmt.Errorf("Local Agent is idempotent or the turn ownership structure is missing")
 	}
 	for _, value := range []any{&model.ImageSubmission{}, &model.AgentOpRecord{}} {
 		stmt := &gorm.Statement{DB: db}
@@ -509,7 +509,7 @@ func requireReconciledSchema(db *gorm.DB) error {
 				return err
 			}
 			if !has {
-				return fmt.Errorf("本地数据库表 %s 缺失列 %s", stmt.Schema.Table, column)
+				return fmt.Errorf("Local database table %s missing column %s", stmt.Schema.Table, column)
 			}
 		}
 		if err := requireSQLitePrimaryKey(db, stmt.Schema.Table, stmt.Schema.PrimaryFieldDBNames); err != nil {
@@ -522,7 +522,7 @@ func requireReconciledSchema(db *gorm.DB) error {
 			return err
 		}
 		if !valid {
-			return fmt.Errorf("本地数据库索引 %s 定义不完整", index.name)
+			return fmt.Errorf("Local database index %s definition is incomplete", index.name)
 		}
 	}
 	version, err := currentSchemaVersion(db)
@@ -572,7 +572,7 @@ func requireReconciledSchema(db *gorm.DB) error {
 	if version >= 22 {
 		for _, table := range []any{&model.CanvasWorkflow{}, &model.CanvasWorkflowRun{}, &model.CanvasWorkflowResource{}} {
 			if !db.Migrator().HasTable(table) {
-				return fmt.Errorf("本地可复用工作流表缺失，请启用自动迁移")
+				return fmt.Errorf("The local reusable workflow table is missing, please enable automatic migration")
 			}
 		}
 	}
@@ -582,12 +582,12 @@ func requireReconciledSchema(db *gorm.DB) error {
 			return err
 		}
 		if !exists {
-			return fmt.Errorf("本地任务工作流来源快照列缺失，请启用自动迁移")
+			return fmt.Errorf("The local task workflow source snapshot column is missing, please enable automatic migration")
 		}
 	}
 	if version >= 24 {
 		if !db.Migrator().HasTable(&model.CanvasWorkflowRevision{}) || !db.Migrator().HasColumn(&model.CanvasWorkflow{}, "revision") || !db.Migrator().HasColumn(&model.CanvasWorkflowRun{}, "template_revision") {
-			return fmt.Errorf("本地工作流版本结构缺失，请启用自动迁移")
+			return fmt.Errorf("The local workflow version structure is missing, please enable automatic migration")
 		}
 	}
 	return nil
@@ -610,12 +610,12 @@ func ReadSchemaStatus(db *gorm.DB) (SchemaStatus, error) {
 func backfillProjectUnitWordCounts(db *gorm.DB) error {
 	var units []model.ProjectUnit
 	if err := db.Select("id", "source_text").Where("word_count = 0 AND source_text <> ''").Find(&units).Error; err != nil {
-		return fmt.Errorf("读取待回填章节字数：%w", err)
+		return fmt.Errorf("Read the number of words in the chapter to be backfilled: %w", err)
 	}
 	for _, unit := range units {
 		wordCount := model.ProjectUnitWordCount(unit.SourceText)
 		if err := db.Model(&model.ProjectUnit{}).Where("id = ?", unit.ID).Update("word_count", wordCount).Error; err != nil {
-			return fmt.Errorf("回填章节 %s 字数：%w", unit.ID, err)
+			return fmt.Errorf("Backfill chapter %s Word count: %w", unit.ID, err)
 		}
 	}
 	return nil
@@ -626,7 +626,7 @@ func ensureLocalWorkspace(db *gorm.DB) error {
 	if err := db.Order("created_at ASC").First(&existing).Error; err == nil {
 		return nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return fmt.Errorf("读取本地工作区: %w", err)
+		return fmt.Errorf("Read local workspace: %w", err)
 	}
 
 	id := legacyWorkspaceOwnerID(db)
@@ -634,8 +634,8 @@ func ensureLocalWorkspace(db *gorm.DB) error {
 		id = kernel.NewID()
 	}
 	now := time.Now().UTC()
-	if err := db.Create(&model.Workspace{ID: id, Name: "本地工作区", CreatedAt: now, UpdatedAt: now}).Error; err != nil {
-		return fmt.Errorf("创建本地工作区: %w", err)
+	if err := db.Create(&model.Workspace{ID: id, Name: "local workspace", CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+		return fmt.Errorf("Create local workspace: %w", err)
 	}
 	return nil
 }
@@ -663,7 +663,7 @@ func dropHostedTables(db *gorm.DB) error {
 	for _, table := range hostedTables() {
 		if db.Migrator().HasTable(table) {
 			if err := db.Migrator().DropTable(table); err != nil {
-				return fmt.Errorf("删除托管版遗留表 %s: %w", table, err)
+				return fmt.Errorf("Delete the managed version legacy table %s: %w", table, err)
 			}
 		}
 	}

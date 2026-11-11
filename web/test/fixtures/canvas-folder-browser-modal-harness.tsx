@@ -8,14 +8,14 @@ import { CanvasNodeType, type CanvasNodeData } from "../../src/types/canvas";
 const folder: CanvasNodeData = {
     id: "folder",
     type: CanvasNodeType.Frame,
-    title: "镜头集",
+    title: "shot collection",
     width: 260,
     height: 180,
     position: { x: 0, y: 0 },
     metadata: { folder: { style: "glass", createdAt: "2026-11-01T00:00:00.000Z" } },
 };
 
-const children: CanvasNodeData[] = ["镜头 1", "镜头 2", "镜头 3", "镜头 4", "镜头 5", "片尾"].map((title, index) => ({
+const children: CanvasNodeData[] = ["Shot 1", "Shot 2", "Shot 3", "Shot 4", "Shot 5", "Ending"].map((title, index) => ({
     id: `child-${index}`,
     type: CanvasNodeType.Image,
     title,

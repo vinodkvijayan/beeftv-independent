@@ -6,43 +6,43 @@ import { creationConflictPreview } from "../src/pages/create/creation-conflict";
 
 test("conflict preview uses last user text without inventing a title", () => {
     expect(creationConflictPreview({ title: "  ", messages: [] })).toEqual({
-        title: "未命名对话",
+        title: "Unnamed conversation",
         messageCount: 0,
-        excerpt: "还没有文字",
+        excerpt: "No text yet",
     });
     expect(creationConflictPreview({
-        title: "镜头",
+        title: "lens",
         messages: [
-            { role: "user", content: "第一句" },
-            { role: "assistant", content: "回复" },
-            { role: "user", content: "  最近一句还很长，需要截成预览 " },
+            { role: "user", content: "first sentence" },
+            { role: "assistant", content: "Reply" },
+            { role: "user", content: "  The last sentence is quite long and needs to be cut into a preview" },
         ],
     })).toEqual({
-        title: "镜头",
+        title: "lens",
         messageCount: 3,
-        excerpt: "最近一句还很长，需要截成预览",
+        excerpt: "The last sentence is quite long and needs to be cut into a preview",
     });
 });
 
 test("conflict UI copy is concrete Chinese actions without implementation jargon", () => {
     const conflictUi = readFileSync(resolve(import.meta.dir, "../src/pages/create/creation-conflict.tsx"), "utf8");
     const createPage = readFileSync(resolve(import.meta.dir, "../src/pages/create/index.tsx"), "utf8");
-    expect(conflictUi).toContain("这份对话和已保存的版本不一样。先看两边，再决定用哪一份。");
-    expect(conflictUi).toContain("查看两边");
-    expect(conflictUi).toContain("用已保存的版本");
-    expect(conflictUi).toContain("用这份草稿替换已保存的版本");
-    expect(conflictUi).toContain("先不处理");
-    expect(conflictUi).toContain("已改为已保存的版本。刚才的草稿还在，可以再换回来。");
-    expect(conflictUi).toContain("恢复刚才的草稿");
-    expect(conflictUi).toContain("有两个版本");
+    expect(conflictUi).toContain("This conversation is different from the saved version. Look at both sides before deciding which one to use.");
+    expect(conflictUi).toContain("look both sides");
+    expect(conflictUi).toContain("Use saved version");
+    expect(conflictUi).toContain("Replace the saved version with this draft");
+    expect(conflictUi).toContain("Don't deal with it yet");
+    expect(conflictUi).toContain("Changed to saved version. The draft just now is still there, you can change it back again.");
+    expect(conflictUi).toContain("Restore the previous draft");
+    expect(conflictUi).toContain("There are two versions");
     expect(conflictUi).not.toContain("CAS");
     expect(conflictUi).not.toContain("IndexedDB");
-    expect(conflictUi).not.toContain("远端");
+    expect(conflictUi).not.toContain("far end");
     expect(conflictUi).not.toContain("conflictRemote");
     expect(createPage).toContain("CreationConflictBanner");
     expect(createPage).toContain("resolveConflictIds");
     expect(createPage).toContain("acceptSavedCreationConversation");
     expect(createPage).toContain("restoreParkedCreationConversation");
-    expect(createPage).toContain("无法换成已保存的版本");
-    expect(createPage).toContain("这份草稿没有保存成功，原来的版本还在");
+    expect(createPage).toContain("Unable to switch to saved version");
+    expect(createPage).toContain("This draft was not saved successfully, the original version is still there");
 });

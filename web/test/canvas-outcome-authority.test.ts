@@ -5,7 +5,7 @@ import type { GenerationTask } from "../src/stores/use-config-store";
 
 const savedNode = (): CanvasNodeData => ({
     id: "clip",
-    title: "镜头",
+    title: "lens",
     type: CanvasNodeType.Video,
     position: { x: 0, y: 0 },
     width: 320,
@@ -16,15 +16,15 @@ const savedNode = (): CanvasNodeData => ({
     },
 });
 
-test("后端已判定结果不可取回时，前端不能再把它改回「继续取回」", () => {
+test("When the backend has determined that the result cannot be retrieved, the frontend cannot change it back to \"continue retrieval\".", () => {
     const [synced] = canvasGenerationTaskNodes([savedNode()], "clip", {
         id: "task-1",
         type: "canvas_video",
         status: "succeeded",
         outcome: { phase: "failed", regenerate: "blocked", reason: "result_unrecoverable" },
-        error: "生成结果已不可取回",
+        error: "The generated results are irretrievable",
     } as GenerationTask);
     expect(synced.metadata?.taskOutcome).toEqual({ phase: "failed", regenerate: "blocked", reason: "result_unrecoverable" });
     expect(synced.metadata?.status).toBe("error");
-    expect(synced.metadata?.errorDetails).toContain("不可取回");
+    expect(synced.metadata?.errorDetails).toContain("Not retrievable");
 });

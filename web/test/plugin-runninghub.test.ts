@@ -5,8 +5,8 @@ import * as provider from "../../plugin-packages/beeftv-plugin-runninghub/provid
 const textToImage = {
     "3": { class_type: "KSampler", inputs: { seed: 42, positive: ["6", 0], negative: ["7", 0], latent_image: ["5", 0] } },
     "5": { class_type: "EmptyLatentImage", inputs: { width: 512, height: 512 } },
-    "6": { class_type: "CLIPTextEncode", inputs: { text: "默认正向", clip: ["4", 1] } },
-    "7": { class_type: "CLIPTextEncode", inputs: { text: "默认反向", clip: ["4", 1] } },
+    "6": { class_type: "CLIPTextEncode", inputs: { text: "Default forward", clip: ["4", 1] } },
+    "7": { class_type: "CLIPTextEncode", inputs: { text: "Default reverse", clip: ["4", 1] } },
     "9": { class_type: "SaveImage", inputs: { images: ["8", 0] } },
     "10": { class_type: "LoadImage", inputs: { image: "a.png" } },
     "11": { class_type: "LoadImage", inputs: { image: "b.png" } },
@@ -14,7 +14,7 @@ const textToImage = {
 };
 
 const appFields = [
-    { nodeId: "1", fieldName: "text", fieldValue: "默认", fieldType: "STRING", description: "提示词" },
+    { nodeId: "1", fieldName: "text", fieldValue: "Default", fieldType: "STRING", description: "prompt word" },
     { nodeId: "2", fieldName: "image", fieldValue: "a.png", fieldType: "IMAGE" },
     { nodeId: "3", fieldName: "ratio", fieldValue: "1:1", fieldType: "LIST" },
 ];
@@ -28,8 +28,8 @@ describe("finding where to fill", () => {
     });
 
     test("workflow: something that is not a graph is refused", () => {
-        expect(() => workflowTargets(null)).toThrow("不是 ComfyUI 的格式");
-        expect(() => workflowTargets({ note: "x" })).toThrow("没有能执行的节点");
+        expect(() => workflowTargets(null)).toThrow("Not in ComfyUI format");
+        expect(() => workflowTargets({ note: "x" })).toThrow("There is no node that can be executed");
     });
 
     test("app: only public fields, by name first, the only text field otherwise", () => {
@@ -47,12 +47,12 @@ describe("model ids", () => {
         expect(provider.parseModel("app:193")).toEqual({ kind: "app", id: "193" });
         expect(provider.parseModel("https://www.runninghub.cn/ai-detail/193?from=x")).toEqual({ kind: "app", id: "193" });
         expect(provider.parseModel("https://www.runninghub.ai/workflow/185")).toEqual({ kind: "workflow", id: "185" });
-        expect(() => provider.parseModel("gpt-image")).toThrow("工作流的编号");
+        expect(() => provider.parseModel("gpt-image")).toThrow("Workflow number");
     });
 });
 
 test("reading models tells people what to type instead of an empty list", async () => {
-    await expect(provider.models()).rejects.toThrow("工作流填编号，AI 应用在编号前加 app:");
+    await expect(provider.models()).rejects.toThrow("Fill in the workflow number, and add app before the number for the AI application:");
 });
 
 describe("talking to RunningHub", () => {
@@ -88,14 +88,14 @@ describe("talking to RunningHub", () => {
         calls = [];
         replies = {
             "/api/openapi/getJsonApiFormat": { code: 0, msg: "success", data: { prompt: JSON.stringify(textToImage) } },
-            "/api/webapp/apiCallDemo": { code: 0, msg: "success", data: { webappName: "演示", nodeInfoList: appFields } },
+            "/api/webapp/apiCallDemo": { code: 0, msg: "success", data: { webappName: "Demo", nodeInfoList: appFields } },
             "/task/openapi/create": { code: 0, msg: "success", data: { taskId: "1001", taskStatus: "QUEUED" } },
             "/task/openapi/ai-app/run": { code: 0, msg: "success", data: { taskId: "1002", taskStatus: "QUEUED" } },
         };
     });
 
     test("a workflow run uploads the reference, then sends string fields only", async () => {
-        const state = await provider.submit({ model: "185", prompt: "一只猫", images: [pixel], extra: { idempotencyKey: "abc" } } as never, ctx());
+        const state = await provider.submit({ model: "185", prompt: "a cat", images: [pixel], extra: { idempotencyKey: "abc" } } as never, ctx());
         expect(state).toEqual({ taskId: "1001", status: "pending" });
         expect(calls.map((call) => call.path)).toEqual(["/api/openapi/getJsonApiFormat", "/openapi/v2/media/upload/binary", "/task/openapi/create"]);
         const upload = calls[1];
@@ -105,7 +105,7 @@ describe("talking to RunningHub", () => {
         expect(created.apiKey).toBe("test-key");
         expect(created.workflowId).toBe("185");
         expect(created.nodeInfoList.slice(0, 2)).toEqual([
-            { nodeId: "6", fieldName: "text", fieldValue: "一只猫" },
+            { nodeId: "6", fieldName: "text", fieldValue: "a cat" },
             { nodeId: "10", fieldName: "image", fieldValue: "api/abc-image-1.png" },
         ]);
         const seed = created.nodeInfoList[2];
@@ -115,7 +115,7 @@ describe("talking to RunningHub", () => {
     });
 
     test("an app run reads its fields with GET and goes through ai-app/run", async () => {
-        const state = await provider.submit({ model: "app:193", prompt: "一只猫", images: [pixel] } as never, ctx());
+        const state = await provider.submit({ model: "app:193", prompt: "a cat", images: [pixel] } as never, ctx());
         expect(state).toEqual({ taskId: "1002", status: "pending" });
         expect(calls[0]).toMatchObject({ path: "/api/webapp/apiCallDemo", method: "GET", body: { webappId: "193", apiKey: "test-key" } });
         const run = calls[calls.length - 1];
@@ -127,36 +127,36 @@ describe("talking to RunningHub", () => {
 
     test("too many references fail before anything is uploaded or queued", async () => {
         const state = await provider.submit({ model: "185", prompt: "x", images: [pixel, pixel, pixel] } as never, ctx());
-        expect(state).toEqual({ status: "failed", message: "这个模型最多接收 2 个图片，这次给了 3 个" });
+        expect(state).toEqual({ status: "failed", message: "This model can receive up to 2 images, this time it gave 3" });
         expect(calls.map((call) => call.path)).toEqual(["/api/openapi/getJsonApiFormat"]);
     });
 
     test("a mis-typed model or a wrong key says why, and nothing is queued", async () => {
         expect(await provider.submit({ model: "gpt-image" } as never, ctx())).toMatchObject({ status: "failed" });
         replies["/api/openapi/getJsonApiFormat"] = { code: 301, msg: "user not exist", data: null };
-        expect(await provider.submit({ model: "185" } as never, ctx())).toEqual({ status: "failed", message: "RunningHub 不认这个 API Key，请到模型服务里检查" });
+        expect(await provider.submit({ model: "185" } as never, ctx())).toEqual({ status: "failed", message: "RunningHub does not recognize this API Key, please check in the model service." });
         replies["/api/openapi/getJsonApiFormat"] = { code: 301, msg: "PARAMS_INVALID", data: null };
         const unreadable = await provider.submit({ model: "185" } as never, ctx());
-        expect(unreadable.message).toContain("成功运行过一次");
+        expect(unreadable.message).toContain("Successfully ran once");
         expect(calls.some((call) => call.path === "/task/openapi/create")).toBe(false);
     });
 
     test("a refusal is a definite failure, a server error is left unknown", async () => {
         replies["/task/openapi/create"] = { code: 421, msg: "TASK_QUEUE_MAXED", data: null };
-        expect(await provider.submit({ model: "185" } as never, ctx())).toEqual({ status: "failed", message: "RunningHub 账户的排队任务已满，请等前面的任务跑完" });
+        expect(await provider.submit({ model: "185" } as never, ctx())).toEqual({ status: "failed", message: "The queued tasks of the RunningHub account are full, please wait until the previous tasks are finished." });
         replies["/task/openapi/create"] = "unauthorized";
-        expect(await provider.submit({ model: "185" } as never, ctx())).toEqual({ status: "failed", message: "RunningHub 不认这个 API Key，请到模型服务里检查" });
+        expect(await provider.submit({ model: "185" } as never, ctx())).toEqual({ status: "failed", message: "RunningHub does not recognize this API Key, please check in the model service." });
         replies["/task/openapi/create"] = "crash";
         await expect(provider.submit({ model: "185" } as never, ctx())).rejects.toThrow();
         replies["/task/openapi/create"] = { code: 0, msg: "success", data: {} };
-        await expect(provider.submit({ model: "185" } as never, ctx())).rejects.toThrow("没有返回任务号");
+        await expect(provider.submit({ model: "185" } as never, ctx())).rejects.toThrow("No task number returned");
     });
 
     test("a RunningHub that cannot be reached says so", async () => {
         const stopped = Bun.serve({ port: 0, fetch: () => new Response("") });
         const config = { baseUrl: `http://127.0.0.1:${stopped.port}`, apiKey: "test-key" };
         stopped.stop(true);
-        expect(await provider.submit({ model: "185" } as never, { config, log: () => {} } as never)).toEqual({ status: "failed", message: "连不上 RunningHub。请检查网络和服务地址" });
+        expect(await provider.submit({ model: "185" } as never, { config, log: () => {} } as never)).toEqual({ status: "failed", message: "Can't connect to RunningHub. Please check network and service address" });
     });
 
     test("query follows the task to its outputs", async () => {
@@ -184,13 +184,13 @@ describe("talking to RunningHub", () => {
 
     test("query reports why a task failed", async () => {
         const path = "/task/openapi/outputs";
-        replies[path] = { code: 805, msg: "APIKEY_TASK_STATUS_ERROR", data: { failedReason: { node_name: "KSampler", exception_message: "显存不够" } } };
-        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "节点 KSampler 出错：显存不够" });
+        replies[path] = { code: 805, msg: "APIKEY_TASK_STATUS_ERROR", data: { failedReason: { node_name: "KSampler", exception_message: "Not enough video memory" } } };
+        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "Node KSampler error: insufficient video memory" });
         replies[path] = { code: 805, msg: "APIKEY_TASK_STATUS_ERROR", data: null };
-        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "任务在 RunningHub 上失败了，没有说明原因。可以到 RunningHub 的任务记录里看" });
+        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "Task failed on RunningHub with no reason stated. You can check it in the task record of RunningHub" });
         replies[path] = { code: 806, msg: "APIKEY_USER_NOT_FOUND", data: null };
-        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "RunningHub 不认这个 API Key，请到模型服务里检查" });
+        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "RunningHub does not recognize this API Key, please check in the model service." });
         replies[path] = { code: 0, msg: "success", data: [] };
-        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "任务跑完了，但没有产出图片、视频或音频" });
+        expect(await provider.query("1001", {} as never, ctx())).toEqual({ taskId: "1001", status: "failed", message: "The task was completed, but no pictures, videos or audio were produced." });
     });
 });

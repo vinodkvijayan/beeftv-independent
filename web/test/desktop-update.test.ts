@@ -32,7 +32,7 @@ test("model config writes that resolve with an error state still refuse ordinary
     const flush = spyOn(modelConfig, "flushModelConfig").mockResolvedValue(undefined);
     const state = spyOn(modelConfig, "getModelConfigPersistenceState").mockReturnValue({ status: "error", dirty: true, revision: 1, error: "disk failed" });
     try {
-        await expect(persistWorkspaceBeforeDesktopInstall()).rejects.toThrow("模型配置尚未保存完成");
+        await expect(persistWorkspaceBeforeDesktopInstall()).rejects.toThrow("The model configuration has not been saved yet");
     } finally { flush.mockRestore(); state.mockRestore(); }
 });
 
@@ -42,7 +42,7 @@ test("the real force guard refuses pending canvas and generation IO even without
         const mock = mockBinding(state({ status: "ready", latestVersion: "v1.5.2" }));
         const controller = createDesktopUpdateController({
             getBinding: () => mock.binding, isDesktopRuntime: () => true,
-            persistWorkspace: async () => { throw new Error("保存失败"); },
+            persistWorkspace: async () => { throw new Error("Save failed"); },
             scheduler: { interval: () => () => {} },
         });
         let release!: () => void;
@@ -69,7 +69,7 @@ test("forced installation is offered only after a save failure and still recheck
     let saveCalls = 0;
     const controller = createDesktopUpdateController({
         getBinding: () => mock.binding, isDesktopRuntime: () => true,
-        persistWorkspace: async () => {saveCalls++; throw new Error("保存失败");},
+        persistWorkspace: async () => {saveCalls++; throw new Error("Save failed");},
         assertNoActiveSaves: async () => {if (saving) throw new DesktopUpdateSaveInProgressError();},
         scheduler: {interval: () => () => {}},
     });
@@ -114,9 +114,9 @@ test("ongoing save and native install failures never offer forced installation",
 test("native preparation phases survive polling and expose file progress", () => {
     const parsed = parseDesktopUpdateState({ status: "installing", phase: "extracting", completedFiles: 128, totalFiles: 512 });
     expect(parsed.phase).toBe("extracting");
-    expect(desktopUpdateDetailLabel(parsed)).toBe("128 / 512 个文件");
+    expect(desktopUpdateDetailLabel(parsed)).toBe("128 / 512 files");
     expect(parseDesktopUpdateState({ status: "installing", phase: "untrusted" }).phase).toBeUndefined();
-    expect(desktopUpdateDetailLabel({ ...parsed, phase: "restarting" })).toBe("完成后将自动打开新版本");
+    expect(desktopUpdateDetailLabel({ ...parsed, phase: "restarting" })).toBe("A new version will automatically open upon completion");
 });
 
 test("save timeout allows retry but late completion never installs", async () => {
@@ -134,7 +134,7 @@ test("save timeout allows retry but late completion never installs", async () =>
     await controller.install();
     expect(controller.getSnapshot().state.status).toBe("error");
     expect(controller.getSnapshot().persistBusy).toBe(false);
-    expect(controller.getSnapshot().state.error).toContain("保存耗时较长");
+    expect(controller.getSnapshot().state.error).toContain("Saving takes a long time");
     expect(mock.calls.install).toBe(0);
     save.resolve();
     await Promise.resolve();
@@ -177,7 +177,7 @@ test("retry cannot overlap a timed-out save; a late rejection is handled and a f
         await controller.retry();
         expect(saves).toBe(1);
         expect(mock.calls.install).toBe(0);
-        expect(controller.getSnapshot().state.error).toBe("上次保存仍未结束，请稍后重试。");
+        expect(controller.getSnapshot().state.error).toBe("The last save has not ended yet, please try again later.");
         pending.reject(new Error("late save failure"));
         await new Promise((resolve) => setTimeout(resolve, 0));
         expect(unhandled).toEqual([]);
@@ -194,7 +194,7 @@ test("retry cannot overlap a timed-out save; a late rejection is handled and a f
 test("an editor save refusal prevents native installation and retries after saving", async () => {
     let unsaved = true;
     const unregister = registerDesktopUpdatePreparation(() => {
-        if (unsaved) throw new Error("剪辑内容尚未保存完成。");
+        if (unsaved) throw new Error("The clip content has not been saved yet.");
     });
     const mock = mockBinding(state({ status: "ready", latestVersion: "v1.5.2" }));
     const controller = createDesktopUpdateController({
@@ -207,7 +207,7 @@ test("an editor save refusal prevents native installation and retries after savi
         await controller.start();
         await controller.install();
         expect(mock.calls.install).toBe(0);
-        expect(controller.getSnapshot().state.error).toBe("剪辑内容尚未保存完成。");
+        expect(controller.getSnapshot().state.error).toBe("The clip content has not been saved yet.");
         unsaved = false;
         await controller.retry();
         expect(mock.calls.install).toBe(1);
@@ -354,23 +354,23 @@ describe("desktop update progress", () => {
 
     test("shows speed with time left, then falls back to amounts or connecting", () => {
         const mb = 1024 * 1024;
-        expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb, bytesPerSecond: 2 * mb }))).toBe("2.0 MB/s · 剩余约 1 分钟");
-        expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb, bytesPerSecond: 512 * 1024 }))).toBe("512 KB/s · 剩余约 4 分钟");
+        expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb, bytesPerSecond: 2 * mb }))).toBe("2.0 MB/s · About 1 minute remaining");
+        expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb, bytesPerSecond: 512 * 1024 }))).toBe("512 KB/s · About 4 minutes remaining");
         expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb }))).toBe("30 MB / 150 MB");
-        expect(desktopUpdateDetailLabel(state({ status: "downloading", totalBytes: 150 * mb }))).toBe("正在连接");
+        expect(desktopUpdateDetailLabel(state({ status: "downloading", totalBytes: 150 * mb }))).toBe("Connecting");
         const downloaded = state({ status: "downloading", downloadedBytes: 150 * mb, totalBytes: 150 * mb, bytesPerSecond: mb });
-        expect(desktopUpdateDetailLabel(downloaded)).toBe("下载完成，正在校验更新包");
+        expect(desktopUpdateDetailLabel(downloaded)).toBe("The download is complete and the update package is being verified.");
         expect(desktopUpdateProgressPercent(downloaded)).toBeLessThan(100);
-        expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb, bytesPerSecond: mb, reconnecting: true }))).toBe("网络中断，正在重新连接");
-        expect(desktopUpdateDetailLabel(state({ status: "error", error: "网络不稳定，已保留下载进度" }))).toBe("网络不稳定，已保留下载进度");
+        expect(desktopUpdateDetailLabel(state({ status: "downloading", downloadedBytes: 30 * mb, totalBytes: 150 * mb, bytesPerSecond: mb, reconnecting: true }))).toBe("Network disconnected, reconnecting");
+        expect(desktopUpdateDetailLabel(state({ status: "error", error: "The network is unstable and the download progress has been retained." }))).toBe("The network is unstable and the download progress has been retained.");
     });
 
     test("formats remaining time without false precision", () => {
         expect(formatDesktopUpdateRemaining(null)).toBe("");
-        expect(formatDesktopUpdateRemaining(20)).toBe("剩余不到 1 分钟");
-        expect(formatDesktopUpdateRemaining(61)).toBe("剩余约 2 分钟");
-        expect(formatDesktopUpdateRemaining(3600)).toBe("剩余约 1 小时");
-        expect(formatDesktopUpdateRemaining(5400)).toBe("剩余约 1 小时 30 分钟");
+        expect(formatDesktopUpdateRemaining(20)).toBe("Less than 1 minute remaining");
+        expect(formatDesktopUpdateRemaining(61)).toBe("About 2 minutes remaining");
+        expect(formatDesktopUpdateRemaining(3600)).toBe("Approximately 1 hour remaining");
+        expect(formatDesktopUpdateRemaining(5400)).toBe("Approximately 1 hour and 30 minutes remaining");
     });
 
     test("only a failed partial download is resumable", () => {
@@ -387,7 +387,7 @@ describe("desktop update parsing", () => {
                 status: "available",
                 currentVersion: "v1.5.1",
                 latestVersion: "v1.5.2",
-                releaseNotes: "修复保存",
+                releaseNotes: "Repair save",
                 downloadedBytes: "12",
                 totalBytes: 40,
                 error: "",
@@ -396,7 +396,7 @@ describe("desktop update parsing", () => {
             status: "available",
             currentVersion: "v1.5.1",
             latestVersion: "v1.5.2",
-            releaseNotes: "修复保存",
+            releaseNotes: "Repair save",
             downloadedBytes: 12,
             totalBytes: 40,
             bytesPerSecond: 0,
@@ -405,11 +405,11 @@ describe("desktop update parsing", () => {
         });
         expect(parseDesktopUpdateState({ status: "nope", error: "boom" }).status).toBe("error");
         expect(formatDesktopVersionLabel("1.5.1")).toBe("v1.5.1");
-        expect(desktopUpdateActionLabel("available")).toBe("下载更新");
-        expect(desktopUpdateActionLabel("ready")).toBe("安装更新");
+        expect(desktopUpdateActionLabel("available")).toBe("Download updates");
+        expect(desktopUpdateActionLabel("ready")).toBe("Install updates");
         expect(desktopUpdateProgressLabel(state({ status: "downloading", downloadedBytes: 12 * 1024 * 1024, totalBytes: 40 * 1024 * 1024 }))).toBe("12 MB / 40 MB");
-        expect(userFacingDesktopUpdateError("Get https://github.com/glanderness/BeefTV/releases/latest/download/desktop-update.json")).toBe("更新没有完成，请再试一次。");
-        expect(userFacingDesktopUpdateError("画布没有保存完成，更新没有开始。请稍后再试。")).toBe("画布没有保存完成，更新没有开始。请稍后再试。");
+        expect(userFacingDesktopUpdateError("Get https://github.com/glanderness/BeefTV/releases/latest/download/desktop-update.json")).toBe("The update was not completed, please try again.");
+        expect(userFacingDesktopUpdateError("The canvas was not saved and the update was not started. Please try again later.")).toBe("The canvas was not saved and the update was not started. Please try again later.");
     });
 
     test("requires the four Wails update methods before treating the binding as live", () => {
@@ -431,7 +431,7 @@ describe("desktop update controller", () => {
         const available = state({
             status: "available",
             latestVersion: "v1.5.2",
-            releaseNotes: "画布保存更稳",
+            releaseNotes: "Canvas saving is more stable",
         });
         const mock = mockBinding(available);
         const persist = deferred<void>();
@@ -477,7 +477,7 @@ describe("desktop update controller", () => {
         await Promise.resolve();
         expect(view.latest().state.downloadedBytes).toBe(24 * 1024 * 1024);
 
-        const ready = state({ status: "ready", latestVersion: "v1.5.2", releaseNotes: "画布保存更稳" });
+        const ready = state({ status: "ready", latestVersion: "v1.5.2", releaseNotes: "Canvas saving is more stable" });
         mock.finishDownload(ready);
         await downloadPromise;
         expect(view.latest().state.status).toBe("ready");
@@ -522,7 +522,7 @@ describe("desktop update controller", () => {
         mock.failDownload(new Error("disk full"));
         await first;
         expect(view.latest().state.status).toBe("error");
-        expect(userFacingDesktopUpdateError(view.latest().state.error)).toBe("更新没有完成，请再试一次。");
+        expect(userFacingDesktopUpdateError(view.latest().state.error)).toBe("The update was not completed, please try again.");
 
         mock.setState(state({ status: "ready", latestVersion: "v1.5.2" }));
         await controller.retry();
@@ -548,7 +548,7 @@ describe("desktop update controller", () => {
         await controller.install();
         expect(mock.calls.install).toBe(0);
         expect(view.latest().state.status).toBe("error");
-        expect(view.latest().state.error).toBe("内容没有保存完成，更新没有开始。请稍后再试。");
+        expect(view.latest().state.error).toBe("The content was not saved and the update was not started. Please try again later.");
         view.stop();
     });
 
@@ -659,7 +659,7 @@ describe("desktop update controller", () => {
         const view = collect(controller);
         await controller.start();
         expect(view.latest().state.status).toBe("error");
-        expect(userFacingDesktopUpdateError(view.latest().state.error)).toBe("更新没有完成，请再试一次。");
+        expect(userFacingDesktopUpdateError(view.latest().state.error)).toBe("The update was not completed, please try again.");
         expect(view.latest().state.currentVersion).toBe("v1.5.1");
         expect(shouldShowDesktopUpdaterControls(view.latest()!)).toBe(false);
         mock.binding.CheckForUpdate = async () => {
@@ -680,7 +680,7 @@ describe("desktop update controller", () => {
         const successfulCheck = mock.binding.CheckForUpdate!;
         mock.binding.CheckForUpdate = async () => {
             mock.calls.check += 1;
-            throw new Error("无法检查更新");
+            throw new Error("Unable to check for updates");
         };
         await controller.check();
         expect(controller.getSnapshot().state.status).toBe("error");

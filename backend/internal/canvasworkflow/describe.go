@@ -8,7 +8,7 @@ import (
 	"infinite-canvas/backend/internal/modelcatalog"
 )
 
-const describePrompt = "请根据参考图片反推一段适合用于 AI 生图的提示词。只输出提示词正文，不要解释。覆盖主体、构图、风格、光线、色彩、材质、镜头和氛围。"
+const describePrompt = "Please use the reference picture to infer a prompt word that is suitable for AI to generate pictures. Only output the text of the prompt word without explanation. Covering subject, composition, style, light, color, texture, lens and atmosphere."
 
 // Text task execution is separate from canvas media-generation capabilities.
 // An absent vision declaration is left to the configured model, as on the main canvas.
@@ -68,5 +68,5 @@ func DescribeRequest(host CompileHost, n Node, resource, operation string) (Reci
 		input["metadata"] = map[string]any{"clientOperationId": operation, "nodeId": n.ID, "source": "canvas-workflow"}
 		return RecipeRequest{Type: "canvas_text", Prompt: prompt, Model: candidate.Model, Input: input}, nil
 	}
-	return RecipeRequest{}, BadRequest("请选择已启用、支持识图的文本模型")
+	return RecipeRequest{}, BadRequest("Please select an enabled text model that supports image recognition")
 }

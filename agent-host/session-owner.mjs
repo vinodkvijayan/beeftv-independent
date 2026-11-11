@@ -15,7 +15,7 @@ import { projectTurnHistory, sessionTitle } from './canvas-turn.mjs';
 export const TURN_ENTRY_TYPE = 'beeftv.canvas.turn';
 export const HANDOFF_MESSAGE_LIMIT = 20;
 export const HANDOFF_CHAR_LIMIT = 8000;
-export const HANDOFF_HEADER = '以下是同一画布此前对话的交接记录，请在此基础上继续，不要提及本说明。';
+export const HANDOFF_HEADER = 'The following is a handover transcript of a previous conversation on the same canvas, please continue without mentioning this note.';
 
 export function canvasKey(canvasId) {
   return crypto.createHash('sha256').update(canvasId).digest('hex').slice(0, 24);
@@ -51,7 +51,7 @@ export function handoffNote(messages, { messageLimit = HANDOFF_MESSAGE_LIMIT, ch
   let total = 0;
   for (let index = recent.length - 1; index >= 0; index -= 1) {
     const message = recent[index];
-    let line = `${message.role === 'user' ? '用户' : '助手'}：${message.text}`;
+    let line = `${message.role === 'user' ? 'User' : 'Assistant'}：${message.text}`;
     if (lines.length === 0) {
       if (line.length > charLimit) line = line.slice(0, charLimit);
     } else if (total + line.length > charLimit) break;
@@ -85,16 +85,16 @@ export function createLegacyHistory({ sessionRoot, workspaceRoot }) {
       raw = fs.readFileSync(file, 'utf8');
     } catch (error) {
       if (error?.code === 'ENOENT') return '';
-      throw pointerFailed(`当前会话指针无法读取（${error.code || error.message}）`, error);
+      throw pointerFailed(`The current session pointer cannot be read (${error.code || error.message}）`, error);
     }
     let parsed;
     try {
       parsed = JSON.parse(raw);
     } catch (error) {
-      throw pointerFailed('当前会话指针内容无效', error);
+      throw pointerFailed('The current session pointer content is invalid', error);
     }
     if (typeof parsed?.sessionId !== 'string' || !parsed.sessionId.trim()) {
-      throw pointerFailed('当前会话指针缺少 sessionId');
+      throw pointerFailed('Current session pointer is missing sessionId');
     }
     return parsed.sessionId;
   }
@@ -107,7 +107,7 @@ export function createLegacyHistory({ sessionRoot, workspaceRoot }) {
       fs.renameSync(tmp, dest);
     } catch (error) {
       try { fs.unlinkSync(tmp); } catch { /* 临时文件尽量清掉 */ }
-      throw pointerFailed(`当前会话指针无法写入（${error.code || error.message}）`, error);
+      throw pointerFailed(`The current session pointer cannot be written (${error.code || error.message}）`, error);
     }
   }
 

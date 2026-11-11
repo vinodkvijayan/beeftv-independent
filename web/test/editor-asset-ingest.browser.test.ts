@@ -74,7 +74,7 @@ beforeEach(async () => {
     await page?.close();
     page = await browser.newPage();
     await page.goto(server.url.toString());
-    await page.getByRole("button", { name: "导入媒体" }).waitFor({ timeout: 8_000 });
+    await page.getByRole("button", { name: "Import media" }).waitFor({ timeout: 8_000 });
 });
 
 afterAll(async () => {
@@ -125,7 +125,7 @@ async function remountEditor() {
         if (!harness) throw new Error("harness missing");
         harness.remountEditor();
     });
-    await page.getByRole("button", { name: "导入媒体" }).waitFor({ timeout: 4_000 });
+    await page.getByRole("button", { name: "Import media" }).waitFor({ timeout: 4_000 });
 }
 
 async function importFiles(names: string[]) {
@@ -158,8 +158,8 @@ function writes(harness: HarnessState | undefined, step: EditorAssetIngestCall["
 
 test("ordinary import probes, uploads, links and shows ready for a successful resource", async () => {
     await importFiles(["clip.mp4"]);
-    await page.getByText("已导入 1 个媒体").waitFor({ timeout: 8_000 });
-    expect(await page.getByRole("button", { name: "导入媒体" }).count()).toBe(1);
+    await page.getByText("1 media imported").waitFor({ timeout: 8_000 });
+    expect(await page.getByRole("button", { name: "Import media" }).count()).toBe(1);
     const harness = await harnessState();
     expect(writes(harness, "probe")).toHaveLength(1);
     expect(writes(harness, "upload")).toHaveLength(1);
@@ -167,15 +167,15 @@ test("ordinary import probes, uploads, links and shows ready for a successful re
     expect(writes(harness, "upload")[0]?.durationMs).toBe(1500);
     expect(writes(harness, "link")[0]?.projectId).toBe("project-a");
     expect(await page.getByTestId("asset-ids").textContent()).toBe("res-1");
-    expect(await page.getByText("导入失败").count()).toBe(0);
+    expect(await page.getByText("Import failed").count()).toBe(0);
 }, 15_000);
 
 test("ordinary upload error does not claim ready", async () => {
     await fail("upload");
     await importFiles(["clip.mp4"]);
-    await page.getByText("「clip.mp4」网络中断").waitFor({ timeout: 8_000 });
-    expect(await page.getByText("已导入").count()).toBe(0);
-    expect(await page.getByRole("button", { name: "导入媒体" }).count()).toBe(1);
+    await page.getByText("\"clip.mp4\" network interruption").waitFor({ timeout: 8_000 });
+    expect(await page.getByText("Imported").count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Import media" }).count()).toBe(1);
     const harness = await harnessState();
     expect(writes(harness, "link")).toHaveLength(0);
     expect(await page.getByTestId("asset-ids").textContent()).toBe("");
@@ -184,8 +184,8 @@ test("ordinary upload error does not claim ready", async () => {
 test("failed resource status does not claim ready", async () => {
     await fail("uploadStatusFailed");
     await importFiles(["clip.mp4"]);
-    await page.getByText("「clip.mp4」转码失败").waitFor({ timeout: 8_000 });
-    expect(await page.getByText("已导入").count()).toBe(0);
+    await page.getByText("\"clip.mp4\" transcoding failed").waitFor({ timeout: 8_000 });
+    expect(await page.getByText("Imported").count()).toBe(0);
     const harness = await harnessState();
     expect(writes(harness, "link")).toHaveLength(0);
 }, 15_000);
@@ -193,7 +193,7 @@ test("failed resource status does not claim ready", async () => {
 test("link retry succeeds after one ordinary failure", async () => {
     await fail("linkOnce");
     await importFiles(["clip.mp4"]);
-    await page.getByText("已导入 1 个媒体").waitFor({ timeout: 8_000 });
+    await page.getByText("1 media imported").waitFor({ timeout: 8_000 });
     const harness = await harnessState();
     expect(harness?.doubles.calls.filter((call) => call.step === "link" && call.phase === "enter")).toHaveLength(2);
     expect(writes(harness, "link")).toHaveLength(1);
@@ -202,13 +202,13 @@ test("link retry succeeds after one ordinary failure", async () => {
 test("two link failures do not claim ready", async () => {
     await fail("link");
     await importFiles(["clip.mp4"]);
-    await page.getByText("「clip.mp4」已上传但挂载到项目失败，请重试").waitFor({ timeout: 8_000 });
-    expect(await page.getByText("已导入").count()).toBe(0);
+    await page.getByText("\"clip.mp4\" has been uploaded but failed to mount to the project, please try again").waitFor({ timeout: 8_000 });
+    expect(await page.getByText("Imported").count()).toBe(0);
 }, 15_000);
 
 test("sequential batch dedupes the same filename and kind", async () => {
     await importFiles(["clip.mp4", "clip.mp4"]);
-    await page.getByText("已导入 1 个，跳过 1 个重复文件").waitFor({ timeout: 8_000 });
+    await page.getByText("1 imported, 1 duplicate file skipped").waitFor({ timeout: 8_000 });
     const harness = await harnessState();
     expect(writes(harness, "upload")).toHaveLength(1);
     expect(writes(harness, "link")).toHaveLength(1);
@@ -222,10 +222,10 @@ test("delayed ordinary upload error after editor remount does not paint on the n
     await remountEditor();
     await release("upload");
     await settle();
-    expect(await page.getByText("网络中断").count()).toBe(0);
-    expect(await page.getByText("导入失败").count()).toBe(0);
-    expect(await page.getByText("已导入").count()).toBe(0);
-    expect(await page.getByRole("button", { name: "导入媒体" }).count()).toBe(1);
+    expect(await page.getByText("Network outage").count()).toBe(0);
+    expect(await page.getByText("Import failed").count()).toBe(0);
+    expect(await page.getByText("Imported").count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Import media" }).count()).toBe(1);
 }, 15_000);
 
 test("delayed probe after editor remount does not continue writes or keep importing", async () => {
@@ -238,8 +238,8 @@ test("delayed probe after editor remount does not continue writes or keep import
     const harness = await harnessState();
     expect(writes(harness, "upload")).toHaveLength(0);
     expect(writes(harness, "link")).toHaveLength(0);
-    expect(await page.getByText("已导入").count()).toBe(0);
-    expect(await page.getByRole("button", { name: "导入媒体" }).count()).toBe(1);
+    expect(await page.getByText("Imported").count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Import media" }).count()).toBe(1);
 }, 15_000);
 
 test("delayed ordinary upload error after project switch does not paint on the new project", async () => {
@@ -251,10 +251,10 @@ test("delayed ordinary upload error after project switch does not paint on the n
     await release("upload");
     await settle();
     expect(await page.getByTestId("project-id").textContent()).toBe("project-b");
-    expect(await page.getByText("网络中断").count()).toBe(0);
-    expect(await page.getByText("导入失败").count()).toBe(0);
-    expect(await page.getByText("已导入").count()).toBe(0);
-    expect(await page.getByRole("button", { name: "导入媒体" }).count()).toBe(1);
+    expect(await page.getByText("Network outage").count()).toBe(0);
+    expect(await page.getByText("Import failed").count()).toBe(0);
+    expect(await page.getByText("Imported").count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Import media" }).count()).toBe(1);
 }, 15_000);
 
 test("delayed upload after project switch does not link into the new editor", async () => {
@@ -268,9 +268,9 @@ test("delayed upload after project switch does not link into the new editor", as
     expect(harness?.projectId).toBe("project-b");
     expect(writes(harness, "link")).toHaveLength(0);
     expect(await page.getByTestId("asset-ids").textContent()).toBe("");
-    expect(await page.getByText("已导入").count()).toBe(0);
-    expect(await page.getByText("导入失败").count()).toBe(0);
-    expect(await page.getByRole("button", { name: "导入媒体" }).count()).toBe(1);
+    expect(await page.getByText("Imported").count()).toBe(0);
+    expect(await page.getByText("Import failed").count()).toBe(0);
+    expect(await page.getByRole("button", { name: "Import media" }).count()).toBe(1);
 }, 15_000);
 
 test("old import completion cannot clear a new project import busy state", async () => {
@@ -287,7 +287,7 @@ test("old import completion cannot clear a new project import busy state", async
     await waitForCall("upload");
     await release("probe");
     await settle();
-    expect(await page.getByRole("button", { name: "导入中" }).isDisabled()).toBe(true);
+    expect(await page.getByRole("button", { name: "Importing" }).isDisabled()).toBe(true);
     await release("upload");
-    await page.getByText("已导入 1 个媒体").waitFor({ timeout: 8_000 });
+    await page.getByText("1 media imported").waitFor({ timeout: 8_000 });
 }, 15_000);

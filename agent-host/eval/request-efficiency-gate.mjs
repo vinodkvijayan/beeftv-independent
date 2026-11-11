@@ -85,7 +85,7 @@ export function analyzeCapturedRequests(
   if (evalReport?.summary) {
     if (evalReport.summary.failedRuns > 0 || evalReport.summary.abortedRuns > 0) {
       violations.push(
-        `runEval 存在失败或中断场景: failedRuns=${evalReport.summary.failedRuns}, abortedRuns=${evalReport.summary.abortedRuns}`,
+        `runEval has a failure or interruption scenario: failedRuns=${evalReport.summary.failedRuns}, abortedRuns=${evalReport.summary.abortedRuns}`,
       );
     }
   }
@@ -98,7 +98,7 @@ export function analyzeCapturedRequests(
     const missingSessionIdCount = reqs.filter((r) => !r.sessionId).length;
     if (distinctSessionIds.length !== 1 || missingSessionIdCount > 0) {
       violations.push(
-        `${session.scenarioCode}: 场景请求必须归属唯一非空 sessionId（实际 sessionIds=[${distinctSessionIds.join(', ')}], 缺失=${missingSessionIdCount}）`,
+        `${session.scenarioCode}: The scene request must belong to a unique non-empty sessionId (actual sessionIds=[${distinctSessionIds.join(', ')}], missing=${missingSessionIdCount}）`,
       );
     }
     const resolvedSessionId = distinctSessionIds[0] || session.sessionKey;
@@ -136,7 +136,7 @@ export function analyzeCapturedRequests(
 
       if (!leadingMsg || (leadingMsg.role !== 'system' && leadingMsg.role !== 'developer')) {
         sessionHeaderClean = false;
-        violations.push(`${session.scenarioCode} req#${idx + 1}: messages[0] 必须是 system/developer 消息`);
+        violations.push(`${session.scenarioCode} req#${idx + 1}: messages[0] must be system/developer messages`);
       }
 
       const laterInvalidSystem = messages.slice(1).filter((m) => {
@@ -149,7 +149,7 @@ export function analyzeCapturedRequests(
       if (laterInvalidSystem.length > 0) {
         sessionHeaderClean = false;
         violations.push(
-          `${session.scenarioCode} req#${idx + 1}: messages[1..] 存在非法或非空文本的 system/developer 消息（共 ${laterInvalidSystem.length} 条）`,
+          `${session.scenarioCode} req#${idx + 1}: messages[1..] system/developer messages with illegal or non-empty text (total${laterInvalidSystem.length} Article)`,
         );
       }
 
@@ -160,7 +160,7 @@ export function analyzeCapturedRequests(
       ) {
         sessionHeaderClean = false;
         violations.push(
-          `${session.scenarioCode} req#${idx + 1}: 头部 system 仍包含动态区块（beeftv_studio / beeftv_plan / beeftv_active_skills）`,
+          `${session.scenarioCode} req#${idx + 1}: The head system still contains dynamic blocks (beeftv_studio / beeftv_plan / beeftv_active_skills)`,
         );
       }
 
@@ -168,16 +168,16 @@ export function analyzeCapturedRequests(
       const catalogIdx = leadingText.indexOf('<beeftv_skill_catalog>');
       if (instrIdx < 0) {
         sessionHeaderClean = false;
-        violations.push(`${session.scenarioCode} req#${idx + 1}: 头部 system 缺少 <instructions>`);
+        violations.push(`${session.scenarioCode} req#${idx + 1}: Header system missing <instructions>`);
       } else if (catalogIdx >= 0 && instrIdx > catalogIdx) {
         sessionHeaderClean = false;
         violations.push(
-          `${session.scenarioCode} req#${idx + 1}: <beeftv_skill_catalog> (${catalogIdx}) 排在 <instructions> (${instrIdx}) 前面`,
+          `${session.scenarioCode} req#${idx + 1}: <beeftv_skill_catalog> (${catalogIdx}) ranks next to <instructions> (${instrIdx}) front`,
         );
       } else if (!CANONICAL_HEADER_RE.test(leadingText.trim())) {
         sessionHeaderClean = false;
         violations.push(
-          `${session.scenarioCode} req#${idx + 1}: 头部 system 不符合规范结构（必须以 <instructions> 开头，仅允许紧跟 <beeftv_skill_catalog>）`,
+          `${session.scenarioCode} req#${idx + 1}: The header system does not conform to the canonical structure (must start with <instructions>, only allowed to follow <beeftv_skill_catalog>)`,
         );
       }
 
@@ -189,7 +189,7 @@ export function analyzeCapturedRequests(
       ) {
         sessionTailValid = false;
         violations.push(
-          `${session.scenarioCode} req#${idx + 1}: 末尾消息缺少非 system 的 <beeftv_studio> 瞬态上下文`,
+          `${session.scenarioCode} req#${idx + 1}: Terminal message missing non-system <beefv_studio> transient context`,
         );
       }
 
@@ -202,7 +202,7 @@ export function analyzeCapturedRequests(
       if (hasCompletedPlanUpdate && !/<beeftv_plan>\n[\s\S]*\n<\/beeftv_plan>/.test(lastMsgText)) {
         sessionTailValid = false;
         violations.push(
-          `${session.scenarioCode} req#${idx + 1}: plan_update 生效后末尾瞬态消息缺少 <beeftv_plan>`,
+          `${session.scenarioCode} req#${idx + 1}: The transient message at the end of plan_update after it takes effect is missing <beeftv_plan>`,
         );
       }
 
@@ -221,7 +221,7 @@ export function analyzeCapturedRequests(
         if (!nonSystemHasSkill) {
           sessionTailValid = false;
           violations.push(
-            `${session.scenarioCode} req#${idx + 1}: skill_load 生效后非 system 消息缺少 <skill_resource 正文`,
+            `${session.scenarioCode} req#${idx + 1}: After skill_load takes effect, non-system messages are missing <skill_resource text`,
           );
         }
       }
@@ -232,7 +232,7 @@ export function analyzeCapturedRequests(
           sessionSystemByteIdentical = false;
           const commonSys = commonPrefixLength(firstSystemText, leadingText);
           violations.push(
-            `${session.scenarioCode} req#${idx + 1}: 会话内头部 system 文本发生变化（与首请求公共前缀仅 ${commonSys}/${firstSystemText.length} 字）`,
+            `${session.scenarioCode} req#${idx + 1}: The header system text within the session changes (only with the common prefix of the first request${commonSys}/${firstSystemText.length} words)`,
           );
         }
 
@@ -272,7 +272,7 @@ export function analyzeCapturedRequests(
     }
 
     if (sessionPairs < 1) {
-      violations.push(`${session.scenarioCode}: 至少需要 1 对相邻请求（实际请求数 ${reqs.length}）`);
+      violations.push(`${session.scenarioCode}: At least 1 pair of adjacent requests is required (actual number of requests${reqs.length}）`);
     }
 
     sessionReports.push({
@@ -294,7 +294,7 @@ export function analyzeCapturedRequests(
     const observedCodes = new Set(sessionReports.map((s) => s.scenarioCode));
     const missingCodes = expectedScenarios.filter((code) => !observedCodes.has(code));
     if (missingCodes.length > 0) {
-      violations.push(`缺少预期评测场景请求记录: ${missingCodes.join(', ')}`);
+      violations.push(`Missing expected evaluation scenario request record:${missingCodes.join(', ')}`);
     }
   }
 
@@ -304,23 +304,23 @@ export function analyzeCapturedRequests(
 
   if (overallPrefixHitRatio < minPrefixHitRatio) {
     violations.push(
-      `S1–S11 相邻请求公共前缀完整覆盖率 ${(overallPrefixHitRatio * 100).toFixed(1)}% (${fullPrefixHitPairs}/${totalAdjacentPairs}) 低于门禁阈值 ${(minPrefixHitRatio * 100).toFixed(1)}%`,
+      `S1–S11 Neighbor Request Common Prefix Complete Coverage${(overallPrefixHitRatio * 100).toFixed(1)}% (${fullPrefixHitPairs}/${totalAdjacentPairs}) is below the access threshold${(minPrefixHitRatio * 100).toFixed(1)}%`,
     );
   }
 
   if (budget) {
     if (Number.isFinite(budget.maxHeaderChars) && maxHeaderChars > budget.maxHeaderChars) {
-      violations.push(`头部 system 字符数 ${maxHeaderChars} 超过上限 ${budget.maxHeaderChars}（只许变小）`);
+      violations.push(`Number of characters in header system${maxHeaderChars} Exceed the upper limit${budget.maxHeaderChars}(Only allowed to become smaller)`);
     }
     if (Number.isFinite(budget.maxToolsChars) && maxToolsChars > budget.maxToolsChars) {
-      violations.push(`工具定义字符数 ${maxToolsChars} 超过上限 ${budget.maxToolsChars}（只许变小）`);
+      violations.push(`Tool definition character number${maxToolsChars} Exceed the upper limit${budget.maxToolsChars}(Only allowed to become smaller)`);
     }
     if (
       Number.isFinite(budget.maxHeaderPlusToolsChars) &&
       maxHeaderPlusToolsChars > budget.maxHeaderPlusToolsChars
     ) {
       violations.push(
-        `头部+工具定义总字符数 ${maxHeaderPlusToolsChars} 超过上限 ${budget.maxHeaderPlusToolsChars}（只许变小）`,
+        `Total number of characters in header + tool definition${maxHeaderPlusToolsChars} Exceed the upper limit${budget.maxHeaderPlusToolsChars}(Only allowed to become smaller)`,
       );
     }
   }

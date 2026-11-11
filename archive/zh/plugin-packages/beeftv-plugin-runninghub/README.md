@@ -1,31 +1,31 @@
-# RunningHub 插件
+# RunningHub Plugin
 
-把 [RunningHub](https://www.runninghub.cn) 接进 BeefTV。你在 RunningHub 上的工作流和 AI 应用就是 BeefTV 里的模型，画布和创作页都能直接用它们生成图片、视频和音频，也可以带参考素材。
+Connect [RunningHub](https://www.runninghub.cn) to BeefTV. Your workflow and AI applications on RunningHub are models in BeefTV. The canvas and creation page can use them to directly generate images, videos and audios, and you can also bring reference materials.
 
-RunningHub 的 API 只对个人会员及以上开放，生成费用由 RunningHub 按你的账户结算。
+RunningHub's API is only open to individual members and above, and the generated fees are settled by RunningHub according to your account.
 
-## 开始用
+## Get started
 
-1. 在插件中心安装「RunningHub」。
-2. 打开 **模型配置 → 添加模型服务**，选 RunningHub，填上 API Key。海外站把服务地址改成 `https://www.runninghub.ai`。
-3. 点「手动添加模型」，把要用的工作流或 AI 应用加进来，并在旁边选好它产出的类型（图片、视频或音频）：
-   - 工作流：填编号，或者直接贴网页链接。
-   - AI 应用：在编号前加 `app:`，比如 `app:1937084629516193794`，或者直接贴网页链接。
+1. Install "RunningHub" in the plug-in center.
+2. Open **Model Configuration → Add Model Service**, select RunningHub, and fill in the API Key. Overseas stations change the service address to `https://www.runninghub.ai`.
+3. Click "Manually add model", add the workflow or AI application you want to use, and select the type of output (image, video or audio) next to it:
+   - Workflow: fill in the number, or directly paste the web link.
+   - AI application: Add `app:` before the number, such as `app:1937084629516193794`, or directly paste the web link.
 
-RunningHub 没有用 API Key 列出工作流的接口，所以「读取模型」读不到列表，要手动添加。
+RunningHub does not have an interface to list workflows using API Key, so "Read Model" cannot read the list and needs to be added manually.
 
-## 它怎么填参数
+## How does it fill in the parameters?
 
-- 工作流：提示词填进连着采样器 `positive` 口的文本节点，参考素材按节点编号依次填进「加载图片 / 视频 / 音频」节点，每次换新种子。
-- AI 应用：只填作者公开的字段。提示词填进名字像提示词的文本字段；只有一个文本字段时就填它。
-- 给的素材比位置少时，其余位置用工作流里原来选的文件。给得比位置多会直接报错。
+- Workflow: Fill in the prompt word into the text node connected to the `positive` port of the sampler, fill in the reference material into the "Load Image/Video/Audio" node in sequence according to the node number, and change the seed each time.
+- AI Application: Only fill in the fields disclosed by the author. Prompt words are filled in text fields named like prompt words; if there is only one text field, fill it in.
+- When the given materials are less than the positions, the files originally selected in the workflow will be used for the remaining positions. If you give more than the position, an error will be reported directly.
 
-## 常见问题
+## FAQ
 
 **说模型要填编号**：模型列表里只能填工作流编号、`app:编号` 或网页链接。
 
-**说不认这个 API Key**：到 RunningHub 的 API 控制台复制 Key，确认账户是个人会员或以上。
+**Doesn't recognize this API Key**: Go to RunningHub's API console to copy the Key and confirm that the account is an individual member or above.
 
-**工作流跑不起来**：RunningHub 要求工作流在网页上成功跑过一次，才能用 API 调用。
+**Workflow cannot run**: RunningHub requires the workflow to run successfully on the web page once before it can be called using API.
 
-**提示词没有用上**：工作流里找不到正向提示词节点，或者 AI 应用没有公开文本字段。
+**Prompt word not used**: The forward prompt word node cannot be found in the workflow, or the AI application does not have a public text field.

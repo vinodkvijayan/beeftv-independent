@@ -6,7 +6,7 @@ import (
 )
 
 func registerCanvasNodeBindAsset(r *Registry) {
-	r.Register(Op{AssistantCanvas: true, ID: "canvas.node.bind_asset", Summary: "把素材库素材绑定到同类型节点", Scope: ScopeCanvas,
+	r.Register(Op{AssistantCanvas: true, ID: "canvas.node.bind_asset", Summary: "Bind material library materials to nodes of the same type", Scope: ScopeCanvas,
 		Params: json.RawMessage(`{"type":"object","additionalProperties":false,"properties":{"canvasId":{"type":"string"},"nodeId":{"type":"string"},"assetId":{"type":"string"},"resourceId":{"type":"string"},"expectedRevision":{"type":"integer","minimum":0}},"required":["canvasId","nodeId","assetId","expectedRevision"]}`), Handler: opCanvasNodeBindAsset})
 }
 
@@ -22,22 +22,22 @@ func opCanvasNodeBindAsset(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || strings.TrimSpace(args.NodeID) == "" || strings.TrimSpace(args.AssetID) == "" || args.ExpectedRevision == nil || *args.ExpectedRevision < 0 {
-		return nil, InvalidArg("invalid_params", "画布、节点、素材和当前版本必填")
+		return nil, InvalidArg("invalid_params", "Canvas, node, material and current version are required")
 	}
 	asset, err := ctx.Domain.OwnedAsset(ctx.UserID, args.AssetID)
 	if err != nil {
 		return nil, mapDomainError(err)
 	}
 	if asset == nil {
-		return nil, NotFound("asset_not_found", "素材不存在")
+		return nil, NotFound("asset_not_found", "Material does not exist")
 	}
 	ids, err := ReferencedMediaResourceIDs(json.RawMessage(asset.PayloadJSON))
 	if err != nil {
-		return nil, InvalidArg("invalid_asset", "素材资源记录无效")
+		return nil, InvalidArg("invalid_asset", "Invalid asset record")
 	}
 	if args.ResourceID == "" {
 		if len(ids) != 1 {
-			return nil, InvalidArg("ambiguous_asset_resource", "素材没有唯一资源，请选择该素材中的 resourceId")
+			return nil, InvalidArg("ambiguous_asset_resource", "The material does not have a unique resource, please select the resourceId in the material")
 		}
 		args.ResourceID = ids[0]
 	}
@@ -48,21 +48,21 @@ func opCanvasNodeBindAsset(ctx *Context, raw json.RawMessage) (any, error) {
 		}
 	}
 	if !linked {
-		return nil, InvalidArg("asset_resource_mismatch", "资源不属于指定素材")
+		return nil, InvalidArg("asset_resource_mismatch", "The resource does not belong to the specified material")
 	}
 	resource, err := ctx.Domain.OwnedReadyResource(ctx.UserID, args.ResourceID)
 	if err != nil {
 		return nil, mapDomainError(err)
 	}
 	if resource == nil {
-		return nil, NotFound("resource_not_found", "素材资源不存在")
+		return nil, NotFound("resource_not_found", "The asset does not exist")
 	}
 	kind := asset.Kind
 	if kind != "image" && kind != "video" && kind != "audio" {
-		return nil, InvalidArg("unsupported_asset_kind", "只能绑定图片、视频或音频素材")
+		return nil, InvalidArg("unsupported_asset_kind", "Only pictures, videos or audio materials can be bound")
 	}
 	if !strings.HasPrefix(strings.ToLower(resource.MimeType), kind+"/") {
-		return nil, InvalidArg("asset_resource_kind_mismatch", "素材类型与资源类型不一致")
+		return nil, InvalidArg("asset_resource_kind_mismatch", "The material type is inconsistent with the resource type")
 	}
 	canvasRaw, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
 	if err != nil {
@@ -73,14 +73,14 @@ func opCanvasNodeBindAsset(ctx *Context, raw json.RawMessage) (any, error) {
 		return nil, AsError(err)
 	}
 	if revision := canvasRevision(doc); revision != *args.ExpectedRevision {
-		return nil, Conflict("revision_conflict", "画布已变化，请重新读取", map[string]any{"currentRevision": revision})
+		return nil, Conflict("revision_conflict", "The canvas has changed, please read again", map[string]any{"currentRevision": revision})
 	}
 	node := findDocNode(doc, args.NodeID)
 	if node == nil {
-		return nil, NotFound("node_not_found", "节点不属于指定画布")
+		return nil, NotFound("node_not_found", "Node does not belong to the specified canvas")
 	}
 	if node["type"] != kind {
-		return nil, InvalidArg("node_kind_mismatch", "素材与参考节点类型不一致")
+		return nil, InvalidArg("node_kind_mismatch", "The material and reference node types are inconsistent")
 	}
 	metadata, _ := node["metadata"].(map[string]any)
 	if metadata == nil {
@@ -88,7 +88,7 @@ func opCanvasNodeBindAsset(ctx *Context, raw json.RawMessage) (any, error) {
 		node["metadata"] = metadata
 	}
 	if taskID, _ := metadata["taskId"].(string); taskID != "" {
-		return nil, PreconditionFailed("node_has_task", "请使用独立参考节点，不覆盖已有任务节点", nil)
+		return nil, PreconditionFailed("node_has_task", "Please use independent reference nodes and do not overwrite existing task nodes.", nil)
 	}
 	metadata["assetId"] = asset.ID
 	metadata["storageKey"] = "resource:" + resource.ID

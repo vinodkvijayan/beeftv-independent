@@ -80,19 +80,19 @@ type TimelineTranscriptionInput struct {
 }
 
 const (
-	LocalExecutorRenderPrompt              = "时间线渲染"
+	LocalExecutorRenderPrompt              = "Timeline rendering"
 	LocalExecutorRenderProvider            = "local"
 	LocalExecutorRenderModel               = "ffmpeg"
-	LocalExecutorTranscriptionPrompt       = "字幕转写"
+	LocalExecutorTranscriptionPrompt       = "Subtitles transcribing"
 	LocalExecutorTranscriptionProvider     = "local"
 	LocalExecutorTranscriptionModel        = "whisper.cpp"
-	LocalExecutorQueuedStage               = "等待队列调度"
+	LocalExecutorQueuedStage               = "Waiting for queue scheduling"
 	TimelineTranscriptionFeature           = "timelineTranscription"
-	NeedTranscribableMediaMessage          = "必须指定待转写媒体"
-	MissingTranscribableMediaMessage       = "无法读取待转写媒体，可能已被删除"
-	OnlyAudioVideoTranscriptionMessage     = "仅支持音视频文件转写"
-	NoRenderableMediaMessage               = "时间线没有可渲染的媒体片段"
-	UnsupportedLocalExecutorTypeMessageFmt = "不支持的本地执行任务类型：%s"
+	NeedTranscribableMediaMessage          = "The medium to be transcribed must be specified"
+	MissingTranscribableMediaMessage       = "The media to be transcribed cannot be read. It may have been deleted."
+	OnlyAudioVideoTranscriptionMessage     = "Only supports audio and video file transcoding"
+	NoRenderableMediaMessage               = "The timeline has no renderable media clips"
+	UnsupportedLocalExecutorTypeMessageFmt = "Unsupported local execution task type: %s"
 )
 
 type ListOptions struct {

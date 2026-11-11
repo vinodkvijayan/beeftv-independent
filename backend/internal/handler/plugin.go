@@ -237,7 +237,7 @@ func RegisterPluginRoutes(r *gin.RouterGroup, center pluginCenter, hosted ...boo
 			}
 		}
 		if !visible {
-			failService(c, kernel.Forbidden("无权访问该插件包"))
+			failService(c, kernel.Forbidden("Don't have permission to access the plugin package"))
 			return
 		}
 		data, fileName, err := center.PluginDomain().Package(c.Param("id"))

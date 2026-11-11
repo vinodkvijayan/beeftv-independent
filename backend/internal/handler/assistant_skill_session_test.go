@@ -116,7 +116,7 @@ func TestSkillScopeFollowsConversationAcrossTurns(t *testing.T) {
 		t.Fatal("another conversation's pin must be denied")
 	}
 	// Installed current versions are loadable by the assistant in any round.
-	installed := installTestSkill(t, env, owner.ID, map[string]string{"SKILL.md": "---\nname: 分批出图\ndescription: 先出一批再确认\n---\n第一步", "references/a.md": "参考"})
+	installed := installTestSkill(t, env, owner.ID, map[string]string{"SKILL.md": "---\nname: Publish pictures in batches\ndescription: Send out a batch first and then confirm\n---\nfirst step", "references/a.md": "Reference"})
 	if err := other("skill.file", installed); err != nil {
 		t.Fatalf("installed version must be loadable: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestSkillLabelsFallBackToInstalledSkill(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	installed := installTestSkill(t, env, owner.ID, map[string]string{"SKILL.md": "---\nname: 短剧资产分批流程\ndescription: 标签\n---\n正文"})
+	installed := installTestSkill(t, env, owner.ID, map[string]string{"SKILL.md": "---\nname: Short drama asset batching process\ndescription: label\n---\nText"})
 	turn := map[string]any{
 		"skills": []any{
 			map[string]any{"skillId": installed.SkillID, "versionId": installed.VersionID},
@@ -159,14 +159,14 @@ func TestSkillLabelsFallBackToInstalledSkill(t *testing.T) {
 	// Older rounds stored pins without labels.
 	labelAssistantSkills(turn, []skills.Pin{installed}, installedSkillLabels(env.service, owner.ID))
 	list := turn["skills"].([]any)
-	if got := list[0].(map[string]any)["skillName"]; got != "短剧资产分批流程" {
+	if got := list[0].(map[string]any)["skillName"]; got != "Short drama asset batching process" {
 		t.Fatalf("installed skill must be named: %v", list[0])
 	}
 	if _, labeled := list[1].(map[string]any)["skillName"]; labeled {
 		t.Fatalf("unresolvable pin must stay unlabeled: %v", list[1])
 	}
 	supplement := turn["supplementInputs"].([]any)[0].(map[string]any)["skills"].([]any)[0].(map[string]any)
-	if supplement["skillName"] != "短剧资产分批流程" {
+	if supplement["skillName"] != "Short drama asset batching process" {
 		t.Fatalf("supplement skill must be named: %v", supplement)
 	}
 	// A different version of an installed skill is not the same package.
@@ -177,10 +177,10 @@ func TestSkillLabelsFallBackToInstalledSkill(t *testing.T) {
 	}
 	// Stored labels win over the installed fallback.
 	stored := installed
-	stored.SkillName = "当时的名称"
+	stored.SkillName = "name at that time"
 	kept := map[string]any{"skills": []any{map[string]any{"skillId": installed.SkillID, "versionId": installed.VersionID}}}
 	labelAssistantSkills(kept, []skills.Pin{stored}, func() []skills.Pin { t.Fatal("installed lookup not needed"); return nil })
-	if kept["skills"].([]any)[0].(map[string]any)["skillName"] != "当时的名称" {
+	if kept["skills"].([]any)[0].(map[string]any)["skillName"] != "name at that time" {
 		t.Fatal("stored label must be kept")
 	}
 }

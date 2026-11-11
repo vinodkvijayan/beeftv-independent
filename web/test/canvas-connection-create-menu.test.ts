@@ -6,7 +6,7 @@ const css = readFileSync(new URL("../src/styles/globals.css", import.meta.url), 
 
 test("connection menu reuses the compact create menu with the supported node set", () => {
     expect(component).toContain('<CanvasCreateMenu commands={commands} layout="list"');
-    expect(component).toContain('title="引用该节点生成"');
+    expect(component).toContain('title="Generate by referencing this node"');
     const commands = component.match(/command\("[^"]+"/g) || [];
     expect(commands).toHaveLength(7);
     for (const id of ["text", "image", "video", "audio", "smart-edit", "director", "script"]) {
@@ -29,6 +29,6 @@ test("connection menu keeps keyboard dismissal and delegates disabled states", (
     expect(component).toContain('event.key === "Escape"');
     expect(component).toContain("getDisabledReason(CanvasNodeType.Text)");
     expect(component).toContain('command("smart-edit"');
-    expect(component).toContain('"node", "暂不可用"');
+    expect(component).toContain('"node", "Not available yet"');
     expect(component).toContain('event.key === "Escape"');
 });

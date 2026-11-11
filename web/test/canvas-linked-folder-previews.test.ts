@@ -6,7 +6,7 @@ import type { Asset } from "../src/stores/use-asset-store";
 import { CanvasNodeType } from "../src/types/canvas";
 
 const asset = (overrides: Partial<ProjectAsset>): ProjectAsset => ({
-    id: "a", title: "素材", mediaType: "image", category: "prop", status: "ready", versionCount: 1, usages: [], position: 0, updatedAt: "2026-10-29T00:00:00Z", ...overrides,
+    id: "a", title: "Material", mediaType: "image", category: "prop", status: "ready", versionCount: 1, usages: [], position: 0, updatedAt: "2026-10-29T00:00:00Z", ...overrides,
 } as ProjectAsset);
 
 test("groups previews by folder and skips assets outside folders", () => {
@@ -21,15 +21,15 @@ test("groups previews by folder and skips assets outside folders", () => {
 });
 
 test("prefers local library content, then character cover, then preview text", () => {
-    const local = { id: "text", kind: "text", data: { content: "本地正文" } } as unknown as Asset;
+    const local = { id: "text", kind: "text", data: { content: "local text" } } as unknown as Asset;
     const result = buildLinkedFolderPreviewNodes([local], [
-        asset({ id: "text", folderId: "f", mediaType: "text", previewText: "远端摘要" }),
+        asset({ id: "text", folderId: "f", mediaType: "text", previewText: "remote summary" }),
         asset({ id: "role", folderId: "f", category: "character", mediaType: "text", character: { representations: [{ role: "primary", resourceId: "p" }, { role: "turnaround_sheet", resourceId: "t" }] } as never }),
-        asset({ id: "note", folderId: "f", mediaType: "text", previewText: "只有摘要" }),
+        asset({ id: "note", folderId: "f", mediaType: "text", previewText: "only summary" }),
     ]);
     const [text, role, note] = result.get("f")!;
-    expect(text!.metadata?.content).toBe("本地正文");
+    expect(text!.metadata?.content).toBe("local text");
     expect(role!.type).toBe(CanvasNodeType.Image);
     expect(role!.metadata?.content).toContain("/resources/t/file");
-    expect(note!.metadata?.content).toBe("只有摘要");
+    expect(note!.metadata?.content).toBe("only summary");
 });

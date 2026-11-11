@@ -454,7 +454,7 @@ func TestRetryMismatchLeavesFailedUnchanged(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err := svc.Retry("user-1", failed, "image", "image/png", 8, bytes.NewReader([]byte("payload!")))
-	if err == nil || !strings.Contains(err.Error(), "上传幂等标识已用于其他文件") {
+	if err == nil || !strings.Contains(err.Error(), "Upload idempotent flag already used in other files") {
 		t.Fatalf("mismatch error = %v", err)
 	}
 	latest, lookupErr := repo.Resource("resource-mismatch")

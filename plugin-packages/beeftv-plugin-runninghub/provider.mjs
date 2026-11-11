@@ -19,28 +19,28 @@ function apiKey(ctx) {
 }
 
 const CODE_MESSAGES = {
-  301: "RunningHub 读不到这个工作流。请检查编号，并确认它在 RunningHub 网站上成功运行过一次",
-  380: "RunningHub 里找不到这个工作流，请检查编号",
-  416: "RunningHub 账户余额不足",
-  805: "任务在 RunningHub 上失败了，没有说明原因。可以到 RunningHub 的任务记录里看",
-  421: "RunningHub 账户的排队任务已满，请等前面的任务跑完",
-  806: "RunningHub 不认这个 API Key，请到模型服务里检查",
-  807: "RunningHub 里找不到这个任务",
-  809: "素材太大，RunningHub 单个文件不能超过 30MB",
-  814: "RunningHub 账户的排队任务已满，请等前面的任务跑完",
+  301: "RunningHub cannot read this workflow. Please check the number and confirm it has been successfully run once on the RunningHub website",
+  380: "This workflow cannot be found in RunningHub, please check the number",
+  416: "RunningHub account balance is insufficient",
+  805: "Task failed on RunningHub with no reason stated. You can check it in the task record of RunningHub",
+  421: "The queued tasks of the RunningHub account are full, please wait until the previous tasks are finished.",
+  806: "RunningHub does not recognize this API Key, please check in the model service.",
+  807: "This task cannot be found in RunningHub",
+  809: "The material is too large. A single file on RunningHub cannot exceed 30MB.",
+  814: "The queued tasks of the RunningHub account are full, please wait until the previous tasks are finished.",
 };
 const BAD_KEY = /USER_NOT_FOUND|USER_DOES_NOT_EXIST|user not exist|API Key不存在|ApiKey verification failed|APIKEY_UNAUTHORIZED|API_KEY_INVALID/i;
 
 function failureMessage(payload) {
   const reason = payload?.data?.failedReason ?? payload?.failedReason;
   if (reason?.exception_message) {
-    const where = reason.node_name ? `节点 ${reason.node_name} 出错：` : "";
+    const where = reason.node_name ? `node${reason.node_name} Error:` : "";
     return `${where}${String(reason.exception_message).trim()}`;
   }
   const message = String(payload?.msg ?? payload?.message ?? "").trim();
   // 同一个 301 既表示 Key 不对，也表示参数不对，所以先看文字。
   if (BAD_KEY.test(message)) return CODE_MESSAGES[806];
-  return CODE_MESSAGES[payloadCode(payload)] ?? (message || "RunningHub 没有说明失败原因");
+  return CODE_MESSAGES[payloadCode(payload)] ?? (message || "RunningHub did not explain the reason for the failure");
 }
 
 function payloadCode(payload) {
@@ -54,7 +54,7 @@ async function send(ctx, path, init) {
     response = await fetch(`${rootUrl(ctx)}${path}`, { ...init, signal: ctx.signal });
   } catch (error) {
     if (ctx.signal?.aborted) throw error;
-    throw new Error("连不上 RunningHub。请检查网络和服务地址");
+    throw new Error("Can't connect to RunningHub. Please check network and service address");
   }
   const text = await response.text();
   let body = null;
@@ -64,11 +64,11 @@ async function send(ctx, path, init) {
     // 留给下面按状态码报错。
   }
   if (!response.ok) {
-    const error = new Error(body ? failureMessage(body) : `RunningHub 返回了错误（${response.status}）`);
+    const error = new Error(body ? failureMessage(body) : `RunningHub returned an error (${response.status}）`);
     error.status = response.status;
     throw error;
   }
-  if (!body) throw new Error("RunningHub 返回的内容读不出来");
+  if (!body) throw new Error("The content returned by RunningHub cannot be read.");
   return body;
 }
 
@@ -88,7 +88,7 @@ export function parseModel(model) {
   const app = /^app[:：]\s*(\d+)$/i.exec(raw);
   if (app) return { kind: "app", id: app[1] };
   if (/^\d+$/.test(raw)) return { kind: "workflow", id: raw };
-  throw new Error("模型要填 RunningHub 工作流的编号；AI 应用在编号前加 app:");
+  throw new Error("The model needs to fill in the number of the RunningHub workflow; for AI applications, add app before the number:");
 }
 
 async function readTargets(ctx, model) {
@@ -116,9 +116,9 @@ async function readMedia(reference, ctx) {
   const inline = mediaBytes(reference);
   if (inline) return inline;
   const url = String(reference.url ?? "");
-  if (!/^https?:\/\//i.test(url)) throw new Error("有一个参考素材没有可下载的地址");
+  if (!/^https?:\/\//i.test(url)) throw new Error("There is a reference material without a downloadable address.");
   const response = await fetch(url, { signal: ctx.signal });
-  if (!response.ok) throw new Error(`下载参考素材失败：HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`Failed to download reference material: HTTP${response.status}`);
   return { body: Buffer.from(await response.arrayBuffer()), mimeType: response.headers.get("content-type") || reference.mimeType };
 }
 
@@ -150,11 +150,11 @@ async function upload(ctx, reference, name) {
   });
   if (payloadCode(saved) !== 0) throw new Error(failureMessage(saved));
   const fileName = saved.data?.fileName ?? saved.data?.filename ?? saved.fileName;
-  if (!fileName) throw new Error("RunningHub 没有返回上传后的文件名");
+  if (!fileName) throw new Error("RunningHub does not return the uploaded file name");
   return fileName;
 }
 
-const KIND_LABEL = { image: "图片", video: "视频", audio: "音频" };
+const KIND_LABEL = { image: "pictures", video: "video", audio: "Audio" };
 
 /** 找位置、传素材，拼出要提交的内容。这里出错时 RunningHub 还没有这个任务。 */
 async function prepareRun(request, ctx) {
@@ -165,7 +165,7 @@ async function prepareRun(request, ctx) {
 
   const prompt = String(request.prompt ?? "").trim();
   if (prompt && targets.prompt) fill(targets.prompt, prompt);
-  if (prompt && !targets.prompt) ctx.log(`模型 ${request.model} 没有填提示词的位置，这次的提示词没有用上`);
+  if (prompt && !targets.prompt) ctx.log(`model${request.model} There is no space for the prompt word. The prompt word is not used this time.`);
 
   const key = String(request.extra?.idempotencyKey ?? Date.now()).replace(/[^\w-]/g, "").slice(0, 40);
   // 局部重绘的蒙版不是普通输入图，工作流要用蒙版时请在 RunningHub 里自己接。
@@ -173,8 +173,8 @@ async function prepareRun(request, ctx) {
   for (const kind of ["image", "video", "audio"]) {
     const slots = targets.media[kind];
     if (supplied[kind].length > slots.length) {
-      const limit = slots.length === 0 ? `不接收${KIND_LABEL[kind]}` : `最多接收 ${slots.length} 个${KIND_LABEL[kind]}`;
-      return { status: "failed", message: `这个模型${limit}，这次给了 ${supplied[kind].length} 个` };
+      const limit = slots.length === 0 ? `Do not accept${KIND_LABEL[kind]}` : `Most received${slots.length} a${KIND_LABEL[kind]}`;
+      return { status: "failed", message: `this model${limit}, this time I gave it${supplied[kind].length} a` };
     }
     // 给的素材比位置少时，其余位置用工作流里原来选的文件。
     for (const [index, reference] of supplied[kind].entries()) {
@@ -193,7 +193,7 @@ async function prepareRun(request, ctx) {
 /** @type {import("@beeftv/plugin-sdk").ProviderModule["submit"]} */
 // RunningHub 没有用 API Key 列工作流的接口，这句话直接显示在模型服务窗口里。
 export async function models() {
-  throw new Error("RunningHub 不提供工作流列表，请手动添加：工作流填编号，AI 应用在编号前加 app:");
+  throw new Error("RunningHub does not provide a workflow list, please add it manually: fill in the workflow number, and add app before the number for AI applications:");
 }
 
 export async function submit(request, ctx) {
@@ -215,7 +215,7 @@ export async function submit(request, ctx) {
   const code = payloadCode(created);
   if (code !== 0 && code !== null) return { status: "failed", message: failureMessage(created) };
   const taskId = String(created.data?.taskId ?? "").trim();
-  if (!taskId) throw new Error("RunningHub 没有返回任务号");
+  if (!taskId) throw new Error("RunningHub did not return the task number");
   return { taskId, status: "pending" };
 }
 
@@ -263,7 +263,7 @@ export async function query(taskId, _request, ctx) {
   if (code === 0) {
     const result = collectOutputs(ctx, body.data);
     if (result.images.length + result.videos.length + result.audios.length === 0) {
-      return { taskId, status: "failed", message: "任务跑完了，但没有产出图片、视频或音频" };
+      return { taskId, status: "failed", message: "The task was completed, but no pictures, videos or audio were produced." };
     }
     return { taskId, status: "succeeded", result };
   }

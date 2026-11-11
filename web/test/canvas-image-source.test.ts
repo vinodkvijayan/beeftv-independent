@@ -6,15 +6,15 @@ import { canGenerateImageInPlace } from "../src/lib/canvas/canvas-generation-lay
 import { CanvasNodeType, type CanvasNodeData } from "../src/types/canvas";
 
 const source: CanvasNodeData = {
-    id: "uploaded", type: CanvasNodeType.Image, title: "原图", position: { x: 10, y: 20 }, width: 300, height: 200,
+    id: "uploaded", type: CanvasNodeType.Image, title: "Original picture", position: { x: 10, y: 20 }, width: 300, height: 200,
     metadata: { content: "original-image", storageKey: "original-key", status: "success" },
 };
 const read = (path: string) => readFileSync(resolve(import.meta.dir, "../src", path), "utf8");
 // 断言源码时忽略换行与缩进：长条件被拆行属于排版变化，不应让契约测试失效。
 const flat = (text: string) => text.replace(/\s+/g, " ");
 
-describe("上传图片是输入素材", () => {
-    test("上传与导入图片没有生成框，空节点与生成结果仍可配置", () => {
+describe("Upload pictures as input material", () => {
+    test("There is no generation box for uploading and importing images, and empty nodes and generation results can still be configured.", () => {
         expect(isCanvasImageSourceNode(source)).toBe(true);
         expect(isCanvasImageSourceNode({ ...source, metadata: {} })).toBe(false);
         expect(isCanvasImageSourceNode({ ...source, metadata: { ...source.metadata, generationType: "edit" } })).toBe(false);
@@ -22,17 +22,17 @@ describe("上传图片是输入素材", () => {
         expect(isCanvasImageSourceNode({ ...source, type: CanvasNodeType.Video })).toBe(false);
         expect(isCanvasImageSourceNode(null)).toBe(false);
     });
-    test("显式复制/版本生成入口保持可用", () => {
+    test("Explicit copy/version entry remains available", () => {
         expect(isCanvasImageSourceNode({ ...source, metadata: { ...source.metadata, generationResultPlacement: "replace-node" } })).toBe(false);
         expect(isCanvasImageSourceNode({ ...source, metadata: { ...source.metadata, copiedFromNodeId: "original" } })).toBe(false);
     });
-    test("人物质感创建独立编辑节点，不复制原图输出和任务状态", () => {
+    test("Create independent editing nodes for character texture, without copying the original image output and task status", () => {
         const before = structuredClone(source);
         const child = createPortraitTextureNode(source, "texture");
         expect(source).toEqual(before);
         expect(child.id).toBe("texture");
         expect(child.position).toEqual({ x: 406, y: 20 });
-        expect(child.metadata?.composerContent).toBe("@图片1");
+        expect(child.metadata?.composerContent).toBe("@Picture1");
         expect(child.metadata?.generationType).toBe("edit");
         expect(child.metadata?.content).toBeUndefined();
         expect(child.metadata?.storageKey).toBeUndefined();
@@ -42,7 +42,7 @@ describe("上传图片是输入素材", () => {
         expect(canGenerateImageInPlace(child)).toBe(true);
         expect(canGenerateImageInPlace(source)).toBe(false);
     });
-    test("页面和工具入口共享素材判定，人物质感接入原图连线", () => {
+    test("The page and tool entrance share material judgment, and the character texture is connected to the original image.", () => {
         expect(read("pages/canvas/project.tsx")).toContain("canOpenCanvasNodePromptPanel");
         expect(read("lib/canvas/tool-registry/definitions/node-hover-tools.tsx")).toContain("canOpenCanvasNodePromptPanel(ctx.node)");
         const mediaTools = read("pages/canvas/use-canvas-image-tools.ts");
@@ -58,7 +58,7 @@ describe("上传图片是输入素材", () => {
     });
 });
 
-test("底部菜单使用画布浮层管理并响应打开、鼠标和键盘交互", () => {
+test("The bottom menu uses the canvas floating layer to manage and respond to opening, mouse and keyboard interactions", () => {
     const toolbar = read("components/canvas/canvas-toolbar.tsx");
     expect(toolbar).toContain('useCanvasOverlayLayer("main-toolbar", "calc(var(--z-modal-overlay) + 10)")');
     expect(toolbar).toContain("if (addOpen || modeMenuOpen || appearanceOpen || shortcutsOpen) bringToFront()");

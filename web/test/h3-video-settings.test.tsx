@@ -55,7 +55,7 @@ test("H3 resolutions display low to high while preserving the 768P default and s
 test("saved middle frame settings can be cleared across H3 models while supported end frames stay quiet", () => {
     const metadata = { videoEndFrameNodeId: "end", videoMiddleFrameNodeId: "middle", videoMiddleFrameTime: 2.5 };
     for (const model of ["minimax-h3-max", "minimax-h3-max-turbo", "minimax-h3-max-style-vhs"]) {
-        expect(renderToStaticMarkup(<CanvasH3UnsupportedFrames model={model} metadata={metadata} onChange={() => {}} />)).toContain("清除不支持的帧设置");
+        expect(renderToStaticMarkup(<CanvasH3UnsupportedFrames model={model} metadata={metadata} onChange={() => {}} />)).toContain("Clear unsupported frame settings");
     }
     expect(renderToStaticMarkup(<CanvasH3UnsupportedFrames model="minimax-h3-max" metadata={{ videoEndFrameNodeId: "end" }} onChange={() => {}} />)).toBe("");
 });

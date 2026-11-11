@@ -15,7 +15,7 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 	svc.dataDir = t.TempDir()
 	admin := &model.User{ID: "admin", Role: model.UserRoleAdmin}
 	for i, id := range []string{"first", "second"} {
-		channel := model.ModelChannel{ID: id, Name: "内部" + id, Scope: model.ChannelScopeSystem, Enabled: true, BaseURL: "https://dead.invalid/v1", ModelsJSON: `[]`, CreatedAt: time.Unix(int64(i+1), 0)}
+		channel := model.ModelChannel{ID: id, Name: "internal" + id, Scope: model.ChannelScopeSystem, Enabled: true, BaseURL: "https://dead.invalid/v1", ModelsJSON: `[]`, CreatedAt: time.Unix(int64(i+1), 0)}
 		if err := db.Create(&channel).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -27,12 +27,12 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	alias := "  创作精选  "
+	alias := "  Creative selection"
 	updated, err := svc.UpdateSystemChannel(admin, "second", ChannelRequest{PublicAlias: &alias})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if updated.Name != "内部second" || updated.PublicAlias != "创作精选" {
+	if updated.Name != "internal second" || updated.PublicAlias != "Creative selection" {
 		t.Fatalf("admin alias: %#v", updated)
 	}
 	if _, err := svc.UpdateSystemChannel(admin, "first", ChannelRequest{SortOrder: intPtr(20)}); err != nil {
@@ -42,7 +42,7 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 	if err != nil || total != 2 || len(adminRows) != 1 || adminRows[0].ID != "second" {
 		t.Fatalf("pagination before sort: %v %v %v", adminRows, total, err)
 	}
-	search, _, err := svc.repo.AdminSystemChannels("精选", "all", 10, 0)
+	search, _, err := svc.repo.AdminSystemChannels("Featured", "all", 10, 0)
 	if err != nil || len(search) != 1 {
 		t.Fatalf("alias search: %v %v", search, err)
 	}
@@ -50,14 +50,14 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(catalog) != 2 || catalog[0].ID != "second" || catalog[0].Name != "创作精选" || catalog[0].DisplayName != "创作精选" {
+	if len(catalog) != 2 || catalog[0].ID != "second" || catalog[0].Name != "Creative selection" || catalog[0].DisplayName != "Creative selection" {
 		t.Fatalf("public catalog: %#v", catalog)
 	}
 	legacy, err := svc.PublicSystemChannels()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if legacy[0].Name != "创作精选" {
+	if legacy[0].Name != "Creative selection" {
 		t.Fatalf("public session: %#v", legacy)
 	}
 	encoded, _ := json.Marshal([]any{catalog[0], legacy[0]})
@@ -68,7 +68,7 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 	stored, _ := svc.repo.AdminSystemChannel("second")
-	if stored.PublicAlias != "创作精选" {
+	if stored.PublicAlias != "Creative selection" {
 		t.Fatal("partial sort patch cleared alias")
 	}
 	alias = "  "
@@ -76,7 +76,7 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 	catalog, err = svc.publicSystemChannelCatalog(nil)
-	if err != nil || catalog[0].Name != "内部second" {
+	if err != nil || catalog[0].Name != "internal second" {
 		t.Fatalf("empty alias fallback: %v %v", catalog, err)
 	}
 	for _, invalid := range []int{-1, 1000000} {
@@ -84,7 +84,7 @@ func TestChannelPresentationAliasAndPublicOrder(t *testing.T) {
 			t.Fatal("invalid sort accepted")
 		}
 	}
-	alias = strings.Repeat("字", 81)
+	alias = strings.Repeat("chars", 81)
 	if _, err := svc.UpdateSystemChannel(admin, "second", ChannelRequest{PublicAlias: &alias}); err == nil {
 		t.Fatal("long alias accepted")
 	}

@@ -41,9 +41,9 @@ func TestPluginReferencesMergesSavedConfigChannelsAndTasks(t *testing.T) {
 	dataDir := t.TempDir()
 	path := writeLocalModelConfig(t, dataDir, `{
         "channels": [
-            {"id": "jimeng", "name": "即梦", "baseUrl": "https://example.invalid", "apiKey": "placeholder-key", "enabled": true,
+            {"id": "jimeng", "name": "jimeng", "baseUrl": "https://example.invalid", "apiKey": "placeholder-key", "enabled": true,
              "models": ["jimeng-video-3.0"], "modelProfiles": [{"model": "jimeng-video-3.0", "protocol": "volcengine-jimeng-video", "capability": "video"}]},
-            {"id": "legacy", "name": "旧连接", "baseUrl": "https://legacy.invalid", "enabled": false,
+            {"id": "legacy", "name": "Old connection", "baseUrl": "https://legacy.invalid", "enabled": false,
              "interfaceType": "newapi", "models": ["sora-2"], "modelProfiles": [{"model": "sora-2", "protocol": "newapi", "capability": "video"}]}
         ],
         "videoModel": "jimeng::jimeng-video-3.0"

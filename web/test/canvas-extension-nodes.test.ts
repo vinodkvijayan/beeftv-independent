@@ -20,24 +20,24 @@ function node(type: CanvasNodeType, metadata: CanvasNodeData["metadata"] = {}): 
     return { id: `${type}-1`, type, title: "", position: { x: 0, y: 0 }, width: 100, height: 100, metadata };
 }
 
-describe("扩展节点注册完整性", () => {
-    test("7 个扩展节点在四张表里都有登记", () => {
+describe("Extended node registration integrity", () => {
+    test("7 expansion nodes are registered in four tables", () => {
         EXTENSION_TYPES.forEach((type) => {
-            expect(getNodeLabel(type), `${type} 缺少注册表定义`).toBeTruthy();
-            expect(NODE_DEFAULT_SIZE[type], `${type} 缺少默认尺寸`).toBeTruthy();
-            expect(NODE_SPECS[type], `${type} 缺少节点规格`).toBeTruthy();
+            expect(getNodeLabel(type), `${type} Missing registry definition`).toBeTruthy();
+            expect(NODE_DEFAULT_SIZE[type], `${type} Missing default size`).toBeTruthy();
+            expect(NODE_SPECS[type], `${type} Missing node specs`).toBeTruthy();
         });
     });
 
-    test("展示节点不参与生成，自身不发起生成行为", () => {
+    test("The display node does not participate in the generation and does not initiate the generation behavior itself.", () => {
         EXTENSION_TYPES.forEach((type) => {
-            expect(getNodeGenerationMode(node(type)), `${type} 不应有生成模式`).toBeNull();
+            expect(getNodeGenerationMode(node(type)), `${type} There should be no build mode`).toBeNull();
         });
     });
 });
 
-describe("扩展节点的素材与输入判据", () => {
-    test("文本类扩展节点有内容才算素材", () => {
+describe("Materials and input criteria for expansion nodes", () => {
+    test("Text extension nodes are considered material only if they have content.", () => {
         [CanvasNodeType.Markdown, CanvasNodeType.Svg, CanvasNodeType.Html].forEach((type) => {
             expect(getNodeResourceKind(node(type, { content: "x" }))).toBe("text");
             expect(getNodeResourceKind(node(type, {}))).toBeNull();
@@ -45,19 +45,19 @@ describe("扩展节点的素材与输入判据", () => {
         });
     });
 
-    test("查看器类节点消费图片但自身不是素材", () => {
+    test("The viewer class node consumes images but is not a material itself", () => {
         [CanvasNodeType.Panorama, CanvasNodeType.Compare].forEach((type) => {
-            expect(getNodeResourceKind(node(type, { content: "x" })), `${type} 不应作为素材`).toBeNull();
+            expect(getNodeResourceKind(node(type, { content: "x" })), `${type}should not be used as material`).toBeNull();
             expect(getNodeInputKind(type)).toBe("image");
         });
     });
 
-    test("图表节点吃文本但不产出素材", () => {
+    test("Chart nodes eat text but do not produce material", () => {
         expect(getNodeResourceKind(node(CanvasNodeType.Chart, { content: "[]" }))).toBeNull();
         expect(getNodeInputKind(CanvasNodeType.Chart)).toBe("text");
     });
 
-    test("调色节点即使自身没有 content 也必须算图片素材", () => {
+    test("Even if the coloring node itself has no content, it must be considered as picture material.", () => {
         // 它的图来自上游。若按「有没有 content」判断，它会永远进不了生成输入——
         // 这是个不报错的静默失效，所以单独钉住。
         expect(getNodeResourceKind(node(CanvasNodeType.ColorGrade, {}))).toBe("image");
@@ -65,48 +65,48 @@ describe("扩展节点的素材与输入判据", () => {
     });
 });
 
-describe("调色参数", () => {
-    test("缺省参数视为未调色", () => {
+describe("Color correction parameters", () => {
+    test("Default parameters are considered unadjusted", () => {
         expect(isNeutralColorGrade(DEFAULT_COLOR_GRADE)).toBe(true);
         expect(isNeutralColorGrade({ ...DEFAULT_COLOR_GRADE, brightness: 120 })).toBe(false);
         expect(isNeutralColorGrade({ ...DEFAULT_COLOR_GRADE, hueRotate: -10 })).toBe(false);
     });
 
-    test("预览与导出共用同一个 filter 字符串", () => {
+    test("Preview and export share the same filter string", () => {
         expect(colorGradeCssFilter({ brightness: 110, contrast: 90, saturate: 120, hueRotate: -15 }))
             .toBe("brightness(110%) contrast(90%) saturate(120%) hue-rotate(-15deg)");
     });
 });
 
-describe("图表数据解析", () => {
-    test("解析 JSON 数组，数值列作为系列", () => {
+describe("Chart data analysis", () => {
+    test("Parse JSON array, numeric column as series", () => {
         const parsed = parseChartSource('[{"月份":"1月","销量":120,"退货":8},{"月份":"2月","销量":150,"退货":5}]');
-        expect(parsed?.xKey).toBe("月份");
-        expect(parsed?.series).toEqual(["销量", "退货"]);
+        expect(parsed?.xKey).toBe("month");
+        expect(parsed?.series).toEqual(["Sales volume", "Return"]);
         expect(parsed?.rows.length).toBe(2);
     });
 
-    test("解析 CSV，并把数字字符串转成数值", () => {
-        const parsed = parseChartSource("城市,人口\n北京,2189\n上海,2487");
-        expect(parsed?.xKey).toBe("城市");
-        expect(parsed?.series).toEqual(["人口"]);
+    test("Parse CSV and convert numeric strings into numeric values", () => {
+        const parsed = parseChartSource("city, population\nBeijing,2189\nShanghai,2487");
+        expect(parsed?.xKey).toBe("city");
+        expect(parsed?.series).toEqual(["population"]);
         expect(parsed?.rows[0].人口).toBe(2189);
     });
 
-    test("全是数值列时回落行号作横轴", () => {
+    test("When all columns are numerical values, fall back to the row number and make the horizontal axis", () => {
         const parsed = parseChartSource("[{\"a\":1,\"b\":2},{\"a\":3,\"b\":4}]");
         expect(parsed?.xKey).toBe("__index");
         expect(parsed?.rows[0].__index).toBe(1);
     });
 
     // 数据来自模型输出，非法输入是常态而不是异常；抛出来会连带整个画布白屏。
-    test("非法或无系列的输入返回 null 而不抛", () => {
+    test("Illegal or unseries input returns null without throwing", () => {
         expect(parseChartSource("")).toBeNull();
-        expect(parseChartSource("{ 这不是 JSON")).toBeNull();
+        expect(parseChartSource("{This is not JSON")).toBeNull();
         expect(parseChartSource("just a sentence")).toBeNull();
         expect(parseChartSource("[]")).toBeNull();
         expect(parseChartSource('{"a":1}')).toBeNull();
         expect(parseChartSource('[{"名称":"甲"},{"名称":"乙"}]')).toBeNull();
-        expect(parseChartSource("只有一行")).toBeNull();
+        expect(parseChartSource("only one line")).toBeNull();
     });
 });

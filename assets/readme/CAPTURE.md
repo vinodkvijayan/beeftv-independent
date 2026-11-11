@@ -1,139 +1,139 @@
-# BeefTV 2.0.1 实机素材记录
+#BeefTV 2.0.1 real machine footage recording
 
-## 特别鸣谢品牌素材
+## Special thanks to brand materials
 
-- 根据用户提供的初期合作对象，新增腾讯云和 BytePlus；采用统一两列表格，左侧官方图标与名称，右侧简短介绍及官网链接，位于贡献与许可之后。
-- `partner-tencent-cloud.png`：从腾讯云官网引用的 `https://cloudcache.tencent-cloud.com/qcloud/favicon.ico` 无损转换，32 × 32，927 字节。
-- `partner-byteplus.png`：原样保存 BytePlus 官网引用的 `https://sf-bpcms.bytepluscdn.com/obj/byteplus-public-aiso/portal/assets/favicon.png`，32 × 32，554 字节。
-- 图标存放于仓库内，展示不依赖第三方热链；品牌名称采用正文文本以兼容浅色和深色背景。后续新增对象沿用一行一个对象的结构。
-- 服务介绍依据两家官网及 BytePlus 的 About Us 页面整理；BytePlus 海外孵化器的算力支持与生态扶持鸣谢依据用户明确提供的信息，不宣称具体出资、资源额度、认证或独家合作。商标归原权利人所有。
+- According to the initial cooperation partners provided by users, Tencent Cloud and BytePlus are added; a unified two-column form is adopted, with the official icon and name on the left, and a brief introduction and official website link on the right, after contribution and license.
+- `partner-tencent-cloud.png`: `https://cloudcache.tencent-cloud.com/qcloud/favicon.ico` lossless conversion quoted from Tencent Cloud official website, 32 × 32, 927 bytes.
+- `partner-byteplus.png`: Save `https://sf-bpcms.bytepluscdn.com/obj/byteplus-public-aiso/portal/assets/favicon.png` quoted by BytePlus official website as it is, 32 × 32, 554 bytes.
+- The icons are stored in the warehouse, and the display does not rely on third-party hot links; the brand name uses body text to be compatible with light and dark backgrounds. Subsequently added objects will follow the structure of one object per line.
+- The service introduction is based on the two official websites and BytePlus’ About Us page; BytePlus overseas incubator’s computing power support and ecological support acknowledgment are based on the information clearly provided by the user, and no specific investment, resource quota, certification or exclusive cooperation is claimed. Trademarks belong to the original rights holders.
 
-## README 视频布局调整
+## README video layout adjustment
 
-- 工作流首页改为同一行两个 MP4 播放器：左侧完整原片，右侧已有的人物替换完整版，移除首页重复静帧与下方独立结果播放器。
-- 原片网页副本 `beeftv-character-source-demo.mp4` 来源于此前保留的完整 `replacement-full-source.mp4`；720 × 1280，约 20.34 秒，H.264 / AAC，4,635,446 字节，保留完整内容、原声和水印，播放索引前置。原文件未修改。
-- Agent 首页改为四列：角色设定、场景设定、生成镜头一（原镜头 4）、生成镜头二（原镜头 6），移除底部单独的第二镜头。
-- 中英文 README 与案例页的工作流视频对照同步。GitHub 渲染检查每份文档保留 5 个播放器，六段媒体匿名分段响应通过；播放器使用表格 HTML 块，沿用已验证的附件解析方式。
+- The workflow homepage is changed to two MP4 players in the same row: the complete original film on the left, and the existing characters on the right are replaced with the full version. The duplicate stills on the homepage and the independent result player below are removed.
+- The original film web page copy `beeftv-character-source-demo.mp4` comes from the previously preserved complete `replacement-full-source.mp4`; 720 × 1280, about 20.34 seconds, H.264 / AAC, 4,635,446 bytes, retaining the complete content, original sound and watermark, and the playback index is advanced. The original file has not been modified.
+- The Agent homepage is changed to four columns: character settings, scene settings, generated shot one (original shot 4), generated shot two (original shot 6), and the separate second shot at the bottom is removed.
+- The Chinese and English README is synchronized with the workflow video of the case page. GitHub rendering checks retain 5 players per document, and the six-part media anonymous segmented response passes; the players use table HTML blocks and follow the authenticated attachment parsing method.
 
-素材基于本机 `/Applications/BeefTV.app` 2.0.1。早期界面截图仅裁切压缩；人物对照图从已有视频提帧；新版工作流编辑器截图由用户提供并原样保留。各类素材在文末分别说明，没有重绘界面或生成结果。
+Material based on native `/Applications/BeefTV.app` 2.0.1. Early interface screenshots are only cropped and compressed; character comparison pictures extract frames from existing videos; screenshots of the new workflow editor are provided by users and retained as they are. Each type of material is explained separately at the end of the article, and there is no redrawing of the interface or generation results.
 
-**当前状态：** 首页 Agent 案例已改为《最后一瓶水》的实际短剧制作，展示既有图片、视频与旁白；整片仍未完成，见文末「Agent 短剧主案例」。咖啡文字分镜保留在 Skills 案例中。工作流主案例为新版单人物替换；早期截帧验证保留为历史证据。2.0 连续录屏仍未完成。
+**Current status:** The Agent case on the homepage has been changed to the actual short play production of "The Last Bottle of Water", showing the existing pictures, videos and narration; the entire film is not yet completed, see "Agent Short Play Main Case" at the end of the article. The coffee text storyboard remains in the Skills case. The main workflow case is the replacement of a single character in the new version; early frame capture verification is retained as historical evidence. 2.0 Continuous screen recording is not yet complete.
 
-| 文件 | 操作路径 | 能证明的内容 |
+| File | Operation path | Proven content |
 | --- | --- | --- |
-| `beeftv-2.0.1-skills.webp` | 侧栏 → 技能 → 技能市场 | 三个官方 1.0.0 技能的实际名称、用途及市场状态 |
-| `beeftv-2.0.1-skill-storyboard.webp` | 双镜头文字分镜 → 查看与安装 → 读取 SKILL.md | 固定版本、文件检查、使用条件与安装确认界面 |
-| `beeftv-2.0.1-workflow-editor.webp` | 画布 → 工作流 → 单人物替换工作流 → 编辑 | 真实模板的输入、深度提取、生成步骤及连线 |
+| `beeftv-2.0.1-skills.webp` | Sidebar → Skills → Skill Market | The actual names, uses and market status of the three official 1.0.0 skills |
+| `beeftv-2.0.1-skill-storyboard.webp` | Dual-lens text storyboard → View and install → Read SKILL.md | Fixed version, file check, usage conditions and installation confirmation interface |
+| `beeftv-2.0.1-workflow-editor.webp` | Canvas → Workflow → Single character replacement workflow → Edit | Real template input, depth extraction, generation steps and connections |
 
-## 首次采集的验证边界
+## Verification boundary for first collection
 
-- 技能市场标注「效果尚未验证」，详情显示尚无公开实测记录。本轮没有完成技能安装或运行，截图不能作为效果验证。
-- 已有单人物替换工作流的两条成功历史记录使用相同输入，且不在当前画布中保留对应运行状态，不能作为两组不同素材复用的证明。
-- 尝试新建关键帧提取工作流时，安装版提示「本机媒体编码器不可用，请更新安装版后重试」。已放弃未保存草稿，没有更改原模板。
-- 最近的 Agent 短剧仍有待确认生成及未完成步骤，未作为完整交付案例。没有点击付费确认、重试已有生成或修改该项目内容。
-- 已新建演示项目「BeefTV 2.0 · 创作与复用」，首次采集结束时为空白画布。
-- 用户已授权新增文字调用预算不超过 5 元，不新增图片或视频生成；本轮实际没有发起模型调用，新增费用为 0。
+- The skill market is marked "The effect has not been verified", and the details show that there are no public test records. The skill installation or operation has not been completed this round, and screenshots cannot be used to verify the effect.
+- Two successful historical records of single character replacement workflow use the same input and do not retain the corresponding running status in the current canvas. This cannot be used as proof of the reuse of two different sets of materials.
+- When trying to create a new keyframe extraction workflow, the installation version prompts "The local media encoder is not available, please update the installation version and try again." The unsaved draft has been abandoned and the original template has not been changed.
+- Recent Agent skits still have pending builds and unfinished steps, and are not considered complete delivery cases. There is no click-to-pay confirmation, retry to generate or modify the project content.
+- A new demo project "BeefTV 2.0 · Creation and Reuse" has been created, with a blank canvas at the end of the first collection.
+- The user has authorized the new text call budget to not exceed 5 yuan, and no new pictures or videos will be generated; no model calls are actually initiated in this round, and the new cost is 0.
 
-## 待补素材与恢复点
+## Materials to be replenished and recovery points
 
-尚缺 2.0 演示录像、Agent 完整任务案例、三个技能的实际输入输出，以及两组素材的工作流运行证明。
+There is still a lack of 2.0 demonstration videos, complete Agent task cases, actual input and output of the three skills, and proof of workflow operation of the two sets of materials.
 
-技能市场一次加载超时；随后电脑捕获接口反复返回 macOS ScreenCaptureKit -3812 参数错误，重新绑定窗口也失败。当前工具没有应用唤起接口，已停止重复尝试。恢复窗口捕获后，从上述演示项目继续；不要重跑原短剧的付费任务，也不要将截图合成视频冒充连续录屏。
+The skill market loaded once and timed out; then the computer capture interface repeatedly returned macOS ScreenCaptureKit -3812 parameter error, and rebinding the window also failed. The current tool does not have an application evocation interface, and repeated attempts have been stopped. After restoring the window capture, continue from the above demo project; do not rerun the paid tasks of the original short play, and do not combine the screenshots into a video to pretend to be a continuous screen recording.
 
-## 后续阻塞修复与实机验证
+## Subsequent blocking repair and actual machine verification
 
-- 截图复测出现 ScreenCaptureKit -3811；通过窗口「zoom the window」调整尺寸后恢复，连续三次截图成功。安装版更新重启后，工作流结果截图也成功。证据支持窗口捕获会话或几何状态异常，尚未定位电脑操作工具内部原因，不保证长期不复发。未重置系统权限或重启系统服务。
-- 原安装包只有 ffprobe，缺少原生 FFmpeg；构建脚本在编码器缺失时静默跳过。已增加 macOS 构建前的编码器与许可文件检查，缺失输入均以非零状态退出。
-- 通过既有本地更新脚本，将现有编码器和许可打入唯一安装路径。版本仍为 2.0.1；发布门禁、前端构建、随包媒体探测和最终签名检查通过。构建用暂存 App 已由既有脚本移除。
-- 随包 FFmpeg 在精简系统 PATH 下完成 H.264 编码。安装版原报错路径「工作流 → 新建 → 关键帧截取」解除禁用，能添加节点。
-- 在演示画布新建并保存「关键帧提取 · 本地处理」，连接视频输入与截帧输出，导入已有赛车视频并运行；界面显示「已完成 1/1」，输出真实首帧图。
-- `beeftv-2.0.1-workflow-local-verified.jpg` 为该成功结果的实机截图。此项只证明单输入本地截帧成功，尚未完成两组输入复用，也不代表原单人物替换模板的生成效果验证。
-- 修复验证未调用付费模型，新增模型费用为 0。
+- ScreenCaptureKit -3811 occurred during the screenshot retest; it was restored after adjusting the size through "zoom the window", and the screenshots were taken successfully three times in a row. After the installation version is updated and restarted, the screenshot of the workflow results is also successful. The evidence supports window capture session or geometric state anomalies. The internal cause of the computer operating tool has not yet been located, and there is no guarantee that it will not recur in the long term. System permissions have not been reset or system services have been restarted.
+- The original installation package only has ffprobe and lacks native FFmpeg; the build script is silently skipped when the encoder is missing. Encoder and license file checks before macOS build have been added, and missing inputs will exit with a non-zero status.
+- Inject existing encoders and licenses into a unique installation path via existing local update scripts. Version remains at 2.0.1; release gate, frontend build, packaged media detection and final signature checks passed. The staging app for building has been removed by the existing script.
+- Packaged FFmpeg completes H.264 encoding under a reduced system PATH. The original error reporting path of the installation version "Workflow → New → Keyframe Interception" is undisabled and nodes can be added.
+- Create and save "Keyframe Extraction·Local Processing" in the demo canvas, connect the video input and frame capture output, import the existing racing video and run it; the interface displays "Completed 1/1", and the real first frame is output.
+- `beeftv-2.0.1-workflow-local-verified.jpg` is the actual screenshot of the successful result. This item only proves that the single-input local frame capture is successful. It has not yet completed the multiplexing of the two sets of inputs, and does not represent the verification of the generation effect of the original single-character replacement template.
+- Fixed the problem that the paid model is not called in the verification, and the cost of adding a new model is 0.
 
-## 案例补齐
+## Case completion
 
-操作环境仍为唯一安装路径的 BeefTV 2.0.1。案例画布为「BeefTV 2.0 · 创作与复用」。
+The operating environment remains BeefTV 2.0.1 with the only installation path. The case canvas is "BeefTV 2.0 · Creation and Reuse".
 
-| 文件 | 来源与处理 | 已验证内容 |
+| Documentation | Source and Processing | Verified Content |
 | --- | --- | --- |
-| `beeftv-2.0.1-agent-delivery.jpg` | 原始窗口捕获，2498 × 1680 | 两个新建文本节点及 Agent 完成说明 |
-| `beeftv-2.0.1-agent-delivery.webp` | 上图裁去顶部 64 像素，2498 × 1616 | 用于首页的可编辑分镜交付截图 |
-| `beeftv-2.0.1-workflow-local-verified.jpg` | 第一组输入原始捕获，2498 × 1680 | 赛车视频截帧成功，已完成 1 / 1 |
-| `beeftv-2.0.1-workflow-reuse.jpg` | 第二组输入原始捕获，2940 × 1684 | 替换霓虹街景视频后再次成功，仍为版本 1 |
-| `beeftv-2.0.1-workflow-first.webp` | 第一组原图裁切，1500 × 1300 | 同时保留版本、完成状态、输入与输出；模板名见原图 |
-| `beeftv-2.0.1-workflow-second.webp` | 第二组原图同位置裁切，1500 × 1300 | 对照同一模板在不同输入下的真实输出 |
+| `beeftv-2.0.1-agent-delivery.jpg` | Original window capture, 2498 × 1680 | Two new text nodes and Agent completion instructions |
+| `beeftv-2.0.1-agent-delivery.webp` | The top 64 pixels of the above image are cropped, 2498 × 1616 | Editable storyboard delivery screenshot for homepage |
+| `beeftv-2.0.1-workflow-local-verified.jpg` | The first set of input raw captures, 2498 × 1680 | Racing video frame capture successful, completed 1 / 1 |
+| `beeftv-2.0.1-workflow-reuse.jpg` | Second set of input raw captures, 2940 × 1684 | Success again after replacing Neon Street View video, still version 1 |
+| `beeftv-2.0.1-workflow-first.webp` | The first group of original images are cropped, 1500 × 1300 | At the same time, the version, completion status, input and output are retained; the template name refers to the original image |
+| `beeftv-2.0.1-workflow-second.webp` | The second set of original images are cropped at the same position, 1500 × 1300 | Compare the real output of the same template under different inputs |
 
-### Agent 与技能
+### Agent and skills
 
-- 双镜头文字分镜：已返回咖啡短片两镜分镜表与待确认项。确认后，Agent 在现有工作流右侧创建「咖啡短片 · 镜头一」「咖啡短片 · 镜头二」，每个节点包含时长、画面和声音。交付范围为文字分镜，不是成片。
-- 采访提纲：已返回社区书店采访的核心问题、开场、三组开放问题和条件追问、补拍清单及授权待确认项。通过安装版可访问界面文本核对结果。
-- 素材清单：已返回咖啡视频、清晨照片的用途与用户声明的授权，指出剩余时长安排和声音缺口；明确没有读取媒体。通过安装版可访问界面文本核对结果。
-- 三项均为文字任务，使用界面所选 `deepseek-v4.1-flash`。另一次确认请求完成两个文本节点交付；没有新增图片、视频或音频生成。预算授权上限 5 元，但本轮接口未提供可核实的文字账单，不将 SDK 未定价的 0 值写为免费，也不声明实际扣款金额。
+- Two-shot text storyboard: The two-shot storyboard of the coffee short has been returned and items to be confirmed have been returned. After confirmation, the Agent creates "Coffee Short Film · Shot 1" and "Coffee Short Film · Shot 2" on the right side of the existing workflow. Each node includes duration, image and sound. The scope of delivery is text storyboarding, not the finished film.
+- Interview outline: core questions returned to the community bookstore, opening, three sets of open questions and conditional questioning, reshoot list and authorization pending confirmation items. Interface text verification results are accessible through the installed version.
+- Material list: The usage of coffee videos and early morning photos and the authorization stated by the user have been returned, indicating the remaining duration and sound gaps; it is clear that the media has not been read. Interface text verification results are accessible through the installed version.
+- All three tasks are text tasks, use the interface to select `deepseek-v4.1-flash`. Another confirmation request completes the delivery of two text nodes; no new images, videos, or audios are generated. The upper limit of budget authorization is 5 yuan, but this round of interface does not provide a verifiable text bill, does not write the 0 value that is not priced by the SDK as free, and does not declare the actual deduction amount.
 
-技能市场详情加载曾超时。通过已连接的 BeefTV 工具读取官方 1.0.0 的 `SKILL.md` 原文，导入为私人本地技能，再在安装版 Agent 中选择执行；本轮未完成市场安装按钮的流程验收。三个本地副本的文件内容与官方文件哈希一致：
+The skill market details loading timed out. Read the official 1.0.0 `SKILL.md` original text through the connected BeefTV tool, import it as a private local skill, and then choose to execute it in the installed Agent; the process acceptance of the market installation button has not been completed this round. The file contents of the three local copies are consistent with the official file hash:
 
-| 市场技能 ID | 版本 | SKILL.md SHA-256 |
+| Market Skill ID | Version | SKILL.md SHA-256 |
 | --- | --- | --- |
 | `official-storyboard-text` | 1.0.0 | `3736e0554bfbc50baf0decb6c9ec71d6f5ba8a654a963ab6725afe53faa51637` |
 | `official-interview-outline` | 1.0.0 | `2a45904927ac5ad8e216db0eab7af50cc9aa8e0f763fd474332c75062f2b8886` |
 | `official-material-inventory` | 1.0.0 | `4b7bc5ddc83627952b09cf7f9ce0d865c8bcb133287630393a6850501dc6a350` |
 
-### 工作流复用
+### Workflow reuse
 
-同一个「关键帧提取 · 本地处理」模板版本 1，截取时间 0 秒。第一组为已有赛车视频，第二组为已有霓虹街景视频；第二次只替换输入并重新运行。两次均显示「已完成 1 / 1」，输出分别为车手与街景首帧。无模型调用，不代表生成型工作流的效果验收。
+The same "Keyframe Extraction·Local Processing" template version 1, interception time 0 seconds. The first group contains existing racing videos, and the second group contains existing neon street scene videos; the second time only replaces the input and reruns. "Completed 1 / 1" is displayed both times, and the output is the driver and the first frame of the street view respectively. No model call does not represent the acceptance of the results of the generative workflow.
 
-### 捕获限制
+### Capture limits
 
-后续窗口捕获再次异常：出现 230 × 278、316 × 342 等小尺寸白图，另有空 WebP 文件。用户解锁后可访问界面文本恢复，调整窗口仍未恢复有效截图，已停止重复捕获并移除本轮无效文件。有效原图和派生 WebP 均保留。
+Subsequent window captures were abnormal again: small-sized white images such as 230 × 278 and 316 × 342 appeared, as well as empty WebP files. After the user is unlocked, the interface text can be restored, and the adjustment window has not restored valid screenshots. Repeated capture has been stopped and invalid files of this round have been removed. Valid originals and derived WebPs are preserved.
 
-尚缺新的 2.0 连续录屏，以及采访、素材整理两项的有效截图；它们的文字结果已在安装版核对。首页继续明确标注原有视频为早期界面演示，不把截图串联冒充录屏。
+There is still a lack of new 2.0 continuous screen recording, as well as valid screenshots of interviews and material collection; their text results have been verified in the installation version. The homepage continues to clearly mark the original video as an early interface demonstration, and does not concatenate screenshots to pretend to be a screen recording.
 
-## 单人物替换主案例
+## Single character replacement main case
 
-用户要求以本地优化后的单人物替换流程作为首页主要案例。核对安装版仍为 2.0.1，当前模板为版本 14；版本号没有随本地二进制更新而变化。通过已连接的 BeefTV 读取当前画布，辅以本地 SQLite 只读核对模板和运行状态。没有更改模板、原画布节点或发起新的模型生成。
+Users requested that the locally optimized single character replacement process be used as the main case on the home page. Check that the installed version is still 2.0.1 and the current template is version 14; the version number has not changed with local binary updates. Reads the current canvas via the connected BeefTV, supplemented by local SQLite read-only check templates and run status. No changes were made to the template, original canvas nodes or new model generation initiated.
 
-### 当前版本与证据
+### Current version and evidence
 
-- 模板 `c605c8ac744de536471d92a695d571ff`：视频输入 → `video.frame-rate`（24 fps）→ `generate.video`；人物图连接生成的参考图片输入。模型为 `beefapi::seedance-2.0-fast`，9:16，时长跟随适配视频。旧深度节点已经移除。
-- 版本 13 运行 `1c981bd069270851749e1635b140e467` succeeded，适配和生成步骤均成功；生成资源 `5f4d687346dd3cae0bd7bd70b31ff199`。
-- 版本 14 运行 `66fa2ada1729524e2bbd3f7ea6df2821` succeeded，生成资源 `5e4821f1dd3fbd9158f61aa8566df5d8`；该结果在画布中已命名「后半段初稿（未采用）」，不将其当作最终质量通过。
-- 当前最终视频资源 `e11c14ac0dd3d24782c4d489ef11b0b8`，素材 `replacement-full-fast-20261024-final`，节点「单人物替换｜2.0 Fast 完整版」。通过 asset.get 核对它是后续导入的最终作品，不是版本 14 的直接输出。
-- 制作过程与已有交付记录明确包含局部生成修正、特效还原、拼接、原声回填。部分 480p 片段放大，存在动作细节的生成与重构差异。README 与案例页均保留这一区分，不声称通用一键完成、逐帧保真或全片原生 720p。
+- Template `c605c8ac744de536471d92a695d571ff`: video input → `video.frame-rate` (24 fps) → `generate.video`; reference picture input generated by character image connection. The model is `beefapi::seedance-2.0-fast`, 9:16, and the duration follows the adaptation video. The old depth node has been removed.
+- Version 13 runs `1c981bd069270851749e1635b140e467` succeeded, both the adaptation and generation steps succeed; the resource `5f4d687346dd3cae0bd7bd70b31ff199` is generated.
+- Version 14 runs `66fa2ada1729524e2bbd3f7ea6df2821` succeeded and generates resource `5e4821f1dd3fbd9158f61aa8566df5d8`; the result is named "Second half first draft (not adopted)" in the canvas and is not regarded as final quality pass.
+- The current final video resource `e11c14ac0dd3d24782c4d489ef11b0b8`, material `replacement-full-fast-20261024-final`, node "Single character replacement | 2.0 Fast full version". Check via asset.get that it is the final work of subsequent imports, not a direct output of version 14.
+- The production process and existing delivery records clearly include local generation correction, special effects restoration, splicing, and original sound backfilling. Some 480p clips are enlarged, and there are differences in the generation and reconstruction of action details. Both the README and the case page retain this distinction and do not claim universal one-click completion, frame-by-frame fidelity, or native 720p throughout the film.
 
-### 新素材
+### New material
 
-| 文件 | 来源及处理 |
+| Documentation | Source and Processing |
 | --- | --- |
-| `beeftv-character-workflow-editor.png` | 用户提供的真实工作流编辑器截图，2388 × 1234；原样复制，未裁切、压缩或重绘，替换此前结构示意图。 |
-| `beeftv-character-reference.webp` | 本地素材资源中的人物图，等比例缩至 720 × 720，未重绘、未去除文字。 |
-| `beeftv-character-source-close.webp` / `beeftv-character-result-close.webp` | 完整原视频与最终文件的 4.5 秒帧，等比例缩至 450 × 800。 |
-| `beeftv-character-source-motion.webp` / `beeftv-character-result-motion.webp` | 同上两文件的 12.0 秒帧，等比例缩至 450 × 800。 |
-| `beeftv-character-replacement-demo.mp4` | 当前最终视频原样复制，8555901 字节；H.264 / AAC，720 × 1280，24 fps，容器时长 20.340680 秒。 |
+| `beeftv-character-workflow-editor.png` | Screenshot of the real workflow editor provided by the user, 2388 × 1234; copied as it is without cropping, compressing or redrawing, replacing the previous structural diagram. |
+| `beeftv-character-reference.webp` | Character images in local material resources, scaled down to 720 × 720, without redrawing or text removal. |
+| `beeftv-character-source-close.webp` / `beeftv-character-result-close.webp` | 4.5 second frame of the complete original video and final file, scaled down to 450 × 800. |
+| `beeftv-character-source-motion.webp` / `beeftv-character-result-motion.webp` | 12.0 second frame of the same two files, scaled down to 450 × 800. |
+| `beeftv-character-replacement-demo.mp4` | Current final video copied as is, 8555901 bytes; H.264/AAC, 720 × 1280, 24 fps, container duration 20.340680 seconds. |
 
-最终视频 SHA-256：`3136d1a4ee3f87d87db4fb6723ffa3d03aa4cc156c070651b907400dfbedc5bd`。提帧使用安装包内 FFmpeg，未拉伸、修饰、移除水印或单独修正展示帧。示例本身是 AI 人物替换作品，不是真实人物行为记录。
+Final video SHA-256: `3136d1a4ee3f87d87db4fb6723ffa3d03aa4cc156c070651b907400dfbedc5bd`. FFmpeg in the installation package is used to extract frames, and the display frames are not stretched, modified, watermarked, or individually modified. The example itself is an AI character replacement work, not a record of real character behavior.
 
-### 本轮验证边界
+### This round of verification boundary
 
-安装版打开原画布并进入最终节点播放器；自动窗口捕获仍返回异常白图，随后采用用户提供的真实编辑器截图，未完成新的连续录屏。对照帧均直接检查过画面，最终视频进行媒体探测与全片解码检查。本轮仅复用已有结果，没有新增模型费用。工作流的帧率适配代码在工作区尚有未提交改动，此处记录的是本地更新版，不声明这些新增步骤已随远端正式发行版提供。
+The installation version opens the original canvas and enters the final node player; the automatic window capture still returns an abnormal white image, and then uses the real editor screenshot provided by the user, and a new continuous screen recording is not completed. The control frames were directly checked, and the final video was checked for media detection and full-film decoding. This round only reuses existing results, and there is no new model fee. There are still uncommitted changes to the frame rate adaptation code of the workflow in the workspace. What is recorded here is the local updated version. It does not state that these new steps have been provided with the remote official release version.
 
-## Agent 短剧主案例
+## Agent short play main case
 
-用户要求展示原来通过聊天创建复杂画布的短剧项目。读取画布 `ZaKJf2b2HWQthidRFUyYo`（revision 120），作品名《最后一瓶水》：25 个节点、48 条连线，包含剧本架构、8 镜分镜表、3 张角色图、2 张场景图、2 段独立旁白、8 个首帧节点和 8 个视频节点。计划总长 59 秒，并非已完成成片。
+Users requested a demonstration of an original skit project that created a complex canvas through chat. Read canvas `ZaKJf2b2HWQthidRFUyYo` (revision 120), work title "The Last Bottle of Water": 25 nodes, 48 ​​connections, including script structure, 8 shot storyboards, 3 character pictures, 2 scene pictures, 2 independent narrations, 8 first frame nodes and 8 video nodes. It was planned to be 59 seconds long and was not a completed film.
 
-### 操作与检查记录
+### Operation and inspection records
 
-- 本地 Agent 会话的公开用户消息要求先做剧本架构，再生成角色、场景，最后生成视频；已明确确认并开始制作。读取时只提取用户与助手的公开文本、工具名称与操作计数，未公开系统提示、模型推理或凭据。
-- 会话中记录了节点创建、分镜准备、节点配置、生成方案提交与任务读取，图像使用 `gpt-image-2.5`，视频使用 Seedance 2.0 Fast，独立旁白使用 MiniMax Speech 2.8 HD。
-- 已有 5 张设定图和镜头 2–6 的首帧成功；镜头 4、5、6 视频成功，其他 5 个视频尚未生成；镜头 1、7、8 的首帧为失败状态。
-- 会话包含 10 次 `media_overview`，对象为五张设定图与五张首帧；未见 `media_review` 调用。助手的素材核对描述不能扩大为连续视频、声音或整片验收已经完成。
-- 安装版仍为 2.0.1，已打开原画布，界面能读到剧本、角色、场景、旁白及分镜节点。只调整视口以适合屏幕，没有改动节点或发起生成。
-- 自动窗口捕获返回 ScreenCaptureKit -3811；尝试系统自带截图工具也超时，已退出并停止重复尝试。尚未取得新的复杂画布全景截图，不伪造应用界面作为替代。
+- The public user message of the local Agent session requires that the script structure be done first, then characters, scenes, and finally the video be generated; it has been clearly confirmed and production has started. When reading, only the public text, tool name, and operation count of the user and assistant are extracted. System prompts, model inference, or credentials are not disclosed.
+- The session records node creation, storyboard preparation, node configuration, generation plan submission and task reading. Images use `gpt-image-2.5`, videos use Seedance 2.0 Fast, and independent narration uses MiniMax Speech 2.8 HD.
+- There are 5 setting pictures and the first frame of shots 2–6 successful; the videos of shots 4, 5, and 6 are successful, and the other 5 videos have not yet been generated; the first frames of shots 1, 7, and 8 are in a failed state.
+- The session contains 10 `media_overview`, the objects are five setting pictures and five first frames; no `media_review` calls are seen. The assistant's material review description cannot be expanded to continuous video, sound or full film acceptance has been completed.
+- The installation version is still 2.0.1, the original canvas has been opened, and the script, characters, scenes, narration and storyboard nodes can be read in the interface. Only the viewport is adjusted to fit the screen, no nodes are modified or a build is initiated.
+- Automatic window capture returns ScreenCaptureKit -3811; trying the system's built-in screenshot tool also times out, exits and stops repeated attempts. No new complex canvas panoramic screenshots have been taken, no fake application interface as a replacement.
 
-### 产物来源
+### Product source
 
-所有图片与媒体均来自该画布已绑定的本地资源。图片仅等比例缩小和 WebP 压缩，视频与旁白原样复制；无新增生成、无额外模型费用。视频封面为对应视频 2 秒处的真实帧。
+All images and media come from local resources bound to the canvas. The images are only proportionally reduced and compressed by WebP, and the videos and narrations are copied as they are; no new generation or additional model fees are required. The video cover is the real frame at 2 seconds of the corresponding video.
 
-| 文件前缀 `beeftv-agent-drama-` | 原始资源 ID |
+| File prefix `beeftv-agent-drama-` | Original resource ID |
 | --- | --- |
 | `role-shenmo.webp` | `97c6511342dc4d9d0953c3c7f7028b2b` |
 | `role-xiaoman.webp` | `e1e30f5109ba1f2d7caf4d6f02dc775a` |
@@ -148,40 +148,40 @@
 | `narration-opening.mp3` | `121de19b871befd7ecd8e342c211faa5` |
 | `narration-ending.mp3` | `98fcb813883d2a20ff13bcfa7b20b01c` |
 
-视频均为 H.264 / AAC、720 × 1280、24 fps，容器时长分别为 8.096、6.080、9.088 秒；视频流及画布节点时长略短于容器，因此公开文案仅写约 8 / 6 / 9 秒。两段旁白 MP3 实测时长约 3.831 与 4.551 秒。三个视频和两段旁白全量解码通过；视频封面与选用的角色、场景图均直接查看。解码通过不等于主观剧情、动作、口型或声音验收通过。
+The videos are all H.264/AAC, 720 × 1280, 24 fps, and the container duration is 8.096, 6.080, and 9.088 seconds respectively; the video stream and canvas node duration are slightly shorter than the container, so the public copy only takes about 8/6/9 seconds to write. The measured duration of the two narration MP3s is approximately 3.831 and 4.551 seconds. Three videos and two narrations were fully decoded and passed; the video covers, selected characters, and scene images can all be viewed directly. Passing the decoding does not mean passing the subjective plot, action, lip-sync or sound acceptance.
 
-只展示原始镜头片段，没有把它们合并成完整短剧；未生成字幕或时间线，也未宣称该项目已经完成端到端自动验收。
+Only raw footage is shown, without being combined into a complete skit; no subtitles or timelines are generated, and there is no claim that the project has completed end-to-end automated acceptance.
 
-### 用户补充的实际使用截图
+### Actual usage screenshots added by users
 
-`beeftv-agent-drama-canvas.png` 为用户提供的 2376 × 1552 原始截图，原样复制，未裁切、压缩或重绘。展示角色与场景设定、分镜与视频节点、素材引用连线，以及右侧 Agent 对话中的步骤进度。已放在中英文 README 的设定与镜头展示图下方，并接入案例页。
+Original 2376 × 1552 screenshot provided by `beeftv-agent-drama-canvas.png` to the user, reproduced as is without cropping, compression or redrawing. Displays characters and scene settings, storyboards and video nodes, material reference connections, and the step progress in the Agent dialogue on the right. It has been placed under the settings and lens display pictures of the Chinese and English README, and is connected to the case page.
 
-该截图补齐了上文因自动捕获失败而缺少的画布使用画面；自动截图服务本身仍未修复。截图也明确保留了待确认、进行中、待做等实际状态，不作为整片已验收的证明。
-## README 图片发布前核验（2026-10-24）
+This screenshot completes the missing canvas usage picture above due to the auto-capture failure; the auto-capture service itself is still unresolved. The screenshots also clearly retain the actual status of pending confirmation, in progress, to be completed, etc., and are not used as proof that the entire film has been accepted.
+## README Picture verification before publishing (2026-10-24)
 
-- 中英文 README 与案例页引用的 24 个本地图片：文件存在、路径大小写一致、未被 Git 忽略；PNG/JPEG/WebP 解码检查通过。
-- 完整预览浏览器检查：20 张图片全部加载成功，包含角色图、场景图和 Agent 实际使用截图。
-- 预览转换的部分 WebP 虽可被 FFmpeg 解码，但浏览器拒绝加载；预览改用 JPEG 后全部通过。仓库原图未作替换。
-- 17 个新增图片尚未提交。发布 README 时必须一并提交这些素材，不能只提交 Markdown；推送后还需在 GitHub 页面复查实际加载结果。
+- 24 local images referenced in the Chinese and English README and case pages: the files exist, the path cases are consistent, and are not ignored by Git; the PNG/JPEG/WebP decoding check passes.
+- Full preview browser check: all 20 pictures are loaded successfully, including character pictures, scene pictures and actual screenshots of Agent usage.
+- Although part of the converted WebP in the preview can be decoded by FFmpeg, the browser refuses to load it; after the preview is switched to JPEG, it all passes. The original image of the warehouse has not been replaced.
+- 17 new images have not yet been submitted. These materials must be submitted together when publishing the README, not just Markdown; after pushing, the actual loading results need to be reviewed on the GitHub page.
 
-## 新版产品演示视频（2026-10-24）
+## New product demonstration video (2026-10-24)
 
-### GitHub 页内播放修复
+### GitHub in-page playback fix
 
-#### 独立播放器黑框的后续定位
+#### Subsequent positioning of the black frame of the independent player
 
-- 用户反馈镜头 4 可播放，另外三个首页播放器黑框。匿名抓取真实首页确认：表格内镜头 4 的 `src` 为媒体 CDN 签名地址；其余三个仍为 `github.com/user-attachments` 跳转地址，并各有一个未解析的 `gh:secured-asset-reference` 占位元素。
-- 最小 GitHub 渲染对照：顶层 `<video>` 和 `<p><video>` 会残留上述占位元素；无样式 `<div>`、表格容器和裸附件 URL 可正确解析为媒体 CDN。给独立播放器增加无样式 HTML 块容器，保留内容、顺序和原表格布局，不修改附件与编码。
-- 之前仅验证播放器数量、附件公开访问、独立本地页面播放，不足以覆盖 GitHub 页面中的附件解析过程；该缺口已补入 `scripts/verify-readme-videos.py`。
-- 回归检查同时验证文档的 GitHub 渲染结果、未解析占位元素、实际 CDN 来源及匿名视频分段响应。修复前的公开首页被准确检出 3 个占位元素；修复后的三份文档均为 4 个已解析播放器且无占位元素。
+- User feedback that lens 4 can be played, and the other three homepage players have black frames. Anonymous capture of the real homepage to confirm: `src` in shot 4 in the table is the media CDN signature address; the remaining three are still `github.com/user-attachments` jump addresses, and each has an unresolved `gh:secured-asset-reference` placeholder element.
+- Minimal GitHub rendering comparison: top-level `<video>` and `<p><video>` retain the above placeholder elements; unstyled `<div>`, table container, and bare attachment URLs resolve correctly to media CDNs. Add an unstyled HTML block container to the independent player, retaining the content, order and original table layout, without modifying attachments and encoding.
+- Previously, only the number of players, public access to attachments, and independent local page playback were verified, which was not enough to cover the attachment parsing process in GitHub pages; this gap has been filled in `scripts/verify-readme-videos.py`.
+- Regression checks simultaneously verify the GitHub render of the document, unresolved placeholder elements, actual CDN origin, and anonymous video segmented responses. The public homepage before the repair was accurately detected with 3 placeholder elements; the three documents after the repair all had 4 parsed players and no placeholder elements.
 
-- 根因：封面 Markdown 链接跳转到 GitHub blob 文件页，不是播放器；GitHub 的 Markdown 渲染会移除普通仓库 MP4 地址的 `<video>`，保留 GitHub 用户附件地址。此前远端 HTTP 可访问检查不足以验证播放器。
-- 参考 Hypit README 的表格内 `<video controls>` 方案。当前中英文 README 和案例页均使用 GitHub 视频附件；章节顺序与三列表格布局保持不变。
-- 附件通过 GitHub 官方 CLI 的 `internal/attachments/client.go` 所用上传接口创建。地址与文件大小记录在 `video-attachments.json`，文档保存稳定附件地址，不保存短时签名地址。
-- 三个短剧镜头的网页副本为 `beeftv-agent-drama-shot-{4,5,6}-web.mp4`，分别 2,286,138 / 1,522,906 / 2,335,706 字节；保留原分辨率、帧率和完整内容，H.264 / yuv420p + AAC，播放索引前置，原片未修改。
-- 五段视频全量解码与 faststart 检查通过。GitHub Markdown 渲染接口在中英文 README 和案例页分别保留 4 个播放器。
-- 附件通过草稿预览关联到公开仓库后，不带登录凭据的五个请求均返回 `206 video/mp4`，可按字节分段加载。浏览器直接读取 GitHub 附件并逐段播放，五段均推进到片尾，时长为 44.952 / 20.341 / 8.096 / 6.080 / 9.088 秒，媒体错误为空；演示视频暂停与跳转检查通过。
-- GitHub 实际 Markdown 渲染输出中的表格播放器已加载，三列布局与两张设定图保留。网络检查中的首段请求约 2.4 秒，仅代表当前网络观测，不承诺不同地区的起播时间。
+- Root cause: The cover Markdown link jumps to the GitHub blob file page, not the player; GitHub's Markdown rendering will remove the `<video>` of the ordinary warehouse MP4 address, retaining the GitHub user attachment address. Previously the remote HTTP accessibility check was not sufficient to authenticate the player.
+- Refer to the `<video controls>` scheme in the table in the Hypit README. Currently, both Chinese and English README and case pages use GitHub video attachments; the order of chapters and the three-column table layout remain unchanged.
+- Attachments are created through the upload interface used by `internal/attachments/client.go` of the official GitHub CLI. The address and file size are recorded in `video-attachments.json`. The document saves the stable attachment address and does not save the short-term signature address.
+- The web copies of the three short drama scenes are `beeftv-agent-drama-shot-{4,5,6}-web.mp4`, 2,286,138 / 1,522,906 / 2,335,706 bytes respectively; the original resolution, frame rate and complete content are retained, H.264 / yuv420p + AAC, the playback index is advanced, and the original film is not modified.
+- All five videos were decoded and faststart checked. The GitHub Markdown rendering interface reserves 4 players for the Chinese and English README and case pages respectively.
+- After the attachment is associated to the public warehouse through draft preview, five requests without login credentials all return `206 video/mp4`, which can be loaded in byte segments. The browser directly reads the GitHub attachment and plays it segment by segment. All five segments are advanced to the end, with a duration of 44.952 / 20.341 / 8.096 / 6.080 / 9.088 seconds. The media error is empty; the demo video pause and jump checks pass.
+- The table player in GitHub's actual Markdown rendered output is loaded, and the three-column layout and two settings images are retained. The first request in the network check is about 2.4 seconds, which only represents the current network observation and does not promise the starting time in different regions.
 
 - 来源：用户提供的 `10月24日-BeefTV新版演示宣传片-X.mp4`，原片约 127 MiB、44.93 秒、2564 × 1440、60 fps，保留原文件不变。
 - 网页版：`beeftv-demo-2.0.mp4`，6,699,829 字节（约 6.39 MiB），1920 × 1078、30 fps，H.264 / yuv420p + AAC，容器时长 44.952 秒，未裁剪内容。视频 CRF 26、峰值码率约束 1500 kbit/s，音频 96 kbit/s；复杂画面和小字会有压缩损失。

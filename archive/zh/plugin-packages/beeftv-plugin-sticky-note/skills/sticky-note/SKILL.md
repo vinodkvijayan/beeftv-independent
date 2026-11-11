@@ -1,18 +1,18 @@
 ---
 name: sticky-note
-description: 使用画布便签整理待办、灵感、批注与拍摄要点。当用户要求贴便签、记待办或修改已有便签时使用。
+description: Use canvas notes to organize to-dos, inspirations, notes and shooting highlights. It is used when the user requests to post notes, record to-dos, or modify existing notes.
 ---
 
-# 画布便签（`sticky-note`）
+# Canvas Notes (`sticky-note`)
 
-## 适用场景
+## Applicable scenarios
 
-- 用户提出“帮我贴个便签”“记一下这几条修改意见”“把待办列成便签放画布上”。
-- 用户要求更新画布上已有的便签内容或标题。
+- Users suggested "put a sticky note for me", "note these modification comments" and "put the to-do list as a sticky note on the canvas".
+- The user requested to update the content or title of the note already on the canvas.
 
-## 操作步骤
+## Operation steps
 
-1. 将用户口述或讨论的要点拆成简洁清晰的条目，每张便签聚焦一个要点。
-2. 新建便签时调用 `sticky_note_create`，传入 4 至 12 字的概括 `title` 和正文 `text`。
-3. 修改已有便签时调用 `sticky_note_update`，传入目标 `nodeId` 以及更新后的 `title` 或 `text`。
-4. 完成后告知用户新建或更新了几张便签。
+1. Divide the key points spoken or discussed by users into concise and clear items, with each note focusing on one key point.
+2. Call `sticky_note_create` when creating a new note, and pass in the 4 to 12-character summary `title` and the main text `text`.
+3. Call `sticky_note_update` when modifying an existing note, passing in the target `nodeId` and the updated `title` or `text`.
+4. After completion, the user will be informed of how many notes have been created or updated.

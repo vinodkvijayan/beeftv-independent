@@ -1,47 +1,47 @@
 [
-  {"message":"第 2 个参考视频平均帧率为 120.000 FPS，需要 24–60 FPS；请重新导出","reason":"120.000 FPS","action":"24–60 FPS"},
-  {"message":"素材转换失败: Frame rate must be between 24 and 60.","reason":"帧率","action":"24–60 FPS"},
-  {"message":"素材转换失败: unsupported video codec","reason":"编码","action":"只修改文件后缀无效"},
-  {"message":"asset is not ready","reason":"仍在处理中","action":"确认处理完成"},
-  {"message":"asset access denied","reason":"无权访问","action":"上传该素材的账号"},
+  {"message":"2nd reference video averages 120.000 FPS and requires 24–60 FPS; please re-export","reason":"120.000 FPS","action":"24–60 FPS"},
+  {"message":"Material conversion failed: Frame rate must be between 24 and 60.","reason":"Frame rate","action":"24–60 FPS"},
+  {"message":"Material conversion failed: unsupported video codec","reason":"encoding","action":"Modifying only the file suffix is invalid"},
+  {"message":"asset is not ready","reason":"Still processing","action":"Confirm processing completed"},
+  {"message":"asset access denied","reason":"No access","action":"The account that uploaded the material"},
   {
-    "message": "第 1 个参考视频：参考视频下载失败，请检查素材链接或重新上传",
-    "reason": "第 1 个参考视频",
+    "message": "1st reference video: Reference video download failed, please check the material link or re-upload",
+    "reason": "Reference video 1",
     "action": "MP4/MOV"
   },
   {
-    "message": "第 2 个参考视频尺寸为 200×640，需要宽高均在 300–6000 像素之间；请调整尺寸后再提交",
+    "message": "The size of the second reference video is 200×640, and the width and height need to be between 300–6000 pixels; please adjust the size before submitting",
     "reason": "200×640",
     "action": "300–6000"
   },
   {
-    "message": "第 1 个参考视频：参考视频文件不能超过 200MB",
-    "reason": "文件过大",
+    "message": "Reference video 1: Reference video file cannot exceed 200MB",
+    "reason": "File too large",
     "action": "200MB"
   },
   {
-    "message": "第 1 个参考视频：参考视频需使用 MP4/MOV 文件",
-    "reason": "格式或地址",
+    "message": "1st Reference Video: The reference video needs to be an MP4/MOV file",
+    "reason": "format or address",
     "action": "MP4/MOV"
   },
   {
-    "message": "第 1 个参考视频像素总量为 331776（432×768），需要 407696–8295044 像素；请调整尺寸",
+    "message": "The first reference video has a total pixel count of 331776 (432×768) and requires 407696–8295044 pixels; please resize",
     "reason": "432×768",
     "action": "407696–8295044"
   },
   {
-    "message": "第 1 个参考视频时长为 1.500 秒，需要 2–15 秒；请裁剪或更换素材后再提交",
+    "message": "The first reference video is 1.500 seconds long and takes 2–15 seconds; please crop or replace the material before submitting",
     "reason": "1.500",
     "action": "2–15"
   },
   {
-    "message": "素材转换失败: Pixel count must be between 407696 and 8295044.",
-    "reason": "像素总量",
+    "message": "Material conversion failed: Pixel count must be between 407696 and 8295044.",
+    "reason": "Total number of pixels",
     "action": "407696–8295044"
   },
   {
-    "message": "第 1 个参考视频像素总量为 331776（432×768），需要 至少 407696 像素；请调整尺寸",
+    "message": "The first reference video has a total pixel count of 331776 (432×768) and requires at least 407696 pixels; please resize",
     "reason": "432×768",
-    "action": "至少 407696"
+    "action": "At least 407696"
   }
 ]

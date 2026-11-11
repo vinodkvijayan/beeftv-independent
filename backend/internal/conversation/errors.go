@@ -34,34 +34,34 @@ func (e *Error) Error() string {
 }
 
 func errNotFound() *Error {
-	return &Error{Status: http.StatusNotFound, Reason: ReasonNotFound, Message: "创作对话不存在"}
+	return &Error{Status: http.StatusNotFound, Reason: ReasonNotFound, Message: "Creation dialogue does not exist"}
 }
 
 func errConflict() *Error {
-	return &Error{Status: http.StatusConflict, Reason: ReasonConflict, Message: "对话已更新，当前草稿未覆盖已保存内容"}
+	return &Error{Status: http.StatusConflict, Reason: ReasonConflict, Message: "Conversation updated, current draft does not overwrite saved content"}
 }
 
 func errDeleted() *Error {
-	return &Error{Status: http.StatusConflict, Reason: ReasonDeleted, Message: "对话已删除，无法再写入"}
+	return &Error{Status: http.StatusConflict, Reason: ReasonDeleted, Message: "The conversation has been deleted and can no longer be written to"}
 }
 
 func errMessageTaskMismatch() *Error {
-	return &Error{Status: http.StatusConflict, Reason: ReasonMessageTaskMismatch, Message: "这条消息已经换了任务，不能再写入这次结果"}
+	return &Error{Status: http.StatusConflict, Reason: ReasonMessageTaskMismatch, Message: "This message has changed tasks and the results cannot be written again."}
 }
 
 func errInvalid(message string) *Error {
 	if strings.TrimSpace(message) == "" {
-		message = "创作对话内容无效"
+		message = "Invalid authoring conversation content"
 	}
 	return &Error{Status: http.StatusBadRequest, Reason: ReasonInvalid, Message: message}
 }
 
 func errIdentity() *Error {
-	return &Error{Status: http.StatusBadRequest, Reason: ReasonInvalid, Message: "缺少工作区身份"}
+	return &Error{Status: http.StatusBadRequest, Reason: ReasonInvalid, Message: "Missing workspace identity"}
 }
 
 func errUnavailable() *Error {
-	return &Error{Status: http.StatusServiceUnavailable, Reason: ReasonUnavailable, Message: "创作对话存储不可用"}
+	return &Error{Status: http.StatusServiceUnavailable, Reason: ReasonUnavailable, Message: "Authoring session storage is unavailable"}
 }
 
 func ErrUnavailable() *Error {

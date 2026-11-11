@@ -50,7 +50,7 @@ func runModuleProviderTask(ctx context.Context, input Input, provider protocol.M
 			return FinishProtocolAdapterResult(ctx, input, provider, request, taskID, created.Result, policy)
 		}
 		if taskID == "" {
-			return nil, SubmissionUnknownError{Cause: errors.New("插件提交后没有返回任务号，请到服务商处核对任务记录")}
+			return nil, SubmissionUnknownError{Cause: errors.New("The task number is not returned after the plug-in is submitted. Please check the task record with the service provider.")}
 		}
 	}
 	return RunVideoPollLoop(ctx, taskID, policy, func(ctx context.Context) (VideoPollOutcome, error) {
@@ -96,7 +96,7 @@ func queryModuleProviderOnce(ctx context.Context, input Input, provider protocol
 	case protocol.StatusPending, protocol.StatusProcessing:
 		return nil, status, nil
 	default:
-		return nil, status, fmt.Errorf("插件任务 %s 返回未知状态：%s", taskID, status)
+		return nil, status, fmt.Errorf("Plug-in task %s returns unknown status: %s", taskID, status)
 	}
 }
 
@@ -109,12 +109,12 @@ func ListModuleProviderModels(ctx context.Context, provider protocol.ModuleProvi
 	var raw json.RawMessage
 	if err := pluginhost.Do(ctx, call, &raw); err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
-			return nil, CatalogError(http.StatusGatewayTimeout, "catalog_timeout", "插件读取模型超时，请检查服务地址后重试", err)
+			return nil, CatalogError(http.StatusGatewayTimeout, "catalog_timeout", "The plug-in timed out when reading the model, please check the service address and try again.", err)
 		}
-		return nil, CatalogError(http.StatusBadGateway, "catalog_upstream_failed", "插件读取模型失败："+err.Error(), err)
+		return nil, CatalogError(http.StatusBadGateway, "catalog_upstream_failed", "Plugin failed to read model:"+err.Error(), err)
 	}
 	if len(raw) == 0 || string(raw) == "null" {
-		return nil, CatalogError(http.StatusBadGateway, "catalog_unsupported", "这个插件不提供模型列表，请手动添加模型", nil)
+		return nil, CatalogError(http.StatusBadGateway, "catalog_unsupported", "This plug-in does not provide a model list, please add models manually", nil)
 	}
 	var listed []struct {
 		ID          string `json:"id"`
@@ -122,7 +122,7 @@ func ListModuleProviderModels(ctx context.Context, provider protocol.ModuleProvi
 		Capability  string `json:"capability"`
 	}
 	if err := json.Unmarshal(raw, &listed); err != nil {
-		return nil, CatalogError(http.StatusBadGateway, "catalog_response_invalid", "插件返回的模型列表格式不对", err)
+		return nil, CatalogError(http.StatusBadGateway, "catalog_response_invalid", "The model list returned by the plug-in is in the wrong format", err)
 	}
 	// 只接一种能力的插件可以不写 capability。
 	fallback := ""
@@ -149,7 +149,7 @@ func ListModuleProviderModels(ctx context.Context, provider protocol.ModuleProvi
 // moduleHostCall 组装一次插件宿主调用。进程按安装包指纹区分，从文件夹重新加载后换上新代码。
 func moduleHostCall(provider protocol.ModuleProvider, method string, args map[string]any) (pluginhost.Call, error) {
 	if !filepath.IsAbs(provider.Module) {
-		return pluginhost.Call{}, fmt.Errorf("插件 %s 的生成接口没有安装目录", provider.Plugin)
+		return pluginhost.Call{}, fmt.Errorf("The generated interface of plug-in %s does not have an installation directory.", provider.Plugin)
 	}
 	return pluginhost.Call{Plugin: provider.Plugin, Version: firstNonEmpty(provider.Revision, provider.Info.Version), Module: provider.Module, Method: method, Args: args}, nil
 }
@@ -175,7 +175,7 @@ func callModuleProvider(ctx context.Context, input Input, provider protocol.Modu
 		return err
 	}
 	if err := json.Unmarshal(raw, out); err != nil {
-		return fmt.Errorf("插件 %s 返回的结果格式不对：%w", provider.Plugin, err)
+		return fmt.Errorf("The result format returned by the plug-in %s is incorrect: %w", provider.Plugin, err)
 	}
 	return nil
 }

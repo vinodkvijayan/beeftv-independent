@@ -15,12 +15,12 @@ function json(res, status, value) {
 }
 
 async function bodyJSON(req) {
-  if (!/^application\/json\b/.test(req.headers['content-type'] || '')) throw new Error('请求需要 JSON 内容')
+  if (!/^application\/json\b/.test(req.headers['content-type'] || '')) throw new Error('Request requires JSON content')
   let bytes = 0
   const chunks = []
   for await (const chunk of req) {
     bytes += chunk.length
-    if (bytes > 32_768) throw new Error('请求内容过大')
+    if (bytes > 32_768) throw new Error('Request content is too large')
     chunks.push(chunk)
   }
   return JSON.parse(Buffer.concat(chunks).toString('utf8'))
@@ -29,7 +29,7 @@ async function bodyJSON(req) {
 function proxy(runtime, req, res, path, basePath) {
   return new Promise((resolve, reject) => {
     if (!path.startsWith('/') || path.startsWith('//')) {
-      reject(new Error('无效的工作区路径'))
+      reject(new Error('Invalid workspace path'))
       return
     }
     // The checked target is sent verbatim. Re-parsing it could drop or rewrite parts the check saw.
@@ -143,8 +143,8 @@ export function apply(ctx) {
   }
 
   async function connect(mode, reconnect = false) {
-    if (!['standalone', 'local'].includes(mode)) throw new Error('请选择独立工作区或本地 BeefTV')
-    if (switching) throw new Error('正在连接工作区，请稍后重试')
+    if (!['standalone', 'local'].includes(mode)) throw new Error('Please select standalone workspace or local BeefTV')
+    if (switching) throw new Error('Connecting to workspace, please try again later')
     if (current?.mode === mode) {
       try {
         await workspaceJSON(current, '/api/health')
@@ -177,10 +177,10 @@ export function apply(ctx) {
           signal: AbortSignal.timeout(15_000),
         })
         const catalog = await response.json()
-        if (!response.ok || catalog.code !== 0) throw new Error('无法读取工作区业务目录')
+        if (!response.ok || catalog.code !== 0) throw new Error('Unable to read workspace business directory')
         return catalog.data
       }))
-      if (!Array.isArray(business?.tools) || !Array.isArray(operations?.ops)) throw new Error('无法读取工作区业务目录')
+      if (!Array.isArray(business?.tools) || !Array.isArray(operations?.ops)) throw new Error('Unable to read workspace business directory')
       runtime.businessTools = business.tools
       runtime.readOnlyTools = readOnlyToolNames(operations.ops)
       runtime.mode = mode
@@ -197,7 +197,7 @@ export function apply(ctx) {
       if (runtime.owned) runtime.child.once('exit', () => {
         if (current !== runtime) return
         current = null
-        error = 'BeefTV 工作区已关闭，请重新连接'
+        error = 'BeefTV workspace is closed, please reconnect'
       })
       await mkdir(pluginHome, { recursive: true, mode: 0o700 })
       await writeFile(settingsPath, JSON.stringify({ mode }), { mode: 0o600 })
@@ -218,12 +218,12 @@ export function apply(ctx) {
       if (previous) {
         try {
           const health = await workspaceJSON(previous, '/api/health', { signal: AbortSignal.timeout(2000) })
-          if (!health.ready || !health.schema?.ready) throw new Error('工作区尚未就绪')
+          if (!health.ready || !health.schema?.ready) throw new Error('Workspace is not ready yet')
         } catch {
           if (current !== previous || switching) return status()
           current = null
           contexts.clear()
-          error = 'BeefTV 连接已中断，等待本机应用恢复'
+          error = 'BeefTV connection has been interrupted, waiting for the native application to resume'
           await release(previous)
         }
       }
@@ -246,15 +246,15 @@ export function apply(ctx) {
           const rawPath = target.split('?', 1)[0]
           if (req.method === 'GET' && rawPath === '/__harness/status') return json(res, 200, status())
           const origin = req.headers.origin
-          if (origin && origin !== ctx.webServer.getOrigin()) return json(res, 403, { error: '不允许的来源' })
+          if (origin && origin !== ctx.webServer.getOrigin()) return json(res, 403, { error: 'Not allowed sources' })
           const rejected = embeddedPathRejection(rawPath)
-          if (rejected) return json(res, rejected, { error: rejected === 403 ? '该操作由 DeepSeek Harness 管理' : '无效的工作区路径' })
+          if (rejected) return json(res, rejected, { error: rejected === 403 ? 'This operation is managed by DeepSeek Harness' : 'Invalid workspace path' })
           await proxy(current, req, res, target, current.basePath)
           return
         }
         const url = new URL(req.url, 'http://localhost')
         const rejection = ctx.connection.requestRejection({ headers: req.headers })
-        if (rejection) return json(res, rejection, { error: '未授权' })
+        if (rejection) return json(res, rejection, { error: 'Unauthorized' })
         if (req.method === 'GET' && url.pathname === '/beeftv/status') return json(res, 200, await refreshConnection())
         if (req.method === 'POST' && url.pathname === '/beeftv/connect') {
           const body = await bodyJSON(req)
@@ -263,15 +263,15 @@ export function apply(ctx) {
         }
         if (req.method === 'POST' && url.pathname === '/beeftv/context') {
           const body = await bodyJSON(req)
-          if (!current || body.connectionId !== current.connectionId) return json(res, 409, { error: '工作区连接已更新，请刷新后重试' })
-          if (typeof body.sessionId !== 'string' || body.sessionId.length > 256) throw new Error('无效的 Agent 会话')
+          if (!current || body.connectionId !== current.connectionId) return json(res, 409, { error: 'The workspace connection has been updated, please refresh and try again' })
+          if (typeof body.sessionId !== 'string' || body.sessionId.length > 256) throw new Error('Invalid Agent session')
           if (contexts.size >= 64 && !contexts.has(body.sessionId)) contexts.delete(contexts.keys().next().value)
           const view = publicContext(body.context)
           view.agentMode = ['creation', 'assets', 'ecosystem'].includes(body.agentMode) ? body.agentMode : 'creation'
           contexts.set(body.sessionId, view)
           return json(res, 200, { ok: true })
         }
-        json(res, 404, { error: '未找到接口' })
+        json(res, 404, { error: 'Interface not found' })
       } catch (failure) {
         if (!res.headersSent) json(res, 503, { error: failure.message })
         else res.destroy()
@@ -301,11 +301,11 @@ export function apply(ctx) {
       const view = contexts.get(agent?.id)
       if (!current || !view) return ''
       const directions = {
-        creation: '长程导演创作模式。优先围绕当前画布（或用 canvas.create 新建画布）规划整片分镜、镜头节点、声音与时间线：新短片优先一次调用 canvas.script.prepare 同步落好分镜表与首帧/视频节点草稿，单镜修改用 canvas.script.row.update；按首批首帧 -> 画面复核（media.overview / media.inspect 抽帧）-> 视频与旁白 -> 动作与声音审片（media.review）-> 时间线合成（canvas.timeline.update / canvas.timeline.render / canvas.project.export）长程推进，生成前通过 canvas.generation.propose 核对参数与费用再提交，是否需要用户在审批中确认由 DSH 的访问模式决定。',
-        assets: '素材管理模式。先用 asset.list 搜索素材，用 asset.get 核对目标；画布复用素材用 canvas.node.bind_asset，媒体质量检查用 media.overview / media.check，画面细节用 media.inspect 抽帧，视频动作与声音用 media.review。文件夹、标签等专用工具未覆盖的操作，使用 business.list 按已知完整接口 ID 查询 schema，再按真实 schema 调用 business.call，改动后读回核对。',
-        ecosystem: '创造与生态定制模式（接入第三方 API 渠道、开发插件、编写 Skill）。接入新 API 或模型渠道时，用 business.call 以 tool 为 business_get_plugins_catalog 与 business_get_workspace_model_config 读取现状，再以 business_put_workspace_model_config（或先安装协议插件）完成配置并读回核对；开发插件时生成符合 BeefTV 插件规范的插件目录，再用 business.call 以 business_post_plugins_install / business_post_plugins_id_update 安装或热更新；创建可复用技能时用 skill.catalog 查阅现有技能并用 skill.draft 保存与验证。安装与修改配置前向用户说明关键变更。',
+        creation: 'Long-term director creation model. Prioritize planning of the entire storyboard, lens nodes, sound and timeline around the current canvas (or use canvas.create to create a new canvas): For new short films, call canvas.script.prepare first to synchronize the storyboard and first frame/video node draft. Use canvas.script.row.update to modify a single shot; press the first batch of first frames -> screen review (media.overview / media.inspect frame extraction) -> video and narration -> action and sound review (media.review) -> Timeline synthesis (canvas.timeline.update / canvas.timeline.render / canvas.project.export) is promoted in the long term. Before generation, the parameters and costs are checked through canvas.generation.propose before submission. Whether the user needs to confirm during the approval process is determined by the access mode of DSH.',
+        assets: 'Material management mode. First use asset.list to search for materials, and use asset.get to check the target; use canvas.node.bind_asset to reuse materials on canvas, use media.overview / media.check to check media quality, use media.inspect to extract frames for picture details, and use media.review for video actions and sounds. For operations not covered by special tools such as folders and labels, use business.list to query the schema according to the known complete interface ID, then call business.call according to the real schema, and read back the changes for verification.',
+        ecosystem: 'Creation and ecological customization model (accessing third-party API channels, developing plug-ins, and writing Skills). When accessing a new API or model channel, use business.call to use tool to read the current status of business_get_plugins_catalog and business_get_workspace_model_config, then use business_put_workspace_model_config (or install the protocol plug-in first) to complete the configuration and read it back for verification; when developing plug-ins, generate a plug-in directory that complies with BeefTV plug-in specifications, and then use business.call to use business_post_plugins_install / business_post_plugins_id_update Installation or hot update; when creating reusable skills, use skill.catalog to check existing skills and use skill.draft to save and verify. Inform users of critical changes before installing and modifying configurations.',
       }
-      return `${directions[view.agentMode]}\nBeefTV 当前工作区视图（仅为定位信息，请用工具读取最新内容）\n${JSON.stringify(view)}`
+      return `${directions[view.agentMode]}BeefTV current workspace view (only positioning information, please use tools to read the latest content)${JSON.stringify(view)}`
     },
   })
   function fullAccess(agent) {

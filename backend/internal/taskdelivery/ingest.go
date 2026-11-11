@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ErrInvalidGeneratedDataURL = errors.New("生成内容 data URL 无效")
+	ErrInvalidGeneratedDataURL = errors.New("Invalid generated content data URL")
 	ErrIngestStoreMissing      = errors.New("generated media store is not initialized")
 )
 
@@ -181,10 +181,10 @@ func (i *Ingestor) ingestInline(userID string, item map[string]interface{}, raw,
 		EnforceQuota: opts.EnforceQuota,
 	})
 	if err != nil {
-		return fmt.Errorf("生成内容写入资源存储失败：%w", err)
+		return fmt.Errorf("Failed to write generated content to resource storage: %w", err)
 	}
 	if resource == nil || strings.TrimSpace(resource.ID) == "" {
-		return fmt.Errorf("生成内容写入资源存储失败：%w", ErrResourceMissing)
+		return fmt.Errorf("Failed to write generated content to resource storage: %w", ErrResourceMissing)
 	}
 	rewriteInlineResource(item, raw, *resource, kind)
 	return nil
@@ -199,7 +199,7 @@ func (i *Ingestor) checkMaxBytes(data []byte) error {
 		return err
 	}
 	if limit > 0 && int64(len(data)) > limit {
-		return fmt.Errorf("单个生成资源超过 %dMB", limit>>20)
+		return fmt.Errorf("A single generated resource exceeds %dMB", limit>>20)
 	}
 	return nil
 }
@@ -232,12 +232,12 @@ func joinIngestPath(parent, child string) string {
 func DecodeInlineDataURL(value string) (string, []byte, error) {
 	header, encoded, ok := strings.Cut(value, ",")
 	if !ok || !strings.HasPrefix(header, "data:") || !strings.HasSuffix(strings.ToLower(header), ";base64") {
-		return "", nil, fmt.Errorf("%w：格式无效", ErrInvalidGeneratedDataURL)
+		return "", nil, fmt.Errorf("%w: Invalid format", ErrInvalidGeneratedDataURL)
 	}
 	mimeType := strings.TrimSuffix(strings.TrimPrefix(header, "data:"), ";base64")
 	data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return "", nil, fmt.Errorf("%w：base64 解码失败：%v", ErrInvalidGeneratedDataURL, err)
+		return "", nil, fmt.Errorf("%w: base64 decoding failed: %v", ErrInvalidGeneratedDataURL, err)
 	}
 	return mimeType, data, nil
 }

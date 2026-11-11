@@ -33,13 +33,13 @@ function fixtures(): Fixture[] {
     add("submission-unknown-stage", { taskStage: "submission_unknown", status: "error", taskId: "task-stage" });
     for (const code of RETRIEVABLE) add(`legacy-retrievable-${code}`, { status: "error", generationErrorCode: code, errorDetails: "opaque", taskId: "task-legacy" });
     for (const code of INPUT_REJECTED) add(`legacy-input-${code}`, { status: "error", generationErrorCode: code, errorDetails: "opaque", taskId: "task-input" });
-    add("request-not-sent", { status: "error", generationErrorCode: "request_not_sent", errorDetails: "未能连接服务", taskId: "task-not-sent" });
-    add("cancelled", { status: "error", taskStatus: "cancelled", errorDetails: "任务已取消", taskId: "task-cancel" });
+    add("request-not-sent", { status: "error", generationErrorCode: "request_not_sent", errorDetails: "Unable to connect to service", taskId: "task-not-sent" });
+    add("cancelled", { status: "error", taskStatus: "cancelled", errorDetails: "Task canceled", taskId: "task-cancel" });
     add("text-auth", { status: "error", errorDetails: "invalid api key" });
     add("text-throttled", { status: "error", errorDetails: "too many requests" });
     add("text-network", { status: "error", errorDetails: "Failed to fetch" });
-    add("target-unavailable-with-task", { status: "error", generationErrorCode: "result_target_unavailable", errorDetails: "生成结果已保存，无法放回原节点", taskId: "task-target" });
-    add("target-unavailable-without-task", { status: "error", generationErrorCode: "result_target_unavailable", errorDetails: "生成结果已保存，无法放回原节点" });
+    add("target-unavailable-with-task", { status: "error", generationErrorCode: "result_target_unavailable", errorDetails: "The generated results have been saved and cannot be put back into the original node.", taskId: "task-target" });
+    add("target-unavailable-without-task", { status: "error", generationErrorCode: "result_target_unavailable", errorDetails: "The generated results have been saved and cannot be put back into the original node." });
     const explicit = [
         ["explicit-running", { phase: "running", regenerate: "blocked", reason: "task_running" }],
         ["explicit-fetching", { phase: "fetching", regenerate: "blocked", reason: "result_fetching" }],
@@ -59,11 +59,11 @@ function fixtures(): Fixture[] {
         taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "delivery_pending" },
         errorDetails: "Failed to fetch",
     });
-    add("moderation-text-only", { status: "error", errorDetails: "提示词或参考素材未通过内容安全审核", taskId: "task-mod-text" });
+    add("moderation-text-only", { status: "error", errorDetails: "The prompt word or reference material did not pass the content security review", taskId: "task-mod-text" });
     add("moderation-with-code", { status: "error", generationErrorCode: "sensitive_words_detected", errorDetails: "opaque", taskId: "task-mod-code" });
-    add("moderation-content-code", { status: "error", generationErrorCode: "sensitive_words_detected", errorDetails: "含敏感词", taskId: "task-mod-const" });
-    add("batch-child", { status: "error", batchRootId: "root", taskId: "task-child", generationErrorCode: "download_failed", errorDetails: "下载失败" });
-    add("depth-capture-result", { status: "error", depthSourceNodeId: "source", taskType: "depth_capture", taskId: "depth-task", taskStatus: "failed", generationErrorCode: "download_failed", errorDetails: "下载生成结果失败" }, CanvasNodeType.Video);
+    add("moderation-content-code", { status: "error", generationErrorCode: "sensitive_words_detected", errorDetails: "Contains sensitive words", taskId: "task-mod-const" });
+    add("batch-child", { status: "error", batchRootId: "root", taskId: "task-child", generationErrorCode: "download_failed", errorDetails: "Download failed" });
+    add("depth-capture-result", { status: "error", depthSourceNodeId: "source", taskType: "depth_capture", taskId: "depth-task", taskStatus: "failed", generationErrorCode: "download_failed", errorDetails: "Failed to download generated results" }, CanvasNodeType.Video);
     return list;
 }
 
@@ -76,17 +76,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_running"
         },
         "copy": {
-            "badge": "生成中",
-            "reason": "任务正在生成中",
-            "action": "请等待当前任务完成",
-            "message": "任务正在生成中，请等待当前任务完成。"
+            "badge": "Generating",
+            "reason": "Task is being generated",
+            "action": "Please wait for the current task to be completed",
+            "message": "The task is being generated, please wait for the current task to be completed."
         },
         "explanation": {
             "category": "unknown",
             "summary": "",
-            "reason": "生成失败",
-            "action": "请查看详情后再决定是否重试",
-            "message": "生成失败。请查看详情后再决定是否重试。",
+            "reason": "Build failed",
+            "action": "Please review the details before deciding whether to try again",
+            "message": "Build failed. Please review the details before trying again.",
             "errorCode": "unknown",
             "retryable": false,
             "uncertain": false,
@@ -115,17 +115,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "result_ready"
         },
         "copy": {
-            "badge": "已完成",
-            "reason": "生成结果已就绪",
-            "action": "可直接查看或重新生成新版本",
-            "message": "生成结果已就绪，可直接查看或重新生成新版本。"
+            "badge": "Completed",
+            "reason": "The result is ready",
+            "action": "You can directly view or regenerate a new version",
+            "message": "The build results are ready for viewing directly or regenerating a new version."
         },
         "explanation": {
             "category": "unknown",
             "summary": "",
-            "reason": "生成失败",
-            "action": "请查看详情后再决定是否重试",
-            "message": "生成失败。请查看详情后再决定是否重试。",
+            "reason": "Build failed",
+            "action": "Please review the details before deciding whether to try again",
+            "message": "Build failed. Please review the details before trying again.",
             "errorCode": "unknown",
             "retryable": false,
             "uncertain": false,
@@ -154,17 +154,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "result_fetching"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "生成已完成，正在取回结果",
-            "action": "系统正在自动保存，无需重新生成",
-            "message": "生成已完成，正在取回结果，系统正在自动保存，无需重新生成。"
+            "badge": "Retrieving results",
+            "reason": "Generation completed, retrieving results",
+            "action": "The system is saving automatically, no need to regenerate",
+            "message": "The generation has been completed and the results are being retrieved. The system is automatically saving and there is no need to regenerate."
         },
         "explanation": {
             "category": "unknown",
             "summary": "",
-            "reason": "生成失败",
-            "action": "请查看详情后再决定是否重试",
-            "message": "生成失败。请查看详情后再决定是否重试。",
+            "reason": "Build failed",
+            "action": "Please review the details before deciding whether to try again",
+            "message": "Build failed. Please review the details before trying again.",
             "errorCode": "unknown",
             "retryable": false,
             "uncertain": false,
@@ -193,17 +193,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "submission_unknown"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "unknown",
             "summary": "",
-            "reason": "生成失败",
-            "action": "请查看详情后再决定是否重试",
-            "message": "生成失败。请查看详情后再决定是否重试。",
+            "reason": "Build failed",
+            "action": "Please review the details before deciding whether to try again",
+            "message": "Build failed. Please review the details before trying again.",
             "errorCode": "unknown",
             "retryable": false,
             "uncertain": false,
@@ -232,17 +232,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "submission_unknown"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "submission_uncertain",
             "summary": "",
-            "reason": "提交结果尚未确认，上游任务可能仍在执行",
-            "action": "请先查询原任务状态，不要立即重新提交",
-            "message": "提交结果尚未确认，上游任务可能仍在执行。请先查询原任务状态，不要立即重新提交。",
+            "reason": "The submission result has not yet been confirmed, and the upstream tasks may still be executed.",
+            "action": "Please check the original task status first and do not resubmit immediately",
+            "message": "The commit result has not yet been confirmed and upstream tasks may still be executing. Please check the status of the original task first and do not resubmit it immediately.",
             "errorCode": "submission_uncertain",
             "retryable": false,
             "uncertain": true,
@@ -271,17 +271,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "canvas_conflict",
             "summary": "opaque",
-            "reason": "生成结果已保留，画布尚未更新",
-            "action": "请点击「继续取回」，不要重新生成",
-            "message": "生成结果已保留，画布尚未更新。请点击「继续取回」，不要重新生成。",
+            "reason": "The build results have been retained and the canvas has not been updated yet",
+            "action": "Please click \"Continue to retrieve\" and do not regenerate",
+            "message": "The build results have been preserved and the canvas has not been updated. Please click \"Continue Retrieval\" and do not regenerate.",
             "errorCode": "canvas_conflict",
             "retryable": false,
             "uncertain": false,
@@ -310,10 +310,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "download_failed",
@@ -349,17 +349,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "result_apply_failed",
             "summary": "opaque",
-            "reason": "生成结果已保留，还没放回画布",
-            "action": "请点击「继续取回」，不要重新生成",
-            "message": "生成结果已保留，还没放回画布。请点击「继续取回」，不要重新生成。",
+            "reason": "The generated results have been retained and have not been put back into the canvas.",
+            "action": "Please click \"Continue to retrieve\" and do not regenerate",
+            "message": "The generated results have been retained and have not been returned to the canvas. Please click \"Continue Retrieval\" and do not regenerate.",
             "errorCode": "result_apply_failed",
             "retryable": false,
             "uncertain": false,
@@ -388,10 +388,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "delivery_failed",
@@ -427,10 +427,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "submission_uncertain",
@@ -466,10 +466,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "results_missing",
@@ -505,12 +505,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_input",
@@ -546,12 +546,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_reference",
@@ -587,12 +587,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_output",
@@ -628,12 +628,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "invalid_params",
@@ -669,12 +669,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "context_too_long",
@@ -710,12 +710,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "input_inaccessible",
@@ -751,12 +751,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "input_too_large",
@@ -792,19 +792,19 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_input",
             "summary": "opaque",
-            "reason": "提示词或参考素材未通过内容安全审核",
-            "action": "请调整提示词或参考素材后重新生成",
-            "message": "提示词或参考素材未通过内容安全审核。请调整提示词或参考素材后重新生成。",
+            "reason": "The prompt word or reference material did not pass the content security review",
+            "action": "Please adjust the prompt words or reference materials and regenerate",
+            "message": "The prompt word or reference material did not pass the content security review. Please adjust the prompt words or reference materials and regenerate.",
             "errorCode": "moderation_input",
             "providerCode": "content_policy_violation",
             "retryable": false,
@@ -834,19 +834,19 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_input",
             "summary": "opaque",
-            "reason": "提示词或参考素材未通过内容安全审核",
-            "action": "请调整提示词或参考素材后重新生成",
-            "message": "提示词或参考素材未通过内容安全审核。请调整提示词或参考素材后重新生成。",
+            "reason": "The prompt word or reference material did not pass the content security review",
+            "action": "Please adjust the prompt words or reference materials and regenerate",
+            "message": "The prompt word or reference material did not pass the content security review. Please adjust the prompt words or reference materials and regenerate.",
             "errorCode": "moderation_input",
             "providerCode": "sensitive_words_detected",
             "retryable": false,
@@ -876,17 +876,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "not_charged"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次请求未扣费，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次请求未扣费，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last request was not deducted and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last request was not deducted and can be regenerated directly."
         },
         "explanation": {
             "category": "request_not_sent",
-            "summary": "未能连接服务",
-            "reason": "未能连接服务",
+            "summary": "Unable to connect to service",
+            "reason": "Unable to connect to service",
             "action": "",
-            "message": "未能连接服务",
+            "message": "Unable to connect to service",
             "errorCode": "request_not_sent",
             "retryable": true,
             "uncertain": false,
@@ -915,17 +915,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "not_charged"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次请求未扣费，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次请求未扣费，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last request was not deducted and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last request was not deducted and can be regenerated directly."
         },
         "explanation": {
             "category": "cancelled",
-            "summary": "任务已取消",
-            "reason": "任务已取消",
-            "action": "可按原输入重新提交",
-            "message": "任务已取消。可按原输入重新提交。",
+            "summary": "Task canceled",
+            "reason": "Task canceled",
+            "action": "You can resubmit according to the original input",
+            "message": "The task has been cancelled. You can resubmit according to the original input.",
             "errorCode": "cancelled",
             "retryable": false,
             "uncertain": false,
@@ -954,17 +954,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_failed"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次生成未完成，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次生成未完成，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last generation was not completed and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last generation was not completed and can be regenerated directly."
         },
         "explanation": {
             "category": "auth",
             "summary": "invalid api key",
-            "reason": "模型服务鉴权失败",
-            "action": "请检查 API Key 后重试",
-            "message": "模型服务鉴权失败。请检查 API Key 后重试。",
+            "reason": "Model service authentication failed",
+            "action": "Please check the API Key and try again",
+            "message": "Model service authentication failed. Please check the API Key and try again.",
             "errorCode": "auth",
             "retryable": false,
             "uncertain": false,
@@ -993,17 +993,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_failed"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次生成未完成，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次生成未完成，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last generation was not completed and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last generation was not completed and can be regenerated directly."
         },
         "explanation": {
             "category": "throttled",
             "summary": "too many requests",
-            "reason": "请求过于频繁",
-            "action": "请稍后再试",
-            "message": "请求过于频繁。请稍后再试。",
+            "reason": "Requests are too frequent",
+            "action": "Please try again later",
+            "message": "The request was made too frequently. Please try again later.",
             "errorCode": "throttled",
             "retryable": true,
             "uncertain": false,
@@ -1032,17 +1032,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_failed"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次生成未完成，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次生成未完成，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last generation was not completed and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last generation was not completed and can be regenerated directly."
         },
         "explanation": {
             "category": "network",
             "summary": "Failed to fetch",
-            "reason": "网络连接失败",
-            "action": "请检查网络并核对原任务状态后，再决定是否重新生成",
-            "message": "网络连接失败。请检查网络并核对原任务状态后，再决定是否重新生成。",
+            "reason": "Network connection failed",
+            "action": "Please check the network and verify the status of the original task before deciding whether to regenerate it.",
+            "message": "Network connection failed. Please check the network and verify the status of the original task before deciding whether to regenerate it.",
             "errorCode": "network",
             "retryable": true,
             "uncertain": false,
@@ -1071,17 +1071,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "result_target_unavailable"
         },
         "copy": {
-            "badge": "结果已保存",
-            "reason": "生成结果已保存在生成历史，当前目标节点已变更",
-            "action": "请从生成历史查看结果，请勿重复生成",
-            "message": "生成结果已保存在生成历史，当前目标节点已变更。请从生成历史查看结果，请勿重复生成。"
+            "badge": "Results saved",
+            "reason": "The generation results have been saved in the generation history, and the current target node has been changed.",
+            "action": "Please check the results from the generation history, do not generate again",
+            "message": "The generation results have been saved in the generation history, and the current target node has been changed. Please check the results from the generation history and do not generate again."
         },
         "explanation": {
             "category": "result_target_unavailable",
-            "summary": "生成结果已保存，无法放回原节点",
-            "reason": "生成结果已保存，无法放回原节点",
-            "action": "从「生成历史」取回，无需重新生成",
-            "message": "生成结果已保存，无法放回原节点。从「生成历史」取回，无需重新生成。",
+            "summary": "The generated results have been saved and cannot be put back into the original node.",
+            "reason": "The generated results have been saved and cannot be put back into the original node.",
+            "action": "Retrieved from \"Generation History\", no need to regenerate",
+            "message": "The generated results have been saved and cannot be put back into the original node. Retrieve from \"Generation History\" without regenerating.",
             "errorCode": "result_target_unavailable",
             "retryable": false,
             "uncertain": false,
@@ -1110,17 +1110,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "result_target_unavailable"
         },
         "copy": {
-            "badge": "结果已保存",
-            "reason": "生成结果已保存在生成历史，当前目标节点已变更",
-            "action": "请从生成历史查看结果，请勿重复生成",
-            "message": "生成结果已保存在生成历史，当前目标节点已变更。请从生成历史查看结果，请勿重复生成。"
+            "badge": "Results saved",
+            "reason": "The generation results have been saved in the generation history, and the current target node has been changed.",
+            "action": "Please check the results from the generation history, do not generate again",
+            "message": "The generation results have been saved in the generation history, and the current target node has been changed. Please check the results from the generation history and do not generate again."
         },
         "explanation": {
             "category": "result_target_unavailable",
-            "summary": "生成结果已保存，无法放回原节点",
-            "reason": "生成结果已保存，无法放回原节点",
-            "action": "从「生成历史」取回，无需重新生成",
-            "message": "生成结果已保存，无法放回原节点。从「生成历史」取回，无需重新生成。",
+            "summary": "The generated results have been saved and cannot be put back into the original node.",
+            "reason": "The generated results have been saved and cannot be put back into the original node.",
+            "action": "Retrieved from \"Generation History\", no need to regenerate",
+            "message": "The generated results have been saved and cannot be put back into the original node. Retrieve from \"Generation History\" without regenerating.",
             "errorCode": "result_target_unavailable",
             "retryable": false,
             "uncertain": false,
@@ -1149,10 +1149,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_running"
         },
         "copy": {
-            "badge": "生成中",
-            "reason": "任务正在生成中",
-            "action": "请等待当前任务完成",
-            "message": "任务正在生成中，请等待当前任务完成。"
+            "badge": "Generating",
+            "reason": "Task is being generated",
+            "action": "Please wait for the current task to be completed",
+            "message": "The task is being generated, please wait for the current task to be completed."
         },
         "explanation": {
             "category": "download_failed",
@@ -1188,10 +1188,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "result_fetching"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "生成已完成，正在取回结果",
-            "action": "系统正在自动保存，无需重新生成",
-            "message": "生成已完成，正在取回结果，系统正在自动保存，无需重新生成。"
+            "badge": "Retrieving results",
+            "reason": "Generation completed, retrieving results",
+            "action": "The system is saving automatically, no need to regenerate",
+            "message": "The generation has been completed and the results are being retrieved. The system is automatically saving and there is no need to regenerate."
         },
         "explanation": {
             "category": "download_failed",
@@ -1227,16 +1227,16 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "result_ready"
         },
         "copy": {
-            "badge": "已完成",
-            "reason": "生成结果已就绪",
-            "action": "可直接查看或重新生成新版本",
-            "message": "生成结果已就绪，可直接查看或重新生成新版本。"
+            "badge": "Completed",
+            "reason": "The result is ready",
+            "action": "You can directly view or regenerate a new version",
+            "message": "The build results are ready for viewing directly or regenerating a new version."
         },
         "explanation": {
             "category": "download_failed",
             "summary": "opaque",
-            "reason": "生成结果已就绪",
-            "action": "可直接查看或重新生成新版本",
+            "reason": "The result is ready",
+            "action": "You can directly view or regenerate a new version",
             "message": "opaque",
             "errorCode": "download_failed",
             "retryable": false,
@@ -1266,10 +1266,10 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "download_failed",
@@ -1305,16 +1305,16 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_failed"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次生成未完成，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次生成未完成，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last generation was not completed and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last generation was not completed and can be regenerated directly."
         },
         "explanation": {
             "category": "download_failed",
             "summary": "opaque",
-            "reason": "上次生成未完成，可以直接重新生成",
-            "action": "可以直接重新生成",
+            "reason": "The last generation was not completed and can be regenerated directly.",
+            "action": "Can be regenerated directly",
             "message": "opaque",
             "errorCode": "download_failed",
             "retryable": false,
@@ -1345,16 +1345,16 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reconcileDeadline": "2026-04-20T06:15:00.000Z"
         },
         "copy": {
-            "badge": "正在核对",
-            "reason": "BeefTV 正在核对上次提交，预计 06:15 前有结论",
-            "action": "核对完成前请勿重新生成",
-            "message": "BeefTV 正在核对上次提交，预计 06:15 前有结论。核对完成前请勿重新生成。"
+            "badge": "Checking",
+            "reason": "BeefTV is checking the last submission and a conclusion is expected by 06:15",
+            "action": "Do not regenerate before verification is completed",
+            "message": "BeefTV is checking the last submission and a conclusion is expected by 06:15. Do not regenerate until verification is complete."
         },
         "explanation": {
             "category": "download_failed",
             "summary": "opaque",
-            "reason": "BeefTV 正在核对上次提交，预计 06:15 前有结论",
-            "action": "核对完成前请勿重新生成",
+            "reason": "BeefTV is checking the last submission and a conclusion is expected by 06:15",
+            "action": "Do not regenerate before verification is completed",
             "message": "opaque",
             "errorCode": "download_failed",
             "retryable": false,
@@ -1384,12 +1384,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "charged_result_unrecoverable"
         },
         "copy": {
-            "badge": "结果无法取回",
-            "reason": "上次已扣费，但结果拿不回，重新生成会再扣一次",
-            "action": "确认后将创建新任务重新生成",
-            "message": "上次已扣费，但结果拿不回，重新生成会再扣一次。确认后将创建新任务重新生成。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次已扣费，但结果拿不回，重新生成会再扣一次。"
+            "badge": "The result cannot be retrieved",
+            "reason": "The fee was deducted last time, but the result cannot be retrieved. It will be deducted again if it is regenerated.",
+            "action": "After confirmation, a new task will be created and regenerated.",
+            "message": "The fee was deducted last time, but the result cannot be recovered. If it is regenerated, it will be deducted again. After confirmation, a new task will be created and regenerated.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The fee was deducted last time, but the result cannot be recovered. If it is regenerated, it will be deducted again."
         },
         "explanation": {
             "category": "download_failed",
@@ -1425,12 +1425,12 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "download_failed",
@@ -1466,17 +1466,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "network",
             "summary": "Failed to fetch",
-            "reason": "网络连接失败",
-            "action": "请检查网络并核对原任务状态后，再决定是否重新生成",
-            "message": "网络连接失败。请检查网络并核对原任务状态后，再决定是否重新生成。",
+            "reason": "Network connection failed",
+            "action": "Please check the network and verify the status of the original task before deciding whether to regenerate it.",
+            "message": "Network connection failed. Please check the network and verify the status of the original task before deciding whether to regenerate it.",
             "errorCode": "network",
             "retryable": true,
             "uncertain": false,
@@ -1505,17 +1505,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "task_failed"
         },
         "copy": {
-            "badge": "生成失败",
-            "reason": "上次生成未完成，可以直接重新生成",
-            "action": "可以直接重新生成",
-            "message": "上次生成未完成，可以直接重新生成。"
+            "badge": "Build failed",
+            "reason": "The last generation was not completed and can be regenerated directly.",
+            "action": "Can be regenerated directly",
+            "message": "The last generation was not completed and can be regenerated directly."
         },
         "explanation": {
             "category": "unknown",
-            "summary": "提示词或参考素材未通过内容安全审核",
-            "reason": "提示词或参考素材未通过内容安全审核",
+            "summary": "The prompt word or reference material did not pass the content security review",
+            "reason": "The prompt word or reference material did not pass the content security review",
             "action": "",
-            "message": "提示词或参考素材未通过内容安全审核",
+            "message": "The prompt word or reference material did not pass the content security review",
             "errorCode": "unknown",
             "retryable": false,
             "uncertain": false,
@@ -1544,19 +1544,19 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_input",
             "summary": "opaque",
-            "reason": "提示词或参考素材未通过内容安全审核",
-            "action": "请调整提示词或参考素材后重新生成",
-            "message": "提示词或参考素材未通过内容安全审核。请调整提示词或参考素材后重新生成。",
+            "reason": "The prompt word or reference material did not pass the content security review",
+            "action": "Please adjust the prompt words or reference materials and regenerate",
+            "message": "The prompt word or reference material did not pass the content security review. Please adjust the prompt words or reference materials and regenerate.",
             "errorCode": "moderation_input",
             "providerCode": "sensitive_words_detected",
             "retryable": false,
@@ -1586,19 +1586,19 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "input_rejected"
         },
         "copy": {
-            "badge": "需调整输入",
-            "reason": "提示词、参考素材或参数未通过校验",
-            "action": "请调整输入后重新生成；继续提交可能会再次产生费用",
-            "message": "提示词、参考素材或参数未通过校验。请调整输入后重新生成；继续提交可能会再次产生费用。",
-            "confirmTitle": "确认重新生成？",
-            "confirmContent": "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。"
+            "badge": "Need to adjust input",
+            "reason": "Prompt word, reference material or parameter failed verification",
+            "action": "Please adjust the input and regenerate; continuing to submit may incur charges again",
+            "message": "The prompt word, reference material or parameter failed the verification. Please adjust the input and regenerate; continuing to submit may incur charges again.",
+            "confirmTitle": "Confirm to regenerate?",
+            "confirmContent": "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first."
         },
         "explanation": {
             "category": "moderation_input",
-            "summary": "含敏感词",
-            "reason": "提示词或参考素材未通过内容安全审核",
-            "action": "请调整提示词或参考素材后重新生成",
-            "message": "提示词或参考素材未通过内容安全审核。请调整提示词或参考素材后重新生成。",
+            "summary": "Contains sensitive words",
+            "reason": "The prompt word or reference material did not pass the content security review",
+            "action": "Please adjust the prompt words or reference materials and regenerate",
+            "message": "The prompt word or reference material did not pass the content security review. Please adjust the prompt words or reference materials and regenerate.",
             "errorCode": "moderation_input",
             "providerCode": "sensitive_words_detected",
             "retryable": false,
@@ -1628,17 +1628,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "download_failed",
-            "summary": "下载失败",
-            "reason": "下载失败",
+            "summary": "Download failed",
+            "reason": "Download failed",
             "action": "",
-            "message": "下载失败",
+            "message": "Download failed",
             "errorCode": "download_failed",
             "retryable": false,
             "uncertain": true,
@@ -1667,17 +1667,17 @@ const EXPECTED: Array<{ name: string } & CanvasNodeFailureView> = [
             "reason": "delivery_pending"
         },
         "copy": {
-            "badge": "正在取回结果",
-            "reason": "上次生成结果已保留，系统正在自动取回",
-            "action": "请等待取回完成，不要重复生成",
-            "message": "上次生成结果已保留，系统正在自动取回，请等待取回完成，不要重复生成。"
+            "badge": "Retrieving results",
+            "reason": "The last generated result has been retained and is being retrieved automatically by the system.",
+            "action": "Please wait for the retrieval to be completed and do not generate it again.",
+            "message": "The last generation result has been retained and the system is automatically retrieving it. Please wait for the retrieval to complete and do not generate it again."
         },
         "explanation": {
             "category": "download_failed",
-            "summary": "下载生成结果失败",
-            "reason": "深度处理失败",
-            "action": "请查看详情，检查深度组件和网络后重试",
-            "message": "下载生成结果失败。排查编号：任务 depth-task。",
+            "summary": "Failed to download generated results",
+            "reason": "Depth processing failed",
+            "action": "Please check the details, check the deepin component and network and try again",
+            "message": "Failed to download build results. Troubleshooting number: task depth-task.",
             "errorCode": "download_failed",
             "taskId": "depth-task",
             "retryable": true,

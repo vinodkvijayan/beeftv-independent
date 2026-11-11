@@ -36,7 +36,7 @@ const RESULT_PATH = process.env.AGENT_E2E_RESULT || join(AGENT_PRODUCT_DIR, "res
 const RAW_RESULT_PATH = join(AGENT_PRODUCT_DIR, `results-react-cross-entry-${STAMP}.json`);
 const TURN_TIMEOUT_MS = Number(process.env.AGENT_E2E_TURN_TIMEOUT_MS || 300_000);
 // 助手输入框在有节点的画布上是富文本编辑器，空画布上是 textarea：用 aria-label 两种都命中。
-const COMPOSER = '[aria-label="给助手的消息"]';
+const COMPOSER = '[aria-label="Message to Assistant"]';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const checks = [];
@@ -117,7 +117,7 @@ async function waitForAssistantReply(page, expectedCount = 1, timeoutMs = TURN_T
     while (Date.now() < deadline) {
         const messages = await panelMessages(page);
         last = { ready: messages.assistant.length >= expectedCount, ...messages };
-        if (last.ready && !(await page.locator(".canvas-assistant-panel").getByRole("button", { name: "停止" }).count())) return last;
+        if (last.ready && !(await page.locator(".canvas-assistant-panel").getByRole("button", { name: "stop" }).count())) return last;
         await sleep(1500);
     }
     return last;
@@ -128,7 +128,7 @@ async function domNodeIds(page) {
 }
 
 async function domNodeTitles(page) {
-    return page.evaluate(() => Array.from(document.querySelectorAll('button[aria-label^="拖动节点："]')).map((n) => (n.getAttribute("aria-label") || "").replace("拖动节点：", "")));
+    return page.evaluate(() => Array.from(document.querySelectorAll('button[aria-label^="Drag node:"]')).map((n) => (n.getAttribute("aria-label") || "").replace("Drag node:", "")));
 }
 
 async function clickByLabel(page, label) {
@@ -173,7 +173,7 @@ async function switchToOtherCanvas(page) {
 
 async function createCanvasFromUi(page) {
     if (!(await openCanvasMenu(page))) return null;
-    const add = page.getByRole("button", { name: "新建画布" }).first();
+    const add = page.getByRole("button", { name: "New canvas" }).first();
     if (!(await add.count())) return null;
     await add.click();
     await sleep(3500);
@@ -222,7 +222,7 @@ async function readPromptInUi(page, nodeId, expected, timeoutMs = 45_000) {
                     dragHandles: panel.querySelectorAll("[data-canvas-node-drag-handle]").length,
                     composerCount: composers.length,
                 };
-            }, "用自然语言描述创作需求…");
+            }, "Use natural language to describe creation requirements...");
             if (!expected || evidence.value.includes(expected)) return evidence;
         }
         await sleep(2000);
@@ -242,10 +242,10 @@ async function main() {
 
     const status = await api("GET", "/assistant/status");
     if (!status.body?.data?.available) {
-        check("内置助手宿主可用", false, JSON.stringify(status.body?.data || status.text));
+        check("Built-in helper hosts are available", false, JSON.stringify(status.body?.data || status.text));
         return;
     }
-    check("内置助手宿主可用", true, JSON.stringify(status.body.data.health).slice(0, 200));
+    check("Built-in helper hosts are available", true, JSON.stringify(status.body.data.health).slice(0, 200));
 
     const stamp = Date.now();
     const canvasA = `ui-A-${stamp}`;
@@ -253,12 +253,12 @@ async function main() {
     // 刻意不写 chatSessions，与外部写入产生的文档形状一致。
     const created = await api("PUT", `/canvas-projects/${canvasA}`, {
         project: {
-            id: canvasA, revision: 0, title: "验收画布A", workspaceProjectId: `ws-${stamp}`,
-            nodes: [{ id: "side1", type: "text", title: "旁支-不可动", position: { x: 60, y: 660 }, width: 320, height: 180, metadata: { prompt: "旁支提示词", content: "旁支内容" } }],
+            id: canvasA, revision: 0, title: "Acceptance Canvas A", workspaceProjectId: `ws-${stamp}`,
+            nodes: [{ id: "side1", type: "text", title: "Side branch-immovable", position: { x: 60, y: 660 }, width: 320, height: 180, metadata: { prompt: "Side branch prompt word", content: "Side content" } }],
             connections: [],
         },
     });
-    if (created.status !== 200) { check("预置画布 A", false, created.text); return; }
+    if (created.status !== 200) { check("Preset canvas A", false, created.text); return; }
 
     const vite = spawn("bunx", ["vite", "--host", "127.0.0.1", "--port", String(WEB_PORT), "--strictPort"], {
         cwd: WEB_ROOT,
@@ -271,7 +271,7 @@ async function main() {
         try { const response = await fetch(`http://127.0.0.1:${WEB_PORT}/`); if (response.ok) { webReady = true; break; } } catch { /* 还没起来 */ }
         await sleep(500);
     }
-    check("Vite DEV 就绪", webReady, `http://127.0.0.1:${WEB_PORT}`);
+    check("Vite DEV ready", webReady, `http://127.0.0.1:${WEB_PORT}`);
     if (!webReady) { stopVite(); return; }
 
     const executablePath = [process.env.CHROME_PATH, "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome"].find((path) => path && existsSync(path));
@@ -313,34 +313,34 @@ async function main() {
         await page.goto(`http://127.0.0.1:${WEB_PORT}/canvas/${canvasA}`, { waitUntil: "domcontentloaded" });
         await page.locator(COMPOSER).waitFor({ timeout: 60_000 });
         await sleep(4000);
-        check("画布页与助手面板加载", await page.locator(".canvas-assistant-panel").count() > 0, await page.title());
+        check("Canvas page and assistant panel loading", await page.locator(".canvas-assistant-panel").count() > 0, await page.title());
 
         // ---- 1. UI 对话建三镜头并连成链 ----
-        await page.locator(COMPOSER).fill("在当前画布创建三个 image 节点：镜头1-开场、镜头2-冲突、镜头3-收尾，并连成一条链；不要改动已有的旁支节点。");
-        await page.locator("aside").getByRole("button", { name: "发送" }).click();
+        await page.locator(COMPOSER).fill("Create three image nodes on the current canvas: shot 1 - opening, shot 2 - conflict, shot 3 - ending, and connect them into a chain; do not change the existing side nodes.");
+        await page.locator("aside").getByRole("button", { name: "send" }).click();
         const reply = await waitForAssistantReply(page, 1);
         const afterTurn = await readCanvas(canvasA);
         const titles = (afterTurn?.nodes || []).map((node) => node.title);
-        check("UI 对话后助手给出回复", reply.ready, (reply.assistant?.[0] || reply.reason || "").slice(0, 160));
-        check("对话创建了三个镜头", ["镜头1-开场", "镜头2-冲突", "镜头3-收尾"].every((title) => titles.includes(title)), titles.join(","));
-        check("三个镜头连成一条链", (afterTurn?.connections || []).length === 2, String((afterTurn?.connections || []).length));
-        await clickByLabel(page, "适合屏幕");
+        check("The assistant gives a reply after the UI conversation", reply.ready, (reply.assistant?.[0] || reply.reason || "").slice(0, 160));
+        check("Dialogue creates three shots", ["Shot 1-Opening", "Shot 2 - Conflict", "Shot 3 - Closing"].every((title) => titles.includes(title)), titles.join(","));
+        check("Three lenses connected into a chain", (afterTurn?.connections || []).length === 2, String((afterTurn?.connections || []).length));
+        await clickByLabel(page, "Fit to screen");
         await sleep(1500);
         const domTitles = await domNodeTitles(page);
-        check("新镜头出现在真实画布 DOM", ["镜头1-开场", "镜头2-冲突", "镜头3-收尾"].every((title) => domTitles.includes(title)), domTitles.join(","));
+        check("New lens appears in real canvas DOM", ["Shot 1-Opening", "Shot 2 - Conflict", "Shot 3 - Closing"].every((title) => domTitles.includes(title)), domTitles.join(","));
         await page.screenshot({ path: join(SHOTS, `01-ui-dialogue-created-shots-${STAMP}.png`) });
 
-        const target = (afterTurn?.nodes || []).find((node) => node.title === "镜头2-冲突");
+        const target = (afterTurn?.nodes || []).find((node) => node.title === "Shot 2 - Conflict");
         const revisionAfterTurn = afterTurn.revision;
 
         // ---- 2. CLI 改目标镜头 prompt → UI 看到新值 ----
         // --content 是描述符对生成类节点声明的可编辑提示词路径（metadata.composerContent），
         // 也就是画布编辑器读的那个字段；--prompt 写的是已提交提示词，编辑器不显示它。
-        const cliUpdate = runCli(["canvas", "node", "update", "--canvas", canvasA, "--node", target.id, "--expected-revision", String(revisionAfterTurn), "--content", "夜景：雨夜巷口对峙", "--op-id", `e2e-cli-${stamp}`, "--json"]);
+        const cliUpdate = runCli(["canvas", "node", "update", "--canvas", canvasA, "--node", target.id, "--expected-revision", String(revisionAfterTurn), "--content", "Night scene: Confrontation at the alley on a rainy night", "--op-id", `e2e-cli-${stamp}`, "--json"]);
         steps.cliUpdate = cliUpdate;
-        check("CLI 改目标镜头成功", cliUpdate.exit === 0, `exit=${cliUpdate.exit} ${cliUpdate.stdout.slice(0, 160)}`);
+        check("CLI successfully changed the target lens", cliUpdate.exit === 0, `exit=${cliUpdate.exit} ${cliUpdate.stdout.slice(0, 160)}`);
 
-        const promptInUi = await readPromptInUi(page, target.id, "夜景：雨夜巷口对峙");
+        const promptInUi = await readPromptInUi(page, target.id, "Night scene: Confrontation at the alley on a rainy night");
         const afterCli = await readCanvas(canvasA);
         const targetAfterCli = (afterCli?.nodes || []).find((node) => node.id === target.id);
         steps.cliChangeVisible = {
@@ -352,8 +352,8 @@ async function main() {
             revision: afterCli?.revision,
         };
         check(
-            "UI 提示词编辑器显示 CLI 写入的新值",
-            promptInUi.value.includes("夜景：雨夜巷口对峙") && promptInUi.dragHandles === 1 && promptInUi.composerCount === 1,
+            "UI prompt word editor shows new value written by CLI",
+            promptInUi.value.includes("Night scene: Confrontation at the alley on a rainy night") && promptInUi.dragHandles === 1 && promptInUi.composerCount === 1,
             `ui=${promptInUi.value.slice(0, 80)} dragHandles=${promptInUi.dragHandles} composers=${promptInUi.composerCount} backend=${targetAfterCli?.metadata?.composerContent}`,
         );
         // 交叉验证：换选另一个镜头，composer 必须跟随选择（不再显示目标节点的值）；
@@ -363,32 +363,32 @@ async function main() {
         const crossRead = crossNode ? await readPromptInUi(page, crossNode.id, crossExpected, 20_000) : { value: "" };
         steps.promptCrossCheck = { nodeId: crossNode?.id, expected: crossExpected, read: crossRead.value.slice(0, 80) };
         check(
-            "composer 跟随选中节点（换选后不再显示目标节点的值）",
-            Boolean(crossNode) && !crossRead.value.includes("雨夜巷口对峙") && (!crossExpected || crossRead.value.includes(crossExpected)),
+            "composer follows the selected node (the value of the target node will no longer be displayed after changing the selection)",
+            Boolean(crossNode) && !crossRead.value.includes("Confrontation in the alley on a rainy night") && (!crossExpected || crossRead.value.includes(crossExpected)),
             JSON.stringify(steps.promptCrossCheck),
         );
-        check("CLI 写入没有覆盖生成节点的媒体结果槽位", targetAfterCli?.metadata?.content === "", `content=${String(targetAfterCli?.metadata?.content).slice(0, 60)}`);
+        check("CLI write does not overwrite the media result slot of the generated node", targetAfterCli?.metadata?.content === "", `content=${String(targetAfterCli?.metadata?.content).slice(0, 60)}`);
         await page.screenshot({ path: join(SHOTS, `02-ui-sees-cli-change-${STAMP}.png`) });
 
         // ---- 3. 陈旧 revision 提交被拒且不覆盖用户值 ----
-        const stale = runCli(["canvas", "node", "update", "--canvas", canvasA, "--node", target.id, "--expected-revision", String(revisionAfterTurn), "--content", "不应写入的陈旧值", "--op-id", `e2e-stale-${stamp}`, "--json"]);
+        const stale = runCli(["canvas", "node", "update", "--canvas", canvasA, "--node", target.id, "--expected-revision", String(revisionAfterTurn), "--content", "Stale value that should not be written", "--op-id", `e2e-stale-${stamp}`, "--json"]);
         const afterStale = await readCanvas(canvasA);
         const stalePrompt = (afterStale?.nodes || []).find((node) => node.id === target.id)?.metadata?.composerContent;
         steps.staleWrite = { exit: stale.exit, reason: stale.json?.reason, stdout: stale.stdout };
-        check("陈旧 revision 提交被服务端拒绝", stale.exit !== 0 && stale.json?.reason === "stale_revision", `exit=${stale.exit} reason=${stale.json?.reason}`);
-        check("陈旧提交没有覆盖当前值", stalePrompt === "夜景：雨夜巷口对峙", String(stalePrompt));
-        const staleInUi = await readPromptInUi(page, target.id, "夜景：雨夜巷口对峙", 20_000);
-        check("陈旧提交后编辑器仍是用户当前值", staleInUi.value.includes("夜景：雨夜巷口对峙") && staleInUi.dragHandles === 1, `ui=${staleInUi.value.slice(0, 80)}`);
+        check("Stale revision submission was rejected by the server", stale.exit !== 0 && stale.json?.reason === "stale_revision", `exit=${stale.exit} reason=${stale.json?.reason}`);
+        check("Stale commits did not overwrite current values", stalePrompt === "Night scene: Confrontation at the alley on a rainy night", String(stalePrompt));
+        const staleInUi = await readPromptInUi(page, target.id, "Night scene: Confrontation at the alley on a rainy night", 20_000);
+        check("After stale submission, the editor is still the user's current value.", staleInUi.value.includes("Night scene: Confrontation at the alley on a rainy night") && staleInUi.dragHandles === 1, `ui=${staleInUi.value.slice(0, 80)}`);
 
         // ---- 4. 旁支节点完好 + 手工新增/撤销路径保留 ----
         const sideNode = (afterStale?.nodes || []).find((node) => node.id === "side1");
-        check("旁支节点内容未被改动", sideNode?.metadata?.prompt === "旁支提示词", `prompt=${sideNode?.metadata?.prompt}`);
+        check("The content of the side branch node has not been changed", sideNode?.metadata?.prompt === "Side branch prompt word", `prompt=${sideNode?.metadata?.prompt}`);
 
         await page.keyboard.press("Escape");
         const beforeAdd = (await domNodeIds(page)).length;
         let afterAdd = beforeAdd;
-        if (await clickByLabel(page, "添加节点")) {
-            const textItem = page.getByRole("button", { name: "文本", exact: true }).first();
+        if (await clickByLabel(page, "Add node")) {
+            const textItem = page.getByRole("button", { name: "text", exact: true }).first();
             if (await textItem.count()) { await textItem.click(); await sleep(2500); afterAdd = (await domNodeIds(page)).length; }
         }
         await page.keyboard.press("Escape");
@@ -411,23 +411,23 @@ async function main() {
             connections: (afterUndoDoc?.connections || []).length,
             domTitles: afterUndoTitles,
         };
-        check("手工新增节点仍然可用", afterAdd === beforeAdd + 1, JSON.stringify({ beforeAdd, afterAdd }));
-        check("手工撤销仍然可用", afterUndo === beforeAdd, JSON.stringify({ beforeAdd, afterUndo }));
-        check("撤销没有倒退 CLI 刚写入的目标字段", afterUndoTarget?.metadata?.composerContent === "夜景：雨夜巷口对峙", `composerContent=${String(afterUndoTarget?.metadata?.composerContent).slice(0, 60)}`);
-        check("撤销没有改动旁支节点", afterUndoSide?.metadata?.content === "旁支内容" && afterUndoTitles.includes("旁支-不可动"), `content=${String(afterUndoSide?.metadata?.content).slice(0, 40)} titles=${afterUndoTitles.join(",")}`);
-        check("撤销没有改动三镜头链条", (afterUndoDoc?.connections || []).length === 2, String((afterUndoDoc?.connections || []).length));
+        check("Manually adding nodes is still available", afterAdd === beforeAdd + 1, JSON.stringify({ beforeAdd, afterAdd }));
+        check("Manual undo is still available", afterUndo === beforeAdd, JSON.stringify({ beforeAdd, afterUndo }));
+        check("Undo does not rewind the target field just written by the CLI", afterUndoTarget?.metadata?.composerContent === "Night scene: Confrontation at the alley on a rainy night", `composerContent=${String(afterUndoTarget?.metadata?.composerContent).slice(0, 60)}`);
+        check("Undoing does not change the branch node", afterUndoSide?.metadata?.content === "Side content" && afterUndoTitles.includes("Side branch-immovable"), `content=${String(afterUndoSide?.metadata?.content).slice(0, 40)} titles=${afterUndoTitles.join(",")}`);
+        check("Undoing does not change the three-lens chain", (afterUndoDoc?.connections || []).length === 2, String((afterUndoDoc?.connections || []).length));
 
         // ---- 5. 收起面板再打开：会话不中断、历史正确 ----
         const beforeCollapse = await panelMessages(page);
-        await page.locator('button[aria-label="关闭助手"]').click();
+        await page.locator('button[aria-label="Close Assistant"]').click();
         await sleep(1300);
         const collapsed = await page.locator(".canvas-assistant-panel").count() === 0;
-        await page.locator('button[aria-label="助手"]').first().click();
+        await page.locator('button[aria-label="Assistant"]').first().click();
         await sleep(1500);
         const afterExpand = await panelMessages(page);
         steps.collapse = { collapsed, before: beforeCollapse.assistant.length, after: afterExpand.assistant.length };
-        check("关闭后助手面板消失", collapsed, String(collapsed));
-        check("重新打开后历史完整保留", JSON.stringify(beforeCollapse) === JSON.stringify(afterExpand), JSON.stringify(steps.collapse));
+        check("Assistant panel disappears after closing", collapsed, String(collapsed));
+        check("History will be kept intact after reopening", JSON.stringify(beforeCollapse) === JSON.stringify(afterExpand), JSON.stringify(steps.collapse));
         await page.screenshot({ path: join(SHOTS, `03-collapse-reopen-history-${STAMP}.png`) });
 
         // ---- 6. 发送时冻结 selectedNodeIds ----
@@ -437,39 +437,39 @@ async function main() {
         const selectedAtSend = [];
         if (first && await selectNode(page, first)) selectedAtSend.push(first);
         chatBodies.length = 0;
-        await page.locator(COMPOSER).fill("请只回复：收到。");
-        await page.locator("aside").getByRole("button", { name: "发送" }).click();
+        await page.locator(COMPOSER).fill("Please only reply: Received.");
+        await page.locator("aside").getByRole("button", { name: "send" }).click();
         await sleep(900);
         if (second) await selectNode(page, second);
         const freezeReply = await waitForAssistantReply(page, 2);
         const body = chatBodies[0] ? JSON.parse(chatBodies[0]) : null;
         const sentIds = (body?.selectedNodeIds || []).slice().sort();
         steps.selectedSnapshot = { selectedAtSend, sentSelectedNodeIds: body?.selectedNodeIds };
-        check("发送时冻结选中对象，后续选择不改变请求", Boolean(body) && JSON.stringify(sentIds) === JSON.stringify(selectedAtSend.slice().sort()), JSON.stringify(body?.selectedNodeIds));
-        check("冻结用例的回合正常结束", freezeReply.ready, (freezeReply.assistant?.[1] || "").slice(0, 120));
+        check("Freezes the selected object when sending, and subsequent selections do not change the request.", Boolean(body) && JSON.stringify(sentIds) === JSON.stringify(selectedAtSend.slice().sort()), JSON.stringify(body?.selectedNodeIds));
+        check("The turn of the frozen use case ends normally", freezeReply.ready, (freezeReply.assistant?.[1] || "").slice(0, 120));
         await page.screenshot({ path: join(SHOTS, `04-selected-snapshot-${STAMP}.png`) });
 
         // ---- 7. A 请求进行中切到 B ----
         const assistantBefore = (await panelMessages(page)).assistant.length;
-        await page.locator(COMPOSER).fill("请用一句话介绍你为这部短剧安排的三个镜头，不要改动画布。");
-        await page.locator("aside").getByRole("button", { name: "发送" }).click();
+        await page.locator(COMPOSER).fill("In one sentence, describe the three shots you have planned for this short play, without changing the canvas.");
+        await page.locator("aside").getByRole("button", { name: "send" }).click();
         await sleep(2000);
-        const aStopVisible = await page.locator("aside").getByRole("button", { name: "停止" }).count() > 0;
+        const aStopVisible = await page.locator("aside").getByRole("button", { name: "stop" }).count() > 0;
         const canvasB = await createCanvasFromUi(page);
-        check("在 A 请求进行中切到 B", Boolean(canvasB) && page.url().includes(canvasB), `${canvasB} ${page.url()}`);
+        check("Switch to B while A request is in progress", Boolean(canvasB) && page.url().includes(canvasB), `${canvasB} ${page.url()}`);
         await sleep(2500);
         const bPanel = await panelMessages(page);
-        check("B 画布面板独立（没有 A 的对话）", bPanel.user.length === 0 && bPanel.assistant.length === 0, JSON.stringify(bPanel.user).slice(0, 160));
+        check("B canvas panel is independent (no dialogue of A)", bPanel.user.length === 0 && bPanel.assistant.length === 0, JSON.stringify(bPanel.user).slice(0, 160));
 
-        await page.locator(COMPOSER).fill("请只回复：B 画布已就绪。");
-        await page.locator("aside").getByRole("button", { name: "发送" }).click();
+        await page.locator(COMPOSER).fill("Please only reply: B Canvas is ready.");
+        await page.locator("aside").getByRole("button", { name: "send" }).click();
         await sleep(2500);
-        const stopB = page.locator("aside").getByRole("button", { name: "停止" }).first();
+        const stopB = page.locator("aside").getByRole("button", { name: "stop" }).first();
         const hasStopB = await stopB.count() > 0;
         if (hasStopB) { stopClicks.count += 1; await stopB.click(); await sleep(2000); }
         const bAfterStop = await panelMessages(page);
         steps.abIsolation = { aStopVisible, hasStopB, bNotices: bAfterStop.notices };
-        check("B 可以独立发起对话并停止", hasStopB, JSON.stringify(steps.abIsolation));
+        check("B can initiate and stop conversations independently", hasStopB, JSON.stringify(steps.abIsolation));
 
         const switchedBackTo = await switchToOtherCanvas(page);
         const backToA = Boolean(switchedBackTo) && switchedBackTo === canvasA;
@@ -478,8 +478,8 @@ async function main() {
         const aCancelled = aMessages.notices.some((text) => /取消|停止|已中断/.test(text));
         steps.abIsolation.aAssistant = aMessages.assistant.map((text) => text.slice(0, 120));
         steps.abIsolation.aNotices = aMessages.notices;
-        check("切回 A 后 A 的新 assistant 回复完整可见", backToA && aMessages.user.some((text) => text.includes("三个镜头")) && aMessages.assistant.length === assistantBefore + 1, JSON.stringify(aMessages.assistant.map((text) => text.slice(0, 60))));
-        check("停止 B 只影响 B 的 run", aReply.ready && !aCancelled, `cancelled=${aCancelled} notices=${JSON.stringify(aMessages.notices).slice(0, 160)}`);
+        check("After switching back to A, A's new assistant's reply is fully visible.", backToA && aMessages.user.some((text) => text.includes("three shots")) && aMessages.assistant.length === assistantBefore + 1, JSON.stringify(aMessages.assistant.map((text) => text.slice(0, 60))));
+        check("Stopping B only affects B's run", aReply.ready && !aCancelled, `cancelled=${aCancelled} notices=${JSON.stringify(aMessages.notices).slice(0, 160)}`);
         await page.screenshot({ path: join(SHOTS, `05-ab-isolation-back-to-A-${STAMP}.png`) });
 
         // ---- 8. 脏草稿保护（真实页面编辑未被服务端确认期间，外部写入不能静默覆盖本地） ----
@@ -499,8 +499,8 @@ async function main() {
             await route.continue();
         });
 
-        if (await clickByLabel(page, "添加节点")) {
-            const textItem = page.getByRole("button", { name: "文本", exact: true }).first();
+        if (await clickByLabel(page, "Add node")) {
+            const textItem = page.getByRole("button", { name: "text", exact: true }).first();
             if (await textItem.count()) { await textItem.click(); await sleep(2500); }
         }
         await page.keyboard.press("Escape");
@@ -508,19 +508,19 @@ async function main() {
         const serverWhileLocalDirty = await readCanvas(canvasA);
 
         // 外部（CLI，另一条入口）在同一画布上写目标字段。
-        const externalWhileLocalDirty = runCli(["canvas", "node", "update", "--canvas", canvasA, "--node", target.id, "--expected-revision", String(serverWhileLocalDirty.revision), "--content", "外部在本地未确认期间写入", "--op-id", `e2e-dirty-${stamp}`, "--json"]);
+        const externalWhileLocalDirty = runCli(["canvas", "node", "update", "--canvas", canvasA, "--node", target.id, "--expected-revision", String(serverWhileLocalDirty.revision), "--content", "External writes during local unacknowledged", "--op-id", `e2e-dirty-${stamp}`, "--json"]);
         // 等应用自己发现外部写入（轮询/SSE），看它是否保留本地编辑并给出冲突出口。
         let dirtyNoticeSeen = false;
         let acceptButtonSeen = false;
         const dirtyDeadline = Date.now() + 30_000;
         while (Date.now() < dirtyDeadline) {
-            dirtyNoticeSeen = await page.evaluate(() => (document.querySelector("aside")?.innerText || "").includes("画布已在其他入口更新"));
-            acceptButtonSeen = await page.getByRole("button", { name: "使用最新版本" }).count() > 0;
+            dirtyNoticeSeen = await page.evaluate(() => (document.querySelector("aside")?.innerText || "").includes("The canvas has been updated in other portals"));
+            acceptButtonSeen = await page.getByRole("button", { name: "Use the latest version" }).count() > 0;
             if (dirtyNoticeSeen && acceptButtonSeen) break;
             await sleep(1500);
         }
         const nodesAfterExternal = (await domNodeIds(page)).length;
-        const uiTargetAfterExternal = await readPromptInUi(page, target.id, "夜景：雨夜巷口对峙", 20_000);
+        const uiTargetAfterExternal = await readPromptInUi(page, target.id, "Night scene: Confrontation at the alley on a rainy night", 20_000);
 
         steps.dirtyDraft = {
             revisionBeforeDirty,
@@ -535,11 +535,11 @@ async function main() {
             uiTargetValue: uiTargetAfterExternal.value.slice(0, 120),
             uiTargetPanelScoped: uiTargetAfterExternal.dragHandles === 1,
         };
-        check("本地未确认编辑期间服务端确实没有拿到这次编辑", serverWhileLocalDirty.revision === revisionBeforeDirty && (serverWhileLocalDirty.nodes || []).length === nodesBeforeDirty - 0, `serverRevision=${serverWhileLocalDirty.revision} localNodes=${localOnlyNodes}`);
-        check("外部写入成功进入服务端", externalWhileLocalDirty.exit === 0, `exit=${externalWhileLocalDirty.exit} ${externalWhileLocalDirty.stdout.slice(0, 120)}`);
-        check("本地草稿未被外部写入覆盖（节点数保持）", nodesAfterExternal === localOnlyNodes, `${localOnlyNodes} -> ${nodesAfterExternal}`);
-        check("界面给出冲突提示与「使用最新版本」出口", dirtyNoticeSeen && acceptButtonSeen, JSON.stringify({ dirtyNoticeSeen, acceptButtonSeen }));
-        check("编辑器仍显示本地保留的目标值", uiTargetAfterExternal.value.includes("夜景：雨夜巷口对峙") && uiTargetAfterExternal.dragHandles === 1, uiTargetAfterExternal.value.slice(0, 80));
+        check("During local unconfirmed editing, the server did not get the edit.", serverWhileLocalDirty.revision === revisionBeforeDirty && (serverWhileLocalDirty.nodes || []).length === nodesBeforeDirty - 0, `serverRevision=${serverWhileLocalDirty.revision} localNodes=${localOnlyNodes}`);
+        check("External writes successfully enter the server", externalWhileLocalDirty.exit === 0, `exit=${externalWhileLocalDirty.exit} ${externalWhileLocalDirty.stdout.slice(0, 120)}`);
+        check("Local draft is not overwritten by external writes (node count maintained)", nodesAfterExternal === localOnlyNodes, `${localOnlyNodes} -> ${nodesAfterExternal}`);
+        check("The interface gives a conflict prompt and the \"Use the latest version\" exit", dirtyNoticeSeen && acceptButtonSeen, JSON.stringify({ dirtyNoticeSeen, acceptButtonSeen }));
+        check("The editor still shows the locally retained target value", uiTargetAfterExternal.value.includes("Night scene: Confrontation at the alley on a rainy night") && uiTargetAfterExternal.dragHandles === 1, uiTargetAfterExternal.value.slice(0, 80));
         await page.screenshot({ path: join(SHOTS, `06-dirty-draft-conflict-${STAMP}.png`) });
 
         // 放开被挂起的提交：服务端会按 revision 拒绝这次陈旧提交，本地内容必须仍在。
@@ -547,9 +547,9 @@ async function main() {
         heldPut = null;
         await sleep(4000);
         const nodesAfterRelease = (await domNodeIds(page)).length;
-        const uiAfterRelease = await readPromptInUi(page, target.id, "夜景：雨夜巷口对峙", 20_000);
+        const uiAfterRelease = await readPromptInUi(page, target.id, "Night scene: Confrontation at the alley on a rainy night", 20_000);
         steps.dirtyDraft.afterRelease = { nodes: nodesAfterRelease, targetValue: uiAfterRelease.value.slice(0, 120) };
-        check("陈旧提交被拒后本地内容仍保留", nodesAfterRelease >= localOnlyNodes && uiAfterRelease.value.includes("夜景：雨夜巷口对峙"), JSON.stringify(steps.dirtyDraft.afterRelease));
+        check("Local content remains after rejection of stale submissions", nodesAfterRelease >= localOnlyNodes && uiAfterRelease.value.includes("Night scene: Confrontation at the alley on a rainy night"), JSON.stringify(steps.dirtyDraft.afterRelease));
         await page.unroute("**/api/canvas-projects/*");
 
         steps.consoleErrors = consoleErrors;
@@ -559,8 +559,8 @@ async function main() {
         const expectedDuringDirtyHold = consoleErrors.filter((text) => /画布后端持久化失败/.test(text));
         steps.expectedDuringDirtyHold = expectedDuringDirtyHold;
         const unexpected = consoleErrors.filter((text) => !/antd:|deprecated/i.test(text) && !/画布后端持久化失败/.test(text));
-        check("页面没有非预期运行时报错", unexpected.length === 0, unexpected.slice(0, 3).join(" | "));
-        check("没有失败的网络请求", failedRequests.length === 0, failedRequests.slice(0, 3).join(" | "));
+        check("The page does not run as expected and an error occurs", unexpected.length === 0, unexpected.slice(0, 3).join(" | "));
+        check("No failed network requests", failedRequests.length === 0, failedRequests.slice(0, 3).join(" | "));
     } finally {
         steps.canvasA = canvasA;
         await browser.close().catch(() => {});
@@ -586,14 +586,14 @@ const attemptLog = appendAttempt(summary);
 summary.attemptLog = attemptLog;
 if (!attemptLog.written) {
     // 证据链写入失败必须显式失败：不能让「通过」建立在没落盘的记录上。
-    checks.push({ name: "尝试记录落盘", ok: false, detail: attemptLog.error });
+    checks.push({ name: "Try to record the placement", ok: false, detail: attemptLog.error });
     summary.ok = false;
 }
 const serialized = JSON.stringify(summary, null, 2);
 writeFileSync(RAW_RESULT_PATH, serialized);
 writeFileSync(RESULT_PATH, serialized);
-console.log(`\n本次原始结果 ${RAW_RESULT_PATH}`);
-console.log(`结果已写入 ${RESULT_PATH}`);
-console.log(`尝试记录 ${attemptLog.written ? "已追加" : `写入失败：${attemptLog.error}`}`);
-console.log(`总计 ${checks.filter((item) => item.ok).length}/${checks.length} 通过`);
+console.log(`This original result${RAW_RESULT_PATH}`);
+console.log(`The result has been written${RESULT_PATH}`);
+console.log(`try to record${attemptLog.written ? "Added" : `Write failed:${attemptLog.error}`}`);
+console.log(`total${checks.filter((item) => item.ok).length}/${checks.length} Pass`);
 process.exit(summary.ok ? 0 : 1);

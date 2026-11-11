@@ -92,7 +92,7 @@ func uploadOneProtocolMedia(
 			media.StorageKey = ""
 			return nil
 		}
-		return RequestPreparationError{Cause: errors.New("当前模型需要可访问的参考素材链接或本地素材，请重新导入。本次尚未开始生成")}
+		return RequestPreparationError{Cause: errors.New("The current model requires accessible reference material links or local materials, please re-import. This time the generation has not started yet")}
 	}
 
 	data, mimeType, err := readProtocolMediaUploadBytes(ctx, userID, kind, *media, upload.MaxBytes)
@@ -132,7 +132,7 @@ func uploadOneProtocolMedia(
 		return RequestPreparationError{Cause: referenceUploadError(uploadCtx, err)}
 	}
 	if !IsPublicMediaURL(link) {
-		return RequestPreparationError{Cause: referenceUploadError(uploadCtx, errors.New("素材上传未返回有效公网地址"))}
+		return RequestPreparationError{Cause: referenceUploadError(uploadCtx, errors.New("Material upload did not return a valid public address"))}
 	}
 	if _, err := outbound.ValidateOutboundURL(link); err != nil {
 		return RequestPreparationError{Cause: referenceUploadError(uploadCtx, err)}
@@ -151,7 +151,7 @@ func readProtocolMediaUploadBytes(ctx context.Context, userID string, kind strin
 		limit = defaultProtocolMediaUploadMaxBytes
 	}
 	if media.Bytes > limit {
-		return nil, "", errors.New("参考素材超过服务商大小限制")
+		return nil, "", errors.New("The reference material exceeds the size limit of the service provider")
 	}
 	var (
 		data     []byte
@@ -160,16 +160,16 @@ func readProtocolMediaUploadBytes(ctx context.Context, userID string, kind strin
 	if strings.HasPrefix(media.StorageKey, "resource:") {
 		runtime, ok := RuntimeFromContext(ctx)
 		if !ok || runtime.Resources == nil {
-			return nil, "", errors.New("读取任务参考资源失败：资源端口未接入")
+			return nil, "", errors.New("Failed to read task reference resources: the resource port is not connected")
 		}
 		resource, body, err := runtime.Resources.Open(userID, strings.TrimPrefix(media.StorageKey, "resource:"))
 		if err != nil {
-			return nil, "", fmt.Errorf("读取任务参考资源失败：%w", err)
+			return nil, "", fmt.Errorf("Failed to read task reference resources: %w", err)
 		}
 		defer body.Close()
 		data, err = io.ReadAll(io.LimitReader(body, limit+1))
 		if err != nil {
-			return nil, "", fmt.Errorf("读取任务参考资源失败：%w", err)
+			return nil, "", fmt.Errorf("Failed to read task reference resources: %w", err)
 		}
 		mimeType = NormalizedMediaMIMEType(firstNonEmpty(media.MimeType, resource.MimeType), data)
 	} else {
@@ -182,10 +182,10 @@ func readProtocolMediaUploadBytes(ctx context.Context, userID string, kind strin
 		mimeType = NormalizedMediaMIMEType(firstNonEmpty(media.MimeType, decodedMIME), data)
 	}
 	if int64(len(data)) > limit {
-		return nil, "", errors.New("参考素材超过服务商大小限制")
+		return nil, "", errors.New("The reference material exceeds the size limit of the service provider")
 	}
 	if len(data) == 0 {
-		return nil, "", errors.New("参考素材为空，请重新导入")
+		return nil, "", errors.New("The reference material is empty, please re-import it")
 	}
 	if kind == "image" {
 		if err := ValidateImageArtifact(data, mimeType); err != nil {
@@ -199,7 +199,7 @@ func protocolMediaUploadTarget(config Config, meta protocol.Metadata, upload pro
 	if rawURL := strings.TrimSpace(upload.URL); rawURL != "" && useManifestUploadURL(config.BaseURL, meta.BaseURL, rawURL) {
 		parsed, err := url.Parse(rawURL)
 		if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-			return Config{}, "", fmt.Errorf("参考素材上传地址无效")
+			return Config{}, "", fmt.Errorf("The reference material upload address is invalid.")
 		}
 		target := config
 		target.BaseURL = parsed.Scheme + "://" + parsed.Host
@@ -216,7 +216,7 @@ func protocolMediaUploadTarget(config Config, meta protocol.Metadata, upload pro
 		}
 	}
 	if !strings.HasPrefix(uploadPath, "/") {
-		return Config{}, "", fmt.Errorf("参考素材上传路径无效")
+		return Config{}, "", fmt.Errorf("Reference material upload path is invalid")
 	}
 	return config, uploadPath, nil
 }

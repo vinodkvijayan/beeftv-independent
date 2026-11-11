@@ -23,14 +23,14 @@ func (s *Service) approveProposal(userID string, run *model.CreationRun, repo *r
 	for _, op := range cmd.Ops {
 		if key := stringValue(op.Metadata["storageKey"]); key != "" {
 			if !strings.HasPrefix(key, "resource:") {
-				return false, kernel.BadAuthRequest("已有素材必须来自当前账号资源库")
+				return false, kernel.BadAuthRequest("Existing materials must come from the current account resource library")
 			}
 			resource, err := repo.ResourceForUser(userID, strings.TrimPrefix(key, "resource:"))
 			if err != nil {
 				return false, err
 			}
 			if resource.Status != model.ResourceStatusReady {
-				return false, kernel.BadAuthRequest("已有素材尚未就绪")
+				return false, kernel.BadAuthRequest("Existing materials are not ready yet")
 			}
 		}
 	}

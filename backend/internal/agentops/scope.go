@@ -42,10 +42,10 @@ func (s *AssistantScope) Allows(op *operations.Op, params json.RawMessage) error
 		return nil
 	}
 	if strings.TrimSpace(s.CanvasID) == "" {
-		return denied("当前会话没有绑定画布")
+		return denied("There is no canvas bound to the current session")
 	}
 	if !s.Visible(op) {
-		return denied("本轮助手权限不允许该操作")
+		return denied("This operation is not allowed by assistant permissions in this round")
 	}
 	var args struct {
 		CanvasID    string `json:"canvasId"`
@@ -68,7 +68,7 @@ func (s *AssistantScope) Allows(op *operations.Op, params json.RawMessage) error
 		if args.CanvasID == s.CanvasID {
 			return nil
 		}
-		return denied("只能修改当前画布")
+		return denied("Only the current canvas can be modified")
 	}
 	switch op.ID {
 	case "model.catalog":
@@ -77,51 +77,51 @@ func (s *AssistantScope) Allows(op *operations.Op, params json.RawMessage) error
 		if args.CanvasID == s.CanvasID {
 			return nil
 		}
-		return denied("只能搜索当前画布所属项目")
+		return denied("Only items belonging to the current canvas can be searched")
 	case "skill.catalog", "skill.market.search", "skill.market.get", "skill.market.file":
 		return nil
 	case "skill.publish.status":
 		if args.CanvasID == s.CanvasID {
 			return nil
 		}
-		return denied("只能查看当前画布准备的投稿")
+		return denied("Only submissions prepared for the current canvas can be viewed")
 	case "skill.get", "skill.file":
 		pin := skills.Pin{SkillID: args.SkillID, VersionID: args.VersionID, ContentHash: args.ContentHash}
 		if s.SkillPins[pin] || (s.SkillInstalled != nil && s.SkillInstalled(pin)) {
 			return nil
 		}
-		return denied("只能读取本对话选择或已安装的技能版本")
+		return denied("Can only read this dialogue selection or installed skill version")
 	case "skill.script.run":
 		if assistantturns.Mode(s.PermissionMode) == assistantturns.PermissionReadOnly {
-			return denied("本轮助手只能读取，不能运行技能脚本")
+			return denied("This round of assistants can only read and cannot run skill scripts.")
 		}
 		if assistantturns.Mode(s.PermissionMode) == assistantturns.PermissionCanvas && args.CanvasID != s.CanvasID {
-			return denied("只能在当前画布运行技能脚本")
+			return denied("Skill scripts can only be run on the current canvas")
 		}
 		pin := skills.Pin{SkillID: args.SkillID, VersionID: args.VersionID, ContentHash: args.ContentHash}.Identity()
 		if s.SkillPins[pin] {
 			return nil
 		}
-		return denied("请先加载或选用该技能，再运行它的脚本")
+		return denied("Please load or select this skill before running its script")
 	case "canvas.get":
 		if s.canvasAllowed(args.CanvasID) || s.projectReferenceAllowed("canvas", args.CanvasID) {
 			return nil
 		}
-		return denied("只能读取当前画布或已在界面里引用的画布")
+		return denied("Can only read the current canvas or the canvas referenced in the interface")
 	case "canvas.generation.propose":
 		// 写只允许落在当前画布：跨画布写即便带上合法 canvasId 也必须拒绝。
 		if args.CanvasID == s.CanvasID {
 			return nil
 		}
-		return denied("只能修改当前画布")
+		return denied("Only the current canvas can be modified")
 	case "asset.get":
 		if s.AssetIDs[strings.TrimSpace(args.AssetID)] || s.projectReferenceAllowed("asset", args.AssetID) {
 			return nil
 		}
-		return denied("这个素材与当前画布无关，也没有被本次对话引用")
+		return denied("This material has nothing to do with the current canvas and is not referenced in this conversation.")
 	case "media.overview", "media.inspect", "media.check", "media.review":
 		if args.CanvasID != s.CanvasID {
-			return denied("只能检查当前画布关联的媒体")
+			return denied("Only media associated with the current canvas can be checked")
 		}
 		if args.NodeID != "" && args.AssetID == "" {
 			return nil
@@ -129,14 +129,14 @@ func (s *AssistantScope) Allows(op *operations.Op, params json.RawMessage) error
 		if args.AssetID != "" && args.NodeID == "" && (s.AssetIDs[args.AssetID] || s.projectReferenceAllowed("asset", args.AssetID)) {
 			return nil
 		}
-		return denied("这个媒体未关联到当前画布或本次对话")
+		return denied("This media is not associated with the current canvas or this conversation")
 	case "task.get":
 		if s.TaskIDs[strings.TrimSpace(args.TaskID)] {
 			return nil
 		}
-		return denied("这个任务与当前画布无关")
+		return denied("This task has nothing to do with the current canvas")
 	default:
-		return denied("内置助手不能调用该操作")
+		return denied("The built-in helper cannot call this operation")
 	}
 }
 

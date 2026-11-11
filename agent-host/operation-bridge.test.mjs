@@ -13,8 +13,8 @@ function listen(server) {
   });
 }
 
-describe('操作桥', () => {
-  test('任务绑定与自动交付共用产物身份，跨会话重试不制造第二次效果', async () => {
+describe('operating bridge', () => {
+  test('Task binding and automatic delivery share product identity, and cross-session retries do not create second effects.', async () => {
     const seen = [];
     const receipts = new Set();
     const server = createServer(async (req, res) => {
@@ -69,7 +69,7 @@ describe('操作桥', () => {
     }
   });
 
-  test('schema 去掉 canvasId 与 operationId，引用画布读取可保留 canvasId', () => {
+  test('The schema removes the canvasId and operationId, and the canvasId can be retained when reading from the canvas.', () => {
     const params = {
       type: 'object',
       properties: { canvasId: { type: 'string' }, operationId: { type: 'string' }, title: { type: 'string' } },
@@ -84,7 +84,7 @@ describe('操作桥', () => {
     expect(scopedSchema(params, true).properties.operationId).toBeUndefined();
   });
 
-  test('真实 HTTP：凭据与回合头到达 ops，写入 identity 绑定会话', async () => {
+  test('Real HTTP: Credentials and round headers arrive at ops, written to identity binding session', async () => {
     const seen = [];
     const opsServer = createServer(async (req, res) => {
       res.setHeader('content-type', 'application/json');
@@ -129,7 +129,7 @@ describe('操作桥', () => {
       const tools = bridge.buildTools('canvas-1', log, generation, turn, 'sess-A');
       expect(tools[0].parameters.properties.canvasId).toBeUndefined();
       const budget = createTurnBudget({ maxToolSteps: 4 });
-      const result = await turnBudgetContext.run(budget, () => tools[0].execute('call-7', { nodes: [{ title: '镜头' }] }, undefined));
+      const result = await turnBudgetContext.run(budget, () => tools[0].execute('call-7', { nodes: [{ title: 'lens' }] }, undefined));
       expect(JSON.parse(result.content[0].text).result.created[0].id).toBe('n1');
       const write = seen.find((item) => item.url === '/ops/canvas.nodes.create');
       expect(write.token).toBe('host-secret');
@@ -181,8 +181,8 @@ const NODE_CREATE_PARAMS = {
 
 function nodeUpdateOps() {
   return [
-    { id: 'canvas.node.update', summary: '局部修改一个节点', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: JSON.parse(JSON.stringify(NODE_UPDATE_PARAMS)) },
-    { id: 'canvas.nodes.create', summary: '批量创建节点', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: JSON.parse(JSON.stringify(NODE_CREATE_PARAMS)) },
+    { id: 'canvas.node.update', summary: 'Modify a node locally', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: JSON.parse(JSON.stringify(NODE_UPDATE_PARAMS)) },
+    { id: 'canvas.nodes.create', summary: 'Create nodes in batches', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: JSON.parse(JSON.stringify(NODE_CREATE_PARAMS)) },
   ];
 }
 
@@ -221,15 +221,15 @@ async function withNodeUpdateBridge(run) {
   }
 }
 
-describe('内置助手节点更新投影', () => {
-  test('boolean 第二参数保持兼容：不声明 descriptor 时不隐藏 prompt', () => {
+describe('Built-in helper node updates projection', () => {
+  test('boolean The second parameter remains compatible: the prompt is not hidden when descriptor is not declared', () => {
     const snapshot = JSON.stringify(NODE_UPDATE_PARAMS);
     expect(scopedSchema(NODE_UPDATE_PARAMS, false).properties.patch.properties.prompt).toEqual({ type: 'string' });
     expect(scopedSchema(NODE_UPDATE_PARAMS).properties.canvasId).toBeUndefined();
     expect(JSON.stringify(NODE_UPDATE_PARAMS)).toBe(snapshot);
   });
 
-  test('投影只暴露 title/content，并可用对象第二参数向后兼容', () => {
+  test('The projection only exposes title/content and can be used as the second parameter of the object for backward compatibility.', () => {
     const projected = scopedSchema(NODE_UPDATE_PARAMS, false, 'canvas.node.update');
     expect(projected.properties.patch.properties).toEqual(ASSISTANT_CANVAS_NODE_UPDATE_PATCH);
     expect(projected.properties.patch.additionalProperties).toBe(false);
@@ -249,7 +249,7 @@ describe('内置助手节点更新投影', () => {
     expect(viaReadOptions.properties.patch.properties.prompt).toBeUndefined();
   });
 
-  test('真实 customTools schema 隐藏 prompt，创建工具仍保留 prompt', async () => {
+  test('The real customTools schema hides the prompt, and the creation tool still retains the prompt.', async () => {
     await withNodeUpdateBridge(async ({ bridge }) => {
       const stored = bridge.descriptors.get('canvas_node_update');
       const original = JSON.parse(JSON.stringify(stored));
@@ -257,9 +257,9 @@ describe('内置助手节点更新投影', () => {
       const update = tools.find((tool) => tool.name === 'canvas_node_update');
       const create = tools.find((tool) => tool.name === 'canvas_nodes_create');
       expect(update.parameters.properties.patch.properties).toEqual(ASSISTANT_CANVAS_NODE_UPDATE_PATCH);
-      expect(update.parameters.properties.patch.properties.content.description).toContain('下次生成提示词草稿');
-      expect(update.parameters.properties.patch.properties.content.description).toContain('文本节点的正文');
-      expect(update.parameters.properties.patch.properties.content.description).toContain('省略的字段保持原样');
+      expect(update.parameters.properties.patch.properties.content.description).toContain('Generate a draft of prompt words next time');
+      expect(update.parameters.properties.patch.properties.content.description).toContain('The text of the text node');
+      expect(update.parameters.properties.patch.properties.content.description).toContain('Omitted fields remain as is');
       expect(update.parameters.properties.patch.properties.prompt).toBeUndefined();
       expect(create.parameters.properties.nodes.items.properties.prompt).toEqual({ type: 'string' });
       expect(bridge.descriptors.get('canvas_node_update')).toEqual(original);
@@ -270,7 +270,7 @@ describe('内置助手节点更新投影', () => {
     });
   });
 
-  test('执行拒绝编造的 patch.prompt，且不转发到 ops', async () => {
+  test('Execution rejects fabricated patch.prompt and does not forward to ops', async () => {
     await withNodeUpdateBridge(async ({ bridge, seen, turnBudgetContext }) => {
       const tools = bridge.buildTools('canvas-1', [], { aborted: false }, resetTurnAccumulator(newTurnAccumulator(), 3, 'turn-p'), 'sess-P');
       const update = tools.find((tool) => tool.name === 'canvas_node_update');
@@ -278,13 +278,13 @@ describe('内置助手节点更新投影', () => {
       await expect(turnBudgetContext.run(budget, () => update.execute('call-repro', {
         nodeId: 'img-1',
         expectedRevision: 3,
-        patch: { content: '', prompt: '新的提示词', title: '新名字' },
+        patch: { content: '', prompt: 'new prompt words', title: 'new name' },
       }))).rejects.toThrow(/unsupported_patch_field: canvas\.node\.update 不能提交 patch\.prompt/);
       expect(seen.filter((item) => item.url === '/ops/canvas.node.update')).toEqual([]);
     });
   });
 
-  test('content 原样转发，不改写字段，省略的字段不会被补上', async () => {
+  test('Content is forwarded as it is, no fields are rewritten, and omitted fields will not be filled in.', async () => {
     await withNodeUpdateBridge(async ({ bridge, seen, turnBudgetContext }) => {
       const tools = bridge.buildTools('canvas-1', [], { aborted: false }, resetTurnAccumulator(newTurnAccumulator(), 3, 'turn-p'), 'sess-P');
       const update = tools.find((tool) => tool.name === 'canvas_node_update');
@@ -292,21 +292,21 @@ describe('内置助手节点更新投影', () => {
       await turnBudgetContext.run(budget, () => update.execute('call-content', {
         nodeId: 'img-1',
         expectedRevision: 3,
-        patch: { title: '新名字', content: '夜景：雨夜巷口对峙' },
+        patch: { title: 'new name', content: 'Night scene: Confrontation at the alley on a rainy night' },
       }));
       await turnBudgetContext.run(budget, () => update.execute('call-title-only', {
         nodeId: 'img-1',
         expectedRevision: 4,
-        patch: { title: '只改名' },
+        patch: { title: 'Just change the name' },
       }));
       const writes = seen.filter((item) => item.url === '/ops/canvas.node.update');
       expect(writes[0].body.params).toEqual({
         nodeId: 'img-1',
         expectedRevision: 3,
-        patch: { title: '新名字', content: '夜景：雨夜巷口对峙' },
+        patch: { title: 'new name', content: 'Night scene: Confrontation at the alley on a rainy night' },
         canvasId: 'canvas-1',
       });
-      expect(writes[1].body.params.patch).toEqual({ title: '只改名' });
+      expect(writes[1].body.params.patch).toEqual({ title: 'Just change the name' });
       expect(Object.hasOwn(writes[1].body.params.patch, 'content')).toBe(false);
       expect(Object.hasOwn(writes[1].body.params.patch, 'prompt')).toBe(false);
       expect(writes[0].body.params.patch).not.toHaveProperty('prompt');
@@ -334,16 +334,16 @@ test('media discovery preserves descriptions, required versions and modes in mod
       const original = ops.find(op => op.id === tool.label);
       expect(tool.description).toBe(original.summary);
       expect(tool.parameters.properties.mode).toEqual(original.params.properties.mode);
-      expect(tool.parameters.properties.mode.description).toContain('不能判断连续运动或声音');
+      expect(tool.parameters.properties.mode.description).toContain('Unable to judge continuous movement or sounds');
       expect(tool.parameters.properties.mode.enum).toEqual(['frames', 'video', 'audio']);
       expect(tool.parameters.properties.expectedVersion).toEqual(original.params.properties.expectedVersion);
       expect(tool.parameters.properties.expectedVersion.minLength).toBe(1);
       expect(tool.parameters.required.includes('expectedVersion')).toBe(tool.label !== 'media.overview');
       expect(tool.parameters.properties.canvasId).toBeUndefined();
     }
-    expect(tools.find(tool => tool.name === 'media_inspect').description).toContain('15 秒');
-    expect(tools.find(tool => tool.name === 'media_overview').description).toContain('不能替代');
-    expect(tools.find(tool => tool.name === 'media_check').description).toContain('不能判断');
+    expect(tools.find(tool => tool.name === 'media_inspect').description).toContain('15 seconds');
+    expect(tools.find(tool => tool.name === 'media_overview').description).toContain('cannot be replaced');
+    expect(tools.find(tool => tool.name === 'media_check').description).toContain('Can\'t judge');
   } finally {
     server.closeAllConnections();
     await new Promise(resolve => server.close(resolve));
@@ -374,7 +374,7 @@ test('media review exposes and forwards the selected resource with its owned tar
     expect(tool.parameters.required).not.toContain('resourceId');
     expect(tool.parameters.additionalProperties).toBe(false);
     expect(tool.replay).toBe('unsafe');
-    const params = { nodeId: 'node', resourceId: 'selected-resource', expectedVersion: 'version', startMs: 0, endMs: 1000, question: '观察片段' };
+    const params = { nodeId: 'node', resourceId: 'selected-resource', expectedVersion: 'version', startMs: 0, endMs: 1000, question: 'Observation snippet' };
     await tool.execute('review-call', params);
     expect(requests).toEqual([{ path: '/ops/media.review', body: { opId: '', params: { ...params, canvasId: 'canvas' } } }]);
   } finally {
@@ -404,10 +404,10 @@ async function withCasBridge(run, { revision = 9 } = {}) {
     const parsed = body ? JSON.parse(body) : {};
     if (req.url === '/ops') {
       res.end(JSON.stringify({ code: 0, data: { ops: [
-        { id: 'canvas.edge.create', summary: '连接两个节点', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: EDGE_CREATE_PARAMS },
-        { id: 'canvas.node.update', summary: '局部修改一个节点', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: NODE_UPDATE_PARAMS },
-        { id: 'canvas.nodes.create', summary: '批量创建节点', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: NODE_CREATE_PARAMS },
-        { id: 'canvas.document.commit', summary: '提交整份画布文档', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: DOCUMENT_COMMIT_PARAMS },
+        { id: 'canvas.edge.create', summary: 'Connect two nodes', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: EDGE_CREATE_PARAMS },
+        { id: 'canvas.node.update', summary: 'Modify a node locally', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: NODE_UPDATE_PARAMS },
+        { id: 'canvas.nodes.create', summary: 'Create nodes in batches', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: NODE_CREATE_PARAMS },
+        { id: 'canvas.document.commit', summary: 'Submit the entire canvas document', assistantModes: ['canvas', 'full-access'], replay: 'safe', readOnly: false, params: DOCUMENT_COMMIT_PARAMS },
       ] } }));
       return;
     }
@@ -420,7 +420,7 @@ async function withCasBridge(run, { revision = 9 } = {}) {
     state.seen.push({ op, expectedRevision: parsed.params?.expectedRevision });
     if (parsed.params?.expectedRevision !== state.revision) {
       res.writeHead(409);
-      res.end(JSON.stringify({ code: 1, reason: 'stale_revision', msg: '云端画布已有更新' }));
+      res.end(JSON.stringify({ code: 1, reason: 'stale_revision', msg: 'Cloud Canvas has been updated' }));
       return;
     }
     state.revision += 1;
@@ -448,8 +448,8 @@ async function withCasBridge(run, { revision = 9 } = {}) {
   }
 }
 
-describe('同一轮的并行写入', () => {
-  test('同一条消息里三次连线都带旧版本 9，按本轮最新版本依次落地', async () => {
+describe('Parallel writes in the same round', () => {
+  test('The three connections in the same message all carried the old version 9, and the latest versions of this round were implemented in order.', async () => {
     await withCasBridge(async ({ state, turn, log, call }) => {
       for (const [id, to] of [['c1', 'b'], ['c2', 'c'], ['c3', 'd']]) {
         await call('canvas_edge_create', id, { fromNodeId: 'a', toNodeId: to, expectedRevision: 9 });
@@ -465,17 +465,17 @@ describe('同一轮的并行写入', () => {
     });
   });
 
-  test('节点创建与局部修改同样接到本轮链头；按最新版本发来的写入原样转发', async () => {
+  test('Node creation and local modifications are also received from the chain head of this round; they are forwarded as written from the latest version.', async () => {
     await withCasBridge(async ({ state, log, call }) => {
-      await call('canvas_nodes_create', 'n1', { nodes: [{ title: '镜头', type: 'image' }], expectedRevision: 9 });
-      await call('canvas_node_update', 'u1', { nodeId: 'n10', patch: { title: '改名' }, expectedRevision: 9 });
+      await call('canvas_nodes_create', 'n1', { nodes: [{ title: 'lens', type: 'image' }], expectedRevision: 9 });
+      await call('canvas_node_update', 'u1', { nodeId: 'n10', patch: { title: 'Change name' }, expectedRevision: 9 });
       await call('canvas_edge_create', 'e1', { fromNodeId: 'a', toNodeId: 'b', expectedRevision: 11 });
       expect(state.seen.map((item) => item.expectedRevision)).toEqual([9, 10, 11]);
       expect(log.map((entry) => entry.rebasedFrom)).toEqual([undefined, 9, undefined]);
     });
   });
 
-  test('别人在中间改过画布时仍然版本冲突', async () => {
+  test('Version conflicts still occur when someone else changes the canvas in the middle.', async () => {
     await withCasBridge(async ({ state, log, call }) => {
       await call('canvas_edge_create', 'c1', { fromNodeId: 'a', toNodeId: 'b', expectedRevision: 9 });
       state.revision += 1; // foreign write: 10 -> 11
@@ -489,7 +489,7 @@ describe('同一轮的并行写入', () => {
     });
   });
 
-  test('整份文档提交从不改写版本', async () => {
+  test('The entire document is submitted and never rewritten.', async () => {
     await withCasBridge(async ({ state, log, call }) => {
       await call('canvas_edge_create', 'c1', { fromNodeId: 'a', toNodeId: 'b', expectedRevision: 9 });
       await expect(call('canvas_document_commit', 'd1', { document: { nodes: [] }, expectedRevision: 9 })).rejects.toThrow('stale_revision');
@@ -498,7 +498,7 @@ describe('同一轮的并行写入', () => {
     });
   });
 
-  test('新的一轮不继承上一轮的写入链', async () => {
+  test('The new round does not inherit the write chain of the previous round.', async () => {
     await withCasBridge(async ({ state, turn, log, call }) => {
       await call('canvas_edge_create', 'c1', { fromNodeId: 'a', toNodeId: 'b', expectedRevision: 9 });
       expect(turn.writeChains).toEqual([{ canvasId: 'canvas-1', start: 9, head: 10 }]);

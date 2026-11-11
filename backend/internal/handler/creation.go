@@ -79,5 +79,5 @@ func RegisterCreationRoutes(r *gin.RouterGroup, svc creationRouteService) {
 // requireCreationWritePrincipal binds the existing desktop UI capability.
 // JSON owner is a lease identity after this trusted call, not a caller role.
 func requireCreationWritePrincipal(c *gin.Context) bool {
-	return requireTrustedDesktopWritePrincipal(c, "创作操作只能由当前桌面界面完成")
+	return requireTrustedDesktopWritePrincipal(c, "Creation operations can only be completed from the current desktop interface")
 }

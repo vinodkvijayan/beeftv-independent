@@ -71,11 +71,11 @@ func TestIndependentHTTPStatusSurvivesHTML(t *testing.T) {
 
 func TestIndependentSpacedCredentialsCannotReachUser(t *testing.T) {
 	for _, message := range []string{
-		"请求失败 api_key = PROBE_PRIVATE_ALPHA",
-		"请求失败 Authorization: Bearer PROBE_PRIVATE_BETA",
-		"请求失败 Cookie: session=PROBE_PRIVATE_GAMMA; csrf=PROBE_PRIVATE_DELTA",
-		"请求失败 access_token : PROBE_PRIVATE_EPSILON",
-		"请求失败 prompt: PROBE_PRIVATE_ZETA more private words",
+		"Request failed api_key = PROBE_PRIVATE_ALPHA",
+		"Request failed Authorization: Bearer PROBE_PRIVATE_BETA",
+		"Request failed Cookie: session=PROBE_PRIVATE_GAMMA; csrf=PROBE_PRIVATE_DELTA",
+		"Request failed access_token: PROBE_PRIVATE_EPSILON",
+		"Request failed prompt: PROBE_PRIVATE_ZETA more private words",
 	} {
 		f := ClassifyAppError(400, 400, "invalid_argument", message)
 		if strings.Contains(f.UserMessage(), "PROBE_PRIVATE_") {
@@ -102,7 +102,7 @@ func TestIndependentExplicitUserQuotaNeedsQuotaAction(t *testing.T) {
 	if f.Category != CategoryQuotaUser {
 		t.Errorf("explicit user quota classified %s", f.Category)
 	}
-	for _, phrase := range []string{"减少同时", "等待已有任务", "并发"} {
+	for _, phrase := range []string{"Reduce at the same time", "Wait for existing tasks", "Concurrency"} {
 		if strings.Contains(f.UserMessage(), phrase) {
 			t.Errorf("quota advice confused with concurrency: %s", f.UserMessage())
 		}

@@ -10,34 +10,34 @@ const commandsGolden = JSON.parse(
 ) as { base: TimelineProject };
 
 describe("formatMs", () => {
-    test("毫秒转 m:ss", () => {
+    test("Milliseconds to m:ss", () => {
         expect(formatMs(0)).toBe("0:00");
         expect(formatMs(59999)).toBe("0:59");
         expect(formatMs(60000)).toBe("1:00");
         expect(formatMs(65000)).toBe("1:05");
         expect(formatMs(600000 + 12000)).toBe("10:12");
     });
-    test("负数钳制为 0", () => {
+    test("Negative numbers are clamped to 0", () => {
         expect(formatMs(-500)).toBe("0:00");
     });
-    test("小数取整", () => {
+    test("Decimal rounding", () => {
         // Math.round(ms) 到毫秒再向下取秒：1500.6→1501ms→0:01；1501.9→1502ms→0:01
         expect(formatMs(1500.6)).toBe("0:01");
     });
 });
 
 describe("summarizeTimeline", () => {
-    test("确定性：同输入两次输出一致", () => {
+    test("Deterministic: The output is consistent with the same input twice.", () => {
         expect(summarizeTimeline(commandsGolden.base)).toBe(summarizeTimeline(commandsGolden.base));
     });
-    test("含时长、轨道数与片段统计", () => {
+    test("Including duration, track number and segment statistics", () => {
         const s = summarizeTimeline(commandsGolden.base);
-        expect(s).toContain("总时长 0:08");
-        expect(s).toContain("4 条轨道");
-        expect(s).toContain("4 个片段");
-        expect(s).toContain("字幕 1");
+        expect(s).toContain("Total duration 0:08");
+        expect(s).toContain("4 tracks");
+        expect(s).toContain("4 clips");
+        expect(s).toContain("subtitles 1");
     });
-    test("轨道按 order 排序且逐行列 id/kind/label", () => {
+    test("Tracks are sorted by order and row by column id/kind/label", () => {
         const s = summarizeTimeline(commandsGolden.base);
         const video1 = s.indexOf("video-1");
         const audio1 = s.indexOf("audio-1");
@@ -47,31 +47,31 @@ describe("summarizeTimeline", () => {
         expect(audio1).toBeGreaterThan(video1);
         expect(subtitle1).toBeGreaterThan(audio1);
         expect(video2).toBeGreaterThan(subtitle1);
-        expect(s).toContain("视频轨");
-        expect(s).toContain("音频轨");
-        expect(s).toContain("字幕轨");
+        expect(s).toContain("video track");
+        expect(s).toContain("audio track");
+        expect(s).toContain("subtitle track");
     });
-    test("片段逐行列出 id/kind/时间区间，文本被截断到安全长度", () => {
+    test("The snippet lists the id/kind/time intervals line by line, with the text truncated to a safe length", () => {
         const s = summarizeTimeline(commandsGolden.base);
         expect(s).toContain("clip-a");
         expect(s).toContain("clip-b");
         expect(s).toContain("clip-c");
         expect(s).toContain("sub-1");
         expect(s).toContain("0-5000ms");
-        expect(s).toContain("轨道 video-1");
-        expect(s).toContain("轨道 subtitle-1");
+        expect(s).toContain("orbit video-1");
+        expect(s).toContain("Orbital subtitle-1");
     });
-    test("字幕 clip 计入字数统计", () => {
+    test("Subtitle clips are included in the word count", () => {
         const s = summarizeTimeline(commandsGolden.base);
         expect(s).toMatch(/字幕共 \d+ 字。/);
     });
-    test("空时间线给出明确提示", () => {
+    test("An empty timeline gives a clear reminder", () => {
         const empty: TimelineProject = { version: 2, tracks: [], clips: [], durationMs: 0 };
         const s = summarizeTimeline(empty);
-        expect(s).toContain("0 条轨道");
-        expect(s).toContain("（空时间线）");
+        expect(s).toContain("0 tracks");
+        expect(s).toContain("(empty timeline)");
     });
-    test("片段总数超限时折叠（防上下文撑爆）", async () => {
+    test("Fold when the total number of fragments exceeds the limit (to prevent context explosion)", async () => {
         const summaryModule = await import("@/lib/timeline/timeline-summary");
         const manyClips = Array.from({ length: summaryModule.SUMMARY_MAX_CLIP_LINES + 10 }, (_, i) => ({
             id: `c${i}`,
@@ -85,13 +85,13 @@ describe("summarizeTimeline", () => {
         }));
         const big: TimelineProject = {
             version: 2,
-            tracks: [{ id: "video-1", kind: "video", label: "视频 1", order: 0 }],
+            tracks: [{ id: "video-1", kind: "video", label: "Video 1", order: 0 }],
             clips: manyClips,
             durationMs: manyClips.length * 1000,
         };
         const s = summarizeTimeline(big);
         const counted = s.match(/^  - clip /gm)?.length ?? 0;
         expect(counted).toBe(summaryModule.SUMMARY_MAX_CLIP_LINES);
-        expect(s).toContain("…其余 10 个片段省略");
+        expect(s).toContain("...the remaining 10 fragments are omitted");
     });
 });

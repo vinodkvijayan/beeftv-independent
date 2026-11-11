@@ -53,7 +53,7 @@ func ExecuteGenerateStep(
 	}
 	recipe, ok := recipes[n.ID]
 	if !ok {
-		return nil, BadRequest("生成配方缺失")
+		return nil, BadRequest("Generate recipe missing")
 	}
 	built, err := Materialize(compile, user, op, recipe, nodes, steps)
 	var task *model.Task
@@ -72,11 +72,11 @@ func ExecuteGenerateStep(
 		seen[binding.NodeID] = true
 		if value := steps[binding.NodeID]; value != nil {
 			if resource, resErr := ReadyResource(compile.Repository(), user, value.ResourceID, "video"); resErr == nil {
-				videos = append(videos, fmt.Sprintf("%s（%.2f 秒）", nodes[binding.NodeID].Title, float64(resource.DurationMs)/1000))
+				videos = append(videos, fmt.Sprintf("%s (%.2f seconds)", nodes[binding.NodeID].Title, float64(resource.DurationMs)/1000))
 			}
 		}
 	}
-	return nil, fmt.Errorf("模型 %s；参考视频：%s；%w", recipe.Request.Model, strings.Join(videos, "、"), err)
+	return nil, fmt.Errorf("Model %s; Reference video: %s; %w", recipe.Request.Model, strings.Join(videos, "、"), err)
 }
 
 func ExecuteDescribeStep(
@@ -122,7 +122,7 @@ func LoadProviderConfig(dataDir string) (map[string]any, error) {
 	}
 	effective, _, err := store.LoadEffectiveModelConfig()
 	if err != nil {
-		return nil, BadRequest("本地模型配置不可读，请在设置中恢复配置后再运行工作流")
+		return nil, BadRequest("The local model configuration is unreadable. Please restore the configuration in settings before running the workflow.")
 	}
 	return effective.Config, nil
 }

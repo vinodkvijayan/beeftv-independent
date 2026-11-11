@@ -11,11 +11,11 @@ import {
 } from './studio-digest.mjs';
 
 const media = (id, type, title, meta = {}) => ({ id, type, title, metadata: meta });
-const board = (rows) => ({ id: 'board-1', type: 'script', title: '13楼的外卖', metadata: { storyboard: { rows } } });
-const row = (n, extra = {}) => ({ id: `row-${n}`, shotNumber: n, durationSeconds: 5, plotDescription: `第${n}镜剧情`, imageGenerationPrompt: 'p', videoMotionPrompt: '', ...extra });
+const board = (rows) => ({ id: 'board-1', type: 'script', title: 'Takeaway on the 13th floor', metadata: { storyboard: { rows } } });
+const row = (n, extra = {}) => ({ id: `row-${n}`, shotNumber: n, durationSeconds: 5, plotDescription: `No.${n}mirror plot`, imageGenerationPrompt: 'p', videoMotionPrompt: '', ...extra });
 
 describe('nodeState', () => {
-  test('进行中、失败、完成、空', () => {
+  test('In progress, failed, completed, empty', () => {
     expect(nodeState(media('a', 'image', 'x', { status: 'loading' }))).toBe('running');
     expect(nodeState(media('a', 'image', 'x', { taskStatus: 'queued' }))).toBe('running');
     expect(nodeState(media('a', 'image', 'x', { status: 'error' }))).toBe('failed');
@@ -29,95 +29,95 @@ describe('buildStudioDigest', () => {
     revision: 12,
     nodes: [
       board([row(1, { imageNodeId: 'img-1', videoNodeId: 'vid-1' }), row(2, { imageNodeId: 'img-2' }), row(3)]),
-      media('img-1', 'image', '镜1首帧', { status: 'success', assetId: 'a1' }),
-      media('vid-1', 'video', '镜1视频', { status: 'loading' }),
-      media('img-2', 'image', '镜2首帧', { status: 'error', generationErrorSummary: '内容审核未通过' }),
+      media('img-1', 'image', 'Mirror 1 first frame', { status: 'success', assetId: 'a1' }),
+      media('vid-1', 'video', 'Mirror 1 video', { status: 'loading' }),
+      media('img-2', 'image', 'Mirror 2 first frame', { status: 'error', generationErrorSummary: 'Content review failed' }),
     ],
     connections: [{ id: 'c1', fromNodeId: 'img-1', toNodeId: 'vid-1' }],
   };
-  test('包含版本、分镜行绑定、进行中与失败，并带上 id', () => {
+  test('Contains version, story line binding, progress and failure, and id', () => {
     const { text } = buildStudioDigest(canvas, { selectedNodeIds: ['img-2'] });
-    expect(text).toContain('画布版本 12');
-    expect(text).toContain('分镜板「13楼的外卖」id=board-1，共 3 镜');
-    expect(text).toContain('镜1 5s｜行id=row-1｜首帧 img-1 完成｜视频 vid-1 生成中');
-    expect(text).toContain('镜2 5s｜行id=row-2｜首帧 img-2 失败｜视频 — 未建');
-    expect(text).toContain('镜3 5s｜行id=row-3｜首帧 — 未建');
-    expect(text).toContain('生成中：vid-1');
-    expect(text).toContain('失败：img-2「镜2首帧」内容审核未通过');
-    expect(text).toContain('用户选中：img-2');
+    expect(text).toContain('Canvas version 12');
+    expect(text).toContain('Storyboard "Takeaway on the 13th floor" id=board-1, 3 shots in total');
+    expect(text).toContain('Mirror 1 5s｜row id=row-1｜first frame img-1 completed｜video vid-1 being generated');
+    expect(text).toContain('Mirror 2 5s｜row id=row-2｜first frame img-2 failed｜Video - not built');
+    expect(text).toContain('Mirror 3 5s｜row id=row-3｜first frame — not built');
+    expect(text).toContain('Generating: vid-1');
+    expect(text).toContain('Failure: img-2 "Mirror 2 First Frame" content review failed');
+    expect(text).toContain('User selected: img-2');
   });
-  test('同一状态输出完全相同（缓存友好）', () => {
+  test('Same status output is exactly the same (cache friendly)', () => {
     expect(buildStudioDigest(canvas).text).toBe(buildStudioDigest(JSON.parse(JSON.stringify(canvas))).text);
   });
-  test('超预算先收缩分镜明细，关键信息保留', () => {
-    const rows = Array.from({ length: 60 }, (_, i) => row(i + 1, { imageNodeId: `i${i}`, plotDescription: '很长的剧情描述'.repeat(5) }));
-    const big = { revision: 3, nodes: [board(rows), media('i0', 'image', 'x', { status: 'error', generationErrorSummary: '失败了' })], connections: [] };
+  test('If the budget exceeds the budget, the storyboard details will be reduced first, and the key information will be retained.', () => {
+    const rows = Array.from({ length: 60 }, (_, i) => row(i + 1, { imageNodeId: `i${i}`, plotDescription: 'Very long plot description'.repeat(5) }));
+    const big = { revision: 3, nodes: [board(rows), media('i0', 'image', 'x', { status: 'error', generationErrorSummary: 'failed' })], connections: [] };
     const { text } = buildStudioDigest(big, { maxBytes: 1500 });
     expect(Buffer.byteLength(text, 'utf8')).toBeLessThanOrEqual(1500);
-    expect(text).toContain('失败：i0');
-    expect(text).toContain('分镜明细已收缩');
+    expect(text).toContain('Failure: i0');
+    expect(text).toContain('Storyboard details have been shrunk');
   });
-  test('空画布', () => {
-    expect(buildStudioDigest({ revision: 0, nodes: [], connections: [] }).text).toContain('画布是空的');
+  test('empty canvas', () => {
+    expect(buildStudioDigest({ revision: 0, nodes: [], connections: [] }).text).toContain('canvas is empty');
   });
-  test('文本节点的身份与当前正文预览可见，长文仍需按版本读取原文', () => {
-    const { text } = buildStudioDigest({ revision: 23, nodes: [media('brief', 'text', '用户刚修改的要求', { content: '保持角色一致性。'.repeat(40) })] });
+  test('The identity of the text node and the current text preview are visible. Long texts still need to read the original text according to the version.', () => {
+    const { text } = buildStudioDigest({ revision: 23, nodes: [media('brief', 'text', 'The user just modified the request', { content: 'Maintain character consistency.'.repeat(40) })] });
     expect(text).toContain('brief');
-    expect(text).toContain('用户刚修改的要求');
-    expect(text).toContain('保持角色一致性');
-    expect(text).toContain('预览');
+    expect(text).toContain('The user just modified the request');
+    expect(text).toContain('Maintain role consistency');
+    expect(text).toContain('Preview');
     expect(text).toContain('canvas_get');
     expect(Buffer.byteLength(text)).toBeLessThanOrEqual(3600);
   });
-  test('已完成视频与音频在摘要中直接带出 durationMs，避免重复调用 canvas_get', () => {
+  test('Completed video and audio directly bring out the durationMs in the summary to avoid repeated calls to canvas_get', () => {
     const { text } = buildStudioDigest({
       revision: 15,
       nodes: [
         board([row(1, { imageNodeId: 'img-1', videoNodeId: 'vid-1' })]),
-        media('img-1', 'image', '镜1首帧', { status: 'success', assetId: 'a1' }),
-        media('vid-1', 'video', '镜1视频', { status: 'success', assetId: 'v1', durationMs: 5120 }),
-        media('aud-1', 'audio', '旁白', { status: 'success', assetId: 'au1', durationMs: 4800 }),
+        media('img-1', 'image', 'Mirror 1 first frame', { status: 'success', assetId: 'a1' }),
+        media('vid-1', 'video', 'Mirror 1 video', { status: 'success', assetId: 'v1', durationMs: 5120 }),
+        media('aud-1', 'audio', 'narration', { status: 'success', assetId: 'au1', durationMs: 4800 }),
       ],
       connections: [],
     });
-    expect(text).toContain('视频 vid-1 完成(5120ms)');
-    expect(text).toContain('aud-1「旁白」音频完成(4800ms)');
+    expect(text).toContain('Video vid-1 completed (5120ms)');
+    expect(text).toContain('aud-1 "narration" audio completed (4800ms)');
   });
 });
 
 describe('describeChangesSince', () => {
   const before = snapshotOf([
-    media('a', 'image', '镜1首帧', { status: 'loading' }),
-    media('b', 'text', '角色设定', { content: '老内容' }),
-    media('c', 'image', '要删的', { assetId: 'x' }),
+    media('a', 'image', 'Mirror 1 first frame', { status: 'loading' }),
+    media('b', 'text', 'Character setting', { content: 'old content' }),
+    media('c', 'image', 'To be deleted', { assetId: 'x' }),
   ]);
-  test('生成完成、用户修改、新增、删除都能说出来', () => {
+  test('Generation completion, user modification, addition, and deletion can all be announced.', () => {
     const after = snapshotOf([
-      media('a', 'image', '镜1首帧', { status: 'success', assetId: 'a1' }),
-      media('b', 'text', '角色设定', { content: '用户改过的内容' }),
-      media('d', 'image', '新的', {}),
+      media('a', 'image', 'Mirror 1 first frame', { status: 'success', assetId: 'a1' }),
+      media('b', 'text', 'Character setting', { content: 'Content modified by users' }),
+      media('d', 'image', 'new', {}),
     ]);
     const text = describeChangesSince(before, after);
-    expect(text).toContain('用户修改了「角色设定」');
-    expect(text).toContain('新增 1 个节点');
-    expect(text).toContain('删除了「要删的」');
-    expect(text).toContain('「镜1首帧」生成完成');
+    expect(text).toContain('The user modified the "role settings"');
+    expect(text).toContain('Add 1 new node');
+    expect(text).toContain('Deleted "to be deleted"');
+    expect(text).toContain('"Mirror 1 first frame" is generated');
   });
-  test('失败要说出来；位置变化不算改动；无变化返回空串', () => {
-    const failed = snapshotOf([media('a', 'image', '镜1首帧', { status: 'error' }), media('b', 'text', '角色设定', { content: '老内容' }), media('c', 'image', '要删的', { assetId: 'x' })]);
-    expect(describeChangesSince(before, failed)).toContain('「镜1首帧」生成失败');
-    const moved = snapshotOf([{ ...media('a', 'image', '镜1首帧', { status: 'loading' }), position: { x: 99, y: 1 } }, media('b', 'text', '角色设定', { content: '老内容' }), media('c', 'image', '要删的', { assetId: 'x' })]);
+  test('Report failure; position changes are not considered changes; no change returns an empty string', () => {
+    const failed = snapshotOf([media('a', 'image', 'Mirror 1 first frame', { status: 'error' }), media('b', 'text', 'Character setting', { content: 'old content' }), media('c', 'image', 'To be deleted', { assetId: 'x' })]);
+    expect(describeChangesSince(before, failed)).toContain('"Mirror 1 first frame" generation failed');
+    const moved = snapshotOf([{ ...media('a', 'image', 'Mirror 1 first frame', { status: 'loading' }), position: { x: 99, y: 1 } }, media('b', 'text', 'Character setting', { content: 'old content' }), media('c', 'image', 'To be deleted', { assetId: 'x' })]);
     expect(describeChangesSince(before, moved)).toBe('');
     expect(describeChangesSince(null, moved)).toBe('');
   });
-  test('列表过长时压缩成“等 N 个”', () => {
-    const many = (suffix) => snapshotOf(Array.from({ length: 9 }, (_, i) => media(`n${i}`, 'text', `节点${i}`, { content: suffix })));
-    expect(describeChangesSince(many('旧'), many('新'))).toContain('等 9 个');
+  test('When the list is too long, it will be compressed into "Wait N"', () => {
+    const many = (suffix) => snapshotOf(Array.from({ length: 9 }, (_, i) => media(`n${i}`, 'text', `node${i}`, { content: suffix })));
+    expect(describeChangesSince(many('old'), many('new'))).toContain('Wait 9');
   });
 });
 
 describe('normalizeSystemHeaderMessages & withCurrentStudio', () => {
-  test('头部只保留 instructions 与 beeftv_skill_catalog，保留后续工具增量，且不丢弃以标签开头的真实用户消息', () => {
+  test('Only instructions and beeftv_skill_catalog are retained in the header, subsequent tool increments are retained, and real user messages starting with tags are not discarded.', () => {
     const toolDef = { name: 'extra_tool', description: 'extra', parameters: { type: 'object', properties: {} } };
     const messages = [
       {
@@ -138,12 +138,12 @@ describe('normalizeSystemHeaderMessages & withCurrentStudio', () => {
       },
       {
         role: 'user',
-        content: [{ type: 'text', text: '<beeftv_plan>\n用户自己贴的计划文本\n</beeftv_plan>' }],
+        content: [{ type: 'text', text: '<beeftv_plan>\nPlan text posted by users themselves\n</beeftv_plan>' }],
       },
     ];
 
-    const once = withCurrentStudio(messages, '[制作现场｜画布版本 1｜本轮请求前的实际状态]\n概况：画布是空的。', {
-      planText: '当前制作计划：所有步骤已完成。',
+    const once = withCurrentStudio(messages, '[Production site｜Canvas version 1｜Actual status before this round of requests]\nOverview: The canvas is empty.', {
+      planText: 'Current production plan: All steps completed.',
     });
     expect(once[0].content).toBe('');
     expect(Object.keys(once[0].sections)).toEqual(['instructions', 'beeftv_skill_catalog']);
@@ -153,22 +153,22 @@ describe('normalizeSystemHeaderMessages & withCurrentStudio', () => {
     expect(once[1].toolsAdded).toEqual([toolDef]);
     // 真实用户消息即使以 <beeftv_plan> 开头也必须完整保留
     expect(once[2].role).toBe('user');
-    expect(once[2].content[0].text).toContain('用户自己贴的计划文本');
+    expect(once[2].content[0].text).toContain('Plan text posted by users themselves');
     expect(isTransientStudioTailMessage(once[3])).toBe(true);
 
     // 再次叠加时只替换末尾生成的 transientStudioTail，不误删用户的消息
-    const twice = withCurrentStudio(once, '[制作现场｜画布版本 2｜本轮请求前的实际状态]\n概况：画布是空的。');
+    const twice = withCurrentStudio(once, '[Production site｜Canvas version 2｜Actual status before this round of requests]\nOverview: The canvas is empty.');
     expect(twice.length).toBe(4);
-    expect(twice[2].content[0].text).toContain('用户自己贴的计划文本');
-    expect(twice[3].content[0].text).toContain('画布版本 2');
+    expect(twice[2].content[0].text).toContain('Plan text posted by users themselves');
+    expect(twice[3].content[0].text).toContain('Canvas version 2');
   });
 
-  test('pruneHistoricalToolImages 保留当前批次及连续媒体探查中的 toolResult 图片，但裁剪已转入画布写入或历史轮次的旧预览图', () => {
+  test('pruneHistoricalToolImages retains toolResult images in the current batch and continuous media probing, but crops old preview images that have been transferred to canvas writing or historical rounds', () => {
     const bigPad = 'A'.repeat(20 * 1024);
     const imgPart = (tag) => ({ type: 'image', mimeType: 'image/jpeg', data: `${tag}_${bigPad}` });
     const tinyPart = { type: 'image', mimeType: 'image/png', data: 'TINY_ICON' };
     const freshBatch = [
-      { role: 'user', content: [{ type: 'text', text: '查看三张首帧图' }] },
+      { role: 'user', content: [{ type: 'text', text: 'Check out the three first frames' }] },
       {
         role: 'assistant',
         content: [
@@ -206,18 +206,18 @@ describe('normalizeSystemHeaderMessages & withCurrentStudio', () => {
     // 当同轮仅有 [BEEFTV_INPUT:...] 补充消息紧跟在 toolResult 后时，不裁剪当轮刚读出的图片
     const withSupplementOnly = [
       ...freshBatch,
-      { role: 'user', content: [{ type: 'text', text: '[BEEFTV_INPUT:s1]\n请重点看第二张图' }] },
+      { role: 'user', content: [{ type: 'text', text: '[BEEFTV_INPUT:s1]\nPlease focus on the second picture' }] },
     ];
     expect(pruneHistoricalToolImages(withSupplementOnly)[2].content[1]).toEqual(imgPart('BASE64_1'));
 
     // 当上一轮在 toolResult 后直接中断并进入下一轮普通 user 消息（无中间 assistant）时，旧轮图片必须被裁剪
     const interruptedThenNextTurn = [
       ...freshBatch,
-      { role: 'user', content: [{ type: 'text', text: '开启新一轮对话' }] },
+      { role: 'user', content: [{ type: 'text', text: 'Start a new round of dialogue' }] },
     ];
     expect(pruneHistoricalToolImages(interruptedThenNextTurn)[2].content[1]).toEqual({
       type: 'text',
-      text: '[历史媒体预览图已省略，如需复查概览请调 media_overview，查看原图或局部细节请调 media_inspect]',
+      text: '[Historical media preview images have been omitted. To review the overview, please call media_overview. To view the original image or partial details, please call media_inspect]',
     });
 
     // 一旦助手已读完图片并开始调用 canvas_node_configure，后续步骤不再重复上传旧 toolResult 的 base64
@@ -229,14 +229,14 @@ describe('normalizeSystemHeaderMessages & withCurrentStudio', () => {
       },
       { role: 'toolResult', toolCallId: 'c4', content: [{ type: 'text', text: '{"op":"canvas.node.configure"}' }] },
     ];
-    const projectedAfterWrite = withCurrentStudio(afterCanvasConfigure, '现场摘要');
+    const projectedAfterWrite = withCurrentStudio(afterCanvasConfigure, 'Site summary');
     expect(projectedAfterWrite[2].content[1]).toEqual({
       type: 'text',
-      text: '[历史媒体预览图已省略，如需复查概览请调 media_overview，查看原图或局部细节请调 media_inspect]',
+      text: '[Historical media preview images have been omitted. To review the overview, please call media_overview. To view the original image or partial details, please call media_inspect]',
     });
     expect(projectedAfterWrite[3].content[1]).toEqual({
       type: 'text',
-      text: '[历史媒体预览图已省略，如需复查概览请调 media_overview，查看原图或局部细节请调 media_inspect]',
+      text: '[Historical media preview images have been omitted. To review the overview, please call media_overview. To view the original image or partial details, please call media_inspect]',
     });
     // 小尺寸图标/占位图（<16KB）保持原样以维持前缀缓存一致
     expect(projectedAfterWrite[2].content[2]).toEqual(tinyPart);
@@ -246,15 +246,15 @@ describe('normalizeSystemHeaderMessages & withCurrentStudio', () => {
     // 跨轮进入新用户消息并读取新一批视频帧时，旧轮图片被裁剪、新轮刚读出的视频帧保留
     const nextTurnWithNewFrames = [
       ...afterCanvasConfigure,
-      { role: 'assistant', content: [{ type: 'text', text: '已完成配置' }] },
-      { role: 'user', content: [{ type: 'text', text: '继续验收视频并交付' }, imgPart('USER_ATTACHMENT')] },
+      { role: 'assistant', content: [{ type: 'text', text: 'Configuration completed' }] },
+      { role: 'user', content: [{ type: 'text', text: 'Continue to accept the video and deliver it' }, imgPart('USER_ATTACHMENT')] },
       {
         role: 'assistant',
         content: [{ type: 'toolCall', id: 'c5', name: 'media_overview', arguments: { nodeId: 'vid-1' } }],
       },
       { role: 'toolResult', toolCallId: 'c5', content: [{ type: 'text', text: '{"op":"media.overview"}' }, imgPart('VIDEO_FRAME_1')] },
     ];
-    const projectedNextTurn = withCurrentStudio(nextTurnWithNewFrames, '现场摘要');
+    const projectedNextTurn = withCurrentStudio(nextTurnWithNewFrames, 'Site summary');
     expect(projectedNextTurn[2].content[1].type).toBe('text');
     // 用户消息自带的附件图片始终保留
     expect(projectedNextTurn[7].content[1]).toEqual(imgPart('USER_ATTACHMENT'));

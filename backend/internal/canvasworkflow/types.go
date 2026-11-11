@@ -95,7 +95,7 @@ type Run struct {
 // Validate returns dependency order and rejects graphs whose inputs cannot be used.
 func Validate(d Definition) ([]Node, error) {
 	if d.Version != 1 || len(d.Nodes) == 0 || len(d.Nodes) > 100 || len(d.Edges) > 500 {
-		return nil, fmt.Errorf("工作流需要 1–100 个节点，且必须使用版本 1")
+		return nil, fmt.Errorf("Workflow requires 1–100 nodes and must use version 1")
 	}
 	nodes := map[string]Node{}
 	incoming := map[string]int{}
@@ -103,34 +103,34 @@ func Validate(d Definition) ([]Node, error) {
 	execution := 0
 	for _, n := range d.Nodes {
 		if n.Role != "operation" && len(n.Config) > 0 {
-			return nil, fmt.Errorf("节点 %s 不支持操作参数", n.ID)
+			return nil, fmt.Errorf("Node %s does not support operation parameters", n.ID)
 		}
 		if strings.TrimSpace(n.Title) == "" {
-			return nil, fmt.Errorf("节点 %s 名称不能为空", n.ID)
+			return nil, fmt.Errorf("Node %s name cannot be empty", n.ID)
 		}
 		if n.Role == "constant" && n.MediaType == "text" && strings.TrimSpace(n.Text) == "" {
-			return nil, fmt.Errorf("固定文本节点 %s 内容不能为空", n.ID)
+			return nil, fmt.Errorf("Fixed text node %s content cannot be empty", n.ID)
 		}
 		if strings.TrimSpace(n.ID) == "" || len(n.ID) > 128 {
-			return nil, fmt.Errorf("节点 ID 无效")
+			return nil, fmt.Errorf("Invalid node ID")
 		}
 		if _, ok := nodes[n.ID]; ok {
-			return nil, fmt.Errorf("节点 ID 重复：%s", n.ID)
+			return nil, fmt.Errorf("Duplicate node ID: %s", n.ID)
 		}
 		if n.MediaType != "image" && n.MediaType != "video" && n.MediaType != "audio" && n.MediaType != "text" {
-			return nil, fmt.Errorf("节点 %s 的素材类型不支持", n.Title)
+			return nil, fmt.Errorf("The material type of node %s is not supported", n.Title)
 		}
 		switch n.Role {
 		case "input", "constant":
 		case "generation":
 			execution++
 			if n.SourceTaskID == "" {
-				return nil, fmt.Errorf("节点 %s 缺少已成功执行的原任务，请先手动生成一次", n.Title)
+				return nil, fmt.Errorf("Node %s lacks the original task that has been successfully executed. Please generate it manually first.", n.Title)
 			}
 		case "depth":
 			execution++
 			if n.MediaType != "video" {
-				return nil, fmt.Errorf("深度步骤必须输出视频")
+				return nil, fmt.Errorf("Depth step must output video")
 			}
 		case "operation":
 			execution++
@@ -138,22 +138,22 @@ func Validate(d Definition) ([]Node, error) {
 				return nil, err
 			}
 		default:
-			return nil, fmt.Errorf("节点 %s 的角色不支持", n.Title)
+			return nil, fmt.Errorf("The role of node %s is not supported", n.Title)
 		}
 		nodes[n.ID] = n
 	}
 	if execution == 0 {
-		return nil, fmt.Errorf("工作流至少需要一个生成或深度处理步骤")
+		return nil, fmt.Errorf("Workflow requires at least one build or deep processing step")
 	}
 	seen := map[Edge]bool{}
 	for _, e := range d.Edges {
 		from, ok := nodes[e.From]
 		to, ok2 := nodes[e.To]
 		if !ok || !ok2 || e.From == e.To || seen[e] {
-			return nil, fmt.Errorf("工作流连线重复或引用了缺失节点")
+			return nil, fmt.Errorf("Workflow wire duplicates or references missing node")
 		}
 		if to.Role != "generation" && to.Role != "depth" && to.Role != "operation" {
-			return nil, fmt.Errorf("%s 的连线目标必须是执行步骤", from.Title)
+			return nil, fmt.Errorf("The connection target of %s must be the execution step", from.Title)
 		}
 		seen[e] = true
 		if to.Role == "operation" {
@@ -167,12 +167,12 @@ func Validate(d Definition) ([]Node, error) {
 	outputs := map[string]bool{}
 	for _, id := range d.OutputNodeIDs {
 		if _, ok := nodes[id]; !ok || outputs[id] {
-			return nil, fmt.Errorf("工作流输出节点无效")
+			return nil, fmt.Errorf("Workflow output node is invalid")
 		}
 		outputs[id] = true
 	}
 	if len(outputs) == 0 {
-		return nil, fmt.Errorf("请选择至少一个输出节点")
+		return nil, fmt.Errorf("Please select at least one output node")
 	}
 	for _, n := range d.Nodes {
 		if n.VideoDurationSourceNodeID != "" {
@@ -184,18 +184,18 @@ func Validate(d Definition) ([]Node, error) {
 				}
 			}
 			if n.MediaType != "video" || (n.Role != "generation" && n.OperationID != "generate.video") || !exists || source.MediaType != "video" || !connected {
-				return nil, fmt.Errorf("节点 %s 的时长必须跟随已连接的参考视频", n.Title)
+				return nil, fmt.Errorf("The duration of node %s must follow the connected reference video", n.Title)
 			}
 		}
 		if n.Role == "input" && len(outgoing[n.ID]) == 0 {
-			return nil, fmt.Errorf("可替换输入 %s 未连接执行步骤", n.Title)
+			return nil, fmt.Errorf("Replaceable input %s is not connected. Execution steps", n.Title)
 		}
 		if n.Role == "depth" && incoming[n.ID] != 1 {
-			return nil, fmt.Errorf("深度步骤 %s 必须连接一个视频输入", n.Title)
+			return nil, fmt.Errorf("Depth step %s must be connected to a video input", n.Title)
 		}
 		if n.Role == "operation" {
 			if n.OperationID == "video.merge" && incoming[n.ID] < 2 {
-				return nil, fmt.Errorf("节点 %s 的 videos 端口至少需要两个片段", n.ID)
+				return nil, fmt.Errorf("The videos port of node %s requires at least two fragments", n.ID)
 			}
 			for _, port := range OperationByID(n.OperationID).Inputs {
 				if port.Required {
@@ -206,7 +206,7 @@ func Validate(d Definition) ([]Node, error) {
 						}
 					}
 					if count == 0 {
-						return nil, fmt.Errorf("节点 %s 缺少端口 %s", n.ID, port.ID)
+						return nil, fmt.Errorf("Node %s is missing port %s", n.ID, port.ID)
 					}
 				}
 			}
@@ -231,7 +231,7 @@ func Validate(d Definition) ([]Node, error) {
 		}
 	}
 	if len(order) != len(nodes) {
-		return nil, fmt.Errorf("工作流包含循环，请移除循环连线")
+		return nil, fmt.Errorf("The workflow contains a loop, please remove the loop connection")
 	}
 	return order, nil
 }

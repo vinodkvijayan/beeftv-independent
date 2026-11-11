@@ -57,9 +57,9 @@ func TestBindTaskOutputReconcilesUnboundStoredMediaNodes(t *testing.T) {
 		}
 	}
 	for _, rawAsset := range []string{
-		`{"id":"asset-ref","kind":"image","title":"参考图","coverUrl":"/api/resources/res-ref/file","tags":[],"status":"confirmed","source":"Canvas","data":{"dataUrl":"","storageKey":"resource:res-ref","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
-		`{"id":"asset-old-video","kind":"video","title":"旧视频","coverUrl":"","tags":[],"status":"confirmed","source":"生成任务","data":{"url":"/api/resources/res-old-video/file","storageKey":"resource:res-old-video","width":720,"height":1280,"bytes":200,"mimeType":"video/mp4"}}`,
-		`{"id":"asset-video","kind":"video","title":"生成视频","coverUrl":"","tags":[],"status":"confirmed","source":"生成任务","data":{"url":"/api/resources/res-video/file","storageKey":"resource:res-video","width":1280,"height":720,"bytes":100,"mimeType":"video/mp4"}}`,
+		`{"id":"asset-ref","kind":"image","title":"reference image","coverUrl":"/api/resources/res-ref/file","tags":[],"status":"confirmed","source":"Canvas","data":{"dataUrl":"","storageKey":"resource:res-ref","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
+		`{"id":"asset-old-video","kind":"video","title":"old video","coverUrl":"","tags":[],"status":"confirmed","source":"Generate task","data":{"url":"/api/resources/res-old-video/file","storageKey":"resource:res-old-video","width":720,"height":1280,"bytes":200,"mimeType":"video/mp4"}}`,
+		`{"id":"asset-video","kind":"video","title":"Generate video","coverUrl":"","tags":[],"status":"confirmed","source":"Generate task","data":{"url":"/api/resources/res-video/file","storageKey":"resource:res-video","width":1280,"height":720,"bytes":100,"mimeType":"video/mp4"}}`,
 	} {
 		if _, err := svc.UpsertUserAsset("owner", json.RawMessage(rawAsset)); err != nil {
 			t.Fatal(err)
@@ -69,11 +69,11 @@ func TestBindTaskOutputReconcilesUnboundStoredMediaNodes(t *testing.T) {
 	storedProject := model.CanvasProject{
 		ID:       "canvas-bind-reconcile",
 		UserID:   "owner",
-		Title:    "分镜画布",
+		Title:    "Storyboard canvas",
 		Revision: 0,
 		PayloadJSON: `{
 			"id":"canvas-bind-reconcile",
-			"title":"分镜画布",
+"title":"Storyboard Canvas",
 			"nodes":[
 				{"id":"ref-slot","type":"image","metadata":{"storageKey":"resource:res-ref","content":"/api/resources/res-ref/file"}},
 				{"id":"batch-root","type":"image","metadata":{"isBatchRoot":true,"primaryImageId":"ref-slot","storageKey":"resource:res-ref","content":"/api/resources/res-ref/file"}},
@@ -202,10 +202,10 @@ func TestBindTaskOutputPreservesDistinctAssetsSharingResource(t *testing.T) {
 		}
 	}
 	for _, rawAsset := range []string{
-		`{"id":"asset-copy-a","kind":"image","title":"副本A","coverUrl":"/api/resources/res-shared/file","tags":[],"status":"confirmed","source":"Canvas","data":{"dataUrl":"","storageKey":"resource:res-shared","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
-		`{"id":"asset-copy-b","kind":"image","title":"副本B","coverUrl":"/api/resources/res-shared/file","tags":[],"status":"confirmed","source":"Canvas","data":{"dataUrl":"","storageKey":"resource:res-shared","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
-		`{"id":"asset-unbound","kind":"image","title":"唯一素材","coverUrl":"/api/resources/res-unbound/file","tags":[],"status":"confirmed","source":"Canvas","metadata":{"referenceUrl":"/api/resources/res-secondary/file"},"data":{"dataUrl":"","storageKey":"resource:res-unbound","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
-		`{"id":"asset-video","kind":"video","title":"生成视频","coverUrl":"","tags":[],"status":"confirmed","source":"生成任务","data":{"url":"/api/resources/res-video/file","storageKey":"resource:res-video","width":1280,"height":720,"bytes":100,"mimeType":"video/mp4"}}`,
+		`{"id":"asset-copy-a","kind":"image","title":"Copy A","coverUrl":"/api/resources/res-shared/file","tags":[],"status":"confirmed","source":"Canvas","data":{"dataUrl":"","storageKey":"resource:res-shared","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
+		`{"id":"asset-copy-b","kind":"image","title":"Copy B","coverUrl":"/api/resources/res-shared/file","tags":[],"status":"confirmed","source":"Canvas","data":{"dataUrl":"","storageKey":"resource:res-shared","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
+		`{"id":"asset-unbound","kind":"image","title":"only material","coverUrl":"/api/resources/res-unbound/file","tags":[],"status":"confirmed","source":"Canvas","metadata":{"referenceUrl":"/api/resources/res-secondary/file"},"data":{"dataUrl":"","storageKey":"resource:res-unbound","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`,
+		`{"id":"asset-video","kind":"video","title":"Generate video","coverUrl":"","tags":[],"status":"confirmed","source":"Generate task","data":{"url":"/api/resources/res-video/file","storageKey":"resource:res-video","width":1280,"height":720,"bytes":100,"mimeType":"video/mp4"}}`,
 	} {
 		if _, err := svc.UpsertUserAsset("owner", json.RawMessage(rawAsset)); err != nil {
 			t.Fatal(err)
@@ -215,11 +215,11 @@ func TestBindTaskOutputPreservesDistinctAssetsSharingResource(t *testing.T) {
 	storedProject := model.CanvasProject{
 		ID:       "canvas-shared-res",
 		UserID:   "owner",
-		Title:    "共享资源画布",
+		Title:    "Shared resource canvas",
 		Revision: 0,
 		PayloadJSON: `{
 			"id":"canvas-shared-res",
-			"title":"共享资源画布",
+			"title":"Shared Resource Canvas",
 			"nodes":[
 				{"id":"node-a","type":"image","metadata":{"assetId":"asset-copy-a","storageKey":"resource:res-shared","content":"/api/resources/res-shared/file"}},
 				{"id":"node-b","type":"image","metadata":{"assetId":"asset-copy-b","storageKey":"resource:res-shared","content":"/api/resources/res-shared/file"}},

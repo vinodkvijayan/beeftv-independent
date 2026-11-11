@@ -47,7 +47,7 @@ func runH264Transcode(ctx context.Context, src string, dst string) error {
 		if msg == "" {
 			msg = err.Error()
 		}
-		return fmt.Errorf("ffmpeg 转码失败：%s", clipText(msg, 800))
+		return fmt.Errorf("ffmpeg transcoding failed: %s", clipText(msg, 800))
 	}
 	if err := ctx.Err(); err != nil {
 		return err
@@ -65,7 +65,7 @@ func runNativeH264Transcode(ctx context.Context, src string, dst string) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		return fmt.Errorf("系统视频转换失败：%s", clipText(strings.TrimSpace(stderr.String()), 800))
+		return fmt.Errorf("System video conversion failed: %s", clipText(strings.TrimSpace(stderr.String()), 800))
 	}
 	if err := ctx.Err(); err != nil {
 		return err

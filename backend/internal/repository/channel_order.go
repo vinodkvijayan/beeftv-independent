@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var ErrChannelOrderChanged = errors.New("列表已发生变化，请重新打开排序后再保存")
+var ErrChannelOrderChanged = errors.New("The list has changed, please reopen the sorting and save it again.")
 
 // 全量顺序在事务中保存；拒绝过期快照，避免覆盖另一管理员的调整。
 func (r *Repository) SaveChannelOrder(channelID string, ids, expected []string) error {

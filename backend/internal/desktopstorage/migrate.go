@@ -72,21 +72,21 @@ func Validate(source, target string) (string, error) {
 		return "", err
 	}
 	if contains(source, target) || contains(target, source) {
-		return "", errors.New("新目录不能与当前数据目录重叠")
+		return "", errors.New("The new directory cannot overlap the current data directory")
 	}
 	entries, err := os.ReadDir(target)
 	if err == nil && len(entries) != 0 {
-		return "", errors.New("请选择空文件夹，避免覆盖已有文件")
+		return "", errors.New("Please select an empty folder to avoid overwriting existing files")
 	}
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return "", err
 	}
 	if err := os.MkdirAll(target, 0700); err != nil {
-		return "", fmt.Errorf("新目录无法写入: %w", err)
+		return "", fmt.Errorf("Unable to write to new directory: %w", err)
 	}
 	probe, err := os.CreateTemp(target, ".beeftv-write-check-*")
 	if err != nil {
-		return "", fmt.Errorf("新目录无法写入: %w", err)
+		return "", fmt.Errorf("Unable to write to new directory: %w", err)
 	}
 	probeName := probe.Name()
 	closeErr := probe.Close()
@@ -103,7 +103,7 @@ func Validate(source, target string) (string, error) {
 		return "", err
 	}
 	if available < uint64(usage.UsedBytes)+(16<<20) {
-		return "", errors.New("目标磁盘空间不足，请选择其他磁盘")
+		return "", errors.New("Insufficient space on the target disk, please select another disk")
 	}
 	return target, nil
 }
@@ -111,7 +111,7 @@ func Validate(source, target string) (string, error) {
 // Caller must stop all writers and close SQLite first. Copy into a private stage,
 // compare every file, then publish the directory. The source remains untouched.
 func CopyClosedWorkspace(ctx context.Context, source, target string, observers ...func(Progress)) error {
-	progress := Progress{Phase: "preparing", Detail: "正在统计待迁移文件"}
+	progress := Progress{Phase: "preparing", Detail: "Counting files to be migrated"}
 	observe := func() {
 		if len(observers) > 0 && observers[0] != nil {
 			observers[0](progress)
@@ -171,21 +171,21 @@ func CopyClosedWorkspace(ctx context.Context, source, target string, observers .
 			return err
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
-			return fmt.Errorf("数据目录包含链接，请先处理后再迁移：%s", rel)
+			return fmt.Errorf("The data directory contains links, please process them before migrating: %s", rel)
 		}
 		dest := filepath.Join(stage, rel)
 		if entry.IsDir() {
 			return os.MkdirAll(dest, info.Mode().Perm())
 		}
 		if !info.Mode().IsRegular() {
-			return fmt.Errorf("无法迁移特殊文件：%s", rel)
+			return fmt.Errorf("Unable to migrate special file: %s", rel)
 		}
-		progress.Phase, progress.Detail = "transferring", "正在复制文件"
+		progress.Phase, progress.Detail = "transferring", "Copying files"
 		observe()
 		copyErr := copyVerified(ctx, path, dest, info.Mode().Perm(), func(bytes int64) {
 			progress.LoadedBytes += bytes
 			observe()
-		}, func() { progress.Phase, progress.Detail = "processing", "正在校验已复制的文件"; observe() })
+		}, func() { progress.Phase, progress.Detail = "processing", "Verifying copied files"; observe() })
 		if copyErr == nil {
 			progress.CompletedFiles++
 			observe()
@@ -201,7 +201,7 @@ func CopyClosedWorkspace(ctx context.Context, source, target string, observers .
 		return err
 	}
 	if len(entries) != 0 {
-		return errors.New("目标目录已有文件，迁移已停止")
+		return errors.New("There are already files in the target directory and the migration has been stopped.")
 	}
 	if err := os.Remove(target); err != nil {
 		return err
@@ -265,7 +265,7 @@ func copyVerified(ctx context.Context, source, dest string, mode fs.FileMode, co
 		return err
 	}
 	if string(hash.Sum(nil)) != string(verified.Sum(nil)) {
-		return errors.New("迁移文件校验失败，原数据已保留")
+		return errors.New("The migration file verification failed and the original data has been retained.")
 	}
 	return nil
 }

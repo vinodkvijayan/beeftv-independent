@@ -261,7 +261,7 @@ func TestDisabledOfficialStateSurvivesRestart(t *testing.T) {
 }
 
 func TestRuntimeDropsRemovedOfficialProtocol(t *testing.T) {
-	staleManifest := json.RawMessage(`{"apiVersion":"beeftv.plugin/v2","id":"removed-official-protocol","version":"1.0.0","name":"Removed Official Protocol","author":"Test","documentation":"# Removed\n\n## BeefTV运行时合同","contributes":{"providers":[{"id":"removed-official-protocol","label":"Removed","capabilities":["video"],"scopes":["canvas"],"create":{"method":"POST","path":"/tasks","body":{"prompt":{"$ref":"request.prompt"}}},"response":{"status":"pending"}}]}}`)
+	staleManifest := json.RawMessage(`{"apiVersion":"beeftv.plugin/v2","id":"removed-official-protocol","version":"1.0.0","name":"Removed Official Protocol","author":"Test","documentation":"# Removed\n\n## BeefTV runtime contract","contributes":{"providers":[{"id":"removed-official-protocol","label":"Removed","capabilities":["vide o"],"scopes":["canvas"],"create":{"method":"POST","path":"/tasks","body":{"prompt":{"$ref":"request.prompt"}}},"response":{"status":"pending"}}]}}`)
 	registryData, err := json.Marshal([]RegistryRecord{{ID: "removed-official-protocol", Raw: staleManifest, Source: OriginOfficial}})
 	if err != nil {
 		t.Fatal(err)
@@ -405,7 +405,7 @@ func TestClonePluginViewJSONFailureDoesNotLeakAliases(t *testing.T) {
 	if cloned.Manifest.Contributes.Workflows != nil {
 		t.Fatalf("clone leaked contributes: %#v", cloned.Manifest.Contributes)
 	}
-	if cloned.Error != "插件清单无法展示" {
+	if cloned.Error != "Plug-in list cannot be displayed" {
 		t.Fatalf("clone failure error = %q", cloned.Error)
 	}
 	defaults["style"] = "mutated"

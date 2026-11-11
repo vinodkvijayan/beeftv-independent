@@ -9,6 +9,6 @@ describe("local asset package import", () => {
         const importBlock = source.slice(source.indexOf("const importAssetZip"), source.indexOf("const restoreAsset"));
         expect(importBlock).toContain("await flushAssetStorePersistence()");
         expect(importBlock.indexOf("await flushAssetStorePersistence()")).toBeGreaterThan(importBlock.indexOf("addAsset(payload"));
-        expect(importBlock).toContain("素材已在本地导入");
+        expect(importBlock).toContain("The material has been imported locally");
     });
 });

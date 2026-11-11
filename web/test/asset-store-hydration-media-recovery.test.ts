@@ -13,7 +13,7 @@ function missingLocalImage(): ImageAsset {
     return {
         id: "missing-image",
         kind: "image",
-        title: "本地图片",
+        title: "local pictures",
         coverUrl: "blob:http://127.0.0.1:3000/expired",
         tags: [],
         createdAt: "2026-11-10T00:00:00.000Z",
@@ -33,12 +33,12 @@ function readableTextAsset(): Asset {
     return {
         id: "text-asset",
         kind: "text",
-        title: "文字素材",
+        title: "text material",
         coverUrl: "",
         tags: [],
         createdAt: "2026-11-10T00:00:00.000Z",
         updatedAt: "2026-11-10T00:00:00.000Z",
-        data: { content: "仍然可以恢复" },
+        data: { content: "still recoverable" },
     };
 }
 
@@ -48,7 +48,7 @@ afterEach(() => {
     useAssetStore.setState({ assets: [] });
 });
 
-test("一张本地图片的 Blob 被清理后，其余素材仍能完成恢复", async () => {
+test("After the blob of a local image is cleaned, the rest of the material can still be restored", async () => {
     Object.assign(globalThis, { window: { localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } } });
     setActiveUserScope(scope);
     await localForageStorageForScope(scope).setItem(ASSET_STORE_KEY, serializeAssetStorageDocument({
@@ -64,5 +64,5 @@ test("一张本地图片的 Blob 被清理后，其余素材仍能完成恢复",
     expect(useAssetStore.getState().assets.map((asset) => asset.id)).toEqual(["missing-image", "text-asset"]);
     // 读不出来的那条记录保留原始地址，由展示层提示重新上传或重画，仓库整体不消失。
     expect((useAssetStore.getState().assets[0] as ImageAsset).data.dataUrl).toBe("blob:http://127.0.0.1:3000/expired");
-    expect((useAssetStore.getState().assets[1] as Asset & { data: { content: string } }).data.content).toBe("仍然可以恢复");
+    expect((useAssetStore.getState().assets[1] as Asset & { data: { content: string } }).data.content).toBe("still recoverable");
 });

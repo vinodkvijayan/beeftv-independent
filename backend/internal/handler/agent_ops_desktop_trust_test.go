@@ -27,7 +27,7 @@ func TestTrustedDesktopUICanCommitDocument(t *testing.T) {
 		"X-Desktop-Token": "launch", "X-Beeftv-UI-Bootstrap": "ui",
 	}, `{"canvasId":"`+env.canvasID+`","expectedRevision":1,"document":{"title":"桌面提交","nodes":[{"id":"n1","type":"text","title":"桌面"}],"connections":[]}}`)
 	if code != http.StatusOK {
-		t.Fatalf("受信任桌面 UI 提交失败: %d %s", code, body)
+		t.Fatalf("Trusted desktop UI submission failed: %d %s", code, body)
 	}
 	var envelope struct {
 		Data struct {
@@ -41,27 +41,27 @@ func TestTrustedDesktopUICanCommitDocument(t *testing.T) {
 		t.Fatal(err)
 	}
 	if envelope.Data.Caller != string(agentops.CallerManual) || envelope.Data.Replayed || envelope.Data.OpID != "ui-doc-1" {
-		t.Fatalf("手工写入应可观察为 caller=manual: %s", body)
+		t.Fatalf("Manual writes should be observable as caller=manual: %s", body)
 	}
 	var receipts int64
 	if err := env.service.Database().Model(&model.AgentOpRecord{}).Where("op_id = ?", "ui-doc-1").Count(&receipts).Error; err != nil {
 		t.Fatal(err)
 	}
 	if receipts != 1 {
-		t.Fatalf("回执数 = %d", receipts)
+		t.Fatalf("Number of receipts = %d", receipts)
 	}
 
 	untrusted, untrustedBody := postOps(t, router, "canvas.document.commit", "loopback-doc", map[string]string{},
 		`{"canvasId":"`+env.canvasID+`","expectedRevision":2,"document":{"title":"未授权"}}`)
 	if untrusted != http.StatusForbidden {
-		t.Fatalf("未授信 loopback 不得写: %d %s", untrusted, untrustedBody)
+		t.Fatalf("Loopback cannot be written without credit: %d %s", untrusted, untrustedBody)
 	}
 
 	hostCode, hostBody := postOps(t, env.router, "canvas.document.commit", "host-doc", map[string]string{
 		"X-Beeftv-Agent-Token": assistantTestHostToken,
 	}, `{"canvasId":"`+env.canvasID+`","expectedRevision":2,"document":{"title":"宿主整页"}}`)
 	if hostCode != http.StatusForbidden {
-		t.Fatalf("宿主不得整页提交: %d %s", hostCode, hostBody)
+		t.Fatalf("The host is not allowed to submit the whole page: %d %s", hostCode, hostBody)
 	}
 
 	reg, token, err := env.clients.RegisterKind("codex", "readonly", agentops.ClientReadOnly)
@@ -72,7 +72,7 @@ func TestTrustedDesktopUICanCommitDocument(t *testing.T) {
 		"X-Beeftv-Client": reg.ID, "Authorization": "Bearer " + token,
 	}, `{"canvasId":"`+env.canvasID+`","expectedRevision":2,"document":{"title":"只读"}}`)
 	if roCode != http.StatusForbidden {
-		t.Fatalf("只读客户端不得整页提交: %d %s", roCode, roBody)
+		t.Fatalf("Read-only clients are not allowed to submit full pages: %d %s", roCode, roBody)
 	}
 }
 

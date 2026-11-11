@@ -10,7 +10,7 @@ test("composes pending media updates for the same node instead of dropping the e
     const current: CanvasNodeData = {
         id: "video-1",
         type: CanvasNodeType.Video,
-        title: "视频",
+        title: "video",
         position: { x: 0, y: 0 },
         width: 720,
         height: 405,

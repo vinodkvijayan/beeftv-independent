@@ -26,7 +26,7 @@ describe("canvas local reference updates", () => {
         const edges = [{ id: "ea", fromNodeId: "a", toNodeId: "target" }, { id: "eb", fromNodeId: "b", toNodeId: "target" }];
         const before = buildCanvasNodeMentionReferenceMap(nodes, edges).get("target")!;
         const reversed = reuseCanvasResourceReferences(before, buildCanvasNodeMentionReferenceMap(nodes, [...edges].reverse()).get("target")!);
-        expect(reversed.map(ref => [ref.nodeId, ref.label])).toEqual([["b", "图片1"], ["a", "图片2"]]);
+        expect(reversed.map(ref => [ref.nodeId, ref.label])).toEqual([["b", "Picture 1"], ["a", "Picture 2"]]);
         const changed = reuseCanvasResourceReferences(before, [{ ...before[0]!, active: false, previewUrl: "new.png" }, before[1]!]);
         expect(changed[0]!.active).toBe(false);
         expect(changed[0]!.previewUrl).toBe("new.png");

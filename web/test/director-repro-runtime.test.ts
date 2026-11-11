@@ -49,7 +49,7 @@ function makeGl(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 describe("safeReproText", () => {
-    test("整段 URL 被替换为固定 [URL]，不保留域名与路径", () => {
+    test("The entire URL is replaced with a fixed [URL], and the domain name and path are not retained.", () => {
         expect(safeReproText("https://cdn.example.com/a.glb?token=abc#frag")).toBe("[URL]");
         expect(safeReproText("http://driver.example.com/x?k=v")).toBe("[URL]");
         expect(safeReproText("ANGLE renderer https://driver.example.com/x?k=v build")).toBe("ANGLE renderer [URL] build");
@@ -62,7 +62,7 @@ describe("safeReproText", () => {
         }
     });
 
-    test("Bearer token 整体被遮蔽，密钥值不残留", () => {
+    test("The Bearer token is completely obscured and the key value is not retained.", () => {
         const safe = safeReproText("Authorization: Bearer abc123");
         expect(safe).toContain("[REDACTED]");
         expect(safe).not.toContain("abc123");
@@ -74,7 +74,7 @@ describe("safeReproText", () => {
         expect(safeReproText("bearer SECRETVALUE")).toBe("Bearer [REDACTED]");
     });
 
-    test("key[:=]value 形态凭证不残留值", () => {
+    test("key[:=]value form certificate has no residual value", () => {
         for (const [input, secret] of [
             ["api_key=sk-live-0000", "sk-live-0000"],
             ["cookie=session=deadbeef; Path=/", "deadbeef"],
@@ -88,24 +88,24 @@ describe("safeReproText", () => {
         }
     });
 
-    test("裸 query/hash 片段同样不保留", () => {
+    test("Naked query/hash fragments are also not retained", () => {
         expect(safeReproText("renderer?token=abc")).toBe("renderer");
         expect(safeReproText("renderer#secret")).toBe("renderer");
     });
 
-    test("限长并压缩空白", () => {
+    test("Limit length and compress white space", () => {
         expect(safeReproText("a".repeat(500)).length).toBe(160);
         expect(safeReproText("a".repeat(500), 32).length).toBe(32);
         expect(safeReproText("  a   b \n c  ")).toBe("a b c");
     });
 
-    test("非字符串与空值稳定返回空串", () => {
+    test("Non-string and null values stably return an empty string.", () => {
         for (const bad of [null, undefined, 42, {}, []]) expect(safeReproText(bad)).toBe("");
     });
 });
 
-describe("runtime 投影", () => {
-    test("字段齐全且 DPR 有界", () => {
+describe("runtime projection", () => {
+    test("Fields are complete and DPR is bounded", () => {
         const runtime = readDirectorReproRuntime();
         expect(typeof runtime.appVersion).toBe("string");
         expect(typeof runtime.buildCommit).toBe("string");
@@ -116,7 +116,7 @@ describe("runtime 投影", () => {
         expect(runtime.devicePixelRatio).toBeLessThanOrEqual(8);
     });
 
-    test("所有字符串都已限长", () => {
+    test("All strings are limited in length", () => {
         const runtime = readDirectorReproRuntime();
         expect(runtime.appVersion.length).toBeLessThanOrEqual(48);
         expect(runtime.buildCommit.length).toBeLessThanOrEqual(48);
@@ -126,8 +126,8 @@ describe("runtime 投影", () => {
     });
 });
 
-describe("WebGL 投影", () => {
-    test("可用上下文产出安全能力数值", () => {
+describe("WebGL projection", () => {
+    test("Available context produces security capability values", () => {
         const webgl = projectDirectorWebgl(makeGl());
         expect(webgl.available).toBe(true);
         if (!webgl.available) return;
@@ -139,13 +139,13 @@ describe("WebGL 投影", () => {
         expect(webgl.maxViewportHeight).toBe(32767);
     });
 
-    test("缺失上下文稳定降级为 unsupported", () => {
+    test("Missing context stable downgrade to unsupported", () => {
         for (const bad of [null, undefined, 42, "webgl", {}]) {
             expect(projectDirectorWebgl(bad)).toEqual({ available: false, reason: "unsupported" });
         }
     });
 
-    test("getParameter 抛错降级为 context-failed 而不外泄异常", () => {
+    test("GetParameter throws an error and downgrades it to context-failed without leaking the exception.", () => {
         const gl = makeGl({
             getParameter: () => {
                 throw new Error("context lost");
@@ -155,7 +155,7 @@ describe("WebGL 投影", () => {
         expect(projectDirectorWebgl(gl)).toEqual({ available: false, reason: "context-failed" });
     });
 
-    test("getExtension 抛错不影响整体可用性", () => {
+    test("getExtension throwing errors does not affect overall usability", () => {
         const gl = makeGl({
             getExtension: () => {
                 throw new Error("no extension");
@@ -167,7 +167,7 @@ describe("WebGL 投影", () => {
         expect(webgl.vendor).toContain("Google");
     });
 
-    test("UNMASKED 值优先但仍经过安全文本处理", () => {
+    test("UNMASKED values take precedence but are still processed as safe text", () => {
         const values: Record<number, unknown> = { 7: "Apple?token=abc", 8: "Apple M2 Pro https://driver.example.com/x?k=v" };
         const gl = makeGl({
             getExtension: () => ({ UNMASKED_VENDOR_WEBGL: 7, UNMASKED_RENDERER_WEBGL: 8 }),
@@ -181,7 +181,7 @@ describe("WebGL 投影", () => {
         expect(webgl.renderer).not.toContain("token");
     });
 
-    test("非有限能力数值收敛为 0（未知），绝不产出 NaN/Infinity", () => {
+    test("Non-limited ability values converge to 0 (unknown) and will never produce NaN/Infinity", () => {
         const gl = makeGl({
             getParameter: (name: number) => (name === 4 ? Number.NaN : name === 5 ? Number.POSITIVE_INFINITY : name === 6 ? "not-an-array" : makeGl().getParameter(name)),
         });
@@ -197,7 +197,7 @@ describe("WebGL 投影", () => {
         expect(webgl.maxViewportHeight).toBe(0);
     });
 
-    test("超大但有限的能力数值被夹到上界", () => {
+    test("The super large but limited ability value is clamped to the upper limit", () => {
         const gl = makeGl({
             getParameter: (name: number) => (name === 4 ? 9_999_999 : name === 6 ? [9_999_999, -5] : makeGl().getParameter(name)),
         });
@@ -210,7 +210,7 @@ describe("WebGL 投影", () => {
         expect(webgl.maxViewportHeight).toBe(0);
     });
 
-    test("伪造的敏感 vendor/renderer 不会原样进入输出", () => {
+    test("Fake sensitive vendor/renderer does not go into the output unchanged", () => {
         for (const probe of LEAK_PROBES) {
             const gl = makeGl({ getParameter: (name: number) => (name === 2 || name === 3 ? probe : makeGl().getParameter(name)) });
             const webgl = projectDirectorWebgl(gl);
@@ -223,7 +223,7 @@ describe("WebGL 投影", () => {
         }
     });
 
-    test("探测后归还上下文：支持扩展时调用 loseContext", () => {
+    test("Return the context after detection: call loseContext when extension is supported", () => {
         let losed = 0;
         releaseProbeContext({
             getExtension: (name: string) =>
@@ -238,7 +238,7 @@ describe("WebGL 投影", () => {
         expect(losed).toBe(1);
     });
 
-    test("扩展不可用或抛错时归还是无操作，不外泄异常", () => {
+    test("When the extension is unavailable or an error is thrown, it returns to no operation and no exception is leaked.", () => {
         expect(() => releaseProbeContext({ getExtension: () => null })).not.toThrow();
         expect(() => releaseProbeContext({ getExtension: () => ({}) })).not.toThrow();
         expect(() =>
@@ -263,22 +263,22 @@ describe("WebGL 投影", () => {
     });
 });
 
-describe("fixture 确定性与离线性", () => {
-    test("两次构造结构完全一致", () => {
+describe("fixture deterministic and offline", () => {
+    test("The two structures are completely identical", () => {
         expect(createDirectorReproScene()).toEqual(createDirectorReproScene());
     });
 
-    test("返回全新对象，改写不影响后续构造", () => {
+    test("Returns a brand new object, rewriting does not affect subsequent construction", () => {
         const first = createDirectorReproScene();
         first.objects[0].transform.position[0] = 99;
-        first.title = "被改写";
+        first.title = "be rewritten";
         const second = createDirectorReproScene();
         expect(second.objects[0].transform.position[0]).toBe(0);
-        expect(second.title).toBe("P0 复现场景");
+        expect(second.title).toBe("P0 recurrence scene");
         expect(second.background).toBe("#060608");
     });
 
-    test("不含任何远端资产：无 url / storageKey / assetId", () => {
+    test("Does not contain any remote assets: None url / storageKey / assetId", () => {
         const scene = createDirectorReproScene();
         expect(directorReproSceneIsOffline(scene)).toBe(true);
         const serialized = JSON.stringify(scene);
@@ -287,7 +287,7 @@ describe("fixture 确定性与离线性", () => {
         expect(serialized).not.toContain("cdn");
     });
 
-    test("场景结构可操作：有对象、摄影机、灯光、镜头且 activeShotId 自洽", () => {
+    test("The scene structure is operable: there are objects, cameras, lights, lenses and activeShotId is self-consistent", () => {
         const scene = createDirectorReproScene();
         expect(scene.objects.length).toBeGreaterThanOrEqual(3);
         expect(scene.cameras.length).toBeGreaterThanOrEqual(1);
@@ -298,33 +298,33 @@ describe("fixture 确定性与离线性", () => {
         expect(scene.objects.every((object) => object.transform.position.every((value) => Number.isFinite(value)))).toBe(true);
     });
 
-    test("人物视觉对照场景以离线人偶为主视觉且不引入网络模型", () => {
+    test("The character visual comparison scene uses offline puppets as the main visual and does not introduce network models.", () => {
         const scene = createDirectorReproActorScene();
-        expect(scene.cameras[0].name).toBe("机位1");
+        expect(scene.cameras[0].name).toBe("Seat 1");
         expect(scene.cameras[0].transform.position).toEqual([0, 2.2, 10]);
         expect(scene.cameras[0].target).toEqual([0, 1.2, 0]);
         expect(scene).toEqual(createDirectorReproActorScene());
         expect(directorReproSceneIsOffline(scene)).toBe(true);
         expect(scene.objects).toHaveLength(1);
-        expect(scene.objects[0]).toMatchObject({ id: "repro-actor-1", kind: "actor", name: "演员 1", visible: true, pose: "stand" });
+        expect(scene.objects[0]).toMatchObject({ id: "repro-actor-1", kind: "actor", name: "actor 1", visible: true, pose: "stand" });
         expect(scene.objects[0].url).toBeUndefined();
         expect(scene.objects[0].rig).toEqual({ status: "unmapped", boneMap: {}, animationNames: [] });
         expect(scene.shots.some((shot) => shot.id === scene.activeShotId)).toBe(true);
     });
 
-    test("Quaternius 对照场景并排展示免费男女模型", () => {
+    test("Quaternius comparison scene showing free male and female models side by side", () => {
         const original = createDirectorReproActorScene();
         const comparison = createDirectorReproQuaterniusCompareScene();
         expect(comparison.objects).toHaveLength(2);
-        expect(comparison.objects[0]).toMatchObject({ id: "repro-actor-1", kind: "actor", name: "Quaternius 免费女性", url: "/canvas/models/quaternius-standard-female.glb" });
-        expect(comparison.objects[1]).toMatchObject({ id: "repro-quaternius-male", kind: "actor", name: "Quaternius 免费男性", url: "/canvas/models/quaternius-standard-male.glb" });
+        expect(comparison.objects[0]).toMatchObject({ id: "repro-actor-1", kind: "actor", name: "Quaternius free women", url: "/canvas/models/quaternius-standard-female.glb" });
+        expect(comparison.objects[1]).toMatchObject({ id: "repro-quaternius-male", kind: "actor", name: "Quaternius Free Male", url: "/canvas/models/quaternius-standard-male.glb" });
         expect(comparison.objects.map((object) => object.transform.position[0])).toEqual([-1.1, 1.1]);
         expect(original.objects).toHaveLength(1);
         expect(original.objects[0].url).toBeUndefined();
         expect(directorReproSceneIsOffline(comparison)).toBe(false);
     });
 
-    test("对照资源是可离线加载的精简 GLB，并保留人物骨骼", () => {
+    test("The control resource is a streamlined GLB that can be loaded offline and retains the character skeleton", () => {
         for (const body of ["male", "female"]) {
             const model = readFileSync(new URL(`../public/canvas/models/quaternius-standard-${body}.glb`, import.meta.url));
             expect(model.toString("ascii", 0, 4)).toBe("glTF");
@@ -338,23 +338,23 @@ describe("fixture 确定性与离线性", () => {
         }
     });
 
-    test("动画人物复现夹具使用可重复注入的同源 GLTF 资源", () => {
+    test("Animation character rendering fixture uses re-injectable same-origin GLTF resources", () => {
         const base = createDirectorReproScene();
         const scene = injectDirectorReproAnimatedPerson(base);
         const actor = scene.objects.find((object) => object.id === "repro-animated-person");
-        expect(actor).toMatchObject({ name: "离线动画人物", kind: "model", url: DIRECTOR_REPRO_ANIMATED_PERSON_URL, mimeType: "model/gltf+json" });
+        expect(actor).toMatchObject({ name: "Offline animated characters", kind: "model", url: DIRECTOR_REPRO_ANIMATED_PERSON_URL, mimeType: "model/gltf+json" });
         expect(DIRECTOR_REPRO_ANIMATED_PERSON_URL.startsWith("/")).toBe(true);
         expect(injectDirectorReproAnimatedPerson(scene).objects.filter((object) => object.id === "repro-animated-person")).toHaveLength(1);
         expect(base.objects.some((object) => object.id === "repro-animated-person")).toBe(false);
     });
 
-    test("对象初始不重叠，便于复现连续新增语义", () => {
+    test("Objects do not overlap initially, which facilitates the reproduction of continuously added semantics.", () => {
         const scene = createDirectorReproScene();
         const xs = scene.objects.map((object) => object.transform.position[0]);
         expect(new Set(xs).size).toBe(xs.length);
     });
 
-    test("复现矩阵覆盖全部 P0 场景且 id 唯一", () => {
+    test("The recurrence matrix covers all P0 scenes and has a unique ID", () => {
         const ids = DIRECTOR_REPRO_MATRIX.map((item) => item.id);
         expect(new Set(ids).size).toBe(ids.length);
         for (const required of [
@@ -382,31 +382,31 @@ describe("fixture 确定性与离线性", () => {
             expect(item.expected.length).toBeGreaterThan(0);
         }
     });
-    test("矩阵模型两行是可执行步骤，不再是待办", () => {
+    test("The two rows of the matrix model are executable steps and are no longer to-dos.", () => {
         const rows = DIRECTOR_REPRO_MATRIX.filter((item) => item.id === "delete-while-loading" || item.id === "model-load-failed");
         expect(rows).toHaveLength(2);
         for (const row of rows) {
-            expect(row.steps).not.toContain("需注入");
+            expect(row.steps).not.toContain("Need to be injected");
             expect(row.steps).not.toContain("Stage D");
         }
-        expect(DIRECTOR_REPRO_MATRIX.find((item) => item.id === "delete-while-loading")?.steps).toContain("注入本地模型");
-        expect(DIRECTOR_REPRO_MATRIX.find((item) => item.id === "model-load-failed")?.steps).toContain("注入缺失模型");
+        expect(DIRECTOR_REPRO_MATRIX.find((item) => item.id === "delete-while-loading")?.steps).toContain("Inject local model");
+        expect(DIRECTOR_REPRO_MATRIX.find((item) => item.id === "model-load-failed")?.steps).toContain("Inject missing model");
     });
 });
 
-describe("模型注入", () => {
-    test("local 变体使用本地 public 资产地址", () => {
+describe("Model injection", () => {
+    test("The local variant uses the local public asset address", () => {
         const scene = injectDirectorReproModel(createDirectorReproScene(), "local");
         const model = scene.objects.find((object) => object.id === "repro-model-local");
         expect(model?.url).toBe(DIRECTOR_REPRO_LOCAL_MODEL_URL);
         expect(model?.url).toBe("/canvas/models/director-repro-triangle.gltf");
         expect(model?.mimeType).toBe("model/gltf+json");
-        expect(model?.name).toBe("本地模型 repro triangle");
+        expect(model?.name).toBe("Local model repro triangle");
         // 无压缩扩展/无纹理，因此不需要 KTX2Loader 或 DRACOLoader。
         expect(model?.url).not.toContain(".glb");
     });
 
-    test("missing 变体使用同源不可达地址", () => {
+    test("The missing variant uses an unreachable address from the same origin", () => {
         const scene = injectDirectorReproModel(createDirectorReproScene(), "missing");
         const model = scene.objects.find((object) => object.id === "repro-model-missing");
         expect(model?.url).toBe(DIRECTOR_REPRO_MISSING_MODEL_URL);
@@ -415,7 +415,7 @@ describe("模型注入", () => {
         expect(model?.url?.startsWith("/")).toBe(true);
     });
 
-    test("两个变体都是 model kind 且 id 稳定", () => {
+    test("Both variants are model kind and id stable", () => {
         for (const [variant, id] of [
             ["local", "repro-model-local"],
             ["missing", "repro-model-missing"],
@@ -428,7 +428,7 @@ describe("模型注入", () => {
         }
     });
 
-    test("模型 Y 保持 0（贴地），只改 XZ", () => {
+    test("Model Y remains 0 (close to the ground), and only changes XZ", () => {
         for (const variant of ["local", "missing"] as const) {
             const scene = injectDirectorReproModel(createDirectorReproScene(), variant);
             const model = scene.objects.find((object) => object.kind === "model");
@@ -437,7 +437,7 @@ describe("模型注入", () => {
         }
     });
 
-    test("纯函数：不改写入参 scene", () => {
+    test("Pure function: do not change the parameter scene", () => {
         const original = createDirectorReproScene();
         const before = JSON.stringify(original);
         injectDirectorReproModel(original, "local");
@@ -446,7 +446,7 @@ describe("模型注入", () => {
         expect(original.objects.some((object) => object.kind === "model")).toBe(false);
     });
 
-    test("重复注入同一变体只保留一个对象", () => {
+    test("Repeatedly injecting the same variant only retains one object", () => {
         let scene = injectDirectorReproModel(createDirectorReproScene(), "local");
         const afterFirst = scene.objects.length;
         scene = injectDirectorReproModel(scene, "local");
@@ -455,7 +455,7 @@ describe("模型注入", () => {
         expect(scene.objects.length).toBe(afterFirst);
     });
 
-    test("先 local 再 missing：两个都在且位置不相交", () => {
+    test("First local and then missing: both are present and the positions do not intersect.", () => {
         const scene = injectDirectorReproModel(injectDirectorReproModel(createDirectorReproScene(), "local"), "missing");
         const local = scene.objects.find((object) => object.id === "repro-model-local");
         const missing = scene.objects.find((object) => object.id === "repro-model-missing");
@@ -470,7 +470,7 @@ describe("模型注入", () => {
         expect(overlapsInjectedXZ(local, missing)).toBe(false);
     });
 
-    test("注入不与初始 primitive 重叠", () => {
+    test("Injection does not overlap with initial primitive", () => {
         const scene = injectDirectorReproModel(createDirectorReproScene(), "local");
         const model = scene.objects.find((object) => object.id === "repro-model-local");
         expect(model).toBeDefined();
@@ -480,21 +480,21 @@ describe("模型注入", () => {
         }
     });
 
-    test("初始 fixture 离线，注入后不再声称离线", () => {
+    test("The initial fixture is offline and no longer claims to be offline after injection.", () => {
         const base = createDirectorReproScene();
         expect(directorReproSceneIsOffline(base)).toBe(true);
         expect(directorReproSceneIsOffline(injectDirectorReproModel(base, "local"))).toBe(false);
         expect(directorReproSceneIsOffline(injectDirectorReproModel(base, "missing"))).toBe(false);
     });
 
-    test("注入会推进 updatedAt，使保存链路视为真实变化", () => {
+    test("Injection will advance updatedAt, making the saved link count as a real change", () => {
         const base = createDirectorReproScene();
         const injected = injectDirectorReproModel(base, "local");
         expect(injected.updatedAt >= base.updatedAt).toBe(true);
         expect(injected.id).toBe(base.id);
     });
 
-    test("矩阵条数不因注入功能变化", () => {
+    test("The number of matrix entries does not change due to the injection function", () => {
         expect(DIRECTOR_REPRO_MATRIX).toHaveLength(15);
     });
 });

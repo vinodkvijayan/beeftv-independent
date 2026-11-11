@@ -49,7 +49,7 @@ func TestTimelineSubtitleOnlyUpdateAndRenderKeepSavedPortraitOutput(t *testing.T
 	}
 	timeline := editing.Project{Version: 2, DurationMs: 1000, Output: &editing.Options{Width: 720, Height: 1280, FPS: 24}, Tracks: []editing.Track{{ID: "v", Kind: "video"}, {ID: "s", Kind: "subtitle"}}, Clips: []editing.Clip{
 		{ID: "v", Kind: "video", NodeID: "node", TrackID: "v", DurationMs: 1000, Volume: 1, DirectMedia: &editing.DirectMedia{ID: resource.ID, AssetID: "asset", Kind: "video", StorageKey: "resource:" + resource.ID}},
-		{ID: "s", Kind: "subtitle", TrackID: "s", DurationMs: 1000, Text: "原句"},
+		{ID: "s", Kind: "subtitle", TrackID: "s", DurationMs: 1000, Text: "Original sentence"},
 	}}
 	raw, _ := json.Marshal(map[string]any{"id": "canvas", "revision": 0, "title": "portrait", "nodes": []any{map[string]any{"id": "node", "type": "video", "metadata": map[string]any{"storageKey": "resource:" + resource.ID, "assetId": "asset"}}}, "connections": []any{}, "timeline": timeline})
 	summary, err := svc.UpsertUserCanvasProject("owner", raw)
@@ -57,7 +57,7 @@ func TestTimelineSubtitleOnlyUpdateAndRenderKeepSavedPortraitOutput(t *testing.T
 		t.Fatal(err)
 	}
 	timeline.Output = nil
-	timeline.Clips[1].Text = "修改后的字幕"
+	timeline.Clips[1].Text = "Modified subtitles"
 	params, _ := json.Marshal(map[string]any{"canvasId": "canvas", "expectedRevision": summary.Revision, "timeline": timeline})
 	r := operations.NewRegistry(svc, operations.NewStore(db))
 	operations.RegisterDefaultOps(r)

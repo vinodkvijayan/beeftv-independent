@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import { ensureDirectorOutputConnections, resolveDirectorOutputPositions } from "../src/lib/canvas/director/director-output-layout";
 
-describe("导演台输出布局与连线方向", () => {
-    test("截图和视频首次生成时都排在导演台右侧，从左向右流出", () => {
+describe("Director’s desk output layout and connection direction", () => {
+    test("When the screenshots and videos are first generated, they are arranged on the right side of the director's desk and flow out from left to right.", () => {
         const layout = resolveDirectorOutputPositions({
             source: { position: { x: 100, y: 200 }, width: 520 },
             previewSize: { width: 720, height: 405 },
@@ -13,7 +13,7 @@ describe("导演台输出布局与连线方向", () => {
         expect(layout.videoPosition).toEqual({ x: 668, y: 653 });
     });
 
-    test("把旧版反向输出边纠正为导演台到素材节点，并保留无关连线及稳定边 ID", () => {
+    test("Correct the reverse output edge of the old version to the director's desk to the material node, and retain the irrelevant connections and stable edge IDs", () => {
         const oldImageEdge = { id: "old-image", fromNodeId: "image", toNodeId: "director" };
         const stableVideoEdge = { id: "stable-video", fromNodeId: "director", toNodeId: "video" };
         const unrelated = { id: "input", fromNodeId: "reference", toNodeId: "director" };

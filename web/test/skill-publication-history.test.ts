@@ -3,7 +3,7 @@ import { apiClient } from "../src/services/api/request";
 import type { MarketSubmission, PublishPlan, SkillMetadata } from "../src/services/api/skill-market";
 import { loadPublicationHistory, mergePublications } from "../src/pages/skills/skill-publications";
 
-const metadata: SkillMetadata = { name: "历史技能", description: "文字工作流", versionLabel: "1.0.0", license: "MIT", sourceUrl: "", requirements: [], showcase: [] };
+const metadata: SkillMetadata = { name: "history skills", description: "text workflow", versionLabel: "1.0.0", license: "MIT", sourceUrl: "", requirements: [], showcase: [] };
 const local: PublishPlan = { planId: "local-plan", skillId: "local-skill", versionId: "local-version", archiveSha256: "hash", instruction: "body", metadata, files: [], status: "awaiting_submit_confirmation", submissionId: "remote-one", createdAt: "2026-10-01T00:00:00Z" };
 const remote: MarketSubmission = { submissionId: "remote-one", metadata, status: "published", createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-03T00:00:00Z" };
 const originalAdapter = apiClient.defaults.adapter;
@@ -16,7 +16,7 @@ function respond(connected: boolean, failure?: { route: string; code?: number })
         requests.push(route);
         const failed = failure?.route === route;
         const data = route === "authorization" ? { connected } : { items: route === "publish-plans" ? [local] : [remote] };
-        return { config, status: 200, statusText: "OK", headers: {}, data: failed ? { code: failure.code || 503, reason: failure.code === 401 ? "publishing_authorization_required" : "market_unavailable", msg: "投稿服务暂不可用" } : { code: 0, data, msg: "ok" } };
+        return { config, status: 200, statusText: "OK", headers: {}, data: failed ? { code: failure.code || 503, reason: failure.code === 401 ? "publishing_authorization_required" : "market_unavailable", msg: "Submission service is temporarily unavailable" } : { code: 0, data, msg: "ok" } };
     };
     return requests;
 }
@@ -43,7 +43,7 @@ test("cloud failure is reported independently while local plans remain available
     respond(true, { route: "submissions" });
     const history = await loadPublicationHistory();
     expect(history.plans).toEqual([local]);
-    expect(history.remoteError).toMatchObject({ message: "投稿服务暂不可用" });
+    expect(history.remoteError).toMatchObject({ message: "Submission service is temporarily unavailable" });
     expect(history.localError).toBeUndefined();
 });
 

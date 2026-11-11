@@ -9,7 +9,7 @@ const noop = () => {};
 // 仅挂载内存中的测试节点，不登录、不读写用户画布或调用模型。
 export function mountNodeDragHarness(host: HTMLElement, options: { locked?: boolean; readOnly?: boolean } = {}) {
     function Harness() {
-        const [nodes, setNodes] = useState<CanvasNodeData[]>([{ id: 'drag-test', type: CanvasNodeType.Html, title: '分镜表测试', position: { x: 100, y: 100 }, width: 800, height: 500, metadata: { content: '<html><body style="background:#222;color:white;height:1600px"><h2>分镜表</h2><table><tr><th>切</th><th>画面</th></tr><tr><td>f1</td><td>测试画面</td></tr></table></body></html>' } }]);
+        const [nodes, setNodes] = useState<CanvasNodeData[]>([{ id: 'drag-test', type: CanvasNodeType.Html, title: 'Storyboard test', position: { x: 100, y: 100 }, width: 800, height: 500, metadata: { content: '<html><body style="background:#222;color:white;height:1600px"><h2>Storyboard</h2><table><tr><th>Cut</th><th>Screen</th></tr><tr><td>f1</td><td>Test Screen</td></tr></table></body></html>' } }]);
         const nodesRef = useRef(nodes);
         nodesRef.current = nodes;
         const containerRef = useRef<HTMLDivElement>(null);
@@ -33,7 +33,7 @@ export function mountNodeDragHarness(host: HTMLElement, options: { locked?: bool
 
 export function mountNodeTitleHarness(host: HTMLElement) {
     function Harness() {
-        const [node, setNode] = useState<CanvasNodeData>({ id: 'title-test', type: CanvasNodeType.Text, title: '原名称', position: { x: 100, y: 100 }, width: 320, height: 240 });
+        const [node, setNode] = useState<CanvasNodeData>({ id: 'title-test', type: CanvasNodeType.Text, title: 'original name', position: { x: 100, y: 100 }, width: 320, height: 240 });
         const [commits, setCommits] = useState(0);
         return <>
             <div data-testid="canvas-background" onMouseDown={(event) => event.preventDefault()} style={{ position: 'absolute', inset: 0 }} />

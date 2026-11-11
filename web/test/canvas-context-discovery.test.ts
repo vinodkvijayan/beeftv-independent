@@ -7,10 +7,10 @@ import { CanvasNodeType } from "@/types/canvas";
 const snapshot: CanvasSnapshot = {
     projectId: "canvas-1",
     domainProjectId: "project-1",
-    title: "测试画布",
+    title: "test canvas",
     nodes: [
-        { id: "prompt-1", type: CanvasNodeType.Text, title: "提示词", position: { x: 0, y: 0 }, width: 320, height: 240 },
-        { id: "ref-1", type: CanvasNodeType.Image, title: "参考图", position: { x: 420, y: 0 }, width: 320, height: 320, metadata: { status: "success", storageKey: "resource:ref-1", taskId: "task-1", taskStatus: "succeeded", taskProgress: 100, taskStage: "completed" } },
+        { id: "prompt-1", type: CanvasNodeType.Text, title: "prompt word", position: { x: 0, y: 0 }, width: 320, height: 240 },
+        { id: "ref-1", type: CanvasNodeType.Image, title: "Reference picture", position: { x: 420, y: 0 }, width: 320, height: 320, metadata: { status: "success", storageKey: "resource:ref-1", taskId: "task-1", taskStatus: "succeeded", taskProgress: 100, taskStage: "completed" } },
     ],
     connections: [{ id: "connection-1", fromNodeId: "prompt-1", toNodeId: "ref-1" }],
     selectedNodeIds: [],
@@ -47,7 +47,7 @@ describe("precise canvas reads", () => {
     it("reads one connection and returns explicit misses", () => {
         const result = getCanvasConnection(snapshot, { id: "connection-1" });
         expect(result.found).toBe(true);
-        expect(result.connection?.fromTitle).toBe("提示词");
+        expect(result.connection?.fromTitle).toBe("prompt word");
         expect(result.toNode?.id).toBe("ref-1");
         expect(getCanvasConnection(snapshot, { id: "missing" }).found).toBe(false);
     });
@@ -65,7 +65,7 @@ describe("canvas write postconditions", () => {
     it("confirms created nodes and connections exist after the batch", () => {
         const after: CanvasSnapshot = {
             ...snapshot,
-            nodes: [...snapshot.nodes, { id: "text-2", type: CanvasNodeType.Text, title: "输出", position: { x: 0, y: 420 }, width: 320, height: 240 }],
+            nodes: [...snapshot.nodes, { id: "text-2", type: CanvasNodeType.Text, title: "output", position: { x: 0, y: 420 }, width: 320, height: 240 }],
             connections: [...snapshot.connections, { id: "connection-2", fromNodeId: "ref-1", toNodeId: "text-2" }],
         };
         const result = verifyCanvasOperations(snapshot, after, [
@@ -80,7 +80,7 @@ describe("canvas write postconditions", () => {
     it("reports submitted generation without claiming completion", () => {
         const before: CanvasSnapshot = {
             ...snapshot,
-            nodes: [{ ...snapshot.nodes[0], id: "image-1", type: CanvasNodeType.Image, title: "待生成", metadata: { status: "idle", generationMode: "image" } }],
+            nodes: [{ ...snapshot.nodes[0], id: "image-1", type: CanvasNodeType.Image, title: "To be generated", metadata: { status: "idle", generationMode: "image" } }],
             connections: [],
         };
         const after: CanvasSnapshot = {
@@ -90,13 +90,13 @@ describe("canvas write postconditions", () => {
         const result = verifyCanvasOperations(before, after, [{ type: "run_generation", nodeId: "image-1", mode: "image" }]);
         expect(result.ok).toBe(true);
         expect(result.generation[0]?.outcome).toBe("running");
-        expect(canvasOperationPostconditionMessage(result)).toContain("尚未完成");
+        expect(canvasOperationPostconditionMessage(result)).toContain("Not yet completed");
     });
 
     it("fails the tool result when generation failed or was never submitted", () => {
         const before: CanvasSnapshot = {
             ...snapshot,
-            nodes: [{ ...snapshot.nodes[0], id: "image-2", type: CanvasNodeType.Image, title: "失败生成", metadata: { status: "idle" } }],
+            nodes: [{ ...snapshot.nodes[0], id: "image-2", type: CanvasNodeType.Image, title: "failed to generate", metadata: { status: "idle" } }],
             connections: [],
         };
         const failed: CanvasSnapshot = {
@@ -105,12 +105,12 @@ describe("canvas write postconditions", () => {
         };
         const result = verifyCanvasOperations(before, failed, [{ type: "run_generation", nodeId: "image-2", mode: "image" }]);
         expect(result.ok).toBe(false);
-        expect(canvasOperationPostconditionMessage(result)).toContain("失败");
+        expect(canvasOperationPostconditionMessage(result)).toContain("failed");
     });
 
     it("does not accept a silent update no-op as a successful write", () => {
-        const result = verifyCanvasOperations(snapshot, snapshot, [{ type: "update_node", id: "prompt-1", patch: { title: "新标题" } }]);
+        const result = verifyCanvasOperations(snapshot, snapshot, [{ type: "update_node", id: "prompt-1", patch: { title: "new title" } }]);
         expect(result.ok).toBe(false);
-        expect(result.warnings.join(" ")).toContain("未达到预期");
+        expect(result.warnings.join(" ")).toContain("did not meet expectations");
     });
 });

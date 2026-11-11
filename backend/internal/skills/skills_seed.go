@@ -53,10 +53,10 @@ type builtinSkillDefinition struct {
 func (s *Service) EnsureBuiltinSkills() error {
 	var definitions []builtinSkillDefinition
 	if err := json.Unmarshal(builtinSkillsJSON, &definitions); err != nil {
-		return fmt.Errorf("解析内置技能失败: %w", err)
+		return fmt.Errorf("Failed to parse built-in skills: %w", err)
 	}
 	if len(definitions) == 0 {
-		return fmt.Errorf("内置技能不能为空")
+		return fmt.Errorf("Built-in skills cannot be empty")
 	}
 
 	seen := make(map[string]struct{}, len(definitions))
@@ -65,25 +65,25 @@ func (s *Service) EnsureBuiltinSkills() error {
 		id := strings.TrimSpace(definition.SkillID)
 		ownerID := strings.TrimSpace(definition.OwnerUID)
 		if id == "" || len(id) > 36 || ownerID == "" || len(ownerID) > 36 {
-			return fmt.Errorf("内置技能 ID 或作者 ID 无效: %q", definition.SkillID)
+			return fmt.Errorf("Invalid built-in skill ID or author ID: %q", definition.SkillID)
 		}
 		if _, exists := seen[id]; exists {
-			return fmt.Errorf("内置技能 ID 重复: %s", id)
+			return fmt.Errorf("Duplicate built-in skill ID: %s", id)
 		}
 		seen[id] = struct{}{}
 		if definition.Status != skillStatusEnabled || definition.IsPrivate {
-			return fmt.Errorf("内置技能必须为公开启用状态: %s", id)
+			return fmt.Errorf("Built-in skills must be publicly enabled: %s", id)
 		}
 		if definition.CreateTime <= 0 || definition.UpdateTime <= 0 || definition.LikeCount < 0 || definition.AddedCount < 0 {
-			return fmt.Errorf("内置技能时间或计数无效: %s", id)
+			return fmt.Errorf("Invalid built-in skill time or count: %s", id)
 		}
 		authorName := strings.TrimSpace(definition.EffectiveUser.Name)
 		authorAvatarURL := strings.TrimSpace(definition.EffectiveUser.AvatarURL)
 		if authorName == "" || (authorAvatarURL != "" && !validSkillURL(authorAvatarURL)) {
-			return fmt.Errorf("内置技能作者信息无效: %s", id)
+			return fmt.Errorf("The built-in skill author information is invalid: %s", id)
 		}
 		if _, err := normalizeBuiltinSkillFiles(definition.Files); err != nil {
-			return fmt.Errorf("内置技能 %s 辅助文件无效: %w", id, err)
+			return fmt.Errorf("Built-in skill %s Invalid auxiliary file: %w", id, err)
 		}
 		media := make([]SkillShowcaseMedia, 0, len(definition.ShowcaseMedia))
 		for _, item := range definition.ShowcaseMedia {
@@ -95,7 +95,7 @@ func (s *Service) EnsureBuiltinSkills() error {
 			ShowcaseMedia: media, ExtraInfo: definition.ExtraInfo,
 		}, true)
 		if err != nil {
-			return fmt.Errorf("内置技能 %s 数据无效: %w", id, err)
+			return fmt.Errorf("Built-in skill %s Invalid data: %w", id, err)
 		}
 		skills = append(skills, model.Skill{
 			ID: id, OwnerID: ownerID, AuthorName: authorName, AuthorAvatarURL: authorAvatarURL,
@@ -107,7 +107,7 @@ func (s *Service) EnsureBuiltinSkills() error {
 		})
 	}
 	if err := s.repo.UpsertBuiltinSkills(skills); err != nil {
-		return fmt.Errorf("同步内置技能失败: %w", err)
+		return fmt.Errorf("Failed to synchronize built-in skills: %w", err)
 	}
 	return nil
 }
@@ -121,15 +121,15 @@ func normalizeBuiltinSkillFiles(raw map[string]string) (map[string][]byte, error
 	for rawPath, content := range raw {
 		cleanPath, err := normalizeSkillPath(rawPath)
 		if err != nil || cleanPath != rawPath || cleanPath == "SKILL.md" {
-			return nil, fmt.Errorf("辅助文件路径无效: %q", rawPath)
+			return nil, fmt.Errorf("Invalid auxiliary file path: %q", rawPath)
 		}
 		data := []byte(content)
 		if len(data) == 0 || !utf8.Valid(data) {
-			return nil, fmt.Errorf("辅助文件内容无效: %q", rawPath)
+			return nil, fmt.Errorf("Invalid auxiliary file content: %q", rawPath)
 		}
 		total += int64(len(data))
 		if total > maxSkillPackageBytes {
-			return nil, fmt.Errorf("辅助文件总大小超过上限 %d", maxSkillPackageBytes)
+			return nil, fmt.Errorf("The total size of auxiliary files exceeds the upper limit %d", maxSkillPackageBytes)
 		}
 		files[cleanPath] = data
 	}
@@ -139,7 +139,7 @@ func normalizeBuiltinSkillFiles(raw map[string]string) (map[string][]byte, error
 func builtinSkillAuxiliaryFiles() (map[string]map[string][]byte, error) {
 	var definitions []builtinSkillDefinition
 	if err := json.Unmarshal(builtinSkillsJSON, &definitions); err != nil {
-		return nil, fmt.Errorf("解析内置技能失败: %w", err)
+		return nil, fmt.Errorf("Failed to parse built-in skills: %w", err)
 	}
 	result := make(map[string]map[string][]byte)
 	for _, definition := range definitions {
@@ -148,7 +148,7 @@ func builtinSkillAuxiliaryFiles() (map[string]map[string][]byte, error) {
 		}
 		files, err := normalizeBuiltinSkillFiles(definition.Files)
 		if err != nil {
-			return nil, fmt.Errorf("内置技能 %s 辅助文件无效: %w", definition.SkillID, err)
+			return nil, fmt.Errorf("Built-in skill %s Invalid auxiliary file: %w", definition.SkillID, err)
 		}
 		result[strings.TrimSpace(definition.SkillID)] = files
 	}
@@ -158,7 +158,7 @@ func builtinSkillAuxiliaryFiles() (map[string]map[string][]byte, error) {
 func builtinDefaultAddedSkillIDs() ([]string, error) {
 	var definitions []builtinSkillDefinition
 	if err := json.Unmarshal(builtinSkillsJSON, &definitions); err != nil {
-		return nil, fmt.Errorf("解析内置技能失败: %w", err)
+		return nil, fmt.Errorf("Failed to parse built-in skills: %w", err)
 	}
 	var ids []string
 	for _, definition := range definitions {

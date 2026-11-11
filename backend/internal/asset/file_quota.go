@@ -65,7 +65,7 @@ func (s *FileQuota) ReserveUpload(userID string, size int64, identity string) (s
 	if err != nil {
 		return "", err
 	}
-	return s.reserveUserStoredFileQuota(userID, size, kernel.Megabytes(policy.ResourceUploadMB), kernel.Megabytes(policy.DailyUploadMB), kernel.Gigabytes(policy.StoredFileGB), fmt.Sprintf("单个上传文件必须小于 %dMB", policy.ResourceUploadMB), identity)
+	return s.reserveUserStoredFileQuota(userID, size, kernel.Megabytes(policy.ResourceUploadMB), kernel.Megabytes(policy.DailyUploadMB), kernel.Gigabytes(policy.StoredFileGB), fmt.Sprintf("A single uploaded file must be smaller than %dMB", policy.ResourceUploadMB), identity)
 }
 
 // reserveChunkedUploadQuota 用于分片上传完成时预留额度：单文件上限对分片会话不适用（每片已独立校验），
@@ -83,7 +83,7 @@ func (s *FileQuota) ReserveGenerated(userID string, size int64, identity string)
 	if err != nil {
 		return "", err
 	}
-	return s.reserveUserStoredFileQuota(userID, size, kernel.Megabytes(policy.GeneratedFileMB)+1, kernel.Megabytes(policy.DailyUploadMB), kernel.Gigabytes(policy.StoredFileGB), fmt.Sprintf("单个生成文件不能超过 %dMB", policy.GeneratedFileMB), identity)
+	return s.reserveUserStoredFileQuota(userID, size, kernel.Megabytes(policy.GeneratedFileMB)+1, kernel.Megabytes(policy.DailyUploadMB), kernel.Gigabytes(policy.StoredFileGB), fmt.Sprintf("A single generated file cannot exceed %dMB", policy.GeneratedFileMB), identity)
 }
 
 // 失败资源的记录已经计入账号存储用量；重试只重新预留当日上传额度，避免重复计算存储容量。
@@ -93,17 +93,17 @@ func (s *FileQuota) ReserveRetry(userID string, size int64, identity string) (st
 		return "", err
 	}
 	if size <= 0 {
-		return "", kernel.BadAuthRequest("上传文件不能为空")
+		return "", kernel.BadAuthRequest("Upload file cannot be empty")
 	}
 	if size >= kernel.Megabytes(policy.ResourceUploadMB) {
-		return "", kernel.BadAuthRequest(fmt.Sprintf("单个上传文件必须小于 %dMB", policy.ResourceUploadMB))
+		return "", kernel.BadAuthRequest(fmt.Sprintf("A single uploaded file must be smaller than %dMB", policy.ResourceUploadMB))
 	}
 	day := time.Now().UTC().Format("2006-01-02")
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := s.repo.ReserveIdentifiedDailyUpload(userID, day, identity, size, kernel.Megabytes(policy.DailyUploadMB)); err != nil {
 		if errors.Is(err, repository.ErrDailyUploadLimitExceeded) {
-			return "", kernel.QuotaExceeded(fmt.Sprintf("每个账号 UTC 自然日上传总量必须小于 %s", FormatStorageLimit(kernel.Megabytes(policy.DailyUploadMB))))
+			return "", kernel.QuotaExceeded(fmt.Sprintf("The total upload volume in UTC natural day for each account must be less than %s", FormatStorageLimit(kernel.Megabytes(policy.DailyUploadMB))))
 		}
 		if errors.Is(err, repository.ErrUploadReservationConflict) {
 			return "", UploadInProgress()
@@ -119,17 +119,17 @@ func (s *FileQuota) ReserveGeneratedRetry(userID string, size int64, identity st
 		return "", err
 	}
 	if size <= 0 {
-		return "", kernel.BadAuthRequest("上传文件不能为空")
+		return "", kernel.BadAuthRequest("Upload file cannot be empty")
 	}
 	if size >= kernel.Megabytes(policy.GeneratedFileMB)+1 {
-		return "", kernel.BadAuthRequest(fmt.Sprintf("单个生成文件不能超过 %dMB", policy.GeneratedFileMB))
+		return "", kernel.BadAuthRequest(fmt.Sprintf("A single generated file cannot exceed %dMB", policy.GeneratedFileMB))
 	}
 	day := time.Now().UTC().Format("2006-01-02")
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := s.repo.ReserveIdentifiedDailyUpload(userID, day, identity, size, kernel.Megabytes(policy.DailyUploadMB)); err != nil {
 		if errors.Is(err, repository.ErrDailyUploadLimitExceeded) {
-			return "", kernel.QuotaExceeded(fmt.Sprintf("每个账号 UTC 自然日上传总量必须小于 %s", FormatStorageLimit(kernel.Megabytes(policy.DailyUploadMB))))
+			return "", kernel.QuotaExceeded(fmt.Sprintf("The total upload volume in UTC natural day for each account must be less than %s", FormatStorageLimit(kernel.Megabytes(policy.DailyUploadMB))))
 		}
 		if errors.Is(err, repository.ErrUploadReservationConflict) {
 			return "", UploadInProgress()
@@ -141,7 +141,7 @@ func (s *FileQuota) ReserveGeneratedRetry(userID string, size int64, identity st
 
 func (s *FileQuota) reserveUserStoredFileQuota(userID string, size int64, exclusiveSingleFileLimit int64, dailyLimit int64, storedLimit int64, singleFileMessage string, identity string) (string, error) {
 	if size <= 0 {
-		return "", kernel.BadAuthRequest("上传文件不能为空")
+		return "", kernel.BadAuthRequest("Upload file cannot be empty")
 	}
 	if size >= exclusiveSingleFileLimit {
 		return "", kernel.BadAuthRequest(singleFileMessage)
@@ -158,13 +158,13 @@ func (s *FileQuota) reserveUserStoredFileQuota(userID string, size int64, exclus
 	}
 	key := pendingStorageKey(userID, identity)
 	if storedBytes+s.pendingStorageTotal(userID)+size >= storedLimit {
-		return "", kernel.QuotaExceeded(fmt.Sprintf("账号资源和会话附件已达到 %s 上限，请联系管理员清理历史文件", FormatStorageLimit(storedLimit)))
+		return "", kernel.QuotaExceeded(fmt.Sprintf("The account resources and session attachments have reached the upper limit of %s. Please contact the administrator to clear the history files.", FormatStorageLimit(storedLimit)))
 	}
 	s.pendingStorage[key] += size
 	if err := s.repo.ReserveIdentifiedDailyUpload(userID, day, identity, size, dailyLimit); err != nil {
 		s.decreasePendingStorage(key, size)
 		if errors.Is(err, repository.ErrDailyUploadLimitExceeded) {
-			return "", kernel.QuotaExceeded(fmt.Sprintf("每个账号 UTC 自然日上传总量必须小于 %s", FormatStorageLimit(dailyLimit)))
+			return "", kernel.QuotaExceeded(fmt.Sprintf("The total upload volume in UTC natural day for each account must be less than %s", FormatStorageLimit(dailyLimit)))
 		}
 		if errors.Is(err, repository.ErrUploadReservationConflict) {
 			return "", UploadInProgress()

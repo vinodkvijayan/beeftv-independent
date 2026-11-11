@@ -27,42 +27,42 @@ describe("canvas-batch-download", () => {
             makeNode({
                 id: "shot-row2-right",
                 type: CanvasNodeType.Video,
-                title: "镜头4",
+                title: "Shot 4",
                 position: { x: 600, y: 400 },
                 metadata: { content: "https://example.com/4.mp4" },
             }),
             makeNode({
                 id: "shot-row1-right",
                 type: CanvasNodeType.Image,
-                title: "镜头2",
+                title: "Shot 2",
                 position: { x: 500, y: 120 },
                 metadata: { content: "https://example.com/2.png" },
             }),
             makeNode({
                 id: "shot-row1-left",
                 type: CanvasNodeType.Video,
-                title: "镜头1",
+                title: "Shot 1",
                 position: { x: 100, y: 100 },
                 metadata: { content: "https://example.com/1.mp4" },
             }),
             makeNode({
                 id: "shot-row2-left",
                 type: CanvasNodeType.Audio,
-                title: "旁白3",
+                title: "Narrator 3",
                 position: { x: 120, y: 380 },
                 metadata: { content: "https://example.com/3.mp3" },
             }),
             makeNode({
                 id: "text-node",
                 type: CanvasNodeType.Text,
-                title: "文本",
+                title: "text",
                 position: { x: 0, y: 0 },
-                metadata: { content: "分镜脚本" },
+                metadata: { content: "Storyboard" },
             }),
             makeNode({
                 id: "empty-video",
                 type: CanvasNodeType.Video,
-                title: "空视频",
+                title: "empty video",
                 position: { x: 50, y: 50 },
                 metadata: { content: "   " },
             }),
@@ -84,10 +84,10 @@ describe("canvas-batch-download", () => {
         const videoNode = makeNode({
             id: "v1",
             type: CanvasNodeType.Video,
-            title: "镜头1:开场/雨夜?",
+            title: "Shot 1: Opening/Rainy Night?",
             metadata: { content: "https://example.com/shot1.mp4", mimeType: "video/mp4" },
         });
-        assert.equal(buildBatchDownloadFilename(videoNode, 0, 8), "01_镜头1_开场_雨夜.mp4");
+        assert.equal(buildBatchDownloadFilename(videoNode, 0, 8), "01_Shot 1_Opening_Rainy Night.mp4");
 
         const untitledImage = makeNode({
             id: "img2",
@@ -95,15 +95,15 @@ describe("canvas-batch-download", () => {
             title: "   ",
             metadata: { content: "https://example.com/frame.webp?token=1" },
         });
-        assert.equal(buildBatchDownloadFilename(untitledImage, 1, 8), "02_图片.webp");
+        assert.equal(buildBatchDownloadFilename(untitledImage, 1, 8), "02_picture.webp");
 
         const audioNode = makeNode({
             id: "aud3",
             type: CanvasNodeType.Audio,
-            title: "角色对白.wav",
+            title: "character dialogue.wav",
             metadata: { content: "blob:http://localhost/audio-1", mimeType: "audio/wav" },
         });
-        assert.equal(buildBatchDownloadFilename(audioNode, 2, 120), "003_角色对白.wav");
+        assert.equal(buildBatchDownloadFilename(audioNode, 2, 120), "003_Character dialogue.wav");
     });
 
     test("batchDownloadCanvasMediaNodes downloads sequentially with fetch or CORS anchor fallback", async () => {
@@ -111,19 +111,19 @@ describe("canvas-batch-download", () => {
             makeNode({
                 id: "v1",
                 type: CanvasNodeType.Video,
-                title: "镜头1视频",
+                title: "Lens 1 video",
                 metadata: { content: "https://example.com/1.mp4", mimeType: "video/mp4" },
             }),
             makeNode({
                 id: "v2",
                 type: CanvasNodeType.Image,
-                title: "镜头2分镜",
+                title: "Shot 2 storyboard",
                 metadata: { content: "https://cdn.example.com/2.png", mimeType: "image/png" },
             }),
             makeNode({
                 id: "v3",
                 type: CanvasNodeType.Video,
-                title: "缺失视频",
+                title: "missing video",
                 metadata: { content: "https://example.com/404.mp4", mimeType: "video/mp4" },
             }),
         ];
@@ -148,8 +148,8 @@ describe("canvas-batch-download", () => {
 
         assert.deepEqual(result, { downloaded: 2, failed: 1 });
         assert.deepEqual(triggered.map((item) => item.filename), [
-            "01_镜头1视频.mp4",
-            "02_镜头2分镜.png",
+            "01_Shot 1 video.mp4",
+            "02_Shot 2 storyboard.png",
         ]);
         assert.equal(triggered[1]?.href, "https://cdn.example.com/2.png");
     });
@@ -200,7 +200,7 @@ describe("canvas-batch-download", () => {
                 menu: { type: "node", x: 100, y: 100, nodeId: "v1" },
             }),
         );
-        assert.equal(nodeMenuMarkup.includes("批量下载素材 (2)"), true);
+        assert.equal(nodeMenuMarkup.includes("Download materials in batches (2)"), true);
 
         const canvasMenuMarkup = renderToStaticMarkup(
             createElement(CanvasNodeContextMenu, {
@@ -208,6 +208,6 @@ describe("canvas-batch-download", () => {
                 menu: { type: "canvas", x: 100, y: 100, position: { x: 0, y: 0 } },
             }),
         );
-        assert.equal(canvasMenuMarkup.includes("批量下载素材 (2)"), true);
+        assert.equal(canvasMenuMarkup.includes("Download materials in batches (2)"), true);
     });
 });

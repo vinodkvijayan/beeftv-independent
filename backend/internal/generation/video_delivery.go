@@ -174,7 +174,7 @@ func videoResultDownloader(config Config, rawURL, taskID string, renew ...videoR
 func videoURLSource(config Config, rawURL string) VideoResultSource {
 	return VideoResultSource{URL: rawURL, Read: func(ctx context.Context) ([]byte, string, error) {
 		if strings.TrimSpace(rawURL) == "" {
-			return nil, "", errors.New("原视频任务没有返回可取回的结果")
+			return nil, "", errors.New("The original video task did not return retrievable results.")
 		}
 		if strings.HasPrefix(strings.TrimSpace(rawURL), "data:") {
 			mimeType, data, err := DecodeProviderDataURL(rawURL)
@@ -246,11 +246,11 @@ func videoResultURL(status, rawURL string) (string, error) {
 	switch strings.ToLower(strings.TrimSpace(status)) {
 	case "completed", "succeeded", "success", "done":
 		if strings.TrimSpace(rawURL) == "" {
-			return "", errors.New("视频任务成功但没有返回可取回的结果")
+			return "", errors.New("Video task succeeded but no retrievable results were returned")
 		}
 		return rawURL, nil
 	case "failed", "cancelled", "expired":
-		return "", errors.New("原视频任务未成功，无法取回结果")
+		return "", errors.New("The original video task was unsuccessful and the results cannot be retrieved.")
 	default:
 		return "", HTTPError{StatusCode: http.StatusServiceUnavailable, Body: `{"error":{"code":"video_delivery_pending"}}`}
 	}

@@ -10,7 +10,7 @@ import "@/pages/settings/model-service-editor.css";
 
 const channel = createModelChannel({
     id: "gateway",
-    name: "方舟网关",
+    name: "Ark Gateway",
     baseUrl: "https://gateway.example.com/api/v3",
     apiKey: "synthetic-key",
     models: ["chat-model", "picture-model"],
@@ -37,8 +37,8 @@ function Harness() {
                 <ChannelModelSettings channel={channel} onChange={() => {}} />
             </section>
             <section data-testid="editable" className="mt-6">
-                <Button onClick={() => setEditable({ ...channel, models: [] })}>清空模型</Button>
-                <Button onClick={() => setEditable(channel)}>加回模型</Button>
+                <Button onClick={() => setEditable({ ...channel, models: [] })}>Clear model</Button>
+                <Button onClick={() => setEditable(channel)}>Add back model</Button>
                 <ChannelModelSettings channel={editable} onChange={() => {}} />
             </section>
         </main>

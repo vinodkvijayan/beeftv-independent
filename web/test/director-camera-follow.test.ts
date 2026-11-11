@@ -15,8 +15,8 @@ const movedScene = () => {
     ] }, ...scene.objects.slice(1)] };
 };
 
-describe("导演台摄影机跟随与注视", () => {
-    test("机位移动保留注视模式，机位旋转切换为旋转驱动并真实改变取景", () => {
+describe("The camera on the director's desk follows and watches", () => {
+    test("The camera movement retains the gaze mode, and the camera rotation switches to rotation drive and truly changes the framing.", () => {
         const scene = createDirectorReproScene();
         const camera = scene.cameras[0];
         const movedTransform = { ...camera.transform, position: [camera.transform.position[0] + 2, camera.transform.position[1], camera.transform.position[2]] as DirectorVec3 };
@@ -35,7 +35,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(framing?.target[2]).toBeCloseTo(camera.transform.position[2], 5);
     });
 
-    test("相机操纵器用 raw 播放头取渲染起点、用吸附播放头写关键帧", () => {
+    test("The camera manipulator uses the raw playhead to get the rendering starting point and the adsorption playhead to write key frames.", () => {
         const scene = createDirectorReproScene();
         const camera = scene.cameras[0];
         const trajectory = {
@@ -54,7 +54,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(result.keyframes.map((frame) => frame.time)).toEqual([0, 1, 2]);
     });
 
-    test("绑定跟随后当前画面不跳变，角色移动时相机保留相对位置", () => {
+    test("The current screen does not jump after binding and following, and the camera retains its relative position when the character moves.", () => {
         const scene = movedScene();
         const camera = bindDirectorCameraFollow(scene.cameras[0], scene, scene.objects[0].id, 0);
         const next = { ...scene, cameras: [camera] };
@@ -62,7 +62,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(resolveDirectorViewFraming({ scene: next, mode: "camera", playhead: 1 })?.position).toEqual([5.8, 2.7, 6.8]);
     });
 
-    test("注视角色使用当前帧位置，镜头位置不受注视绑定影响", () => {
+    test("The gaze character uses the current frame position, and the camera position is not affected by the gaze binding.", () => {
         const scene = movedScene();
         const camera = { ...scene.cameras[0], lookAtObjectId: scene.objects[0].id };
         const framing = resolveDirectorViewFraming({ scene: { ...scene, cameras: [camera] }, mode: "camera", playhead: 1 });
@@ -70,7 +70,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(framing?.target).toEqual([1, 0.5, 0]);
     });
 
-    test("手动旋转改变视线方向；目标删除后跟随和注视安全回落", () => {
+    test("Manual rotation to change gaze direction; follow and gaze fall back safely after target removal", () => {
         const scene = createDirectorReproScene();
         const camera = { ...scene.cameras[0], transform: { ...scene.cameras[0].transform, position: [0, 1, 5] as DirectorVec3, rotation: [0, Math.PI / 2, 0] as DirectorVec3 }, lookAtMode: "rotation" as const };
         const rotation = resolveDirectorViewFraming({ scene: { ...scene, cameras: [camera] }, mode: "camera", playhead: 0 });
@@ -83,7 +83,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(fallback?.target).toEqual(camera.target);
     });
 
-    test("摇镜/俯仰关键帧在 CAM 中改变注视方向且摄影机位置固定", () => {
+    test("Pan/tilt keyframes change gaze direction in CAM with fixed camera position", () => {
         const scene = createDirectorReproScene();
         const base = { ...scene.cameras[0], transform: { ...scene.cameras[0].transform, position: [0, 1, 5] as DirectorVec3 }, target: [0, 1, 0] as DirectorVec3 };
         const panEnd = resolveDirectorCameraMoveTransform(base.transform, base.target, "pan_right");
@@ -106,7 +106,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(resolveDirectorCameraLocalFraming(scene, tiltCamera, 2)?.target[1]).toBeGreaterThan(base.target[1]);
     });
 
-    test("删除被跟随或注视的对象时只清理对应绑定", () => {
+    test("When deleting a followed or watched object, only the corresponding binding is cleared.", () => {
         const scene = createDirectorReproScene();
         const camera: DirectorCamera = {
             ...scene.cameras[0],
@@ -122,7 +122,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(removeDirectorCameraBindingsForObject(camera, "other", scene, 0)).toBe(camera);
     });
 
-    test("自由视角机位辅助图形与 CAM 共用当前帧取景，且能解算非活动机位", () => {
+    test("Free-view camera auxiliary graphics share the current frame view with CAM and can resolve inactive cameras", () => {
         const scene = movedScene();
         const first = bindDirectorCameraFollow(scene.cameras[0], scene, scene.objects[0].id, 0);
         const second: DirectorCamera = { ...first, id: "other-camera", transform: { ...first.transform, position: [0, 2, 8] } };
@@ -132,7 +132,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(resolveDirectorCameraLocalFraming(withCameras, first, 1)?.target).toEqual(resolveDirectorViewFraming({ scene: withCameras, mode: "camera", playhead: 1 })?.target);
     });
 
-    test("解除跟随保留当前构图，并把位移叠加到已有机位关键帧", () => {
+    test("Unfollowing retains the current composition and superimposes the displacement to the existing position keyframe", () => {
         const scene = movedScene();
         const base = scene.cameras[0];
         const camera: DirectorCamera = {
@@ -154,7 +154,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(detached.transform.position[0]).toBe(5.8);
     });
 
-    test("删除被跟随兼注视的对象时保留删除瞬间的机位构图", () => {
+    test("When deleting the object being followed and watched, the camera composition at the moment of deletion is retained.", () => {
         const scene = movedScene();
         const targetId = scene.objects[0].id;
         const followed = bindDirectorCameraFollow(scene.cameras[0], scene, targetId, 0);
@@ -168,7 +168,7 @@ describe("导演台摄影机跟随与注视", () => {
         expect(detached.lookAtMode).toBe("coordinates");
     });
 
-    test("从一个跟随目标切换到另一个目标时当前帧不跳变", () => {
+    test("The current frame does not jump when switching from one following target to another", () => {
         const scene = movedScene();
         const first = bindDirectorCameraFollow(scene.cameras[0], scene, scene.objects[0].id, 0);
         const before = resolveDirectorCameraLocalFraming(scene, first, 1);

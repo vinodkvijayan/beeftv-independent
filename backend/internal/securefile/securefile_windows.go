@@ -64,7 +64,7 @@ func Verify(path string) error {
 		return err
 	}
 	if control&windows.SE_DACL_PROTECTED == 0 {
-		return fmt.Errorf("令牌文件的访问控制仍可继承")
+		return fmt.Errorf("Access control for token files is still inheritable")
 	}
 	return nil
 }

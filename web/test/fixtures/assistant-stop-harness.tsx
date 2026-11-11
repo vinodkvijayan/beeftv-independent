@@ -10,17 +10,17 @@ if (location.search.includes("scope-test")) { document.cookie = "test-user=A"; s
 function Harness() {
     const assistant = useCanvasAssistant({ canvasId: "c1" });
     return <main>
-        <button onClick={() => void assistant.restartHost()}>刷新状态</button>
+        <button onClick={() => void assistant.restartHost()}>refresh status</button>
         <output data-testid="status-reason">{assistant.status?.reason || ""}</output>
-        <button onClick={() => { document.cookie = "test-user=B"; setActiveUserScope("user-B"); }}>切换用户</button>
-        <button onClick={() => void assistant.send("补充A", [])}>补充</button>
+        <button onClick={() => { document.cookie = "test-user=B"; setActiveUserScope("user-B"); }}>Switch user</button>
+        <button onClick={() => void assistant.send("Supplement A", [])}>supplement</button>
         <output data-testid="session">{assistant.sessionId || ""}</output>
         <output data-testid="supplements">{assistant.supplements.map(item => item.text + ":" + item.status).join(",")}</output>
-        <button onClick={() => void assistant.send("只创建草案", [])}>开始</button>
-        <button onClick={() => void assistant.stop()}>停止</button>
-        <button onClick={() => assistant.retryLast()}>重试</button>
+        <button onClick={() => void assistant.send("Create draft only", [])}>start</button>
+        <button onClick={() => void assistant.stop()}>stop</button>
+        <button onClick={() => assistant.retryLast()}>Try again</button>
         <output data-testid="can-retry">{String(assistant.canRetry)}</output>
-        <button onClick={() => void assistant.reloadHistory()}>重新读取</button>
+        <button onClick={() => void assistant.reloadHistory()}>reread</button>
         <output data-testid="pending">{assistant.pendingUserText || ""}</output>
         <output data-testid="streamed">{assistant.streamed}</output>
         <output data-testid="error">{assistant.error || ""}</output>

@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	errRevoked      = errors.New("BeefTV 连接已失效，请重新连接")
-	errNotConnected = errors.New("尚未连接 BeefTV")
-	errStore        = errors.New("保存连接失败，请重试")
+	errRevoked      = errors.New("BeefTV connection has expired, please reconnect.")
+	errNotConnected = errors.New("Not connected to BeefTV yet")
+	errStore        = errors.New("Failed to save connection, please try again")
 )
 
 type Options struct {
@@ -64,7 +64,7 @@ func New(opts Options) (*Service, error) {
 	}
 	dataDir := strings.TrimSpace(opts.DataDir)
 	if dataDir == "" {
-		return nil, errors.New("本地工作区数据目录不能为空")
+		return nil, errors.New("The local workspace data directory cannot be empty")
 	}
 	httpClient := opts.HTTPClient
 	openURL := opts.OpenURL
@@ -92,7 +92,7 @@ func New(opts Options) (*Service, error) {
 		state.AuthorizationOrigin, err = savedOrigin(state, origin)
 	}
 	if err != nil {
-		state = persistedState{SchemaVersion: connectionSchema, Status: StateStoreError, LastError: "读取已保存的连接失败", Balance: BalanceUnknown}
+		state = persistedState{SchemaVersion: connectionSchema, Status: StateStoreError, LastError: "Failed to read saved connection", Balance: BalanceUnknown}
 	}
 	lifecycle, shutdown := context.WithCancel(context.Background())
 	svc := &Service{
@@ -106,7 +106,7 @@ func New(opts Options) (*Service, error) {
 			svc.mu.Lock()
 			defer svc.mu.Unlock()
 			if !svc.closed && svc.state.Status == StateConnecting {
-				svc.state.LastError = "正在尝试其他连接方式"
+				svc.state.LastError = "Trying other connection methods"
 			}
 		})
 	}
@@ -138,7 +138,7 @@ func (s *Service) beginWork() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.closed {
-		return errors.New("企业连接服务已关闭")
+		return errors.New("Enterprise Connectivity service is down")
 	}
 	s.workers.Add(1)
 	return nil
@@ -228,7 +228,7 @@ func (s *Service) Resolve() (Credential, error) {
 	}
 	apiKey, err := decryptSecret(s.dataDir, state.EncryptedAPIKey)
 	if err != nil {
-		return Credential{}, &kernel.AppError{Status: 500, Code: 500, Reason: "local_credential_failed", Message: "本地算力凭据读取失败。" + credentialFailureDetail(err) + "。请检查工作区数据目录并重新连接算力账号；不要删除工作区密钥", Cause: err}
+		return Credential{}, &kernel.AppError{Status: 500, Code: 500, Reason: "local_credential_failed", Message: "Failed to read local computing power credentials." + credentialFailureDetail(err) + ". Please check the workspace data directory and reconnect the computing account; do not delete the workspace key", Cause: err}
 	}
 	if strings.TrimSpace(apiKey) == "" {
 		return Credential{}, errNotConnected
@@ -248,15 +248,15 @@ func (s *Service) Resolve() (Credential, error) {
 func credentialFailureDetail(err error) string {
 	switch {
 	case errors.Is(err, os.ErrNotExist):
-		return "工作区密钥文件不存在"
+		return "Workspace key file does not exist"
 	case errors.Is(err, os.ErrPermission):
-		return "没有读取工作区密钥文件的权限"
+		return "No permission to read workspace key file"
 	}
 	switch err.Error() {
-	case "工作区密钥长度无效", "本地密钥密文格式无效", "本地密钥密文长度无效", "本地密钥解密失败，请检查工作区密钥":
+	case "Invalid workspace key length", "The local key ciphertext format is invalid", "The local key ciphertext length is invalid", "Local key decryption failed, please check workspace key":
 		return err.Error()
 	default:
-		return "读取工作区密钥文件失败"
+		return "Failed to read workspace key file"
 	}
 }
 
@@ -267,7 +267,7 @@ func (s *Service) MarkRevoked() {
 		return
 	}
 	s.state.Status = StateRevoked
-	s.state.LastError = "连接已失效，请重新连接"
+	s.state.LastError = "The connection has expired, please reconnect."
 	_ = s.persistState(s.state)
 }
 
@@ -296,7 +296,7 @@ func (s *Service) Start(ctx context.Context) (Summary, error) {
 	s.mu.Lock()
 	if s.closed {
 		s.mu.Unlock()
-		return Summary{}, errors.New("企业连接服务已关闭")
+		return Summary{}, errors.New("Enterprise Connectivity service is down")
 	}
 	if s.state.Status == StateConnecting {
 		summary := s.summaryLocked()
@@ -334,7 +334,7 @@ func (s *Service) Start(ctx context.Context) (Summary, error) {
 	s.state.AuthorizationOrigin = s.origin
 	s.state.ProviderBaseURL = ""
 	s.state.Status = StateConnecting
-	s.state.LastError = "正在连接 BeefTV"
+	s.state.LastError = "Connecting to BeefTV"
 	s.mu.Unlock()
 
 	device, err := s.requestDeviceCode()
@@ -360,7 +360,7 @@ func (s *Service) Start(ctx context.Context) (Summary, error) {
 	}
 	if err := s.persistState(s.state); err != nil {
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 		s.mu.Unlock()
 		return s.Status(), errStore
 	}
@@ -375,7 +375,7 @@ func (s *Service) Start(ctx context.Context) (Summary, error) {
 		openTarget = device.VerificationURI
 	}
 	if err := s.openTrusted(openTarget); err != nil {
-		s.setError(StatePending, "无法打开系统浏览器，请复制确认页地址")
+		s.setError(StatePending, "Unable to open the system browser, please copy the confirmation page address")
 	}
 	go func() {
 		defer s.workers.Done()
@@ -414,7 +414,7 @@ func (s *Service) Cancel(ctx context.Context) (Summary, error) {
 	}
 	if err := s.persistState(s.state); err != nil {
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 		return s.summaryLocked(), errStore
 	}
 	return s.summaryLocked(), nil
@@ -442,13 +442,13 @@ func (s *Service) Disconnect(ctx context.Context) (Summary, error) {
 	// Catalog removal and credential invalidation must be atomic to refreshes.
 	if err := clearBeefTVModels(s.provider); err != nil {
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 		return s.summaryLocked(), errStore
 	}
 	s.state = persistedState{SchemaVersion: connectionSchema, Status: StateDisconnected, Balance: BalanceUnknown}
 	if err := s.persistState(s.state); err != nil {
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 		return s.summaryLocked(), errStore
 	}
 	return s.summaryLocked(), nil
@@ -473,7 +473,7 @@ func (s *Service) Recover(ctx context.Context) error {
 	if state.Status == StatePending && state.Device != nil {
 		expires := parseTime(state.Device.ExpiresAt)
 		if s.now().After(expires) {
-			s.setError(StateExpired, "授权已过期，请重新连接")
+			s.setError(StateExpired, "Authorization has expired, please reconnect")
 			return nil
 		}
 		s.mu.Lock()
@@ -529,7 +529,7 @@ func (s *Service) pollLoop(ctx context.Context, deviceCode string, interval time
 		default:
 		}
 		if !expiresAt.IsZero() && s.now().After(expiresAt) {
-			s.setError(StateExpired, "授权已过期，请重新连接")
+			s.setError(StateExpired, "Authorization has expired, please reconnect")
 			return
 		}
 		token, code, err := s.pollToken(deviceCode)
@@ -537,7 +537,7 @@ func (s *Service) pollLoop(ctx context.Context, deviceCode string, interval time
 			return
 		}
 		if err != nil {
-			s.updatePollMessage(deviceCode, "连接中断，正在重试")
+			s.updatePollMessage(deviceCode, "Connection interrupted, retrying")
 			if !s.pause(ctx, interval) {
 				return
 			}
@@ -566,13 +566,13 @@ func (s *Service) pollLoop(ctx context.Context, deviceCode string, interval time
 				return
 			}
 		case "expired_token", "expired":
-			s.setError(StateExpired, "授权已过期，请重新连接")
+			s.setError(StateExpired, "Authorization has expired, please reconnect")
 			return
 		case "access_denied", "denied", "rejected":
-			s.setError(StateRejected, "授权被拒绝")
+			s.setError(StateRejected, "Authorization denied")
 			return
 		default:
-			s.updatePollMessage(deviceCode, "授权状态读取失败，正在重试")
+			s.updatePollMessage(deviceCode, "Failed to read authorization status, retrying")
 			if !s.pause(ctx, interval) {
 				return
 			}
@@ -602,7 +602,7 @@ func (s *Service) acceptToken(ctx context.Context, deviceCode string, token toke
 	}
 	encrypted, err := encryptSecret(s.dataDir, token.APIKey)
 	if err != nil {
-		s.setError(StateStoreError, "保存连接失败，请重试")
+		s.setError(StateStoreError, "Failed to save connection, please try again")
 		return errStore
 	}
 	s.mu.Lock()
@@ -632,7 +632,7 @@ func (s *Service) acceptToken(ctx context.Context, deviceCode string, token toke
 	s.state.LastError = ""
 	if err := s.persistState(s.state); err != nil {
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 		s.mu.Unlock()
 		return errStore
 	}
@@ -665,12 +665,12 @@ func (s *Service) finalizeSavedCredential(ctx context.Context, previousAccountID
 	}
 	if !state.Acked {
 		if strings.TrimSpace(deviceCode) == "" {
-			s.markDoomedCredential(StateExpired, "授权已过期，请重新连接")
+			s.markDoomedCredential(StateExpired, "Authorization has expired, please reconnect")
 			return errAckExpired
 		}
 		s.mu.Lock()
 		s.state.Status = StatePending
-		s.state.LastError = "正在完成连接确认"
+		s.state.LastError = "Completing connection confirmation"
 		s.mu.Unlock()
 		if err := s.acknowledgeWithRetry(deviceCode); err != nil {
 			if s.lifecycle.Err() != nil {
@@ -688,7 +688,7 @@ func (s *Service) finalizeSavedCredential(ctx context.Context, previousAccountID
 			s.state.Acked = false
 			s.state.Device = previousDevice
 			s.state.Status = StateStoreError
-			s.state.LastError = "保存连接失败，请重试"
+			s.state.LastError = "Failed to save connection, please try again"
 			s.mu.Unlock()
 			return errStore
 		}
@@ -696,7 +696,7 @@ func (s *Service) finalizeSavedCredential(ctx context.Context, previousAccountID
 	}
 	apiKey, err := decryptSecret(s.dataDir, state.EncryptedAPIKey)
 	if err != nil {
-		s.setError(StateStoreError, "保存连接失败，请重试")
+		s.setError(StateStoreError, "Failed to save connection, please try again")
 		return errStore
 	}
 	models, err := s.fetchModels(apiKey)
@@ -711,10 +711,10 @@ func (s *Service) finalizeSavedCredential(ctx context.Context, previousAccountID
 		s.mu.Lock()
 		s.state.Status = StateCatalogFailed
 		s.state.CatalogOK = false
-		s.state.LastError = "模型列表读取失败，请重试"
+		s.state.LastError = "Failed to read model list, please try again"
 		if persistErr := s.persistState(s.state); persistErr != nil {
 			s.state.Status = StateStoreError
-			s.state.LastError = "保存连接失败，请重试"
+			s.state.LastError = "Failed to save connection, please try again"
 			s.mu.Unlock()
 			return errStore
 		}
@@ -735,10 +735,10 @@ func (s *Service) finalizeSavedCredential(ctx context.Context, previousAccountID
 		s.mu.Lock()
 		s.state.Status = StateCatalogFailed
 		s.state.CatalogOK = false
-		s.state.LastError = "模型列表读取失败，请重试"
+		s.state.LastError = "Failed to read model list, please try again"
 		if persistErr := s.persistState(s.state); persistErr != nil {
 			s.state.Status = StateStoreError
-			s.state.LastError = "保存连接失败，请重试"
+			s.state.LastError = "Failed to save connection, please try again"
 			s.mu.Unlock()
 			return errStore
 		}
@@ -758,7 +758,7 @@ func (s *Service) finalizeSavedCredential(ctx context.Context, previousAccountID
 	if err := s.persistState(s.state); err != nil {
 		s.state.CatalogOK = false
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 		return errStore
 	}
 	return nil
@@ -792,19 +792,19 @@ func (s *Service) acknowledgeWithRetry(deviceCode string) error {
 func (s *Service) noteAckFailure(err error) {
 	switch {
 	case errors.Is(err, errAckExpired):
-		s.markDoomedCredential(StateExpired, "授权已过期，请重新连接")
+		s.markDoomedCredential(StateExpired, "Authorization has expired, please reconnect")
 	case errors.Is(err, errAckRejected):
-		s.markDoomedCredential(StateRejected, "授权被拒绝")
+		s.markDoomedCredential(StateRejected, "Authorization denied")
 	default:
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.state.Status = StateConnectionError
 		s.state.Acked = false
 		s.state.CatalogOK = false
-		s.state.LastError = "连接确认失败，请重试"
+		s.state.LastError = "Connection confirmation failed, please try again"
 		if persistErr := s.persistState(s.state); persistErr != nil {
 			s.state.Status = StateStoreError
-			s.state.LastError = "保存连接失败，请重试"
+			s.state.LastError = "Failed to save connection, please try again"
 		}
 	}
 }
@@ -822,7 +822,7 @@ func (s *Service) markDoomedCredential(status, message string) {
 	s.state.Account = nil
 	if persistErr := s.persistState(s.state); persistErr != nil {
 		s.state.Status = StateStoreError
-		s.state.LastError = "保存连接失败，请重试"
+		s.state.LastError = "Failed to save connection, please try again"
 	}
 }
 

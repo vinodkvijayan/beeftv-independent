@@ -12,7 +12,7 @@ import (
 func TestSeedancePollingPreservesUnavailableCode(t *testing.T) {
 	state := map[string]interface{}{"error": map[string]interface{}{
 		"code":    "model_temporarily_unavailable",
-		"message": "无可用线路：当前售价档位 standard 暂无可用线路，线路可能维护中或模型不存在",
+		"message": "No available lines: There are currently no available lines for the current price range standard. The line may be under maintenance or the model may not exist.",
 	}}
 	raw := seedanceErrorMessage(state)
 	failure := generation.ClassifyText(raw)

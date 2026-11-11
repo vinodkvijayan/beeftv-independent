@@ -39,7 +39,7 @@ func (s *Service) ensureSkillDisplayNames() error {
 		}
 		skill.Name = metadata.Name
 		if err := s.repo.SaveSkill(&skill); err != nil {
-			return fmt.Errorf("更新技能显示名称失败: %w", err)
+			return fmt.Errorf("Failed to update skill display name: %w", err)
 		}
 	}
 	return s.repo.SaveSystemSetting(&model.SystemSetting{Key: skillDisplayNamesRepairedKey, ValueJSON: "true"})

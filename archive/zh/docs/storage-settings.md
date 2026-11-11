@@ -1,39 +1,39 @@
-# 存储设置
+#Save settings
 
-桌面设置里的“存储设置”依次提供本地目录迁移、用户自己的参考素材对象存储和深度捕捉组件管理。
+The "Storage Settings" in the desktop settings provide local directory migration, user's own reference material object storage and depth capture component management in turn.
 
-## 本地目录
+## Local directory
 
-默认目录仍为系统用户配置目录下的 BeefTV（Windows 通常为 `%AppData%\BeefTV`）。选择空文件夹，例如 `D:\BeefTV`，点击“迁移旧数据并使用新目录”。应用关闭当前工作区的服务、后台任务和 SQLite 后，复制并校验数据库、素材、模型配置、加密密钥、插件及本地模型缓存，然后打开新目录。目标已有文件、目录重叠、空间不足或校验失败时停止；原数据保留。
+The default directory is still BeefTV under the system user configuration directory (usually `%AppData%\BeefTV` on Windows). Select an empty folder, such as `D:\BeefTV`, and click "Migrate old data and use new directory". After the application closes the services, background tasks, and SQLite in the current workspace, copy and verify the database, materials, model configurations, encryption keys, plug-ins, and local model cache, and then open the new directory. It stops when the target already has files, directories overlap, there is insufficient space, or verification fails; the original data is retained.
 
-目录选择记录始终保存在默认配置目录的 `storage-location.json`，因此重开和升级可以找到所选磁盘。所选磁盘未连接时启动报错，不创建空工作区。CLI 自动发现使用同一记录；显式启动参数 `--data-dir` 或环境变量仍优先。通过 `CANVAS_DESKTOP_DATA_DIR` 固定目录的进程须先移除该变量再使用界面迁移。
+Directory selection records are always saved in the default configuration directory at `storage-location.json`, so restarts and upgrades can find the selected disks. If the selected disk is not connected, an error will be reported at startup and an empty workspace will not be created. CLI autodiscovery uses the same record; explicit startup parameters `--data-dir` or environment variables still take precedence. The process of fixing the directory through `CANVAS_DESKTOP_DATA_DIR` must first remove this variable before using the interface migration.
 
-确认新工作区的项目、素材和模型配置正常后，可点击“清理原目录，释放磁盘空间”。清理会再次核对原文件；出现新增或修改时拒绝清理。默认目录内用于定位新磁盘的小型记录保留。新版本用文件锁阻止同一目录被多个实例打开；迁移前也检查仍在运行的旧版实例。不要在迁移或清理期间启动旧版应用。
+After confirming that the projects, materials, and models in the new workspace are configured normally, you can click "Clear the original directory to free up disk space." Cleaning will check the original file again; cleaning will be refused when there are new additions or modifications. A small record is kept in the default directory for locating new disks. The new version uses file locks to prevent the same directory from being opened by multiple instances; it also checks for legacy instances that are still running before migrating. Don't launch legacy apps during migration or cleanup.
 
-更新下载放在所选目录的 `cache/updates`，后端处理临时文件放在 `cache/tmp`。`cache/tmp` 不参与迁移及迁移空间预估，新目录会重新创建临时目录；其他缓存及目录外的 `.tmp` 文件仍完整复制和校验。清理原目录时若临时文件仍被占用，会保留清理记录，重启 BeefTV 后可以再次清理。程序安装、更新替换所需的安装卷空间，以及系统管理的 WebView 缓存不在此迁移范围。浏览器未提交草稿保留原来的浏览器缓存命名空间，不把它当成独立备份。
+The update download is placed in the selected directory `cache/updates`, and the temporary files for backend processing are placed in `cache/tmp`. `cache/tmp` does not participate in migration and migration space estimation, and the temporary directory will be re-created in the new directory; other cached and `.tmp` files outside the directory are still fully copied and verified. If the temporary files are still occupied when cleaning the original directory, the cleaning record will be retained, and you can clean it again after restarting BeefTV. Installation volume space required for program installation, update replacement, and system-managed WebView cache are outside the scope of this migration. Browsers that do not commit drafts retain the original browser cache namespace and do not treat it as a separate backup.
 
 迁移方式参考 [Zotero 数据目录管理](https://www.zotero.org/support/zotero_data)：先停止写入、验证副本，保留原数据，成功后切换持久目录。没有复制 Zotero 代码。
 
-## 用户自己的对象存储
+## User's own object storage
 
-在自定义渠道的模型配置中，“参考素材传输”可分别设置图片、视频和音频。默认按协议处理；“直接传素材”使用该协议的文件或 Base64 输入，需要服务商支持；“上传到我的对象存储”先上传本机素材；“手动填写 HTTPS 链接”不会自动上传。服务商自带的素材上传流程仍由对应协议处理。
+In the model configuration of the custom channel, "reference material transmission" can be set separately for images, videos and audios. By default, it is processed according to the protocol; "Directly upload material" uses the file of this protocol or Base64 input, which requires the support of the service provider; "Upload to my object storage" uploads the local material first; "Manually fill in the HTTPS link" will not automatically upload. The material upload process provided by the service provider is still handled by the corresponding protocol.
 
-万相视频协议允许图片使用 Base64，参考视频和音频仍要求在线链接。第三方兼容接口可能有不同要求，可在该模型下覆盖设置。Agnes 图像协议也支持 Base64 参考图，不能根据品牌名判断是否需要对象存储。
+The Wanxiang video protocol allows images to use Base64, and reference video and audio still require online links. Third-party compatible interfaces may have different requirements and settings can be overridden under this model. The Agnes image protocol also supports Base64 reference images, and the need for object storage cannot be determined based on the brand name.
 
-“保存并测试上传”保存当前配置后，上传一张临时小图片，检查匿名读取并删除测试文件。成功时显示三个步骤均已通过；失败时显示具体原因。测试不会调用模型，存储服务可能收取少量请求费用。配置保存成功本身不代表上传可用。
+"Save and test upload" saves the current configuration, uploads a temporary small picture, checks anonymous reading and deletes the test file. If it succeeds, it will show that all three steps have been passed; if it fails, it will show the specific reason. The test does not call the model, and the storage service may charge a small request fee. The successful saving of the configuration itself does not mean that the upload is available.
 
-使用 S3 兼容接口，填写端点、桶名称、区域、Access Key ID、Secret Access Key 和桶对应的读取地址。R2 区域使用 `auto`；AWS S3 使用桶实际区域；MinIO 使用其 S3 区域和可读取的入口。公网地址应对应桶根目录，上传的对象键会追加到该地址。公网端点使用 HTTPS。本机、RFC1918 或 CGNAT（`100.64.0.0/10`）端点可以使用 HTTP；解析结果里只要有一个公网、链路本地、未指定或组播地址，就仍拒绝 HTTP。
+Use the S3 compatible interface to fill in the endpoint, bucket name, region, Access Key ID, Secret Access Key and the read address corresponding to the bucket. The R2 region uses `auto`; AWS S3 uses the bucket's actual region; MinIO uses its S3 region and readable ingress. The public network address should correspond to the bucket root directory, and the uploaded object key will be appended to this address. Public endpoints use HTTPS. Native, RFC1918, or CGNAT (`100.64.0.0/10`) endpoints can use HTTP; HTTP will still be rejected as long as there is a public, link-local, unspecified, or multicast address in the parsing result.
 
-凭据加密存放于当前数据目录，随迁移一同保留。读取配置接口不返回 Secret；表单留空保留已存密钥，更换 Access Key 时须填写对应 Secret。启用开关和保存操作由用户决定。费用由用户自己的存储服务计收。
+Credentials are stored encrypted in the current data directory and remain with the migration. The read configuration interface does not return Secret; leave the form blank to retain the saved key. When changing the Access Key, you must fill in the corresponding Secret. Enabling switches and saving operations is at the user's discretion. The fee is charged by the user's own storage service.
 
 当渠道要求公网参考素材时，应用只复制并上传当前工作区拥有的参考资源。上传使用 [AWS 官方 SigV4 签名库](https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/aws/signer/v4)。随后匿名读取公网链接并核对素材内容前缀。未启用存储或选择手动链接时，画布和创作页引导填写 HTTPS 链接；补齐前不创建生成任务。任务执行阶段上传失败会记录具体素材和原因，保留原任务，不提交模型；可检查存储配置，或将该类型改为手动链接后重新提交。
 
-请求禁止重定向，沿用统一出站连接保护。端点和读取地址不能带账号密码或查询参数。默认允许解析到本机、局域网或 CGNAT 的 HTTP/HTTPS 地址；公网地址仍必须是 HTTPS。链路本地、未指定和组播仍然拒绝。显式设置 `CANVAS_ALLOW_PRIVATE_UPSTREAMS=false` 时只接受公网 HTTPS，允许列表也不能改成 HTTP 或私网。云端模型若要求公网可拉取的素材，局域网地址即使通过校验也无法被对方访问。
+Requests to disable redirection and continue to use unified outbound connection protection. Endpoints and read addresses cannot contain account passwords or query parameters. By default, HTTP/HTTPS addresses that resolve to the local machine, LAN, or CGNAT are allowed; public addresses must still be HTTPS. Link-local, unassigned, and multicast are still denied. When `CANVAS_ALLOW_PRIVATE_UPSTREAMS=false` is explicitly set, only public network HTTPS is accepted, and the allow list cannot be changed to HTTP or private network. If the cloud model requires materials that can be pulled from the public network, the LAN address cannot be accessed by the other party even if it passes the verification.
 
-画布“添加素材”同时支持填写图片、视频或音频的 HTTPS 网址。在线素材保留原网址，避免下载成本地资源后丢失上游可读取的地址。是否需要在线链接按所选协议及媒体类型判断。
+The canvas "Add Material" also supports filling in the HTTPS URL of images, videos or audios. Online materials retain their original URLs to avoid losing upstream readable addresses after downloading local resources. Whether an online link is required depends on the selected protocol and media type.
 
-## 重启恢复与排查
+## Restart recovery and troubleshooting
 
-读取旧版明文模型配置时原子加密主配置和备份，保留配置内容与版本。模型主配置缺失时先读取加密 `.bak`；备份损坏或密钥缺失必须报错，不覆盖为空配置。项目列表或详情读取失败会显示“项目暂时无法读取”和重试，保留已有缓存，自动打开流程不因此新建空项目。
+When reading the old plain text model configuration, atomically encrypt the main configuration and backup, retaining the configuration content and version. When the main configuration of the model is missing, the encryption `.bak` is read first; if the backup is damaged or the key is missing, an error must be reported and the empty configuration will not be overwritten. Failure to read the project list or details will display "The project cannot be read temporarily" and try again. The existing cache will be retained, and the automatic opening process will not create an empty project.
 
-这些修复覆盖可复现的代码问题，不能代替反馈用户的现场诊断。应从该设备的“问题诊断”导出脱敏记录，核对版本、实际数据目录、磁盘空间、数据库和配置健康状态；不要发送配置正文或 `.settings-key`。
+These fixes cover reproducible code issues and do not replace on-site diagnosis by feedback users. The desensitization record should be exported from the device's "Problem Diagnosis" to check the version, actual data directory, disk space, database and configuration health status; do not send the configuration body or `.settings-key`.

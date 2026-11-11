@@ -31,7 +31,7 @@ func TestCanvasWorkflowNewAudioReferenceRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	d = editor.Workflow.Definition
-	d.Nodes = append(d.Nodes, cw.Node{ID: "audio", Title: "音频输入", Role: "input", MediaType: "audio"})
+	d.Nodes = append(d.Nodes, cw.Node{ID: "audio", Title: "audio input", Role: "input", MediaType: "audio"})
 	d.Edges = append(d.Edges, cw.Edge{From: "audio", To: "gen", FromPort: "output", ToPort: "referenceAudios"})
 	updated, err := s.workflowTemplates().Update("owner", created.ID, cw.UpdateRequest{Name: "Audio", ExpectedRevision: 1, Definition: d})
 	if err != nil {

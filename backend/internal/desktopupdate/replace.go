@@ -97,10 +97,10 @@ func restoreWindows(req HelperRequest) error {
 	var failures []error
 	if pathExists(backupExe) {
 		if err := restoreWindowsExecutable(req.TargetPath, backupExe); err != nil {
-			failures = append(failures, fmt.Errorf("还原程序失败: %w", err))
+			failures = append(failures, fmt.Errorf("Restore failed: %w", err))
 		}
 	} else if !pathExists(req.TargetPath) {
-		failures = append(failures, fmt.Errorf("没有可还原的程序备份"))
+		failures = append(failures, fmt.Errorf("No restoreable program backup"))
 	}
 	for _, name := range windowsSidecarEntries {
 		backup := filepath.Join(req.BackupPath, name)
@@ -117,7 +117,7 @@ func restoreWindows(req HelperRequest) error {
 			}
 			return os.Remove(absent)
 		}); err != nil {
-			failures = append(failures, fmt.Errorf("还原随包资源 %s 失败: %w", name, err))
+			failures = append(failures, fmt.Errorf("Restore package resource %s failed: %w", name, err))
 		}
 	}
 	return errors.Join(failures...)
@@ -143,7 +143,7 @@ func restoreWindowsExecutable(targetExe, backupExe string) error {
 			if !pathExists(targetExe) && pathExists(failedExe) {
 				_ = renamePath(failedExe, targetExe)
 			}
-			return fmt.Errorf("程序备份不是可执行文件")
+			return fmt.Errorf("Program backup is not an executable file")
 		}
 		if err := renamePath(backupExe, targetExe); err != nil {
 			if copyErr := copyFile(backupExe, targetExe); copyErr != nil {
@@ -170,7 +170,7 @@ func RestoreBackup(req HelperRequest) error {
 			if pathExists(req.TargetPath) {
 				return nil
 			}
-			return fmt.Errorf("没有可还原的备份")
+			return fmt.Errorf("No backup to restore")
 		}
 		if pathExists(req.TargetPath) {
 			failed := req.TargetPath + ".beeftv-failed"
@@ -197,7 +197,7 @@ func copyTree(src, dst string) error {
 		return err
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
-		return fmt.Errorf("更新不能复制符号链接")
+		return fmt.Errorf("Update cannot copy symbolic links")
 	}
 	if info.IsDir() {
 		if err := os.MkdirAll(dst, info.Mode().Perm()); err != nil {

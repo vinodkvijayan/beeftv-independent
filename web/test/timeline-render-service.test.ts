@@ -50,8 +50,8 @@ describe("executeTimelineRenderPlan", () => {
         const canonical = videoPlan({
             output: { width: 1920, height: 1080, fps: 30, sampleRate: 44100, burnSubtitles: true },
             audio: [{ clipId: "voice", sourceId: "voice", startMs: 0, durationMs: 1000, sourceStartMs: 0, volume: 1 }],
-            subtitles: [{ clipId: "s", startMs: 0, durationMs: 1000, text: "中文" }],
-            subtitleSrt: "1\n00:00:00,000 --> 00:00:01,000\n中文\n\n",
+            subtitles: [{ clipId: "s", startMs: 0, durationMs: 1000, text: "Chinese" }],
+            subtitleSrt: "1\n00:00:00,000 --> 00:00:01,000\nChinese",
         });
         const plan = lowerCanonicalPlan(canonical, [source("v"), source("voice")], { subtitleImages: ["subtitle-0.png"] });
         const { engine, files, commands } = memoryEngine();
@@ -62,8 +62,8 @@ describe("executeTimelineRenderPlan", () => {
         expect(result.request.audioClipIds).toEqual(["voice"]);
         expect(result.request.subtitleClipIds).toEqual(["s"]);
         expect(files.get("concat.txt")).toContain("trim-0.mp4");
-        expect(String(files.get("timeline.srt"))).toContain("中文");
-        expect(String(files.get("timeline.srt"))).not.toContain("错的");
+        expect(String(files.get("timeline.srt"))).toContain("Chinese");
+        expect(String(files.get("timeline.srt"))).not.toContain("Wrong");
         expect(result.output).toEqual(new Uint8Array([9, 9, 9]));
         expect(commands.some((args) => args.includes("-filter_complex"))).toBe(true);
     });
@@ -71,8 +71,8 @@ describe("executeTimelineRenderPlan", () => {
     test("normal Glyph-not-found fallback is not a silent subtitle failure", async () => {
         const canonical = videoPlan({
             output: { width: 1920, height: 1080, fps: 30, sampleRate: 44100, burnSubtitles: true },
-            subtitles: [{ clipId: "s", startMs: 0, durationMs: 1000, text: "中文" }],
-            subtitleSrt: "1\n00:00:00,000 --> 00:00:01,000\n中文\n\n",
+            subtitles: [{ clipId: "s", startMs: 0, durationMs: 1000, text: "Chinese" }],
+            subtitleSrt: "1\n00:00:00,000 --> 00:00:01,000\nChinese",
         });
         const plan = lowerCanonicalPlan(canonical, [source("v")]);
         const { engine } = memoryEngine({ burnLog: "Glyph 0x4E2D not found, selecting one more font for (Arial, 400, 0)\nfontselect: (Arial, 400, 0) -> NotoSansCJK, 0, NotoSansCJK" });
@@ -83,13 +83,13 @@ describe("executeTimelineRenderPlan", () => {
     test("true font failure with successful exit still rejects and does not return output", async () => {
         const canonical = videoPlan({
             output: { width: 1920, height: 1080, fps: 30, sampleRate: 44100, burnSubtitles: true },
-            subtitles: [{ clipId: "s", startMs: 0, durationMs: 1000, text: "中文" }],
-            subtitleSrt: "1\n00:00:00,000 --> 00:00:01,000\n中文\n\n",
+            subtitles: [{ clipId: "s", startMs: 0, durationMs: 1000, text: "Chinese" }],
+            subtitleSrt: "1\n00:00:00,000 --> 00:00:01,000\nChinese",
         });
         const plan = lowerCanonicalPlan(canonical, [source("v")]);
         const { engine, deleted } = memoryEngine({ burnLog: "fontselect: failed to find any fallback with glyph 0x4E2D" });
         const writtenFiles = new Set<string>();
-        await expect(executeTimelineRenderPlan({ plan, engine, writtenFiles })).rejects.toThrow("字幕烧录失败");
+        await expect(executeTimelineRenderPlan({ plan, engine, writtenFiles })).rejects.toThrow("Subtitle burning failed");
         await cleanupRenderFiles(engine, writtenFiles);
         expect(deleted).toContain("export.mp4");
     });

@@ -1,8 +1,8 @@
-# 第三方代码
+# Third-party code
 
-`lib/editor.mjs` 和 `lib/workflow.mjs` 里的工作流转换、App Mode 读取和节点分类改写自
-[Node Banana](https://github.com/shrimbly/node-banana) 的 `src/lib/comfy/editor.ts` 与
-`src/lib/comfy/graph.ts`，原代码使用 MIT 许可证：
+Workflow conversion, App Mode reading and node classification in `lib/editor.mjs` and `lib/workflow.mjs` are adapted from
+[Node Banana](https://github.com/shrimbly/node-banana) of `src/lib/comfy/editor.ts` and
+`src/lib/comfy/graph.ts`, the original code uses the MIT license:
 
 ```
 MIT License

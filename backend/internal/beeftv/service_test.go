@@ -697,11 +697,11 @@ func TestFrontendWriteCannotClobberManagedFields(t *testing.T) {
 func TestPreserveManagedChannelKeepsServerInventoryAndManualProviders(t *testing.T) {
 	incoming := map[string]any{"channels": []any{
 		map[string]any{"id": "beeftv", "enabled": false, "apiKey": "from-ui", "models": []any{"stale-a", "stale-b"}, "modelProfiles": []any{map[string]any{"model": "stale-a"}}},
-		map[string]any{"id": "manual", "name": "工作室渠道", "apiKey": "keep-me", "models": []any{"local-image"}},
+		map[string]any{"id": "manual", "name": "studio channels", "apiKey": "keep-me", "models": []any{"local-image"}},
 	}}
 	existing := map[string]any{"channels": []any{
 		map[string]any{"id": "beeftv", "apiKey": "disk-secret", "baseUrl": "https://beeftv.app", "models": []any{"enterprise-image"}, "modelProfiles": []any{map[string]any{"model": "enterprise-image", "capability": "image", "protocol": "openai-image"}}},
-		map[string]any{"id": "manual", "name": "旧名称", "apiKey": "disk-manual", "models": []any{"old-image"}},
+		map[string]any{"id": "manual", "name": "old name", "apiKey": "disk-manual", "models": []any{"old-image"}},
 	}}
 	PreserveManagedChannel(incoming, existing, true)
 	beef := findChannel(incoming["channels"].([]any), "beeftv")
@@ -715,7 +715,7 @@ func TestPreserveManagedChannelKeepsServerInventoryAndManualProviders(t *testing
 	if beef["baseUrl"] != "https://beeftv.app" {
 		t.Fatalf("managed base URL dropped: %#v", beef["baseUrl"])
 	}
-	if manual["name"] != "工作室渠道" || manual["apiKey"] != "keep-me" || catalogSize(manual["models"]) != 1 {
+	if manual["name"] != "studio channels" || manual["apiKey"] != "keep-me" || catalogSize(manual["models"]) != 1 {
 		t.Fatalf("manual provider overwritten: %#v", manual)
 	}
 }

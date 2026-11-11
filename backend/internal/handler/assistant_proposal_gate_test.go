@@ -28,17 +28,17 @@ func TestAssistantProposalRunRejectedAfterUndo(t *testing.T) {
 				return
 			}
 			turnID = body.TurnID
-			params, _ := json.Marshal(map[string]any{"canvasId": env.canvasID, "nodeId": "n1", "expectedRevision": body.RevisionBefore, "patch": map[string]any{"title": "改过的标题"}})
+			params, _ := json.Marshal(map[string]any{"canvasId": env.canvasID, "nodeId": "n1", "expectedRevision": body.RevisionBefore, "patch": map[string]any{"title": "changed title"}})
 			if status, result := env.opsRaw("canvas.node.update", "proposal-gate-operation", turnID, string(params)); status != http.StatusOK {
 				t.Errorf("write failed: %d %s", status, result)
 			}
 			w.Header().Set("Content-Type", "application/x-ndjson")
-			_ = json.NewEncoder(w).Encode(map[string]any{"type": "turn_end", "turnId": turnID, "reply": "好", "toolCalls": []any{},
+			_ = json.NewEncoder(w).Encode(map[string]any{"type": "turn_end", "turnId": turnID, "reply": "good", "toolCalls": []any{},
 				"proposals": []any{map[string]any{"proposalId": "gp-0011223344556677", "kind": "image", "nodeIds": []string{"n1"}}}})
 		})
 	})
 	useEnvProvider(t, "chat-completion")
-	if response := env.call(t, http.MethodPost, "/assistant/chat", `{"canvasId":"`+env.canvasID+`","message":"改标题"}`); response.Code != http.StatusOK || turnID == "" {
+	if response := env.call(t, http.MethodPost, "/assistant/chat", `{"canvasId":"`+env.canvasID+`","message":"Change title"}`); response.Code != http.StatusOK || turnID == "" {
 		t.Fatalf("chat failed: %d %s", response.Code, response.Body.String())
 	}
 	run := func(turn, proposal, canvasID string) *httptest.ResponseRecorder {
@@ -81,17 +81,17 @@ func TestAssistantHistoryLabelsSkillsFromStoredPins(t *testing.T) {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]any{"sessionId": "s1", "turns": []any{map[string]any{
-				"turnId": turnID, "userText": "拆资产",
+				"turnId": turnID, "userText": "Split assets",
 				"skills": []any{
 					map[string]any{"skillId": "batch", "versionId": "v1", "contentHash": hash},
-					map[string]any{"skillId": "gone", "versionId": "v9", "contentHash": hash, "skillName": "宿主自报"},
+					map[string]any{"skillId": "gone", "versionId": "v9", "contentHash": hash, "skillName": "Host self-report"},
 				},
-				"supplementInputs": []any{map[string]any{"message": "再补一句", "skills": []any{map[string]any{"skillId": "batch", "versionId": "v1", "contentHash": hash}}}},
+				"supplementInputs": []any{map[string]any{"message": "One more thing", "skills": []any{map[string]any{"skillId": "batch", "versionId": "v1", "contentHash": hash}}}},
 			}}})
 		})
 	})
 	owner, _ := env.service.LocalWorkspaceOwner()
-	pin := skills.Pin{SkillID: "batch", VersionID: "v1", ContentHash: hash, SkillName: "短剧资产分批流程", Version: "1"}
+	pin := skills.Pin{SkillID: "batch", VersionID: "v1", ContentHash: hash, SkillName: "Short drama asset batching process", Version: "1"}
 	if _, err := env.service.BeginAssistantTurn(owner.ID, env.canvasID, turnID, app.AssistantTurnInput{SkillPins: []skills.Pin{pin}}); err != nil {
 		t.Fatal(err)
 	}
@@ -99,14 +99,14 @@ func TestAssistantHistoryLabelsSkillsFromStoredPins(t *testing.T) {
 	turn := history["turns"].([]any)[0].(map[string]any)
 	list := turn["skills"].([]any)
 	labeled := list[0].(map[string]any)
-	if labeled["skillName"] != "短剧资产分批流程" || labeled["version"] != "1" {
+	if labeled["skillName"] != "Short drama asset batching process" || labeled["version"] != "1" {
 		t.Fatalf("stored pin labels must reach the UI: %#v", labeled)
 	}
 	if unknown := list[1].(map[string]any); unknown["skillName"] != nil || unknown["version"] != nil {
 		t.Fatalf("a skill without a stored label must not carry host-provided labels: %#v", unknown)
 	}
 	supplement := turn["supplementInputs"].([]any)[0].(map[string]any)["skills"].([]any)[0].(map[string]any)
-	if supplement["skillName"] != "短剧资产分批流程" {
+	if supplement["skillName"] != "Short drama asset batching process" {
 		t.Fatalf("supplement skills must be labeled too: %#v", supplement)
 	}
 }

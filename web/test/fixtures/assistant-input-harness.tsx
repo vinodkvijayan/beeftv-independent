@@ -32,10 +32,10 @@ Object.assign(window, { assistantInputFixture: {
 function Harness() {
     const [externalOpen, setExternalOpen] = useState(false);
     const assistant = useCanvasAssistant({ canvasId: "input-canvas", onCanvasChanged: canvasId => { changedCanvases.push(canvasId); } });
-    return <App><div style={{ height: "100vh", width: "100%", display: "flex" }}><CanvasAssistantSidebar assistant={assistant} canvasTitle="附件流程验证" dockable readOnly={false}
-        selectedNodeIds={[]} references={[{ id: "node:n1", nodeId: "n1", kind: "image", label: "画布人像", title: "画布人像", active: true, storageKey: resourceStorageKey("existing"), previewUrl: resourceFileUrl("existing") }]}
+    return <App><div style={{ height: "100vh", width: "100%", display: "flex" }}><CanvasAssistantSidebar assistant={assistant} canvasTitle="Attachment process verification" dockable readOnly={false}
+        selectedNodeIds={[]} references={[{ id: "node:n1", nodeId: "n1", kind: "image", label: "Canvas portrait", title: "Canvas portrait", active: true, storageKey: resourceStorageKey("existing"), previewUrl: resourceFileUrl("existing") }]}
         onLocateNodes={nodeIds => { locatedNodes.push(nodeIds); }} onRunProposal={() => {}} onOpenModelSettings={() => {}} /></div>
-        <button style={{ position: "fixed", left: 4, top: 4 }} onClick={() => setExternalOpen(true)}>连接外部 Agent</button>
+        <button style={{ position: "fixed", left: 4, top: 4 }} onClick={() => setExternalOpen(true)}>Connect to external agent</button>
         {externalOpen ? <AgentConnectPanel kind="codex" onClose={() => setExternalOpen(false)} onConfigured={() => {}} verifiedClientIds={[]} onBusyChange={() => {}} /> : null}
     </App>;
 }

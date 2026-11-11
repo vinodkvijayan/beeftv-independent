@@ -33,7 +33,7 @@ func RegisterAssistantSettingsRoutes(r gin.IRouter, svc assistantSettingsService
 			SkillScriptAutoRun *bool `json:"skillScriptAutoRun"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil || req.SkillScriptAutoRun == nil {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("请填写有效的助手设置"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Please fill in valid assistant settings"))
 			return
 		}
 		if err := operations.SetSkillScriptAutoRun(svc.Database(), *req.SkillScriptAutoRun); err != nil {

@@ -132,12 +132,12 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			refs[n.ResourceID] = true
 		}
 		if n.Role == "constant" && n.MediaType != "text" && n.ResourceID == "" {
-			return CompileResult{}, BadRequest("素材节点 " + n.Title + " 缺少持久资源，请先保存素材")
+			return CompileResult{}, BadRequest("Material node" + n.Title + " Lack of persistent resources, please save the material first")
 		}
 		if n.Role == "depth" || n.OperationID == "video.depth" {
 			for _, edge := range d.Edges {
 				if edge.To == n.ID && nodes[edge.From].MediaType != "video" {
-					return CompileResult{}, BadRequest("深度步骤需要视频输入")
+					return CompileResult{}, BadRequest("Depth step requires video input")
 				}
 			}
 			continue
@@ -179,11 +179,11 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			task, e = host.SourceTask(user, n.SourceTaskID)
 		}
 		if e != nil || task.Status != model.TaskStatusSucceeded {
-			return CompileResult{}, BadRequest("生成步骤 " + n.Title + " 的原任务不存在或尚未成功")
+			return CompileResult{}, BadRequest("Generation steps" + n.Title + " The original task does not exist or has not been successful yet")
 		}
 		outputCount := host.OutputCount(task.ResultJSON, task.Type)
 		if outputCount > 1 && n.MediaType != "image" {
-			return CompileResult{}, BadRequest("此类多结果任务暂不支持封装，请使用单结果生成任务")
+			return CompileResult{}, BadRequest("This type of multi-result task does not support encapsulation yet. Please use a single-result generation task.")
 		}
 		if input == nil {
 			input, e = SourceInput(host, task)
@@ -193,13 +193,13 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 		}
 		mode, _ := input["mode"].(string)
 		if mode != "image" && mode != "video" && mode != "audio" && mode != "text" {
-			return CompileResult{}, BadRequest("此任务类型暂不能封装，请使用标准图片、视频、文本或音频生成节点")
+			return CompileResult{}, BadRequest("This task type cannot be encapsulated yet. Please use standard image, video, text or audio generation nodes.")
 		}
 		if mode != n.MediaType {
-			return CompileResult{}, BadRequest("生成步骤的输出类型与原任务不一致")
+			return CompileResult{}, BadRequest("The output type of the build step is inconsistent with the original task")
 		}
 		if input["agentRequests"] != nil {
-			return CompileResult{}, BadRequest("Agent 工具请求暂不能封装为工作流")
+			return CompileResult{}, BadRequest("Agent tool requests cannot be encapsulated into workflows at the moment")
 		}
 		cleanBindings(input)
 		delete(input, "clientOperationId")
@@ -226,7 +226,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			var generationInput generation.Input
 			encoded, _ := json.Marshal(input)
 			if err := json.Unmarshal(encoded, &generationInput); err != nil {
-				return CompileResult{}, BadRequest("图片生成配方无法读取")
+				return CompileResult{}, BadRequest("The image generation recipe cannot be read")
 			}
 			count, _ := strconv.Atoi(generationInput.Config.Count)
 			profile := modelcatalog.DefaultImageCapabilityConfig(generationInput.Config.InterfaceType, generationInput.Config.Model)
@@ -237,7 +237,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			if recipe.OutputCount > 1 {
 				for _, edge := range d.Edges {
 					if edge.From == n.ID && nodes[edge.To].OperationID != "image.select" {
-						return CompileResult{}, BadRequest("多张生成图片请先连接「选择图片结果」，再连接处理步骤")
+						return CompileResult{}, BadRequest("For multiple generated images, please connect to \"Select Image Result\" first, and then connect to the processing steps.")
 					}
 				}
 			}
@@ -245,7 +245,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 		if n.VideoDurationSourceNodeID != "" {
 			config, _ := input["config"].(map[string]any)
 			if config["videoSeconds"] == nil {
-				return CompileResult{}, BadRequest("节点 " + n.Title + " 的来源模型未声明时长参数，不能跟随参考视频")
+				return CompileResult{}, BadRequest("node" + n.Title + "The source model does not declare a duration parameter and cannot follow the reference video.")
 			}
 			recipe.VideoDurationSourceNodeID = n.VideoDurationSourceNodeID
 		}
@@ -267,7 +267,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 				} else {
 					config, _ := input["config"].(map[string]any)
 					if config == nil {
-						return CompileResult{}, BadRequest("生成步骤缺少模型配置")
+						return CompileResult{}, BadRequest("Build step is missing model configuration")
 					}
 					if fmt.Sprint(config[key]) != fmt.Sprint(value) {
 						parameterEdited = true
@@ -302,7 +302,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 					if bound {
 						continue
 					}
-					return CompileResult{}, BadRequest("原任务包含无法持久引用的素材，请重新上传保存后运行")
+					return CompileResult{}, BadRequest("The original task contains materials that cannot be permanently referenced. Please re-upload, save and run.")
 				}
 				if _, e = ReadyResource(host.Repository(), user, id, ""); e != nil {
 					return CompileResult{}, e
@@ -341,7 +341,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 					continue
 				}
 				if strings.TrimSpace(anchor) == "" {
-					return CompileResult{}, BadRequest("文本输入 " + source.Title + " 缺少原文，无法定位提示词")
+					return CompileResult{}, BadRequest("Text input" + source.Title + " The original text is missing and the prompt word cannot be located.")
 				}
 				prompt, _ = input["prompt"].(string)
 				if prompt == "" {
@@ -349,7 +349,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 					input["prompt"] = prompt
 				}
 				if strings.Count(prompt, anchor) != 1 {
-					return CompileResult{}, BadRequest("文本 " + source.Title + " 必须在原提示词中唯一匹配，请调整连线或文本")
+					return CompileResult{}, BadRequest("text" + source.Title + " Must be the only match in the original prompt word, please adjust the connection or text")
 				}
 				recipe.Bindings = append(recipe.Bindings, Binding{NodeID: source.ID, Field: "prompt", Index: strings.Index(prompt, anchor), Original: anchor})
 				continue
@@ -358,7 +358,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			items, _ := input[field].([]any)
 			if edge.ToPort != "" {
 				if edge.ToPort != field || edge.Order < 0 || edge.Order >= len(items)+len(d.Edges) {
-					return CompileResult{}, BadRequest("「" + n.Title + "」的素材连接位置无效，请重新连接")
+					return CompileResult{}, BadRequest("「" + n.Title + "\"The material connection location is invalid, please reconnect.")
 				}
 				if edge.Order >= len(items) {
 					// The editor can add references absent from the original run.
@@ -380,7 +380,7 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 				}
 			}
 			if matches != 1 {
-				return CompileResult{}, BadRequest("无法将 " + source.Title + " 唯一映射到 " + n.Title + " 的原参考素材，请先用此素材手动运行目标节点")
+				return CompileResult{}, BadRequest("Unable to convert" + source.Title + " uniquely mapped to" + n.Title + " The original reference material, please use this material to manually run the target node")
 			}
 		}
 		// Remove abandoned placeholders and keep provider reference numbering dense.
@@ -420,14 +420,14 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			var taskInput generation.Input
 			encoded, err := json.Marshal(input)
 			if err != nil || json.Unmarshal(encoded, &taskInput) != nil {
-				return CompileResult{}, BadRequest("生成配方的素材配置无效")
+				return CompileResult{}, BadRequest("The material configuration for generating the recipe is invalid")
 			}
 			if referencesEdited && (taskInput.Mode != "image" && taskInput.Mode != "video" || taskInput.Mode == "image" && (len(taskInput.ReferenceVideos) > 0 || len(taskInput.ReferenceAudios) > 0)) {
-				return CompileResult{}, BadRequest("「" + n.Title + "」不支持新增这类参考素材，请使用对应的生成步骤")
+				return CompileResult{}, BadRequest("「" + n.Title + "” Adding this type of reference material is not supported, please use the corresponding generation steps.")
 			}
 			vquality, ok, err := host.ValidateTaskShape(input)
 			if err != nil {
-				return CompileResult{}, BadRequest("「" + n.Title + "」的模型或素材配置无效：" + err.Error())
+				return CompileResult{}, BadRequest("「" + n.Title + "\"The model or material configuration is invalid:" + err.Error())
 			}
 			if ok {
 				if config, yes := input["config"].(map[string]any); yes {
@@ -451,13 +451,13 @@ func Compile(host CompileHost, user string, d Definition, existing *model.Canvas
 			if PromptBinding(b.Field) {
 				for _, other := range recipe.Bindings {
 					if PromptBinding(other.Field) && other.NodeID != b.NodeID && b.Index < other.Index+len(other.Original) && other.Index < b.Index+len(b.Original) {
-						return CompileResult{}, BadRequest("文本输入片段互相重叠，请连接独立的提示词片段")
+						return CompileResult{}, BadRequest("Text input fragments overlap each other, please connect independent prompt word fragments")
 					}
 				}
 			}
 			key := fmt.Sprintf("%s:%d:%s", b.Field, b.Index, b.Original)
 			if bound[key] {
-				return CompileResult{}, BadRequest("多个输入映射到了同一素材槽位，请移除重复连线")
+				return CompileResult{}, BadRequest("Multiple inputs are mapped to the same material slot, please remove duplicate connections.")
 			}
 			bound[key] = true
 		}
@@ -477,7 +477,7 @@ func Materialize(host CompileHost, user, operation string, recipe Recipe, nodes 
 		return req, err
 	}
 	if req.Input == nil {
-		return req, BadRequest("生成配方输入缺失")
+		return req, BadRequest("Generate recipe input missing")
 	}
 	if err = RefreshCredentials(host, req.Input, recipe.ChannelID); err != nil {
 		return req, err
@@ -496,13 +496,13 @@ func Materialize(host CompileHost, user, operation string, recipe Recipe, nodes 
 	for _, binding := range bindings {
 		value := steps[binding.NodeID]
 		if value == nil || value.Status != "succeeded" {
-			return req, BadRequest("执行步骤的输入尚未就绪")
+			return req, BadRequest("The input for the execution step is not ready yet")
 		}
 		if PromptBinding(binding.Field) {
 			prompt, _ := req.Input["prompt"].(string)
 			end := binding.Index + len(binding.Original)
 			if binding.Index < 0 || end > len(prompt) || prompt[binding.Index:end] != binding.Original {
-				return req, BadRequest("提示词变量位置失效，请重新保存工作流")
+				return req, BadRequest("The prompt word variable position is invalid, please save the workflow again.")
 			}
 			replacement := value.Text
 			if binding.Field == "promptMention" {
@@ -518,11 +518,11 @@ func Materialize(host CompileHost, user, operation string, recipe Recipe, nodes 
 		}
 		items, _ := req.Input[binding.Field].([]any)
 		if binding.Index < 0 || binding.Index >= len(items) {
-			return req, BadRequest("素材槽位缺失")
+			return req, BadRequest("Material slot missing")
 		}
 		item, _ := items[binding.Index].(map[string]any)
 		if item == nil {
-			return req, BadRequest("原参考素材槽位格式无效，请重新保存工作流")
+			return req, BadRequest("The original reference material slot format is invalid, please save the workflow again")
 		}
 		oldResourceID := ReferenceID(item)
 		if logicalID, _ := item["id"].(string); logicalID == "" || logicalID == oldResourceID || strings.HasPrefix(logicalID, "resource:") || assets.IDFromFileURL(logicalID) != "" {
@@ -546,14 +546,14 @@ func Materialize(host CompileHost, user, operation string, recipe Recipe, nodes 
 	if id := recipe.VideoDurationSourceNodeID; id != "" {
 		value := steps[id]
 		if value == nil || value.Status != "succeeded" || nodes[id].MediaType != "video" {
-			return req, BadRequest("时长参考视频尚未就绪")
+			return req, BadRequest("The duration reference video is not ready yet")
 		}
 		resource, err := ReadyResource(host.Repository(), user, value.ResourceID, "video")
 		if err != nil {
 			return req, err
 		}
 		if resource.DurationMs <= 0 {
-			return req, BadRequest("无法读取时长参考视频的有效时长，请更新视频素材信息后重试")
+			return req, BadRequest("Unable to read the valid duration of the duration reference video, please update the video material information and try again")
 		}
 		seconds := resource.DurationMs / 1000
 		if resource.DurationMs%1000 != 0 {
@@ -561,7 +561,7 @@ func Materialize(host CompileHost, user, operation string, recipe Recipe, nodes 
 		}
 		config, _ := req.Input["config"].(map[string]any)
 		if config == nil || config["videoSeconds"] == nil {
-			return req, BadRequest("生成配方缺少时长参数")
+			return req, BadRequest("Generating recipe is missing duration parameter")
 		}
 		if _, isString := config["videoSeconds"].(string); isString {
 			config["videoSeconds"] = fmt.Sprint(seconds)

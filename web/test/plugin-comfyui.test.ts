@@ -29,8 +29,8 @@ function textToImage(seedControl: string) {
         nodes: [
             { id: 4, type: "CheckpointLoaderSimple", mode: 0, inputs: [], widgets_values: ["model.safetensors"] },
             { id: 5, type: "EmptyLatentImage", mode: 0, inputs: [], widgets_values: [512, 768, 1] },
-            { id: 6, type: "CLIPTextEncode", title: "正向", mode: 0, inputs: [{ name: "clip", type: "CLIP", link: 1 }], widgets_values: ["a cat"] },
-            { id: 7, type: "CLIPTextEncode", title: "反向", mode: 0, inputs: [{ name: "clip", type: "CLIP", link: 2 }], widgets_values: ["blurry"] },
+            { id: 6, type: "CLIPTextEncode", title: "forward", mode: 0, inputs: [{ name: "clip", type: "CLIP", link: 1 }], widgets_values: ["a cat"] },
+            { id: 7, type: "CLIPTextEncode", title: "reverse", mode: 0, inputs: [{ name: "clip", type: "CLIP", link: 2 }], widgets_values: ["blurry"] },
             { id: 11, type: "Reroute", mode: 0, inputs: [{ name: "", type: "*", link: 3 }], outputs: [{ type: "CONDITIONING" }] },
             {
                 id: 3, type: "KSampler", mode: 0,
@@ -40,7 +40,7 @@ function textToImage(seedControl: string) {
             { id: 8, type: "VAEDecode", mode: 0, inputs: [{ name: "samples", link: 8 }, { name: "vae", link: 9 }], widgets_values: [] },
             { id: 9, type: "SaveImage", mode: 0, inputs: [{ name: "images", link: 10 }], widgets_values: ["out"] },
             { id: 12, type: "PreviewImage", mode: 2, inputs: [{ name: "images", link: 11 }], widgets_values: [] },
-            { id: 10, type: "Note", mode: 0, inputs: [], widgets_values: ["只是备注"] },
+            { id: 10, type: "Note", mode: 0, inputs: [], widgets_values: ["Just a note"] },
         ],
         links: [
             [1, 4, 1, 6, 0, "CLIP"], [2, 4, 1, 7, 0, "CLIP"], [3, 6, 0, 11, 0, "CONDITIONING"], [4, 4, 0, 3, 0, "MODEL"],
@@ -68,7 +68,7 @@ describe("ComfyUI workflow conversion", () => {
         expect(Object.keys(graph).sort()).toEqual(["3", "4", "5", "6", "7", "8", "9"]);
         expect(graph["3"].inputs).toMatchObject({ seed: 42, steps: 20, cfg: 7, sampler_name: "euler", scheduler: "normal", denoise: 1, positive: ["6", 0], negative: ["7", 0] });
         expect(graph["5"].inputs).toEqual({ width: 512, height: 768, batch_size: 1 });
-        expect(graph["6"]._meta).toEqual({ title: "正向" });
+        expect(graph["6"]._meta).toEqual({ title: "forward" });
         expect([...fixedSeeds]).toEqual(["3.seed"]);
     });
 
@@ -183,26 +183,26 @@ describe("ComfyUI provider against a ComfyUI server", () => {
 
     test("submit reports what ComfyUI rejected, and refuses more media than the workflow takes", async () => {
         const image = { dataUrl: "data:image/png;base64,AA==", mimeType: "image/png" };
-        expect(await provider.submit({ model: "invert.app.json", images: [image, image] }, ctx)).toEqual({ status: "failed", message: "这个工作流最多接收 1 个图片，这次给了 2 个" });
-        expect(await provider.submit({ model: "txt2img.json", images: [image] }, ctx)).toEqual({ status: "failed", message: "这个工作流不接收图片，这次给了 1 个" });
+        expect(await provider.submit({ model: "invert.app.json", images: [image, image] }, ctx)).toEqual({ status: "failed", message: "This workflow can receive at most 1 image, this time 2 were given" });
+        expect(await provider.submit({ model: "txt2img.json", images: [image] }, ctx)).toEqual({ status: "failed", message: "This workflow does not accept images, this time it gave 1" });
 
         workflows["too-many-steps.json"] = { "3": { class_type: "KSampler", inputs: { steps: 999 } }, "9": { class_type: "SaveImage", inputs: {} } };
         const rejected = await provider.submit({ model: "too-many-steps.json" }, ctx);
-        expect(rejected).toEqual({ status: "failed", message: "Prompt outputs failed validation：节点 3（KSampler）：steps: 999 > 100" });
+        expect(rejected).toEqual({ status: "failed", message: "Prompt outputs failed validation: Node 3 (KSampler): steps: 999 > 100" });
         delete workflows["too-many-steps.json"];
     });
 
     test("a failure before anything is queued says why, instead of leaving the outcome unknown", async () => {
         const deleted = await provider.submit({ model: "deleted.json" }, ctx);
         expect(deleted.status).toBe("failed");
-        expect(deleted.message).toContain("ComfyUI 里找不到工作流「deleted.json」");
+        expect(deleted.message).toContain("The workflow \"deleted.json\" cannot be found in ComfyUI");
 
         const stopped = Bun.serve({ port: 0, fetch: () => new Response("") });
         const baseUrl = `http://127.0.0.1:${stopped.port}`;
         stopped.stop(true);
         const unreachable = await provider.submit({ model: "invert.app.json" }, { ...ctx, config: { baseUrl } });
         expect(unreachable.status).toBe("failed");
-        expect(unreachable.message).toContain("连不上 ComfyUI");
+        expect(unreachable.message).toContain("Can't connect to ComfyUI");
     });
 
     test("query follows the queue, then returns only the outputs the workflow picked", async () => {

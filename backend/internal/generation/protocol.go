@@ -22,7 +22,7 @@ import (
 func RunDeclarativeProtocolTask(ctx context.Context, input Input) (map[string]interface{}, error) {
 	adapter, ok := DeclarativeProtocolAdapterForContext(ctx, input.Config.InterfaceType)
 	if !ok {
-		return nil, fmt.Errorf("接口类型 %s 未安装声明式适配器", input.Config.InterfaceType)
+		return nil, fmt.Errorf("Interface type %s No declarative adapter installed", input.Config.InterfaceType)
 	}
 	return RunProtocolAdapterTask(ctx, input, adapter)
 }
@@ -92,7 +92,7 @@ func RunProtocolAdapterTaskWithPolicy(ctx context.Context, input Input, adapter 
 					err = ValidateImageArtifact(data, mime)
 				}
 				if err != nil {
-					return nil, RequestPreparationError{Cause: fmt.Errorf("参考图片 %d MIME 类型无效或内容不是图片：%w", index+1, err)}
+					return nil, RequestPreparationError{Cause: fmt.Errorf("Reference image %d MIME type is invalid or the content is not an image: %w", index+1, err)}
 				}
 			}
 		}
@@ -150,7 +150,7 @@ func RunProtocolAdapterTaskWithPolicy(ctx context.Context, input Input, adapter 
 			taskID = extracted
 		}
 		if taskID == "" {
-			return nil, SubmissionUnknownError{Cause: errors.New("创建请求未返回可查询的任务 ID，请核对供应商任务记录")}
+			return nil, SubmissionUnknownError{Cause: errors.New("The create request did not return a queryable task ID, please check the supplier task record")}
 		}
 	}
 
@@ -264,7 +264,7 @@ func QueryProtocolAdapterVideoTask(ctx context.Context, input Input, adapter pro
 	case protocol.StatusPending, protocol.StatusProcessing:
 		return nil, providerStatus, nil
 	default:
-		return nil, providerStatus, fmt.Errorf("声明式协议任务 %s 返回未知状态：%s", taskID, providerStatus)
+		return nil, providerStatus, fmt.Errorf("Declarative protocol task %s returns unknown status: %s", taskID, providerStatus)
 	}
 }
 
@@ -282,7 +282,7 @@ func tryStreamingDeclarativeTextCreate(ctx context.Context, input Input, adapter
 	}
 	body := ProtocolBodyObject(spec.Body)
 	if body == nil {
-		return nil, true, errors.New("声明式文本请求体必须是 JSON 对象")
+		return nil, true, errors.New("Declarative text request body must be a JSON object")
 	}
 	body["stream"] = true
 	if wire == "chat-completion" {
@@ -304,7 +304,7 @@ func tryStreamingDeclarativeTextCreate(ctx context.Context, input Input, adapter
 			return nil, true, err
 		}
 		if strings.TrimSpace(stringField(parsed, "text")) == "" {
-			return nil, true, errors.New("流式文本接口没有返回内容")
+			return nil, true, errors.New("The streaming text interface returns no content")
 		}
 		result := map[string]interface{}{"mode": "text", "text": stringField(parsed, "text")}
 		if reasoning := strings.TrimSpace(stringField(parsed, "reasoning")); reasoning != "" {
@@ -334,7 +334,7 @@ func tryStreamingDeclarativeTextCreate(ctx context.Context, input Input, adapter
 			taskID = extracted
 		}
 	}
-	return nil, true, SubmissionUnknownError{Cause: errors.New("流式文本创建未返回最终结果")}
+	return nil, true, SubmissionUnknownError{Cause: errors.New("Streaming text creation not returning final results")}
 }
 
 func streamingTextWire(interfaceType string) string {
@@ -375,14 +375,14 @@ func ValidateGenerationInterfaceWithRegistry(registry *protocol.Registry, mode s
 	}
 	adapter, ok := registry.Resolve(interfaceType)
 	if !ok {
-		return fmt.Errorf("接口类型 %s 未安装", interfaceType)
+		return fmt.Errorf("Interface type %s not installed", interfaceType)
 	}
 	metadata := adapter.Metadata()
 	if !metadata.Enabled || metadata.UnavailableReason != "" {
-		return fmt.Errorf("接口类型 %s 当前不可用：%s", interfaceType, metadata.UnavailableReason)
+		return fmt.Errorf("Interface type %s Currently unavailable: %s", interfaceType, metadata.UnavailableReason)
 	}
 	if mode != "" && !ProtocolCapabilityMatches(metadata, protocol.Capability(mode)) {
-		return fmt.Errorf("接口类型 %s 不支持%s生成", interfaceType, mode)
+		return fmt.Errorf("Interface type %s does not support %s generation", interfaceType, mode)
 	}
 	return nil
 }

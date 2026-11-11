@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const internalErrorMessage = "系统处理失败，请稍后重试"
+const internalErrorMessage = "System processing failed, please try again later."
 
 func ok(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, gin.H{"code": app.CodeOK, "data": data, "msg": "ok"})
@@ -90,11 +90,11 @@ func validErrorStatus(status int) bool {
 func safeInternalErrorMessage(status int) string {
 	switch status {
 	case http.StatusBadGateway:
-		return "上游服务暂时不可用，请稍后重试"
+		return "The upstream service is temporarily unavailable, please try again later."
 	case http.StatusServiceUnavailable:
-		return "服务暂时不可用，请稍后重试"
+		return "The service is temporarily unavailable, please try again later"
 	case http.StatusGatewayTimeout:
-		return "上游服务响应超时，请稍后重试"
+		return "The upstream service response timed out, please try again later."
 	default:
 		return internalErrorMessage
 	}

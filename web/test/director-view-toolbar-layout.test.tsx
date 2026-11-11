@@ -3,13 +3,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { DirectorViewToolbar } from "@/components/canvas/director/director-view-toolbar";
 
-describe("导演台取景层级", () => {
-    test("导演/机位是主操作，五个正交轴向在方向球可发现", () => {
+describe("Director's desk framing level", () => {
+    test("The director/camera position is the main operation, and the five orthogonal axes can be found in the direction ball.", () => {
         const markup = renderToStaticMarkup(<DirectorViewToolbar viewMode="free" onViewModeChange={() => {}} />);
-        expect(markup).toContain("导演视角");
-        expect(markup).toContain("机位视角");
-        expect(markup).toContain('aria-label="方向球"');
-        for (const label of ["俯视", "正视", "背视", "左视", "右视", "重置视角"]) expect(markup).toContain(`aria-label="${label}"`);
-        expect(markup).not.toContain('aria-label="下方"');
+        expect(markup).toContain("Director's perspective");
+        expect(markup).toContain("camera angle");
+        expect(markup).toContain('aria-label="directional ball"');
+        for (const label of ["looking down", "Face it squarely", "dorsal view", "left view", "right view", "Reset perspective"]) expect(markup).toContain(`aria-label="${label}"`);
+        expect(markup).not.toContain('aria-label="below"');
     });
 });

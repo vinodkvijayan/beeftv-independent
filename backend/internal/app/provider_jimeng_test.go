@@ -38,7 +38,7 @@ func TestVolcengineJiMengImageTaskUsesSignedAsyncProtocol(t *testing.T) {
 
 	result, err := runImageTask(context.Background(), canvasGenerationInput{
 		Mode:   "image",
-		Prompt: "一张测试图片",
+		Prompt: "a test picture",
 		Config: providerConfig{BaseURL: server.URL, APIKey: "AKID", SecretKey: "SECRET", Model: "jimeng_seedream46_cvtob", InterfaceType: "volcengine-jimeng-image", Size: "1024x1024"},
 	})
 	if err != nil {

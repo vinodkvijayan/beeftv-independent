@@ -38,7 +38,7 @@ func TestReferenceAudioFailurePersistsThroughTaskOutput(t *testing.T) {
 			if err := db.First(&stored, "id = ?", task.ID).Error; err != nil {
 				t.Fatal(err)
 			}
-			want := tc.Display + "。排查编号：请求 " + requestID + "。"
+			want := tc.Display + ". Troubleshooting Number: Request" + requestID + "。"
 			if stored.Status != model.TaskStatusFailed || stored.Error != want {
 				t.Fatalf("stored failure = %#v, want %s", stored, want)
 			}

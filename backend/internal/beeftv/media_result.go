@@ -18,7 +18,7 @@ const historicalReceiptLimit = int64(64 << 20)
 func (c *MediaClient) storageJSON(ctx context.Context, receipt MediaReceipt) ([]byte, error) {
 	ctx = c.networkContext(ctx)
 	if receipt.Format != "openai-image-response" || receipt.ExpiresAt <= time.Now().Unix() {
-		return nil, errors.New("历史图片回执已过期或格式不受支持，请重新查询原任务")
+		return nil, errors.New("The historical image receipt has expired or the format is not supported. Please query the original task again.")
 	}
 	if err := c.validURLContext(ctx, receipt.URL); err != nil {
 		return nil, err
@@ -27,20 +27,20 @@ func (c *MediaClient) storageJSON(ctx context.Context, receipt MediaReceipt) ([]
 	if err != nil {
 		return nil, err
 	}
-	resp, err := c.storageClient("历史回执重定向次数过多").Do(req)
+	resp, err := c.storageClient("Too many historical receipt redirects").Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("历史图片回执下载失败，请重新查询原任务")
+		return nil, errors.New("Failed to download historical picture receipts, please re-query the original task")
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, historicalReceiptLimit+1))
 	if err != nil {
 		return nil, err
 	}
 	if int64(len(data)) > historicalReceiptLimit {
-		return nil, errors.New("历史图片回执超过可读取大小")
+		return nil, errors.New("Historical image receipt exceeds readable size")
 	}
 	return data, nil
 }
@@ -71,7 +71,7 @@ func (c *MediaClient) Result(ctx context.Context, task MediaTask, legacy bool) (
 	usage, metadata := task.Usage, task.Metadata
 	if len(task.Outputs) == 0 && task.ResultReceipt != nil {
 		if !legacy {
-			return nil, errors.New("新媒体任务未返回可保存的图片链接")
+			return nil, errors.New("New media task not returning saveable image link")
 		}
 		data, err := c.storageJSON(ctx, *task.ResultReceipt)
 		if err != nil {
@@ -99,7 +99,7 @@ func (c *MediaClient) Result(ctx context.Context, task MediaTask, legacy bool) (
 	} else {
 		for _, output := range task.Outputs {
 			if output.Kind != "image" {
-				return nil, errors.New("媒体结果类型不匹配")
+				return nil, errors.New("Media result type mismatch")
 			}
 			if err := c.validURLContext(ctx, output.URL); err != nil {
 				return nil, err
@@ -120,20 +120,20 @@ func (c *MediaClient) Result(ctx context.Context, task MediaTask, legacy bool) (
 		if encoded, _ := item["b64_json"].(string); encoded != "" {
 			data, err := base64.StdEncoding.DecodeString(encoded)
 			if err != nil {
-				return nil, errors.New("历史图片结果编码无效")
+				return nil, errors.New("Historical image result encoding is invalid")
 			}
 			mime := strings.TrimSpace(strings.Split(http.DetectContentType(data), ";")[0])
 			switch mime {
 			case "image/png", "image/jpeg", "image/webp", "image/gif":
 			default:
-				return nil, errors.New("历史图片结果不是可识别的图片")
+				return nil, errors.New("The historical image result is not a recognizable image")
 			}
 			link = "data:" + mime + ";base64," + encoded
 		} else if err := c.validURLContext(ctx, link); err != nil {
 			return nil, err
 		}
 		if link == "" {
-			return nil, errors.New("媒体结果缺少图片")
+			return nil, errors.New("Media results are missing images")
 		}
 		images = append(images, map[string]string{"dataUrl": link})
 		layer := map[string]any{"imageIndex": index}
@@ -146,7 +146,7 @@ func (c *MediaClient) Result(ctx context.Context, task MediaTask, legacy bool) (
 		layers = append(layers, layer)
 	}
 	if len(images) == 0 {
-		return nil, errors.New("媒体任务未返回可保存的图片")
+		return nil, errors.New("Media task did not return saveable images")
 	}
 	result := map[string]any{"mode": "image", "images": images}
 	if hasLayer {
@@ -169,21 +169,21 @@ func (c *MediaClient) Result(ctx context.Context, task MediaTask, legacy bool) (
 // downloading it; control-plane queries never proxy the media bytes.
 func (c *MediaClient) singleMediaResult(ctx context.Context, task MediaTask) (map[string]any, error) {
 	if task.MediaType != "video" && task.MediaType != "audio" && task.MediaType != "upscale" {
-		return nil, errors.New("媒体任务类型不受支持")
+		return nil, errors.New("Media task type is not supported")
 	}
 	if len(task.Outputs) != 1 {
-		return nil, errors.New("媒体任务未返回唯一可保存的结果")
+		return nil, errors.New("Media task did not return unique saveable results")
 	}
 	output := task.Outputs[0]
 	if task.MediaType == "upscale" {
 		if output.Kind != "image" && output.Kind != "video" {
-			return nil, errors.New("超分结果类型不匹配")
+			return nil, errors.New("Super score result type mismatch")
 		}
 		if c.ExpectedOutputKind != "" && output.Kind != c.ExpectedOutputKind {
-			return nil, errors.New("超分结果与原素材类型不一致")
+			return nil, errors.New("The super score result is inconsistent with the original material type")
 		}
 	} else if output.Kind != task.MediaType {
-		return nil, errors.New("媒体结果类型不匹配")
+		return nil, errors.New("Media result type mismatch")
 	}
 	if err := c.validURLContext(ctx, output.URL); err != nil {
 		return nil, err

@@ -6,13 +6,13 @@ import { defaultModelCapabilityConfig } from "@/lib/model-capabilities";
 const channel = createModelChannel({ id: "test", apiKey: "fake", baseUrl: "https://example.invalid", models: ["test-model"] });
 
 test("text requires final nonempty content", async () => {
-    expect(await testChannelModelConnection(channel, "test-model", "text", "chat-completion", async () => ({ text: "OK" }))).toContain("文本响应");
-    await expect(testChannelModelConnection(channel, "test-model", "text", "chat-completion", async () => ({ text: " " }))).rejects.toThrow("没有返回可用结果");
+    expect(await testChannelModelConnection(channel, "test-model", "text", "chat-completion", async () => ({ text: "OK" }))).toContain("text response");
+    await expect(testChannelModelConnection(channel, "test-model", "text", "chat-completion", async () => ({ text: " " }))).rejects.toThrow("No usable results returned");
 });
 test("media requires a final result, not only a submitted task", async () => {
-    expect(await testChannelModelConnection(channel, "test-model", "image", "openai-image", async () => ({ images: [{ dataUrl: "https://example.invalid/image.png" }] }))).toContain("已完成图片生成");
-    await expect(testChannelModelConnection(channel, "test-model", "audio", "openai-audio", async () => ({}))).rejects.toThrow("没有返回可用结果");
-    await expect(testChannelModelConnection(channel, "test-model", "video", "openai-videos", async () => ({}))).rejects.toThrow("没有返回可用结果");
+    expect(await testChannelModelConnection(channel, "test-model", "image", "openai-image", async () => ({ images: [{ dataUrl: "https://example.invalid/image.png" }] }))).toContain("Image generation completed");
+    await expect(testChannelModelConnection(channel, "test-model", "audio", "openai-audio", async () => ({}))).rejects.toThrow("No usable results returned");
+    await expect(testChannelModelConnection(channel, "test-model", "video", "openai-videos", async () => ({}))).rejects.toThrow("No usable results returned");
 });
 test("video waits for completion with the lowest supported test specification", async () => {
     const capabilityConfig = defaultModelCapabilityConfig("openai-videos", "test-model");
@@ -24,8 +24,8 @@ test("video waits for completion with the lowest supported test specification", 
         expect(config).toMatchObject({ videoSeconds: "4", size: "9:16", vquality: "720" });
         return { video: { storageKey: "test-video", dataUrl: "" } };
     });
-    expect(result).toContain("已完成视频生成");
-    expect(result).not.toContain("画布");
+    expect(result).toContain("Video generation completed");
+    expect(result).not.toContain("canvas");
 });
 
 test("reference_to_video-only video models attach a reference test video automatically", async () => {
@@ -52,7 +52,7 @@ test("reference_to_video-only video models attach a reference test video automat
         expect(referenceVideos?.[0]?.url).toBe("https://example.invalid/sample.mp4");
         return { video: { storageKey: "test-video", dataUrl: "" } };
     });
-    expect(result).toContain("已完成视频生成");
+    expect(result).toContain("Video generation completed");
 
     const missingVideoUrl = {
         ...configured,

@@ -132,7 +132,7 @@ func registerCreationConversationRoutes(r *gin.RouterGroup, svc workspaceOwners,
 			parseErr = nil
 		}
 		if parseErr != nil {
-			fail(c, http.StatusBadRequest, errors.New("对话版本无效"))
+			fail(c, http.StatusBadRequest, errors.New("Conversation version is invalid"))
 			return
 		}
 		result, deleteErr := conversations.Delete(user.ID, c.Param("id"), expectedRevision)
@@ -152,13 +152,13 @@ func readCreationConversationBody(c *gin.Context) ([]byte, error) {
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, creationConversationMaxBody)
 	raw, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		return nil, errors.New("请求体过大或无法读取")
+		return nil, errors.New("The request body is too large or cannot be read")
 	}
 	return raw, nil
 }
 
 func errInvalidJSON() error {
-	return errors.New("请求体无效")
+	return errors.New("The request body is invalid")
 }
 
 func failConversation(c *gin.Context, err error) {

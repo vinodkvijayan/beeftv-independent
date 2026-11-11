@@ -27,13 +27,13 @@ function queue(responses: Array<Partial<GenerationTask>>, seen: Array<unknown>) 
 
 const fetching = (downloadedBytes: number) => ({
     status: "running" as const,
-    stage: "正在取回生成结果",
+    stage: "Retrieving generated results",
     delivery: { outputs: [{ outputIndex: 0, downloadedBytes, totalBytes: 100, bytesPerSecond: 5, state: "downloading" as const }] },
 });
 
 test("waitForGenerationTask publishes live delivery while running and clears it when the task settles", async () => {
     const seen: Array<unknown> = [];
-    const restore = queue([fetching(40), { status: "running", stage: "正在取回生成结果" }, { status: "succeeded" }], seen);
+    const restore = queue([fetching(40), { status: "running", stage: "Retrieving generated results" }, { status: "succeeded" }], seen);
     try {
         await waitForGenerationTask(taskId, { intervalMs: 1 });
     } finally {
@@ -47,7 +47,7 @@ test("waitForGenerationTask publishes live delivery while running and clears it 
 
 test("a waiter clears its own delivery when the task fails", async () => {
     const seen: Array<unknown> = [];
-    const restore = queue([fetching(60), { status: "failed", error: "上游失败" }], seen);
+    const restore = queue([fetching(60), { status: "failed", error: "Upstream failed" }], seen);
     try {
         await expect(waitForGenerationTask(taskId, { intervalMs: 1 })).rejects.toThrow();
     } finally {
@@ -59,7 +59,7 @@ test("a waiter clears its own delivery when the task fails", async () => {
 
 test("result retrieval polls every 500ms, while generation keeps its normal interval", async () => {
     const seen: Array<unknown> = [];
-    const restore = queue([{ status: "running", stage: "生成中" }, { status: "running", stage: "正在取回生成结果" }, fetching(60), { status: "succeeded" }], seen);
+    const restore = queue([{ status: "running", stage: "Generating" }, { status: "running", stage: "Retrieving generated results" }, fetching(60), { status: "succeeded" }], seen);
     const originalTimer = window.setTimeout;
     const delays: number[] = [];
     window.setTimeout = ((callback: TimerHandler, delay?: number, ...args: unknown[]) => {

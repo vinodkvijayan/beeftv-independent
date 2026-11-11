@@ -21,7 +21,7 @@ type failureEnvelope struct {
 
 func TestFailServiceProjectsAppError(t *testing.T) {
 	recorder, context := responseTestContext()
-	err := app.RateLimited("请求过于频繁，请稍后重试")
+	err := app.RateLimited("The request is too frequent, please try again later.")
 
 	failService(context, err)
 
@@ -33,7 +33,7 @@ func TestFailServiceProjectsAppError(t *testing.T) {
 
 func TestFailServicePreservesPublicReferenceRequirements(t *testing.T) {
 	recorder, context := responseTestContext()
-	failService(context, &app.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Message: "参考音频需要链接", Details: map[string]any{"requiredReferences": []map[string]any{{"kind": "audio", "index": 0}}}})
+	failService(context, &app.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Message: "Reference audio requires link", Details: map[string]any{"requiredReferences": []map[string]any{{"kind": "audio", "index": 0}}}})
 	var envelope struct {
 		Details struct {
 			RequiredReferences []struct {
@@ -52,7 +52,7 @@ func TestFailServicePreservesPublicReferenceRequirements(t *testing.T) {
 
 func TestFailServiceQuotaExceeded(t *testing.T) {
 	recorder, context := responseTestContext()
-	failService(context, app.QuotaExceeded("账号素材数量已达到 100 个上限"))
+	failService(context, app.QuotaExceeded("The number of account materials has reached the upper limit of 100"))
 
 	response := decodeFailureEnvelope(t, recorder)
 	if recorder.Code != http.StatusForbidden || response.Code != app.CodeQuotaExceeded || response.Reason != string(app.ReasonQuotaExceeded) {
@@ -78,7 +78,7 @@ func TestFailInternalKeepsStatusWithoutLeakingCause(t *testing.T) {
 	failInternal(context, http.StatusServiceUnavailable, errors.New("redis://user:password@private-host"))
 
 	response := decodeFailureEnvelope(t, recorder)
-	if recorder.Code != http.StatusServiceUnavailable || response.Msg != "服务暂时不可用，请稍后重试" {
+	if recorder.Code != http.StatusServiceUnavailable || response.Msg != "The service is temporarily unavailable, please try again later" {
 		t.Fatalf("response = status %d, body %#v", recorder.Code, response)
 	}
 	if strings.Contains(recorder.Body.String(), "private-host") {

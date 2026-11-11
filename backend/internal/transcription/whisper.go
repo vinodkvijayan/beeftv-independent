@@ -42,7 +42,7 @@ func NewClient(baseURL string) *Client {
 
 func (c *Client) Transcribe(ctx context.Context, wavPath string, language string) ([]Segment, string, error) {
 	if c == nil || c.BaseURL == "" {
-		return nil, "", fmt.Errorf("本地转写服务未配置：请设置 %s", BaseURLEnv)
+		return nil, "", fmt.Errorf("The local transcription service is not configured: please set %s", BaseURLEnv)
 	}
 	httpClient := c.HTTP
 	if httpClient == nil {
@@ -52,16 +52,16 @@ func (c *Client) Transcribe(ctx context.Context, wavPath string, language string
 	writer := multipart.NewWriter(&body)
 	audio, err := os.Open(wavPath)
 	if err != nil {
-		return nil, "", fmt.Errorf("读取待转写音频失败: %w", err)
+		return nil, "", fmt.Errorf("Failed to read audio to be transcribed: %w", err)
 	}
 	defer audio.Close()
 	if c.Model != "" {
 		info, err := audio.Stat()
 		if err != nil {
-			return nil, "", fmt.Errorf("读取音频大小失败")
+			return nil, "", fmt.Errorf("Failed to read audio size")
 		}
 		if info.Size() > 25<<20 {
-			return nil, "", fmt.Errorf("云端转写音频超过 25 MB，请缩短素材后重试")
+			return nil, "", fmt.Errorf("The audio transcribed in the cloud exceeds 25 MB, please shorten the material and try again.")
 		}
 		if err := writer.WriteField("model", c.Model); err != nil {
 			return nil, "", err
@@ -72,7 +72,7 @@ func (c *Client) Transcribe(ctx context.Context, wavPath string, language string
 		return nil, "", err
 	}
 	if _, err := io.Copy(part, audio); err != nil {
-		return nil, "", fmt.Errorf("上传音频失败: %w", err)
+		return nil, "", fmt.Errorf("Failed to upload audio: %w", err)
 	}
 	if err := writer.WriteField("response_format", "verbose_json"); err != nil {
 		return nil, "", err
@@ -106,19 +106,19 @@ func (c *Client) Transcribe(ctx context.Context, wavPath string, language string
 		if ctx.Err() != nil {
 			return nil, "", ctx.Err()
 		}
-		return nil, "", fmt.Errorf("无法连接转写服务，请检查连接后重试")
+		return nil, "", fmt.Errorf("Unable to connect to the transcription service, please check the connection and try again")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		if c.Model != "" {
-			return nil, "", fmt.Errorf("云端转写失败（HTTP %d），请检查连接、余额或素材后重试", resp.StatusCode)
+			return nil, "", fmt.Errorf("Cloud transcription failed (HTTP %d), please check the connection, balance or material and try again", resp.StatusCode)
 		}
 		msg, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return nil, "", fmt.Errorf("本地转写服务返回 %d: %s", resp.StatusCode, strings.TrimSpace(string(msg)))
+		return nil, "", fmt.Errorf("The local transcription service returns %d: %s", resp.StatusCode, strings.TrimSpace(string(msg)))
 	}
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
-		return nil, "", fmt.Errorf("读取转写结果失败: %w", err)
+		return nil, "", fmt.Errorf("Failed to read the transcription result: %w", err)
 	}
 	segments, languageOut, err := DecodeVerboseJSON(payload)
 	if err != nil {
@@ -126,9 +126,9 @@ func (c *Client) Transcribe(ctx context.Context, wavPath string, language string
 	}
 	if len(segments) == 0 {
 		if c.Model == "" {
-			return nil, "", fmt.Errorf("本地转写服务未识别出语音内容")
+			return nil, "", fmt.Errorf("Speech content not recognized by local transcription service")
 		}
-		return nil, "", fmt.Errorf("转写服务未返回带时间的字幕，请检查素材是否包含语音")
+		return nil, "", fmt.Errorf("The transcription service did not return subtitles with time, please check whether the material contains speech")
 	}
 	return segments, languageOut, nil
 }
@@ -136,7 +136,7 @@ func (c *Client) Transcribe(ctx context.Context, wavPath string, language string
 func DecodeVerboseJSON(payload []byte) ([]Segment, string, error) {
 	var parsed whisperVerboseJSON
 	if err := json.Unmarshal(payload, &parsed); err != nil {
-		return nil, "", fmt.Errorf("转写结果解析失败: %w", err)
+		return nil, "", fmt.Errorf("Transcription result parsing failed: %w", err)
 	}
 	segments := make([]Segment, 0, len(parsed.Segments))
 	for _, seg := range parsed.Segments {

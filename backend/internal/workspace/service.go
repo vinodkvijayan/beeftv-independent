@@ -25,7 +25,7 @@ func NewService(repo Repository) *Service {
 
 func (s *Service) WorkspaceOwner(id string) (*model.User, error) {
 	if s == nil || s.repo == nil {
-		return nil, kernel.Unauthorized("本地工作区尚未初始化")
+		return nil, kernel.Unauthorized("The local workspace has not been initialized yet")
 	}
 	value, err := s.repo.Workspace(id)
 	if err != nil {
@@ -36,7 +36,7 @@ func (s *Service) WorkspaceOwner(id string) (*model.User, error) {
 
 func (s *Service) LocalWorkspaceOwner() (*model.User, error) {
 	if s == nil || s.repo == nil {
-		return nil, kernel.Unauthorized("本地工作区尚未初始化")
+		return nil, kernel.Unauthorized("The local workspace has not been initialized yet")
 	}
 	value, err := s.repo.DefaultWorkspace()
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Service) LocalWorkspaceOwner() (*model.User, error) {
 func requireLocalPrincipal(value *model.Workspace) (*model.User, error) {
 	principal := LocalPrincipal(value)
 	if principal == nil {
-		return nil, kernel.Unauthorized("本地工作区尚未初始化")
+		return nil, kernel.Unauthorized("The local workspace has not been initialized yet")
 	}
 	return principal, nil
 }

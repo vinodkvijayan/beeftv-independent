@@ -67,7 +67,7 @@ func TestConfiguredAndWorkflowVideoPathsDelegatePromptLengthToUpstream(t *testin
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			input := TaskInput{Mode: "video", Prompt: strings.Repeat("镜", 20000), Config: TaskConfig{
+			input := TaskInput{Mode: "video", Prompt: strings.Repeat("mirror", 20000), Config: TaskConfig{
 				InterfaceType: "runway-video", Model: "gen4_turbo", VideoSeconds: "6", CapabilityConfig: profile,
 			}}
 			if err := validate(input); err != nil {

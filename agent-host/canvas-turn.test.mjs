@@ -18,20 +18,20 @@ import { createDurableSessionStore, HOST_STATE_CHECKPOINT_DELTAS } from "./durab
 import { createDurableTurnProjection } from "./durable-turn-projection.mjs";
 import { SYSTEM_PROMPT } from "./system-prompt.mjs";
 
-describe("本轮画布变更", () => {
-    test("真实素材绑定回执保留改动节点与撤销操作身份", () => {
+describe("This round of canvas changes", () => {
+    test("Real material binding receipt retains the identity of modified nodes and undo operations", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 7);
         collectTurnEffects(turn, "canvas.node.bind_asset", { revision: 8, nodeId: "reference", referenceBound: true }, "bind-op");
         expect(turnChange(turn)).toEqual({ revisionBefore: 7, revisionAfter: 8,
             createdNodeIds: [], updatedNodeIds: ["reference"], createdEdgeIds: [], operationIds: ["bind-op"] });
     });
-    test("参数配置保留真实节点与操作回执供查看和撤销", () => {
+    test("Parameter configuration retains real nodes and operation receipts for viewing and revocation", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 7);
         collectTurnEffects(turn, "canvas.node.configure", { revision: 8, nodeId: "video-draft" }, "configure-op");
         expect(turnChange(turn)).toEqual({ revisionBefore: 7, revisionAfter: 8,
             createdNodeIds: [], updatedNodeIds: ["video-draft"], createdEdgeIds: [], operationIds: ["configure-op"] });
     });
-    test("从成功的工具结果累计新建节点、改动节点与新建连线", () => {
+    test("Cumulative new nodes, modified nodes, and new connections from successful tool results", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 7);
 
         collectTurnEffects(turn, "canvas.nodes.create", { revision: 8, created: [{ id: "a" }, { id: "b" }] });
@@ -44,7 +44,7 @@ describe("本轮画布变更", () => {
         });
     });
 
-    test("分镜行写入记脚本节点，绑定改写的产出连线进入变更摘要", () => {
+    test("The storyboard line is written to the script node, and the rewritten output connection is bound to enter the change summary.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 3);
         collectTurnEffects(turn, "canvas.script.rows.append", { canvasId: "c1", revision: 4, nodeId: "script", created: [{ id: "shot-1", shotNumber: 1 }] }, "append-op");
         collectTurnEffects(turn, "canvas.script.row.update", { canvasId: "c1", revision: 5, nodeId: "script",
@@ -56,10 +56,10 @@ describe("本轮画布变更", () => {
             deletedEdgeIds: ["edge-old", "edge-vid"], operationIds: ["append-op", "bind-op", "unbind-op"] });
     });
 
-    test("alsoChanged 回执把连带改动的节点计入本轮改动", () => {
+    test("The alsoChanged receipt counts the jointly changed nodes into the current round of changes.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 3);
         collectTurnEffects(turn, "canvas.script.row.update", { canvasId: "c1", revision: 4, nodeId: "script",
-            syncedNodeIds: ["img-1"], alsoChanged: [{ nodeId: "img-1", title: "首帧", fields: ["composerContent"] }] }, "sync-op");
+            syncedNodeIds: ["img-1"], alsoChanged: [{ nodeId: "img-1", title: "first frame", fields: ["composerContent"] }] }, "sync-op");
         collectTurnEffects(turn, "canvas.task.bind", { canvasId: "c1", revision: 5, nodeId: "vid-1",
             alsoChanged: [{ nodeId: "batch-root", fields: ["assetId"] }] }, "bind-op");
         expect(turnChange(turn)).toEqual({ revisionBefore: 3, revisionAfter: 5,
@@ -67,13 +67,13 @@ describe("本轮画布变更", () => {
             operationIds: ["sync-op", "bind-op"] });
     });
 
-    test("未落盘的当前会话按空历史读取，别的会话仍然缺失", () => {
+    test("The current session that has not been placed is read as an empty history, and other sessions are still missing.", () => {
         expect(unflushedSessionHistory("s1", "s1")).toEqual({ sessionId: "s1", turns: [] });
         expect(unflushedSessionHistory("", "s1")).toEqual({ sessionId: null, turns: [] });
         expect(unflushedSessionHistory("old", "s1")).toBeNull();
     });
 
-    test("推进版本的写入带上操作回执，重复版本不重复记", () => {
+    test("The writing of the advanced version will bring the operation receipt, and the repeated version will not be recorded repeatedly.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 4);
         collectTurnEffects(turn, "canvas.nodes.create", { revision: 5, created: [{ id: "a" }] }, "op-1");
         collectTurnEffects(turn, "canvas.node.update", { revision: 5, nodeId: "a" }, "op-stale");
@@ -81,7 +81,7 @@ describe("本轮画布变更", () => {
         expect(turnChange(turn).operationIds).toEqual(["op-1", "op-2"]);
     });
 
-    test("重复连线幂等返回时不算新建连线", () => {
+    test("Repeated connections are not counted as new connections when returned idempotently.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 3);
 
         collectTurnEffects(turn, "canvas.edge.create", { revision: 3, created: false, duplicate: true, edgeId: "e1" });
@@ -90,7 +90,7 @@ describe("本轮画布变更", () => {
         expect(turnChange(turn)).toBeNull();
     });
 
-    test("连续修改同一节点只计一个对象，保留每次真实写入回执", () => {
+    test("Continuous modifications to the same node only count as one object, and the actual write receipt of each time is retained.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 45);
         collectTurnEffects(turn, "canvas.node.update", { revision: 46, nodeId: "video" }, "first-edit");
         collectTurnEffects(turn, "canvas.node.update", { revision: 47, nodeId: "video" }, "second-edit");
@@ -102,7 +102,7 @@ describe("本轮画布变更", () => {
         });
     });
 
-    test("本轮写入链：连续写入延长链头，断开时重新起链，换轮清空", () => {
+    test("Write the chain in this round: continuously write the extended chain head, restart the chain when it is disconnected, and clear it when changing wheels.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 9);
         expect(turn.writeChains).toEqual([]);
         expect(rebaseOntoWriteChain(turn, "a", 9)).toBe(9);
@@ -128,7 +128,7 @@ describe("本轮画布变更", () => {
         expect(newTurnAccumulator()).toMatchObject({ writeChains: [], writeRequests: [] });
     });
 
-    test("只读了画布的一轮没有变更摘要", () => {
+    test("Read only one round of canvas without change summary", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 5);
 
         collectTurnEffects(turn, "canvas.get", { canvasId: "c1", canvas: { revision: 5 } });
@@ -136,7 +136,7 @@ describe("本轮画布变更", () => {
         expect(turnChange(turn)).toBeNull();
     });
 
-    test("重置会清空上一轮的节点、连线与提议", () => {
+    test("Resetting will clear the nodes, connections and proposals from the previous round.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 1);
         collectTurnEffects(turn, "canvas.nodes.create", { revision: 2, created: [{ id: "a" }] });
         collectTurnEffects(turn, "canvas.generation.propose", { proposalId: "gp-1", kind: "image", nodeIds: ["a"], model: "gpt-image-2" });
@@ -149,8 +149,8 @@ describe("本轮画布变更", () => {
     });
 });
 
-describe("付费生成提议", () => {
-    test("服务端来源版本透传，不从当前状态补造，也不透传额外字段", () => {
+describe("Pay to generate proposals", () => {
+    test("The server-side source version is transparently transmitted. It does not rebuild from the current state and does not transparently transmit additional fields.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 4);
         collectTurnEffects(turn, "canvas.generation.propose", {
             proposalId: "gp-source", kind: "image", nodeIds: ["n1"], model: "m", modelKey: "c::m",
@@ -159,29 +159,29 @@ describe("付费生成提议", () => {
         expect(turn.proposals[0].source).toEqual({ canvasId: "canvas", canvasRevision: 7, modelConfigRevision: 3 });
         expect(turnChange(turn)).toBeNull();
     });
-    test("普通提议带上逐项明细和预计费用，确认卡才能显示费用", () => {
+    test("A general proposal is to bring itemized details and estimated costs, and the costs will be shown on the confirmation card.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 4);
-        const targets = [{ nodeId: "n1", title: "镜头1", kind: "image", modelKey: "beeftv::gpt-image-2", prompt: "雨夜", parameters: { count: "1" },
-            estimate: { amount: 0.35, basis: "1K 低质量 ¥0.35/张 × 1 张", text: "预计 ¥0.35（1K 低质量 ¥0.35/张 × 1 张）" } }];
-        const estimate = { amount: 0.35, priced: 1, unknown: 0, text: "预计费用：¥0.35" };
+        const targets = [{ nodeId: "n1", title: "Shot 1", kind: "image", modelKey: "beeftv::gpt-image-2", prompt: "rainy night", parameters: { count: "1" },
+            estimate: { amount: 0.35, basis: "1K low quality ¥0.35/sheet × 1 sheet", text: "Estimated ¥0.35 (1K low quality ¥0.35/photo × 1 photo)" } }];
+        const estimate = { amount: 0.35, priced: 1, unknown: 0, text: "Estimated cost: ¥0.35" };
         collectTurnEffects(turn, "canvas.generation.propose", { proposalId: "gp-cost", kind: "image", nodeIds: ["n1"], model: "gpt-image-2", modelKey: "beeftv::gpt-image-2", targets, estimate });
         expect(turn.proposals[0].targets).toEqual(targets);
         expect(turn.proposals[0].estimate).toEqual(estimate);
     });
-    test("提议只被记录，不进变更摘要（它不写画布、不扣费）", () => {
+    test("The proposal is only recorded and not included in the change summary (it does not write to the canvas and does not charge fees)", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 4);
 
         collectTurnEffects(turn, "canvas.generation.propose", {
             proposalId: "gp-1", kind: "video", nodeIds: ["n1", "n2"],
-            model: "wan3.0-video", modelKey: "beeftv::wan3.0-video", note: "两段镜头",
+            model: "wan3.0-video", modelKey: "beeftv::wan3.0-video", note: "two shots",
         });
 
         expect(turnChange(turn)).toBeNull();
         expect(turn.proposals).toEqual([{ proposalId: "gp-1", kind: "video", nodeIds: ["n1", "n2"],
-            model: "wan3.0-video", modelKey: "beeftv::wan3.0-video", note: "两段镜头" }]);
+            model: "wan3.0-video", modelKey: "beeftv::wan3.0-video", note: "two shots" }]);
     });
 
-    test("技能脚本提议在需确认与本对话始终允许自动完成时均记入 turn.scriptProposals 且按 proposalId 去重", () => {
+    test("Skill script proposals are recorded in turn.scriptProposals and deduplicated by proposalId when it is necessary to confirm that this dialog is always allowed to be automatically completed.", () => {
         const turn = resetTurnAccumulator(newTurnAccumulator(), 4);
         const pendingProposal = { proposalId: "sp-1", status: "pending", scriptPath: "scripts/a.js" };
         const autoProposal = { proposalId: "sp-2", status: "completed", scriptPath: "scripts/b.js", result: { exitCode: 0, stdout: "ok" } };
@@ -192,33 +192,33 @@ describe("付费生成提议", () => {
         expect(turnChange(turn)).toBeNull();
     });
 
-    test("系统提示词必须禁止宣称已生成，并指向提议工具", () => {
+    test("The system prompt word must suppress claims that it has been generated and point to the proposal tool", () => {
         expect(SYSTEM_PROMPT).toContain("canvas_generation_propose");
-        expect(SYSTEM_PROMPT).toContain("只有用户实际确认过的制作方案才能付费生成");
+        expect(SYSTEM_PROMPT).toContain("Only production plans that have been actually confirmed by the user can be generated for a fee");
         expect(SYSTEM_PROMPT).toContain("canvas_generation_submit");
     });
 
-    test("系统提示词用 content 改可编辑提示词，未改字段不要提交", () => {
-        expect(SYSTEM_PROMPT).toContain("改可编辑提示词或文本正文用 content");
-        expect(SYSTEM_PROMPT).toContain("未改的字段不要提交");
+    test("Use content to change the system prompt word. You can edit the prompt word. Do not submit the fields that have not been changed.", () => {
+        expect(SYSTEM_PROMPT).toContain("Use content to change the editable prompt word or text body.");
+        expect(SYSTEM_PROMPT).toContain("Do not submit unchanged fields");
         expect(SYSTEM_PROMPT).not.toMatch(/用 prompt/);
     });
 });
 
-describe("会话标题", () => {
-    test("用第一条用户原文，截到 40 字", () => {
-        expect(sessionTitle([{ userText: "  加两个分镜  " }, { userText: "再来一个" }])).toBe("加两个分镜");
-        expect(sessionTitle([{ userText: "一".repeat(60) }])).toBe("一".repeat(40));
+describe("Session title", () => {
+    test("Use the first user’s original text and limit it to 40 words.", () => {
+        expect(sessionTitle([{ userText: "  Add two storyboards" }, { userText: "One more" }])).toBe("Add two storyboards");
+        expect(sessionTitle([{ userText: "one".repeat(60) }])).toBe("one".repeat(40));
         expect(sessionTitle([])).toBe("");
     });
 
-    test("跳过没有正文的轮次（例如被取消的那一轮）", () => {
-        expect(sessionTitle([{ userText: "" }, { userText: "真正的第一句" }])).toBe("真正的第一句");
+    test("Skip rounds without text (e.g. the round that was cancelled)", () => {
+        expect(sessionTitle([{ userText: "" }, { userText: "real first sentence" }])).toBe("real first sentence");
     });
 });
 
-describe("供应商定义", () => {
-    test("协议不受支持或缺少模型/地址/密钥时给出机器可读原因", () => {
+describe("Supplier definition", () => {
+    test("Gives a machine-readable reason when the protocol is not supported or the model/address/key is missing", () => {
         expect(providerUnavailableReason({ modelId: "m", baseUrl: "https://x/v1", apiKey: "k", api: "openai-completions" })).toBe("");
         expect(providerUnavailableReason({ modelId: "m", baseUrl: "https://x", apiKey: "k", api: "anthropic-messages" })).toBe("");
         expect(providerUnavailableReason({ modelId: "", baseUrl: "https://x/v1", apiKey: "k", api: "openai-completions" })).toBe("model_not_configured");
@@ -226,7 +226,7 @@ describe("供应商定义", () => {
         expect(providerUnavailableReason({ modelId: "m", baseUrl: "https://x/v1", apiKey: "k", api: "newapi-channel-1" })).toBe("model_protocol_unsupported");
     });
 
-    test("密钥以环境变量引用登记，内置目录模型继承能力与网关缓存兼容配置", () => {
+    test("The key is registered with an environment variable reference, and the built-in directory model inheritance capability is compatible with the gateway cache configuration.", () => {
         const registration = providerRegistration({ api: "anthropic-messages", baseUrl: "https://enterprise.example.com",
             modelId: "claude-fable-5", maxTokens: 4096, contextWindow: 200000 });
 
@@ -253,7 +253,7 @@ describe("供应商定义", () => {
         }
     });
 
-    test("宿主模型目录只包含登记的后端供应商，不内置默认 OpenAI 供应商", async () => {
+    test("The host model directory only contains registered backend providers and does not have a built-in default OpenAI provider", async () => {
         const directory = fs.mkdtempSync(path.join(os.tmpdir(), "beeftv-models-only-"));
         try {
             const runtime = await ModelRuntime.create({
@@ -278,7 +278,7 @@ describe("供应商定义", () => {
         }
     });
 
-    test("缺少模型或密钥时宿主仍然监听，只在 /health 里说明原因", async () => {
+    test("The host still listens when the model or key is missing, and only explains the reason in /health", async () => {
         const directory = fs.mkdtempSync(path.join(os.tmpdir(), "beeftv-health-nokey-"));
         const reservation = createServer();
         await new Promise((resolve) => reservation.listen(0, "127.0.0.1", resolve));
@@ -321,8 +321,8 @@ describe("供应商定义", () => {
     });
 });
 
-describe("回合上下文", () => {
-    test("重置时带上后端签发的 turnId；未给时清空，不沿用上一轮", () => {
+describe("turn context", () => {
+    test("When resetting, bring the turnId issued by the backend; if it is not given, it will be cleared and the previous round will not be used.", () => {
         const turn = newTurnAccumulator();
         resetTurnAccumulator(turn, 3, "aabbcc");
         expect(turn.turnId).toBe("aabbcc");
@@ -330,18 +330,18 @@ describe("回合上下文", () => {
         expect(turn.turnId).toBe("");
     });
 
-    test("引用只作为模型可见上下文，素材与额外画布分别标注", () => {
-        expect(turnContextPrefix({ canvasId: "c1" })).toBe("[当前画布 c1｜可修改当前画布，其他画布只读]");
+    test("The reference is only used as the visible context of the model, and the materials and additional canvases are marked separately.", () => {
+        expect(turnContextPrefix({ canvasId: "c1" })).toBe("[Current canvas c1｜The current canvas can be modified, other canvases are read-only]");
         expect(turnContextPrefix({ canvasId: "c1", selectedNodeIds: ["n1", "n2"] }))
-            .toBe("[当前画布 c1｜可修改当前画布，其他画布只读｜选中对象: n1, n2]");
+            .toBe("[Current canvas c1｜The current canvas can be modified, other canvases are read-only｜Selected objects: n1, n2]");
         expect(turnContextPrefix({ canvasId: "c1", references: [
             { kind: "asset", id: "a1" }, { kind: "canvas", id: "c2" }, { kind: "asset", id: "a2" }, { kind: "unknown", id: "x" },
-        ] })).toBe("[当前画布 c1｜可修改当前画布，其他画布只读｜已引用素材: a1, a2｜已引用画布（只读）: c2]");
+        ] })).toBe("[Current canvas c1｜The current canvas can be modified, other canvases are read-only｜Referenced materials: a1, a2｜Referenced canvas (read-only): c2]");
     });
 });
 
-describe('会话亲和性透传与升级恢复', () => {
-  test('OpenAI 兼容请求携带 prompt_cache_key===entry.sessionId，Anthropic 请求携带 metadata.user_id===entry.sessionId 且保留 cache_control', async () => {
+describe('Session affinity transparent transmission and upgrade recovery', () => {
+  test('OpenAI compatible requests carry prompt_cache_key===entry.sessionId, Anthropic requests carry metadata.user_id===entry.sessionId and retain cache_control', async () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-affinity-'));
     const openaiPayloads = [];
     const anthropicPayloads = [];
@@ -411,7 +411,7 @@ describe('会话亲和性透传与升级恢复', () => {
     }
   });
 
-  test('升级前未固定渠道亲和性的已有 Claude 会话恢复时降级旧 thinking 签名，新回合条目保留签名', async () => {
+  test('When an existing Claude session whose channel affinity was not fixed before the upgrade is restored, the old thinking signature is downgraded and the new round entry retains the signature.', async () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-legacy-claude-'));
     const anthropicPayloads = [];
     let callCount = 0;
@@ -429,11 +429,11 @@ describe('会话亲和性透传与升级恢复', () => {
       });
       if (callCount === 1) {
         writeSse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '', signature: '' } });
-        writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: '旧会话未固定渠道的思考。' } });
+        writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: 'Thoughts on old session unpinned channels.' } });
         writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'sig-unpinned-old-channel' } });
         writeSse('content_block_stop', { type: 'content_block_stop', index: 0 });
         writeSse('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } });
-        writeSse('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: '第一轮答复' } });
+        writeSse('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'first round of replies' } });
         writeSse('content_block_stop', { type: 'content_block_stop', index: 1 });
         writeSse('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 5 } });
         res.end('event: message_stop\ndata: {"type":"message_stop"}\n\n');
@@ -441,18 +441,18 @@ describe('会话亲和性透传与升级恢复', () => {
       }
       if (callCount === 2) {
         writeSse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '', signature: '' } });
-        writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: '升级后固定渠道的思考。' } });
+        writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: 'Thoughts on fixed channels after upgrade.' } });
         writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'sig-pinned-new-channel' } });
         writeSse('content_block_stop', { type: 'content_block_stop', index: 0 });
         writeSse('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'tool_use', id: 'toolu_new_1', name: 'plan_update', input: {} } });
-        writeSse('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify({ explanation: '计划', steps: [{ step: '步骤一', status: 'completed' }] }) } });
+        writeSse('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify({ explanation: 'plan', steps: [{ step: 'step one', status: 'completed' }] }) } });
         writeSse('content_block_stop', { type: 'content_block_stop', index: 1 });
         writeSse('message_delta', { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 5 } });
         res.end('event: message_stop\ndata: {"type":"message_stop"}\n\n');
         return;
       }
       writeSse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } });
-      writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: '第二轮答复' } });
+      writeSse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Second round of replies' } });
       writeSse('content_block_stop', { type: 'content_block_stop', index: 0 });
       writeSse('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 5 } });
       res.end('event: message_stop\ndata: {"type":"message_stop"}\n\n');
@@ -493,7 +493,7 @@ describe('会话亲和性透传与升级恢复', () => {
       try {
         const entry = await store1.ensureSession('c1');
         sessionId = entry.sessionId;
-        const sub1 = await store1.submit(entry, { turnId: 't1', requestId: 'r1', content: '第一句', userText: '第一句', revisionBefore: 1 });
+        const sub1 = await store1.submit(entry, { turnId: 't1', requestId: 'r1', content: 'first sentence', userText: 'first sentence', revisionBefore: 1 });
         await store1.wait(entry, sub1);
         // 模拟升级前持久化的会话状态（没有 affinityMinEntryId）
         await entry.harness.commit(async (tx) => {
@@ -510,13 +510,13 @@ describe('会话亲和性透传与升级恢复', () => {
         const reopened = await store2.ensureSession('c1', sessionId);
         const migratedState = await reopened.harness.snapshot(hostStateDoc, BACKGROUND_CONTEXT);
         expect(migratedState.affinityMinEntryId).toBeGreaterThan(1);
-        const sub2 = await store2.submit(reopened, { turnId: 't2', requestId: 'r2', content: '第二句', userText: '第二句', revisionBefore: 1 });
+        const sub2 = await store2.submit(reopened, { turnId: 't2', requestId: 'r2', content: 'second sentence', userText: 'second sentence', revisionBefore: 1 });
         await store2.wait(reopened, sub2);
         // 第 3 次请求包含升级前第 1 轮历史 + 升级后第 2 轮刚刚产生的带签名 thinking 条目
         const finalPayload = anthropicPayloads[2];
         expect(finalPayload.metadata).toEqual({ user_id: sessionId });
         expect(JSON.stringify(finalPayload)).not.toContain('sig-unpinned-old-channel');
-        expect(JSON.stringify(finalPayload)).toContain('旧会话未固定渠道的思考。');
+        expect(JSON.stringify(finalPayload)).toContain('Thoughts on old session unpinned channels.');
         expect(JSON.stringify(finalPayload)).toContain('sig-pinned-new-channel');
       } finally {
         await store2.disposeAll();
@@ -530,11 +530,11 @@ describe('会话亲和性透传与升级恢复', () => {
     }
   });
 
-  test('长轮次超过默认 100 条观察窗口时，恢复快照会补读前半段正文与思考；宿主状态在轮次结束或达到增量阈值时写完整快照', async () => {
+  test('When the long round exceeds the default 100 observation windows, the recovery snapshot will re-read the first half of the text and reflections; the host state will write the complete snapshot when the round ends or reaches the incremental threshold.', async () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-long-watch-'));
     const server = createServer(async (_req, res) => {
       res.writeHead(200, { 'content-type': 'text/event-stream' });
-      res.write('data: ' + JSON.stringify({ id: 'c1', object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: '尾段正文。' }, finish_reason: null }] }) + '\n\n');
+      res.write('data: ' + JSON.stringify({ id: 'c1', object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: 'Final text.' }, finish_reason: null }] }) + '\n\n');
       res.write('data: ' + JSON.stringify({ id: 'c1', object: 'chat.completion.chunk', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] }) + '\n\n');
       res.end('data: [DONE]\n\n');
     });
@@ -570,7 +570,7 @@ describe('会话亲和性透传与升级恢复', () => {
         sqliteFile = fs.readdirSync(sessionRoot, { recursive: true })
           .map((rel) => path.join(sessionRoot, String(rel)))
           .find((full) => full.endsWith(`${uuid}.sqlite`));
-        const sub = await store.submit(entry, { turnId: 't-long', requestId: 'r-long', content: '开始长轮次', userText: '开始长轮次', revisionBefore: 1 });
+        const sub = await store.submit(entry, { turnId: 't-long', requestId: 'r-long', content: 'Start long round', userText: 'Start long round', revisionBefore: 1 });
         // 在本轮已完成后再向同一对话追加 110 条条目（首条带早期的正文与思考，随后超过 100 条默认窗口上限），
         // 再通过 wait(entry, sub) 重新挂载观察器，验证初始 snapshot 补齐了窗口外的早期条目。
         await store.wait(entry, sub);
@@ -580,8 +580,8 @@ describe('会话亲和性透传与升级恢复', () => {
             model: [{
               role: 'assistant',
               content: [
-                { type: 'thinking', thinking: '最早期思考片段' },
-                { type: 'text', text: '最早期正文片段。' },
+                { type: 'thinking', thinking: 'Earliest Thoughts' },
+                { type: 'text', text: 'The earliest text fragment.' },
               ],
               api: 'openai-completions',
               provider: 'beeftv',
@@ -610,8 +610,8 @@ describe('会话亲和性透传与升级恢复', () => {
         });
         const snapshotEvent = events.find((e) => e.type === 'snapshot');
         expect(snapshotEvent.entries.length).toBeGreaterThan(105);
-        expect(projection.text).toContain('最早期正文片段。');
-        expect(projection.reasoning.map((r) => r.text)).toContain('最早期思考片段');
+        expect(projection.text).toContain('The earliest text fragment.');
+        expect(projection.reasoning.map((r) => r.text)).toContain('Earliest Thoughts');
       } finally {
         await store.disposeAll();
       }
@@ -636,7 +636,7 @@ describe('会话亲和性透传与升级恢复', () => {
     }
   });
 
-  test('本轮中途发生压缩时，实时流、重连快照与终态历史均保留压缩前后的完整回复与思考', async () => {
+  test('When compression occurs midway through this round, the real-time stream, reconnection snapshot, and final state history all retain complete responses and thoughts before and after compression.', async () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-midturn-compaction-'));
     let requestCount = 0;
     const server = createServer(async (_req, res) => {
@@ -650,8 +650,8 @@ describe('会话亲和性透传与升级恢复', () => {
             index: 0,
             delta: {
               role: 'assistant',
-              reasoning_content: '压缩前思考。',
-              content: '压缩前回复 A。',
+              reasoning_content: 'Think before you compress.',
+              content: 'Reply A before compression.',
               tool_calls: [{ index: 0, id: 'call_mid_1', type: 'function', function: { name: 'canvas_probe', arguments: '{}' } }],
             },
             finish_reason: null,
@@ -670,8 +670,8 @@ describe('会话亲和性透传与升级恢复', () => {
             index: 0,
             delta: {
               role: 'assistant',
-              reasoning_content: '压缩后思考。',
-              content: '压缩后回复 B。',
+              reasoning_content: 'Think after compression.',
+              content: 'Reply B after compression.',
             },
             finish_reason: null,
           }],
@@ -719,7 +719,7 @@ describe('会话亲和性透传与升级恢复', () => {
                 head: latestId,
                 model: [{
                   role: 'user',
-                  content: [{ type: 'text', text: '<summary>早先步骤摘要</summary>' }],
+                  content: [{ type: 'text', text: '<summary>Summary of previous steps</summary>' }],
                   timestamp: Date.now(),
                 }],
                 data: { reason: 'threshold', beforeTokens: 1000 },
@@ -736,8 +736,8 @@ describe('会话亲和性透传与升级恢复', () => {
         const sub = await store.submit(sessionEntry, {
           turnId: 't-compact',
           requestId: 'r-compact',
-          content: '执行跨压缩回合',
-          userText: '执行跨压缩回合',
+          content: 'Perform cross-compression rounds',
+          userText: 'Perform cross-compression rounds',
           revisionBefore: 1,
         });
         const liveProjection = createDurableTurnProjection();
@@ -746,15 +746,15 @@ describe('会话亲和性透传与升级恢复', () => {
             liveProjection.accept(event);
           },
         });
-        expect(liveProjection.text).toBe('压缩前回复 A。\n\n压缩后回复 B。');
-        expect(liveProjection.reasoning.map((r) => r.text)).toEqual(['压缩前思考。', '压缩后思考。']);
-        expect(record.reply).toBe('压缩前回复 A。\n\n压缩后回复 B。');
-        expect(record.reasoning.map((r) => r.text)).toEqual(['压缩前思考。', '压缩后思考。']);
+        expect(liveProjection.text).toBe('Reply A before compression.\n\nReply B after compression.');
+        expect(liveProjection.reasoning.map((r) => r.text)).toEqual(['Think before you compress.', 'Think after compression.']);
+        expect(record.reply).toBe('Reply A before compression.\n\nReply B after compression.');
+        expect(record.reasoning.map((r) => r.text)).toEqual(['Think before you compress.', 'Think after compression.']);
 
         const history = await store.history('c1', sessionEntry.sessionId);
         expect(history.turns).toHaveLength(1);
-        expect(history.turns[0].reply).toBe('压缩前回复 A。\n\n压缩后回复 B。');
-        expect(history.turns[0].reasoning.map((r) => r.text)).toEqual(['压缩前思考。', '压缩后思考。']);
+        expect(history.turns[0].reply).toBe('Reply A before compression.\n\nReply B after compression.');
+        expect(history.turns[0].reasoning.map((r) => r.text)).toEqual(['Think before you compress.', 'Think after compression.']);
 
         // 重新挂载观察器获取恢复快照，确认快照不混入 CompactionEntry 且还原完整的前后段正文与思考
         const reconnectProjection = createDurableTurnProjection();
@@ -767,8 +767,8 @@ describe('会话亲和性透传与升级恢复', () => {
         });
         const snapshotEvent = reconnectEvents.find((e) => e.type === 'snapshot');
         expect(snapshotEvent.entries.some((e) => e.kind === CompactionEntry.kind)).toBe(false);
-        expect(reconnectProjection.text).toBe('压缩前回复 A。\n\n压缩后回复 B。');
-        expect(reconnectProjection.reasoning.map((r) => r.text)).toEqual(['压缩前思考。', '压缩后思考。']);
+        expect(reconnectProjection.text).toBe('Reply A before compression.\n\nReply B after compression.');
+        expect(reconnectProjection.reasoning.map((r) => r.text)).toEqual(['Think before you compress.', 'Think after compression.']);
       } finally {
         await store.disposeAll();
       }
@@ -782,38 +782,38 @@ describe('会话亲和性透传与升级恢复', () => {
   });
 });
 
-describe('模型终态投影', () => {
-  test('用户停止不变成模型失败，超时保留独立原因', () => {
-    const message = { content: [{ type: 'text', text: '已完成的部分' }], stopReason: 'aborted' };
+describe('Model final state projection', () => {
+  test('User stopping does not turn into a model failure, timeouts remain independent reasons', () => {
+    const message = { content: [{ type: 'text', text: 'completed part' }], stopReason: 'aborted' };
     expect(modelTurnCompletion(message, 'AbortError', null, { cancelled: true }))
-      .toEqual({ reply: '已完成的部分', error: null, errorReason: null });
+      .toEqual({ reply: 'completed part', error: null, errorReason: null });
     expect(modelTurnCompletion(message, 'AbortError', null, { cancelled: true, timedOut: true }).errorReason)
       .toBe('turn_timeout');
-    expect(modelTurnCompletion(message, 'AbortError', { reason: 'turn_request_budget_exhausted', message: '预算耗尽' }, { cancelled: true }).errorReason)
+    expect(modelTurnCompletion(message, 'AbortError', { reason: 'turn_request_budget_exhausted', message: 'budget exhausted' }, { cancelled: true }).errorReason)
       .toBe('turn_request_budget_exhausted');
   });
-  test('SDK 正常 resolve 但终态为 error 仍然报告失败', () => {
+  test('The SDK resolves normally but the final status is error and still reports failure.', () => {
     const result = modelTurnCompletion({ role: 'assistant', content: [], stopReason: 'error', errorMessage: 'provider failed' });
     expect(result.error).toBe('provider failed');
     expect(result.errorReason).toBe('model_request_failed');
   });
-  test('预算拒绝的稳定原因优先于 SDK 重试包装', () => {
-    const result = modelTurnCompletion(null, 'Connection error', { reason: 'turn_request_budget_exhausted', message: '单轮预算耗尽' });
+  test('Stable reason for budget rejection taking precedence over SDK retry packaging', () => {
+    const result = modelTurnCompletion(null, 'Connection error', { reason: 'turn_request_budget_exhausted', message: 'Single round budget exhausted' });
     expect(result.errorReason).toBe('turn_request_budget_exhausted');
-    expect(result.error).toBe('单轮预算耗尽');
+    expect(result.error).toBe('Single round budget exhausted');
   });
-  test('只使用本轮终态，不引用历史助手回复', () => {
+  test('Only use the final state of this round and do not quote the historical assistant reply', () => {
     expect(modelTurnCompletion(null).reply).toBe('');
-    expect(modelTurnCompletion({ content: [{ type: 'text', text: '当前回复' }], stopReason: 'stop' })).toEqual({ reply: '当前回复', error: null, errorReason: null });
+    expect(modelTurnCompletion({ content: [{ type: 'text', text: 'Current replies' }], stopReason: 'stop' })).toEqual({ reply: 'Current replies', error: null, errorReason: null });
   });
-  test('思考块不进入回复，正文里的标记原样保留', () => {
+  test('The thinking block does not enter the reply, and the tags in the text remain unchanged.', () => {
     const result = modelTurnCompletion({
       content: [
         { type: 'thinking', thinking: 'internal draft' },
-        { type: 'text', text: '<thinking>draft</thinking>可见答复' },
+        { type: 'text', text: '<thinking>draft</thinking>Visible replies' },
       ],
       stopReason: 'stop',
     });
-    expect(result).toEqual({ reply: '<thinking>draft</thinking>可见答复', error: null, errorReason: null });
+    expect(result).toEqual({ reply: '<thinking>draft</thinking>Visible replies', error: null, errorReason: null });
   });
 });

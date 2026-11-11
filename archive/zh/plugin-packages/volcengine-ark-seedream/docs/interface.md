@@ -1,50 +1,50 @@
-# Volcengine Ark Seedream Images 接口字段
+# Volcengine Ark Seedream Images interface fields
 
-## 协议身份
+## Protocol Identity
 
-- 插件 ID：`volcengine-ark-seedream`。
-- Provider ID：`volcengine-ark-image`。
-- 能力：`image`。
-- 默认 Base URL：`https://ark.cn-beijing.volces.com`。
-- 鉴权驱动：`bearer`。
-- 创建：`POST /images/generations`，默认路径前缀为 `/api/v3`；已配置的 `/v1`、`/api/v3` 等前缀保留。
-- 生命周期：单图与图层返回 JSON，组图可返回 `text/event-stream`；请求格式、尺寸校验及响应映射全部由本插件声明。
+- Plugin ID: `volcengine-ark-seedream`.
+- Provider ID: `volcengine-ark-image`.
+- Abilities: `image`.
+-Default Base URL: `https://ark.cn-beijing.volces.com`.
+- Authentication driver: `bearer`.
+- Create: `POST /images/generations`, the default path prefix is ​​`/api/v3`; the configured prefixes such as `/v1` and `/api/v3` are retained.
+- Life cycle: Single images and layers return JSON, group images can return `text/event-stream`; request format, size verification and response mapping are all declared by this plug-in.
 
-## 配置字段
+## Configuration fields
 
-| 字段 | 类型 | 必填 | 含义 |
+| Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
-| `apiKey` | secret | 是 | API Key |
+| `apiKey` | secret | Yes | API Key |
 
-## 统一字段映射
+## Unified field mapping
 
-| 统一字段 | 类型 | 必填 | 上游映射 | 说明 |
+| Uniform Fields | Type | Required | Upstream Mapping | Description |
 | --- | --- | --- | --- | --- |
-| `model` | string | 是 | `model` | 图片模型 ID。 |
-| `prompt` | string | 是 | `prompt` | 图片提示词。 |
-| `images` | media[] | 否 | `provider image/reference fields` | 参考图或编辑源图，role 由业务层确定。 |
-| `imageCount` | integer | 否 | 不直接发送 `n` | 组图使用 `output.options.maxImages`，并在单次请求中设置最大数量。 |
-| `aspectRatio` | string | 否 | `size/aspect_ratio` | 比例或尺寸，语义按协议说明。 |
-| `resolution` | string | 否 | `resolution/imageSize` | 分辨率档位。 |
-| `quality` | string | 否 | `quality` | 质量档位。 |
-| `providerOptions` | object | 否 | `provider-specific fields` | 插件命名空间内的厂商扩展字段。 |
+| `model` | string | Yes | `model` | Image model ID. |
+| `prompt` | string | Yes | `prompt` | Picture prompt word. |
+| `images` | media[] | No | `provider image/reference fields` | Reference picture or edit source picture, role is determined by the business layer. |
+| `imageCount` | integer | No | Do not send `n` directly | Use `output.options.maxImages` for group pictures, and set the maximum number in a single request. |
+| `aspectRatio` | string | No | `size/aspect_ratio` | Scale or size, semantics are specified by the protocol. |
+| `resolution` | string | No | `resolution/imageSize` | Resolution level. |
+| `quality` | string | No | `quality` | Quality level. |
+| `providerOptions` | object | No | `provider-specific fields` | Vendor extension field within the plug-in namespace. |
 
-## 图片选项
+## Image options
 
-`output.options` 是宿主保存的图片控件值；插件按顺序计算 provider 内的纯表达式变量，并用同一组变量校验和构造请求。变量仅在当前请求有效，不能引用后面才声明的变量。
+`output.options` is the image control value saved by the host; the plug-in calculates the pure expression variables in the provider sequentially, and uses the same set of variable checksums to construct the request. Variables are only valid in the current request and cannot reference variables declared later.
 
-| 选项 | 上游字段 | 行为 |
+| Options | Upstream Fields | Behavior |
 | --- | --- | --- |
-| `mode=layers` | `layer_decomposition` | 必须有源图；保留各层的 `z_index`、`bounding_box`、`name`、`description`。 |
-| `maxImages` | `sequential_image_generation_options.max_images` | 支持组图的型号使用单次 SSE 请求；不补发缺少的图片。 |
-| `transparent=true` | `background=transparent` | 强制 PNG，并按型号校验透明背景能力。 |
-| `format` | `output_format` | 默认 PNG；只在支持该字段的型号发送。 |
-| `optimize` | `optimize_prompt_options.mode` | 保留用户选择。 |
-| `watermark` | `watermark` | 默认 false。 |
+| `mode=layers` | `layer_decomposition` | Must have source map; retain `z_index`, `bounding_box`, `name`, `description` of each layer. |
+| `maxImages` | `sequential_image_generation_options.max_images` | Models that support image composition use a single SSE request; missing images will not be reissued. |
+| `transparent=true` | `background=transparent` | Force PNG and verify transparent background capability by model. |
+| `format` | `output_format` | Default PNG; only sent on models that support this field. |
+| `optimize` | `optimize_prompt_options.mode` | User selection retained. |
+| `watermark` | `watermark` | Default false. |
 
-`size` 由比例、尺寸档位和当前型号共同计算，不再经过宿主的 Ark 通用缩放器。未支持的尺寸、蒙版、图层或透明选项在发出 POST 前拒绝。完整表达式以下方生成的 manifest 为准。
+`size` is calculated by a combination of scale, size gear, and current model, and no longer goes through the host's Ark universal scaler. Unsupported size, mask, layer, or transparency options are rejected before issuing a POST. The complete expression is subject to the manifest generated below.
 
-## Provider 扩展键
+## Provider extension key
 
 - `providerOptions.volcengine-ark-image.response_format`
 - `providerOptions.volcengine-ark-image.seed`
@@ -52,11 +52,11 @@
 - `providerOptions.volcengine-ark-image.sequential_image_generation_options`
 - `providerOptions.volcengine-ark-image.watermark`
 
-这些扩展键继续兼容；图片控件显式选择的值优先。`response_format` 默认 `url`，旧 `b64_json` 响应仍读取并按实际图片字节修正 MIME。
+These extended keys continue to be compatible; the value explicitly selected by the picture control takes precedence. `response_format` defaults to `url`, old `b64_json` responses still read and correct MIME by actual image bytes.
 
-## 响应映射逐字段清单
+## Response mapping field-by-field list
 
-| 映射位置 | 上游路径或转换表达式 |
+| Mapping location | Upstream path or transformation expression |
 | --- | --- |
 | `response.status` | `"succeeded"` |
 | `response.images` | `{"$ref":"response.data"}` |
@@ -64,22 +64,22 @@
 | `response.errorPaths[0]` | `"error.code"` |
 | `response.messagePaths[0]` | `"error.message"` |
 
-## 响应与错误
+## Responses and Errors
 
-JSON 中的图片和 SSE 中的已完成图片使用同一结果合同。SSE 按非负整数索引排序并去重；空事件、坏事件和后续失败不会丢弃已收到的有效图片。全部失败则返回错误。只有 manifest 显式声明的 SSE 才会解析。
+Images in JSON and completed images in SSE use the same result contract. SSE sorts and deduplicates by non-negative integer index; empty events, bad events, and subsequent failures do not discard valid pictures that have been received. If all fail, an error is returned. Only SSE explicitly declared in the manifest will be parsed.
 
-临时图片 URL 标记为 ephemeral，由宿主立即下载并校验后持久化；拒绝空内容及伪装成图片的 HTML/JSON。透明像素不重编码。HTTP 错误、业务 code 和 error object 保持失败语义。
+The temporary image URL is marked as ephemeral, which is immediately downloaded and verified by the host and then persisted; empty content and HTML/JSON disguised as images are rejected. Transparent pixels are not re-encoded. HTTP errors, business code, and error objects maintain failure semantics.
 
-## 兼容边界
+## Compatibility boundary
 
-官方 Ark 推理接入：Base URL 使用 /api/v3，API Key 来自方舟推理接入控制台，不可与 Agent Plan 专属 Key 混用。
+Official Ark inference access: The Base URL uses /api/v3, and the API Key comes from the Ark inference access console and cannot be mixed with the Agent Plan exclusive Key.
 
-2.1.0 的清单版本为 `beeftv.plugin/v3`，依赖同时支持 provider `variables`、`defaultPathPrefix`、图片 `response.stream` 和 `detectImageMime` 的宿主；旧宿主加载时即拒绝该清单，不能忽略新字段后继续请求。新版宿主继续读取 v1/v2 插件，但新字段必须声明 v3。Agent Plan 使用自己的独立插件与地址。插件未安装或停用时，宿主在 POST 前拒绝，不退回手写请求器。
+The manifest version of 2.1.0 is `beeftv.plugin/v3`, which relies on a host that supports providers `variables`, `defaultPathPrefix`, images `response.stream` and `detectImageMime` at the same time; the old host rejects the manifest when loading, and cannot continue the request after ignoring the new fields. New hosts continue to read v1/v2 plugins, but new fields must declare v3. Agent Plan uses its own independent plug-in and address. When the plug-in is not installed or disabled, the host rejects the request before POST and does not return the handwritten requester.
 
 <!-- BEEFTV_PLUGIN_MANIFEST_START -->
-## Manifest 完整接口定义
+## Manifest complete interface definition
 
-以下 JSON 与插件包内实际 `manifest.json` 逐字段一致，覆盖插件身份、权限、配置、鉴权、参数、校验、创建、Agent、查询、取消、结果下载、响应和 Agent 响应映射。`documentation` 字段的值就是当前完整文档；为避免文档在自身内部无限递归，JSON 中仅用等义占位文本表示正文。
+The following JSON is consistent field by field with the actual `manifest.json` in the plug-in package, covering plug-in identity, permissions, configuration, authentication, parameters, verification, creation, Agent, query, cancellation, result download, response and Agent response mapping. The value of the `documentation` field is the current complete document; in order to avoid infinite recursion of the document within itself, only equivalent placeholder text is used to represent the main text in JSON.
 
 ```json
 {

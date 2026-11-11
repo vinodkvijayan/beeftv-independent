@@ -3,11 +3,11 @@ import { CanvasNodeType, type CanvasConnection, type CanvasNodeData } from "../s
 import { imageGenerationReferenceConnections } from "../src/lib/canvas/canvas-resource-references";
 
 describe("image generation connections", () => {
-    test("重新生成已有图片节点时，只有在用户显式引用源图时才连接源图，避免误将旧结果当作参考图", () => {
+    test("When regenerating existing image nodes, connect the source image only when the user explicitly references the source image to avoid mistakenly treating the old result as a reference image.", () => {
         const sourceImageNode: CanvasNodeData = {
             id: "img-1",
             type: CanvasNodeType.Image,
-            title: "第一次生成结果",
+            title: "Generate results for the first time",
             position: { x: 0, y: 0 },
             width: 300,
             height: 300,
@@ -52,11 +52,11 @@ describe("image generation connections", () => {
         expect(batchConnectionsWithMention.some((c) => c.fromNodeId === sourceImageNode.id && c.toNodeId === rootId)).toBe(true);
     });
 
-    test("若源图本身带有上游参考素材，新图片节点正确继承上游素材连线而不连接源图自身", () => {
+    test("If the source image itself has upstream reference material, the new image node will correctly inherit the upstream material connection without connecting to the source image itself.", () => {
         const upstreamRefNode: CanvasNodeData = {
             id: "ref-source",
             type: CanvasNodeType.Image,
-            title: "原始参考图",
+            title: "Original reference picture",
             position: { x: 0, y: 0 },
             width: 300,
             height: 300,
@@ -69,7 +69,7 @@ describe("image generation connections", () => {
         const intermediateImageNode: CanvasNodeData = {
             id: "img-intermediate",
             type: CanvasNodeType.Image,
-            title: "中间生成图",
+            title: "intermediate generated graph",
             position: { x: 400, y: 0 },
             width: 300,
             height: 300,

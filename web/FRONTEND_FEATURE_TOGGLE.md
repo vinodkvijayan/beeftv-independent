@@ -1,12 +1,12 @@
-# 前端功能开关维护页面修改说明
+# Instructions for modifying the front-end function switch maintenance page
 
-## 修改内容
+## Modify content
 
-### 1. 类型定义更新
+### 1. Type definition update
 
-**文件**: `web/src/stores/use-user-store.ts`
+**File**: `web/src/stores/use-user-store.ts`
 
-在 `FeatureAvailability` 类型中添加了 `frontendModelsEnabled` 字段：
+Added `frontendModelsEnabled` field to `FeatureAvailability` type:
 
 ```typescript
 export type FeatureAvailability = {
@@ -22,7 +22,7 @@ export type FeatureAvailability = {
 };
 ```
 
-默认值设置为 `true`：
+The default value is set to `true`:
 
 ```typescript
 export const defaultFeatureAvailability: FeatureAvailability = {
@@ -35,22 +35,20 @@ export const defaultFeatureAvailability: FeatureAvailability = {
 };
 ```
 
-### 2. 管理界面更新
+### 2. Management interface update
 
-**文件**: `web/src/pages/admin/components/feature-availability-panel.tsx`
+**File**: `web/src/pages/admin/components/feature-availability-panel.tsx`
 
-#### 添加图标导入
-```typescript
+#### Add icon import```typescript
 import { Sparkles } from "lucide-react";
 ```
 
-#### 扩展 FeatureKey 类型
-```typescript
+#### Extend FeatureKey type```typescript
 type FeatureKey = "shortDramaEnabled" | "taskCenterEnabled" | "creditsEnabled" | "customChannelsEnabled" | "frontendModelsEnabled";
 ```
 
-#### 添加功能配置项
-在 `featureRows` 数组中添加了新的配置项：
+#### Add function configuration items
+New configuration items were added to the `featureRows` array:
 
 ```typescript
 {
@@ -62,8 +60,8 @@ type FeatureKey = "shortDramaEnabled" | "taskCenterEnabled" | "creditsEnabled" |
 }
 ```
 
-#### 更新保存函数
-在 `save` 函数中添加了对新字段的支持：
+#### Update save function
+Added support for new fields in `save` function:
 
 ```typescript
 const result = await updateAdminFeatureAvailability({
@@ -75,8 +73,8 @@ const result = await updateAdminFeatureAvailability({
 });
 ```
 
-#### 添加切换确认逻辑
-在 `toggle` 函数中添加了关闭前台模型时的二次确认：
+#### Add switching confirmation logic
+Added a secondary confirmation when closing the foreground model in the `toggle` function:
 
 ```typescript
 // 前台模型关闭需要二次确认
@@ -93,36 +91,36 @@ if (key === "frontendModelsEnabled" && !enabled) {
 }
 ```
 
-## 用户界面效果
+## User interface effects
 
-### 功能开关面板
+### Function switch panel
 
-在"功能开放"页面（`/admin/features`）中，会显示一个新的开关项：
+In the "Function Opening" page (`/admin/features`), a new switch item will be displayed:
 
-- **图标**: ✨ (Sparkles)
-- **标题**: 前台模型目录
-- **菜单路径**: /admin/models
-- **描述**: 开启时使用前台模型虚拟渠道（需配置路由），关闭时使用脱敏的系统渠道模型。管理员的模型配置入口始终保留。
-- **默认状态**: 开启（true）
+- **Icon**: ✨ (Sparkles)
+- **Title**: Front-end model directory
+- **Menu path**: /admin/models
+- **Description**: Use the front-end model virtual channel when it is turned on (routing needs to be configured), and use the desensitized system channel model when it is turned off. The administrator's model configuration entry is always retained.
+- **Default state**: On (true)
 
-### 交互流程
+### Interaction process
 
-1. **开启前台模型**
-   - 点击开关即可开启
-   - 用户侧将使用前台模型虚拟渠道
-   - 任务创建必须提供 `logicalModelId`
+1. **Open the front-end model**
+   - Click the switch to turn it on
+   - The user side will use the front-end model virtual channel
+   - Task creation must provide `logicalModelId`
 
-2. **关闭前台模型**
-   - 点击开关会弹出确认对话框
-   - 确认后切换到系统渠道模型模式
-   - 用户侧将使用脱敏的系统渠道模型目录
-   - 任务创建禁止 `logicalModelId`
+2. **Close the front model**
+   - Clicking the switch will pop up a confirmation dialog box
+   - After confirmation, switch to system channel model mode
+   - The user side will use the desensitized system channel model directory
+   - Task creation prohibited `logicalModelId`
 
-3. **管理员权限**
-   - 无论开关状态如何，管理员的 `/admin/models` 入口始终保留
-   - 管理员可以随时查看和配置前台模型
+3. **Administrator Rights**
+   - Regardless of the switch status, the administrator's `/admin/models` entry is always retained
+   - Administrators can view and configure the front-end model at any time
 
-## 视觉设计
+## Visual design
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -146,51 +144,51 @@ if (key === "frontendModelsEnabled" && !enabled) {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 后端 API 适配
+## Backend API adaptation
 
-后端 API 已经支持 `frontendModelsEnabled` 字段：
+The backend API already supports the `frontendModelsEnabled` field:
 
-- `GET /api/admin/feature-availability` - 读取配置（包含新字段）
-- `PUT /api/admin/feature-availability` - 更新配置（接受新字段）
+- `GET /api/admin/feature-availability` - Read configuration (contains new fields)
+- `PUT /api/admin/feature-availability` - Update configuration (accepts new fields)
 
-## 测试建议
+## Testing suggestions
 
-1. **开关切换测试**
-   - 测试开启/关闭前台模型开关
-   - 验证二次确认对话框是否正常显示
-   - 验证保存后状态是否正确更新
+1. **Switch switching test**
+   - Test on/off foreground model switch
+   - Verify whether the secondary confirmation dialog box is displayed normally
+   - Verify that status is updated correctly after saving
 
-2. **权限测试**
-   - 验证只有管理员可以访问此页面
-   - 验证非管理员无法修改此配置
+2. **Permission Test**
+   - Verify that only administrators can access this page
+   - Verify that non-administrators cannot modify this configuration
 
-3. **联动测试**
-   - 开启前台模型后，验证用户侧模型选择器是否使用前台模型
-   - 关闭前台模型后，验证用户侧模型选择器是否使用系统渠道模型
-   - 验证管理员的 `/admin/models` 入口在两种模式下都可访问
+3. **Linkage Test**
+   - After turning on the front-end model, verify whether the user-side model selector uses the front-end model
+   - After closing the front-end model, verify that the user-side model selector uses the system channel model
+   - Verify that the administrator's `/admin/models` entry is accessible in both modes
 
-4. **数据持久化测试**
-   - 修改配置后刷新页面，验证配置是否保存
-   - 验证配置在用户登录时正确加载
+4. **Data persistence test**
+   - Refresh the page after modifying the configuration to verify whether the configuration is saved.
+   - Verify that the configuration loads correctly when the user logs in
 
-## 注意事项
+## Notes
 
-1. **后端同步**: 前端修改依赖后端 API 支持，确保后端已部署相关更新
-2. **缓存清理**: 修改后建议清理浏览器缓存以确保类型更新生效
-3. **用户影响**: 切换模型模式会影响所有用户的模型选择界面，建议在低峰时段操作
-4. **回滚方案**: 如遇问题，可以通过管理界面快速切换回原模式
+1. **Backend synchronization**: Front-end modifications rely on back-end API support, ensure that the back-end has deployed relevant updates
+2. **Cache Cleaning**: After modification, it is recommended to clear the browser cache to ensure that the type update takes effect.
+3. **User Impact**: Switching model mode will affect the model selection interface of all users. It is recommended to operate during off-peak hours.
+4. **Rollback solution**: If you encounter problems, you can quickly switch back to the original mode through the management interface
 
-## 文件清单
+## File list
 
-### 修改的文件
-- `web/src/stores/use-user-store.ts` - 添加类型定义和默认值
-- `web/src/pages/admin/components/feature-availability-panel.tsx` - 添加UI和交互逻辑
+### Modified files
+- `web/src/stores/use-user-store.ts` - Add type definition and default value
+- `web/src/pages/admin/components/feature-availability-panel.tsx` - Add UI and interaction logic
 
-### 依赖的后端文件
-- `internal/service/feature_availability.go` - 后端功能开关服务
+### Dependent backend files
+- `internal/service/feature_availability.go` - Backend function switch service
 
 ---
 
-**修改日期**: 2026-08-22
-**影响范围**: 管理员功能开关页面
-**用户影响**: 无，仅管理员可见
+**Modification date**: 2026-08-22
+**Scope of Impact**: Administrator function switch page
+**User Impact**: None, only visible to administrators

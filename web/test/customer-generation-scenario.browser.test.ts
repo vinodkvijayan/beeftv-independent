@@ -17,18 +17,18 @@ afterAll(async () => { for (const state of runtime.contexts.values()) state.rele
 
 async function open(scenario: CustomerGenerationScenario, options = "") {
     const { id, state } = runtime.create(scenario);
-    if (options.includes("decoy")) state.project.nodes.push({ id: "unrelated-target", type: "video" as any, title: "另一个已选节点", position: { x: 400, y: 300 }, width: 320, height: 180, metadata: { status: "idle", composerContent: "不要修改这个节点" } });
+    if (options.includes("decoy")) state.project.nodes.push({ id: "unrelated-target", type: "video" as any, title: "Another selected node", position: { x: 400, y: 300 }, width: 320, height: 180, metadata: { status: "idle", composerContent: "Do not modify this node" } });
     const context = await browser.newContext();
     await context.addCookies([{ name: "scenario", value: id, url: server.url.toString() }]);
     const page = await context.newPage();
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.goto(`${server.url}?case=${id}&scenario=${scenario}&${options}`);
-    try { await page.getByRole("button", { name: "生成视频", exact: true }).waitFor({ timeout: 5000 }); }
+    try { await page.getByRole("button", { name: "Generate video", exact: true }).waitFor({ timeout: 5000 }); }
     catch (error) { await context.close(); throw new Error(`Scenario did not render: ${errors.join("; ")}`, { cause: error }); }
     return { page, state, errors, close: async () => { state.release(); await context.close(); } };
 }
-async function start(page: Page) { await page.getByRole("button", { name: "生成视频", exact: true }).click(); }
+async function start(page: Page) { await page.getByRole("button", { name: "Generate video", exact: true }).click(); }
 async function until(predicate: () => boolean, timeout = 3500) {
     const deadline = Date.now() + timeout;
     while (!predicate() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 20));
@@ -44,19 +44,19 @@ test("copied pending video can submit independently without querying an undefine
         const source = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "original-pending"));
         expect(source.metadata.taskClientOperationId).toBe("canvas:original");
         expect(source.metadata.generationSubmissionState).toBe("unknown");
-        await page.getByRole("button", { name: "取消准备", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel preparation", exact: true }).click();
     } finally { await close(); }
 });
 
 test("missing submission identity shows a persistent reason without a lookup or a paid retry", async () => {
     const { page, state, close } = await open("five-images", "missing-submission-id&recover");
     try {
-        await page.waitForFunction(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.errorDetails.includes("缺少任务标识"));
+        await page.waitForFunction(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.errorDetails.includes("Task ID missing"));
         await start(page);
         await page.waitForFunction(() => (window as any).__customer.settled);
         expect(state.posts).toHaveLength(0);
         expect(state.lookups).toEqual([]);
-        expect(await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.generationPreflightError)).toContain("缺少任务标识");
+        expect(await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.generationPreflightError)).toContain("Task ID missing");
         expect(await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.generationSubmissionState)).toBe("unknown");
     } finally { await close(); }
 });
@@ -69,29 +69,29 @@ test("a known task without an operation id is recovered by task id without anoth
         await page.waitForFunction(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.generationSubmissionState === "accepted");
         expect(state.posts).toHaveLength(0);
         expect(state.lookups).toEqual([]);
-        await page.getByRole("button", { name: "取消准备", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel preparation", exact: true }).click();
     } finally { await close(); }
 });
 
 test("recovery creates a clean connected node only after confirmation and leaves submission to the user", async () => {
     const { page, state, close } = await open("five-images", "missing-submission-id&recover&submission-recovery-ui");
     try {
-        const actions = page.getByRole("region", { name: "生成恢复" });
+        const actions = page.getByRole("region", { name: "Build recovery" });
         await actions.waitFor();
-        await page.getByRole("button", { name: "生成", exact: true }).click();
+        await page.getByRole("button", { name: "generate", exact: true }).click();
         await page.waitForFunction(() => (window as any).__customer.settled);
         const original = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target"));
-        await actions.getByRole("button", { name: "新建节点继续" }).click();
-        let dialog = page.getByRole("dialog", { name: "新建节点继续生成？" });
+        await actions.getByRole("button", { name: "Create a new node to continue" }).click();
+        let dialog = page.getByRole("dialog", { name: "Will the new node continue to be generated?" });
         await dialog.waitFor();
-        expect(await dialog.textContent()).toContain("可能再次计费");
-        await dialog.getByRole("button", { name: "取消", exact: true }).click();
+        expect(await dialog.textContent()).toContain("May be billed again");
+        await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
         expect(await page.evaluate(() => (window as any).__customer.nodes.length)).toBe(state.project.nodes.length);
         expect(state.posts).toHaveLength(0);
-        await actions.getByRole("button", { name: "新建节点继续" }).click();
-        dialog = page.getByRole("dialog", { name: "新建节点继续生成？" });
-        await dialog.getByRole("button", { name: "新建节点", exact: true }).click();
+        await actions.getByRole("button", { name: "Create a new node to continue" }).click();
+        dialog = page.getByRole("dialog", { name: "Will the new node continue to be generated?" });
+        await dialog.getByRole("button", { name: "Create new node", exact: true }).click();
         await page.waitForFunction(() => (window as any).__customer.activeNodeId !== "target");
         const snapshot = await page.evaluate(() => { const h = (window as any).__customer; return { original: h.nodes.find((n: any) => n.id === "target"), replacement: h.nodes.find((n: any) => n.id === h.activeNodeId), connections: h.connections }; });
         expect(snapshot.original.metadata).toEqual(original.metadata);
@@ -103,20 +103,20 @@ test("recovery creates a clean connected node only after confirmation and leaves
         expect(state.posts).toHaveLength(0);
         await dialog.waitFor({ state: "hidden" });
         await actions.waitFor({ state: "hidden" });
-        await page.getByRole("button", { name: "生成", exact: true }).click();
+        await page.getByRole("button", { name: "generate", exact: true }).click();
         await until(() => state.posts.length === 1);
         expect(state.posts[0].input.metadata.nodeId).toBe(snapshot.replacement.id);
         expect(state.posts[0].input.referenceImages).toHaveLength(5);
         expect(state.lookups).toEqual([]);
-        await page.getByRole("button", { name: "取消准备", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel preparation", exact: true }).click();
     } finally { await close(); }
 }, 15000);
 
 test("missing-identity recovery opens the existing generation history without creating a node or task", async () => {
     const { page, state, close } = await open("five-images", "missing-submission-id&recover&submission-recovery-ui");
     try {
-        await page.getByRole("region", { name: "生成恢复" }).getByRole("button", { name: "查看生成历史" }).click();
-        await page.getByRole("dialog", { name: "生成历史", exact: true }).waitFor();
+        await page.getByRole("region", { name: "Build recovery" }).getByRole("button", { name: "View build history" }).click();
+        await page.getByRole("dialog", { name: "Build history", exact: true }).waitFor();
         expect(state.posts).toHaveLength(0);
         expect(state.lookups).toEqual([]);
         expect(await page.evaluate(() => (window as any).__customer.activeNodeId)).toBe("target");
@@ -127,16 +127,16 @@ test("recovery actions fit the narrow expanded editor and its confirmation remai
     const { page, state, close } = await open("five-images", "missing-submission-id&recover&submission-recovery-ui");
     try {
         await page.setViewportSize({ width: 390, height: 844 });
-        await page.getByRole("button", { name: "放大编辑提示词" }).first().click();
+        await page.getByRole("button", { name: "Enlarge editing prompt word" }).first().click();
         const editor = page.getByRole("dialog");
-        const actions = editor.getByRole("region", { name: "生成恢复" });
+        const actions = editor.getByRole("region", { name: "Build recovery" });
         await actions.waitFor();
         const geometry = await actions.evaluate(el => ({ width: el.getBoundingClientRect().width, client: el.clientWidth, scroll: el.scrollWidth }));
         expect(geometry.width).toBeLessThanOrEqual(390);
         expect(geometry.scroll).toBeLessThanOrEqual(geometry.client);
-        await actions.getByRole("button", { name: "新建节点继续" }).click();
-        const confirmation = page.getByRole("dialog", { name: "新建节点继续生成？" });
-        await confirmation.getByRole("button", { name: "取消", exact: true }).click();
+        await actions.getByRole("button", { name: "Create a new node to continue" }).click();
+        const confirmation = page.getByRole("dialog", { name: "Will the new node continue to be generated?" });
+        await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
         await confirmation.waitFor({ state: "hidden" });
         expect(state.posts).toHaveLength(0);
         expect(await page.evaluate(() => (window as any).__customer.activeNodeId)).toBe("target");
@@ -146,45 +146,45 @@ test("recovery actions fit the narrow expanded editor and its confirmation remai
 test("reference repair marks and locates invalid bindings, cancels safely, then submits only after explicit reselect", async () => {
     const { page, state, errors, close } = await open("five-images", "reference-repair-ui");
     try {
-        const issues = page.getByRole("region", { name: "需要修正的引用" });
+        const issues = page.getByRole("region", { name: "References that need correction" });
         await issues.waitFor();
         expect(await page.locator(".canvas-resource-inline-mention.is-invalid").count()).toBe(2);
         const original = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.composerContent);
-        await page.getByRole("button", { name: "生成", exact: true }).click();
+        await page.getByRole("button", { name: "generate", exact: true }).click();
         expect(state.posts).toHaveLength(0);
-        const disconnected = issues.getByRole("listitem").filter({ hasText: "未连接到当前生成节点" });
-        await disconnected.getByRole("button", { name: "定位引用" }).click();
+        const disconnected = issues.getByRole("listitem").filter({ hasText: "Not connected to current build node" });
+        await disconnected.getByRole("button", { name: "Locate reference" }).click();
         expect(await page.locator("[data-reference-located]").getAttribute("data-mention-token")).toBe("@[node:unlinked]");
-        await disconnected.getByRole("button", { name: "定位节点" }).click();
+        await disconnected.getByRole("button", { name: "Locate node" }).click();
         expect(await page.evaluate(() => (window as any).__customer.locatedNodeId)).toBe("unlinked");
-        await disconnected.getByRole("button", { name: "重新选择" }).click();
-        await page.getByRole("button", { name: "取消重新选择" }).click();
+        await disconnected.getByRole("button", { name: "Reselect" }).click();
+        await page.getByRole("button", { name: "Cancel reselect" }).click();
         expect(await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.composerContent)).toBe(original);
-        await disconnected.getByRole("button", { name: "重新选择" }).click();
+        await disconnected.getByRole("button", { name: "Reselect" }).click();
         await page.locator("[data-canvas-resource-mention-menu]").getByRole("button").filter({ hasText: "image-2" }).click();
         expect(await page.locator(".canvas-resource-inline-mention.is-invalid").count()).toBe(1);
-        await issues.getByRole("button", { name: "重新选择" }).click();
+        await issues.getByRole("button", { name: "Reselect" }).click();
         await page.locator("[data-canvas-resource-mention-menu]").getByRole("button").filter({ hasText: "image-3" }).click();
         await issues.waitFor({ state: "hidden" });
         const repaired = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.composerContent);
-        expect(repaired).toBe("保留 @[node:image-1]，参考 @[node:image-2] 和 @[node:image-3]。正文保持不变。");
+        expect(repaired).toBe("@[node:image-1] is reserved, refer to @[node:image-2] and @[node:image-3]. The text remains unchanged.");
         expect(state.posts).toHaveLength(0);
-        await page.getByRole("textbox", { name: "视频提示词" }).fill(original);
-        await page.getByRole("button", { name: "放大编辑提示词" }).first().click();
+        await page.getByRole("textbox", { name: "Video prompt words" }).fill(original);
+        await page.getByRole("button", { name: "Enlarge editing prompt word" }).first().click();
         const dialog = page.getByRole("dialog");
         await dialog.waitFor();
         expect(await page.locator("[data-canvas-resource-mention-menu]").count()).toBe(0);
-        await dialog.getByRole("button", { name: "重新选择", exact: true }).first().click();
+        await dialog.getByRole("button", { name: "Reselect", exact: true }).first().click();
         await page.locator("[data-canvas-resource-mention-menu]").waitFor();
         expect(await page.locator("[data-canvas-resource-mention-menu]").count()).toBe(1);
         expect(await page.evaluate(() => Number(getComputedStyle(document.querySelector('[data-canvas-resource-mention-menu]')!).zIndex) > Number(getComputedStyle(document.querySelector('.ant-modal-wrap')!).zIndex))).toBe(true);
         await page.locator("[data-canvas-resource-mention-menu]").getByRole("button").filter({ hasText: "image-2" }).click();
-        await dialog.getByRole("button", { name: "重新选择", exact: true }).click();
+        await dialog.getByRole("button", { name: "Reselect", exact: true }).click();
         await page.locator("[data-canvas-resource-mention-menu]").getByRole("button").filter({ hasText: "image-3" }).click();
         await dialog.getByRole("button", { name: "Close", exact: true }).click();
         await dialog.waitFor({ state: "hidden" });
         expect(await page.locator("[data-canvas-resource-mention-menu]").count()).toBe(0);
-        await page.getByRole("button", { name: "生成", exact: true }).click();
+        await page.getByRole("button", { name: "generate", exact: true }).click();
         await until(() => state.posts.length === 1);
         expect(state.posts[0].input.referenceImages).toHaveLength(5);
         expect(errors).toEqual([]);
@@ -196,27 +196,27 @@ test("reference lookup stays pending until authoritative read completes and netw
     let release!: () => void;
     const gate = new Promise<void>(resolve => { release = resolve; });
     try {
-        await page.getByRole("region", { name: "需要修正的引用" }).waitFor();
+        await page.getByRole("region", { name: "References that need correction" }).waitFor();
         await page.route("**/api/assets/batch", async route => { await gate; await route.continue(); });
-        await page.getByRole("textbox", { name: "视频提示词" }).fill("参考 @[asset:library-image]，保留正文。");
-        await page.getByRole("status").filter({ hasText: "正在检查参考素材" }).waitFor();
+        await page.getByRole("textbox", { name: "Video prompt words" }).fill("Refer to @[asset:library-image] and keep the text.");
+        await page.getByRole("status").filter({ hasText: "Checking reference material" }).waitFor();
         expect(await page.locator(".canvas-resource-inline-mention.is-invalid").count()).toBe(0);
         release();
-        await page.getByRole("status").filter({ hasText: "正在检查参考素材" }).waitFor({ state: "hidden" });
-        expect(await page.getByRole("region", { name: "需要修正的引用" }).count()).toBe(0);
-        await page.getByRole("textbox", { name: "视频提示词" }).fill("参考 @[asset:library-image]，@");
+        await page.getByRole("status").filter({ hasText: "Checking reference material" }).waitFor({ state: "hidden" });
+        expect(await page.getByRole("region", { name: "References that need correction" }).count()).toBe(0);
+        await page.getByRole("textbox", { name: "Video prompt words" }).fill("Reference @[asset:library-image], @");
         const menu = page.locator("[data-canvas-resource-mention-menu]");
         await menu.waitFor();
-        expect(await menu.locator("section").filter({ hasText: "画布节点" }).innerText()).not.toContain("library-image");
+        expect(await menu.locator("section").filter({ hasText: "canvas node" }).innerText()).not.toContain("library-image");
         await page.keyboard.press("Escape");
         await page.unroute("**/api/assets/batch");
         await page.route("**/api/assets/batch", route => route.abort("internetdisconnected"));
-        await page.getByRole("textbox", { name: "视频提示词" }).fill("参考 @[asset:library-video]，保留正文。");
-        await page.getByRole("button", { name: "重新检查" }).waitFor();
+        await page.getByRole("textbox", { name: "Video prompt words" }).fill("Refer to @[asset:library-video] and keep the text.");
+        await page.getByRole("button", { name: "recheck" }).waitFor();
         expect(await page.locator(".canvas-resource-inline-mention.is-invalid").count()).toBe(0);
         await page.unroute("**/api/assets/batch");
-        await page.getByRole("button", { name: "重新检查" }).click();
-        await page.getByRole("button", { name: "重新检查" }).waitFor({ state: "hidden" });
+        await page.getByRole("button", { name: "recheck" }).click();
+        await page.getByRole("button", { name: "recheck" }).waitFor({ state: "hidden" });
         expect(state.posts).toHaveLength(0);
         expect(errors).toEqual([]);
     } finally { release(); await close(); }
@@ -244,7 +244,7 @@ test("missing library records still block submission and preserve the previous o
         await page.waitForFunction(() => (window as any).__customer.settled);
         expect(state.posts).toHaveLength(0);
         const metadata = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata);
-        expect(metadata.generationPreflightError).toContain("素材不存在");
+        expect(metadata.generationPreflightError).toContain("Material does not exist");
         expect(metadata.storageKey).toBe("resource:previous-result");
         expect(errors).toEqual([]);
     } finally { await close(); }
@@ -259,7 +259,7 @@ test("cancelled library lookup cannot submit when the late lookup completes", as
     try {
         await start(page);
         await until(() => held);
-        await page.getByRole("button", { name: "取消准备" }).click();
+        await page.getByRole("button", { name: "Cancel preparation" }).click();
         await page.waitForFunction(() => (window as any).__customer.settled);
         const completedLookup = page.waitForResponse(response => new URL(response.url()).pathname === "/api/assets/batch");
         release();
@@ -279,7 +279,7 @@ test("long prompt submits directly so the server validates prompt length without
         expect(Array.from(state.posts[0].prompt).length).toBe(8066);
         expect(state.posts[0].input.referenceImages).toHaveLength(5);
         expect(await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target").metadata.generationPreflightError)).toBeUndefined();
-        await page.getByRole("button", { name: "取消准备", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel preparation", exact: true }).click();
         expect(errors).toEqual([]);
     } finally { await close(); }
 }, 15000);
@@ -338,14 +338,14 @@ test("customer cancellation during held character preparation creates no task an
     try {
         await start(page);
         await until(() => held, 3000);
-        await page.getByRole("button", { name: "准备期间修改画布" }).click();
-        await page.getByRole("button", { name: "取消准备" }).click();
+        await page.getByRole("button", { name: "Modify canvas during preparation" }).click();
+        await page.getByRole("button", { name: "Cancel preparation" }).click();
         release();
         await page.waitForFunction(() => (window as any).__customer.settled);
         expect(state.posts).toHaveLength(0);
         const target = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target"));
-        expect(target.title).toBe("准备期间改过的标题");
-        expect(target.metadata.composerContent).toBe("准备期间修改的新提示词");
+        expect(target.title).toBe("Title changed during preparation");
+        expect(target.metadata.composerContent).toBe("New prompt words modified during preparation");
         expect(target.metadata.storageKey).toBe("resource:previous-result");
         expect(errors).toEqual([]);
     } finally { release(); await close(); }
@@ -360,14 +360,14 @@ test("customer edits during preparation stay on canvas while submitted prompt re
     try {
         await start(page);
         await until(() => held);
-        await page.getByRole("button", { name: "准备期间修改画布" }).click();
+        await page.getByRole("button", { name: "Modify canvas during preparation" }).click();
         release();
         await until(() => state.posts.length === 1);
-        expect(state.posts[0].prompt).toContain("在画面中缓慢移动");
-        expect(state.posts[0].prompt).not.toContain("准备期间修改");
+        expect(state.posts[0].prompt).toContain("Move slowly across the screen");
+        expect(state.posts[0].prompt).not.toContain("Modifications during preparation");
         const target = await page.evaluate(() => (window as any).__customer.nodes.find((node: any) => node.id === "target"));
-        expect(target.title).toBe("准备期间改过的标题");
-        expect(target.metadata.composerContent).toBe("准备期间修改的新提示词");
+        expect(target.title).toBe("Title changed during preparation");
+        expect(target.metadata.composerContent).toBe("New prompt words modified during preparation");
         expect(target.metadata.storageKey).toBe("resource:previous-result");
         expect(errors).toEqual([]);
     } finally { release(); await close(); }
@@ -430,7 +430,7 @@ test("customer default model without server capability declaration submits five 
         expect(state.posts[0].model).toBe("synthetic::kling-v2.6");
         expect(state.posts[0].input.referenceImages).toHaveLength(5);
         expect(state.downloads).toHaveLength(0);
-        await page.getByRole("button", { name: "取消准备", exact: true }).click();
+        await page.getByRole("button", { name: "Cancel preparation", exact: true }).click();
         expect(errors).toEqual([]);
     } finally { await close(); }
 }, 15000);
@@ -459,7 +459,7 @@ for (const failure of ["connection-reset", "http-503"] as const) test(`unknown s
         expect(target.metadata.taskClientOperationId).toBe(operationId);
         expect(target.metadata.generationSubmissionState).toBe("unknown");
         expect(target.metadata.taskStatus).not.toBe("failed");
-        expect(target.metadata.taskStage).toContain("提交结果待确认");
+        expect(target.metadata.taskStage).toContain("Submit results to be confirmed");
         expect(target.metadata.storageKey).toBe("resource:previous-result");
         const saved = state.project.nodes.find(node => node.id === "target")!;
         expect(saved.metadata?.taskClientOperationId).toBe(operationId);
@@ -488,7 +488,7 @@ for (const failure of ["connection-reset", "http-503"] as const) test(`unknown s
         expect(target.metadata.taskStatus).toBe("running");
         expect(target.metadata.status).toBe("loading");
         expect(nodes.find((node: any) => node.id === "unrelated-target").metadata.taskId).toBeUndefined();
-        expect(nodes.find((node: any) => node.id === "unrelated-target").metadata.composerContent).toBe("不要修改这个节点");
+        expect(nodes.find((node: any) => node.id === "unrelated-target").metadata.composerContent).toBe("Do not modify this node");
         expect(state.posts).toHaveLength(1);
         expect(errors).toEqual([]);
     } finally { await close(); }
@@ -501,12 +501,12 @@ test("reference preparation appears in its video node and closes when the suppli
     await page.route("**/api/projects/synthetic-domain/characters/character-asset", async route => { await gate; await route.continue(); });
     try {
         await start(page);
-        const progress = page.getByRole("region", { name: "视频节点" }).getByRole("status", { name: "正在准备参考素材", exact: true });
+        const progress = page.getByRole("region", { name: "video node" }).getByRole("status", { name: "Preparing reference materials", exact: true });
         await progress.waitFor();
-        expect(await page.getByText("正在准备参考素材…", { exact: true }).count()).toBe(0);
+        expect(await page.getByText("Preparing reference material...", { exact: true }).count()).toBe(0);
         release();
         await until(() => state.posts.length === 1);
-        await page.waitForFunction(() => document.querySelector("output")?.textContent === "供应商处理中");
+        await page.waitForFunction(() => document.querySelector("output")?.textContent === "Supplier is processing");
         await progress.waitFor({ state: "hidden", timeout: 1500 });
     } finally { release(); await close(); }
 }, 15000);

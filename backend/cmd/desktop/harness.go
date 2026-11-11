@@ -77,7 +77,7 @@ func handleHarnessCommand(args []string) (bool, error) {
 		return true, json.NewEncoder(os.Stdout).Encode(config)
 	}
 	if *attachOnly {
-		return true, errors.New("本机 BeefTV 尚未就绪，请先启动桌面应用")
+		return true, errors.New("The local BeefTV is not ready yet, please start the desktop application first")
 	}
 	// Readiness is the only stdout record. Backend diagnostics belong on stderr.
 	gin.DefaultWriter = os.Stderr

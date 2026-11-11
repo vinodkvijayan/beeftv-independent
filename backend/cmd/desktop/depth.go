@@ -16,7 +16,7 @@ func (a *DesktopApp) depthComponents() (*depthcapture.Service, error) {
 	defer a.mu.RUnlock()
 	runtime := a.runtime()
 	if runtime == nil || a.migrating || a.closing {
-		return nil, errors.New("工作区正在关闭或迁移，请稍后重试")
+		return nil, errors.New("The workspace is being shut down or migrated, please try again later")
 	}
 	return runtime.DepthComponents(), nil
 }

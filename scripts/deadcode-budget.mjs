@@ -78,7 +78,7 @@ function analyze(binary) {
 function readBaseline() {
   if (!existsSync(baselinePath)) {
     if (update) return null;
-    throw new Error(`缺少基线文件 ${path.relative(root, baselinePath)}，先运行 node scripts/deadcode-budget.mjs --update 生成它`);
+    throw new Error(`Missing baseline file${path.relative(root, baselinePath)}, first run node scripts/deadcode-budget.mjs --update to generate it`);
   }
   return [...new Set(readFileSync(baselinePath, 'utf8').split('\n').filter(Boolean))].sort();
 }
@@ -87,17 +87,17 @@ let current;
 try {
   const binary = deadcodeBinary();
   const analysis = analyze(binary);
-  console.log(`各平台死代码数：${analysis.counts}；三平台交集 ${analysis.entries.length} 项。`);
+  console.log(`Number of dead codes per platform:${analysis.counts};Intersection of three platforms${analysis.entries.length} item.`);
   current = analysis.entries;
 } catch (error) {
-  console.error(`运行 go tool deadcode 失败：${error.message}`);
+  console.error(`Running go tool deadcode fails:${error.message}`);
   process.exit(1);
 }
 
 const baseline = readBaseline();
 if (baseline === null) {
   writeFileSync(baselinePath, `${current.join('\n')}\n`);
-  console.log(`基线已生成：${current.length} 项。`);
+  console.log(`Baseline generated:${current.length} item.`);
   process.exit(0);
 }
 const baselineSet = new Set(baseline);
@@ -107,27 +107,27 @@ const gone = baseline.filter((entry) => !currentSet.has(entry));
 
 if (update) {
   if (added.length > 0) {
-    console.error('当前结果含基线外的新死代码，拒绝更新基线：');
+    console.error('The current result contains new dead code outside the baseline, and the baseline is refused to be updated:');
     for (const entry of added) console.error(`  ${entry}`);
-    console.error('删掉它，或移到 _test.go，再重新运行 --update。');
+    console.error('Delete it, or move it to _test.go and run --update again.');
     process.exit(1);
   }
   writeFileSync(baselinePath, `${current.join('\n')}\n`);
-  console.log(`基线已收紧：${baseline.length} → ${current.length} 项。`);
+  console.log(`The baseline has been tightened:${baseline.length} → ${current.length} item.`);
   process.exit(0);
 }
 
 if (added.length > 0) {
-  console.error(`发现 ${added.length} 项基线里没有的死代码：`);
+  console.error(`discover${added.length} Dead code that is not included in the baseline:`);
   for (const entry of added) console.error(`  ${entry}`);
-  console.error('删掉它，或移到 _test.go。');
+  console.error('Delete it, or move it to _test.go.');
   process.exit(1);
 }
 
 if (gone.length > 0) {
-  console.log(`变好了：基线里有 ${gone.length} 项已经不存在：`);
+  console.log(`Better: There is in the baseline${gone.length} Item no longer exists:`);
   for (const entry of gone) console.log(`  ${entry}`);
-  console.log('运行 node scripts/deadcode-budget.mjs --update 收紧基线。');
+  console.log('Run node scripts/deadcode-budget.mjs --update to tighten the baseline.');
 }
 
-console.log(`死代码检查通过：当前 ${current.length} 项，基线 ${baseline.length} 项。`);
+console.log(`Dead code check passed: currently${current.length} item, baseline${baseline.length} item.`);

@@ -111,11 +111,11 @@ func (s *Service) ProjectUnitWorkspace(userID string, projectID string, unitID s
 	for _, reference := range shotReferences {
 		version, exists := versionByID[reference.AssetVersionID]
 		if !exists {
-			return UnitWorkspace{}, kernel.BadAuthRequest("镜头引用的资产版本不可用")
+			return UnitWorkspace{}, kernel.BadAuthRequest("The asset version referenced by the shot is not available")
 		}
 		asset, exists := assetByID[version.AssetID]
 		if !exists {
-			return UnitWorkspace{}, kernel.BadAuthRequest("镜头引用的项目资产不可用")
+			return UnitWorkspace{}, kernel.BadAuthRequest("The project asset referenced by the shot is not available")
 		}
 		representations := representationsByVersionID[version.ID]
 		if representations == nil {

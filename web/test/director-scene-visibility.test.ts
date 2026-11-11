@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { createDirectorScene, toggleDirectorObjectVisibility } from "../src/lib/canvas/director/director-scene";
 
-describe("导演台场景列表可见性", () => {
-    test("隐藏与恢复只改变目标对象，保留列表中的对象和其他场景数据", () => {
+describe("Director's desk scene list visibility", () => {
+    test("Hide and restore only change the target object, retaining the objects in the list and other scene data", () => {
         const scene = createDirectorScene();
         const target = scene.objects[0];
         const hidden = toggleDirectorObjectVisibility(scene, target.id);
@@ -13,7 +13,7 @@ describe("导演台场景列表可见性", () => {
         expect(toggleDirectorObjectVisibility(hidden, target.id).objects[0].visible).toBe(true);
     });
 
-    test("对象不存在时不创建无效历史变更", () => {
+    test("Do not create invalid historical changes when the object does not exist", () => {
         const scene = createDirectorScene();
         expect(toggleDirectorObjectVisibility(scene, "missing")).toBe(scene);
     });

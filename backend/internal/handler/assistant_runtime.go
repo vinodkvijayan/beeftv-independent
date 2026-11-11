@@ -14,7 +14,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 	registerAssistantRuntimeSkillContextRoutes(r, svc)
 	handle := func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) || !isAssistantHostRequest(c, svc) {
-			fail(c, http.StatusForbidden, app.Forbidden("仅内置助手宿主可以恢复或结束任务"))
+			fail(c, http.StatusForbidden, app.Forbidden("Only built-in helper hosts can resume or end tasks"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -24,7 +24,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 		}
 		state, err := svc.AssistantTurns().RuntimeState(user.ID, c.Param("turnId"))
 		if err != nil {
-			fail(c, http.StatusForbidden, app.Forbidden("任务不可恢复"))
+			fail(c, http.StatusForbidden, app.Forbidden("Task is not recoverable"))
 			return
 		}
 		if c.Request.Method == http.MethodPost {
@@ -39,7 +39,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 
 	r.POST("/assistant/runtime/turns/:turnId/bind-session", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) || !isAssistantHostRequest(c, svc) {
-			fail(c, http.StatusForbidden, app.Forbidden("仅内置助手宿主可以绑定会话"))
+			fail(c, http.StatusForbidden, app.Forbidden("Only built-in helper hosts can bind sessions"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -56,7 +56,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 		decoder := json.NewDecoder(io.LimitReader(c.Request.Body, 8192))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&body) != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("会话绑定参数无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Invalid session binding parameter"))
 			return
 		}
 		if err := svc.AssistantTurns().BindDurableSession(user.ID, c.Param("turnId"), body.SessionID, body.Historical); err != nil {
@@ -73,7 +73,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 	})
 	r.POST("/assistant/runtime/turns/:turnId/native-rehydrate", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) || !isAssistantHostRequest(c, svc) {
-			fail(c, http.StatusForbidden, app.Forbidden("仅内置助手宿主可以恢复历史素材"))
+			fail(c, http.StatusForbidden, app.Forbidden("Only the built-in assistant host can restore historical materials"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -89,7 +89,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 		decoder := json.NewDecoder(io.LimitReader(c.Request.Body, 8192))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&body) != nil || body.Source.Version == "" || body.Source.ResourceID == "" {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("历史素材参数无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Historical material parameters are invalid"))
 			return
 		}
 		result, err := svc.RevalidateAssistantNativeSource(c.Request.Context(), user.ID, c.Param("turnId"), body.OriginTurnID, body.SessionID, body.Source)
@@ -101,7 +101,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 	})
 	r.POST("/assistant/runtime/turns", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) || !isAssistantHostRequest(c, svc) {
-			fail(c, http.StatusForbidden, app.Forbidden("仅内置助手宿主可以开启任务"))
+			fail(c, http.StatusForbidden, app.Forbidden("Only built-in assistant hosts can start tasks"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -118,7 +118,7 @@ func registerAssistantRuntimeRoutes(r gin.IRouter, svc *app.Service) {
 		decoder := json.NewDecoder(io.LimitReader(c.Request.Body, 8192))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&body) != nil || body.TurnID == "" || body.CanvasID == "" {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("任务启动参数无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Invalid task startup parameters"))
 			return
 		}
 		mode := body.PermissionMode

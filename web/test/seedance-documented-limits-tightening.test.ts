@@ -18,7 +18,7 @@ function backendTightenedProfile(model: string, mutate: (config: ModelCapability
     return modelCapabilityConfigFor({ channels: [channel] }, `test::${model}`).video!;
 }
 
-test("normalizeModelCapabilityDraft 请求后端能力规范化接口并返回收紧后的 capabilityConfig", async () => {
+test("normalizeModelCapabilityDraft requests the backend capability normalization interface and returns the tightened capabilityConfig", async () => {
     const originalPost = http.post;
     let capturedUrl = "";
     let capturedBody: unknown = null;

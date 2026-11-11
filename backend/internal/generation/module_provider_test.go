@@ -213,7 +213,7 @@ func TestReadingModelsOfAPluginChannelAsksThePlugin(t *testing.T) {
 	for _, item := range items {
 		got = append(got, item.ID+"|"+item.DisplayName+"|"+item.ModelType)
 	}
-	if strings.Join(got, ",") != "portrait.app.json|人像|image,clip.app.json||video" {
+	if strings.Join(got, ",") != "portrait.app.json|portrait|image,clip.app.json||video" {
 		t.Fatalf("items = %v", got)
 	}
 

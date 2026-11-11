@@ -14,7 +14,7 @@ export function failNextTask(state, reason = 'generation_provider_failed', nodeI
   state.nextTaskFailures.push({ reason: String(reason), nodeId: nodeId ? String(nodeId) : null });
 }
 
-export function flagNextTaskDefect(state, defectNote = '内容与提示词不符', nodeId = null) {
+export function flagNextTaskDefect(state, defectNote = 'The content does not match the prompt word', nodeId = null) {
   state.nextTaskDefects.push({ defectNote: String(defectNote), nodeId: nodeId ? String(nodeId) : null });
 }
 
@@ -37,7 +37,7 @@ function normalizeTaskTiming(timing = {}) {
     if (timing[key] === undefined || timing[key] === null) continue;
     const ms = Number(timing[key]);
     if (!Number.isFinite(ms) || ms < 0) {
-      throw invalidArg('invalid_task_timing', `${key} 必须是非负毫秒数`);
+      throw invalidArg('invalid_task_timing', `${key} Must be a non-negative number of milliseconds`);
     }
     out[key] = Math.floor(ms);
   }
@@ -46,7 +46,7 @@ function normalizeTaskTiming(timing = {}) {
 
 export function setTaskTiming(state, canvasId, timing = {}) {
   const id = String(canvasId || '').trim();
-  if (!id) throw invalidArg('invalid_params', 'canvasId 必填');
+  if (!id) throw invalidArg('invalid_params', 'canvasId required');
   ensureCanvas(state, id);
   const normalized = normalizeTaskTiming(timing);
   state.taskTimings.set(id, normalized);
@@ -327,7 +327,7 @@ export async function waitForTaskIds(state, ids, timeoutMs) {
 
 export async function waitForTasks(state, taskIds, timeoutMs = 25000) {
   const ids = (Array.isArray(taskIds) ? taskIds : [taskIds]).map(String).filter(Boolean).slice(0, 8);
-  if (ids.length === 0) throw invalidArg('invalid_params', 'taskIds 必填');
+  if (ids.length === 0) throw invalidArg('invalid_params', 'taskIds required');
   const current = await waitForTaskIds(state, ids, timeoutMs);
   const pending = current.some((task) => task.status === 'running');
   return { tasks: current.map(taskView), pending, timedOut: pending };
@@ -338,7 +338,7 @@ export const TASK_OPS = {
     // 真正等待发生在 HTTP 层（executeHttpOp）；这里只返回调用瞬间的快照，
     // 方便直接调用 executeOp 的测试和工具清单。
     const ids = taskWaitIds(rawParams);
-    if (ids.length === 0) throw invalidArg('invalid_params', 'taskId 或 taskIds 必填');
+    if (ids.length === 0) throw invalidArg('invalid_params', 'taskId or taskIds required');
     const current = ids.map((id) => state.tasks.get(id)).filter(Boolean);
     const pending = current.some((task) => task.status === 'running');
     return {
@@ -350,9 +350,9 @@ export const TASK_OPS = {
   },
   'task.get': (state, rawParams) => {
     const taskId = String(rawParams.taskId || '').trim();
-    if (!taskId) throw invalidArg('invalid_params', 'taskId 必填');
+    if (!taskId) throw invalidArg('invalid_params', 'taskId required');
     const task = state.tasks.get(taskId);
-    if (!task) throw notFound('task_not_found', '任务不存在');
+    if (!task) throw notFound('task_not_found', 'Task does not exist');
     return {
       taskId: task.id,
       type: task.type,

@@ -164,9 +164,9 @@ describe("canvas custom appearance", () => {
     test("does not expose background opacity after legacy values are ignored", async () => {
         const controlsSource = await Bun.file(new URL("../src/components/canvas/canvas-appearance-controls.tsx", import.meta.url)).text();
         expect(controlsSource).toContain('const DARK_PRESETS = ["#000000"');
-        expect(controlsSource).not.toContain('label="背景透明度"');
-        expect(controlsSource).toContain("深色界面");
-        expect(controlsSource).toContain('label="网格强度"');
+        expect(controlsSource).not.toContain('label="background transparency"');
+        expect(controlsSource).toContain("Dark interface");
+        expect(controlsSource).toContain('label="grid strength"');
     });
 
     test("stores defaults locally with the active account scope", () => {

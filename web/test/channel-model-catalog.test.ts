@@ -19,7 +19,7 @@ import { createModelChannel, defaultConfig, modelDisplayName, normalizeConfigSna
 const originalAxiosRequest = axios.request;
 const originalApiRequest = apiClient.request;
 
-test("陌生图片ID刷新服务端能力后可选，保留零文件上限和新增质量", () => {
+test("Unfamiliar picture ID is optional after refreshing the server capabilities, retaining the zero file limit and new quality", () => {
     const model = "opaque-future-2030";
     const channel = createModelChannel({ id: "beeftv", baseUrl: "https://beeftv.app", credentialRef: "beeftv", models: [model] });
     const image = defaultModelCapabilityConfig("openai-image", model).image!;
@@ -42,7 +42,7 @@ test("陌生图片ID刷新服务端能力后可选，保留零文件上限和新
     expect(channel.modelProfiles[0]!.capabilityConfig!.image).toEqual(changed);
 });
 
-test("官方GPT图片旧默认配置升级质量和21:9尺寸，保留显式限制与第三方配置", () => {
+test("The old default configuration of official GPT images has upgraded quality and 21:9 size, retaining explicit restrictions and third-party configurations", () => {
     const model = "gpt-image-2.5-flare";
     const legacy = defaultModelCapabilityConfig("openai-image", "gpt-image-2");
     legacy.image!.quality = { supported: true, values: ["auto", "low", "medium", "high"], default: "auto" };
@@ -145,8 +145,8 @@ describe("public channel model catalog", () => {
         expect(requests[1]?.data).toMatchObject({ baseUrl: "https://manual.example", apiKey: "synthetic-local" });
     });
     test("backend catalogue authentication failure keeps its actionable message", async () => {
-        apiClient.request = (async () => ({ status: 502, data: { code: 502, data: null, msg: "模型服务鉴权失败，请检查 API Key", reason: "bad_gateway" } })) as typeof apiClient.request;
-        await expect(fetchChannelModels(createModelChannel({ apiKey: "synthetic-invalid" }), true)).rejects.toThrow("模型服务鉴权失败，请检查 API Key");
+        apiClient.request = (async () => ({ status: 502, data: { code: 502, data: null, msg: "Model service authentication failed, please check the API Key", reason: "bad_gateway" } })) as typeof apiClient.request;
+        await expect(fetchChannelModels(createModelChannel({ apiKey: "synthetic-invalid" }), true)).rejects.toThrow("Model service authentication failed, please check the API Key");
     });
     test("direct discovery forwards custom headers for OpenAI and Gemini", async () => {
         const requests: Array<Record<string, unknown>> = [];
@@ -239,7 +239,7 @@ describe("public channel model catalog", () => {
     test("preserves explicit custom-channel profiles on speech-named and ASR-named models", () => {
         const channel = createModelChannel({
             id: "studio",
-            name: "工作室渠道",
+            name: "studio channels",
             baseUrl: "https://api.example.com",
             models: ["speech-helper", "hy-asr-3.0-preview", "classr-notes"],
             modelProfiles: [
@@ -280,7 +280,7 @@ describe("public channel model catalog", () => {
         const profile = defaultModelCapabilityConfig("autodl-comfyui", "minimax_h3_zm_u24", [
             {
                 value: "autodl-comfyui",
-                label: "AutoDL ComfyUI 视频",
+                label: "AutoDL ComfyUI Video",
                 capability: "video",
                 create: "POST /api/v1/comfyui/comfyui_workflow/{{model}}",
                 contentType: "application/json",
@@ -288,15 +288,15 @@ describe("public channel model catalog", () => {
                 workflows: [
                     {
                         id: "minimax_h3_zm_u24",
-                        label: "H3 ZM U24 多参考视频",
+                        label: "H3 ZM U24 multiple reference video",
                         providerId: "autodl-comfyui",
                         capability: "video",
                         parameters: [
                             { name: "prompt", type: "string", required: true, mapping: "prompt" },
-                            { name: "duration", type: "integer", mapping: "duration", min: 1, max: 15, description: "视频时长 1~15 秒" },
-                            { name: "resolution", type: "string", mapping: "resolution", values: ["480p竖", "768p竖", "480p横", "768p横", "480p(1:1)", "768p(1:1)"] },
+                            { name: "duration", type: "integer", mapping: "duration", min: 1, max: 15, description: "Video duration 1~15 seconds" },
+                            { name: "resolution", type: "string", mapping: "resolution", values: ["480p vertical", "768p vertical", "480p horizontal", "768p horizontal", "480p(1:1)", "768p(1:1)"] },
                         ],
-                        defaults: { duration: 5, resolution: "768p竖" },
+                        defaults: { duration: 5, resolution: "768p vertical" },
                     },
                 ],
             },
@@ -304,8 +304,8 @@ describe("public channel model catalog", () => {
 
         expect(profile.ratios).toEqual([]);
         expect(profile.defaultRatio).toBe("");
-        expect(profile.resolutions).toEqual(["480p竖", "768p竖", "480p横", "768p横", "480p(1:1)", "768p(1:1)"]);
-        expect(profile.defaultResolution).toBe("768p竖");
+        expect(profile.resolutions).toEqual(["480p vertical", "768p vertical", "480p horizontal", "768p horizontal", "480p(1:1)", "768p(1:1)"]);
+        expect(profile.defaultResolution).toBe("768p vertical");
         expect(profile.duration).toEqual({ selection: "range", min: 1, max: 15, step: 1, default: 5 });
     });
 
@@ -576,7 +576,7 @@ describe("public channel model catalog", () => {
 
         expect(summaryHtml).toContain("1080P · 10s");
         expect(summaryHtml).not.toContain("16:9");
-        expect(panelHtml).not.toContain("尺寸");
+        expect(panelHtml).not.toContain("Size");
     });
 
     test("shows dimensions derived from the selected video resolution and ratio", () => {
@@ -603,7 +603,7 @@ describe("public channel model catalog", () => {
     test("builds the creation catalog only from public backend models and user channels", () => {
         const platform = createModelChannel({
             id: "public-logical-models",
-            name: "平台模型",
+            name: "platform model",
             scope: "system",
             apiKey: "system",
             models: ["frontend-image"],
@@ -611,7 +611,7 @@ describe("public channel model catalog", () => {
         });
         const custom = createModelChannel({
             id: "custom-channel",
-            name: "我的渠道",
+            name: "my channels",
             baseUrl: "https://custom.example.com",
             apiKey: "synthetic-test-key",
             models: ["custom-image-v1"],
@@ -619,7 +619,7 @@ describe("public channel model catalog", () => {
         const normalized = normalizeConfigSnapshot({
             config: {
                 ...defaultConfig,
-                channels: [platform, custom, createModelChannel({ id: "default", name: "默认渠道", apiKey: "", models: ["gpt-image-2"] })],
+                channels: [platform, custom, createModelChannel({ id: "default", name: "Default channel", apiKey: "", models: ["gpt-image-2"] })],
                 models: ["default::gpt-image-2", "ghost-image"],
                 imageModels: ["default::gpt-image-2", "ghost-image"],
                 imageModel: "default::gpt-image-2",
@@ -699,7 +699,7 @@ describe("public channel model catalog", () => {
         expect(profiles.find((p) => p.model === "custom-vid-pro")?.videoPricing).toEqual(pricing);
     });
 
-    test("hasDeclaredModelCapability 仅把带真实 capabilityConfig 的 user 标记视为用户显式限制", () => {
+    test("hasDeclaredModelCapability only treats user tags with a real capabilityConfig as explicit user restrictions", () => {
         const channel = createModelChannel({
             id: "byok-custom",
             baseUrl: "https://gateway.example.com/v1",

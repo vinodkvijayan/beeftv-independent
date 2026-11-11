@@ -272,14 +272,14 @@ func overlayOfficialSeedance2References(base VideoReferenceConfig, is25 bool) Vi
 
 func validateVideoReferenceMedia(profile *VideoCapabilityConfig, input TaskInput) error {
 	if profile == nil {
-		return kernel.BadAuthRequest("当前视频模型能力参数无效")
+		return kernel.BadAuthRequest("The current video model capability parameter is invalid")
 	}
 	if videoTaskOperation(profile, input) == "draft_to_final" {
 		if metadataString(input.Metadata, "videoDraftTaskId") == "" {
-			return kernel.BadAuthRequest("高清成片需要关联已完成的有声样片任务 ID")
+			return kernel.BadAuthRequest("The high-definition film needs to be associated with the completed audio sample task ID")
 		}
 		if len(input.ReferenceImages) > 0 || len(input.ReferenceVideos) > 0 || len(input.ReferenceAudios) > 0 {
-			return kernel.BadAuthRequest("样片转高清成片直接复用原样片设定，不能再附加参考图片、视频或音频")
+			return kernel.BadAuthRequest("Converting a sample to high-definition directly reuses the original sample settings, and no reference pictures, videos or audios can be added.")
 		}
 		return nil
 	}
@@ -294,7 +294,7 @@ func validateVideoReferenceMedia(profile *VideoCapabilityConfig, input TaskInput
 		return err
 	}
 	if !videoCapabilityAllowsAudioOnly(profile) && len(input.ReferenceAudios) > 0 && len(input.ReferenceImages) == 0 && len(input.ReferenceVideos) == 0 {
-		return kernel.BadAuthRequest("当前视频模型不支持只用音频生成视频，请同时添加参考图片或参考视频")
+		return kernel.BadAuthRequest("The current video model does not support generating video using audio only. Please also add reference pictures or reference videos.")
 	}
 	if input.DeferReferenceMetadata {
 		return nil
@@ -312,56 +312,56 @@ func validateVideoReferenceMedia(profile *VideoCapabilityConfig, input TaskInput
 		}
 	}
 	if maximum := refs.MaxVideoTotalDuration; maximum > 0 && totalVideoMs > int64(maximum)*1000 {
-		return kernel.BadAuthRequest(fmt.Sprintf("参考视频总时长为 %.2f 秒，当前模型最多支持 %d 秒；请裁剪或减少参考视频后再提交", float64(totalVideoMs)/1000, maximum))
+		return kernel.BadAuthRequest(fmt.Sprintf("The total duration of the reference video is %.2f seconds, and the current model supports up to %d seconds; please crop or reduce the reference video before submitting", float64(totalVideoMs)/1000, maximum))
 	}
 	var totalAudioMs int64
 	for index, media := range input.ReferenceAudios {
-		if err := validateReferenceDurationUnlessOpaqueAsset("音频", index, media, refs.MinAudioDuration, float64(refs.MaxAudioDuration)); err != nil {
+		if err := validateReferenceDurationUnlessOpaqueAsset("Audio", index, media, refs.MinAudioDuration, float64(refs.MaxAudioDuration)); err != nil {
 			return err
 		}
-		if err := validateReferenceFileBytes("音频", index, media.Bytes, refs.MaxAudioBytes); err != nil {
+		if err := validateReferenceFileBytes("Audio", index, media.Bytes, refs.MaxAudioBytes); err != nil {
 			return err
 		}
 		totalAudioMs += media.DurationMs
 	}
 	if maximum := refs.MaxAudioTotalDuration; maximum > 0 && totalAudioMs > int64(maximum)*1000 {
-		return kernel.BadAuthRequest(fmt.Sprintf("参考音频总时长为 %.2f 秒，当前模型最多支持 %d 秒；请裁剪或减少参考音频后再提交", float64(totalAudioMs)/1000, maximum))
+		return kernel.BadAuthRequest(fmt.Sprintf("The total duration of the reference audio is %.2f seconds, and the current model supports up to %d seconds; please crop or reduce the reference audio before submitting", float64(totalAudioMs)/1000, maximum))
 	}
 	return nil
 }
 
 func validateVideoReferenceImage(refs VideoReferenceConfig, index int, media MediaRef) error {
-	if err := validateReferenceFileBytes("图", index, media.Bytes, refs.MaxImageBytes); err != nil {
+	if err := validateReferenceFileBytes("Figure", index, media.Bytes, refs.MaxImageBytes); err != nil {
 		return err
 	}
-	return validateReferenceGeometry("图", index, media.Width, media.Height, refs.MinImageWidth, refs.MaxImageWidth, refs.MinImageHeight, refs.MaxImageHeight, refs.MinImageAspect, refs.MaxImageAspect, refs.MinImagePixels, refs.MaxImagePixels)
+	return validateReferenceGeometry("Figure", index, media.Width, media.Height, refs.MinImageWidth, refs.MaxImageWidth, refs.MinImageHeight, refs.MaxImageHeight, refs.MinImageAspect, refs.MaxImageAspect, refs.MinImagePixels, refs.MaxImagePixels)
 }
 
 func validateVideoReferenceVideo(refs VideoReferenceConfig, index int, media MediaRef) error {
-	if err := validateReferenceDurationUnlessOpaqueAsset("视频", index, media, float64(refs.MinVideoDuration), float64(refs.MaxVideoDuration)); err != nil {
+	if err := validateReferenceDurationUnlessOpaqueAsset("video", index, media, float64(refs.MinVideoDuration), float64(refs.MaxVideoDuration)); err != nil {
 		return err
 	}
-	if err := validateReferenceFileBytes("视频", index, media.Bytes, refs.MaxVideoBytes); err != nil {
+	if err := validateReferenceFileBytes("video", index, media.Bytes, refs.MaxVideoBytes); err != nil {
 		return err
 	}
 	if refs.MinVideoPixels > 0 && (media.Width <= 0 || media.Height <= 0) && !opaqueVideoAssetPattern.MatchString(strings.TrimSpace(media.URL)) {
-		return kernel.BadAuthRequest(fmt.Sprintf("第 %d 个参考视频尺寸无法读取，请重新导入素材后再提交", index+1))
+		return kernel.BadAuthRequest(fmt.Sprintf("The %d reference video size cannot be read, please re-import the material before submitting.", index+1))
 	}
-	return validateReferenceGeometry("视频", index, media.Width, media.Height, refs.MinVideoWidth, refs.MaxVideoWidth, refs.MinVideoHeight, refs.MaxVideoHeight, refs.MinVideoAspect, refs.MaxVideoAspect, refs.MinVideoPixels, refs.MaxVideoPixels)
+	return validateReferenceGeometry("video", index, media.Width, media.Height, refs.MinVideoWidth, refs.MaxVideoWidth, refs.MinVideoHeight, refs.MaxVideoHeight, refs.MinVideoAspect, refs.MaxVideoAspect, refs.MinVideoPixels, refs.MaxVideoPixels)
 }
 
 func validateReferenceFileBytes(kind string, index int, bytes, maximum int64) error {
 	if maximum <= 0 || bytes <= 0 || bytes <= maximum {
 		return nil
 	}
-	unit := "张"
-	if kind != "图" {
-		unit = "个"
-		if kind == "音频" {
-			unit = "段"
+	unit := "images"
+	if kind != "Figure" {
+		unit = "items"
+		if kind == "Audio" {
+			unit = "clips"
 		}
 	}
-	return kernel.BadAuthRequest(fmt.Sprintf("第 %d %s参考%s文件过大，当前模型单文件上限为 %s；请压缩或更换后再提交", index+1, unit, kind, formatMediaByteLimit(maximum)))
+	return kernel.BadAuthRequest(fmt.Sprintf("The reference %s file of %d %s is too large. The upper limit of the current model single file is %s; please compress or replace it before submitting.", index+1, unit, kind, formatMediaByteLimit(maximum)))
 }
 
 func validateReferenceDurationUnlessOpaqueAsset(kind string, index int, media MediaRef, minimum, maximum float64) error {
@@ -375,34 +375,34 @@ func validateReferenceGeometry(kind string, index, width, height, minWidth, maxW
 	if width <= 0 || height <= 0 {
 		return nil
 	}
-	unit := "张"
-	if kind != "图" {
-		unit = "个"
+	unit := "images"
+	if kind != "Figure" {
+		unit = "items"
 	}
-	label := fmt.Sprintf("第 %d %s参考%s", index+1, unit, kind)
+	label := fmt.Sprintf("No. %d %s Reference %s", index+1, unit, kind)
 	if minWidth > 0 && width < minWidth || maxWidth > 0 && width > maxWidth {
-		return kernel.BadAuthRequest(fmt.Sprintf("%s宽度为 %d 像素，需要 %s 像素；请调整尺寸或更换后再提交", label, width, referenceBound(float64(minWidth), float64(maxWidth))))
+		return kernel.BadAuthRequest(fmt.Sprintf("%s width is %d pixels and requires %s pixels; please adjust the size or replace before submitting", label, width, referenceBound(float64(minWidth), float64(maxWidth))))
 	}
 	if minHeight > 0 && height < minHeight || maxHeight > 0 && height > maxHeight {
-		return kernel.BadAuthRequest(fmt.Sprintf("%s高度为 %d 像素，需要 %s 像素；请调整尺寸或更换后再提交", label, height, referenceBound(float64(minHeight), float64(maxHeight))))
+		return kernel.BadAuthRequest(fmt.Sprintf("The height of %s is %d pixels and requires %s pixels; please adjust the size or replace before submitting.", label, height, referenceBound(float64(minHeight), float64(maxHeight))))
 	}
 	aspect := float64(width) / float64(height)
 	if minAspect > 0 && aspect < minAspect || maxAspect > 0 && aspect > maxAspect {
-		return kernel.BadAuthRequest(fmt.Sprintf("%s宽高比为 %.2f，需要 %s；请调整尺寸或更换后再提交", label, aspect, referenceBound(minAspect, maxAspect)))
+		return kernel.BadAuthRequest(fmt.Sprintf("%s aspect ratio is %.2f, requiring %s; please adjust the size or replace before submitting", label, aspect, referenceBound(minAspect, maxAspect)))
 	}
 	pixels := int64(width) * int64(height)
 	if minPixels > 0 && pixels < minPixels || maxPixels > 0 && pixels > maxPixels {
-		return kernel.BadAuthRequest(fmt.Sprintf("%s像素总量为 %d（%d×%d），需要 %s 像素；请调整这份素材的尺寸或更换原文件，修改生成分辨率不会改变参考素材", label, pixels, width, height, referenceBound(float64(minPixels), float64(maxPixels))))
+		return kernel.BadAuthRequest(fmt.Sprintf("The total amount of %s pixels is %d (%d × %d), which requires %s pixels; please adjust the size of this material or replace the original file. Modifying the generated resolution will not change the reference material.", label, pixels, width, height, referenceBound(float64(minPixels), float64(maxPixels))))
 	}
 	return nil
 }
 
 func referenceBound(min, max float64) string {
 	if min <= 0 {
-		return "不超过 " + formatDurationBound(max)
+		return "no more than" + formatDurationBound(max)
 	}
 	if max <= 0 {
-		return "至少 " + formatDurationBound(min)
+		return "at least" + formatDurationBound(min)
 	}
 	return formatDurationBound(min) + "–" + formatDurationBound(max)
 }
@@ -411,7 +411,7 @@ func formatMediaByteLimit(bytes int64) string {
 	if bytes%(1024*1024) == 0 {
 		return fmt.Sprintf("%dMB", bytes/(1024*1024))
 	}
-	return fmt.Sprintf("%d 字节", bytes)
+	return fmt.Sprintf("%d bytes", bytes)
 }
 
 func formatDurationBound(value float64) string {

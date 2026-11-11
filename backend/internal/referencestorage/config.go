@@ -49,11 +49,11 @@ func Load(dir string) (Config, error) {
 		EncryptedConfig string `json:"encryptedConfig"`
 	}
 	if err = json.Unmarshal(body, &envelope); err != nil || envelope.EncryptedConfig == "" {
-		return Config{}, errors.New("对象存储配置损坏")
+		return Config{}, errors.New("Corrupt object storage configuration")
 	}
 	plain, err := localcrypto.Decrypt(dir, envelope.EncryptedConfig)
 	if err != nil {
-		return Config{}, errors.New("对象存储配置无法解密")
+		return Config{}, errors.New("Object storage configuration cannot be decrypted")
 	}
 	var config Config
 	err = json.Unmarshal([]byte(plain), &config)
@@ -64,13 +64,13 @@ func Save(dir string, config Config) (PublicConfig, error) {
 	previous, err := Load(dir)
 	if err != nil {
 		if config.Enabled && strings.TrimSpace(config.SecretAccessKey) == "" {
-			return PublicConfig{}, errors.New("原对象存储配置无法读取，请重新填写 Secret Key 后保存")
+			return PublicConfig{}, errors.New("The original object storage configuration cannot be read, please refill the Secret Key and save it.")
 		}
 		previous = Config{Region: "auto"}
 	}
 	if config.SecretAccessKey == "" {
 		if previous.AccessKeyID != config.AccessKeyID && previous.SecretAccessKey != "" {
-			return PublicConfig{}, errors.New("更换 Access Key 后请填写对应 Secret Key")
+			return PublicConfig{}, errors.New("After changing the Access Key, please fill in the corresponding Secret Key")
 		}
 		config.SecretAccessKey = previous.SecretAccessKey
 	}
@@ -126,12 +126,12 @@ var bucketName = regexp.MustCompile(`^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$`)
 
 func (c Config) Validate() error {
 	if !bucketName.MatchString(c.Bucket) || c.AccessKeyID == "" || c.SecretAccessKey == "" || c.Region == "" {
-		return errors.New("请填写存储桶、区域和完整访问密钥")
+		return errors.New("Please fill in bucket, region and full access key")
 	}
 	for _, address := range []string{c.Endpoint, c.PublicBaseURL} {
 		parsed, err := outbound.ValidateOutboundURL(address)
 		if err != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
-			return errors.New("对象存储端点和公网地址须为可访问的地址，不含认证信息或查询参数")
+			return errors.New("The object storage endpoint and public network address must be accessible addresses without authentication information or query parameters.")
 		}
 		if parsed.Scheme == "https" {
 			continue
@@ -139,7 +139,7 @@ func (c Config) Validate() error {
 		if parsed.Scheme == "http" && outbound.HostAllowsLocalHTTP(context.Background(), parsed.Hostname()) {
 			continue
 		}
-		return errors.New("对象存储端点和公网地址须为 HTTPS；仅本机、局域网或 CGNAT 地址可使用 HTTP。云端模型无法拉取局域网链接")
+		return errors.New("Object storage endpoints and public addresses must be HTTPS; only local, LAN, or CGNAT addresses can use HTTP. Cloud model cannot pull LAN link")
 	}
 	return nil
 }

@@ -98,7 +98,7 @@ func (s *Service) EnsureDefaultPromptTemplates() error {
 			continue
 		}
 		if err := s.repo.SavePromptTemplate(&model.PromptTemplate{
-			ID: kernel.NewID(), Operation: definition.Operation, Name: "默认" + definition.Label + "模板", Version: 1,
+			ID: kernel.NewID(), Operation: definition.Operation, Name: "Default" + definition.Label + "Template", Version: 1,
 			Content: definition.DefaultContent, OutputType: definition.OutputType, Enabled: true,
 		}); err != nil {
 			return err
@@ -109,7 +109,7 @@ func (s *Service) EnsureDefaultPromptTemplates() error {
 
 func (s *Service) UserPromptPreferences(user *model.User) ([]UserPromptPreference, error) {
 	if user == nil || user.ID == "" {
-		return nil, kernel.BadAuthRequest("请先登录")
+		return nil, kernel.BadAuthRequest("Please log in first")
 	}
 	customizations, err := s.repo.UserPromptCustomizations(user.ID)
 	if err != nil {
@@ -136,32 +136,32 @@ func (s *Service) UserPromptPreferences(user *model.User) ([]UserPromptPreferenc
 
 func (s *Service) UpdateUserPromptCustomization(user *model.User, operation string, req UserPromptCustomizationRequest) (*model.UserPromptCustomization, error) {
 	if user == nil || user.ID == "" {
-		return nil, kernel.BadAuthRequest("请先登录")
+		return nil, kernel.BadAuthRequest("Please log in first")
 	}
 	definition, ok := PromptDefinition(strings.TrimSpace(operation))
 	if !ok {
-		return nil, kernel.BadAuthRequest("不支持的提示词模板类型")
+		return nil, kernel.BadAuthRequest("Unsupported prompt word template type")
 	}
 	mode := strings.TrimSpace(req.Mode)
 	if mode != promptCustomizationInherit && mode != promptCustomizationAppend && mode != promptCustomizationRewrite {
-		return nil, kernel.BadAuthRequest("不支持的提示词定制方式")
+		return nil, kernel.BadAuthRequest("Unsupported prompt word customization method")
 	}
 	content := strings.TrimSpace(req.Content)
 	if mode == promptCustomizationInherit {
 		content = ""
 	}
 	if mode != promptCustomizationInherit && content == "" {
-		return nil, kernel.BadAuthRequest("请填写个人提示词要求")
+		return nil, kernel.BadAuthRequest("Please fill in the personal prompt word requirements")
 	}
 	if len([]rune(content)) > 12_000 {
-		return nil, kernel.BadAuthRequest("个人提示词最多 12000 个字符")
+		return nil, kernel.BadAuthRequest("Personal prompt words can be up to 12,000 characters long")
 	}
 	if err := validatePromptPlaceholders(definition, content); err != nil {
 		return nil, err
 	}
 	active, err := s.repo.ActivePromptTemplate(definition.Operation)
 	if err != nil {
-		return nil, errors.New("当前模板类型没有启用版本")
+		return nil, errors.New("There is no version enabled for the current template type")
 	}
 	customization, err := s.repo.UserPromptCustomization(user.ID, definition.Operation)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -180,10 +180,10 @@ func (s *Service) UpdateUserPromptCustomization(user *model.User, operation stri
 
 func (s *Service) ResetUserPromptCustomization(user *model.User, operation string) error {
 	if user == nil || user.ID == "" {
-		return kernel.BadAuthRequest("请先登录")
+		return kernel.BadAuthRequest("Please log in first")
 	}
 	if _, ok := PromptDefinition(strings.TrimSpace(operation)); !ok {
-		return kernel.BadAuthRequest("不支持的提示词模板类型")
+		return kernel.BadAuthRequest("Unsupported prompt word template type")
 	}
 	return s.repo.DeleteUserPromptCustomization(user.ID, operation)
 }
@@ -191,11 +191,11 @@ func (s *Service) ResetUserPromptCustomization(user *model.User, operation strin
 func (s *Service) CompilePrompt(userID string, operation string, values map[string]string) (CompiledPrompt, error) {
 	definition, ok := PromptDefinition(operation)
 	if !ok {
-		return CompiledPrompt{}, fmt.Errorf("不支持的提示词模板类型：%s", operation)
+		return CompiledPrompt{}, fmt.Errorf("Unsupported prompt word template type: %s", operation)
 	}
 	template, err := s.repo.ActivePromptTemplate(operation)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		template = &model.PromptTemplate{Operation: operation, Name: "内置默认", Version: 1, Content: definition.DefaultContent, OutputType: definition.OutputType}
+		template = &model.PromptTemplate{Operation: operation, Name: "Built-in default", Version: 1, Content: definition.DefaultContent, OutputType: definition.OutputType}
 	} else if err != nil {
 		return CompiledPrompt{}, err
 	}
@@ -207,7 +207,7 @@ func (s *Service) CompilePrompt(userID string, operation string, values map[stri
 		compiled.CustomizationUpdated = customization.UpdatedAt.Format("2006-01-02T15:04:05Z07:00")
 		switch customization.Mode {
 		case promptCustomizationAppend:
-			creative += "\n\n【用户个性化创作要求】\n" + customization.Content
+			creative += "[User personalized creation requirements]" + customization.Content
 		case promptCustomizationRewrite:
 			creative = customization.Content
 		}
@@ -241,7 +241,7 @@ func validatePromptPlaceholders(definition PromptOperationDefinition, content st
 		return nil
 	}
 	sort.Strings(unknown)
-	return kernel.BadAuthRequest("模板包含不支持的变量：" + strings.Join(uniqueStrings(unknown), "、"))
+	return kernel.BadAuthRequest("Template contains unsupported variables:" + strings.Join(uniqueStrings(unknown), "、"))
 }
 
 func RenderPromptTemplate(definition PromptOperationDefinition, content string, values map[string]string) (string, error) {
@@ -264,7 +264,7 @@ func ValidatePromptTemplateResult(operation string, result map[string]interface{
 	text, _ := result["text"].(string)
 	jsonText, err := promptResultJSONExtractor(operation)(text)
 	if err != nil {
-		return fmt.Errorf("%s 返回内容不符合受保护 JSON 契约：%w", definition.Label, err)
+		return fmt.Errorf("%s The returned content does not conform to the protected JSON contract: %w", definition.Label, err)
 	}
 	switch operation {
 	case OperationChapterAssetsExtract:
@@ -301,17 +301,17 @@ func validateChapterAssetsResult(jsonText string) error {
 		Props      *[]map[string]interface{} `json:"props"`
 	}
 	if err := json.Unmarshal([]byte(jsonText), &assets); err != nil {
-		return fmt.Errorf("章节资产提取 JSON 无法解析：%w", err)
+		return fmt.Errorf("Chapter asset extraction JSON cannot be parsed: %w", err)
 	}
 	if assets.Characters == nil || assets.Scenes == nil || assets.Props == nil {
-		return errors.New("章节资产提取结果必须包含 characters、scenes 和 props 数组")
+		return errors.New("Chapter asset extraction results must contain characters, scenes, and props arrays")
 	}
 	for _, group := range [][]map[string]interface{}{*assets.Scenes, *assets.Props} {
 		for _, asset := range group {
 			for _, field := range []string{"name", "description", "prompt"} {
 				value, ok := asset[field].(string)
 				if !ok || strings.TrimSpace(value) == "" {
-					return fmt.Errorf("章节场景或道具缺少有效的 %s", field)
+					return fmt.Errorf("Chapter scene or prop is missing a valid %s", field)
 				}
 			}
 		}
@@ -328,19 +328,19 @@ func validateCharacterExtractResult(jsonText string) error {
 		Characters *[]map[string]interface{} `json:"characters"`
 	}
 	if err := json.Unmarshal([]byte(jsonText), &payload); err != nil {
-		return fmt.Errorf("角色卡提取返回的 JSON 无法解析：%w", err)
+		return fmt.Errorf("The JSON returned by character card extraction cannot be parsed: %w", err)
 	}
 	required := []string{"name", "aliases", "role", "appearance", "clothing", "physique", "personality", "props", "consistencyPrompt", "multiViewPrompt", "voiceLanguage", "voiceAge", "voiceTimbre"}
 	if payload.Characters == nil {
-		return errors.New("角色卡提取结果缺少 characters 数组")
+		return errors.New("Character card extraction result is missing characters array")
 	}
 	if len(*payload.Characters) == 0 {
-		return errors.New("角色卡提取结果没有识别到任何角色，请调整正文或重新提取")
+		return errors.New("No characters were identified in the character card extraction result. Please adjust the text or re-extract.")
 	}
 	for index, character := range *payload.Characters {
 		for _, field := range required {
 			if _, exists := character[field]; !exists {
-				return fmt.Errorf("角色卡提取结果中第 %d 个角色缺少字段 %s", index+1, field)
+				return fmt.Errorf("The %d character in the character card extraction result is missing the field %s.", index+1, field)
 			}
 		}
 	}
@@ -357,23 +357,23 @@ func validateShortDramaOutlineResult(jsonText string) error {
 		} `json:"chapters"`
 	}
 	if err := json.Unmarshal([]byte(jsonText), &payload); err != nil {
-		return fmt.Errorf("短剧大纲 JSON 无法解析：%w", err)
+		return fmt.Errorf("Skit synopsis JSON cannot be parsed: %w", err)
 	}
 	if strings.TrimSpace(payload.Title) == "" {
-		return errors.New("短剧大纲缺少 title")
+		return errors.New("Skit synopsis is missing title")
 	}
 	if strings.TrimSpace(payload.Synopsis) == "" {
-		return errors.New("短剧大纲缺少 synopsis")
+		return errors.New("Skit synopsis missing synopsis")
 	}
 	if payload.Chapters == nil {
-		return errors.New("短剧大纲缺少 chapters 数组")
+		return errors.New("Skit synopsis missing chapters array")
 	}
 	if len(*payload.Chapters) == 0 {
-		return errors.New("短剧大纲没有生成任何章节")
+		return errors.New("The short play outline did not generate any chapters.")
 	}
 	for index, chapter := range *payload.Chapters {
 		if strings.TrimSpace(chapter.Title) == "" || strings.TrimSpace(chapter.Content) == "" {
-			return fmt.Errorf("短剧大纲第 %d 章缺少 title 或 content", index+1)
+			return fmt.Errorf("Skit synopsis chapter %d is missing title or content", index+1)
 		}
 	}
 	return nil
@@ -387,19 +387,19 @@ func validateSkillDraftResult(jsonText string) error {
 		Instruction string `json:"instruction"`
 	}
 	if err := json.Unmarshal([]byte(jsonText), &payload); err != nil {
-		return fmt.Errorf("技能草稿 JSON 无法解析：%w", err)
+		return fmt.Errorf("Skill draft JSON cannot be parsed: %w", err)
 	}
 	if strings.TrimSpace(payload.SkillName) == "" {
-		return errors.New("技能草稿缺少 skillName")
+		return errors.New("Skill draft is missing skillName")
 	}
 	if strings.TrimSpace(payload.Tag) == "" {
-		return errors.New("技能草稿缺少 tag")
+		return errors.New("Skill draft is missing tag")
 	}
 	if strings.TrimSpace(payload.Description) == "" {
-		return errors.New("技能草稿缺少 description")
+		return errors.New("Skill draft is missing description")
 	}
 	if strings.TrimSpace(payload.Instruction) == "" {
-		return errors.New("技能草稿缺少 instruction")
+		return errors.New("Skill draft is missing instruction")
 	}
 	return nil
 }

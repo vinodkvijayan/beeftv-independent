@@ -14,11 +14,11 @@ import (
 
 func TestCreateProjectUnitRollsBackWhenRevisionBumpFails(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	if err := db.Exec("CREATE TRIGGER fail_project_revision BEFORE UPDATE ON projects BEGIN SELECT RAISE(ABORT, 'forced revision bump failure'); END").Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "第一章"}); err == nil {
+	if _, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "Chapter 1"}); err == nil {
 		t.Fatal("CreateProjectUnit succeeded after injected revision failure")
 	}
 	var unitCount int64
@@ -39,13 +39,13 @@ func TestCreateProjectUnitRollsBackWhenRevisionBumpFails(t *testing.T) {
 
 func TestLinkCanvasUnitRollsBackWhenLinkInsertFails(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	unit, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "第一集"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	unit, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "Episode 1"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	canvas := model.CanvasProject{
-		ID: "canvas-1", UserID: "user-1", Title: "分镜", Revision: 3,
+		ID: "canvas-1", UserID: "user-1", Title: "Storyboard", Revision: 3,
 		PayloadJSON: `{"projectId":"old-project","nodes":[{"id":"n1"}],"futureField":true,"nested":{"keep":1}}`,
 	}
 	if err := db.Create(&canvas).Error; err != nil {
@@ -85,13 +85,13 @@ func TestLinkCanvasUnitRollsBackWhenLinkInsertFails(t *testing.T) {
 
 func TestLinkCanvasUnitWritesPayloadProjectIdAndPreservesUnknownKeys(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	unit, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "第一集"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	unit, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "Episode 1"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	canvas := model.CanvasProject{
-		ID: "canvas-1", UserID: "user-1", Title: "分镜", Revision: 2,
+		ID: "canvas-1", UserID: "user-1", Title: "Storyboard", Revision: 2,
 		PayloadJSON: `{"projectId":"stale","nodes":[{"id":"n1"}],"futureField":true,"nested":{"keep":1}}`,
 	}
 	if err := db.Create(&canvas).Error; err != nil {
@@ -125,18 +125,18 @@ func TestLinkCanvasUnitWritesPayloadProjectIdAndPreservesUnknownKeys(t *testing.
 
 func TestLinkCanvasUnitMovesOldProjectLinksAndRevisions(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	source := seedProject(t, db, model.Project{ID: "project-a", UserID: "user-1", Name: "原项目", Revision: 4})
-	target := seedProject(t, db, model.Project{ID: "project-b", UserID: "user-1", Name: "新项目"})
-	sourceUnit, err := svc.CreateProjectUnit("user-1", source.ID, CreateProjectUnitRequest{Title: "原章"})
+	source := seedProject(t, db, model.Project{ID: "project-a", UserID: "user-1", Name: "original project", Revision: 4})
+	target := seedProject(t, db, model.Project{ID: "project-b", UserID: "user-1", Name: "new project"})
+	sourceUnit, err := svc.CreateProjectUnit("user-1", source.ID, CreateProjectUnitRequest{Title: "Original chapter"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	targetUnit, err := svc.CreateProjectUnit("user-1", target.ID, CreateProjectUnitRequest{Title: "新章"})
+	targetUnit, err := svc.CreateProjectUnit("user-1", target.ID, CreateProjectUnitRequest{Title: "new chapter"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	canvas := model.CanvasProject{
-		ID: "canvas-1", UserID: "user-1", Title: "分镜", Revision: 1,
+		ID: "canvas-1", UserID: "user-1", Title: "Storyboard", Revision: 1,
 		PayloadJSON: `{"nodes":[]}`,
 	}
 	if err := db.Create(&canvas).Error; err != nil {
@@ -180,28 +180,28 @@ func TestLinkCanvasUnitMovesOldProjectLinksAndRevisions(t *testing.T) {
 
 func TestCreateProjectFolderRejectsForeignOrMissingParent(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	own, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "进行中"})
+	own, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "In progress"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	foreign, err := svc.CreateProjectFolder("user-2", CreateProjectFolderRequest{Name: "别人的夹"})
+	foreign, err := svc.CreateProjectFolder("user-2", CreateProjectFolderRequest{Name: "someone else's folder"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "子夹", ParentID: foreign.ID}); !IsNotFound(err) {
+	if _, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "Subfolder", ParentID: foreign.ID}); !IsNotFound(err) {
 		t.Fatalf("foreign parent error = %v, want not found", err)
 	}
-	if _, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "子夹", ParentID: "missing-folder"}); !IsNotFound(err) {
+	if _, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "Subfolder", ParentID: "missing-folder"}); !IsNotFound(err) {
 		t.Fatalf("missing parent error = %v, want not found", err)
 	}
-	child, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "子夹", ParentID: own.ID})
+	child, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "Subfolder", ParentID: own.ID})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if child.ParentID != own.ID {
 		t.Fatalf("child parent = %q", child.ParentID)
 	}
-	root, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "根夹", ParentID: "  "})
+	root, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "root clip", ParentID: "  "})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,25 +219,25 @@ func TestCreateProjectFolderRejectsForeignOrMissingParent(t *testing.T) {
 
 func TestArchivedProjectRejectsUnitAndLinkMutations(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	archived := seedProject(t, db, model.Project{ID: "archived", UserID: "user-1", Name: "旧项目", Status: model.ProjectStatusArchived})
-	unit := model.ProjectUnit{ID: "unit-1", ProjectID: archived.ID, Title: "旧章", Status: model.ProjectUnitStatusDraft, Kind: model.ProjectUnitKindChapter}
+	archived := seedProject(t, db, model.Project{ID: "archived", UserID: "user-1", Name: "old project", Status: model.ProjectStatusArchived})
+	unit := model.ProjectUnit{ID: "unit-1", ProjectID: archived.ID, Title: "old chapter", Status: model.ProjectUnitStatusDraft, Kind: model.ProjectUnitKindChapter}
 	if err := db.Create(&unit).Error; err != nil {
 		t.Fatal(err)
 	}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", Title: "旧画布", PayloadJSON: `{}`}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", Title: "old canvas", PayloadJSON: `{}`}
 	if err := db.Create(&canvas).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.CreateProjectUnit("user-1", archived.ID, CreateProjectUnitRequest{Title: "新章"}); err == nil {
+	if _, err := svc.CreateProjectUnit("user-1", archived.ID, CreateProjectUnitRequest{Title: "new chapter"}); err == nil {
 		t.Fatal("created unit on archived project")
 	}
-	if _, err := svc.UpdateProjectUnit("user-1", archived.ID, unit.ID, UpdateProjectUnitRequest{Title: "改"}); err == nil {
+	if _, err := svc.UpdateProjectUnit("user-1", archived.ID, unit.ID, UpdateProjectUnitRequest{Title: "change"}); err == nil {
 		t.Fatal("updated unit on archived project")
 	}
 	if err := svc.DeleteProjectUnit("user-1", archived.ID, unit.ID); err == nil {
 		t.Fatal("deleted unit on archived project")
 	}
-	if _, err := svc.ImportProjectUnits("user-1", archived.ID, ImportProjectUnitsRequest{Units: []CreateProjectUnitRequest{{Title: "导入"}}}); err == nil {
+	if _, err := svc.ImportProjectUnits("user-1", archived.ID, ImportProjectUnitsRequest{Units: []CreateProjectUnitRequest{{Title: "import"}}}); err == nil {
 		t.Fatal("imported units on archived project")
 	}
 	if _, err := svc.LinkCanvasUnit("user-1", archived.ID, LinkCanvasUnitRequest{CanvasID: canvas.ID, UnitID: unit.ID}); err == nil {
@@ -261,8 +261,8 @@ func TestArchivedProjectRejectsUnitAndLinkMutations(t *testing.T) {
 
 func TestMoveProjectIncrementsRevision(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	folder, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "进行中"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	folder, err := svc.CreateProjectFolder("user-1", CreateProjectFolderRequest{Name: "In progress"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,19 +289,19 @@ func TestMoveProjectIncrementsRevision(t *testing.T) {
 
 func TestUpdateProjectCASRejectsStaleAndConcurrentWrites(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	sqlDB, err := db.DB()
 	if err != nil {
 		t.Fatal(err)
 	}
 	sqlDB.SetMaxOpenConns(1)
 
-	updated, err := svc.UpdateProject("user-1", project.ID, UpdateProjectRequest{Name: "短剧改"})
+	updated, err := svc.UpdateProject("user-1", project.ID, UpdateProjectRequest{Name: "Short play modification"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	stale := updated
-	stale.Name = "不应写入"
+	stale.Name = "should not be written"
 	stale.UpdatedAt = time.Now()
 	if err := svc.repo.UpdateProjectCAS("user-1", project.Revision, &stale); !errors.Is(err, repository.ErrProjectRevisionConflict) {
 		t.Fatalf("stale CAS error = %v", err)
@@ -310,14 +310,14 @@ func TestUpdateProjectCASRejectsStaleAndConcurrentWrites(t *testing.T) {
 	if err := db.First(&stored, "id = ?", project.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Name != "短剧改" || stored.Revision != 2 {
+	if stored.Name != "Short play modification" || stored.Revision != 2 {
 		t.Fatalf("stale write mutated project: %+v", stored)
 	}
 
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var workers sync.WaitGroup
-	for _, name := range []string{"并发甲", "并发乙"} {
+	for _, name := range []string{"Concurrent A", "Concurrent B"} {
 		workers.Add(1)
 		go func(name string) {
 			defer workers.Done()
@@ -348,7 +348,7 @@ func TestUpdateProjectCASRejectsStaleAndConcurrentWrites(t *testing.T) {
 	if err := db.First(&stored, "id = ?", project.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Revision != 3 || (stored.Name != "并发甲" && stored.Name != "并发乙") {
+	if stored.Revision != 3 || (stored.Name != "Concurrent A" && stored.Name != "Concurrent B") {
 		t.Fatalf("winner = %+v", stored)
 	}
 }
@@ -358,7 +358,7 @@ func TestCreateProjectRollsBackWhenWorkflowInsertFails(t *testing.T) {
 	if err := db.Exec("CREATE TRIGGER fail_workflow BEFORE INSERT ON workflow_instances BEGIN SELECT RAISE(ABORT, 'forced workflow insert failure'); END").Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.CreateProject("user-1", CreateProjectRequest{Name: "事务项目"}); err == nil {
+	if _, err := svc.CreateProject("user-1", CreateProjectRequest{Name: "Business items"}); err == nil {
 		t.Fatal("CreateProject succeeded after injected workflow failure")
 	}
 	var projectCount int64
@@ -379,7 +379,7 @@ func TestCreateProjectRollsBackWhenWorkflowInsertFails(t *testing.T) {
 
 func TestCreateProjectDefaultsToOwnedWorkflowSeed(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	created, err := svc.CreateProject("user-1", CreateProjectRequest{Name: "空白项目"})
+	created, err := svc.CreateProject("user-1", CreateProjectRequest{Name: "Blank project"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -408,7 +408,7 @@ func TestUpdateProjectConflictIsTyped(t *testing.T) {
 		t.Fatalf("mapped conflict = %v", err)
 	}
 	var appErr *kernel.AppError
-	if !errors.As(err, &appErr) || appErr.Message != "项目已被其他操作更新，请重新加载后再保存" {
+	if !errors.As(err, &appErr) || appErr.Message != "The project has been updated by other operations, please reload before saving." {
 		t.Fatalf("conflict message = %#v", appErr)
 	}
 }

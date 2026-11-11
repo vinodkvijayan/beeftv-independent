@@ -21,9 +21,9 @@ func productionProgressFixture(t *testing.T) (*Service, string, string) {
 	var doc map[string]any
 	_ = json.Unmarshal(raw, &doc)
 	doc["nodes"] = []any{
-		map[string]any{"id": "image", "type": "image", "title": "首帧", "metadata": map[string]any{"prompt": "茶杯", "size": "9:16", "count": 1}},
-		map[string]any{"id": "video", "type": "video", "title": "镜头", "metadata": map[string]any{"prompt": "注入热茶", "size": "9:16", "seconds": 4, "generateAudio": false}},
-		map[string]any{"id": "speech", "type": "audio", "title": "旁白", "metadata": map[string]any{"prompt": "先喝一杯热茶。", "audioVoice": "alloy"}},
+		map[string]any{"id": "image", "type": "image", "title": "first frame", "metadata": map[string]any{"prompt": "tea cup", "size": "9:16", "count": 1}},
+		map[string]any{"id": "video", "type": "video", "title": "lens", "metadata": map[string]any{"prompt": "infused hot tea", "size": "9:16", "seconds": 4, "generateAudio": false}},
+		map[string]any{"id": "speech", "type": "audio", "title": "narration", "metadata": map[string]any{"prompt": "Have a cup of hot tea first.", "audioVoice": "alloy"}},
 	}
 	doc["connections"] = []any{map[string]any{"id": "reference", "fromNodeId": "image", "toNodeId": "video"}}
 	raw, _ = json.Marshal(doc)

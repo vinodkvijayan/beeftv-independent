@@ -227,7 +227,7 @@ func TestStoryboardRowPromptSyncTurnChangeAndUndo(t *testing.T) {
 				map[string]any{
 					"id":                    "shot-1",
 					"shotNumber":            1,
-					"imageGenerationPrompt": "旧首帧提示词",
+					"imageGenerationPrompt": "Old first frame prompt word",
 					"imageNodeId":           "img-bound",
 				},
 			},
@@ -237,7 +237,7 @@ func TestStoryboardRowPromptSyncTurnChangeAndUndo(t *testing.T) {
 		"id":       "img-bound",
 		"type":     "image",
 		"position": map[string]any{"x": 100, "y": 100},
-		"metadata": map[string]any{"content": "", "taskId": "task-1", "prompt": "旧首帧提示词", "composerContent": "旧首帧提示词"},
+		"metadata": map[string]any{"content": "", "taskId": "task-1", "prompt": "Old first frame prompt word", "composerContent": "Old first frame prompt word"},
 	})
 	if _, err := h.service.UpsertUserCanvasProject(h.userID, mustRaw(t, doc)); err != nil {
 		t.Fatal(err)
@@ -251,7 +251,7 @@ func TestStoryboardRowPromptSyncTurnChangeAndUndo(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n1",
 		"expectedRevision": before["revision"],
-		"patches":          []any{map[string]any{"rowId": "shot-1", "imageGenerationPrompt": "新首帧提示词"}},
+		"patches":          []any{map[string]any{"rowId": "shot-1", "imageGenerationPrompt": "New first frame prompt word"}},
 	}); err != nil {
 		t.Fatal(err)
 	}

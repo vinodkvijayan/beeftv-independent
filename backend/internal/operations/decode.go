@@ -22,16 +22,16 @@ func decodeParams(params json.RawMessage, target any) error {
 	if err := decoder.Decode(target); err != nil {
 		var typeErr *json.UnmarshalTypeError
 		if errors.As(err, &typeErr) {
-			return InvalidArg("invalid_params", "参数类型不正确: 字段 "+typeErr.Field)
+			return InvalidArg("invalid_params", "Incorrect parameter type: field"+typeErr.Field)
 		}
 		if field, ok := unknownField(err); ok {
-			return newError(CodeInvalidArgument, "unknown_field", "参数包含未知字段: "+field,
+			return newError(CodeInvalidArgument, "unknown_field", "Parameter contains unknown fields:"+field,
 				map[string]any{"field": field})
 		}
 		return InvalidArg("invalid_params", err.Error())
 	}
 	if err := decoder.Decode(new(json.RawMessage)); !errors.Is(err, io.EOF) {
-		return InvalidArg("invalid_params", "参数包含多余内容")
+		return InvalidArg("invalid_params", "Parameter contains redundant content")
 	}
 	return nil
 }
@@ -86,7 +86,7 @@ func mapDomainError(err error) error {
 		return nil
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return NotFound("not_found", "资源不存在")
+		return NotFound("not_found", "Resource does not exist")
 	}
 	var bindErr *taskbinding.Error
 	if errors.As(err, &bindErr) {
@@ -132,7 +132,7 @@ func mapDomainError(err error) error {
 	}
 	var conflicter interface{ IsConflict() bool }
 	if errors.As(err, &conflicter) && conflicter.IsConflict() {
-		return Conflict("stale_write", "写入冲突，已停止覆盖", nil)
+		return Conflict("stale_write", "Write conflict, overwriting stopped", nil)
 	}
 	return AsError(err)
 }

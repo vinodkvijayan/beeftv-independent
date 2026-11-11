@@ -164,7 +164,7 @@ func TestValidateLocalExecutorTypeAllowlist(t *testing.T) {
 			t.Fatalf("generation allowlist accepted %s: %v", taskType, err)
 		}
 	}
-	if err := ValidateLocalExecutorType("canvas_image"); err == nil || !strings.Contains(err.Error(), "不支持的本地执行任务类型") {
+	if err := ValidateLocalExecutorType("canvas_image"); err == nil || !strings.Contains(err.Error(), "Unsupported local execution task type") {
 		t.Fatalf("local allowlist error = %v", err)
 	}
 }
@@ -172,7 +172,7 @@ func TestValidateLocalExecutorTypeAllowlist(t *testing.T) {
 func TestGenerationCreateTaskRejectsLocalExecutorTypes(t *testing.T) {
 	svc, store, _, _ := newSpecializedMem(nil)
 	for _, taskType := range []string{model.TaskTypeTimelineRender, model.TaskTypeTimelineTranscription, model.TaskTypeDepthCapture} {
-		_, err := svc.CreateTask("user", CreateRequest{Type: taskType, Prompt: "本地执行", ProjectID: "prj-1"})
+		_, err := svc.CreateTask("user", CreateRequest{Type: taskType, Prompt: "local execution", ProjectID: "prj-1"})
 		if err == nil || !strings.Contains(err.Error(), "不支持的任务类型") {
 			t.Fatalf("%s generation error = %v", taskType, err)
 		}
@@ -338,7 +338,7 @@ func TestSpecializedValidationFailures(t *testing.T) {
 	textOnly := editing.Project{
 		Version: 2, DurationMs: 1000,
 		Tracks: []editing.Track{{ID: "t", Kind: "text"}},
-		Clips:  []editing.Clip{{ID: "c", Kind: "text", TrackID: "t", DurationMs: 1000, Text: "字幕"}},
+		Clips:  []editing.Clip{{ID: "c", Kind: "text", TrackID: "t", DurationMs: 1000, Text: "subtitles"}},
 	}
 	if _, err := svc.CreateTimelineRenderTask("user", TimelineRenderCreateRequest{Timeline: textOnly}); err == nil {
 		t.Fatal("text-only timeline admitted")
@@ -407,7 +407,7 @@ func TestTranscriptionRequiresFeatureAndOwnedMedia(t *testing.T) {
 		t.Fatalf("nil owned media = %v", err)
 	}
 	svc, store, _, _ = newSpecializedMem(func(deps *Dependencies, _ *memOwnedMedia, _ *drainRuntime) {
-		deps.Features = denyFeatures{err: kernel.Forbidden("字幕转写暂未开放")}
+		deps.Features = denyFeatures{err: kernel.Forbidden("Subtitle transcription is not available yet")}
 	})
 	if _, err := svc.CreateTimelineTranscriptionTask("user", TimelineTranscriptionCreateRequest{ResourceID: "res-1"}); err == nil || !strings.Contains(err.Error(), "暂未开放") {
 		t.Fatalf("disabled feature = %v", err)

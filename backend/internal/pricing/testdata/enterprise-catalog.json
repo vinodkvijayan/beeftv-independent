@@ -24,11 +24,11 @@
     "mode": "per_request",
     "model_name": "dola-seedream-5-0-flash-260915",
     "official_price_ratios": {
-     "每张图像": 0.30000000000000004
+     "per image": 0.30000000000000004
     },
     "official_source": "https://docs.byteplus.com/en/docs/ModelArk/model-pricing",
     "per_request_cny": 0.03661956,
-    "pricing_note": "支持 1K、1.5K、2K 和自定义尺寸，普通出图、图层拆分同价；图层拆分按每张基底和图层计费，参考图免费。"
+    "pricing_note": "Supports 1K, 1.5K, 2K and custom sizes. The price for ordinary drawings and layer splitting is the same; layer splitting is charged per base and layer, and reference pictures are free."
    },
    {
     "display_kind": "image",
@@ -52,11 +52,11 @@
     "mode": "per_request",
     "model_name": "dola-seedream-5-0-pro-260628",
     "official_price_ratios": {
-     "每张图像": 0.30000000000000004
+     "per image": 0.30000000000000004
     },
     "official_source": "https://docs.byteplus.com/en/docs/ModelArk/model-pricing",
     "per_request_cny": 0.1830978,
-    "pricing_note": "按每张输出的实际像素计费：不超过 261 万像素与更高像素分档；默认 2K 为高像素档。图层拆分按每张基底和图层计费；第一张参考图免费，第二张起按张另计，参考图费用不随输出图片数重复收取。"
+    "pricing_note": "Billing is based on the actual pixels of each output: no more than 2.61 million pixels and higher pixel binning; the default is 2K as the high pixel binning. Layer splitting is charged for each base and layer; the first reference picture is free, and the second and subsequent pictures are charged separately. The reference picture fee will not be charged repeatedly with the number of output pictures."
    },
    {
     "display_kind": "image",
@@ -87,7 +87,7 @@
     "mode": "per_request",
     "model_name": "gpt-image-2",
     "per_request_cny": 0.35,
-    "pricing_note": "按质量和分辨率计费，参考图费用另列。"
+    "pricing_note": "Charges are based on quality and resolution, and reference image charges are listed separately."
    },
    {
     "display_kind": "image",
@@ -129,7 +129,7 @@
     "mode": "per_request",
     "model_name": "gpt-image-2.5",
     "per_request_cny": 0.4,
-    "pricing_note": "按质量和分辨率计费，参考图费用另列。"
+    "pricing_note": "Charges are based on quality and resolution, and reference image charges are listed separately."
    },
    {
     "display_kind": "image",
@@ -171,7 +171,7 @@
     "mode": "per_request",
     "model_name": "gpt-image-2.5-flare",
     "per_request_cny": 0.4,
-    "pricing_note": "按质量和分辨率计费，参考图费用另列。"
+    "pricing_note": "Charges are based on quality and resolution, and reference image charges are listed separately."
    },
    {
     "display_kind": "image",
@@ -213,7 +213,7 @@
     "mode": "per_request",
     "model_name": "gpt-image-2.5-sunburst",
     "per_request_cny": 0.55,
-    "pricing_note": "按质量和分辨率计费，参考图费用另列。"
+    "pricing_note": "Charges are based on quality and resolution, and reference image charges are listed separately."
    },
    {
     "cache_read_cny": 0,
@@ -559,11 +559,11 @@
     "mode": "per_request",
     "model_name": "seedream-5-0-260128",
     "official_price_ratios": {
-     "每张图像": 0.3
+     "per image": 0.3
     },
     "official_source": "https://docs.byteplus.com/en/docs/ModelArk/model-pricing",
     "per_request_cny": 0.0712047,
-    "pricing_note": "按实际成功输出的图片张数计费，参考图免费。"
+    "pricing_note": "Billing is based on the actual number of pictures successfully output, and reference pictures are free."
    },
    {
     "display_kind": "upscale",
@@ -610,7 +610,7 @@
      "480p": 0.405,
      "720p": 0.81
     },
-    "pricing_note": "按生成与参考视频合计秒数计费"
+    "pricing_note": "Billed based on the total seconds of generated and reference videos"
    }
   ]
  },

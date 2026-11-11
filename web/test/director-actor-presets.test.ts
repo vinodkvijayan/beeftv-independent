@@ -6,43 +6,43 @@ import { createDirectorSceneFromTemplate } from "../src/lib/canvas/director/dire
 import { createDirectorReproActorScene } from "../src/lib/canvas/director/director-repro-fixture";
 import { DIRECTOR_QUATERNIUS_FEMALE_URL, DIRECTOR_QUATERNIUS_MALE_URL, resolveDirectorBuiltInActorUrl } from "../src/lib/canvas/director/director-actor-assets";
 
-describe("导演台角色预设", () => {
-    test("新建角色只提供标准男女与几何模型，其余体型仅供旧场景兼容", () => {
+describe("Director's role preset", () => {
+    test("New characters only provide standard male and female and geometric models, and other body types are only compatible with old scenes.", () => {
         expect(DIRECTOR_ACTOR_PRESET_OPTIONS.map((option) => option.label)).toEqual([
-            "标准男性",
-            "标准女性",
-            "几何模型",
+            "Standard male",
+            "Standard women",
+            "Geometric model",
         ]);
     });
 
-    test("标准女性使用随包提供的 Quaternius 女性模型", () => {
-        const actor = createDirectorActorPreset("standard_female", "标准女性 1");
+    test("Standard female use the Quaternius female model provided with the pack", () => {
+        const actor = createDirectorActorPreset("standard_female", "Standard women 1");
 
-        expect(actor).toMatchObject({ kind: "actor", actorPreset: "standard_female", name: "标准女性 1", color: "#4f8ef7", visible: true, pose: "stand" });
+        expect(actor).toMatchObject({ kind: "actor", actorPreset: "standard_female", name: "Standard women 1", color: "#4f8ef7", visible: true, pose: "stand" });
         expect(actor.url).toBe(DIRECTOR_QUATERNIUS_FEMALE_URL);
         expect(actor.storageKey).toBeUndefined();
         expect(actor.assetId).toBeUndefined();
         expect(actor.rig).toEqual({ status: "unmapped", boneMap: {}, animationNames: [] });
     });
 
-    test("默认演员和标准男性预设都使用本地 Quaternius 男性模型", () => {
-        const actor = createDirectorActor("演员 1");
+    test("Both the default actor and the standard male preset use the native Quaternius male model", () => {
+        const actor = createDirectorActor("actor 1");
         expect(actor.actorPreset).toBe("standard_male");
         expect(actor.url).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
         expect(createDirectorActorPreset("standard_male").url).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
         expect(actor.pose).toBe("stand");
     });
 
-    test("新建标准角色和单人导演台场景沿用参考页的蓝色，已有颜色仍可单独指定", () => {
+    test("New standard characters and single director's desk scenes use the blue color of the reference page. Existing colors can still be specified individually.", () => {
         expect(createDirectorActor().color).toBe("#4f8ef7");
         expect(createDirectorActorPreset("standard_male").color).toBe("#4f8ef7");
         expect(createDirectorScene().objects[0].color).toBe("#4f8ef7");
         expect(createDirectorSceneFromTemplate("monologue").objects[0].color).toBe("#4f8ef7");
         expect(createDirectorReproActorScene().objects[0].color).toBe("#4f8ef7");
-        expect(createDirectorActor("自定义", [0, 0, 0], "#d84949").color).toBe("#d84949");
+        expect(createDirectorActor("Customize", [0, 0, 0], "#d84949").color).toBe("#d84949");
     });
 
-    test("旧场景的无 URL 人体预设解析到内置骨骼模型，几何模型仍独立", () => {
+    test("URL-less body presets for old scenes resolve to the built-in skeleton model, the geometry model remains independent", () => {
         expect(resolveDirectorBuiltInActorUrl(undefined)).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
         expect(resolveDirectorBuiltInActorUrl("standard_male")).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
         expect(resolveDirectorBuiltInActorUrl("standard_female")).toBe(DIRECTOR_QUATERNIUS_FEMALE_URL);
@@ -50,7 +50,7 @@ describe("导演台角色预设", () => {
         expect(resolveDirectorBuiltInActorUrl("child")).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
         expect(resolveDirectorBuiltInActorUrl("geometric")).toBeNull();
         expect(createDirectorActorPreset("slim").url).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
-        expect(createDirectorActorPreset("slim").name).toBe("纤细");
+        expect(createDirectorActorPreset("slim").name).toBe("slender");
     });
 
     test("builds one named 3-by-3 crowd with nine distinct local male actors", () => {
@@ -59,8 +59,8 @@ describe("导演台角色预设", () => {
         expect(crowd).toHaveLength(9);
         expect(new Set(crowd.map((actor) => actor.id)).size).toBe(9);
         expect(crowd.map((actor) => actor.name)).toEqual([
-            "群众 1-1", "群众 1-2", "群众 1-3", "群众 1-4", "群众 1-5",
-            "群众 1-6", "群众 1-7", "群众 1-8", "群众 1-9",
+            "Crowd 1-1", "Mass 1-2", "Mass 1-3", "Mass 1-4", "Mass 1-5",
+            "Mass 1-6", "Mass 1-7", "Mass 1-8", "Mass 1-9",
         ]);
         expect(crowd.every((actor) => actor.kind === "actor" && actor.actorPreset === "standard_male" && actor.color === "#4f8ef7" && actor.url === DIRECTOR_QUATERNIUS_MALE_URL)).toBe(true);
     });
@@ -74,7 +74,7 @@ describe("导演台角色预设", () => {
             [-2, 0, 1], [0, 0, 1], [2, 0, 1],
         ]);
         expect(crowd.map((actor) => actor.name)).toEqual([
-            "群众 2-1", "群众 2-2", "群众 2-3", "群众 2-4", "群众 2-5", "群众 2-6",
+            "Crowd 2-1", "Crowd 2-2", "Mass 2-3", "Mass 2-4", "Mass 2-5", "Mass 2-6",
         ]);
     });
 

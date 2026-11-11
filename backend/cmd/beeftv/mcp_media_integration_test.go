@@ -38,11 +38,11 @@ func mcpMediaReturnsImageContent(t *testing.T, bin, base string) {
 	resourceID := uploadTestResource(t, base, "mcp-media.png", encoded.Bytes())
 	// 和产品流程一致：先写素材库记录，画布节点再引用它。
 	const assetID = "integrated-mcp-media-asset"
-	ownerJSON(t, http.MethodPut, base+"/assets/"+assetID, map[string]any{"asset": map[string]any{"id": assetID, "kind": "image", "title": "MCP 看图", "coverUrl": "", "tags": []string{},
+	ownerJSON(t, http.MethodPut, base+"/assets/"+assetID, map[string]any{"asset": map[string]any{"id": assetID, "kind": "image", "title": "MCP View Picture", "coverUrl": "", "tags": []string{},
 		"data": map[string]any{"content": "resource:" + resourceID, "storageKey": "resource:" + resourceID, "resourceId": resourceID, "width": 64, "height": 48, "bytes": encoded.Len(), "mimeType": "image/png"}}})
 	const canvasID = "integrated-mcp-media-canvas"
-	body, _ := json.Marshal(map[string]any{"project": map[string]any{"id": canvasID, "title": "MCP 看图", "revision": 0, "connections": []any{},
-		"nodes": []any{map[string]any{"id": "img-1", "type": "image", "title": "参考图", "position": map[string]any{"x": 0, "y": 0}, "width": 420, "height": 315,
+	body, _ := json.Marshal(map[string]any{"project": map[string]any{"id": canvasID, "title": "MCP View Picture", "revision": 0, "connections": []any{},
+		"nodes": []any{map[string]any{"id": "img-1", "type": "image", "title": "Reference picture", "position": map[string]any{"x": 0, "y": 0}, "width": 420, "height": 315,
 			"metadata": map[string]any{"content": "resource:" + resourceID, "storageKey": "resource:" + resourceID, "assetId": assetID, "status": "success"}}}}})
 	request, _ := http.NewRequest(http.MethodPut, base+"/canvas-projects/"+canvasID, bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")

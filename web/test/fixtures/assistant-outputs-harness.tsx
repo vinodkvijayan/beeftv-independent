@@ -7,7 +7,7 @@ configureApiRuntime(location.origin + "/api", "synthetic-output-desktop");
 await hydrateModelConfig();
 function Harness() {
     const assistant = useCanvasAssistant({ canvasId: "output-canvas" });
-    return <main><button onClick={() => void assistant.send("合成短片", [])}>发送合成要求</button>
+    return <main><button onClick={() => void assistant.send("composite short film", [])}>Send synthesis request</button>
         {assistant.turns.map(turn => <CanvasAssistantOutputs key={turn.turnId} outputs={turn.outputs || []} />)}
     </main>;
 }

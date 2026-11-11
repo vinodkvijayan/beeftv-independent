@@ -33,7 +33,7 @@ func newProjectSettingsTestService(t *testing.T) (*Service, *gorm.DB) {
 func TestUpdateProjectCoverRequiresOwnedReadyImage(t *testing.T) {
 	service, db := newProjectSettingsTestService(t)
 	now := time.Now()
-	project := model.Project{ID: "project-cover", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
+	project := model.Project{ID: "project-cover", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
 	resources := []model.Resource{
 		{ID: "cover-ready", UserID: "user-1", Kind: "image", Status: model.ResourceStatusReady},
 		{ID: "cover-pending", UserID: "user-1", Kind: "image", Status: model.ResourceStatusPending},
@@ -88,7 +88,7 @@ func TestUpdateProjectCoverRequiresOwnedReadyImage(t *testing.T) {
 func TestUpdateProjectPersistsDefaultGenerationModels(t *testing.T) {
 	service, db := newProjectSettingsTestService(t)
 	now := time.Now()
-	project := model.Project{ID: "project-model-defaults", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
+	project := model.Project{ID: "project-model-defaults", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&project).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -124,12 +124,12 @@ func TestUpdateProjectPersistsDefaultGenerationModels(t *testing.T) {
 func TestProjectUnitSummaryPersistsWordCount(t *testing.T) {
 	service, db := newProjectSettingsTestService(t)
 	now := time.Now()
-	project := model.Project{ID: "project-words", UserID: "user-1", Name: "长篇短剧", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
+	project := model.Project{ID: "project-words", UserID: "user-1", Name: "long short play", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&project).Error; err != nil {
 		t.Fatal(err)
 	}
 
-	unit, err := service.ProjectService().CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "第一章", SourceText: "<p>张振天&nbsp;归来</p>"})
+	unit, err := service.ProjectService().CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "Chapter 1", SourceText: "<p>Zhang Zhentian returns</p>"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +137,7 @@ func TestProjectUnitSummaryPersistsWordCount(t *testing.T) {
 		t.Fatalf("created word count = %d, want 6", unit.WordCount)
 	}
 
-	unit, err = service.ProjectService().UpdateProjectUnit("user-1", project.ID, unit.ID, UpdateProjectUnitRequest{Title: unit.Title, SourceText: "<p>新的正文</p>"})
+	unit, err = service.ProjectService().UpdateProjectUnit("user-1", project.ID, unit.ID, UpdateProjectUnitRequest{Title: unit.Title, SourceText: "<p>New text</p>"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestProjectUnitSummaryPersistsWordCount(t *testing.T) {
 
 func TestProjectCoverAppearsInResourceReferences(t *testing.T) {
 	service, db := newProjectSettingsTestService(t)
-	project := model.Project{ID: "project-cover-reference", UserID: "user-1", Name: "封面引用", CoverResourceID: "cover-resource"}
+	project := model.Project{ID: "project-cover-reference", UserID: "user-1", Name: "cover quote", CoverResourceID: "cover-resource"}
 	if err := db.Create(&project).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +164,7 @@ func TestProjectCoverAppearsInResourceReferences(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(snapshot.Direct) != 1 || snapshot.Direct[0].ResourceID != "cover-resource" || snapshot.Direct[0].Kind != "项目主图" {
+	if len(snapshot.Direct) != 1 || snapshot.Direct[0].ResourceID != "cover-resource" || snapshot.Direct[0].Kind != "Project main picture" {
 		t.Fatalf("direct references = %+v", snapshot.Direct)
 	}
 }

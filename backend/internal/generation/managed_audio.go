@@ -14,7 +14,7 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 	request := beeftv.MediaRequest{TaskRef: SubmissionKeyFromContext(ctx), MediaType: "audio", Model: input.Config.Model}
 	runtime, _ := RuntimeFromContext(ctx)
 	if runtime.ManagedMedia == nil || request.TaskRef == "" {
-		return nil, RequestPreparationError{Cause: errors.New("音频请求缺少持久化提交标识")}
+		return nil, RequestPreparationError{Cause: errors.New("Audio request is missing persistent commit flag")}
 	}
 	sent, err := runtime.ManagedMedia.Sent(ctx)
 	if err != nil {
@@ -30,7 +30,7 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 	model := discovery.Models[input.Config.Model]
 	capability, ok := model.Capabilities["audio"]
 	if !ok || model.Version == "" {
-		return nil, RequestPreparationError{Cause: errors.New("当前模型暂不支持此音频生成方式")}
+		return nil, RequestPreparationError{Cause: errors.New("The current model does not currently support this audio generation method")}
 	}
 	var localLimit int64
 	if runtime.Limits != nil {
@@ -40,13 +40,13 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 		}
 	}
 	if len(input.ReferenceImages) > 0 && !slices.Contains(capability.ReferenceKinds, "image") {
-		return nil, RequestPreparationError{Cause: errors.New("当前音频模型不支持参考图片，请切换支持全能参考的配音模型或移除参考图")}
+		return nil, RequestPreparationError{Cause: errors.New("The current audio model does not support reference pictures. Please switch to a dubbing model that supports all-round reference or remove the reference picture.")}
 	}
 	if len(input.ReferenceAudios) > 0 && !slices.Contains(capability.ReferenceKinds, "audio") {
-		return nil, RequestPreparationError{Cause: errors.New("当前音频模型不支持参考音频，请切换支持全能参考的配音模型或移除参考音频")}
+		return nil, RequestPreparationError{Cause: errors.New("The current audio model does not support reference audio. Please switch to a dubbing model that supports universal reference or remove the reference audio.")}
 	}
 	if len(input.ReferenceImages) > 0 && len(input.ReferenceAudios) > 0 {
-		return nil, RequestPreparationError{Cause: errors.New("配音暂不支持同时传入参考图片与参考音频，请只保留其中一种参考素材")}
+		return nil, RequestPreparationError{Cause: errors.New("Dubbing currently does not support importing reference pictures and reference audio at the same time. Please only keep one of the reference materials.")}
 	}
 	refs := make([]beeftv.LocalMediaReference, 0, len(input.ReferenceImages)+len(input.ReferenceAudios))
 	for _, image := range input.ReferenceImages {
@@ -67,11 +67,11 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 	}
 	request.Input.Prompt = WithSystemPrompt(input.Config, input.Prompt)
 	if input.Config.AudioFormat != "" && input.Config.AudioFormat != "mp3" {
-		return nil, RequestPreparationError{Cause: errors.New("当前模型不支持所选音频格式，请选择 MP3")}
+		return nil, RequestPreparationError{Cause: errors.New("The selected audio format is not supported by the current model, please select MP3")}
 	}
 	instructions := strings.TrimSpace(input.Config.AudioInstructions)
 	if instructions != "" && !slices.Contains(capability.Options, "instructions") {
-		return nil, RequestPreparationError{Cause: errors.New("当前音频模型不支持配音指令，请清空后重试")}
+		return nil, RequestPreparationError{Cause: errors.New("The current audio model does not support dubbing instructions, please clear and try again.")}
 	}
 	request.Options = map[string]any{}
 	switch request.Operation {
@@ -83,7 +83,7 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 		voiceControl, hasVoiceControl := capability.Controls["voice"]
 		voiceRequired := (!hasVoiceControl || voiceControl.Required) && len(refs) == 0 && !slices.Contains(capability.Options, "instructions")
 		if voice == "" && voiceRequired {
-			return nil, RequestPreparationError{Cause: errors.New("请选择当前模型支持的声音")}
+			return nil, RequestPreparationError{Cause: errors.New("Please select a sound supported by the current model")}
 		}
 		if voice != "" {
 			request.Options["voice"] = voice
@@ -94,14 +94,14 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 		if input.Config.AudioSpeed != "" {
 			speed, err := strconv.ParseFloat(input.Config.AudioSpeed, 64)
 			if err != nil {
-				return nil, RequestPreparationError{Cause: errors.New("语速无效")}
+				return nil, RequestPreparationError{Cause: errors.New("Invalid speech rate")}
 			}
 			request.Options["speed"] = speed
 		}
 		if input.Config.AudioPitch != "" && slices.Contains(capability.Options, "pitch") {
 			pitch, err := strconv.ParseFloat(input.Config.AudioPitch, 64)
 			if err != nil {
-				return nil, RequestPreparationError{Cause: errors.New("声调无效")}
+				return nil, RequestPreparationError{Cause: errors.New("Invalid tone")}
 			}
 			if pitch != 0 {
 				request.Options["pitch"] = pitch
@@ -110,7 +110,7 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 		if input.Config.AudioVolume != "" && slices.Contains(capability.Options, "volume") {
 			volume, err := strconv.ParseFloat(input.Config.AudioVolume, 64)
 			if err != nil {
-				return nil, RequestPreparationError{Cause: errors.New("音量无效")}
+				return nil, RequestPreparationError{Cause: errors.New("Volume is invalid")}
 			}
 			if volume != 1 {
 				request.Options["volume"] = volume
@@ -123,7 +123,7 @@ func runManagedAudioTask(ctx context.Context, client *beeftv.MediaClient, input 
 			}
 		}
 	default:
-		return nil, RequestPreparationError{Cause: errors.New("请选择当前音频模型支持的操作")}
+		return nil, RequestPreparationError{Cause: errors.New("Please select the operations supported by the current audio model")}
 	}
 	return executeManagedMedia(ctx, client, request, refs)
 }

@@ -38,7 +38,7 @@ func newProjectAssetLinkTestService(t *testing.T) (*Service, *gorm.DB) {
 // 否则“资源存在但无资产记录”会让导入永远失败。
 func TestLinkProjectAssetCreatesAssetFromUploadedResource(t *testing.T) {
 	service, db := newProjectAssetLinkTestService(t)
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive}
 	resource := model.Resource{
 		ID:       "resource-1",
 		UserID:   "user-1",
@@ -58,7 +58,7 @@ func TestLinkProjectAssetCreatesAssetFromUploadedResource(t *testing.T) {
 	summary, err := service.ProjectService().LinkProjectAsset("user-1", "project-1", LinkProjectAssetRequest{
 		AssetID:  "resource-1",
 		Category: "",
-		Title:    "开场.mp4",
+		Title:    "Opening.mp4",
 		Source:   AssetSourceCanvas,
 	})
 	if err != nil {
@@ -72,8 +72,8 @@ func TestLinkProjectAssetCreatesAssetFromUploadedResource(t *testing.T) {
 	if err := db.First(&asset, "id = ?", "resource-1").Error; err != nil {
 		t.Fatalf("asset not created: %v", err)
 	}
-	if asset.Title != "开场.mp4" {
-		t.Errorf("asset.Title = %q, want 开场.mp4", asset.Title)
+	if asset.Title != "Opening.mp4" {
+		t.Errorf("asset.Title = %q, want opening.mp4", asset.Title)
 	}
 	if asset.Category != model.AssetCategoryMaterial {
 		t.Errorf("asset.Category = %q, want material", asset.Category)
@@ -98,7 +98,7 @@ func TestLinkProjectAssetCreatesAssetFromUploadedResource(t *testing.T) {
 // 不允许凭空链接。
 func TestLinkProjectAssetMissingResourceKeepsFailingClosed(t *testing.T) {
 	service, db := newProjectAssetLinkTestService(t)
-	project := model.Project{ID: "project-2", UserID: "user-2", Name: "短剧", Status: model.ProjectStatusActive}
+	project := model.Project{ID: "project-2", UserID: "user-2", Name: "skit", Status: model.ProjectStatusActive}
 	if err := db.Create(&project).Error; err != nil {
 		t.Fatal(err)
 	}

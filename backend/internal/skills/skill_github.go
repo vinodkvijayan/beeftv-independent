@@ -45,11 +45,11 @@ var (
 func parseGitHubSkillURL(rawURL string, requestedRef string, requestedSubdir string) (githubSkillSpec, error) {
 	target, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || target.Scheme != "https" || !strings.EqualFold(target.Hostname(), "github.com") || target.User != nil {
-		return githubSkillSpec{}, kernel.BadAuthRequest("请输入公开的 https://github.com 仓库地址")
+		return githubSkillSpec{}, kernel.BadAuthRequest("Please enter the public https://github.com warehouse address")
 	}
 	parts := strings.Split(strings.Trim(target.Path, "/"), "/")
 	if len(parts) < 2 {
-		return githubSkillSpec{}, kernel.BadAuthRequest("GitHub 地址必须包含 owner/repository")
+		return githubSkillSpec{}, kernel.BadAuthRequest("GitHub address must contain owner/repository")
 	}
 	spec := githubSkillSpec{Owner: parts[0], Repo: strings.TrimSuffix(parts[1], ".git"), Ref: strings.TrimSpace(requestedRef), Subdir: strings.Trim(strings.ReplaceAll(strings.TrimSpace(requestedSubdir), "\\", "/"), "/")}
 	if len(parts) >= 4 && parts[2] == "tree" {
@@ -61,10 +61,10 @@ func parseGitHubSkillURL(rawURL string, requestedRef string, requestedSubdir str
 		}
 	}
 	if len(parts) > 2 && parts[2] != "tree" {
-		return githubSkillSpec{}, kernel.BadAuthRequest("GitHub 地址必须指向仓库根目录或 tree 子目录")
+		return githubSkillSpec{}, kernel.BadAuthRequest("The GitHub address must point to the warehouse root directory or tree subdirectory")
 	}
 	if spec.Owner == "" || spec.Repo == "" {
-		return githubSkillSpec{}, kernel.BadAuthRequest("GitHub 仓库地址无效")
+		return githubSkillSpec{}, kernel.BadAuthRequest("GitHub repository address is invalid")
 	}
 	return spec, nil
 }
@@ -73,7 +73,7 @@ func newGitHubHTTPClient() *http.Client {
 	client := outbound.OutboundHTTPClient(30 * time.Second)
 	client.CheckRedirect = func(redirectReq *http.Request, via []*http.Request) error {
 		if len(via) >= 5 {
-			return errors.New("GitHub 请求重定向次数过多")
+			return errors.New("GitHub request redirects too many times")
 		}
 		_, err := validateGitHubSkillOutboundURL(redirectReq.Context(), redirectReq.URL.String())
 		return err
@@ -110,7 +110,7 @@ func isConfiguredGitHubTestBase(parsed *url.URL) bool {
 func validateGitHubSkillOutboundURL(ctx context.Context, rawURL string) (*url.URL, error) {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Hostname() == "" || parsed.User != nil || parsed.Fragment != "" {
-		return nil, fmt.Errorf("无效的 GitHub 资源地址")
+		return nil, fmt.Errorf("Invalid GitHub resource address")
 	}
 	publicCtx := outbound.WithPublicHTTPS(ctx)
 	if isConfiguredGitHubTestBase(parsed) {
@@ -120,10 +120,10 @@ func validateGitHubSkillOutboundURL(ctx context.Context, rawURL string) (*url.UR
 		return parsed, nil
 	}
 	if parsed.Scheme != "https" {
-		return nil, fmt.Errorf("GitHub 资源地址必须使用 HTTPS")
+		return nil, fmt.Errorf("GitHub resource addresses must use HTTPS")
 	}
 	if !allowedGitHubSkillHosts[strings.ToLower(parsed.Hostname())] {
-		return nil, fmt.Errorf("不允许访问未授权的 GitHub 资源域名 %q", parsed.Hostname())
+		return nil, fmt.Errorf("Access to unauthorized GitHub resource domain name %q is not allowed", parsed.Hostname())
 	}
 	if _, err := outbound.ValidatePublicHTTPSURLContext(publicCtx, parsed.String()); err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func fetchGitHubSkillArchive(ctx context.Context, spec githubSkillSpec) (skillPa
 		}
 	}
 	if commitInfo.SHA == "" {
-		return skillPackageArchive{}, "", "", "", errors.New("GitHub 未返回提交版本")
+		return skillPackageArchive{}, "", "", "", errors.New("GitHub didn't return commit version")
 	}
 	treeSHA := strings.ToLower(strings.TrimSpace(commitInfo.Commit.Tree.SHA))
 	if len(treeSHA) != 40 || !outbound.ValidHexDigest(treeSHA) {
@@ -203,30 +203,30 @@ func fetchGitHubSkillArchive(ctx context.Context, spec githubSkillSpec) (skillPa
 
 func downloadAndVerifyGitHubZip(ctx context.Context, client *http.Client, targetURL, commitSHA, treeSHA string, requireTree bool) ([]byte, bool, error) {
 	if requireTree && (len(treeSHA) != 40 || !outbound.ValidHexDigest(treeSHA)) {
-		return nil, false, errors.New("缺少 Git 树哈希，拒绝使用第三方代理下载")
+		return nil, false, errors.New("Missing Git tree hash, rejects downloads using third-party proxies")
 	}
 	if _, err := validateGitHubSkillOutboundURL(ctx, targetURL); err != nil {
-		return nil, false, fmt.Errorf("下载 GitHub 技能失败: %w", err)
+		return nil, false, fmt.Errorf("Failed to download GitHub skill: %w", err)
 	}
 	request, err := http.NewRequestWithContext(outbound.WithPublicHTTPS(ctx), http.MethodGet, targetURL, nil)
 	if err != nil {
-		return nil, false, fmt.Errorf("下载 GitHub 技能失败: %w", err)
+		return nil, false, fmt.Errorf("Failed to download GitHub skill: %w", err)
 	}
 	request.Header.Set("User-Agent", outbound.DefaultOutboundUserAgent)
 	response, err := client.Do(request)
 	if err != nil {
-		return nil, false, fmt.Errorf("下载 GitHub 技能失败: %w", err)
+		return nil, false, fmt.Errorf("Failed to download GitHub skill: %w", err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return nil, false, fmt.Errorf("下载 GitHub 技能失败: HTTP %d", response.StatusCode)
+		return nil, false, fmt.Errorf("Failed to download GitHub skill: HTTP %d", response.StatusCode)
 	}
 	data, err := io.ReadAll(io.LimitReader(response.Body, maxSkillPackageBytes+1))
 	if err != nil {
 		return nil, false, err
 	}
 	if len(data) > maxSkillPackageBytes {
-		return nil, true, kernel.BadAuthRequest("GitHub 技能包超过 200MB")
+		return nil, true, kernel.BadAuthRequest("GitHub skills package exceeds 200MB")
 	}
 	if err := verifyGitHubCommitZip(data, commitSHA, treeSHA); err != nil {
 		return nil, false, err
@@ -237,41 +237,41 @@ func downloadAndVerifyGitHubZip(ctx context.Context, client *http.Client, target
 func verifyGitHubCommitZip(data []byte, expectedCommitSHA string, expectedTreeSHA ...string) error {
 	want := strings.ToLower(strings.TrimSpace(expectedCommitSHA))
 	if len(want) != 40 || !outbound.ValidHexDigest(want) {
-		return errors.New("GitHub 未返回有效提交版本")
+		return errors.New("GitHub did not return a valid commit version")
 	}
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
-		return fmt.Errorf("下载内容不是有效 ZIP: %w", err)
+		return fmt.Errorf("The download content is not a valid ZIP: %w", err)
 	}
 	if len(zr.File) == 0 {
-		return errors.New("GitHub 技能包为空")
+		return errors.New("GitHub skills package is empty")
 	}
 	comment := strings.ToLower(strings.TrimSpace(zr.Comment))
 	if comment != want {
-		return fmt.Errorf("GitHub 技能包提交校验失败（期望 %s，实际 %s）", want, comment)
+		return fmt.Errorf("GitHub skill package submission verification failed (expected %s, actual %s)", want, comment)
 	}
 	rootPrefix := ""
 	hasFiles := false
 	for _, entry := range zr.File {
 		prefix, rest, ok := strings.Cut(entry.Name, "/")
 		if !ok || len(prefix) < 41 || prefix[len(prefix)-41] != '-' {
-			return fmt.Errorf("GitHub 技能包目录缺少提交后缀: %s", entry.Name)
+			return fmt.Errorf("The GitHub skill package directory is missing the commit suffix: %s", entry.Name)
 		}
 		suffix := prefix[len(prefix)-40:]
 		if !outbound.ValidHexDigest(suffix) || !strings.EqualFold(suffix, want) {
-			return fmt.Errorf("GitHub 技能包目录提交校验失败（期望 %s，实际 %s）", want, suffix)
+			return fmt.Errorf("GitHub skill package directory submission verification failed (expected %s, actual %s)", want, suffix)
 		}
 		if rootPrefix == "" {
 			rootPrefix = prefix
 		} else if prefix != rootPrefix {
-			return fmt.Errorf("GitHub 技能包包含不一致的顶层目录: %s 与 %s", rootPrefix, prefix)
+			return fmt.Errorf("GitHub skills package contains inconsistent top-level directories: %s and %s", rootPrefix, prefix)
 		}
 		if rest != "" && !entry.FileInfo().IsDir() {
 			hasFiles = true
 		}
 	}
 	if !hasFiles {
-		return errors.New("GitHub 技能包未包含任何文件")
+		return errors.New("GitHub Skills Pack contains no files")
 	}
 	wantTree := ""
 	if len(expectedTreeSHA) > 0 {
@@ -279,14 +279,14 @@ func verifyGitHubCommitZip(data []byte, expectedCommitSHA string, expectedTreeSH
 	}
 	if wantTree != "" {
 		if len(wantTree) != 40 || !outbound.ValidHexDigest(wantTree) {
-			return errors.New("GitHub 未返回有效目录树版本")
+			return errors.New("GitHub did not return a valid directory tree version")
 		}
 		gotTree, err := computeGitZipTreeSHA(zr, rootPrefix)
 		if err != nil {
 			return err
 		}
 		if !strings.EqualFold(gotTree, wantTree) {
-			return fmt.Errorf("GitHub 技能包内容树哈希校验失败（期望 %s，实际 %s）", wantTree, gotTree)
+			return fmt.Errorf("GitHub skill package content tree hash verification failed (expected %s, actual %s)", wantTree, gotTree)
 		}
 	}
 	return nil
@@ -320,7 +320,7 @@ func computeGitZipTreeSHA(zr *zip.Reader, rootPrefix string) (string, error) {
 		rel := strings.TrimPrefix(entry.Name, prefix)
 		cleanRel := path.Clean(rel)
 		if cleanRel == "." || cleanRel == "" || strings.HasPrefix(cleanRel, "../") || strings.HasPrefix(cleanRel, "/") {
-			return "", fmt.Errorf("GitHub 技能包文件路径无效: %s", entry.Name)
+			return "", fmt.Errorf("GitHub skill package file path is invalid: %s", entry.Name)
 		}
 		rc, err := entry.Open()
 		if err != nil {
@@ -336,7 +336,7 @@ func computeGitZipTreeSHA(zr *zip.Reader, rootPrefix string) (string, error) {
 		}
 		total += int64(len(content))
 		if total > maxSkillPackageBytes {
-			return "", kernel.BadAuthRequest("GitHub 技能包超过 200MB")
+			return "", kernel.BadAuthRequest("GitHub skills package exceeds 200MB")
 		}
 		blobHash := sha1.New()
 		_, _ = fmt.Fprintf(blobHash, "blob %d\x00", len(content))
@@ -407,21 +407,21 @@ func hashGitTreeNode(node *gitTreeNode) [20]byte {
 
 func githubJSON(ctx context.Context, client *http.Client, target string, output any) error {
 	if _, err := validateGitHubSkillOutboundURL(ctx, target); err != nil {
-		return fmt.Errorf("读取 GitHub 信息失败: %w", err)
+		return fmt.Errorf("Failed to read GitHub information: %w", err)
 	}
 	request, err := http.NewRequestWithContext(outbound.WithPublicHTTPS(ctx), http.MethodGet, target, nil)
 	if err != nil {
-		return fmt.Errorf("读取 GitHub 信息失败: %w", err)
+		return fmt.Errorf("Failed to read GitHub information: %w", err)
 	}
 	request.Header.Set("Accept", "application/vnd.github+json")
 	request.Header.Set("User-Agent", outbound.DefaultOutboundUserAgent)
 	response, err := client.Do(request)
 	if err != nil {
-		return fmt.Errorf("读取 GitHub 信息失败: %w", err)
+		return fmt.Errorf("Failed to read GitHub information: %w", err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return fmt.Errorf("读取 GitHub 信息失败: HTTP %d", response.StatusCode)
+		return fmt.Errorf("Failed to read GitHub information: HTTP %d", response.StatusCode)
 	}
 	return json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(output)
 }

@@ -8,7 +8,7 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false 
 
 const emptyWorkflow: CanvasWorkflow = {
     id: "",
-    name: "新工作流",
+    name: "New workflow",
     description: "",
     createdAt: "",
     updatedAt: "",
@@ -20,28 +20,28 @@ const operations: WorkflowOperation[] = [
     {
         id: "generate.image",
         version: 1,
-        name: "生成图片",
+        name: "Generate pictures",
         outputType: "image",
         fields: [
-            { key: "prompt", label: "提示词", type: "textarea" },
-            { key: "size", label: "比例", type: "select", options: [{ value: "1:1", label: "1:1" }] },
+            { key: "prompt", label: "prompt word", type: "textarea" },
+            { key: "size", label: "Proportion", type: "select", options: [{ value: "1:1", label: "1:1" }] },
         ],
         inputs: [],
     },
     {
         id: "generate.video",
         version: 1,
-        name: "生成视频",
+        name: "Generate video",
         outputType: "video",
         fields: [
             {
                 key: "modelOption",
-                label: "生成模型",
+                label: "Generate model",
                 type: "select",
                 options: [
                     {
                         value: "video-default",
-                        label: "默认视频模型",
+                        label: "Default video model",
                         capabilities: {
                             video: {
                                 defaultRatio: "16:9",
@@ -54,12 +54,12 @@ const operations: WorkflowOperation[] = [
                     },
                 ],
             },
-            { key: "prompt", label: "提示词", type: "textarea" },
-            { key: "size", label: "画面比例", type: "select", options: [{ value: "16:9", label: "16:9" }] },
-            { key: "vquality", label: "清晰度", type: "select", options: [{ value: "720p", label: "720p" }] },
-            { key: "videoSeconds", label: "时长", type: "number", min: 1, max: 15 },
+            { key: "prompt", label: "prompt word", type: "textarea" },
+            { key: "size", label: "aspect ratio", type: "select", options: [{ value: "16:9", label: "16:9" }] },
+            { key: "vquality", label: "clarity", type: "select", options: [{ value: "720p", label: "720p" }] },
+            { key: "videoSeconds", label: "duration", type: "number", min: 1, max: 15 },
         ],
-        inputs: [{ id: "referenceVideos", label: "参考视频", mediaType: "video", required: false, multiple: true }],
+        inputs: [{ id: "referenceVideos", label: "Reference video", mediaType: "video", required: false, multiple: true }],
     },
 ];
 

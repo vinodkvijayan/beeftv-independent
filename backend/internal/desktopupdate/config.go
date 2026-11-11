@@ -96,11 +96,11 @@ func configFromVars() (feed string, key ed25519.PublicKey, enabled bool, reason 
 	}
 	feed, err := normalizeFeedURL(feedRaw)
 	if err != nil {
-		return "", nil, false, "更新地址无效。"
+		return "", nil, false, "Update address is invalid."
 	}
 	key, err = ParsePublicKey(keyRaw)
 	if err != nil {
-		return "", nil, false, "更新配置无效。"
+		return "", nil, false, "Invalid update configuration."
 	}
 	return feed, key, true, ""
 }

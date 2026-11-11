@@ -27,7 +27,7 @@ func TestAssistantSkillContextReceiptSurvivesSkillRemoval(t *testing.T) {
 			}
 			createPin := func(owner, name string) skills.Pin {
 				t.Helper()
-				item, err := service.SkillsDomain().CreateSkill(owner, SkillMutationRequest{SkillName: name, Description: "技能回执回归", Instruction: "保留当前任务，只检查已有结果。", Tag: "others"})
+				item, err := service.SkillsDomain().CreateSkill(owner, SkillMutationRequest{SkillName: name, Description: "Return of skill receipt", Instruction: "Keep the current task and only check the existing results.", Tag: "others"})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -40,7 +40,7 @@ func TestAssistantSkillContextReceiptSurvivesSkillRemoval(t *testing.T) {
 			if removal == "uninstall" {
 				owner = "creator"
 			}
-			previous, removed := createPin("local", "先前技能"), createPin(owner, "本轮技能")
+			previous, removed := createPin("local", "Previous skills"), createPin(owner, "Skills this round")
 			change := assistantturns.SkillContextChange{SessionID: "durable:11111111-2222-3333-4444-555555555555", Action: "activate", RequestID: "previous", Pins: []skills.Pin{previous}}
 			if _, err := service.ChangeAssistantSkillContext("local", canvasID, change); err != nil {
 				t.Fatal(err)
@@ -50,7 +50,7 @@ func TestAssistantSkillContextReceiptSurvivesSkillRemoval(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if applied.ActivePins[0].SkillName != "本轮技能" {
+			if applied.ActivePins[0].SkillName != "Skills this round" {
 				t.Fatalf("activation lost validated display labels: %+v", applied)
 			}
 			if removal == "delete" {
@@ -111,8 +111,8 @@ func TestAssistantSkillContextReceiptSurvivesSkillRemoval(t *testing.T) {
 func TestAssistantSkillContextIdentifiesOnlyUnavailablePin(t *testing.T) {
 	service, canvasID, _ := newAssistantTurnService(t)
 	pins := make([]skills.Pin, 0, 2)
-	for _, name := range []string{"已删除", "仍可用"} {
-		item, err := service.SkillsDomain().CreateSkill("local", SkillMutationRequest{SkillName: name, Description: "回滚旧选择", Instruction: "检查已有结果", Tag: "others"})
+	for _, name := range []string{"Deleted", "still available"} {
+		item, err := service.SkillsDomain().CreateSkill("local", SkillMutationRequest{SkillName: name, Description: "Roll back old selection", Instruction: "Check existing results", Tag: "others"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -124,7 +124,7 @@ func TestAssistantSkillContextIdentifiesOnlyUnavailablePin(t *testing.T) {
 	change := assistantturns.SkillContextChange{SessionID: "durable:11111111-2222-3333-4444-555555555555", Action: "activate", RequestID: "restore", Pins: pins}
 	_, err := service.ChangeAssistantSkillContext("local", canvasID, change)
 	var unavailable *kernel.AppError
-	if !errors.As(err, &unavailable) || unavailable.Reason != "skill_context_pin_unavailable" || unavailable.Details["skillId"] != pins[0].SkillID || unavailable.Message != "技能不存在或已删除" {
+	if !errors.As(err, &unavailable) || unavailable.Reason != "skill_context_pin_unavailable" || unavailable.Details["skillId"] != pins[0].SkillID || unavailable.Message != "The skill does not exist or has been deleted" {
 		t.Fatalf("expected the revoked pin and original safe message, got %#v", err)
 	}
 	// A rejected request did not advance CAS or commit a receipt. The valid
@@ -137,7 +137,7 @@ func TestAssistantSkillContextIdentifiesOnlyUnavailablePin(t *testing.T) {
 }
 
 func TestAssistantSkillContextValidationPreservesOtherErrors(t *testing.T) {
-	for _, err := range []error{nil, errors.New("database unavailable"), &kernel.AppError{Status: 503, Message: "暂时不可用"}, &kernel.AppError{Status: 400, Reason: "skill_instruction_too_large"}, kernel.WrapAppError(400, "暂时读不到文件", os.ErrNotExist), kernel.NewAppError(429, "稍后重试"), kernel.NewAppError(401, "需要重新授权")} {
+	for _, err := range []error{nil, errors.New("database unavailable"), &kernel.AppError{Status: 503, Message: "Temporarily unavailable"}, &kernel.AppError{Status: 400, Reason: "skill_instruction_too_large"}, kernel.WrapAppError(400, "The file cannot be read temporarily", os.ErrNotExist), kernel.NewAppError(429, "Try again later"), kernel.NewAppError(401, "Requires reauthorization")} {
 		if _, ok := skillContextResourceError(err); ok {
 			t.Fatalf("non-resource error can remove a pin: %#v", err)
 		}
@@ -173,7 +173,7 @@ func TestAssistantSkillContextPreservesRecoverableResourceFailures(t *testing.T)
 	for _, failure := range []string{"archive-unavailable", "version-query"} {
 		t.Run(failure, func(t *testing.T) {
 			service, canvasID, _ := newAssistantTurnService(t)
-			item, err := service.SkillsDomain().CreateSkill("local", SkillMutationRequest{SkillName: "有效技能", Description: "临时读取失败", Instruction: "只检查已有结果", Tag: "others"})
+			item, err := service.SkillsDomain().CreateSkill("local", SkillMutationRequest{SkillName: "Effective skills", Description: "Temporary read failed", Instruction: "Only check existing results", Tag: "others"})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -224,8 +224,8 @@ func TestAssistantSkillContextPreservesRecoverableResourceFailures(t *testing.T)
 func TestAssistantSkillContextRetainsAggregateInstructionLimit(t *testing.T) {
 	service, canvasID, _ := newAssistantTurnService(t)
 	pins := make([]skills.Pin, 0, 3)
-	for _, name := range []string{"第一份", "第二份", "第三份"} {
-		item, err := service.SkillsDomain().CreateSkill("local", SkillMutationRequest{SkillName: name, Description: "合计超限", Instruction: "---\nname: large-skill\ndescription: limit fixture\n---\n" + strings.Repeat("字", 70000), Tag: "others"})
+	for _, name := range []string{"first portion", "second copy", "third copy"} {
+		item, err := service.SkillsDomain().CreateSkill("local", SkillMutationRequest{SkillName: name, Description: "Total exceeds limit", Instruction: "---\nname: large-skill\ndescription: limit fixture\n---\n" + strings.Repeat("chars", 70000), Tag: "others"})
 		if err != nil {
 			t.Fatal(err)
 		}

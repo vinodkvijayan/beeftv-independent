@@ -63,7 +63,7 @@ func registerAssistantSkillContextRoutes(r gin.IRouter, svc *app.Service, guard 
 func registerAssistantRuntimeSkillContextRoutes(r gin.IRouter, svc *app.Service) {
 	route := func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) || !isAssistantHostRequest(c, svc) {
-			fail(c, http.StatusForbidden, app.Forbidden("仅内置助手宿主可以管理技能状态"))
+			fail(c, http.StatusForbidden, app.Forbidden("Only the built-in assistant host can manage skill status"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -77,7 +77,7 @@ func registerAssistantRuntimeSkillContextRoutes(r gin.IRouter, svc *app.Service)
 			if turnID := c.Query("turnId"); turnID != "" {
 				result, err = svc.AssistantTurns().BoundSkillContext(user.ID, turnID, c.Query("sessionId"))
 				if err == nil && result.CanvasID != canvasID {
-					err = app.Forbidden("画布不匹配")
+					err = app.Forbidden("Canvas mismatch")
 				}
 			} else {
 				result, err = svc.AssistantTurns().SkillContext(user.ID, canvasID, c.Query("sessionId"))
@@ -98,11 +98,11 @@ func registerAssistantRuntimeSkillContextRoutes(r gin.IRouter, svc *app.Service)
 		decoder := json.NewDecoder(http.MaxBytesReader(c.Writer, c.Request.Body, 16384))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&body) != nil || !errors.Is(decoder.Decode(new(any)), io.EOF) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("技能状态参数无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Skill status parameter is invalid"))
 			return
 		}
 		if body.Origin != "" && (body.Origin != "skill_load" || body.TurnID == "" || body.Action != "activate") {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("技能加载参数无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Invalid skill loading parameters"))
 			return
 		}
 		if body.TurnID != "" {
@@ -112,7 +112,7 @@ func registerAssistantRuntimeSkillContextRoutes(r gin.IRouter, svc *app.Service)
 				return
 			}
 			if current.CanvasID != canvasID {
-				fail(c, http.StatusForbidden, app.Forbidden("画布不匹配"))
+				fail(c, http.StatusForbidden, app.Forbidden("Canvas mismatch"))
 				return
 			}
 			body.SkillContextChange.BoundTurnID = body.TurnID

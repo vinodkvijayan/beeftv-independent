@@ -143,7 +143,7 @@ function linkTargets(links) {
 
 // 一层图：根工作流，或者某个子图实例里面的图。
 function buildScope(nodes, links, defs, prefix, parent, instance, def, depth) {
-  if (depth > 10) throw new ComfyConversionError("子图嵌套太深（或互相引用），没法转换");
+  if (depth > 10) throw new ComfyConversionError("The subgraphs are too deeply nested (or refer to each other) and cannot be converted.");
   const scope = {
     prefix,
     nodes: new Map(nodes.map((n) => [String(n.id), n])),
@@ -288,7 +288,7 @@ export function convertEditorGraph(file, objectInfo) {
         }
       } else if (Array.isArray(values) && values.length > 0) {
         if (!objectInfo[node.type]) {
-          throw new ComfyConversionError(`这台 ComfyUI 没有节点「${node.type}」，请先装好它所在的节点包`, node.type);
+          throw new ComfyConversionError(`This ComfyUI has no nodes "${node.type}", please install the node package where it is located first.`, node.type);
         }
         const seeds = new Set();
         assignWidgetValues(api.inputs, specEntries(objectInfo[node.type]?.input), values, { i: 0 }, connectionNames, seeds);
@@ -322,7 +322,7 @@ export function convertEditorGraph(file, objectInfo) {
     }
   }
 
-  if (Object.keys(graph).length === 0) throw new ComfyConversionError("这个工作流里没有能执行的节点");
+  if (Object.keys(graph).length === 0) throw new ComfyConversionError("There are no nodes that can be executed in this workflow");
   return { graph, fixedSeeds };
 }
 

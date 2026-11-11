@@ -28,7 +28,7 @@ func TestModerationFailurePersistsThroughTaskOutput(t *testing.T) {
 			if err := db.First(&stored, "id = ?", task.ID).Error; err != nil {
 				t.Fatal(err)
 			}
-			want := fixture.Reason + "。" + fixture.Action + "。排查编号：请求 req_moderation_123。"
+			want := fixture.Reason + "。" + fixture.Action + ". Troubleshooting number: Request req_moderation_123."
 			if stored.Status != model.TaskStatusFailed || stored.Error != want {
 				t.Fatalf("stored=%+v, want %s", stored, want)
 			}

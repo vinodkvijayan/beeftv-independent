@@ -33,12 +33,12 @@ for (const width of [390,1440]) for (const dark of [false,true]) test(`update fa
     const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
     try {
         await page.goto(server.url+(dark?"?dark":""));
-        await page.getByRole("button",{name:"更新失败排查",exact:true}).click();
-        await page.getByText("诊断包将包含 4 条更新记录。",{exact:true}).waitFor();
-        await page.getByRole("button",{name:"打开日志文件夹",exact:true}).click();
+        await page.getByRole("button",{name:"Troubleshooting update failures",exact:true}).click();
+        await page.getByText("The diagnostic package will contain 4 update records.",{exact:true}).waitFor();
+        await page.getByRole("button",{name:"Open log folder",exact:true}).click();
         expect(await page.evaluate(()=>(window as any).openedLogs)).toBe(1);
-        await page.getByRole("button",{name:"导出诊断包",exact:true}).click();
-        await page.getByText("诊断编号：DIAG_FIXTURE",{exact:true}).waitFor();
+        await page.getByRole("button",{name:"Export diagnostic package",exact:true}).click();
+        await page.getByText("Diagnosis number: DIAG_FIXTURE",{exact:true}).waitFor();
         expect(await page.evaluate(()=>(window as any).exported)).toBe(1);
         const bounds=await page.getByRole("dialog").boundingBox();
         expect(bounds!.x).toBeGreaterThanOrEqual(0);expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(width);
@@ -52,10 +52,10 @@ test("collapsed sidebar still offers diagnosis and folder failure is actionable"
     const page=await browser.newPage();
     try {
         await page.goto(server.url+"?collapsed&open-fails");
-        await page.getByRole("button",{name:"更新失败排查",exact:true}).waitFor({state:"visible"});
-        expect(await page.getByRole("button",{name:"更新失败排查",exact:true}).isVisible()).toBe(true);
-        await page.getByRole("button",{name:"更新失败排查",exact:true}).click();
-        await page.getByRole("button",{name:"打开日志文件夹",exact:true}).click();
-        await page.getByText("无法打开日志文件夹，请在存储设置中查看当前目录。",{exact:true}).waitFor();
+        await page.getByRole("button",{name:"Troubleshooting update failures",exact:true}).waitFor({state:"visible"});
+        expect(await page.getByRole("button",{name:"Troubleshooting update failures",exact:true}).isVisible()).toBe(true);
+        await page.getByRole("button",{name:"Troubleshooting update failures",exact:true}).click();
+        await page.getByRole("button",{name:"Open log folder",exact:true}).click();
+        await page.getByText("Unable to open log folder, please check the current directory in storage settings.",{exact:true}).waitFor();
     } finally { await page.close(); }
 },30000);

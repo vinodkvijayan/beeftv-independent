@@ -39,7 +39,7 @@ func forbidden(reason, message string) *Error {
 
 func forbiddenMessage(message string) string {
 	if message == "" {
-		return "无权绑定该任务结果"
+		return "No permission to bind the task results"
 	}
 	return message
 }

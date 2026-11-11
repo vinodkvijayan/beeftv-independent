@@ -36,7 +36,7 @@ func resolveTool(name, env string) (string, error) {
 	if path, err := exec.LookPath(name); err == nil {
 		return path, nil
 	}
-	return "", fmt.Errorf("视频处理工具不可用，请重新安装应用")
+	return "", fmt.Errorf("Video processing tool is not available, please reinstall the app")
 }
 
 func bundledFFmpeg(executable string) string {

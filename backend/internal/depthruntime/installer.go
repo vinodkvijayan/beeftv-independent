@@ -77,7 +77,7 @@ func runtimeLayout(dataDir, platform, variant string) (runtimePaths, error) {
 			Archive: filepath.Join(dataDir, "downloads", "depth-runtime-v1-windows-amd64-"+variant+".zip"),
 		}, nil
 	default:
-		return runtimePaths{}, fmt.Errorf("不支持的深度运行包平台或设备: %s/%s", platform, variant)
+		return runtimePaths{}, fmt.Errorf("Unsupported deepin run package platform or device: %s/%s", platform, variant)
 	}
 }
 
@@ -113,13 +113,13 @@ func Ensure(ctx context.Context, options EnsureOptions) (Installation, error) {
 	archiveReady := runtimeReady || verifyFileContext(ctx, archivePath, runtimeArtifact) == nil
 	plan, err := installationPlan(options.DataDir, runtimeArtifact, manifest.Model, archiveReady, verifyFileContext(ctx, modelPath, manifest.Model) == nil, runtimeReady)
 	if err != nil {
-		return Installation{}, fmt.Errorf("无法读取组件目录的可用空间: %w", err)
+		return Installation{}, fmt.Errorf("Unable to read the free space of the component directory: %w", err)
 	}
 	if approved := options.ApprovedPlan; approved != nil && (plan.DownloadBytes > approved.DownloadBytes || plan.RequiredBytes > approved.RequiredBytes) {
-		return Installation{}, errors.New("组件下载信息已变化，请重新检查大小和空间后再确认下载")
+		return Installation{}, errors.New("The component download information has changed. Please recheck the size and space before confirming the download.")
 	}
 	if plan.RequiredBytes > 0 && plan.FreeBytes < uint64(plan.RequiredBytes) {
-		return Installation{}, fmt.Errorf("磁盘空间不足，请先在设置中更换存储目录或释放空间：需预留 %.1f GB，当前可用 %.1f GB", float64(plan.RequiredBytes)/(1<<30), float64(plan.FreeBytes)/(1<<30))
+		return Installation{}, fmt.Errorf("Insufficient disk space, please change the storage directory or free up space in the settings first: %.1f GB needs to be reserved, currently available %.1f GB", float64(plan.RequiredBytes)/(1<<30), float64(plan.FreeBytes)/(1<<30))
 	}
 	if !runtimeReady {
 		if !archiveReady {
@@ -147,14 +147,14 @@ func Ensure(ctx context.Context, options EnsureOptions) (Installation, error) {
 		}
 		if windows {
 			if !pathRegular(filepath.Join(stage, ".python", "python.exe")) {
-				return Installation{}, errors.New("深度组件缺少 Windows Python")
+				return Installation{}, errors.New("Deepin component missing for Windows Python")
 			}
 		} else {
 			if err := os.Chmod(filepath.Join(stage, ".venv", "bin", "python"), 0o750); err != nil {
-				return Installation{}, fmt.Errorf("深度组件缺少可执行 Python: %w", err)
+				return Installation{}, fmt.Errorf("Deepin component is missing executable Python: %w", err)
 			}
 			if !pathExecutable(filepath.Join(stage, ".python", "bin", "python3.11")) {
-				return Installation{}, errors.New("深度组件内置 Python 不可执行")
+				return Installation{}, errors.New("Deepin component built-in Python is not executable")
 			}
 		}
 		if err := ctx.Err(); err != nil {
@@ -167,7 +167,7 @@ func Ensure(ctx context.Context, options EnsureOptions) (Installation, error) {
 		} else {
 			_ = os.RemoveAll(runtimeRoot)
 			if err := os.Rename(stage, runtimeRoot); err != nil {
-				return Installation{}, fmt.Errorf("发布深度组件失败: %w", err)
+				return Installation{}, fmt.Errorf("Failed to publish deep component: %w", err)
 			}
 		}
 	}
@@ -199,14 +199,14 @@ func publishWindowsRuntime(stage, root string) error {
 	backup := filepath.Join(backupDir, "previous")
 	if err := os.Rename(root, backup); err != nil {
 		_ = os.Remove(backupDir)
-		return fmt.Errorf("旧版深度组件仍被占用，无法安全替换: %w", err)
+		return fmt.Errorf("The old Deepin component is still occupied and cannot be safely replaced: %w", err)
 	}
 	if err := os.Rename(stage, root); err != nil {
 		if restoreErr := os.Rename(backup, root); restoreErr != nil {
-			return fmt.Errorf("发布深度组件失败: %w；旧版保留在 %s，自动恢复失败: %v", err, backup, restoreErr)
+			return fmt.Errorf("Failed to publish deepin component: %w; old version remains in %s, automatic recovery failed: %v", err, backup, restoreErr)
 		}
 		_ = os.Remove(backupDir)
-		return fmt.Errorf("发布深度组件失败，旧版已恢复: %w", err)
+		return fmt.Errorf("Failed to publish Deepin component, the old version has been restored: %w", err)
 	}
 	_ = os.RemoveAll(backupDir)
 	return nil
@@ -214,7 +214,7 @@ func publishWindowsRuntime(stage, root string) error {
 
 func fetchManifest(ctx context.Context, rawURL string, signed bool, public ed25519.PublicKey) (Manifest, error) {
 	if strings.TrimSpace(rawURL) == "" {
-		return Manifest{}, errors.New("未配置深度组件下载清单")
+		return Manifest{}, errors.New("Deepin component download list is not configured")
 	}
 	var lastErr error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -232,7 +232,7 @@ func fetchManifest(ctx context.Context, rawURL string, signed bool, public ed255
 		}
 		var manifest Manifest
 		if response.StatusCode != http.StatusOK {
-			lastErr = fmt.Errorf("深度组件清单返回 HTTP %d", response.StatusCode)
+			lastErr = fmt.Errorf("Deep component manifest returns HTTP %d", response.StatusCode)
 			_ = response.Body.Close()
 			cancel()
 			continue
@@ -242,7 +242,7 @@ func fetchManifest(ctx context.Context, rawURL string, signed bool, public ed255
 			var raw []byte
 			raw, decodeErr = io.ReadAll(io.LimitReader(response.Body, 1<<20+1))
 			if decodeErr == nil && len(raw) > 1<<20 {
-				decodeErr = errors.New("深度组件清单超过大小限制")
+				decodeErr = errors.New("Deep component manifest exceeds size limit")
 			}
 			if decodeErr == nil {
 				manifest, decodeErr = verifySignedManifest(raw, public)
@@ -253,12 +253,12 @@ func fetchManifest(ctx context.Context, rawURL string, signed bool, public ed255
 		_ = response.Body.Close()
 		cancel()
 		if decodeErr != nil {
-			lastErr = fmt.Errorf("解析深度组件清单失败: %w", decodeErr)
+			lastErr = fmt.Errorf("Failed to parse deep component manifest: %w", decodeErr)
 			continue
 		}
 		return manifest, nil
 	}
-	return Manifest{}, fmt.Errorf("获取深度组件清单失败: %w", lastErr)
+	return Manifest{}, fmt.Errorf("Failed to obtain deep component list: %w", lastErr)
 }
 
 func fetchManifestSources(ctx context.Context, options EnsureOptions) (Manifest, error) {
@@ -293,7 +293,7 @@ func extractRuntimeArchiveContext(ctx context.Context, path string, destination 
 	}
 	reader, err := zip.OpenReader(path)
 	if err != nil {
-		return fmt.Errorf("打开深度组件压缩包失败: %w", err)
+		return fmt.Errorf("Failed to open deepin component compressed package: %w", err)
 	}
 	defer reader.Close()
 	var declaredExpanded int64
@@ -312,18 +312,18 @@ func extractRuntimeArchiveContext(ctx context.Context, path string, destination 
 		// containment checks so traversal stays forbidden on every host.
 		portableName := strings.ReplaceAll(entry.Name, `\`, "/")
 		if strings.Contains(portableName, ":") || strings.HasPrefix(portableName, "/") {
-			return errors.New("深度组件压缩包包含非安全路径")
+			return errors.New("Deepin component compressed package contains non-safe paths")
 		}
 		clean := filepath.Clean(filepath.FromSlash(portableName))
 		if clean == "." || filepath.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
-			return errors.New("深度组件压缩包包含越界路径")
+			return errors.New("Deep component compressed package contains out-of-bounds paths")
 		}
 		if entry.Mode()&os.ModeSymlink != 0 {
-			return errors.New("深度组件压缩包不允许符号链接")
+			return errors.New("Deep component archive does not allow symbolic links")
 		}
 		expanded += int64(entry.UncompressedSize64)
 		if expanded > maxExpanded {
-			return errors.New("深度组件解压体积超过限制")
+			return errors.New("The decompressed volume of the deep component exceeds the limit.")
 		}
 		target := filepath.Join(destination, clean)
 		if entry.FileInfo().IsDir() {
@@ -364,16 +364,16 @@ func extractRuntimeArchiveContext(ctx context.Context, path string, destination 
 
 func validateArchiveShape(files int, expandedSize int64, artifact Artifact, maxExpanded int64) error {
 	if files > 50_000 {
-		return errors.New("深度组件压缩包文件数量超过安全上限")
+		return errors.New("The number of deepin component compressed package files exceeds the safety limit")
 	}
 	if expandedSize > maxExpanded {
-		return errors.New("深度组件解压体积超过安全上限")
+		return errors.New("The decompressed volume of the Deepin component exceeds the safe upper limit")
 	}
 	if artifact.Files > 0 && files != artifact.Files {
-		return fmt.Errorf("深度组件压缩包文件数量与发布清单不一致: got %d want %d", files, artifact.Files)
+		return fmt.Errorf("The number of Deepin component compressed package files is inconsistent with the release list: got %d want %d", files, artifact.Files)
 	}
 	if artifact.ExpandedSize > 0 && expandedSize != artifact.ExpandedSize {
-		return fmt.Errorf("深度组件解压体积与发布清单不一致: got %d want %d", expandedSize, artifact.ExpandedSize)
+		return fmt.Errorf("The decompressed volume of Deepin component is inconsistent with the release list: got %d want %d", expandedSize, artifact.ExpandedSize)
 	}
 	return nil
 }

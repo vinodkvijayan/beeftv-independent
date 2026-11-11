@@ -19,8 +19,8 @@ const image = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www
 const fixtureNodes = (start: number, length: number): CanvasNodeData[] => Array.from({ length }, (_, offset) => {
     const index = start + offset;
     const type = index % 20 < 14 ? CanvasNodeType.Image : index % 20 < 19 ? CanvasNodeType.Video : CanvasNodeType.Text;
-    return { id: `n${index}`, type, title: `镜头 ${index + 1}`, position: { x: index % 25 * 360, y: Math.floor(index / 25) * 240 }, width: 320, height: 180,
-        metadata: { content: type === CanvasNodeType.Text ? `分镜描述 ${index}` : type === CanvasNodeType.Image ? image : "", previewContent: type === CanvasNodeType.Video ? image : undefined, naturalWidth: 320, naturalHeight: 180, prompt: "固定场景的分镜描述。".repeat(120), manualSize: true } };
+    return { id: `n${index}`, type, title: `lens${index + 1}`, position: { x: index % 25 * 360, y: Math.floor(index / 25) * 240 }, width: 320, height: 180,
+        metadata: { content: type === CanvasNodeType.Text ? `Storyboard description${index}` : type === CanvasNodeType.Image ? image : "", previewContent: type === CanvasNodeType.Video ? image : undefined, naturalWidth: 320, naturalHeight: 180, prompt: "Storyboard description of fixed scenes.".repeat(120), manualSize: true } };
 });
 
 const perf = (window as any).__canvasPerf = { ready: false, nodeRenders: {} as Record<string, number>, state: {}, run: async (_kind: string, _iterations: number) => ({}) };
@@ -56,7 +56,7 @@ function Harness() {
                 if (kind === "append") setNodes(current => [...current, ...fixtureNodes(current.length, 8)]);
                 else if (kind === "move") setNodes(current => current.map(node => node.id === "n0" ? { ...node, position: { ...node.position, x: node.position.x + 1 } } : node));
                 else if (kind === "pan") setViewport(current => ({ ...current, x: current.x + (i % 2 ? -8 : 8) }));
-                else setNodes(current => current.map(node => node.id === "n0" ? { ...node, title: `更新 ${kind} ${i}` } : node));
+                else setNodes(current => current.map(node => node.id === "n0" ? { ...node, title: `update${kind} ${i}` } : node));
             });
             durations.push(performance.now() - begin);
             models.push(latest.current.modelMs);
@@ -65,7 +65,7 @@ function Harness() {
         return { kind, iterations, ...perf.state, update: stats(durations), renderModel: stats(models), spatialBuilds: (perf as any).spatialBuilds, changedNodeRenders: perf.nodeRenders.n0 || 0, otherNodeRenders: Object.entries(perf.nodeRenders).filter(([id]) => id !== "n0").reduce((sum, [, n]) => sum + n, 0), scope: "production React synchronous update commits, real canvas components and synthetic local media; not paint/FPS, backend or native-host timing" };
     };
     return <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
-        <header style={{ height: 48, padding: 12, color: "#d0d7de", background: "#18212a" }}>BeefTV 画布性能回放 · 测试数据 · {nodes.length} 节点</header>
+        <header style={{ height: 48, padding: 12, color: "#d0d7de", background: "#18212a" }}>BeefTV canvas performance replay · Test data ·{nodes.length}  node</header>
         <main style={{ flex: 1, position: "relative" }}><InfiniteCanvas containerRef={containerRef} viewport={viewport} onViewportChange={setViewport}><CanvasProjectWorldLayers {...props} /></InfiniteCanvas></main>
     </div>;
 }

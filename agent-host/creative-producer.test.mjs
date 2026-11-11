@@ -77,7 +77,7 @@ async function createProducerFixture({ canvasState, script = () => null, buildTo
 
 describe('creative producer durable host', () => {
   test('rebuilds legacy unverified baselines and clears snapshot revision on skill task reset', async () => {
-    const canvasState = { current: { revision: 8, nodes: [{ id: 'old-node', type: 'text', title: '已有角色', metadata: { content: '原内容' } }], connections: [] } };
+    const canvasState = { current: { revision: 8, nodes: [{ id: 'old-node', type: 'text', title: 'Already have a role', metadata: { content: 'Original content' } }], connections: [] } };
     const fixture = await createProducerFixture({ canvasState, withSkills: true });
     try {
       const entry = await fixture.store.ensureSession('canvas-1');
@@ -86,20 +86,20 @@ describe('creative producer durable host', () => {
       await entry.harness.commit(async tx => {
         const doc = await tx.doc(state);
         doc.lastStudioSnapshot = {};
-        doc.studioDigestText = '[制作现场｜画布版本 ?｜本轮请求前的实际状态]\n概况：画布是空的。';
+        doc.studioDigestText = '[Production site｜Canvas version?｜Actual status before this round of requests]\nOverview: The canvas is empty.';
         delete doc.lastStudioSnapshotRevision;
       }, BACKGROUND_CONTEXT);
-      const first = await fixture.store.submit(entry, { turnId: 'legacy-1', requestId: 'legacy-1', content: '看当前画布', userText: '看当前画布', revisionBefore: 8 });
+      const first = await fixture.store.submit(entry, { turnId: 'legacy-1', requestId: 'legacy-1', content: 'View current canvas', userText: 'View current canvas', revisionBefore: 8 });
       await fixture.store.wait(entry, first);
       expect(systemText(fixture.payloads[0])).not.toContain('<beeftv_studio>');
-      expect(userText(fixture.payloads[0])).toContain('文本 1');
-      expect(userText(fixture.payloads[0])).not.toContain('画布是空的');
+      expect(userText(fixture.payloads[0])).toContain('Text 1');
+      expect(userText(fixture.payloads[0])).not.toContain('canvas is empty');
       expect(userText(fixture.payloads[0])).not.toContain('<canvas_changes>');
       canvasState.current.revision++;
-      canvasState.current.nodes[0].metadata.content = '用户修改后的内容';
-      const next = await fixture.store.submit(entry, { turnId: 'legacy-2', requestId: 'legacy-2', content: '再次查看', userText: '再次查看', revisionBefore: 9 });
+      canvasState.current.nodes[0].metadata.content = 'User modified content';
+      const next = await fixture.store.submit(entry, { turnId: 'legacy-2', requestId: 'legacy-2', content: 'View again', userText: 'View again', revisionBefore: 9 });
       await fixture.store.wait(entry, next);
-      expect(userText(fixture.payloads[1])).toContain('用户修改了「已有角色」');
+      expect(userText(fixture.payloads[1])).toContain('The user modified "existing role"');
       expect((await entry.harness.snapshot(state, BACKGROUND_CONTEXT)).lastStudioSnapshotRevision).toBe(9);
       const context = await fixture.store.skillContext(entry);
       await fixture.store.changeSkillContext(entry, { action: 'new_scope', pins: [], expectedRevision: context.revision, requestId: 'new-skill-task' });
@@ -108,8 +108,8 @@ describe('creative producer durable host', () => {
       expect(reset.lastStudioSnapshotRevision).toBeNull();
       expect(reset.studioDigestText).toBe('');
       canvasState.current.revision++;
-      canvasState.current.nodes[0].metadata.content = '新任务内容';
-      const fresh = await fixture.store.submit(entry, { turnId: 'fresh-task', requestId: 'fresh-task', content: '独立新任务', userText: '独立新任务', revisionBefore: 10 });
+      canvasState.current.nodes[0].metadata.content = 'New mission content';
+      const fresh = await fixture.store.submit(entry, { turnId: 'fresh-task', requestId: 'fresh-task', content: 'Independent new tasks', userText: 'Independent new tasks', revisionBefore: 10 });
       await fixture.store.wait(entry, fresh);
       expect(userText(fixture.payloads[2])).not.toContain('<canvas_changes>');
     } finally { await fixture.close(); }
@@ -118,29 +118,29 @@ describe('creative producer durable host', () => {
     let releaseReply;
     const planSeen = new Promise(resolve => { releaseReply = resolve; });
     const fixture = await createProducerFixture({ script: async (_body, callIndex) => {
-      if (callIndex === 1) return { tool: { name: 'plan_update', args: { goal: '实时制作计划', items: [{ id: 's1', title: '检查镜头', status: 'needs_user' }] } } };
+      if (callIndex === 1) return { tool: { name: 'plan_update', args: { goal: 'Real-time production plan', items: [{ id: 's1', title: 'Check shot', status: 'needs_user' }] } } };
       await planSeen;
-      return { reply: '开头和结尾必须完整。' };
+      return { reply: 'The beginning and end must be complete.' };
     } });
     const projection = createDurableTurnProjection();
     const events = [];
     try {
       const entry = await fixture.store.ensureSession('canvas-1');
-      const sub = await fixture.store.submit(entry, { turnId: 'live-plan', requestId: 'live-plan', content: '制作镜头', userText: '制作镜头', revisionBefore: 1 });
+      const sub = await fixture.store.submit(entry, { turnId: 'live-plan', requestId: 'live-plan', content: 'making shots', userText: 'making shots', revisionBefore: 1 });
       const record = await fixture.store.wait(entry, sub, { onEvent: async event => {
         events.push(event);
         projection.accept(event);
-        if (event.type === 'plan' && event.plan?.goal === '实时制作计划') {
+        if (event.type === 'plan' && event.plan?.goal === 'Real-time production plan') {
           expect((await fixture.store.history('canvas-1', entry.sessionId)).active).not.toBeNull();
           releaseReply();
         }
       } });
-      expect(record.reply).toBe('开头和结尾必须完整。');
+      expect(record.reply).toBe('The beginning and end must be complete.');
       expect(projection.text).toBe(record.reply);
       // 终态思考与实时流同形：这条假模型没有思考，两边都不该凭空造出来。
       expect(projection.reasoning).toEqual(record.reasoning ?? []);
       expect(events.some(event => event.type === 'message_start' && event.message.role === 'assistant')).toBe(true);
-      expect(events.some(event => event.type === 'plan' && event.plan?.goal === '实时制作计划')).toBe(true);
+      expect(events.some(event => event.type === 'plan' && event.plan?.goal === 'Real-time production plan')).toBe(true);
     } finally { releaseReply(); await fixture.close(); }
   });
   test('injects <beeftv_studio> digest and prepends <canvas_changes> when user edits between turns', async () => {
@@ -151,14 +151,14 @@ describe('creative producer durable host', () => {
           {
             id: 'sb-1',
             type: 'script',
-            title: '都市逆袭分镜',
+            title: 'Urban counterattack storyboard',
             metadata: {
               storyboard: {
-                rows: [{ id: 'r1', shotNumber: 1, durationSeconds: 4, plotDescription: '女主推门进入天台', imageNodeId: 'img-1', imageGenerationPrompt: '雨夜天台女主' }],
+                rows: [{ id: 'r1', shotNumber: 1, durationSeconds: 4, plotDescription: 'The heroine opens the door and enters the rooftop', imageNodeId: 'img-1', imageGenerationPrompt: 'The heroine on the rooftop on a rainy night' }],
               },
             },
           },
-          { id: 'img-1', type: 'image', title: '镜1首帧', metadata: { status: 'loading', taskStatus: 'running', content: '雨夜天台女主' } },
+          { id: 'img-1', type: 'image', title: 'Mirror 1 first frame', metadata: { status: 'loading', taskStatus: 'running', content: 'The heroine on the rooftop on a rainy night' } },
         ],
         connections: [],
       },
@@ -166,14 +166,14 @@ describe('creative producer durable host', () => {
     const fixture = await createProducerFixture({ canvasState });
     try {
       const entry = await fixture.store.ensureSession('canvas-1');
-      const sub1 = await fixture.store.submit(entry, { turnId: 't-1', requestId: 'req-1', content: '查看当前画布状态', userText: '查看当前画布状态', revisionBefore: 3 });
+      const sub1 = await fixture.store.submit(entry, { turnId: 't-1', requestId: 'req-1', content: 'View current canvas status', userText: 'View current canvas status', revisionBefore: 3 });
       await fixture.store.wait(entry, sub1);
 
       expect(fixture.payloads.length).toBe(1);
       expect(systemText(fixture.payloads[0])).not.toContain('<beeftv_studio>');
       expect(userText(fixture.payloads[0])).toContain('<beeftv_studio>');
-      expect(userText(fixture.payloads[0])).toContain('都市逆袭分镜');
-      expect(userText(fixture.payloads[0])).toContain('生成中 1');
+      expect(userText(fixture.payloads[0])).toContain('Urban counterattack storyboard');
+      expect(userText(fixture.payloads[0])).toContain('Generating 1');
       expect(userText(fixture.payloads[0])).not.toContain('<canvas_changes>');
 
       // Simulate user editing the storyboard title and image generation completing between turns
@@ -183,28 +183,28 @@ describe('creative producer durable host', () => {
           {
             id: 'sb-1',
             type: 'script',
-            title: '赛博天台分镜（用户已改）',
+            title: 'Cyber rooftop storyboard (changed by user)',
             metadata: {
               storyboard: {
-                rows: [{ id: 'r1', shotNumber: 1, durationSeconds: 4, plotDescription: '女主推门进入赛博天台', imageNodeId: 'img-1', imageGenerationPrompt: '霓虹雨夜天台女主' }],
+                rows: [{ id: 'r1', shotNumber: 1, durationSeconds: 4, plotDescription: 'The heroine opens the door and enters the cyber rooftop', imageNodeId: 'img-1', imageGenerationPrompt: 'Neon rainy night rooftop heroine' }],
               },
             },
           },
-          { id: 'img-1', type: 'image', title: '镜1首帧', metadata: { status: 'success', assetId: 'asset-img-1', content: '霓虹雨夜天台女主' } },
+          { id: 'img-1', type: 'image', title: 'Mirror 1 first frame', metadata: { status: 'success', assetId: 'asset-img-1', content: 'Neon rainy night rooftop heroine' } },
         ],
         connections: [],
       };
 
-      const sub2 = await fixture.store.submit(entry, { turnId: 't-2', requestId: 'req-2', content: '继续下一步', userText: '继续下一步', revisionBefore: 5 });
+      const sub2 = await fixture.store.submit(entry, { turnId: 't-2', requestId: 'req-2', content: 'Continue to the next step', userText: 'Continue to the next step', revisionBefore: 5 });
       await fixture.store.wait(entry, sub2);
 
       expect(fixture.payloads.length).toBe(2);
       expect(systemText(fixture.payloads[1])).toBe(systemText(fixture.payloads[0]));
-      expect(userText(fixture.payloads[1])).toContain('赛博天台分镜（用户已改）');
-      expect(userText(fixture.payloads[1])).toContain('完成 1');
+      expect(userText(fixture.payloads[1])).toContain('Cyber rooftop storyboard (changed by user)');
+      expect(userText(fixture.payloads[1])).toContain('Complete 1');
       expect(userText(fixture.payloads[1])).toContain('<canvas_changes>');
-      expect(userText(fixture.payloads[1])).toContain('用户修改了「赛博天台分镜（用户已改）」');
-      expect(userText(fixture.payloads[1])).toContain('「镜1首帧」生成完成');
+      expect(userText(fixture.payloads[1])).toContain('The user modified "Cyber Rooftop Storyboard (user has changed)"');
+      expect(userText(fixture.payloads[1])).toContain('"Mirror 1 first frame" is generated');
     } finally {
       await fixture.close();
     }
@@ -218,10 +218,10 @@ describe('creative producer durable host', () => {
             tool: {
               name: 'plan_update',
               args: {
-                goal: '制作两镜短剧并提议首帧',
+                goal: 'Create a two-shot skit and propose the first frame',
                 items: [
-                  { id: 's1', title: '编写分镜脚本', status: 'done' },
-                  { id: 's2', title: '创建首帧节点并提议生成', status: 'todo' },
+                  { id: 's1', title: 'Write storyboard script', status: 'done' },
+                  { id: 's2', title: 'Create the first frame node and propose generation', status: 'todo' },
                 ],
               },
             },
@@ -229,7 +229,7 @@ describe('creative producer durable host', () => {
         }
         if (callIndex === 2) {
           // Model yields after step 1; onYield should see s2 is still todo and continue!
-          return { reply: '已完成分镜脚本编写。' };
+          return { reply: 'The storyboard script has been written.' };
         }
         if (callIndex === 3) {
           return {
@@ -237,33 +237,33 @@ describe('creative producer durable host', () => {
               name: 'plan_update',
               args: {
                 items: [
-                  { id: 's1', title: '编写分镜脚本', status: 'done' },
-                  { id: 's2', title: '创建首帧节点并提议生成', status: 'needs_user', note: '等待用户确认首帧出图' },
+                  { id: 's1', title: 'Write storyboard script', status: 'done' },
+                  { id: 's2', title: 'Create the first frame node and propose generation', status: 'needs_user', note: 'Waiting for the user to confirm the first frame is released' },
                 ],
               },
             },
           };
         }
-        return { reply: '已准备好首帧生成提议，请确认后开始生成。' };
+        return { reply: 'The first frame generation proposal is ready, please confirm and start generating.' };
       },
     });
     try {
       const entry = await fixture.store.ensureSession('canvas-1');
-      const sub = await fixture.store.submit(entry, { turnId: 't-plan', requestId: 'req-plan', content: '帮我做两镜短剧', userText: '帮我做两镜短剧', revisionBefore: 1 });
+      const sub = await fixture.store.submit(entry, { turnId: 't-plan', requestId: 'req-plan', content: 'Help me do a two-shot skit', userText: 'Help me do a two-shot skit', revisionBefore: 1 });
       const record = await fixture.store.wait(entry, sub);
 
       expect(fixture.payloads.length).toBe(4);
-      expect(userText(fixture.payloads[2])).toContain('计划还没做完。继续做「创建首帧节点并提议生成」');
+      expect(userText(fixture.payloads[2])).toContain('The plan is not finished yet. Continue to "Create the first frame node and propose generation"');
       expect(systemText(fixture.payloads[3])).not.toContain('<beeftv_plan>');
       expect(systemText(fixture.payloads[3])).toBe(systemText(fixture.payloads[0]));
       expect(userText(fixture.payloads[3])).toContain('<beeftv_plan>');
-      expect(userText(fixture.payloads[3])).toContain('[等你确认] 创建首帧节点并提议生成');
-      expect(record.reply).toContain('请确认后开始生成');
+      expect(userText(fixture.payloads[3])).toContain('[Waiting for your confirmation] Create the first frame node and propose generation');
+      expect(record.reply).toContain('Please confirm and start generating');
       expect(record.plan).toMatchObject({ done: 1, total: 2 });
 
       const history = await fixture.store.history('canvas-1', entry.sessionId);
       expect(history.plan).toMatchObject({
-        goal: '制作两镜短剧并提议首帧',
+        goal: 'Create a two-shot skit and propose the first frame',
         done: 1,
         total: 2,
       });
@@ -280,26 +280,26 @@ describe('creative producer durable host', () => {
         sessionId: entry.sessionId,
         requestId: 'task-done-1',
         kind: 'task_completed',
-        message: '镜1首帧（节点 img-1）已生成完成，资源 asset-101。',
+        message: 'The first frame of mirror 1 (node img-1) has been generated, resource asset-101.',
         data: { taskId: 'task-1', nodeId: 'img-1', assetId: 'asset-101' },
       });
       const eventDup = await fixture.store.recordEvent('canvas-1', {
         sessionId: entry.sessionId,
         requestId: 'task-done-1',
         kind: 'task_completed',
-        message: '镜1首帧（节点 img-1）已生成完成，资源 asset-101。',
+        message: 'The first frame of mirror 1 (node img-1) has been generated, resource asset-101.',
         data: { taskId: 'task-1', nodeId: 'img-1', assetId: 'asset-101' },
       });
       expect(event1.submissionId).toBe(eventDup.submissionId);
       expect(fixture.payloads.length).toBe(0);
 
-      const sub = await fixture.store.submit(entry, { turnId: 't-after-event', requestId: 'req-after-event', content: '检查刚才生成的图', userText: '检查刚才生成的图', revisionBefore: 2 });
+      const sub = await fixture.store.submit(entry, { turnId: 't-after-event', requestId: 'req-after-event', content: 'Check the graph just generated', userText: 'Check the graph just generated', revisionBefore: 2 });
       await fixture.store.wait(entry, sub);
 
       expect(fixture.payloads.length).toBe(1);
       const allUsers = userText(fixture.payloads[0]);
       expect(allUsers).toContain('<canvas_event kind="task_completed">');
-      expect(allUsers).toContain('镜1首帧（节点 img-1）已生成完成，资源 asset-101。');
+      expect(allUsers).toContain('The first frame of mirror 1 (node img-1) has been generated, resource asset-101.');
       expect(allUsers.split('asset-101').length - 1).toBe(1);
     } finally {
       await fixture.close();

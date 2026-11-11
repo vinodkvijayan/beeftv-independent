@@ -38,22 +38,22 @@ func TestCapabilityNormalizerProjectsPluginWorkflowCapabilities(t *testing.T) {
 	}{
 		{
 			model:         "minimax_h3_b99_003_12s",
-			resolutions:   []string{"736p竖", "736p横", "736p(1:1)"},
-			defaultRes:    "736p竖",
+			resolutions:   []string{"736p vertical", "736p horizontal", "736p(1:1)"},
+			defaultRes:    "736p vertical",
 			maxSeconds:    12,
 			defaultSecond: 5,
 		},
 		{
 			model:         "minimax_h3_lightx2v_v5",
-			resolutions:   []string{"480p竖", "768p竖", "1080p竖", "480p横", "768p横", "1080p横", "480p(1:1)", "768p(1:1)", "1080p(1:1)"},
-			defaultRes:    "768p竖",
+			resolutions:   []string{"480p vertical", "768p vertical", "1080p vertical", "480p horizontal", "768p horizontal", "1080p horizontal", "480p(1:1)", "768p(1:1)", "1080p(1:1)"},
+			defaultRes:    "768p vertical",
 			maxSeconds:    10,
 			defaultSecond: 5,
 		},
 		{
 			model:         "minimax_h3_image_audio_to_video",
-			resolutions:   []string{"480p竖", "768p竖", "1080p竖", "480p横", "768p横", "1080p横"},
-			defaultRes:    "768p竖",
+			resolutions:   []string{"480p vertical", "768p vertical", "1080p vertical", "480p horizontal", "768p horizontal", "1080p horizontal"},
+			defaultRes:    "768p vertical",
 			maxSeconds:    15,
 			defaultSecond: 5,
 		},
@@ -86,7 +86,7 @@ func TestCapabilityNormalizerProjectsPluginWorkflowCapabilities(t *testing.T) {
 func TestWorkflowVideoCapabilityProjectionMatchesSharedFixture(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "fixtures", "workflow-video-capability-projection.json"))
 	if err != nil {
-		t.Fatalf("读取工作流能力共享夹具失败：%v", err)
+		t.Fatalf("Failed to read workflow capability shared fixture: %v", err)
 	}
 	var cases []struct {
 		Name     string                    `json:"name"`
@@ -94,18 +94,18 @@ func TestWorkflowVideoCapabilityProjectionMatchesSharedFixture(t *testing.T) {
 		Expected map[string]any            `json:"expected"`
 	}
 	if err := json.Unmarshal(raw, &cases); err != nil {
-		t.Fatalf("解析工作流能力共享夹具失败：%v", err)
+		t.Fatalf("Failed to parse workflow capability sharing fixture: %v", err)
 	}
 	for _, item := range cases {
 		video := defaultVideoCapabilityConfig(item.Workflow.ProviderID, item.Workflow.ID)
 		applyProtocolWorkflowVideoCapability(video, item.Workflow)
 		encoded, err := json.Marshal(video)
 		if err != nil {
-			t.Fatalf("%s 序列化失败：%v", item.Name, err)
+			t.Fatalf("%s serialization failed: %v", item.Name, err)
 		}
 		var actual map[string]any
 		if err := json.Unmarshal(encoded, &actual); err != nil {
-			t.Fatalf("%s 解析失败：%v", item.Name, err)
+			t.Fatalf("%s parsing failed: %v", item.Name, err)
 		}
 		assertFixtureSubset(t, item.Name, item.Expected, actual)
 	}

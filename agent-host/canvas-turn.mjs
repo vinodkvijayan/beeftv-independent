@@ -27,7 +27,7 @@ function findCatalogModel(modelId, api) {
 // or IDs from that payload. Business tools retain their own batch parameters.
 export function toolCallCapabilityContext({ api, modelId }) {
   return api === 'openai-completions' && modelId === 'gemini-3.8-flash'
-    ? '[本轮工具通路限制，优先于多工具合并建议和「计划更新与提方案同一次响应发出」的要求：每条模型响应只调用一个工具，等结果再决定下一步；不能同一响应发出多个不同工具调用。优先用单个业务工具的批量或组合参数：model_catalog capabilities、canvas_script_prepare script、混合 canvas_generation_submit。需要成片和可编辑工程时使用 canvas_timeline_deliver，一次完成时间线保存、合成、画布绑定和工程导出；不要拆成逐步调用，只有组合回执明确失败时才恢复对应原步骤。计划更新与其他工具也分开。这是兼容通路限制，不需要用户逐步确认或人工续做。]'
+    ? '[This round of tool path restrictions takes precedence over multi-tool merger suggestions and the requirement of "sending plan updates and proposals in the same response": only one tool is called for each model response, and the next step is decided after waiting for the results; multiple different tool calls cannot be issued in the same response. Prioritize using batch or combined parameters of a single business tool: model_catalog capabilities, canvas_script_prepare script, hybrid canvas_generation_submit. Use canvas_timeline_deliver when you need to create a sliced ​​and editable project, and complete the timeline saving, synthesis, canvas binding and project export at once; do not split it into step-by-step calls, and only restore the corresponding original steps when the combination receipt clearly fails. Scheduled updates are also separate from other tools. This is a compatible channel restriction and does not require user step-by-step confirmation or manual continuation. ]'
     : '';
 }
 
@@ -226,14 +226,14 @@ export function sessionTitle(turns) {
 // 这里只是「告诉模型可以引用什么」，真正的授权仍在后端按回合记录裁决：
 // 模型即使编造别的 assetId/canvasId，工具调用也会在共享操作层被 scope_denied 拒绝。
 export function turnContextPrefix({ canvasId, selectedNodeIds = [], references = [], permissionMode = 'canvas' }) {
-  const parts = [`当前画布 ${canvasId}`];
-  parts.push(permissionMode==='read-only' ? '只能读取工作区内容，不能修改或生成' : permissionMode==='full-access' ? '可以读取和修改本工作区的画布；付费生成仍需用户确认' : '可修改当前画布，其他画布只读');
+  const parts = [`current canvas${canvasId}`];
+  parts.push(permissionMode==='read-only' ? 'Can only read the contents of the workspace and cannot modify or generate it.' : permissionMode==='full-access' ? 'The canvas of this workspace can be read and modified; paid generation still requires user confirmation' : 'The current canvas can be modified, other canvases are only readable');
   const selected = selectedNodeIds.map((id) => String(id)).filter(Boolean);
-  if (selected.length > 0) parts.push(`选中对象: ${selected.join(', ')}`);
+  if (selected.length > 0) parts.push(`Selected objects:${selected.join(', ')}`);
   const assets = references.filter((item) => item?.kind === 'asset' && item.id).map((item) => String(item.id));
   const canvases = references.filter((item) => item?.kind === 'canvas' && item.id).map((item) => String(item.id));
-  if (assets.length > 0) parts.push(`已引用素材: ${assets.join(', ')}`);
-  if (canvases.length > 0) parts.push(`已引用画布${permissionMode==='full-access'?'':'（只读）'}: ${canvases.join(', ')}`);
+  if (assets.length > 0) parts.push(`Materials cited:${assets.join(', ')}`);
+  if (canvases.length > 0) parts.push(`Canvas referenced${permissionMode==='full-access'?'':'(read only)'}: ${canvases.join(', ')}`);
   return `[${parts.join('｜')}]`;
 }
 
@@ -277,11 +277,11 @@ export function modelTurnCompletion(lastAssistantMessage, promptError = null, bu
     .filter((part) => part?.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text).join('');
   if (budgetFailure) return { reply, error: budgetFailure.message, errorReason: budgetFailure.reason };
-  if (timedOut) return { reply, error: '这一轮处理超时，已停止继续执行。', errorReason: 'turn_timeout' };
+  if (timedOut) return { reply, error: 'This round of processing has timed out and execution has stopped.', errorReason: 'turn_timeout' };
   if (cancelled) return { reply, error: null, errorReason: null };
   if (promptError) return { reply, error: String(promptError), errorReason: 'model_request_failed' };
   if (lastAssistantMessage?.stopReason === 'error') {
-    return { reply, error: lastAssistantMessage.errorMessage || '模型调用没有完成', errorReason: 'model_request_failed' };
+    return { reply, error: lastAssistantMessage.errorMessage || 'Model call did not complete', errorReason: 'model_request_failed' };
   }
   return { reply, error: null, errorReason: null };
 }
@@ -305,7 +305,7 @@ export function projectTurnHistory(entries, turnType, activeTurnId = '') {
     } else if (entry.customType === `${turnType}.started` && !turns.has(data.turnId)) {
       turns.set(data.turnId, { finished: false, data: {
         ...data, reply: '', toolCalls: [], change: null, proposals: [], cancelled: false,
-        error: '上一轮执行中断，请核对已落地的改动。', errorReason: 'turn_interrupted',
+        error: 'The last round of execution was interrupted, please check the changes that have been implemented.', errorReason: 'turn_interrupted',
       } });
     }
   }

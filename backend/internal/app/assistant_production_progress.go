@@ -31,7 +31,7 @@ func (s *Service) prepareAssistantProduction(tx *gorm.DB, receipt *model.Assista
 		return true, nil
 	}
 	if source.Undone || source.ContinuationInvalidated || plan.SourceTurnID != source.TurnID || plan.ProposalID != receipt.ProposalID {
-		return false, operations.PreconditionFailed("production_revoked", "本次制作授权已停止", nil)
+		return false, operations.PreconditionFailed("production_revoked", "This production authorization has been stopped", nil)
 	}
 	domain := s.BindDomain(tx).(*operationSession)
 	raw, err := domain.UserCanvasProject(receipt.UserID, receipt.CanvasID)
@@ -56,7 +56,7 @@ func (s *Service) prepareAssistantProduction(tx *gorm.DB, receipt *model.Assista
 		return false, err
 	}
 	if !reflect.DeepEqual(current, plan.Targets) {
-		return false, &assistantturns.Error{Reason: "continuation_intent_changed", Message: "制作方案已修改，自动制作已停止，请确认新的方案"}
+		return false, &assistantturns.Error{Reason: "continuation_intent_changed", Message: "The production plan has been modified and automatic production has been stopped. Please confirm the new plan."}
 	}
 	saved, planned := map[string]bool{}, map[string]bool{}
 	pending := []operations.GenerationTarget{}
@@ -132,7 +132,7 @@ func (s *Service) prepareAssistantProduction(tx *gorm.DB, receipt *model.Assista
 		if running {
 			return false, nil
 		}
-		return false, &assistantturns.Error{Reason: "continuation_target_changed", Message: "暂不能自动继续，请查看本次生成或手动继续"}
+		return false, &assistantturns.Error{Reason: "continuation_target_changed", Message: "It is not possible to continue automatically. Please check this generation or continue manually."}
 	}
 	if failed {
 		// Keep the single wake until every already-admitted sibling settles.

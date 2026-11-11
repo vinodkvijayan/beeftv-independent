@@ -54,12 +54,12 @@ function textAsset(id: string, folderId?: string): Asset {
     return {
         id,
         kind: "text",
-        title: "文本",
+        title: "text",
         coverUrl: "",
         tags: [],
         category: "other",
         status: "confirmed",
-        source: "手动添加",
+        source: "Add manually",
         folderId,
         data: { content: "hello" },
         createdAt: "2026-10-02T00:00:00.000Z",
@@ -91,12 +91,12 @@ describe("workspace asset folders", () => {
                 urls.push(requestKey(config));
                 return envelope({});
             }, async () => {
-                const created = await createWorkspaceAssetFolder("灵感");
-                expect(created.name).toBe("灵感");
+                const created = await createWorkspaceAssetFolder("inspiration");
+                expect(created.name).toBe("inspiration");
                 const listed = await listWorkspaceAssetFolders();
-                expect(listed.map((folder) => folder.name)).toEqual(["灵感"]);
-                await renameWorkspaceAssetFolder(created.id, "分镜");
-                expect((await listWorkspaceAssetFolders())[0]?.name).toBe("分镜");
+                expect(listed.map((folder) => folder.name)).toEqual(["inspiration"]);
+                await renameWorkspaceAssetFolder(created.id, "Storyboard");
+                expect((await listWorkspaceAssetFolders())[0]?.name).toBe("Storyboard");
                 await deleteWorkspaceAssetFolder(created.id);
                 expect(await listWorkspaceAssetFolders()).toEqual([]);
             });
@@ -120,10 +120,10 @@ describe("workspace asset folders", () => {
                 const method = String(config.method || "get").toLowerCase();
                 const url = String(config.url || "");
                 if (method === "post" && url === "/asset-folders") {
-                    return envelope({ folder: { id: "folder-1", name: "灵感", position: 0, createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                    return envelope({ folder: { id: "folder-1", name: "inspiration", position: 0, createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
                 }
                 if (method === "patch" && url === "/asset-folders/folder-1") {
-                    return envelope({ folder: { id: "folder-1", name: "分镜", position: 0, createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                    return envelope({ folder: { id: "folder-1", name: "Storyboard", position: 0, createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
                 }
                 if (method === "delete" && url === "/asset-folders/folder-1") {
                     return envelope({ id: "folder-1" });
@@ -133,9 +133,9 @@ describe("workspace asset folders", () => {
                 }
                 throw new Error(`unexpected ${method} ${url}`);
             }, async () => {
-                const created = await createWorkspaceAssetFolder("灵感");
+                const created = await createWorkspaceAssetFolder("inspiration");
                 expect(created.id).toBe("folder-1");
-                await renameWorkspaceAssetFolder(created.id, "分镜");
+                await renameWorkspaceAssetFolder(created.id, "Storyboard");
                 await deleteWorkspaceAssetFolder(created.id);
             });
             expect(urls).toEqual(["post /asset-folders", "patch /asset-folders/folder-1", "delete /asset-folders/folder-1"]);

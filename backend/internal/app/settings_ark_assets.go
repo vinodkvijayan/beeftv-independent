@@ -86,7 +86,7 @@ func (s *Service) readArkPrivateAssetSetting() (*model.SystemSetting, arkPrivate
 	value := defaultArkPrivateAssetSetting()
 	if strings.TrimSpace(setting.ValueJSON) != "" {
 		if err := json.Unmarshal([]byte(setting.ValueJSON), &value); err != nil {
-			return nil, arkPrivateAssetSettingValue{}, errors.New("方舟素材库配置格式无效")
+			return nil, arkPrivateAssetSettingValue{}, errors.New("Ark material library configuration format is invalid")
 		}
 	}
 	needsMigration := value.AccessKeySecret != "" && !strings.HasPrefix(value.AccessKeySecret, encryptedSettingPrefix)
@@ -134,16 +134,16 @@ func arkPrivateAssetSettingFromRequest(req ArkPrivateAssetSettingRequest, curren
 		return next, nil
 	}
 	if next.Region == "" {
-		return next, BadAuthRequest("请填写方舟 Region")
+		return next, BadAuthRequest("Please fill in Ark Region")
 	}
 	if next.ProjectName == "" {
-		return next, BadAuthRequest("请填写方舟 ProjectName")
+		return next, BadAuthRequest("Please fill in Ark ProjectName")
 	}
 	if next.AccessKeyID == "" {
-		return next, BadAuthRequest("请填写方舟素材库 AccessKey")
+		return next, BadAuthRequest("Please fill in the Ark Material Library AccessKey")
 	}
 	if next.AccessKeySecret == "" {
-		return next, BadAuthRequest("请填写方舟素材库 SecretKey")
+		return next, BadAuthRequest("Please fill in the Ark Material Library SecretKey")
 	}
 	return next, nil
 }

@@ -8,9 +8,9 @@ import (
 
 func registerCanvasEditOps(r *Registry) {
 	for _, action := range []struct{ id, summary, properties, required string }{
-		{"canvas.node.move", "移动节点位置", `"nodeId":{"type":"string"},"position":{"type":"object","properties":{"x":{"type":"number"},"y":{"type":"number"}},"required":["x","y"]}`, `"nodeId","position"`},
-		{"canvas.node.delete", "移除画布节点及连线", `"nodeId":{"type":"string"}`, `"nodeId"`},
-		{"canvas.edge.delete", "移除指定连线", `"edgeId":{"type":"string"}`, `"edgeId"`},
+		{"canvas.node.move", "Move node position", `"nodeId":{"type":"string"},"position":{"type":"object","properties":{"x":{"type":"number"},"y":{"type":"number"}},"required":["x","y"]}`, `"nodeId","position"`},
+		{"canvas.node.delete", "Remove canvas nodes and connections", `"nodeId":{"type":"string"}`, `"nodeId"`},
+		{"canvas.edge.delete", "Remove specified connection", `"edgeId":{"type":"string"}`, `"edgeId"`},
 	} {
 		id := action.id
 		r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: id, Summary: action.summary, Scope: ScopeCanvas,
@@ -35,18 +35,18 @@ func editCanvas(ctx *Context, params json.RawMessage, action string) (any, error
 		return nil, err
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || args.ExpectedRevision == nil || *args.ExpectedRevision < 0 {
-		return nil, InvalidArg("invalid_params", "canvasId 和有效 expectedRevision 必填")
+		return nil, InvalidArg("invalid_params", "canvasId and valid expectedRevision are required")
 	}
 	if action == "canvas.edge.delete" {
 		if strings.TrimSpace(args.EdgeID) == "" {
-			return nil, InvalidArg("invalid_params", "edgeId 必填")
+			return nil, InvalidArg("invalid_params", "edgeId required")
 		}
 	} else if strings.TrimSpace(args.NodeID) == "" {
-		return nil, InvalidArg("invalid_params", "nodeId 必填")
+		return nil, InvalidArg("invalid_params", "nodeId required")
 	}
 	if action == "canvas.node.move" {
 		if args.Position == nil || args.Position.X == nil || args.Position.Y == nil || !finitePosition(*args.Position.X) || !finitePosition(*args.Position.Y) {
-			return nil, InvalidArg("invalid_position", "position.x 和 position.y 必须是有效坐标")
+			return nil, InvalidArg("invalid_position", "position.x and position.y must be valid coordinates")
 		}
 	}
 	raw, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID)
@@ -61,7 +61,7 @@ func editCanvas(ctx *Context, params json.RawMessage, action string) (any, error
 	if action == "canvas.edge.delete" {
 		edges, found := removeCanvasEdges(doc, func(edge map[string]any) bool { return edge["id"] == args.EdgeID })
 		if !found {
-			return nil, NotFound("edge_not_found", "连接不属于这个画布")
+			return nil, NotFound("edge_not_found", "The connection does not belong to this canvas")
 		}
 		result["deletedEdgeIds"] = edges
 	} else {
@@ -81,7 +81,7 @@ func editCanvas(ctx *Context, params json.RawMessage, action string) (any, error
 			}
 		}
 		if !found {
-			return nil, NotFound("node_not_in_canvas", "节点不属于这个画布")
+			return nil, NotFound("node_not_in_canvas", "The node does not belong to this canvas")
 		}
 		doc["nodes"] = kept
 		if action == "canvas.node.move" {

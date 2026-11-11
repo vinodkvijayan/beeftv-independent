@@ -1,8 +1,8 @@
-# 第三方代码
+# Third-party code
 
-`lib/targets.mjs` 里的节点分类改写自
-[Node Banana](https://github.com/shrimbly/node-banana) 的 `src/lib/comfy/graph.ts`，
-原代码使用 MIT 许可证：
+The node classification in `lib/targets.mjs` is adapted from
+[Node Banana](`src/lib/comfy/graph.ts` of https://github.com/shrimbly/node-banana),
+The original code uses the MIT license:
 
 ```
 MIT License

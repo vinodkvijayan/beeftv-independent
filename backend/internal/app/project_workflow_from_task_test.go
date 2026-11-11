@@ -26,7 +26,7 @@ func TestRegisterTaskOutputFromTaskDecryptsEncryptedInputThenRegisters(t *testin
 			videoStep = step
 		}
 	}
-	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "人物抬头", DurationMs: 3000})
+	shot, err := service.ProjectService().CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "SC.01", Description: "Character looks up", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}

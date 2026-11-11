@@ -28,7 +28,7 @@ func localExecutorSchema(taskType string) (localExecutorKind, error) {
 	}
 	switch taskType {
 	case model.TaskTypeCanvasMediaTransform:
-		return localExecutorKind{Type: taskType, Prompt: "画布媒体处理", Provider: "local", Model: "ffmpeg", Stage: LocalExecutorQueuedStage, Log: "画布媒体处理已进入队列"}, nil
+		return localExecutorKind{Type: taskType, Prompt: "Canvas media handling", Provider: "local", Model: "ffmpeg", Stage: LocalExecutorQueuedStage, Log: "Canvas media processing queued"}, nil
 	case model.TaskTypeTimelineRender:
 		return localExecutorKind{
 			Type:     model.TaskTypeTimelineRender,
@@ -37,7 +37,7 @@ func localExecutorSchema(taskType string) (localExecutorKind, error) {
 			Model:    LocalExecutorRenderModel,
 			Stage:    LocalExecutorQueuedStage,
 			Progress: 5,
-			Log:      "时间线渲染任务已进入队列",
+			Log:      "The timeline rendering task has been queued",
 		}, nil
 	case model.TaskTypeTimelineTranscription:
 		return localExecutorKind{
@@ -47,7 +47,7 @@ func localExecutorSchema(taskType string) (localExecutorKind, error) {
 			Model:    LocalExecutorTranscriptionModel,
 			Stage:    LocalExecutorQueuedStage,
 			Progress: 5,
-			Log:      "字幕转写任务已进入队列",
+			Log:      "The subtitle transcription task has been queued",
 		}, nil
 	case model.TaskTypeDepthCapture:
 		return localExecutorKind{
@@ -57,7 +57,7 @@ func localExecutorSchema(taskType string) (localExecutorKind, error) {
 			Model:    depthcapture.ModelID,
 			Stage:    depthcapture.InitialStage,
 			Progress: 0,
-			Log:      "深度动作捕捉任务已进入队列",
+			Log:      "The deep motion capture task has been queued",
 		}, nil
 	default:
 		return localExecutorKind{}, kernel.BadAuthRequest(errUnsupportedLocalExecutor(taskType))
@@ -65,7 +65,7 @@ func localExecutorSchema(taskType string) (localExecutorKind, error) {
 }
 
 func errUnsupportedLocalExecutor(taskType string) string {
-	return "不支持的本地执行任务类型：" + taskType
+	return "Unsupported local execution task types:" + taskType
 }
 
 type specializedAdmission struct {
@@ -134,7 +134,7 @@ func (s *Service) CreateTimelineTranscriptionTask(userID string, req TimelineTra
 	req.Model = strings.TrimSpace(req.Model)
 	if req.Model != "" {
 		if s.deps.BindTranscriptionModel == nil {
-			return nil, kernel.BadAuthRequest("云端转写暂不可用")
+			return nil, kernel.BadAuthRequest("Cloud transcription is currently unavailable")
 		}
 		managedTokenID, err = s.deps.BindTranscriptionModel(req.Model)
 		if err != nil {
@@ -189,7 +189,7 @@ func (s *Service) CreateDepthCaptureTask(userID string, req DepthCaptureCreateRe
 	}
 	if nodeID := strings.TrimSpace(req.NodeID); nodeID != "" {
 		if strings.TrimSpace(req.ProjectID) == "" {
-			return nil, kernel.BadAuthRequest("指定深度结果节点时必须提供画布 ID")
+			return nil, kernel.BadAuthRequest("A canvas ID is required when specifying a depth result node")
 		}
 		input["metadata"] = map[string]any{"nodeId": nodeID, "source": "canvas"}
 	}
@@ -226,7 +226,7 @@ func (s *Service) admitSpecialized(userID string, req specializedAdmission) (*mo
 			return nil, err
 		}
 		if s.store == nil {
-			return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+			return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 		}
 		existing, lookupErr := s.store.TaskByClientOperation(userID, operationKey)
 		if lookupErr != nil {
@@ -310,7 +310,7 @@ func (s *Service) requireSpecializedCollaborators() error {
 func marshalLocalExecutorInput(value any) (map[string]any, error) {
 	encoded, err := json.Marshal(value)
 	if err != nil {
-		return nil, kernel.BadAuthRequest("任务输入格式无效")
+		return nil, kernel.BadAuthRequest("Invalid task input format")
 	}
 	return decodeObject(encoded)
 }
@@ -318,7 +318,7 @@ func marshalLocalExecutorInput(value any) (map[string]any, error) {
 func decodeObject(raw []byte) (map[string]any, error) {
 	var input map[string]any
 	if err := json.Unmarshal(raw, &input); err != nil {
-		return nil, kernel.BadAuthRequest("任务输入格式无效")
+		return nil, kernel.BadAuthRequest("Invalid task input format")
 	}
 	if input == nil {
 		input = map[string]any{}

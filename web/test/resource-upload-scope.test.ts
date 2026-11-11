@@ -90,7 +90,7 @@ describe("resource lookup", () => {
             }, async () => {
                 await expect(getResource("res-missing-stale")).rejects.toThrow("not found");
                 expect(requests).toBe(1);
-                await expect(getResource("res-missing-stale")).rejects.toThrow("资源不存在或已被删除");
+                await expect(getResource("res-missing-stale")).rejects.toThrow("The resource does not exist or has been deleted");
                 expect(requests).toBe(1);
             });
         } finally {

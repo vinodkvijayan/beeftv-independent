@@ -71,7 +71,7 @@ func TestContentModerationFailureRequiresExactProviderCode(t *testing.T) {
 	if !isContentModerationFailure(`{"code":"sensitive_words_detected"}`) {
 		t.Fatal("expected moderation error to be detected")
 	}
-	if isContentModerationFailure("上游 HTTP 400") {
+	if isContentModerationFailure("Upstream HTTP 400") {
 		t.Fatal("generic HTTP 400 must remain retryable")
 	}
 }
@@ -80,9 +80,9 @@ func TestProviderPayloadBusinessFailureRecognizesStringErrorCode(t *testing.T) {
 	code, message, failed := providerPayloadBusinessFailure(map[string]any{
 		"code": "RequestParameterIsWrong",
 		"data": nil,
-		"msg":  "参数: prompt 的长度: 23142 大于最大长度 10000",
+		"msg":  "Parameters: length of prompt: 23142 is greater than the maximum length of 10000",
 	})
-	if !failed || code != "RequestParameterIsWrong" || message != "参数: prompt 的长度: 23142 大于最大长度 10000" {
+	if !failed || code != "RequestParameterIsWrong" || message != "Parameters: length of prompt: 23142 is greater than the maximum length of 10000" {
 		t.Fatalf("business failure = (%q, %q, %v)", code, message, failed)
 	}
 }

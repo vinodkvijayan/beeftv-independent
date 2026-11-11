@@ -55,7 +55,7 @@ test("Midjourney upgrades stale official gateway size and total-count settings",
 
 test("terminal Midjourney task correction updates all cached batch candidates", () => {
  const nodes = ["root","a","b","c","d"].map((id) => ({id,type:CanvasNodeType.Image,title:"MJ",position:{x:0,y:0},width:320,height:320,metadata:{taskId:"failed-task",taskStage:"submission_unknown",generationSubmissionState:"unknown" as const,generationErrorCode:"submission_uncertain"}}));
- const task = {id:"failed-task",type:"canvas_image",status:"failed",stage:"生成失败",errorCode:"invalid_params",error:"图片生成参数不符合要求。请检查模型、尺寸、格式和数量后再试。"} as GenerationTask;
+ const task = {id:"failed-task",type:"canvas_image",status:"failed",stage:"Build failed",errorCode:"invalid_params",error:"The image generation parameters do not meet the requirements. Please check the model, size, format and quantity before trying again."} as GenerationTask;
  const corrected = canvasGenerationTaskNodes(nodes,"root",task);
- for (const node of corrected) expect(node.metadata).toMatchObject({taskStage:"生成失败",generationSubmissionState:"accepted",generationErrorCode:"invalid_params",status:"error"});
+ for (const node of corrected) expect(node.metadata).toMatchObject({taskStage:"Build failed",generationSubmissionState:"accepted",generationErrorCode:"invalid_params",status:"error"});
 });

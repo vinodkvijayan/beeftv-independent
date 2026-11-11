@@ -7,19 +7,19 @@ import { useDirectorWorkbenchStore } from "../src/stores/canvas/use-director-wor
 
 const ALL_MODES: DirectorMode[] = ["layout", "pose", "animate", "camera"];
 
-describe("四模式骨架", () => {
-    test("恰好四个一级模式，顺序为摆场/姿态/动画/摄影机", () => {
+describe("Four-mode skeleton", () => {
+    test("There are exactly four first-level modes, in order: pose/pose/animation/camera", () => {
         expect(DIRECTOR_MODES.map((item) => item.mode)).toEqual(ALL_MODES);
-        expect(DIRECTOR_MODES.map((item) => item.label)).toEqual(["摆场", "姿态", "动画", "摄影机"]);
+        expect(DIRECTOR_MODES.map((item) => item.label)).toEqual(["Put on a show", "posture", "animation", "camera"]);
     });
 
-    test("新导演台会话默认是摆场，未选择机位时不强制展示摄影机属性", () => {
+    test("The new director's desk session defaults to stage setting, and the camera attributes are not forced to be displayed when the camera position is not selected.", () => {
         expect(DIRECTOR_DEFAULT_MODE).toBe("layout");
         expect(DIRECTOR_ENTRY_MODE).toBe("layout");
         expect(useDirectorWorkbenchStore.getState().mode).toBe("layout");
     });
 
-    test("每个模式都有可读标签与提示，保证可发现", () => {
+    test("Each mode has readable labels and prompts to ensure discoverability", () => {
         for (const item of DIRECTOR_MODES) {
             expect(item.label.length).toBeGreaterThan(0);
             expect(item.hint.length).toBeGreaterThan(0);
@@ -27,8 +27,8 @@ describe("四模式骨架", () => {
     });
 });
 
-describe("能力矩阵", () => {
-    test("只有动画模式显示时间轴、允许关键帧与 Auto Key", () => {
+describe("competency matrix", () => {
+    test("Only animation mode shows timeline, allows keyframes and Auto Key", () => {
         for (const mode of ALL_MODES) {
             const capabilities = directorModeCapabilities(mode);
             expect(capabilities.timeline).toBe(mode === "animate");
@@ -36,20 +36,20 @@ describe("能力矩阵", () => {
         }
     });
 
-    test("摆场隐藏骨骼；姿态与动画显示骨骼", () => {
+    test("Staging hides bones; poses and animations show bones", () => {
         expect(directorModeCapabilities("layout").bones).toBe(false);
         expect(directorModeCapabilities("camera").bones).toBe(false);
         expect(directorModeCapabilities("pose").bones).toBe(true);
         expect(directorModeCapabilities("animate").bones).toBe(true);
     });
 
-    test("只有摄影机模式突出 shot/camera 工具", () => {
+    test("Only camera mode highlights the shot/camera tool", () => {
         for (const mode of ALL_MODES) {
             expect(directorModeCapabilities(mode).cameraTools).toBe(mode === "camera");
         }
     });
 
-    test("摆场不提供深度/法线等高级视图；摄影机模式才提供", () => {
+    test("Staging does not provide advanced views such as depth/normal; it is only available in camera mode", () => {
         expect(directorModeCapabilities("layout").renderModes).toEqual(["beauty", "clay"]);
         expect(directorModeCapabilities("layout").renderModes).not.toContain("depth");
         expect(directorModeCapabilities("layout").renderModes).not.toContain("pose");
@@ -57,17 +57,17 @@ describe("能力矩阵", () => {
         expect(directorModeCapabilities("camera").renderModes).toContain("normal");
     });
 
-    test("姿态模式提供骨骼视图", () => {
+    test("Pose mode provides skeletal view", () => {
         expect(directorModeCapabilities("pose").renderModes).toContain("pose");
     });
 
-    test("未知模式回落到默认模式的能力，不返回 undefined", () => {
+    test("The ability of unknown mode to fall back to default mode without returning undefined", () => {
         expect(directorModeCapabilities("nope" as DirectorMode)).toEqual(directorModeCapabilities("layout"));
     });
 });
 
-describe("切换清理：离开动画不得残留后台动画写入", () => {
-    test("离开动画模式一定停播并关掉 Auto Key", () => {
+describe("Switch cleanup: leaving animation must not leave background animation writing", () => {
+    test("When leaving animation mode, be sure to stop playback and turn off Auto Key.", () => {
         for (const mode of ["layout", "pose", "camera"] as DirectorMode[]) {
             const next = resolveDirectorModeTransition({ mode, playing: true, autoKey: true, renderMode: "beauty" });
             expect(next.playing).toBe(false);
@@ -75,13 +75,13 @@ describe("切换清理：离开动画不得残留后台动画写入", () => {
         }
     });
 
-    test("留在动画模式时保留播放与 Auto Key", () => {
+    test("Preserve playback when staying in animation mode with Auto Key", () => {
         const next = resolveDirectorModeTransition({ mode: "animate", playing: true, autoKey: true, renderMode: "beauty" });
         expect(next.playing).toBe(true);
         expect(next.autoKey).toBe(true);
     });
 
-    test("renderMode 被夹回目标模式允许的集合", () => {
+    test("renderMode is clamped back into the set allowed by the target mode", () => {
         // 摄影机模式的深度视图不能带进摆场。
         expect(resolveDirectorModeTransition({ mode: "layout", playing: false, autoKey: false, renderMode: "depth" }).renderMode).toBe("beauty");
         // 姿态模式的骨骼视图同样不属于摆场。
@@ -92,12 +92,12 @@ describe("切换清理：离开动画不得残留后台动画写入", () => {
     });
 });
 
-describe("store 的 setMode", () => {
+describe("setMode of store", () => {
     beforeEach(() => {
         useDirectorWorkbenchStore.getState().reset();
     });
 
-    test("切到动画再切回摆场：playing 与 autoKey 都被清掉", () => {
+    test("Switch to the animation and then back to the scene: playing and autoKey are cleared", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("animate");
         store.getState().setPlaying(true);
@@ -111,7 +111,7 @@ describe("store 的 setMode", () => {
         expect(store.getState().autoKey).toBe(false);
     });
 
-    test("切模式不影响选择状态：draft 归属由 workbench 自己管", () => {
+    test("Switching modes does not affect the selection status: draft ownership is managed by the workbench itself", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setSelectedObjectId("obj-1");
         store.getState().setMode("camera");
@@ -120,7 +120,7 @@ describe("store 的 setMode", () => {
         expect(store.getState().selectedObjectId).toBe("obj-1");
     });
 
-    test("切模式不重置 playhead：时间位置不因为换视图而丢", () => {
+    test("The playhead is not reset when switching modes: the time position is not lost due to changing views.", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("animate");
         store.getState().setPlayhead(2.5);
@@ -128,14 +128,14 @@ describe("store 的 setMode", () => {
         expect(store.getState().playhead).toBe(2.5);
     });
 
-    test("reset 回到摆场工作区入口", () => {
+    test("reset Return to the entrance to the field work area", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("animate");
         store.getState().reset();
         expect(store.getState().mode).toBe("layout");
     });
 
-    test("摆场模式拒绝 pose/depth/normal，只接受 beauty/clay", () => {
+    test("The pose mode rejects pose/depth/normal and only accepts beauty/clay", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("layout");
         expect(store.getState().mode).toBe("layout");
@@ -150,14 +150,14 @@ describe("store 的 setMode", () => {
         }
     });
 
-    test("dock 的「骨骼视图」在摆场模式点了也无效：store 层夹住了所有路径", () => {
+    test("The \"skeleton view\" of the dock is also invalid when clicked in the swing mode: the store layer clamps all paths", () => {
         const store = useDirectorWorkbenchStore;
         // dock 按钮等价于直接调 setRenderMode("pose")。
         store.getState().setRenderMode("pose");
         expect(store.getState().renderMode).toBe("beauty");
     });
 
-    test("摄影机模式才接受 depth/normal", () => {
+    test("Camera mode only accepts depth/normal", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("camera");
         store.getState().setRenderMode("depth");
@@ -166,7 +166,7 @@ describe("store 的 setMode", () => {
         expect(store.getState().renderMode).toBe("normal");
     });
 
-    test("姿态模式接受骨骼视图，但仍拒绝深度视图", () => {
+    test("Pose mode accepts skeletal view but still rejects depth view", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("pose");
         store.getState().setRenderMode("pose");
@@ -175,7 +175,7 @@ describe("store 的 setMode", () => {
         expect(store.getState().renderMode).toBe("pose");
     });
 
-    test("带着深度视图离开摄影机模式会被夹回 beauty，不残留非法组合", () => {
+    test("Leaving the camera mode with the depth view will be clipped back to beauty, and no illegal combinations will remain.", () => {
         const store = useDirectorWorkbenchStore;
         store.getState().setMode("camera");
         store.getState().setRenderMode("depth");
@@ -186,13 +186,13 @@ describe("store 的 setMode", () => {
     });
 });
 
-describe("mode 不进 DirectorScene schema", () => {
-    test("兼容 factory 与模板生成的场景都没有 mode 字段", () => {
+describe("mode does not enter DirectorScene schema", () => {
+    test("Scenes that are compatible with factory and template generation do not have a mode field.", () => {
         expect(Object.keys(createDirectorScene("s"))).not.toContain("mode");
         expect(Object.keys(createDirectorSceneFromTemplate("dialogue"))).not.toContain("mode");
     });
 
-    test("切模式不产生任何场景对象：mode 纯属工作台 UI 状态", () => {
+    test("Switching modes does not generate any scene objects: mode is purely a workbench UI state.", () => {
         const store = useDirectorWorkbenchStore;
         const before = createDirectorSceneFromTemplate("monologue");
         const snapshot = JSON.stringify(before);

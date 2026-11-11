@@ -50,15 +50,15 @@ func (s *Service) ConfiguredResource(slot string) (*model.Resource, error) {
 	}
 	id := resourceID(value, slot)
 	if id == "" {
-		return nil, kernel.NotFound("未配置该外观资源")
+		return nil, kernel.NotFound("The appearance resource is not configured")
 	}
 	if s.resources == nil {
-		return nil, kernel.NotFound("外观资源不存在")
+		return nil, kernel.NotFound("Appearance resource does not exist")
 	}
 	resource, err := s.resources.Resource(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, kernel.NotFound("外观资源不存在")
+			return nil, kernel.NotFound("Appearance resource does not exist")
 		}
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (s *Service) ConfiguredResource(slot string) (*model.Resource, error) {
 
 func (s *Service) requireAdmin(actor *model.User) error {
 	if s == nil || s.admin == nil {
-		return kernel.Unauthorized("请先登录")
+		return kernel.Unauthorized("Please log in first")
 	}
 	return s.admin.RequireAdmin(actor)
 }

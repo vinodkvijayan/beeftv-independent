@@ -15,7 +15,7 @@ function policyConfig(): AiConfig {
     ];
     const channel: ModelChannel = {
         id: "relay",
-        name: "中转渠道",
+        name: "transit channel",
         baseUrl: "https://api.example.com",
         apiKey: "test-key",
         apiFormat: "openai",
@@ -53,12 +53,12 @@ function node(id: string, type: CanvasNodeType, generationMode?: "image" | "vide
     };
 }
 
-describe("逻辑模型选择", () => {
-    test("图片逻辑模型忽略全局视频时长，不应显示为不支持当前时长", () => {
+describe("Logical model selection", () => {
+    test("The image logic model ignores the global video duration and should not be displayed as not supporting the current duration.", () => {
         const model = "platform::gpt-image-2";
         const channel: ModelChannel = {
             id: "platform",
-            name: "平台模型",
+            name: "platform model",
             baseUrl: "/api",
             apiKey: "system",
             apiFormat: "openai",
@@ -96,14 +96,14 @@ describe("逻辑模型选择", () => {
         })).toBe("");
     });
 
-    test("后台图片默认比例优先于旧的全局 1:1 配置", () => {
+    test("Background image default ratio takes precedence over the old global 1:1 configuration", () => {
         const model = "platform::managed-image";
         const profile = defaultModelCapabilityConfig(undefined, "managed-image");
         profile.image!.size = { parameter: "size", values: ["1:1", "16:9"], default: "16:9", allowCustom: false };
         const config: AiConfig = {
             ...defaultConfig,
             size: "1:1",
-            channels: [{ id: "platform", name: "平台模型", baseUrl: "/api", apiKey: "system", apiFormat: "openai", scope: "system", models: ["managed-image"], modelProfiles: [{ model: "managed-image", capability: "image", billingMode: "fixed_request", unitPriceMicrocredits: 1, logicalModelId: "managed-image", logicalCapabilitySpec: { version: 1, capability: "image" }, capabilityConfig: profile }] }],
+            channels: [{ id: "platform", name: "platform model", baseUrl: "/api", apiKey: "system", apiFormat: "openai", scope: "system", models: ["managed-image"], modelProfiles: [{ model: "managed-image", capability: "image", billingMode: "fixed_request", unitPriceMicrocredits: 1, logicalModelId: "managed-image", logicalCapabilitySpec: { version: 1, capability: "image" }, capabilityConfig: profile }] }],
             models: [model],
             imageModels: [model],
             imageModel: model,
@@ -113,14 +113,14 @@ describe("逻辑模型选择", () => {
         expect(resolveModelGenerationDefaults(config, model, "image", {}, { size: "1:1" }).size).toBe("16:9");
     });
 
-    test("后台视频默认时长优先于旧的全局 6 秒配置", () => {
+    test("Background video default duration takes precedence over the old global 6 second configuration", () => {
         const model = "platform::managed-video";
         const profile = defaultModelCapabilityConfig(undefined, "managed-video");
         profile.video!.duration = { selection: "enum", values: [6, 15], default: 15 };
         const config: AiConfig = {
             ...defaultConfig,
             videoSeconds: "6",
-            channels: [{ id: "platform", name: "平台模型", baseUrl: "/api", apiKey: "system", apiFormat: "openai", scope: "system", models: ["managed-video"], modelProfiles: [{ model: "managed-video", capability: "video", billingMode: "per_second", unitPriceMicrocredits: 1, logicalModelId: "managed-video", logicalCapabilitySpec: { version: 1, capability: "video" }, capabilityConfig: profile }] }],
+            channels: [{ id: "platform", name: "platform model", baseUrl: "/api", apiKey: "system", apiFormat: "openai", scope: "system", models: ["managed-video"], modelProfiles: [{ model: "managed-video", capability: "video", billingMode: "per_second", unitPriceMicrocredits: 1, logicalModelId: "managed-video", logicalCapabilitySpec: { version: 1, capability: "video" }, capabilityConfig: profile }] }],
             models: [model],
             videoModels: [model],
             videoModel: model,
@@ -130,7 +130,7 @@ describe("逻辑模型选择", () => {
         expect(resolveModelGenerationDefaults(config, model, "video", {}, { videoSeconds: "6" }).videoSeconds).toBe("15");
     });
 
-    test("镜头视频不会向不支持同步音频的模型提交全局 true 默认值", () => {
+    test("Lens Video will not submit the global true default to models that do not support synchronized audio", () => {
         const model = "platform::silent-video";
         const profile = defaultModelCapabilityConfig(undefined, "silent-video");
         profile.video!.generateAudio = { supported: false, default: false };
@@ -141,7 +141,7 @@ describe("逻辑模型选择", () => {
             videoWatermark: "true",
             channels: [{
                 id: "platform",
-                name: "平台模型",
+                name: "platform model",
                 baseUrl: "/api",
                 apiKey: "system",
                 apiFormat: "openai",
@@ -184,7 +184,7 @@ describe("逻辑模型选择", () => {
     });
 
 
-    test("渠道视频能力配置优先于旧的全局 6 秒和 1:1 配置", () => {
+    test("Channel video capability configuration takes precedence over old global 6 seconds and 1:1 configuration", () => {
         const model = "autodl-channel::MiniMax H3";
         const profile = defaultModelCapabilityConfig("autodl-comfyui", "MiniMax H3");
         profile.video!.duration = { selection: "range", min: 1, max: 15, step: 1, default: 15 };
@@ -205,13 +205,13 @@ describe("逻辑模型选择", () => {
         expect(defaults.size).toBe("16:9");
     });
 
-    test("不支持画幅的视频模型不会继续提交旧的全局尺寸", () => {
+    test("Video models that do not support the frame will not continue to submit the old global size", () => {
         const model = "autodl-channel::minimax_h3_lightx2v_no_pic";
         const profile = defaultModelCapabilityConfig("autodl-comfyui", "minimax_h3_lightx2v_no_pic");
         profile.video!.ratios = [];
         profile.video!.defaultRatio = "";
-        profile.video!.resolutions = ["480p竖", "768p竖", "480p横", "768p横"];
-        profile.video!.defaultResolution = "768p竖";
+        profile.video!.resolutions = ["480p vertical", "768p vertical", "480p horizontal", "768p horizontal"];
+        profile.video!.defaultResolution = "768p vertical";
         const config: AiConfig = {
             ...defaultConfig,
             size: "16:9",
@@ -227,22 +227,22 @@ describe("逻辑模型选择", () => {
         const generationConfig = buildGenerationConfig(config, videoNode, "video");
 
         expect(generationConfig.size).toBe("");
-        expect(generationConfig.vquality).toBe("768p竖");
+        expect(generationConfig.vquality).toBe("768p vertical");
 
         const existing720Node = { ...node("video-720", CanvasNodeType.Video), metadata: { model, generationMode: "video" as const, size: "16:9", vquality: "720" } };
-        expect(buildGenerationConfig(config, existing720Node, "video")).toMatchObject({ size: "", vquality: "768p横" });
+        expect(buildGenerationConfig(config, existing720Node, "video")).toMatchObject({ size: "", vquality: "768p horizontal" });
 
         const existing480Node = { ...node("video-480", CanvasNodeType.Video), metadata: { model, generationMode: "video" as const, size: "16:9", vquality: "480" } };
-        expect(buildGenerationConfig(config, existing480Node, "video")).toMatchObject({ size: "", vquality: "480p横" });
+        expect(buildGenerationConfig(config, existing480Node, "video")).toMatchObject({ size: "", vquality: "480p horizontal" });
 
-        profile.video!.resolutions = ["480p竖", "768p竖", "1080p竖", "480p横", "768p横", "1080p横"];
+        profile.video!.resolutions = ["480p vertical", "768p vertical", "1080p vertical", "480p horizontal", "768p horizontal", "1080p horizontal"];
         for (const highTier of ["1080", "1440", "2160", "2k", "4k"]) {
             const highTierNode = { ...node(`video-${highTier}`, CanvasNodeType.Video), metadata: { model, generationMode: "video" as const, size: "16:9", vquality: highTier } };
-            expect(buildGenerationConfig(config, highTierNode, "video")).toMatchObject({ size: "", vquality: "1080p横" });
+            expect(buildGenerationConfig(config, highTierNode, "video")).toMatchObject({ size: "", vquality: "1080p horizontal" });
         }
     });
 
-    test("后台标注的视频模型不因内部标识缺少视频关键词而回退", () => {
+    test("The video model annotated in the background will not fall back due to the lack of video keywords in the internal identifier.", () => {
         const config = policyConfig();
         const selectedModel = config.videoModels[0]!;
         const videoNode = { ...node("video", CanvasNodeType.Video), metadata: { model: selectedModel } };
@@ -251,14 +251,14 @@ describe("逻辑模型选择", () => {
         expect(buildGenerationConfig(config, videoNode, "video").model).toBe(selectedModel);
     });
 
-    test("同渠道同显示名称合并为一个逻辑模型", () => {
+    test("Merge the same channel with the same display name into one logical model", () => {
         const config = policyConfig();
         const groups = groupModelsByDisplayName(config, config.videoModels);
         expect(groups).toHaveLength(1);
         expect(groups[0]?.models).toHaveLength(3);
     });
 
-    test("根据参考图自动切换到图生视频细分模型", () => {
+    test("Automatically switch to the Tusheng video segmentation model based on the reference image", () => {
         const config = policyConfig();
         const resolved = resolveCompatibleModel(config, "relay::cinema-text", {
             capability: "video",
@@ -269,7 +269,7 @@ describe("逻辑模型选择", () => {
         expect(resolved).toBe("relay::cinema-image");
     });
 
-    test("音频输入只匹配支持音频的细分模型", () => {
+    test("Audio input only matches subdivision models that support audio", () => {
         const config = policyConfig();
         const requirements = {
             capability: "video" as const,
@@ -277,20 +277,20 @@ describe("逻辑模型选择", () => {
             videoSeconds: "6",
         };
         expect(resolveCompatibleModel(config, "relay::cinema-text", requirements)).toBe("relay::cinema-audio");
-        expect(modelCompatibilityError(config, "relay::cinema-image", requirements)).toContain("参考音频");
+        expect(modelCompatibilityError(config, "relay::cinema-image", requirements)).toContain("Reference audio");
     });
 
-    test("音频仅在单独参考时归类为音频生视频", () => {
+    test("Audio is only classified as Audio vs. Video when referenced alone", () => {
         expect(inferVideoOperation({ textCount: 1, imageCount: 0, videoCount: 0, audioCount: 1, characterCount: 0 })).toBe("audio_to_video");
         expect(inferVideoOperation({ textCount: 1, imageCount: 1, videoCount: 0, audioCount: 1, characterCount: 0 })).toBe("image_to_video");
         expect(inferVideoOperation({ textCount: 1, imageCount: 0, videoCount: 1, audioCount: 1, characterCount: 0 })).toBe("reference_to_video");
     });
 
-    test("图片加音频可匹配支持图生视频和参考音频的模型", () => {
+    test("Picture plus audio can match models that support Tusheng video and reference audio", () => {
         const config = policyConfig();
         const imageModel = "relay::cinema-image";
         const imageCost = config.channels[0]?.modelProfiles?.find((item) => item.model === "cinema-image");
-        if (!imageCost?.capabilityConfig?.video) throw new Error("缺少图生视频能力配置");
+        if (!imageCost?.capabilityConfig?.video) throw new Error("Lack of Tusheng video capability configuration");
         imageCost.capabilityConfig.video.references.maxAudios = 1;
         const requirements = {
             capability: "video" as const,
@@ -302,11 +302,11 @@ describe("逻辑模型选择", () => {
         expect(resolveCompatibleModel(config, "relay::cinema-text", requirements)).toBe(imageModel);
     });
 
-    test("逻辑视频模型将 720 与 720p 视为同一分辨率", () => {
+    test("The logical video model treats 720 and 720p as the same resolution", () => {
         const model = "cinema-720p";
         const channel: ModelChannel = {
             id: "logical-video",
-            name: "平台视频模型",
+            name: "Platform video model",
             baseUrl: "/api",
             apiKey: "system",
             apiFormat: "openai",
@@ -342,10 +342,10 @@ describe("逻辑模型选择", () => {
         })).toBe("");
     });
 
-    test("已保存的旧 SKU 选择会解析到新的模型家族", () => {
+    test("Saved old SKU selections resolve to new model families", () => {
         const channel: ModelChannel = {
             id: "managed",
-            name: "平台模型",
+            name: "platform model",
             baseUrl: "/api",
             apiKey: "system",
             apiFormat: "openai",
@@ -357,33 +357,33 @@ describe("逻辑模型选择", () => {
         expect(normalizeModelOptionValue("managed::legacy-seedance-720", [channel])).toBe("managed::family-seedance-2-5");
     });
 
-    test("逻辑模型容量使用同名细分模型的最大值", () => {
+    test("Logical model capacity uses the maximum value of the subdivision model with the same name", () => {
         const config = policyConfig();
         expect(modelGroupReferenceLimits(config, "relay::cinema-text", "video")).toEqual({ maxImages: 1, maxVideos: 0, maxAudios: 1 });
     });
 });
 
-describe("画布连线能力", () => {
-    test("超过所有视频模型的参考图上限时拒绝连线", () => {
+describe("Canvas wiring capabilities", () => {
+    test("Connections will be refused for a time if the reference image limit of all video models is exceeded.", () => {
         const config = policyConfig();
         const nodes = [node("image-a", CanvasNodeType.Image), node("image-b", CanvasNodeType.Image), node("target", CanvasNodeType.Config, "video")];
         const connections: CanvasConnection[] = [{ id: "existing", fromNodeId: "image-a", toNodeId: "target" }];
-        expect(canvasConnectionError(config, nodes, connections, { fromNodeId: "image-b", toNodeId: "target" })).toContain("最多支持 1");
+        expect(canvasConnectionError(config, nodes, connections, { fromNodeId: "image-b", toNodeId: "target" })).toContain("Supports up to 1");
     });
 
-    test("存在音频细分模型时允许音频连接视频生成节点", () => {
+    test("Allow audio to connect video generation nodes when audio subdivision model is present", () => {
         const config = policyConfig();
         const nodes = [node("audio", CanvasNodeType.Audio), node("target", CanvasNodeType.Config, "video")];
         expect(canvasConnectionError(config, nodes, [], { fromNodeId: "audio", toNodeId: "target" })).toBe("");
     });
 
-    test("视频结果不能连接到图片生成节点", () => {
+    test("Video results cannot be connected to image generation nodes", () => {
         const config = policyConfig();
         const nodes = [node("video", CanvasNodeType.Video), node("target", CanvasNodeType.Image)];
-        expect(canvasConnectionError(config, nodes, [], { fromNodeId: "video", toNodeId: "target" })).toContain("不能连接参考视频");
+        expect(canvasConnectionError(config, nodes, [], { fromNodeId: "video", toNodeId: "target" })).toContain("Can't connect to reference video");
     });
 
-    test("单个角色卡可以连接到音频生成节点", () => {
+    test("Individual character cards can be connected to audio generation nodes", () => {
         const config = policyConfig();
         const character = { ...node("character", CanvasNodeType.Image), metadata: { workflowKind: "character" as const, characterAssetId: "character-asset" } };
         const nodes = [character, node("target", CanvasNodeType.Audio)];

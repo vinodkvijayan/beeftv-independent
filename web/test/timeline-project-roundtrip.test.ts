@@ -7,13 +7,13 @@ test("custom tracks survive edit/save/reopen without empty duplicates", () => {
     const original: TimelineProject = {
         version: 2, durationMs: 1000, output: { width: 720, height: 1280, fps: 24 },
         tracks: [
-            { id: "shots", kind: "video", label: "画面", order: 4, locked: true, muted: true },
-            { id: "voice", kind: "audio", label: "旁白", order: 5 },
-            { id: "captions", kind: "subtitle", label: "字幕", order: 9 },
+            { id: "shots", kind: "video", label: "Picture", order: 4, locked: true, muted: true },
+            { id: "voice", kind: "audio", label: "narration", order: 5 },
+            { id: "captions", kind: "subtitle", label: "subtitles", order: 9 },
         ],
         clips: [{ id: "v", kind: "video", nodeId: "node", trackId: "shots", startMs: 0, durationMs: 1000 }],
     };
-    const edited = syncNodeSubtitlesToTimeline(normalizeTimelineProject(original), "node", [{ index: 0, startMs: 0, endMs: 1000, text: "新的一句字幕" }]);
+    const edited = syncNodeSubtitlesToTimeline(normalizeTimelineProject(original), "node", [{ index: 0, startMs: 0, endMs: 1000, text: "new subtitles" }]);
     const reopened = normalizeTimelineProject(JSON.parse(JSON.stringify(edited)));
     expect(reopened.tracks).toEqual(original.tracks);
     expect(reopened.output).toEqual(original.output);
@@ -24,5 +24,5 @@ test("custom tracks survive edit/save/reopen without empty duplicates", () => {
 test("legacy missing track labels/order are filled while existing default flags remain", () => {
     const legacy = normalizeTimelineProject({ tracks: [{ id: "video-1", kind: "video", locked: true, visible: false, muted: true }] as TimelineProject["tracks"] });
     expect(legacy.tracks).toHaveLength(3);
-    expect(legacy.tracks[0]).toEqual({ id: "video-1", kind: "video", label: "视频 1", order: 0, locked: true, visible: false, muted: true });
+    expect(legacy.tracks[0]).toEqual({ id: "video-1", kind: "video", label: "Video 1", order: 0, locked: true, visible: false, muted: true });
 });

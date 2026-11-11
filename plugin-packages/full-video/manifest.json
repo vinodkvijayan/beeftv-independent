@@ -1,10 +1,10 @@
 {
   "apiVersion": "beeftv.plugin/v2",
   "id": "full-video",
-  "name": "全参视频",
+  "name": "Full parameter video",
   "version": "1.0.0",
   "author": "BeefTV Contributors",
-  "description": "全参 2.0 / 2.5 的 JSON 请求、素材上传和原片下载。",
+  "description": "Full JSON request, material upload and original film download for 2.0 / 2.5.",
   "permissions": [
     "generation.run",
     "media.read"
@@ -23,7 +23,7 @@
     "providers": [
       {
         "id": "full-video",
-        "label": "全参视频",
+        "label": "Full parameter video",
         "capabilities": [
           "video"
         ],
@@ -44,49 +44,49 @@
             "type": "string",
             "required": true,
             "mapping": "model",
-            "description": "全参模型 ID。"
+            "description": "Fully parameterized model ID."
           },
           {
             "name": "prompt",
             "type": "string",
             "mapping": "prompt",
-            "description": "创作提示词。"
+            "description": "Create prompt words."
           },
           {
             "name": "duration",
             "type": "integer",
             "mapping": "seconds",
-            "description": "整数秒数。"
+            "description": "An integer number of seconds."
           },
           {
             "name": "resolution",
             "type": "string",
             "mapping": "resolution",
-            "description": "画质。"
+            "description": "Picture quality."
           },
           {
             "name": "aspectRatio",
             "type": "string",
             "mapping": "aspect_ratio",
-            "description": "画幅。"
+            "description": "frame."
           },
           {
             "name": "images",
             "type": "media[]",
             "mapping": "references",
-            "description": "参考图片。"
+            "description": "Reference pictures."
           },
           {
             "name": "videos",
             "type": "media[]",
             "mapping": "references",
-            "description": "参考视频。"
+            "description": "Reference video."
           },
           {
             "name": "audios",
             "type": "media[]",
             "mapping": "references",
-            "description": "参考音频。"
+            "description": "Reference audio."
           }
         ],
         "validations": [
@@ -99,12 +99,12 @@
                 [
                   "sd-native-full-2.0",
                   "sd-native-full-2.5",
-                  "原生不卡人脸-全参2.0",
-                  "原生不卡人脸-全参2.5"
+                  "Native face recognition-Full Reference 2.0",
+                  "Native face recognition without blocking - full reference 2.5"
                 ]
               ]
             },
-            "message": "此协议支持全参 2.0 / 2.5，请选择对应模型。"
+            "message": "This protocol supports full parameters 2.0 / 2.5, please select the corresponding model."
           }
         ],
         "create": {

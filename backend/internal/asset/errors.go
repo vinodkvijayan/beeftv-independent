@@ -8,98 +8,98 @@ import (
 )
 
 func UploadInProgress() error {
-	err := kernel.NewAppError(http.StatusConflict, "相同素材正在上传，请稍后重试")
+	err := kernel.NewAppError(http.StatusConflict, "The same material is being uploaded, please try again later.")
 	err.Retryable = true
 	return err
 }
 
 func UploadQuotaAttributionUncertain() error {
-	return kernel.NewAppError(http.StatusConflict, "旧上传记录无法确认用量，已暂停自动恢复。已有数据和用量记录已保留。")
+	return kernel.NewAppError(http.StatusConflict, "The old upload record cannot confirm the usage, and automatic recovery has been suspended. Existing data and usage records have been retained.")
 }
 
 func UploadConflict() error {
-	return kernel.NewAppError(http.StatusConflict, "上传幂等标识已用于其他文件")
+	return kernel.NewAppError(http.StatusConflict, "Upload idempotent flag already used in other files")
 }
 
 func MissingUpload() error {
-	return kernel.BadAuthRequest("请选择要上传的文件")
+	return kernel.BadAuthRequest("Please select the file to upload")
 }
 
 func ResourceNotReady() error {
-	return kernel.BadAuthRequest("资源尚未上传完成")
+	return kernel.BadAuthRequest("The resource has not been uploaded yet")
 }
 
 func ResourceNotLocal() error {
-	return kernel.BadAuthRequest("资源不在本地存储中")
+	return kernel.BadAuthRequest("Resource is not in local storage")
 }
 
 func ResourceMissing() error {
-	return kernel.BadAuthRequest("资源不存在")
+	return kernel.BadAuthRequest("Resource does not exist")
 }
 
 func ResourceFileMissing() error {
-	return kernel.NotFound("本地媒体文件不存在或已丢失")
+	return kernel.NotFound("The local media file does not exist or is missing")
 }
 
 func UnreadableAssetDocument(kind string) error {
 	switch kind {
 	case "version":
-		return kernel.BadAuthRequest("素材版本数据无法解析，已停止删除以避免误删文件")
+		return kernel.BadAuthRequest("The material version data cannot be parsed and deletion has been stopped to avoid accidentally deleting files.")
 	case "representation":
-		return kernel.BadAuthRequest("素材表现数据无法解析，已停止删除以避免误删文件")
+		return kernel.BadAuthRequest("The material performance data cannot be parsed and deletion has been stopped to avoid accidentally deleting files.")
 	default:
-		return kernel.BadAuthRequest("素材数据无法解析，已停止删除以避免误删文件")
+		return kernel.BadAuthRequest("The material data cannot be parsed and deletion has been stopped to avoid accidentally deleting files.")
 	}
 }
 
 func HistoryReferenced() error {
-	return kernel.BadAuthRequest("素材仍被画布历史版本引用，已保留文件")
+	return kernel.BadAuthRequest("The material is still referenced by the historical version of the canvas and the file has been retained.")
 }
 
 func StillReferenced() error {
-	return kernel.BadAuthRequest("素材仍被引用，请先在对应画布、任务或业务记录中解除引用后再删除")
+	return kernel.BadAuthRequest("The material is still referenced. Please dereference it in the corresponding canvas, task or business record before deleting it.")
 }
 
 func TrashStatusConflict() error {
-	return kernel.NewAppError(http.StatusConflict, "素材已不在回收站，未删除")
+	return kernel.NewAppError(http.StatusConflict, "The material is no longer in the recycle bin and has not been deleted.")
 }
 
 func RemoteImportForbidden() error {
-	return kernel.Forbidden("本地工作区不支持通过 URL 导入素材，请先下载到本机后上传")
+	return kernel.Forbidden("The local workspace does not support importing materials through URL. Please download them to your local machine first and then upload them.")
 }
 
 func UploadSessionMissing() error {
-	return kernel.NotFound("上传会话不存在或已过期，请重新导入")
+	return kernel.NotFound("The upload session does not exist or has expired, please import again.")
 }
 
 func UploadSessionBusy() error {
-	return kernel.RateLimited("同时进行中的上传过多，请稍后重试")
+	return kernel.RateLimited("There are too many uploads in progress at the same time, please try again later.")
 }
 
 func UploadSessionCompleting() error {
-	err := kernel.NewAppError(http.StatusConflict, "上传正在完成，请稍候")
+	err := kernel.NewAppError(http.StatusConflict, "Upload is being completed, please wait.")
 	err.Retryable = true
 	return err
 }
 
 func UploadSessionRecoveryFailed() error {
-	err := kernel.NewAppError(http.StatusServiceUnavailable, "上传会话恢复失败，请稍后重试")
+	err := kernel.NewAppError(http.StatusServiceUnavailable, "Upload session recovery failed, please try again later")
 	err.Retryable = true
 	return err
 }
 
 func UploadSessionIncomplete() error {
-	return kernel.BadAuthRequest("上传文件不完整，请重新导入")
+	return kernel.BadAuthRequest("The uploaded file is incomplete, please re-import it.")
 }
 
 func UploadChunkIndexInvalid() error {
-	return kernel.BadAuthRequest("非法的分片序号")
+	return kernel.BadAuthRequest("Illegal fragment sequence number")
 }
 
 func UploadChunkIncomplete(index int) error {
-	return kernel.BadAuthRequest("分片 " + strconv.Itoa(index) + " 上传不完整，请重试")
+	return kernel.BadAuthRequest("Sharding" + strconv.Itoa(index) + " Incomplete upload, please try again")
 }
 
 func UploadChunkTooLarge(index int) error {
-	return kernel.BadAuthRequest("分片 " + strconv.Itoa(index) + " 超过大小限制")
+	return kernel.BadAuthRequest("Sharding" + strconv.Itoa(index) + " Exceeds size limit")
 }

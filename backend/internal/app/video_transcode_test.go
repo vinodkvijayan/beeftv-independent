@@ -121,7 +121,7 @@ func TestStartupDoesNotPrepareLegacyVideos(t *testing.T) {
 		t.Fatal(err)
 	}
 	if h264.PlaybackStatus != model.PlaybackStatusNone {
-		t.Fatalf("H.264 存量 none 行被错误改判为 %q", h264.PlaybackStatus)
+		t.Fatalf("H.264 stock none line was incorrectly changed to %q", h264.PlaybackStatus)
 	}
 
 	var mp4v model.Resource
@@ -129,10 +129,10 @@ func TestStartupDoesNotPrepareLegacyVideos(t *testing.T) {
 		t.Fatal(err)
 	}
 	if mp4v.PlaybackStatus == model.PlaybackStatusProcessing {
-		t.Fatal("runner 拒绝后 claim 仍停在 processing，重启无法恢复")
+		t.Fatal("After the runner rejects the claim, the claim still stops in processing and cannot be restored after restarting.")
 	}
 	if mp4v.PlaybackStatus == model.PlaybackStatusReady {
-		t.Fatal("无 runtime worker 时不应写出 READY")
+		t.Fatal("READY should not be written when there is no runtime worker")
 	}
 }
 

@@ -38,9 +38,9 @@ func LogTaskPhase(repo *repository.Repository, logTask func(userID, taskID, leve
 		return
 	}
 	payload, _ := json.Marshal(map[string]string{"phase": phase})
-	message := "开始取回生成结果"
+	message := "Start retrieving generated results"
 	if phase == "result_transfer_end" {
-		message = "取回生成结果阶段结束"
+		message = "The phase of retrieving generated results ends"
 	}
 	_ = logTask(task.UserID, task.ID, "info", message, string(payload))
 }
@@ -50,7 +50,7 @@ func SetTaskStage(ctx context.Context, repo *repository.Repository, logTask func
 		return err
 	}
 	err := repo.WithContext(ctx).UpdateTaskStageForLease(task.ID, task.LeaseOwner, stage)
-	if err == nil && stage == "正在取回生成结果" {
+	if err == nil && stage == "Retrieving generated results" {
 		LogTaskPhase(repo, logTask, task.ID, "result_transfer_start")
 	}
 	return err
@@ -104,14 +104,14 @@ func NotifyPollReceipt(ctx context.Context, repo *repository.Repository, logTask
 	if strings.TrimSpace(call.TaskID) == "" {
 		return
 	}
-	message := "上游任务查询暂时异常，正在继续查询原任务"
+	message := "The upstream task query is temporarily abnormal, and the original task is continuing to be queried."
 	level := "warn"
 	payload := ""
 	if err != nil {
 		payload = err.Error()
 	}
 	if VideoPollEvent(event) == VideoPollEventRecovered {
-		message = "上游任务查询已恢复"
+		message = "Upstream task query has been restored"
 		level = "info"
 	}
 	_ = logTask(call.UserID, call.TaskID, level, message, payload)

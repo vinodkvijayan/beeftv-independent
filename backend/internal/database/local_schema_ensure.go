@@ -9,7 +9,7 @@ import (
 func sqliteHasColumn(db *gorm.DB, table, column string) (bool, error) {
 	var columns []struct{ Name string }
 	if err := db.Raw("PRAGMA table_info(" + table + ")").Scan(&columns).Error; err != nil {
-		return false, fmt.Errorf("读取本地表 %s 列: %w", table, err)
+		return false, fmt.Errorf("Read local table %s column: %w", table, err)
 	}
 	for _, item := range columns {
 		if item.Name == column {
@@ -22,7 +22,7 @@ func sqliteHasColumn(db *gorm.DB, table, column string) (bool, error) {
 func sqliteHasNamedIndex(db *gorm.DB, table, name string) (bool, error) {
 	var indexes []struct{ Name string }
 	if err := db.Raw("PRAGMA index_list(" + table + ")").Scan(&indexes).Error; err != nil {
-		return false, fmt.Errorf("读取本地表 %s 索引: %w", table, err)
+		return false, fmt.Errorf("Read local table %s index: %w", table, err)
 	}
 	for _, index := range indexes {
 		if index.Name == name {
@@ -34,7 +34,7 @@ func sqliteHasNamedIndex(db *gorm.DB, table, name string) (bool, error) {
 
 func ensureSQLiteColumn(tx *gorm.DB, table, column, definition string) error {
 	if !tx.Migrator().HasTable(table) {
-		return fmt.Errorf("本地数据库表 %s 不存在，无法添加列 %s", table, column)
+		return fmt.Errorf("The local database table %s does not exist and the column %s cannot be added.", table, column)
 	}
 	has, err := sqliteHasColumn(tx, table, column)
 	if err != nil {
@@ -44,7 +44,7 @@ func ensureSQLiteColumn(tx *gorm.DB, table, column, definition string) error {
 		return nil
 	}
 	if err := tx.Exec("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition).Error; err != nil {
-		return fmt.Errorf("添加本地数据库列 %s.%s: %w", table, column, err)
+		return fmt.Errorf("Add local database column %s.%s: %w", table, column, err)
 	}
 	return nil
 }
@@ -58,7 +58,7 @@ func ensureSQLiteIndex(tx *gorm.DB, table, name, createSQL string) error {
 		return nil
 	}
 	if err := tx.Exec(createSQL).Error; err != nil {
-		return fmt.Errorf("创建本地数据库索引 %s: %w", name, err)
+		return fmt.Errorf("Create local database index %s: %w", name, err)
 	}
 	return nil
 }
@@ -139,7 +139,7 @@ func ensureAgentOpRecordsTable(tx *gorm.DB) error {
 		updated_at DATETIME,
 		PRIMARY KEY (user_id, op_id)
 	)`).Error; err != nil {
-		return fmt.Errorf("创建 Agent 操作表: %w", err)
+		return fmt.Errorf("Create Agent operation table: %w", err)
 	}
 	return ensureAgentOpTurnIndex(tx)
 }
@@ -189,7 +189,7 @@ func ensureImageSubmissionsTable(tx *gorm.DB) error {
 		response_accepted NUMERIC,
 		created_at DATETIME
 	)`).Error; err != nil {
-		return fmt.Errorf("创建图片恢复表: %w", err)
+		return fmt.Errorf("Create picture recovery table: %w", err)
 	}
 	if err := ensureSQLiteIndex(tx, "image_submissions", "idx_image_submissions_task_id",
 		"CREATE INDEX idx_image_submissions_task_id ON image_submissions(task_id)"); err != nil {
@@ -247,7 +247,7 @@ func ensureAssistantTurnsTable(tx *gorm.DB) error {
 		change_json TEXT,
 		document TEXT
 	)`).Error; err != nil {
-		return fmt.Errorf("创建助手业务回合表: %w", err)
+		return fmt.Errorf("Create assistant business turn table: %w", err)
 	}
 	return ensureAssistantTurnsUserCanvasIndex(tx)
 }
@@ -293,7 +293,7 @@ func ensureCreationConversationsTable(tx *gorm.DB) error {
 		updated_at DATETIME,
 		PRIMARY KEY (user_id, conversation_id)
 	)`).Error; err != nil {
-		return fmt.Errorf("创建创作对话表: %w", err)
+		return fmt.Errorf("Create creative dialogue table: %w", err)
 	}
 	return ensureCreationConversationsIndexes(tx)
 }
@@ -317,7 +317,7 @@ func ensureCreationConversationsUserImportIndex(tx *gorm.DB) error {
 
 func requireCreationConversationsSchema(db *gorm.DB) error {
 	if !db.Migrator().HasTable("creation_conversations") {
-		return fmt.Errorf("本地创作对话表缺失，请启用自动迁移")
+		return fmt.Errorf("The local authoring dialogue table is missing, please enable automatic migration.")
 	}
 	for _, column := range []string{
 		"user_id", "conversation_id", "revision", "document", "deleted",
@@ -328,7 +328,7 @@ func requireCreationConversationsSchema(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("本地创作对话表缺失列 %s", column)
+			return fmt.Errorf("Local authoring dialog table missing column %s", column)
 		}
 	}
 	if err := requireSQLitePrimaryKey(db, "creation_conversations", []string{"user_id", "conversation_id"}); err != nil {
@@ -342,7 +342,7 @@ func requireCreationConversationsSchema(db *gorm.DB) error {
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("本地数据库索引 idx_creation_conversations_user_updated 定义不完整")
+		return fmt.Errorf("The local database index idx_creation_conversations_user_updated is incompletely defined")
 	}
 	valid, err = matchesSQLiteIndex(db, sqliteIndexContract{
 		table: "creation_conversations", name: "idx_creation_conversations_user_import",
@@ -353,14 +353,14 @@ func requireCreationConversationsSchema(db *gorm.DB) error {
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("本地数据库索引 idx_creation_conversations_user_import 定义不完整")
+		return fmt.Errorf("The local database index idx_creation_conversations_user_import is incompletely defined")
 	}
 	return nil
 }
 
 func requireAssistantTurnsSchema(db *gorm.DB) error {
 	if !db.Migrator().HasTable("assistant_turns") {
-		return fmt.Errorf("本地助手业务回合表缺失，请启用自动迁移")
+		return fmt.Errorf("The local assistant business turn table is missing, please enable automatic migration.")
 	}
 	for _, column := range []string{
 		"turn_id", "user_id", "canvas_id", "revision_before", "created_at", "updated_at",
@@ -372,7 +372,7 @@ func requireAssistantTurnsSchema(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("本地助手业务回合表缺失列 %s", column)
+			return fmt.Errorf("The local assistant business turn table is missing column %s", column)
 		}
 	}
 	if err := requireSQLitePrimaryKey(db, "assistant_turns", []string{"turn_id"}); err != nil {
@@ -386,7 +386,7 @@ func requireAssistantTurnsSchema(db *gorm.DB) error {
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("本地数据库索引 idx_assistant_turns_user_canvas 定义不完整")
+		return fmt.Errorf("The local database index idx_assistant_turns_user_canvas is incompletely defined")
 	}
 	return nil
 }

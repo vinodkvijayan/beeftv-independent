@@ -229,7 +229,7 @@ func TestVideoRecoveryBeefTVRejectsDifferentTaskBeforeDownload(t *testing.T) {
 
 func TestVideoRecoveryTaskLogsExplainFailureWithoutRawPayload(t *testing.T) {
 	svc, db := newTimelineTaskTestService(t)
-	log := model.TaskLog{ID: "log-recovery", UserID: "owner", TaskID: "task-recovery", Level: "error", Message: "任务处理失败", Payload: "视频结果下载失败：EOF https://private.example/result?token=secret-value"}
+	log := model.TaskLog{ID: "log-recovery", UserID: "owner", TaskID: "task-recovery", Level: "error", Message: "Task processing failed", Payload: "Video result download failed: EOF https://private.example/result?token=secret-value"}
 	if err := db.Create(&log).Error; err != nil {
 		t.Fatal(err)
 	}

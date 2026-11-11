@@ -49,14 +49,14 @@ func ApplyProtocolAuth(req *http.Request, config Config, auth protocol.ManifestA
 	case "header", "api-key", "apikey":
 		header := strings.TrimSpace(auth.Header)
 		if header == "" {
-			return errors.New("插件 header 鉴权缺少 header 名称")
+			return errors.New("Plug-in header authentication lacks header name")
 		}
 		req.Header.Set(header, auth.Prefix+credential)
 		return nil
 	case "query":
 		name := defaultString(strings.TrimSpace(auth.Query), strings.TrimSpace(auth.Field))
 		if name == "" {
-			return errors.New("插件 query 鉴权缺少参数名")
+			return errors.New("Plug-in query authentication is missing parameter name")
 		}
 		if idle, _ := req.Context().Value(videoDeliveryRequestContext{}).(time.Duration); idle > 0 {
 			setVideoCredentialQuery(req.URL, name, auth.Prefix+credential)
@@ -86,7 +86,7 @@ func ApplyProtocolAuth(req *http.Request, config Config, auth protocol.ManifestA
 	case "volcengine-v4":
 		secret := ProtocolCredentialField(config, auth.SecretField)
 		if credential == "" || secret == "" {
-			return errors.New("火山引擎 V4 鉴权需要 Access Key 和 Secret Key")
+			return errors.New("Volcano Engine V4 authentication requires Access Key and Secret Key")
 		}
 		credentials := base.Credentials{
 			AccessKeyID: credential, SecretAccessKey: secret,
@@ -94,7 +94,7 @@ func ApplyProtocolAuth(req *http.Request, config Config, auth protocol.ManifestA
 			Service: strings.TrimSpace(auth.Service),
 		}
 		if credentials.Service == "" {
-			return errors.New("火山引擎 V4 鉴权缺少 service")
+			return errors.New("Volcano engine V4 authentication is missing service")
 		}
 		signed := credentials.Sign(req)
 		*req = *signed
@@ -109,7 +109,7 @@ func ApplyProtocolAuth(req *http.Request, config Config, auth protocol.ManifestA
 		secret := ProtocolCredentialField(config, auth.SecretField)
 		if secret == "" {
 			if credential == "" {
-				return errors.New("JWT HS256 鉴权需要 Access Key 和 Secret Key（或已签名的 Bearer Token）")
+				return errors.New("JWT HS256 authentication requires Access Key and Secret Key (or signed Bearer Token)")
 			}
 			header := defaultString(strings.TrimSpace(auth.Header), "Authorization")
 			prefix := auth.Prefix
@@ -121,13 +121,13 @@ func ApplyProtocolAuth(req *http.Request, config Config, auth protocol.ManifestA
 		}
 		return SignProtocolJWTHS256(req, credential, secret, auth)
 	default:
-		return fmt.Errorf("插件声明了尚未启用的鉴权驱动 %s", auth.Type)
+		return fmt.Errorf("The plug-in declares the authentication driver %s which has not been enabled yet", auth.Type)
 	}
 }
 
 func SignProtocolAWSV4(req *http.Request, accessKey, secretKey string, auth protocol.ManifestAuth) error {
 	if strings.TrimSpace(accessKey) == "" || strings.TrimSpace(secretKey) == "" {
-		return errors.New("AWS SigV4 鉴权需要 Access Key ID 和 Secret Access Key")
+		return errors.New("AWS SigV4 authentication requires Access Key ID and Secret Access Key")
 	}
 	serviceName := defaultString(strings.TrimSpace(auth.Service), "bedrock")
 	region := strings.TrimSpace(auth.Region)
@@ -141,7 +141,7 @@ func SignProtocolAWSV4(req *http.Request, accessKey, secretKey string, auth prot
 		}
 	}
 	if region == "" {
-		return errors.New("AWS SigV4 鉴权无法从 Base URL 推断 region，请使用包含区域的 Bedrock Runtime 地址")
+		return errors.New("AWS SigV4 authentication cannot infer the region from the Base URL, please use the Bedrock Runtime address that contains the region")
 	}
 	payload, err := ProtocolRequestPayload(req)
 	if err != nil {
@@ -175,7 +175,7 @@ func SignProtocolAWSV4(req *http.Request, accessKey, secretKey string, auth prot
 
 func SignProtocolTC3(req *http.Request, secretID, secretKey string, auth protocol.ManifestAuth) error {
 	if strings.TrimSpace(secretID) == "" || strings.TrimSpace(secretKey) == "" {
-		return errors.New("腾讯云 TC3 鉴权需要 SecretId 和 SecretKey")
+		return errors.New("Tencent Cloud TC3 authentication requires SecretId and SecretKey")
 	}
 	serviceName := defaultString(strings.TrimSpace(auth.Service), "hunyuan")
 	payload, err := ProtocolRequestPayload(req)
@@ -208,7 +208,7 @@ func SignProtocolJWTHS256(req *http.Request, accessKey, secretKey string, auth p
 	accessKey = strings.TrimSpace(accessKey)
 	secretKey = strings.TrimSpace(secretKey)
 	if accessKey == "" || secretKey == "" {
-		return errors.New("JWT HS256 鉴权需要 Access Key 和 Secret Key")
+		return errors.New("JWT HS256 authentication requires Access Key and Secret Key")
 	}
 	now := time.Now().UTC().Unix()
 	headerJSON, err := json.Marshal(map[string]string{

@@ -164,7 +164,7 @@ func TestUpscaleExecuteFourModelsUsesOwnedUploadAndOriginalResult(t *testing.T) 
 					w.WriteHeader(202)
 					_, _ = io.WriteString(w, `{"task_id":"original-task","status":"queued"}`)
 				case "/v1/media-upscale/tasks/original-task":
-					if progress.active.Load() || progress.stage.Load() != "正在确认超分结果" {
+					if progress.active.Load() || progress.stage.Load() != "Confirming super score results" {
 						t.Error("accepted upscale still shows reference upload progress")
 					}
 					_ = json.NewEncoder(w).Encode(map[string]any{"task_id": "original-task", "status": "completed", "model": model, "media_type": kind, "result_url": "https://untrusted.invalid/steal"})
@@ -186,7 +186,7 @@ func TestUpscaleExecuteFourModelsUsesOwnedUploadAndOriginalResult(t *testing.T) 
 				r.ReferenceProgress = progress
 				r.Stages = progress
 			})
-			input := Input{Mode: kind, Prompt: "AI 超分", Config: Config{BaseURL: server.URL, APIKey: "synthetic-upscale-key", Model: model, InterfaceType: "newapi", Headers: []outbound.OutboundHeader{{Name: "X-Private-Gateway", Value: "private"}}}, Upscale: &UpscaleOptions{Factor: 2}}
+			input := Input{Mode: kind, Prompt: "AI super score", Config: Config{BaseURL: server.URL, APIKey: "synthetic-upscale-key", Model: model, InterfaceType: "newapi", Headers: []outbound.OutboundHeader{{Name: "X-Private-Gateway", Value: "private"}}}, Upscale: &UpscaleOptions{Factor: 2}}
 			if kind == "image" {
 				input.ReferenceImages = []Media{{StorageKey: "resource:source"}}
 			} else {
@@ -245,7 +245,7 @@ func TestUpscaleExecuteFourModelsUsesOwnedUploadAndOriginalResult(t *testing.T) 
 }
 
 func TestUpscaleRejectsOwnerAndInvalidInputBeforePaidSubmit(t *testing.T) {
-	input := Input{Mode: "image", Prompt: "AI 超分", Config: Config{BaseURL: "https://beeftv.app/v1", Model: "topaz-standard-v2"}, Upscale: &UpscaleOptions{Factor: 2}, ReferenceImages: []Media{{StorageKey: "resource:source"}}}
+	input := Input{Mode: "image", Prompt: "AI super score", Config: Config{BaseURL: "https://beeftv.app/v1", Model: "topaz-standard-v2"}, Upscale: &UpscaleOptions{Factor: 2}, ReferenceImages: []Media{{StorageKey: "resource:source"}}}
 	for _, factor := range []int{0, 5} {
 		changed := input
 		changed.Upscale = &UpscaleOptions{Factor: factor}
@@ -382,7 +382,7 @@ func TestUpscalePreflightRejectsExternalReferencesAndOversizedDelivery(t *testin
 		r.Resources = upscaleResources{kind: "image", data: upscalePNG(t, 64, 48)}
 		r.Limits = upscaleBudget{}
 	})
-	input := Input{Mode: "image", Prompt: "AI 超分", Config: Config{BaseURL: server.URL, Model: "topaz-standard-v2"}, Upscale: &UpscaleOptions{Factor: 2}}
+	input := Input{Mode: "image", Prompt: "AI super score", Config: Config{BaseURL: server.URL, Model: "topaz-standard-v2"}, Upscale: &UpscaleOptions{Factor: 2}}
 	for _, source := range []Media{{StorageKey: "legacy-key", URL: "https://untrusted.invalid/source.png"}, {StorageKey: "resource:source", URL: "https://untrusted.invalid/source.png"}, {StorageKey: "resource:source", DataURL: "data:image/png;base64,AA=="}, {StorageKey: "resource:source"}} {
 		input.ReferenceImages = []Media{source}
 		if _, err := PrepareUpscale(WithRuntime(context.Background(), runtime), input); err == nil {
@@ -480,11 +480,11 @@ func TestUpscaleProviderErrorClassificationDistinguishesUnavailableFromInvalidSo
 		t.Fatalf("unexpected 503 upscale_unavailable classification: %#v", unavailable)
 	}
 	invalidVideo := ClassifyHTTP(400, "400 Bad Request", `{"error":{"code":"invalid_upscale_source","message":"video input must be a readable public MP4/MOV of at most five minutes and 200 MiB"}}`)
-	if invalidVideo.Category != CategoryInvalidParams || invalidVideo.Reason != "超分视频素材不符合要求" {
+	if invalidVideo.Category != CategoryInvalidParams || invalidVideo.Reason != "Super resolution video material does not meet the requirements" {
 		t.Fatalf("unexpected 400 video invalid_upscale_source classification: %#v", invalidVideo)
 	}
 	invalidImage := ClassifyHTTP(400, "400 Bad Request", `{"error":{"code":"invalid_upscale_source","message":"image input must be a readable public JPEG, PNG or WebP of at most 30 MiB and 32 megapixels"}}`)
-	if invalidImage.Category != CategoryInvalidParams || invalidImage.Reason != "超分图片素材不符合要求" {
+	if invalidImage.Category != CategoryInvalidParams || invalidImage.Reason != "Super score picture material does not meet the requirements" {
 		t.Fatalf("unexpected 400 image invalid_upscale_source classification: %#v", invalidImage)
 	}
 }

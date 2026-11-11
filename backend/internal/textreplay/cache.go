@@ -58,7 +58,7 @@ func (s *Service) CachedRead(ctx context.Context, userID, taskID string, after i
 		return value, bytes, nil
 	})
 	if errors.Is(err, platform.ErrReadCacheBusy) {
-		return nil, &kernel.AppError{Status: 503, Code: 503, Message: "任务状态查询繁忙，请稍后重试", Retryable: true}
+		return nil, &kernel.AppError{Status: 503, Code: 503, Message: "Task status query is busy, please try again later", Retryable: true}
 	}
 	if err != nil {
 		return nil, err

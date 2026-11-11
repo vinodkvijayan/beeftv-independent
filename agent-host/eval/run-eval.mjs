@@ -76,7 +76,7 @@ export function parseCliArgs(argv = process.argv.slice(2)) {
     } else if (arg.startsWith('--out=')) {
       args.outDir = arg.slice('--out='.length);
     } else {
-      throw new Error(`未知命令行参数: ${arg}`);
+      throw new Error(`Unknown command line parameters:${arg}`);
     }
   }
   return args;
@@ -85,19 +85,19 @@ export function parseCliArgs(argv = process.argv.slice(2)) {
 export function validateEvalConfig(args, env = process.env) {
   const modelMode = String(args.model || 'fake').trim().toLowerCase();
   if (modelMode !== 'fake' && modelMode !== 'real') {
-    throw new Error(`--model 只支持 fake 或 real，收到: ${args.model}`);
+    throw new Error(`--model only supports fake or real, received:${args.model}`);
   }
   const runs = Number(args.runs ?? 1);
   if (!Number.isSafeInteger(runs) || runs < 1 || runs > 50) {
-    throw new Error(`--runs 必须是 1..50 的整数，收到: ${args.runs}`);
+    throw new Error(`--runs must be an integer from 1..50, received:${args.runs}`);
   }
   const maxRequests = Number(args.maxRequests ?? 25);
   if (!Number.isSafeInteger(maxRequests) || maxRequests < 1 || maxRequests > 200) {
-    throw new Error(`--max-requests 必须是 1..200 的整数，收到: ${args.maxRequests}`);
+    throw new Error(`--max-requests must be an integer from 1..200, received:${args.maxRequests}`);
   }
   const budgetCny = Number(args.budgetCny ?? 25);
   if (!Number.isFinite(budgetCny) || budgetCny <= 0) {
-    throw new Error(`--budget-cny 必须是大于 0 的数字，收到: ${args.budgetCny}`);
+    throw new Error(`--budget-cny must be a number greater than 0, received:${args.budgetCny}`);
   }
 
   let priceInPerMillion = 0;
@@ -114,7 +114,7 @@ export function validateEvalConfig(args, env = process.env) {
     priceOutPerMillion = Number(rawOut);
     if (!rawIn || !rawOut || !Number.isFinite(priceInPerMillion) || !Number.isFinite(priceOutPerMillion) || priceInPerMillion <= 0 || priceOutPerMillion <= 0) {
       throw new Error(
-        'real_mode_price_missing: --model real 必须显式配置大于 0 的 BEEFTV_EVAL_PRICE_IN 与 BEEFTV_EVAL_PRICE_OUT（元/百万 token），拒绝以 0 单价裸跑真模型',
+        'real_mode_price_missing: --model real must explicitly configure BEEFTV_EVAL_PRICE_IN and BEEFTV_EVAL_PRICE_OUT (yuan/million tokens) greater than 0, and refuse to run the real model naked with a unit price of 0',
       );
     }
     realBaseUrl = String(env.BEEFTV_AGENT_BASE_URL || '').trim();
@@ -123,7 +123,7 @@ export function validateEvalConfig(args, env = process.env) {
     realApi = String(env.BEEFTV_AGENT_API || 'openai-completions').trim();
     if (!realBaseUrl || !realApiKey || !realModelId) {
       throw new Error(
-        'real_mode_credentials_missing: --model real 需要配置 BEEFTV_AGENT_BASE_URL、BEEFTV_AGENT_API_KEY 与 BEEFTV_AGENT_MODEL',
+        'real_mode_credentials_missing: --model real needs to configure BEEFTV_AGENT_BASE_URL, BEEFTV_AGENT_API_KEY and BEEFTV_AGENT_MODEL',
       );
     }
   } else {
@@ -319,7 +319,7 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
   const lastRawMsg = messages[messages.length - 1];
   const lastRawText = extractMsgText(lastRawMsg);
   const hasStudioDigest = lastRawText.includes('<beeftv_studio>');
-  const studioIsEmpty = lastRawText.includes('概况：画布是空的。');
+  const studioIsEmpty = lastRawText.includes('Overview: The canvas is empty.');
 
   const stableMessages = messages.filter((m) => !isTransientStudioTailMessage(m));
   const lastStable = stableMessages[stableMessages.length - 1];
@@ -362,9 +362,9 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
           parsed?.error?.code ||
           (/Validation failed for tool/.test(raw)
             ? 'tool_arguments_invalid'
-            : raw.includes('模拟器未实现操作')
+            : raw.includes('The emulator does not implement the operation')
               ? 'unsupported_operation'
-              : raw.includes('画布已变化')
+              : raw.includes('Canvas has changed')
                 ? 'revision_conflict'
                 : 'tool_error')
         : null;
@@ -376,13 +376,13 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
   if (lastStable) {
     if (lastStable.role === 'user') {
       const txt = extractMsgText(lastStable).trim();
-      if (txt.startsWith('计划还没做完。继续做「') || txt.startsWith('Plans Still Pending:')) {
+      if (txt.startsWith('The plan is not finished yet. Keep doing "') || txt.startsWith('Plans Still Pending:')) {
         trigger = 'plan_continue';
-      } else if (txt.startsWith('<canvas_event') || txt.startsWith('[事件 ')) {
+      } else if (txt.startsWith('<canvas_event') || txt.startsWith('[event')) {
         trigger = 'auto_wake';
       } else if (txt.includes('[BEEFTV_INPUT:') || txt.includes('BEEFTV_SUPPLEMENT:')) {
         trigger = 'user_steer';
-      } else if (txt.startsWith('以下是前述工具返回的素材内容')) {
+      } else if (txt.startsWith('The following is the material content returned by the aforementioned tools')) {
         trigger = 'media_attachment_followup';
       } else {
         trigger = 'user_message';
@@ -469,13 +469,13 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
       .map((t) => `${t.name}:${t.errorReason || 'error'}`)
       .join(', ');
     eliminable = true;
-    eliminableReason = `工具报错回退重试 (${failedDesc})`;
+    eliminableReason = `The tool reports an error and rolls back to try again (${failedDesc})`;
   } else if (trigger === 'plan_continue') {
     eliminable = true;
-    eliminableReason = '计划未标完成触发自动续跑 (planContinuation)';
+    eliminableReason = 'The plan is not completed and triggers automatic continuation (planContinuation)';
   } else if (responseTools.length > 0 && responseTools.every((t) => t === 'plan_update')) {
     eliminable = true;
-    eliminableReason = '单独调用 plan_update 占一整轮请求';
+    eliminableReason = 'Calling plan_update alone accounts for an entire round of requests';
   } else if (
     hasStudioDigest &&
     responseTools.length > 0 &&
@@ -485,8 +485,8 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
   ) {
     eliminable = true;
     eliminableReason = studioIsEmpty
-      ? '空画布已有 <beeftv_studio> 现场摘要仍调用 canvas_get'
-      : '同轮已读写画布且有最新 <beeftv_studio> 仍重复调用 canvas_get';
+      ? 'Empty canvas already has <beeftv_studio> scene summary still calling canvas_get'
+      : 'The canvas has been read and written in the same round and has the latest <beeftv_studio>, but canvas_get is called repeatedly';
   } else if (
     thisHasWrite &&
     priorWriteRequests.length >= 1 &&
@@ -494,7 +494,7 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
     !prevTools.some((t) => t.name === 'media_inspect' || t.name === 'media_overview' || t.name === 'media_check')
   ) {
     eliminable = true;
-    eliminableReason = `串行分步改画布（同轮第 ${priorWriteRequests.length + 1} 次写请求，可合并为复合或同次批量调用）`;
+    eliminableReason = `Serial step-by-step canvas modification (same round)${priorWriteRequests.length + 1} write requests, which can be combined into composite or batch calls at the same time)`;
   } else if (
     responseTools.length > 0 &&
     responseTools.every((t) => t === 'canvas_generation_propose' || t === 'plan_update') &&
@@ -503,7 +503,7 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
     !priorToolsFlat.includes('canvas_nodes_create')
   ) {
     eliminable = true;
-    eliminableReason = '已知节点 ID 时改节点与 generation_propose 分两次往返（可同次发出）';
+    eliminableReason = 'When the node ID is known, there are two round trips between the node and generation_propose (can be issued at the same time)';
   } else if (
     trigger === 'tool_result' &&
     responseTools.length === 0 &&
@@ -511,7 +511,7 @@ export function extractModelRequestTrace(reqBody = {}, respText = '', priorTurnR
     prevTools.every((t) => t.name === 'canvas_generation_propose' || t.name === 'plan_update')
   ) {
     eliminable = true;
-    eliminableReason = 'plan_update 与 generation_propose 同批调用导致 terminate 未生效，多一次总结请求';
+    eliminableReason = 'Plan_update and generation_propose were called in the same batch, resulting in terminate not taking effect, and one more summary request was made.';
   }
 
   return {
@@ -553,7 +553,7 @@ export function createCostMeter({
   function checkBudgetBeforeDispatch() {
     if (abortedBudget || totalCostCny >= budgetCny) {
       abortedBudget = true;
-      const err = new Error(`aborted_budget: 累计费用 ${totalCostCny.toFixed(4)} 元已达到或超过预算上限 ${budgetCny} 元`);
+      const err = new Error(`aborted_budget: accumulated expenses${totalCostCny.toFixed(4)} dollars have reached or exceeded the budget limit${budgetCny} Yuan`);
       err.reason = 'aborted_budget';
       throw err;
     }
@@ -638,7 +638,7 @@ export function createCostMeter({
     }
 
     if (abortedBudget) {
-      const err = new Error(`aborted_budget: 累计费用 ${totalCostCny.toFixed(4)} 元超过预算上限 ${budgetCny} 元`);
+      const err = new Error(`aborted_budget: accumulated expenses${totalCostCny.toFixed(4)} $ exceeds budget limit${budgetCny} Yuan`);
       err.reason = 'aborted_budget';
       throw err;
     }
@@ -842,31 +842,31 @@ export function renderMarkdownReport(report) {
   const s = report.summary;
   const cachedSummary =
     typeof s.totalCachedTokens === 'number'
-      ? ` (缓存命中 \`${s.totalCachedTokens}\` tok / \`${((s.totalCachedTokenRatio || 0) * 100).toFixed(1)}%\`)`
+      ? ` (cache hit \`${s.totalCachedTokens}\` tok / \`${((s.totalCachedTokenRatio || 0) * 100).toFixed(1)}%\`)`
       : '';
   const lines = [
-    '# BeefTV 内置创作助手评测报告 (Eval Harness)',
+    '# BeefTV built-in creative assistant evaluation report (Eval Harness)',
     '',
-    `- **生成时间**: \`${report.generatedAt}\``,
-    `- **整体状态**: **${report.status.toUpperCase()}**`,
-    `- **模型模式**: \`${report.config.modelMode}\` | **每场景轮数**: \`${report.config.runs}\` | **单轮请求上限**: \`${report.config.maxRequests}\` | **总预算上限**: \`¥${report.config.budgetCny}\``,
-    `- **累计消耗**: 共 \`${s.totalTurns || 0}\` 句话 / 请求 \`${s.totalRequests}\` 次 (平均 \`${s.avgRequestsPerTurn || 0}\` 次/句，可省 \`${s.totalEliminableRequests || 0}\` 次 -> 目标 \`<=${s.totalTargetRequests || 0}\` 次) | 输入 \`${s.totalInputTokens}\` tok${cachedSummary} | 输出 \`${s.totalOutputTokens}\` tok | 耗时 \`${s.totalDurationMs || 0} ms\` | 费用 \`¥${s.totalCostCny.toFixed(4)}\``,
+    `- **Generation time**: \`${report.generatedAt}\``,
+    `- **Overall Status**: **${report.status.toUpperCase()}**`,
+    `- **Model Mode**: \`${report.config.modelMode}\` | **每场景轮数**: \`${report.config.runs}\` | **单轮请求上限**: \`${report.config.maxRequests}\` | **总预算上限**: \`¥${report.config.budgetCny}\``,
+    `- **Cumulative consumption**: Total \`${s.totalTurns || 0}\` 句话 / 请求 \`${s.totalRequests}\` 次 (平均 \`${s.avgRequestsPerTurn || 0}\` 次/句，可省 \`${s.totalEliminableRequests || 0}\` 次 -> 目标 \`<=${s.totalTargetRequests || 0}\` 次) | 输入 \`${s.totalInputTokens}\` tok${cachedSummary} | output \`${s.totalOutputTokens}\` tok | 耗时 \`${s.totalDurationMs || 0} ms\` | 费用 \`¥${s.totalCostCny.toFixed(4)}\``,
     '',
-    '## 1. 核心守护指标总览',
+    '## 1. Overview of core guard indicators',
     '',
-    '| 指标项 | 结果 | 预期门禁 |',
+    '| Indicators | Results | Expected access |',
     '| :--- | :--- | :--- |',
-    `| 场景通过数 (含已知能力缺口标注) | ${s.passedRuns} 通过 / ${s.baselineGapRuns} 已知缺口 / ${s.failedRuns} 失败 | 期望基线场景 100% 通过 |`,
-    `| 不适用场景数 | ${s.notApplicableRuns || 0} | 只记录原因，不计入通过率 |`,
-    `| 平均结构完整率 | ${(s.avgStructuralCompletenessRate * 100).toFixed(1)}% | >= 90% |`,
-    `| 未经确认自动发起付费生成数 | ${s.totalUnconfirmedGenerations} | 必须为 0 |`,
-    `| 重复创建同名节点 / 重复提议数 | 节点 ${s.totalDuplicateNodes} / 提议 ${s.totalDuplicateProposals} | 必须为 0 |`,
-    `| CAS 版本冲突 / 未恢复冲突数 | ${s.totalRevisionConflicts} / ${s.totalUnrecoveredConflicts} | 未恢复冲突必须为 0 |`,
-    `| 多轮技能规则保持率 (S6，未触发压缩) | ${s.skillRetentionRate === null ? 'N/A' : `${(s.skillRetentionRate * 100).toFixed(1)}%`} | 100% |`,
+    `| Number of scenarios passed (including known capability gap annotations) |${s.passedRuns} via /${s.baselineGapRuns} Known gaps /${s.failedRuns} Fail | Expected Baseline Scenario 100% Pass |`,
+    `| Number of unapplicable scenarios |${s.notApplicableRuns || 0} | Only the reasons are recorded, not included in the pass rate |`,
+    `| Average structural integrity rate |${(s.avgStructuralCompletenessRate * 100).toFixed(1)}% | >= 90% |`,
+    `| Automatically initiate payment generation without confirmation |${s.totalUnconfirmedGenerations} | Must be 0 |`,
+    `| Repeated creation of nodes with the same name / Number of repeated proposals | Node${s.totalDuplicateNodes} / proposal${s.totalDuplicateProposals} | Must be 0 |`,
+    `| CAS version conflicts / Number of unrecovered conflicts |${s.totalRevisionConflicts} / ${s.totalUnrecoveredConflicts} | Unrecovered conflicts must be 0 |`,
+    `| Multi-round skill rule retention rate (S6, no compression triggered) |${s.skillRetentionRate === null ? 'N/A' : `${(s.skillRetentionRate * 100).toFixed(1)}%`} | 100% |`,
     '',
-    '## 2. 分场景明细',
+    '## 2. Scene details',
     '',
-    '| 场景 | 状态 | 检查项 | 句数/请求 (可省) | 读/写操作 | 输入 Token (缓存命中%) | 输出 Token | 费用 (¥) | 耗时 (ms) | 备注 / 能力缺口 |',
+    '| Scenario | Status | Check items | Number of sentences/requests (can be omitted) | Read/write operations | Input Token (cache hit %) | Output Token | Cost (¥) | Time-consuming (ms) | Remarks / Capability gap |',
     '| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |',
   ];
 
@@ -885,10 +885,10 @@ export function renderMarkdownReport(report) {
               ? 'ABORTED_BUDGET'
               : 'FAIL';
     const note = m.status === 'not_applicable'
-      ? item.reason || '这个场景不适用于当前运行器'
+      ? item.reason || 'This scenario does not apply to the current runner'
       : m.capabilityGap
         ? `capability gap: \`${m.capabilityGap}\``
-        : item.checks.filter((c) => !c.passed).map((c) => `${c.name}: ${c.detail}`).join('; ') || '全部检查通过';
+        : item.checks.filter((c) => !c.passed).map((c) => `${c.name}: ${c.detail}`).join('; ') || 'All checks passed';
     lines.push(
       `| **${m.scenarioCode}** \`${m.scenarioId}\` (run #${item.runIndex}) | ${badge} | ${m.passedChecks}/${m.totalChecks} | ${m.turnCount}/${m.modelRequests} (-${m.eliminableRequests || 0}) | ${m.readOps}/${m.writeOps} | ${m.inputTokens} (${((m.cachedTokenRatio || 0) * 100).toFixed(1)}%) | ${m.outputTokens} | ${m.costCny.toFixed(4)} | ${m.durationMs} | ${note} |`,
     );
@@ -896,9 +896,9 @@ export function renderMarkdownReport(report) {
 
   lines.push(
     '',
-    '## 3. 每句话请求次数、工具调用序列与可省往返明细 (Stage 1 Baseline)',
+    '## 3. Number of requests per sentence, tool call sequence and round trip details that can be saved (Stage 1 Baseline)',
     '',
-    '| 场景 / 回合 | 用户指令摘要 | 请求数 (可省) | 耗时 (ms) | 输入 Token (缓存命中%) | 输出 Token | 工具调用序列 (按请求) |',
+    '| Scenario / Round | Summary of user instructions | Number of requests (can be saved) | Time consumption (ms) | Input Token (cache hit %) | Output Token | Tool call sequence (by request) |',
     '| :--- | :--- | :--- | :--- | :--- | :--- | :--- |',
   );
 
@@ -912,9 +912,9 @@ export function renderMarkdownReport(report) {
     }
   }
 
-  lines.push('', '### 每次模型请求逐笔明细与可省往返标注', '');
+  lines.push('', '### Each model request is detailed and round-trip annotation can be saved.', '');
   lines.push(
-    '| 全局# | 场景/回合# | 触发原因 (上步结果) | 本次响应动作 / 工具调用 | 输入 Token | 缓存命中 (占比) | 输出 Token | 耗时 (ms) | 可省往返标注 |',
+    '| Global # | Scene/Round # | Trigger reason (result of previous step) | This response action/tool call | Input Token | Cache hit (proportion) | Output Token | Time consumption (ms) | Can save round-trip annotation |',
     '| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |',
   );
   for (const item of report.scenarios) {
@@ -932,7 +932,7 @@ export function renderMarkdownReport(report) {
             : req.hasTextReply
               ? '`<final_reply>`'
               : '`<empty>`';
-        const elimBadge = req.eliminable ? `**可省**: ${req.eliminableReason}` : '保留';
+        const elimBadge = req.eliminable ? `**Save**:${req.eliminableReason}` : 'Reserve';
         lines.push(
           `| #${req.index} | **${item.metrics.scenarioCode}** \`${td.turnId}\` R${req.turnRequestIndex} | ${prevDesc} | ${respDesc} | ${req.inputTokens} | ${req.cachedTokens} (${((req.cachedTokenRatio || 0) * 100).toFixed(1)}%) | ${req.outputTokens} | ${req.durationMs} | ${elimBadge} |`,
         );
@@ -940,7 +940,7 @@ export function renderMarkdownReport(report) {
     }
   }
 
-  lines.push('', '## 4. 检查项逐条断言', '');
+  lines.push('', '## 4. Check items one by one to assert', '');
   for (const item of report.scenarios) {
     lines.push(`### ${item.metrics.scenarioCode} \`${item.scenarioId}\` (Run #${item.runIndex} — ${item.metrics.status})`);
     for (const c of item.checks) {
@@ -982,7 +982,7 @@ async function startAgentHostProcess({ opsUrl, modelBaseUrl, modelId, modelApi, 
   const port = await new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       child.kill('SIGKILL');
-      reject(new Error(`agent-host 启动超时: stdout=${stdoutBuf} stderr=${stderrBuf}`));
+      reject(new Error(`agent-host startup timeout: stdout=${stdoutBuf} stderr=${stderrBuf}`));
     }, 15000);
 
     const onData = (chunk) => {
@@ -1004,7 +1004,7 @@ async function startAgentHostProcess({ opsUrl, modelBaseUrl, modelId, modelApi, 
     });
     child.once('exit', (code) => {
       clearTimeout(timer);
-      reject(new Error(`agent-host 提前退出 code=${code}: ${stderrBuf || stdoutBuf}`));
+      reject(new Error(`agent-host exits early code=${code}: ${stderrBuf || stdoutBuf}`));
     });
   });
 
@@ -1296,7 +1296,7 @@ export async function runEval(rawOptions = {}) {
               if (Array.isArray(m.content)) {
                 m.content = m.content.map((p) =>
                   p?.type === 'image_url' && String(p.image_url?.url || '').startsWith('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAE')
-                    ? { type: 'text', text: '[画面抽帧附件已核验：右手有6根手指，手部明显畸形]' }
+                    ? { type: 'text', text: '[The frame extraction attachment has been verified: there are 6 fingers on the right hand, and the hand is obviously deformed]' }
                     : p,
                 );
               }
@@ -1407,7 +1407,7 @@ export async function runEval(rawOptions = {}) {
           const evalResult = {
             passed: false,
             status: 'not_applicable',
-            checks: [{ name: 'runner_applicability', passed: true, detail: '这个场景只适用于外部 Agent' }],
+            checks: [{ name: 'runner_applicability', passed: true, detail: 'This scenario only applies to external Agents' }],
           };
           scenarioRuns.push({
             runIndex: runIdx,
@@ -1417,7 +1417,7 @@ export async function runEval(rawOptions = {}) {
             expectedBaselinePass: scenario.expectedBaselinePass,
             capabilities: scenario.capabilities,
             status: 'not_applicable',
-            reason: '这个场景只适用于外部 Agent（内置助手提交前必须等用户在界面确认）',
+            reason: 'This scenario only applies to external Agents (the built-in assistant must wait for user confirmation on the interface before submitting)',
             metrics: computeScenarioMetrics({ scenario, evalResult, beforeSnap: snap, afterSnap: snap, turnRecords: [], requestEntries: [], durationMs: 0 }),
             checks: evalResult.checks,
           });
@@ -1588,7 +1588,7 @@ export async function runEval(rawOptions = {}) {
                   requestId: `task-done-${turnId}`,
                   kind: 'task_completed',
                   message:
-                    '生成任务已完成交付，画面产物已写回节点，请使用 media_inspect 复查刚生成的画面是否有手部畸形，如有问题请修改提示词并重新提交生成提议。',
+                    'The generation task has been completed and delivered, and the screen product has been written back to the node. Please use media_inspect to review whether the newly generated screen has hand deformities. If there are any problems, please modify the prompt word and resubmit the generation proposal.',
                   data: { proposalIds: unconfirmedForCanvas.map((p) => p.proposalId) },
                 }),
               }).catch(() => null);
@@ -1646,7 +1646,7 @@ export async function runEval(rawOptions = {}) {
               {
                 name: 'budget_ceiling_enforced',
                 passed: false,
-                detail: `累计费用 ¥${meter.getState().totalCostCny.toFixed(4)} 触发预算上限 ¥${config.budgetCny} 熔断`,
+                detail: `Cumulative cost ¥${meter.getState().totalCostCny.toFixed(4)} Trigger budget cap ¥${config.budgetCny} fuse`,
               },
             ],
           };
@@ -1671,7 +1671,7 @@ export async function runEval(rawOptions = {}) {
             checks: [...evalResult.checks, {
               name: 'assistant_settled_before_scoring',
               passed: false,
-              detail: `收尾等待 ${Math.round(settle.waitedMs / 1000)} 秒后助手仍在运行，本场景的请求与画布结果不完整`,
+              detail: `Finishing and waiting${Math.round(settle.waitedMs / 1000)} The assistant is still running after seconds, and the request and canvas results of this scene are incomplete.`,
             }],
           };
         }
@@ -1713,7 +1713,7 @@ export async function runEval(rawOptions = {}) {
                   : r.hasTextReply
                     ? '<reply>'
                     : '<empty>';
-              const elimTag = r.eliminable ? '[可省]' : '';
+              const elimTag = r.eliminable ? '[can be saved]' : '';
               return `R${r.turnRequestIndex}:${tools}${elimTag}`;
             });
             const rawToolCalls = t.toolCalls || t.tools || [];
@@ -1795,27 +1795,27 @@ if (isMain) {
     if (cliArgs.help) {
       console.log(
         [
-          '用法: bun eval/run-eval.mjs [选项]',
-          '  --scenario <id|all>      指定场景 ID（如 S1..S11 或 shortdrama-2shot）或 all（默认 all）',
-          '  --model <fake|real>      模型模式：fake（默认零成本本地桩）或 real（真实模型，需显式配置单价）',
-          '  --runs <N>               每个场景重复运行次数（默认 1）',
-          '  --max-requests <N>       单回合最大模型请求数（默认 25）',
-          '  --budget-cny <number>    整轮评测累计人民币预算上限（默认 25）',
-          '  --sim-capabilities <list> 打开模拟后端里尚未进入真实后端的能力（目前只有 task.wait），默认全关',
-          '  --out <dir>              报告与 ledger.jsonl 输出目录',
+          'Usage: bun eval/run-eval.mjs [options]',
+          '  --scenario <id|all> Specify scene ID (such as S1..S11 or shortdrama-2shot) or all (default all)',
+          '  --model <fake|real> Model mode: fake (default zero-cost local pile) or real (real model, unit price needs to be explicitly configured)',
+          '  --runs <N> Number of times to repeat each scenario (default 1)',
+          '  --max-requests <N> Maximum number of model requests in a single round (default 25)',
+          '  --budget-cny <number> The upper limit of the cumulative RMB budget for the entire evaluation round (default 25)',
+          '  --sim-capabilities <list> Turn on the capabilities in the simulated backend that have not yet entered the real backend (currently only task.wait), all turned off by default',
+          '  --out <dir> Report and ledger.jsonl output directory',
         ].join('\n'),
       );
       process.exit(0);
     }
     const res = await runEval(cliArgs);
     console.log(res.markdown);
-    console.log(`\n[eval] 报告已写入: ${res.jsonPath}`);
-    console.log(`[eval] 账本已写入: ${res.ledgerPath}`);
+    console.log(`[eval] Report written:${res.jsonPath}`);
+    console.log(`[eval] The ledger has been written:${res.ledgerPath}`);
     if (res.report.status === 'failed' || res.report.status === 'aborted_budget') {
       process.exit(1);
     }
   } catch (error) {
-    console.error(`[eval] 运行失败: ${error?.message || error}`);
+    console.error(`[eval] failed to run:${error?.message || error}`);
     process.exit(1);
   }
 }

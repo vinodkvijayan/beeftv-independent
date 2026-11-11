@@ -1,25 +1,25 @@
-# 实时对话功能实现（第一阶段 MVP）
+# Implementation of real-time dialogue function (first phase MVP)
 
-## 项目概述
+## Project Overview
 
-实现第一阶段（MVP）：**本地语音录制 + 浏览器语音识别转写**。点击"实时对话"按钮 → 输入行内展开波形录制条 → 停止后自动转写为文字 → 文字填入输入框或直接发送。
+Implementation of the first phase (MVP): **Local voice recording + browser voice recognition and transliteration**. Click the "Real-time Chat" button → Expand the waveform recording bar in the input line → Automatically convert it into text after stopping → Fill the text into the input box or send it directly.
 
-第一阶段**不接入语音大模型、不依赖后端与 API Key**，转写由浏览器内置 Web Speech API 完成，零配置可用。
-
----
-
-## 交互流程
-
-1. 点击"实时对话"按钮（`VoiceRecordingButton`）
-2. 输入行内展开 `VoiceRecordingInline` 录制条（不弹窗），自动开始录音
-3. 显示波形动画（AnalyserNode 实时音量）+ 时长
-4. 点击停止 → 停止录音并触发浏览器语音识别
-5. 识别成功 → 短暂显示"转写完成" → 回调文本，由调用方填入输入框或直接发送
-6. 识别失败（无语音 / 权限拒绝 / 网络异常）→ 录制条内提示并支持重试
+The first stage** does not connect to the large speech model, does not rely on the backend and API Key**, and the transcription is completed by the browser's built-in Web Speech API, which is available with zero configuration.
 
 ---
 
-## 技术架构
+## Interaction process
+
+1. Click the "Live Chat" button (`VoiceRecordingButton`)
+2. Expand the `VoiceRecordingInline` recording bar in the input line (no pop-up window) and start recording automatically.
+3. Display waveform animation (AnalyserNode real-time volume) + duration
+4. Click Stop → to stop recording and trigger browser speech recognition
+5. Recognition is successful → "Transcription completed" is briefly displayed → callback text, the caller fills in the input box or sends it directly
+6. Recognition failure (no voice/permission denied/network abnormality) → prompt in the recording bar and support retry
+
+---
+
+## Technical architecture
 
 ```
 用户点击"实时对话"按钮
@@ -37,31 +37,31 @@ VoiceRecordingInline 内联波形录制条
 点击停止 → speech.stop() 返回文本 → onTranscribed(文本) → 填入输入框
 ```
 
-## 前端实现
+## Front-end implementation
 
-### 组件
+### Components
 
-| 文件 | 说明 |
+| Documentation | Description |
 |------|------|
-| `components/conversation/voice-recording-button.tsx` | 语音输入按钮：点击后输入行内展开录制条（局部状态，不弹窗） |
-| `components/conversation/voice-recording-inline.tsx` | 内联波形录制条：波形 + 时长 + 停止/取消，停止后自动转写 |
-| `components/conversation/audio-waveform.tsx` | SVG 波形可视化组件 |
-| `components/conversation/index.ts` | 组件统一导出 |
+| `components/conversation/voice-recording-button.tsx` | Voice input button: Click to expand the recording bar in the input line (partial state, no pop-up window) |
+| `components/conversation/voice-recording-inline.tsx` | Inline waveform recording strip: waveform + duration + stop/cancel, automatically transcribed after stopping |
+| `components/conversation/audio-waveform.tsx` | SVG waveform visualization component |
+| `components/conversation/index.ts` | Unified export of components |
 
 ### Hook
 
-| 文件 | 说明 |
+| Documentation | Description |
 |------|------|
-| `hooks/use-voice-recording.ts` | 语音录制逻辑（MediaRecorder + AnalyserNode，波形/时长/停止/取消） |
-| `hooks/use-speech-recognition.ts` | 浏览器语音识别（Web Speech API，start/stop/cancel，返回文本与错误） |
+| `hooks/use-voice-recording.ts` | Voice recording logic (MediaRecorder + AnalyserNode, waveform/duration/stop/cancel) |
+| `hooks/use-speech-recognition.ts` | Browser speech recognition (Web Speech API, start/stop/cancel, return text and error) |
 
-## 接入位置
+## Access location
 
-- 创建页主输入行：`web/src/pages/create/index.tsx`（`CreationComposer` 的 `creation-chat-controls`）
-- 画布：旧内置 Agent 停靠面板已退场，画布侧暂不再接入语音输入
-- 测试页：`web/src/pages/test-voice-recording.tsx`（路由 `/test-voice-recording`）
+- Create page main input row: `web/src/pages/create/index.tsx` (`CreationComposer` of `creation-chat-controls`)
+- Canvas: The old built-in Agent dock panel has been retired, and the canvas side is no longer accessible for voice input.
+- Test page: `web/src/pages/test-voice-recording.tsx` (routing `/test-voice-recording`)
 
-## 使用示例
+## Usage example
 
 ```tsx
 import { VoiceRecordingButton } from "@/components/conversation/voice-recording-button";
@@ -72,38 +72,38 @@ import { VoiceRecordingButton } from "@/components/conversation/voice-recording-
 />
 ```
 
-## 浏览器支持
+## Browser support
 
-- 语音识别使用 Web Speech API（`SpeechRecognition` / `webkitSpeechRecognition`），Chrome / Edge 支持
-- 不支持时录制条内提示"当前浏览器不支持语音识别，请使用 Chrome 或 Edge 浏览器"，并可取消
-- 识别语言默认 `zh-CN`，可通过 `useSpeechRecognition({ lang })` 调整
+- Speech recognition uses Web Speech API (`SpeechRecognition`/`webkitSpeechRecognition`), Chrome/Edge support
+- When it is not supported, the recording bar will prompt "The current browser does not support speech recognition, please use Chrome or Edge browser" and can be cancelled.
+- The default recognition language is `zh-CN`, which can be adjusted through `useSpeechRecognition({ lang })`
 
-## 已删除内容
+## Deleted content
 
-以下第二阶段实验代码已全部删除：
+The following second phase experiment code has been removed:
 
-### 前端
+### Front-end
 
-- `components/conversation/realtime-conversation.tsx`、`realtime-conversation-button.tsx`、`voice-recording-overlay.tsx`
-- `hooks/use-websocket.ts`、`stores/conversation-mode-store.ts`
-- `services/api/stt.ts`（后端 Whisper 转写客户端）
+- `components/conversation/realtime-conversation.tsx`, `realtime-conversation-button.tsx`, `voice-recording-overlay.tsx`
+- `hooks/use-websocket.ts`, `stores/conversation-mode-store.ts`
+- `services/api/stt.ts` (backend Whisper transcoding client)
 
-### 后端
+### Backend
 
-- `service/stt.go`（OpenAI Whisper 转写）、`model/stt.go`（`stt_results` 表）
-- `handler/routes.go` 中 `RegisterSTTRoutes`、`main.go` 中路由注册
-- `database/schema.go` 中 `STTResult` 模型注册、`repository/repository.go` 中 `CreateSTTResult`
+- `service/stt.go` (OpenAI Whisper transcription), `model/stt.go` (`stt_results` table)
+- Router registration in `handler/routes.go`, `RegisterSTTRoutes`, `main.go`
+- `database/schema.go` in `STTResult` model registration, `repository/repository.go` in `CreateSTTResult`
 
-## 验证情况
+## Verification situation
 
-- 后端 `go build ./...`：通过
-- 前端 `npx tsc --noEmit`：无本次新增类型错误（上游遗留 style profile / image.ts 错误除外）
-- 浏览器手动测试（真实麦克风 + 语音识别）未运行，需在 Chrome/Edge 下验证
+- Backend `go build ./...`: Passed
+- Front-end `npx tsc --noEmit`: No new type errors this time (except for upstream legacy style profile / image.ts errors)
+- Browser manual test (real microphone + speech recognition) is not running and needs to be verified under Chrome/Edge
 
-## 下一步
+## Next step
 
-- [x] 内联波形录制 + 浏览器语音识别自动转写（第一阶段 MVP）
-- [x] 移除第二阶段实验代码（WebSocket / WebRTC / Realtime API）
-- [ ] 语音播放功能（TTS）
-- [ ] 语音消息发送和显示
-- [ ] 真正实时对话（WebSocket + WebRTC + Realtime API，后续阶段）
+- [x] Inline waveform recording + browser speech recognition auto-transcription (Phase 1 MVP)
+- [x] Removed second phase experimental code (WebSocket/WebRTC/Realtime API)
+- [ ] Voice playback function (TTS)
+- [ ] Voice message sending and display
+- [ ] True real-time conversation (WebSocket + WebRTC + Realtime API, subsequent stages)

@@ -19,8 +19,8 @@ import { executeImageGeneration } from "@/pages/canvas/canvas-image-generation-e
 import { executeAudioGeneration, executeVideoGeneration } from "@/pages/canvas/canvas-media-generation-executors";
 import type { CanvasGenerationExecution } from "@/pages/canvas/canvas-generation-executor-types";
 
-const project: CanvasProject = { id: "canvas-1", title: "画布", createdAt: "2026-01-01", updatedAt: "2026-01-01", revision: 3, nodes: [{ id: "new-image", type: CanvasNodeType.Image, title: "新结果", position: { x: 0, y: 0 }, width: 320, height: 320, metadata: { status: "loading" } }], connections: [], chatSessions: [], activeChatId: null, backgroundMode: "grid", showImageInfo: false, viewport: { x: 0, y: 0, k: 1 }, directorScenes: [] };
-const input = { projectId: project.id, nodeId: "new-image", mode: "image" as const, prompt: "小猫", config: {} as never, clientOperationId: "test-image-save" };
+const project: CanvasProject = { id: "canvas-1", title: "canvas", createdAt: "2026-01-01", updatedAt: "2026-01-01", revision: 3, nodes: [{ id: "new-image", type: CanvasNodeType.Image, title: "new results", position: { x: 0, y: 0 }, width: 320, height: 320, metadata: { status: "loading" } }], connections: [], chatSessions: [], activeChatId: null, backgroundMode: "grid", showImageInfo: false, viewport: { x: 0, y: 0, k: 1 }, directorScenes: [] };
+const input = { projectId: project.id, nodeId: "new-image", mode: "image" as const, prompt: "kitten", config: {} as never, clientOperationId: "test-image-save" };
 const task: GenerationTask = { id: "task-original", type: "canvas_image", status: "succeeded", prompt: input.prompt, attempts: 1, createdAt: "2026-01-01", updatedAt: "2026-01-01", failureDiagnostics: { source: "unknown", requests: [{ operation: "image_generate", method: "POST", dispatched: true, outcome: "response_received", httpStatus: 200, startedAt: "2026-01-01", durationMs: 10 }] } };
 
 test("continuation manifest freezes split output identities before any image task or placeholder mutation", async () => {
@@ -31,7 +31,7 @@ test("continuation manifest freezes split output identities before any image tas
     await expect(executeImageGeneration({
         pageUi: createCanvasPageUiStore(),
         sourceNode: target, nodeId: target.id, canvasNodes: [target], canvasConnections: [],
-        prompt: "生成画面", effectivePrompt: "生成画面", projectId: project.id, clientOperationId: "proposal:gp-one:source",
+        prompt: "Generate screen", effectivePrompt: "Generate screen", projectId: project.id, clientOperationId: "proposal:gp-one:source",
         generationConfig: { model: "test-model", count: "2", channels: [] }, generationContext: { referenceImages: [] }, controller: new AbortController(),
         onSubmissionPlan: async value => { manifest = value; throw rejected; },
         setNodes: () => { mutations++; }, setConnections: () => { mutations++; }, registerPendingNodeIds: () => { mutations++; },
@@ -55,7 +55,7 @@ for (const [kind, execute] of [[CanvasNodeType.Image, executeImageGeneration], [
             const unexpected = () => { mutations++; };
             await expect(execute({
                 sourceNode: source, nodeId: source.id, canvasNodes: [source], nodesRef: { current: [source] }, canvasConnections: [],
-                prompt: "镜头", effectivePrompt: "镜头", projectId: project.id, clientOperationId: "proposal:gp-one:source",
+                prompt: "lens", effectivePrompt: "lens", projectId: project.id, clientOperationId: "proposal:gp-one:source",
                 generationConfig: { model: "test-model", count: "1", channels: [] }, generationContext: { referenceImages: [], referenceVideos: [], referenceAudios: [] }, controller,
                 onSubmissionPlan: async () => { manifests++; if (stop) controller.abort(); else throw new Error("receipt unavailable"); },
                 setNodes: unexpected, setConnections: unexpected, registerPendingNodeIds: unexpected, startGenerationRequest: unexpected,
@@ -86,7 +86,7 @@ test("submission creates a stable operation ID without randomUUID in an HTTP Web
 });
 
 test("restoring a completed image retains recovery flags and cannot open a second paid generation", () => {
-    const target = { ...project.nodes[0], metadata: { taskId: task.id, taskStatus: "succeeded" as const, status: "error" as const, generationPreflightError: "旧的前置校验提示", taskOutcome: { phase: "retrievable" as const, regenerate: "blocked" as const, reason: "delivery_pending" }, generationErrorCode: "canvas_conflict" as const, errorDetails: "生成结果已保留，请点击「继续取回」" } };
+    const target = { ...project.nodes[0], metadata: { taskId: task.id, taskStatus: "succeeded" as const, status: "error" as const, generationPreflightError: "Old pre-validation prompt", taskOutcome: { phase: "retrievable" as const, regenerate: "blocked" as const, reason: "delivery_pending" }, generationErrorCode: "canvas_conflict" as const, errorDetails: "The generated results have been retained, please click \"Continue to retrieve\"" } };
     const restored = canvasGenerationTaskNodes([target], target.id, task)[0];
     expect(restored.metadata).toMatchObject({ status: "error", taskStatus: "succeeded", generationErrorCode: "canvas_conflict" });
     expect(restored.metadata?.generationPreflightError).toBeUndefined();
@@ -98,11 +98,11 @@ test("restoring a completed image retains recovery flags and cannot open a secon
 });
 
 test("task polling preserves unsaved movement, prompt edits and a newly added sibling, and never recreates deleted targets", () => {
-    const target = { ...project.nodes[0], position: { x: 500, y: 600 }, metadata: { prompt: "刚修改的提示词" } };
+    const target = { ...project.nodes[0], position: { x: 500, y: 600 }, metadata: { prompt: "Just modified prompt words" } };
     const sibling = { ...target, id: "new-sibling" };
     const live = canvasGenerationTaskNodes([target, sibling], target.id, task);
     expect(live[0].position).toEqual(target.position);
-    expect(live[0].metadata?.prompt).toBe("刚修改的提示词");
+    expect(live[0].metadata?.prompt).toBe("Just modified prompt words");
     expect(live[0].metadata?.taskId).toBe(task.id);
     expect(live[1]).toBe(sibling);
     expect(canvasGenerationTaskNodes([sibling], target.id, task)).toEqual([sibling]);
@@ -131,10 +131,10 @@ test("image submission waits for the target node save and shares one submission 
 });
 
 for (const [error, guidance] of [
-    [new ApiError("保存冲突", { status: 409, reason: "conflict" }), "请点击画布顶部的保存状态"],
-    [new ApiError("版本过期", { status: 409, reason: "stale_revision" }), "请点击画布顶部的保存状态"],
-    [new CanvasBackendSubmitPausedError(), "请点击画布顶部的保存状态"],
-    [new Error("disk failure"), "画布尚未保存"],
+    [new ApiError("save conflict", { status: 409, reason: "conflict" }), "Click Save Status at the top of the canvas"],
+    [new ApiError("Version expired", { status: 409, reason: "stale_revision" }), "Click Save Status at the top of the canvas"],
+    [new CanvasBackendSubmitPausedError(), "Click Save Status at the top of the canvas"],
+    [new Error("disk failure"), "Canvas not saved yet"],
 ] as const) {
     test(`a rejected target save creates no paid task: ${error.name}`, async () => {
         let submissions = 0;
@@ -151,14 +151,14 @@ for (const [error, guidance] of [
 test("a target deleted while saving stops before submission and is not recreated", async () => {
     await expect(persistCanvasGenerationTarget({ ...input }, async () => {
         useCanvasStore.setState({ projects: [{ ...project, nodes: [] }] });
-    })).rejects.toThrow("生成节点已不存在");
+    })).rejects.toThrow("The build node no longer exists");
     expect(useCanvasStore.getState().projects[0]?.nodes).toEqual([]);
 });
 
 test("abort and a canvas owner change during save cannot proceed to a paid task", async () => {
     const controller = new AbortController();
     await expect(persistCanvasGenerationTarget({ ...input, signal: controller.signal }, async () => { controller.abort(); })).rejects.toMatchObject({ name: "AbortError" });
-    const refNode = { id: "ref-image", type: CanvasNodeType.Image, title: "参考图", position: { x: 0, y: 0 }, width: 320, height: 320, metadata: { status: "success" as const, storageKey: "resource:res-ref", content: "/api/resources/res-ref/file" } };
+    const refNode = { id: "ref-image", type: CanvasNodeType.Image, title: "Reference picture", position: { x: 0, y: 0 }, width: 320, height: 320, metadata: { status: "success" as const, storageKey: "resource:res-ref", content: "/api/resources/res-ref/file" } };
     useCanvasStore.setState({ projects: [{ ...structuredClone(project), nodes: [...project.nodes, refNode] }] });
     let current = true;
     let persistAttempts = 0;
@@ -174,7 +174,7 @@ test("abort and a canvas owner change during save cannot proceed to a paid task"
             },
             async () => {
                 persistAttempts += 1;
-                throw new ApiError("画布媒体尚未进入素材库，请等待同步完成后重试", { status: 400 });
+                throw new ApiError("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.", { status: 400 });
             },
         ),
     ).rejects.toMatchObject({ name: "AbortError" });
@@ -199,7 +199,7 @@ test("abort and a canvas owner change during save cannot proceed to a paid task"
                 prepareTarget: (options) =>
                     persistCanvasGenerationTarget(options, async () => {
                         hookPersistAttempts += 1;
-                        throw new ApiError("画布媒体尚未进入素材库，请等待同步完成后重试", { status: 400 });
+                        throw new ApiError("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.", { status: 400 });
                     }),
                 bindTask: () => undefined,
                 consumeTask: async () => undefined,
@@ -237,26 +237,26 @@ test("main generation and batch generation stop before changing nodes when a pai
         await executeImageGeneration({
             pageUi: createCanvasPageUiStore(),
             sourceNode: root, nodeId: root.id, canvasNodes: batch ? [root, target] : [target], canvasConnections: [],
-            prompt: "修改后再点生成", effectivePrompt: "修改后再点生成", projectId: project.id,
+            prompt: "After modification, click Generate", effectivePrompt: "After modification, click Generate", projectId: project.id,
             generationConfig: { count: batch ? "2" : "1" }, generationContext: { referenceImages: [] }, controller: new AbortController(),
             setNodes: unexpected, setConnections: unexpected, registerPendingNodeIds: unexpected,
             showError: (value: string) => notices.push(value),
         } as unknown as CanvasGenerationExecution);
         expect(mutations).toBe(0);
-        expect(notices).toEqual(["生成结果已保留，请点击「继续取回」"]);
+        expect(notices).toEqual(["The generated results have been retained, please click \"Continue to retrieve\""]);
     }
 });
 
 test("in-place media generation preserves the existing shot name before submission", async () => {
     for (const [type, execute] of [[CanvasNodeType.Image, executeImageGeneration], [CanvasNodeType.Video, executeVideoGeneration], [CanvasNodeType.Audio, executeAudioGeneration]] as const) {
-        const target = { ...project.nodes[0], type, title: `镜1-${type}`, metadata: { status: "idle" as const } };
+        const target = { ...project.nodes[0], type, title: `Mirror 1-${type}`, metadata: { status: "idle" as const } };
         useCanvasStore.setState({ projects: [{ ...structuredClone(project), nodes: [target] }] });
         const nodesRef = { current: [target] };
         const stopBeforeSubmission = new Error("test stops before paid submission");
         await expect(execute({
             pageUi: createCanvasPageUiStore(),
             sourceNode: target, nodeId: target.id, canvasNodes: [target], canvasConnections: [], nodesRef,
-            prompt: "新的完整动作提示词", effectivePrompt: "新的完整动作提示词", projectId: project.id,
+            prompt: "New complete action prompt words", effectivePrompt: "New complete action prompt words", projectId: project.id,
             generationConfig: { model: "test-model", count: "1", size: "9:16", channels: [] },
             generationContext: { referenceImages: [], referenceVideos: [], referenceAudios: [], resolvedCharacterVersions: [], resolvedCharacterVoices: [] },
             controller: new AbortController(),
@@ -266,7 +266,7 @@ test("in-place media generation preserves the existing shot name before submissi
         const saved = useCanvasStore.getState().projects[0]!.nodes;
         expect(saved).toHaveLength(1);
         expect(saved[0]?.title).toBe(target.title);
-        expect(saved[0]?.metadata?.prompt).toBe("新的完整动作提示词");
+        expect(saved[0]?.metadata?.prompt).toBe("New complete action prompt words");
         expect(nodesRef.current[0]?.title).toBe(target.title);
     }
 });
@@ -279,7 +279,7 @@ test("executor retains original batch outputs after layout deletion, cancellatio
         await expect(executeImageGeneration({
             pageUi: createCanvasPageUiStore(),
             sourceNode: source, nodeId: source.id, canvasNodes: nodes, canvasConnections: [], nodesRef: { current: nodes },
-            prompt: "两个镜头", effectivePrompt: "两个镜头", projectId: project.id, clientOperationId: "proposal:p1:source",
+            prompt: "two shots", effectivePrompt: "two shots", projectId: project.id, clientOperationId: "proposal:p1:source",
             generationConfig: { model: "test-model", count, channels: [] }, generationContext: { referenceImages: [] }, controller: new AbortController(),
             setNodes: () => undefined, setConnections: () => undefined, registerPendingNodeIds: () => undefined,
             startGenerationRequest: () => { throw stopBeforeSubmission; },
@@ -305,7 +305,7 @@ test("executor retains original batch outputs after layout deletion, cancellatio
     expect(removed.find(node => node.id === root.id)?.metadata?.generationOutputNodeIds).toEqual(outputs);
     expect(tasks[1]!.status).toBe("running");
     expect(assistantProposalProgress(proposal, removed).ready).toBe(false);
-    expect(assistantProposalProgress(proposal, removed).text).toContain("无法确认这批结果是否完整");
+    expect(assistantProposalProgress(proposal, removed).text).toContain("Unable to confirm whether this batch of results is complete");
     const cancelled = cancelIncompleteImageBatch(root.id, outputs, receipts, []).nodes;
     expect(assistantProposalProgress(proposal, cancelled).ready).toBe(false);
     const finished = receipts.map(node => outputs.includes(node.id) ? { ...node, metadata: { ...node.metadata, taskStatus: "succeeded", status: "success" as const, content: "resource:ready" } } : node);
@@ -328,7 +328,7 @@ test("a succeeded image with a bind failure keeps its original task and HTTP evi
             prepareTarget: async () => undefined,
             bindTask: (value) => updates.push(value),
             runTask: async (options) => { submissions++; options.onTaskCreated?.(task); return { images: [] }; },
-            consumeTask: async () => { throw new ApiError("原任务节点已删除，未重新创建节点", { status: 404, reason: "node_deleted" }); },
+            consumeTask: async () => { throw new ApiError("The original task node has been deleted and the node has not been re-created.", { status: 404, reason: "node_deleted" }); },
         });
     } catch (error) { caught = error; }
     expect(caught).toBeInstanceOf(CanvasGenerationDurableAckError);
@@ -337,15 +337,15 @@ test("a succeeded image with a bind failure keeps its original task and HTTP evi
     expect(terminal.status).toBe("succeeded");
     expect(terminal.failureDiagnostics?.source).toBe("client_result");
     expect(terminal.failureDiagnostics?.requests?.[0]?.httpStatus).toBe(200);
-    expect(terminal.failureDiagnostics?.summary).toContain("原任务节点已删除");
+    expect(terminal.failureDiagnostics?.summary).toContain("The original task node has been deleted");
     const recovered = canvasTaskFailureMetadata(terminal, undefined, caught);
-    expect(recovered.taskFailureDiagnostics?.summary).toContain("原任务节点已删除");
+    expect(recovered.taskFailureDiagnostics?.summary).toContain("The original task node has been deleted");
     expect(recovered.taskFailureDiagnostics?.executionResult).toBe("completed");
     expect(recovered.taskFailureDiagnostics?.requests?.[0]?.httpStatus).toBe(200);
     const metadata = canvasGenerationFailureMetadata(caught, { prompt: input.prompt, mode: "image" });
     expect(canReloadCanvasNodeResource({ taskId: task.id, ...metadata })).toBe(false);
     expect(metadata.generationErrorCode).toBe("result_target_unavailable");
-    expect(metadata.errorDetails).toContain("生成历史");
+    expect(metadata.errorDetails).toContain("Build history");
     expect(isNodeRegenerateBlocked(metadata)).toBe(true);
     expect(submissions).toBe(1);
 });

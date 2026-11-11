@@ -17,7 +17,7 @@ function imageNode(id: string, status: CanvasNodeStatus, metadata: Partial<NonNu
 }
 
 describe("canvas image batch retry", () => {
-    test("只按批次顺序返回属于当前根节点的失败图片", () => {
+    test("Only return failed images belonging to the current root node in batch order", () => {
         const root = imageNode("root", "error", { isBatchRoot: true, batchChildIds: ["failed-2", "success", "failed-1", "loading", "foreign"] });
         const nodes = [
             root,
@@ -31,9 +31,9 @@ describe("canvas image batch retry", () => {
         expect(failedImageBatchChildren(root, nodes).map((node) => node.id)).toEqual(["failed-2", "failed-1"]);
     });
 
-    test("任一子图成功后恢复根节点主图，同时保留其他失败子图", () => {
-        const root = imageNode("root", "loading", { isBatchRoot: true, batchChildIds: ["failed", "success"], errorDetails: "旧错误" });
-        const failed = imageNode("failed", "error", { batchRootId: root.id, errorDetails: "上游失败" });
+    test("After any subgraph succeeds, the root node main graph is restored, while other failed subgraphs are retained.", () => {
+        const root = imageNode("root", "loading", { isBatchRoot: true, batchChildIds: ["failed", "success"], errorDetails: "old error" });
+        const failed = imageNode("failed", "error", { batchRootId: root.id, errorDetails: "Upstream failed" });
         const success = imageNode("success", "success", {
             batchRootId: root.id,
             assetId: "asset-success",
@@ -51,7 +51,7 @@ describe("canvas image batch retry", () => {
         expect(failed.metadata.status).toBe("error");
     });
 
-    test("全部子图失败时把代表错误同步回根节点", () => {
+    test("When all subgraphs fail, synchronize the representative error back to the root node", () => {
         const root = imageNode("root", "loading", { isBatchRoot: true, batchChildIds: ["failed-1", "failed-2"] });
         const failed = imageNode("failed-1", "error", {
             batchRootId: root.id,
@@ -59,18 +59,18 @@ describe("canvas image batch retry", () => {
             generationErrorCode: "upstream_unavailable",
         });
 
-        const next = reconcileImageBatchRoot(root, [root, failed, imageNode("failed-2", "error", { batchRootId: root.id, errorDetails: "另一错误" })]);
+        const next = reconcileImageBatchRoot(root, [root, failed, imageNode("failed-2", "error", { batchRootId: root.id, errorDetails: "another error" })]);
 
         expect(next.metadata).toMatchObject({ status: "error", errorDetails: "No available compatible accounts", generationErrorCode: "upstream_unavailable", batchFailedCount: 2 });
         expect(next.metadata.content).toBeUndefined();
         expect(next.metadata.primaryImageId).toBeUndefined();
     });
 
-    test("开始批量重试时根节点和全部失败子图同步进入生成中", () => {
-        const root = imageNode("root", "error", { isBatchRoot: true, batchChildIds: ["failed-1", "success", "failed-2"], batchFailedCount: 2, errorDetails: "全部失败" });
-        const failed1 = imageNode("failed-1", "error", { batchRootId: root.id, errorDetails: "失败 1" });
+    test("When starting batch retry, the root node and all failed subgraphs are generated simultaneously.", () => {
+        const root = imageNode("root", "error", { isBatchRoot: true, batchChildIds: ["failed-1", "success", "failed-2"], batchFailedCount: 2, errorDetails: "All failed" });
+        const failed1 = imageNode("failed-1", "error", { batchRootId: root.id, errorDetails: "failed 1" });
         const success = imageNode("success", "success", { batchRootId: root.id, content: "image:success" });
-        const failed2 = imageNode("failed-2", "error", { batchRootId: root.id, errorDetails: "失败 2" });
+        const failed2 = imageNode("failed-2", "error", { batchRootId: root.id, errorDetails: "failed 2" });
 
         const next = markImageBatchRetrying(root.id, [failed1.id, failed2.id], [root, failed1, success, failed2]);
 
@@ -80,15 +80,15 @@ describe("canvas image batch retry", () => {
         expect(next.find((node) => node.id === success.id)?.metadata).toMatchObject({ status: "success", content: "image:success" });
     });
 
-    test("未提交请求的失败子图从预备加载状态恢复原错误", () => {
-        const original = imageNode("failed", "error", { batchRootId: "root", errorDetails: "原始失败" });
+    test("Failed subgraphs that did not submit requests recover from the original error from the pre-loading state", () => {
+        const original = imageNode("failed", "error", { batchRootId: "root", errorDetails: "original failure" });
         const loading = imageNode("failed", "loading", { batchRootId: "root" });
 
-        expect(restoreUnsubmittedImageBatchChild(loading, original).metadata).toMatchObject({ status: "error", errorDetails: "原始失败" });
+        expect(restoreUnsubmittedImageBatchChild(loading, original).metadata).toMatchObject({ status: "error", errorDetails: "original failure" });
         expect(restoreUnsubmittedImageBatchChild(imageNode("failed", "success", { content: "image:success" }), original).metadata?.status).toBe("success");
     });
 
-    test("重新生成时清掉未完成子图，并把已有结果从折叠组里拆出去", () => {
+    test("When regenerating, clear the unfinished subgraphs and remove the existing results from the folded group.", () => {
         const root = imageNode("root", "loading", { isBatchRoot: true, batchChildIds: ["done", "pending"], imageBatchExpanded: false });
         const done = imageNode("done", "success", { batchRootId: root.id, content: "image:done" });
         const pending = imageNode("pending", "loading", { batchRootId: root.id });
@@ -100,7 +100,7 @@ describe("canvas image batch retry", () => {
         expect(retired.connections.map((item) => item.id)).toEqual(["c1"]);
     });
 
-    test("取消生成时删除没有结果的子图并展开剩余批次", () => {
+    test("Remove subplots with no results and expand remaining batches when canceling generation", () => {
         const root = imageNode("root", "loading", { isBatchRoot: true, batchChildIds: ["done", "pending"] });
         const done = imageNode("done", "success", { batchRootId: root.id, content: "image:done" });
         const pending = imageNode("pending", "loading", { batchRootId: root.id });
@@ -111,7 +111,7 @@ describe("canvas image batch retry", () => {
         expect(cancelled.nodes.find((node) => node.id === "done")?.metadata?.batchRootId).toBeUndefined();
     });
 
-    test("主图尚未绑定 assetId 时根节点清除旧的 assetId", () => {
+    test("When the main image has not been bound to the assetId, the root node clears the old assetId.", () => {
         const root = imageNode("root", "success", {
             isBatchRoot: true,
             batchChildIds: ["child-1"],

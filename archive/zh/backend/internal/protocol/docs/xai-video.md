@@ -1,8 +1,8 @@
-# xAI 视频生成
+#xAI video generation
 
-xAI 视频插件创建异步 generation request，再按 request ID 查询。单张参考图发送为 `image`，多张参考图发送为 `reference_images`；时长、画幅和分辨率使用 xAI 风格字段。
+The xAI video plug-in creates an asynchronous generation request and then queries it based on the request ID. A single reference picture is sent as `image`, and multiple reference pictures are sent as `reference_images`; the duration, frame, and resolution use xAI style fields.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,17 +13,17 @@ Authorization: Bearer <XAI_API_KEY>
 Content-Type: application/json
 ```
 
-## 模型与当前支持
+## Models and current support
 
-模型 ID、允许时长、比例、分辨率、参考图数量、审核规则和计费以 xAI 控制台及官方文档为准。当前 adapter 默认 6 秒、`16:9`、`720p`。视频参考、音频参考、音频生成开关和水印均不会发送。
+The model ID, allowed duration, scale, resolution, number of reference images, review rules and billing are subject to the xAI console and official documents. The current adapter defaults to 6 seconds, `16:9`, and `720p`. Video references, audio references, audio generation switches, and watermarks are not sent.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-单图结构：`"image":{"url":"..."}`；多图结构：`"reference_images":[{"url":"..."}]`。URL 或 data URL 是否被具体模型接受，应在调用前验证。
+Single-picture structure: `"image":{"url":"..."}`; multi-picture structure: `"reference_images":[{"url":"..."}]`. Whether the URL or data URL is accepted by the specific model should be verified before calling.
 
-## 请求示例
+## Request example
 
 ```bash
 curl "{channel_base_url}/v1/videos/generations" \
@@ -39,15 +39,15 @@ curl "{channel_base_url}/v1/videos/generations" \
   }'
 ```
 
-## 创建、查询与下载
+## Create, query and download
 
-创建响应需包含 `request_id` 或其他统一解析器支持的任务字段。查询完成后从视频数组或 `video_url/result_url/url` 读取媒体。当前没有 cancel adapter；关闭宿主弹窗不会取消上游生成。结果 URL 应及时转存，不能假定永久有效。
+Create a response that contains the `request_id` or other task field supported by the unified parser. After the query is completed, the media is read from the video array or `video_url/result_url/url`. There is currently no cancel adapter; closing the host popup will not cancel the upstream build. The resulting URL should be transferred promptly and cannot be assumed to be permanently valid.
 
-## 错误处理
+## Error handling
 
-模型权限、无效尺寸、参考素材不可访问、内容审核、速率或余额限制必须作为真实失败展示。若官方响应结构与通用解析器不一致，应补 xAI 专属 parser 和 fixture 测试，而不是继续堆叠模糊字段猜测。
+Model permissions, invalid dimensions, inaccessible reference material, content moderation, rate or balance limits must be displayed as true failures. If the official response structure is inconsistent with the general parser, xAI-specific parser and fixture tests should be supplemented instead of continuing to stack fuzzy field guesses.
 
-## 官方资料
+## Official information
 
 - [xAI Video Generation guide](https://docs.x.ai/docs/guides/video-generation)
 - [xAI API Reference](https://docs.x.ai/docs/api-reference)

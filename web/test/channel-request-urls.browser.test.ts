@@ -11,8 +11,8 @@ const screenshotDir = process.env.CHANNEL_URL_SCREENSHOTS || "";
 // 假的「生成测试」：只有 Chat Completions 能用，其余接口格式返回上游 404。
 const fakeConnectionTest = `export async function testChannelModelConnection(channel, model, capability, protocol) {
     await new Promise((resolve) => setTimeout(resolve, 30));
-    if (protocol === "chat-completion") return "已收到文本响应";
-    throw new Error("上游返回 404：这个地址没有对应的接口");
+    if (protocol === "chat-completion") return "Text response received";
+    throw new Error("Upstream returned 404: There is no corresponding interface for this address");
 }`;
 
 const paths: Record<string, string> = { "chat-completion": "/chat/completions", "openai-response": "/responses" };
@@ -53,7 +53,7 @@ afterAll(async () => { await browser?.close(); server?.stop(true); }, 30000);
 async function open(options: { dark?: boolean; width?: number } = {}): Promise<Page> {
     const page = await browser.newPage({ viewport: { width: options.width || 1024, height: 900 } });
     await page.goto(server.url.toString() + (options.dark ? "?theme=dark" : ""));
-    await page.getByTestId("card").getByText("对话请求地址：", { exact: false }).waitFor();
+    await page.getByTestId("card").getByText("Dialogue request address:", { exact: false }).waitFor();
     return page;
 }
 
@@ -64,13 +64,13 @@ async function shot(page: Page, name: string) {
 test("settings show the addresses the backend will request, for text models only", async () => {
     const page = await open();
     const card = page.getByTestId("card");
-    await card.getByText("模型目录地址：https://gateway.example.com/api/v3/models").waitFor({ state: "visible", timeout: 5000 });
-    await card.getByText("对话请求地址：https://gateway.example.com/api/v3/chat/completions").waitFor({ state: "visible", timeout: 5000 });
+    await card.getByText("Model directory address: https://gateway.example.com/api/v3/models").waitFor({ state: "visible", timeout: 5000 });
+    await card.getByText("Dialogue request address: https://gateway.example.com/api/v3/chat/completions").waitFor({ state: "visible", timeout: 5000 });
     // 图片模型不参与对话地址；只问文本模型用到的接口格式。
     expect(requestBodies.every((body) => !body.protocols.includes("openai-image"))).toBe(true);
 
     const editor = page.getByTestId("editor");
-    await editor.getByText("对话请求地址").waitFor({ state: "visible", timeout: 5000 });
+    await editor.getByText("Conversation request address").waitFor({ state: "visible", timeout: 5000 });
     expect((await editor.textContent())?.replace(/\s/g, "")).toContain("https://gateway.example.com/api/v3/chat/completions");
 
     const models = page.getByTestId("models");
@@ -86,9 +86,9 @@ test("emptying and refilling the model list keeps the settings page rendering", 
     page.on("pageerror", (error) => errors.push(error.message));
     const editable = page.getByTestId("editable");
     await editable.getByText("https://gateway.example.com/api/v3/chat/completions").waitFor({ state: "visible", timeout: 5000 });
-    await editable.getByRole("button", { name: "清空模型" }).click();
-    await editable.getByText("先在上方「模型列表」输入模型名并按回车").waitFor({ state: "visible", timeout: 5000 });
-    await editable.getByRole("button", { name: "加回模型" }).click();
+    await editable.getByRole("button", { name: "Clear model" }).click();
+    await editable.getByText("First enter the model name in the \"Model List\" above and press Enter").waitFor({ state: "visible", timeout: 5000 });
+    await editable.getByRole("button", { name: "Add back model" }).click();
     await editable.getByText("https://gateway.example.com/api/v3/chat/completions").waitFor({ state: "visible", timeout: 5000 });
     expect(errors).toEqual([]);
     await page.close();
@@ -98,22 +98,22 @@ test("protocol detection reports each text format and offers to switch to one th
     for (const options of [{ dark: false, width: 1024 }, { dark: true, width: 1024 }, { dark: false, width: 390 }]) {
         const page = await open(options);
         const models = page.getByTestId("models");
-        await models.getByRole("button", { name: "配置使用" }).first().click();
+        await models.getByRole("button", { name: "Configure using" }).first().click();
         const dialog = page.getByRole("dialog");
-        await dialog.getByText("请求地址：https://gateway.example.com/api/v3/chat/completions").waitFor({ state: "visible", timeout: 5000 });
+        await dialog.getByText("Request address: https://gateway.example.com/api/v3/chat/completions").waitFor({ state: "visible", timeout: 5000 });
         // Ant Design 会在两个汉字的按钮中间留一个空格。
         await dialog.getByRole("button", { name: /^检\s*测$/ }).click();
-        const confirm = page.getByRole("button", { name: "开始检测" });
+        const confirm = page.getByRole("button", { name: "Start testing" });
         await confirm.waitFor({ state: "visible", timeout: 5000 });
         await page.waitForTimeout(400);
         await shot(page, `confirm-${options.dark ? "dark" : "light"}-${options.width}`);
         await confirm.click();
-        const results = dialog.getByRole("list", { name: "接口格式检测结果" });
+        const results = dialog.getByRole("list", { name: "Interface format detection results" });
         await results.waitFor();
-        await results.getByText("能用", { exact: true }).waitFor({ state: "visible", timeout: 5000 });
-        await results.getByText("不能用", { exact: true }).waitFor({ state: "visible", timeout: 5000 });
-        await results.getByText("正在使用").waitFor({ state: "visible", timeout: 5000 });
-        await results.getByText("上游返回 404：这个地址没有对应的接口").waitFor({ state: "visible", timeout: 5000 });
+        await results.getByText("Can be used", { exact: true }).waitFor({ state: "visible", timeout: 5000 });
+        await results.getByText("Cannot be used", { exact: true }).waitFor({ state: "visible", timeout: 5000 });
+        await results.getByText("in use").waitFor({ state: "visible", timeout: 5000 });
+        await results.getByText("The upstream returns 404: There is no corresponding interface for this address.").waitFor({ state: "visible", timeout: 5000 });
         // 结果行里的字不能贴边，也不能撑出弹窗。
         const box = await results.boundingBox();
         const dialogBox = await dialog.boundingBox();

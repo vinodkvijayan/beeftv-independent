@@ -60,7 +60,7 @@ const first = generate("video", "video", "private prompt");
 await tick();
 assert.equal(running, "video");
 assert.equal(loading.size, 0);
-assert.deepEqual(progressEntries().map(({ target, detail, phase }) => ({ target, detail, phase })), [{ target: { projectId: "canvas", nodeId: "video" }, detail: "正在准备参考素材", phase: "preparing" }]);
+assert.deepEqual(progressEntries().map(({ target, detail, phase }) => ({ target, detail, phase })), [{ target: { projectId: "canvas", nodeId: "video" }, detail: "Preparing reference materials", phase: "preparing" }]);
 assert.equal(dispatched, 0);
 const duplicate = generate("video", "video", "private prompt");
 assert(diagnostics.some((e) => e.code === "generation_duplicate_click"));
@@ -75,12 +75,12 @@ await tick();
 assert.equal(dispatched, 0, "late hydration after cancellation must not dispatch");
 assert.equal(errors.length, 0);
 
-hydrate = async () => { throw new Error("角色引用未关联短剧项目，无法解析角色版本"); };
+hydrate = async () => { throw new Error("The character reference is not associated with the short drama project and the character version cannot be parsed."); };
 await generate("video", "video", "private prompt");
 assert.equal(dispatched, 0);
 assert.equal(requests.size, 0);
-assert(errors[0]!.includes("角色引用未关联短剧项目"));
-assert.equal(nodesRef.current[0].metadata.generationPreflightError, "角色引用未关联短剧项目，无法解析角色版本");
+assert(errors[0]!.includes("Character references are not associated with the skit project"));
+assert.equal(nodesRef.current[0].metadata.generationPreflightError, "The character reference is not associated with the short drama project and the character version cannot be parsed.");
 assert.equal(progressEntries().length, 0, "validation failure must clear node progress");
 hydrate = async (context) => context;
 await generate("video", "video", "private prompt");
@@ -109,7 +109,7 @@ try {
 } finally {
     globalThis.setTimeout = realSetTimeout;
 }
-assert(errors.some((text) => text.includes("尚未提交生成任务")));
+assert(errors.some((text) => text.includes("No build tasks have been submitted yet")));
 assert.equal(requests.size, 0);
 assert.equal(loading.size, 0);
 assert.equal(progressEntries().length, 0, "timed-out preparation must clear node progress");
@@ -124,7 +124,7 @@ const failedDiag = diagnostics.find((e) => e.code === "generation_preflight_fail
 assert(failedDiag, "expected generation_preflight_failed event");
 assert(failedDiag.message.includes("model=fixture"), "expected model in diagnostic message");
 assert(failedDiag.message.includes("refs=i:0,v:0,a:0,c:0"), "expected ref counts in diagnostic message");
-assert(failedDiag.message.includes("角色引用未关联短剧项目"), "expected failure reason in diagnostic message");
+assert(failedDiag.message.includes("Character references are not associated with the skit project"), "expected failure reason in diagnostic message");
 assert(diagnostics.some((e) => e.code === "generation_preflight_timeout"));
 assert(diagnostics.some((e) => e.code === "generation_confirmation_cancelled"));
 
@@ -143,7 +143,7 @@ executeVideo = async (input) => {
 const old = generate("video", "video", "first shot");
 while (!firstExecution) await tick();
 assert.equal(running, "video", "generation still owns source");
-firstExecution.bindGenerationTask("result-1", { id: "old-task", type: "canvas_video", status: "running", stage: "正在取回生成结果" });
+firstExecution.bindGenerationTask("result-1", { id: "old-task", type: "canvas_video", status: "running", stage: "Retrieving generated results" });
 assert.equal(running, null, "result download must release source");
 assert.equal(requests.has("video"), false);
 assert.equal(requests.has("result-1"), true, "result still owns download controller");
@@ -152,7 +152,7 @@ hydrate = (context) => { pendingContext = context; return new Promise((resolve) 
 const next = generate("video", "video", "second shot");
 while (progressEntries().length === 0) await tick();
 assert.equal(running, "video", "source can prepare the next shot");
-for (let n = 0; n < 510; n++) firstExecution.bindGenerationTask("result-1", { id: "old-task", type: "canvas_video", status: "running", stage: "正在取回生成结果" });
+for (let n = 0; n < 510; n++) firstExecution.bindGenerationTask("result-1", { id: "old-task", type: "canvas_video", status: "running", stage: "Retrieving generated results" });
 assert.equal(diagnostics.filter((event) => event.code === "generation_submission_bound" && event.taskId === "old-task").length, 1, "progress must not flood binding diagnostics");
 rejectOld(new Error("old download interrupted"));
 await old;
@@ -174,13 +174,13 @@ nodesRef.current = [{
         status: "error",
         taskId: "task-retrievable",
         taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "delivery_pending" },
-        errorDetails: "生成结果已保留，请点击「继续取回」",
+        errorDetails: "The generated results have been retained, please click \"Continue to retrieve\"",
     },
 }];
 hydrate = async () => { throw new Error("blocked node must not hydrate references"); };
 await generate("blocked-video", "video", "blocked prompt");
 assert.equal(requests.size, 0);
-assert.equal(nodesRef.current[0].metadata.generationPreflightError, "生成结果已保留，请点击「继续取回」");
+assert.equal(nodesRef.current[0].metadata.generationPreflightError, "The generated results have been retained, please click \"Continue to retrieve\"");
 
 // Stale confirmedInputs snapshot must still be blocked when the live node in nodesRef transitioned to retrievable.
 const staleNodes = [{ id: "blocked-video", type: "video" as const, title: "v", position: { x: 0, y: 0 }, width: 100, height: 100, metadata: { status: "idle" as const } }];
@@ -190,18 +190,18 @@ nodesRef.current = [{
         status: "error",
         taskId: "task-retrievable-live",
         taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "delivery_pending" },
-        errorDetails: "结果待取回，请勿重复生成",
+        errorDetails: "The results are to be retrieved, please do not generate them again.",
     },
 }];
 await generate("blocked-video", "video", "blocked prompt", {
     confirmedInputs: { nodes: staleNodes, connections: [], config: {} as any, assets: [], skills: [] },
 });
 assert.equal(requests.size, 0);
-assert.equal(nodesRef.current[0].metadata.generationPreflightError, "结果待取回，请勿重复生成");
+assert.equal(nodesRef.current[0].metadata.generationPreflightError, "The results are to be retrieved, please do not generate them again.");
 
 nodesRef.current = [{ id: "concat-video", type: "video", metadata: { status: "success", videoEditOperation: "concat" } }];
 await generate("concat-video", "video", "concat prompt");
-assert.equal(nodesRef.current[0].metadata.generationPreflightError, "合并成片节点不直接重新生成，请重新选择源视频合并");
+assert.equal(nodesRef.current[0].metadata.generationPreflightError, "Merged into slice nodes are not directly regenerated, please re-select the source video to merge.");
 
 console.log("PASS: source release during delivery, isolated result controller, newer request survives old completion");
 console.log("PASS: preflight lifecycle, duplicate lock, abort fencing, validation, closed dialog retry, private diagnostics");

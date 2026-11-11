@@ -17,22 +17,22 @@ function expectQuat(actual: DirectorQuat | null, expected: DirectorQuat) {
     actual!.forEach((value, index) => expect(value).toBeCloseTo(expected[index], 6));
 }
 
-describe("骨骼求值优先级：静置/姿势或动作 -> 静态覆盖 -> 骨骼关键帧", () => {
-    test("只有静置与姿势时不写回旋转，由调用方保留 mixer/静置结果", () => {
+describe("Bone evaluation priority: Still/Pose or Action -> Static Override -> Bone Keyframes", () => {
+    test("When there are only rest and poses, the rotation is not written back, and the mixer/rest result is retained by the caller.", () => {
         expect(resolveDirectorBoneRotation({ rest: quat(0, 0.2, 0), poseDelta: quat(0, 0.1, 0), time: 0 })).toBeNull();
     });
 
-    test("静态覆盖优先于静置与姿势", () => {
+    test("Static overrides take precedence over stills and poses", () => {
         const override = quat(0, 0.7, 0);
         expectQuat(resolveDirectorBoneRotation({ rest: quat(0, 0.2, 0), poseDelta: quat(0, 0.1, 0), override, time: 0 }), override);
     });
 
-    test("骨骼关键帧优先于静态覆盖", () => {
+    test("Bone keyframes take precedence over static overrides", () => {
         const keyed = quat(0, 1.2, 0);
         expectQuat(resolveDirectorBoneRotation({ rest: quat(0, 0.2, 0), override: quat(0, 0.7, 0), keyframes: [boneKey("k0", 0, keyed)], time: 0 }), keyed);
     });
 
-    test("关键帧之间插值，端点精确命中", () => {
+    test("Interpolation between key frames, precise hit of endpoints", () => {
         const start = quat(0, 0, 0);
         const end = quat(0, Math.PI / 2, 0);
         const keyframes = [boneKey("k0", 0, start), boneKey("k1", 2, end)];
@@ -41,31 +41,31 @@ describe("骨骼求值优先级：静置/姿势或动作 -> 静态覆盖 -> 骨�
         expectQuat(resolveDirectorBoneRotation({ rest: quat(0, 0.3, 0), keyframes, time: 1 }), quat(0, Math.PI / 4, 0));
     });
 
-    test("动作片段作为最低层输入，覆盖仍然生效", () => {
+    test("The action clip is used as the lowest layer input, and the override still takes effect.", () => {
         const motion = quat(0, 0.9, 0);
         const override = quat(0, 0.4, 0);
         expectQuat(resolveDirectorBoneRotation({ motion, override, time: 0 }), override);
         expect(resolveDirectorBoneRotation({ motion, time: 0 })).toBeNull();
     });
 
-    test("有动作片段时姿势增量不参与，关键帧依然最高优先", () => {
+    test("When there are action clips, pose increments are not involved, and keyframes still have the highest priority.", () => {
         const keyed = quat(0, 1.1, 0);
         expectQuat(resolveDirectorBoneRotation({ motion: quat(0, 0.9, 0), poseDelta: null, rest: null, keyframes: [boneKey("k0", 0, keyed)], time: 0 }), keyed);
     });
 });
 
-describe("手指骨骼使用同一套规则", () => {
-    test("手指覆盖优先于静置", () => {
+describe("Finger bones use the same set of rules", () => {
+    test("Finger covering takes precedence over sitting", () => {
         const override = quat(0.5, 0, 0);
         expectQuat(resolveDirectorBoneRotation({ rest: quat(0.1, 0, 0), override, time: 0 }), override);
     });
 
-    test("手指关键帧优先于手指覆盖", () => {
+    test("Finger keyframes take precedence over finger overlays", () => {
         const keyed = quat(0.9, 0, 0);
         expectQuat(resolveDirectorBoneRotation({ rest: quat(0.1, 0, 0), override: quat(0.5, 0, 0), keyframes: [boneKey("f0", 0, keyed)], time: 0 }), keyed);
     });
 
-    test("空轨道退回覆盖值，不产生非法旋转", () => {
+    test("Empty tracks return to the coverage value and do not produce illegal rotations.", () => {
         const override = quat(0.2, 0, 0);
         expectQuat(resolveDirectorBoneRotation({ rest: quat(0.1, 0, 0), override, keyframes: [], time: 0 }), override);
     });

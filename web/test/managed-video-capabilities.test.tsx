@@ -43,11 +43,11 @@ test("explicit server zero and false values cannot be repaired from the model na
     expect(modelCapabilityConfigFor(config, config.model).video).toEqual(video);
     const html = renderToStaticMarkup(<VideoSettingsPanel config={config} theme={canvasThemes.dark} onConfigChange={() => {}} />);
     expect(html).toContain('min="1"');
-    expect(html).not.toContain("生成声音");
+    expect(html).not.toContain("generate sound");
     for (const protocol of ["newapi", "volcengine-jimeng-video"] as const) {
         config.channels[0].modelProfiles![0].protocol = protocol;
         const controls = renderToStaticMarkup(<VideoSettingsPanel config={config} theme={canvasThemes.dark} onConfigChange={() => {}} />);
-        expect(controls).toContain("分辨率");
+        expect(controls).toContain("resolution");
         expect(controls).toContain('min="1"');
     }
     expect(modelCompatibilityError(config, config.model, { capability: "video", videoSeconds: "1" })).toBe("");
@@ -70,9 +70,9 @@ test("a missing or invalid directory keeps a previous version but never invents 
     expect(modelCapabilityConfigFor(config, config.model).videoCapabilitiesUnavailable).toBeUndefined();
     expect(modelCompatibilityError(config, config.model, { capability: "video" })).toBe("");
     const html = renderToStaticMarkup(<VideoSettingsPanel config={config} theme={canvasThemes.dark} onConfigChange={() => {}} />);
-    expect(html).toContain("分辨率");
+    expect(html).toContain("resolution");
     const attachments = [{ id: "old-image", type: "image/png", name: "original.png", url: "https://storage.example/original.png" }];
-    const references = [{ id: "old-image", attachmentId: "old-image", label: "原图", kind: "image" as const }];
+    const references = [{ id: "old-image", attachmentId: "old-image", label: "Original picture", kind: "image" as const }];
     const kept = reconcileCreationAttachmentLimit(attachments, references, creationReferenceLimitsFor("video", modelCapabilityConfigFor(config, config.model), { videoReferencesDeclared: false }));
     expect(kept.attachments).toBe(attachments);
     expect(kept.removedReferences).toHaveLength(0);
@@ -108,7 +108,7 @@ test("operation-specific counts preserve attachments and reject an incompatible 
     const images = Array.from({ length: 3 }, (_, i) => ({ id: `ref-${i}`, name: `ref-${i}`, type: "image/png", dataUrl: "", storageKey: `resource:ref-${i}` }));
     const metadata = { videoEditOperation: "image_to_video" };
     expect(modelCompatibilityError(config, config.model, { capability: "video", input: { imageCount: 3, videoCount: 0, audioCount: 0, characterCount: 0, textCount: 1 } })).toBe("");
-    expect(modelCompatibilityError(config, config.model, { capability: "video", videoOperation: "image_to_video", input: { imageCount: 3, videoCount: 0, audioCount: 0, characterCount: 0, textCount: 1 } })).toContain("2 张参考图");
+    expect(modelCompatibilityError(config, config.model, { capability: "video", videoOperation: "image_to_video", input: { imageCount: 3, videoCount: 0, audioCount: 0, characterCount: 0, textCount: 1 } })).toContain("2 reference pictures");
     await expect(prepareBackendGenerationTask({ mode: "video", prompt: "scene", config, referenceImages: images, metadata })).resolves.toMatchObject({ type: "canvas_video" });
     const kept = reconcileCreationAttachmentLimit(images, [], creationReferenceLimitsFor("video", modelCapabilityConfigFor(config, config.model)));
     expect(kept.attachments).toBe(images);
@@ -135,7 +135,7 @@ test("Seedance 2.5 exposes 480P draft preview switch and task payload carries vi
     expect(capability.video?.draft).toEqual({ supported: true, default: false });
     expect(capability.video?.resolutions).toContain("480p");
     const html = renderToStaticMarkup(<VideoSettingsPanel config={config} theme={canvasThemes.dark} onConfigChange={() => {}} />);
-    expect(html).toContain("样片预览 (480P)");
+    expect(html).toContain("Sample preview (480P)");
     const prepared = await prepareBackendGenerationTask({ mode: "video", prompt: "scene", config });
     expect(prepared.input.config?.videoDraft).toBe("true");
     expect(prepared.input.config?.vquality).toBe("480p");

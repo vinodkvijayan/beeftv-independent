@@ -47,7 +47,7 @@ func marshalAssetWithRawBytes(kind, bytesRaw string) (json.RawMessage, error) {
 	}
 	object := map[string]json.RawMessage{
 		"kind":     json.RawMessage(`"` + kind + `"`),
-		"title":    json.RawMessage(`"测试"`),
+		"title":    json.RawMessage(`"test"`),
 		"coverUrl": json.RawMessage(`""`),
 		"tags":     json.RawMessage(`[]`),
 		"data":     dataJSON,

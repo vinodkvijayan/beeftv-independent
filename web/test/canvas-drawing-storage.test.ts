@@ -169,7 +169,7 @@ describe("canvas drawing storage", () => {
                 if (String(config.url).includes("/resources") && String(config.method).toLowerCase() === "post") {
                     return envelope({ resource: { id: "res-preview", status: "ready" } });
                 }
-                return failure(500, "工作区暂时无法保存");
+                return failure(500, "The workspace cannot be saved temporarily");
             }, async () => {
                 await expect(saveCanvasDrawing(
                     "p1",
@@ -187,12 +187,12 @@ describe("canvas drawing storage", () => {
             expect(await previews.get("owner-a:p1:d1")?.text()).toBe("preview-v1");
             expect(await (renders.get("owner-a:p1:d1") as { blob: Blob } | undefined)?.blob.text()).toBe("render-v1");
 
-            const loaded = await withAdapter(async () => failure(500, "读失败"), async () => loadCanvasDrawing("p1", "d1").catch((error) => error));
+            const loaded = await withAdapter(async () => failure(500, "Read failed"), async () => loadCanvasDrawing("p1", "d1").catch((error) => error));
             expect(loaded).toBeInstanceOf(Error);
             expect((loaded as Error).message).toMatch(/读失败/);
 
             const recovered = await withAdapter(async (config) => {
-                if (String(config.method).toLowerCase() === "get" && String(config.url).includes("/drawings/")) return failure(404, "画板不存在");
+                if (String(config.method).toLowerCase() === "get" && String(config.url).includes("/drawings/")) return failure(404, "Artboard does not exist");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => loadCanvasDrawing("p1", "d1"));
             expect(recovered?.origin).toBe("draft");
@@ -320,7 +320,7 @@ describe("canvas drawing storage", () => {
         installStores();
         documents.set("owner-a:p1:d1", { version: 2, engine: "excalidraw", snapshot: snapshotOf("stale"), revision: 9, updatedAt: "2026-10-01T00:00:00.000Z", shapeCount: 1, pageCount: 1 });
         try {
-            await withAdapter(async () => failure(503, "服务暂时不可用，请稍后重试"), async () => {
+            await withAdapter(async () => failure(503, "The service is temporarily unavailable, please try again later"), async () => {
                 await expect(loadCanvasDrawing("p1", "d1")).rejects.toThrow(/服务暂时不可用/);
             });
         } finally {
@@ -336,7 +336,7 @@ describe("canvas drawing storage", () => {
             await withAdapter(async (config) => {
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
                 if (String(config.method).toLowerCase() === "put" && String(config.url).includes("/drawings/")) {
-                    return failure(409, "画板已有更新，已停止覆盖；请保留本地草稿并加载最新版本", "conflict");
+                    return failure(409, "The artboard has been updated and overwriting has stopped; please keep the local draft and load the latest version", "conflict");
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
@@ -361,7 +361,7 @@ describe("canvas drawing storage", () => {
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
                 if (String(config.method).toLowerCase() === "put") {
                     puts.push(1);
-                    return failure(409, "画板已删除，不能重新导入", "failed_precondition");
+                    return failure(409, "The artboard has been deleted and cannot be re-imported", "failed_precondition");
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
@@ -389,7 +389,7 @@ describe("canvas drawing storage", () => {
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
                 if (String(config.method).toLowerCase() === "put") {
                     puts.push(1);
-                    return failure(409, "画板已删除，不能重新导入", "failed_precondition");
+                    return failure(409, "The artboard has been deleted and cannot be re-imported", "failed_precondition");
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
@@ -398,7 +398,7 @@ describe("canvas drawing storage", () => {
             });
 
             const loaded = await withAdapter(async (config) => {
-                if (String(config.method).toLowerCase() === "get") return failure(404, "画板不存在");
+                if (String(config.method).toLowerCase() === "get") return failure(404, "Artboard does not exist");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => loadCanvasDrawing("p1", "d1"));
             expect(loaded?.snapshot).toEqual(snapshotOf("keep"));
@@ -435,7 +435,7 @@ describe("canvas drawing storage", () => {
         const puts: number[] = [];
         try {
             const loaded = await withAdapter(async (config) => {
-                if (String(config.method).toLowerCase() === "get") return failure(404, "画板不存在");
+                if (String(config.method).toLowerCase() === "get") return failure(404, "Artboard does not exist");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => loadCanvasDrawing("p1", "d1"));
             expect(loaded?.canonicalMissing).toBe(true);
@@ -633,7 +633,7 @@ describe("canvas drawing storage", () => {
         try {
             await withAdapter(async (config) => {
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
-                if (String(config.method).toLowerCase() === "put") return failure(500, "工作区暂时无法保存");
+                if (String(config.method).toLowerCase() === "put") return failure(500, "The workspace cannot be saved temporarily");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
                 const first = saveCanvasDrawing("p1", "d1", "excalidraw", snapshotOf("first"), null, new Blob(["blob-a"]), { blob: new Blob(["render-a"]), pageId: "page", width: 8, height: 8, mimeType: "image/png", background: "white" });
@@ -653,7 +653,7 @@ describe("canvas drawing storage", () => {
                 expect(await previews.get("owner-a:p1:d1")?.text()).toBe("blob-b");
 
                 const recovered = await withAdapter(async (config) => {
-                    if (String(config.method).toLowerCase() === "get" && String(config.url).includes("/drawings/")) return failure(404, "画板不存在");
+                    if (String(config.method).toLowerCase() === "get" && String(config.url).includes("/drawings/")) return failure(404, "Artboard does not exist");
                     throw new Error(`unexpected ${config.method} ${config.url}`);
                 }, async () => loadCanvasDrawing("p1", "d1"));
                 expect(recovered?.snapshot).toEqual(snapshotOf("second"));
@@ -737,10 +737,10 @@ describe("canvas drawing storage", () => {
             await withAdapter(async (config) => {
                 methods.push(`${String(config.method).toLowerCase()} ${String(config.url)}`);
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
-                if (String(config.method).toLowerCase() === "put") return failure(500, "工作区暂时无法保存");
+                if (String(config.method).toLowerCase() === "put") return failure(500, "The workspace cannot be saved temporarily");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
-                await expect(createCanvasDrawingFromImage("p1", "d1", "excalidraw", { url: png, name: "来源.png" }))
+                await expect(createCanvasDrawingFromImage("p1", "d1", "excalidraw", { url: png, name: "Source.png" }))
                     .rejects.toThrow(/工作区暂时无法保存/);
             });
             expect(methods.some((item) => item.startsWith("delete "))).toBe(false);
@@ -794,7 +794,7 @@ describe("canvas drawing storage", () => {
         try {
             await withAdapter(async (config) => {
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
-                if (String(config.method).toLowerCase() === "put") return failure(500, "工作区暂时无法保存");
+                if (String(config.method).toLowerCase() === "put") return failure(500, "The workspace cannot be saved temporarily");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
                 await expect(saveCanvasDrawing("p1", "d1", "excalidraw", snapshotOf("keep"), null, new Blob(["keep-preview"]), { blob: new Blob(["keep-render"]), pageId: "page", width: 8, height: 8, mimeType: "image/png", background: "white" }))
@@ -817,7 +817,7 @@ describe("canvas drawing storage", () => {
         try {
             await withAdapter(async (config) => {
                 if (String(config.url).includes("/resources")) return envelope({ resource: { id: "res-1", status: "ready" } });
-                if (String(config.method).toLowerCase() === "put") throw new Error("网络中断");
+                if (String(config.method).toLowerCase() === "put") throw new Error("Network outage");
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
                 await expect(saveCanvasDrawing("p1", "d1", "excalidraw", snapshotOf("keep"), null, new Blob(["keep-preview"]), { blob: new Blob(["keep-render"]), pageId: "page", width: 8, height: 8, mimeType: "image/png", background: "white" }))
@@ -941,7 +941,7 @@ describe("canvas drawing storage", () => {
                 if (String(config.method).toLowerCase() === "put") {
                     const body = requestBody(config) as { drawing: { snapshot: unknown; revision: number } };
                     if (JSON.stringify(body.drawing.snapshot) === JSON.stringify(snapshotOf("drop-2"))) {
-                        return failure(500, "工作区暂时无法保存");
+                        return failure(500, "The workspace cannot be saved temporarily");
                     }
                     return envelope(drawingRecord(body.drawing.snapshot, (body.drawing.revision || 0) + 1));
                 }
@@ -1036,7 +1036,7 @@ describe("canvas drawing storage", () => {
                     throw new Error("legacy load must not PUT");
                 }
                 if (String(config.method).toLowerCase() === "get" && String(config.url).includes("/drawings/")) {
-                    return failure(404, "画板不存在");
+                    return failure(404, "Artboard does not exist");
                 }
                 throw new Error(`unexpected ${config.method} ${config.url}`);
             }, async () => {
@@ -1073,7 +1073,7 @@ describe("canvas drawing storage", () => {
                     if (JSON.stringify(body.drawing.snapshot) === JSON.stringify(snapshotOf("first"))) {
                         enteredFirst.resolve();
                         await releaseFirst.promise;
-                        throw new Error("网络中断");
+                        throw new Error("Network outage");
                     }
                     return envelope(drawingRecord(body.drawing.snapshot, (body.drawing.revision || 0) + 1));
                 }

@@ -39,7 +39,7 @@ func registerAssistantSkillScriptRoutes(
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":   http.StatusForbidden,
 				"reason": "agent_token_cannot_approve",
-				"msg":    "Agent 自身的凭据不能批准脚本运行，请在 BeefTV 界面确认",
+				"msg":    "The Agent's own credentials cannot approve script execution, please confirm on the BeefTV interface.",
 			})
 			return
 		}
@@ -54,7 +54,7 @@ func registerAssistantSkillScriptRoutes(
 			return
 		}
 		if !assistantProposalIDPattern.MatchString(c.Param("proposalId")) {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("脚本运行提议标识无效"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Invalid script run proposal ID"))
 			return
 		}
 		canvasRaw, allowed := requireOwnedCanvas(c, payload.CanvasID)
@@ -101,11 +101,11 @@ func formatSkillScriptContinuationMessage(proposal operations.SkillScriptProposa
 	const maxEventStreamField = 12 * 1024
 	stdout := res.Stdout
 	if len(stdout) > maxEventStreamField {
-		stdout = stdout[:maxEventStreamField] + "\n...[事件摘要截断]"
+		stdout = stdout[:maxEventStreamField] + "...[Event summary truncated]"
 	}
 	stderr := res.Stderr
 	if len(stderr) > maxEventStreamField {
-		stderr = stderr[:maxEventStreamField] + "\n...[事件摘要截断]"
+		stderr = stderr[:maxEventStreamField] + "...[Event summary truncated]"
 	}
 	payload := map[string]any{
 		"proposalId":  proposal.ProposalID,
@@ -126,7 +126,7 @@ func formatSkillScriptContinuationMessage(proposal operations.SkillScriptProposa
 		"outputFiles": res.OutputFiles,
 	}
 	encoded, _ := json.Marshal(payload)
-	return fmt.Sprintf("用户已确认并运行技能脚本 `%s`（状态：%s，退出码：%d）。请根据下面的运行结果继续完成任务：\n<skill_script_result>\n%s\n</skill_script_result>",
+	return fmt.Sprintf("The user has confirmed and ran skill script `%s` (status: %s, exit code: %d). Please continue to complete the task based on the following results:\n<skill_script_result>\n%s\n</skill_script_result>",
 		proposal.ScriptPath, proposal.Status, res.ExitCode, string(encoded))
 }
 
@@ -152,7 +152,7 @@ func wakeHostWithScriptResult(
 		"sessionId":      proposal.SessionID,
 		"requestId":      "script-run-" + proposal.ProposalID,
 		"kind":           "skill_script_completed",
-		"userText":       "已确认运行技能脚本：" + proposal.ScriptPath,
+		"userText":       "Confirmed to run skill script:" + proposal.ScriptPath,
 		"message":        message,
 		"revisionBefore": revBefore,
 	})

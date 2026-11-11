@@ -136,7 +136,7 @@ describe("audio canvas interaction", () => {
         expect(canvasNodeContentSource).not.toContain("<audio");
         expect(canvasNodeContentSource).not.toContain("InactiveAudioPreview");
         expect(canvasNodeContentSource.match(/function AudioNodeContent[\s\S]*?\n}\n/)?.[0] || "").not.toContain("useNodeResourceUrl");
-        expect(canvasAudioPlayerSource).not.toContain("播放结束，点击重新播放");
+        expect(canvasAudioPlayerSource).not.toContain("Playback is over, click to play again");
         expect(canvasAudioPlayerSource).not.toContain("pr-24");
         expect(canvasAudioPlayerSource).toContain("formatAudioTime(snapshot.currentTimeMs)}/{durationMs ? formatAudioTime(durationMs) : \"--:--\"");
     });
@@ -327,7 +327,7 @@ function writeFourcc(bytes: Uint8Array, offset: number, value: string) {
 }
 
 describe("passive video previews", () => {
-    test("素材引用菜单共享可见首帧，点击预览仍可读取视频元数据", () => {
+    test("The first frame is visible when sharing in the material reference menu, and video metadata can still be read by clicking on the preview.", () => {
         expect(canvasMentionSource).toContain("videoPreviewEnabled: visible");
         expect(canvasMentionSource).not.toContain('<video src={reference.mediaUrl}');
         expect(canvasMentionSource).toContain("onloadedmetadata = () => primeVideoPreviewFrame(media)");

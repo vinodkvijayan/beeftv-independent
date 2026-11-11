@@ -31,7 +31,7 @@ func (a *DesktopApp) updater() *desktopupdate.Engine {
 			ctx := a.wailsCtx
 			a.mu.RUnlock()
 			if ctx == nil {
-				return errors.New("应用尚未就绪，无法安装更新")
+				return errors.New("The app is not ready yet and the update cannot be installed")
 			}
 			go func() {
 				time.Sleep(500 * time.Millisecond)
@@ -64,7 +64,7 @@ func (a *DesktopApp) DownloadUpdate() (desktopupdate.UpdateState, error) {
 
 func (a *DesktopApp) InstallUpdate() error {
 	if _, err := a.dialogContext(); err != nil {
-		return errors.New("应用尚未就绪，无法安装更新")
+		return errors.New("The app is not ready yet and the update cannot be installed")
 	}
 	return a.updater().InstallUpdate(context.Background())
 }
@@ -72,7 +72,7 @@ func (a *DesktopApp) InstallUpdate() error {
 func (a *DesktopApp) ConfirmUpdateStartup() error {
 	ctx, err := a.dialogContext()
 	if err != nil || a.runtime() == nil {
-		return errors.New("本地工作区尚未就绪")
+		return errors.New("The local workspace is not ready yet")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

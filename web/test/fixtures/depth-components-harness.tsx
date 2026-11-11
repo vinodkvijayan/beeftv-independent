@@ -14,21 +14,21 @@ const calls = { downloads: 0, pauses: 0, tasks: 0 };
 Object.assign(window, { depthHarness: {
     calls,
     ready: () => { state = { ...state, status: "ready", downloadedBytes: state.downloadBytes }; },
-    fail: () => { state = { ...state, status: "error", error: "下载连接中断，已下载文件保留。请重试。" }; },
+    fail: () => { state = { ...state, status: "error", error: "The download connection is interrupted and the downloaded files are retained. Please try again." }; },
 } });
 window.go = { main: { DesktopApp: {
     RuntimeConfig: async () => ({ baseURL: "http://127.0.0.1:9999/api", launchToken: "fixture" }),
     DepthComponentStatus: async () => ({ ...state }),
     DownloadDepthComponents: async () => { calls.downloads++; state = { ...state, status: "downloading", downloadedBytes: 464 * 1024 ** 2, error: "" }; return { ...state }; },
-    PauseDepthComponentDownload: async () => { calls.pauses++; state = { ...state, status: "paused", error: "下载已暂停，已下载的文件会保留。点击继续下载即可续传。" }; return { ...state }; },
+    PauseDepthComponentDownload: async () => { calls.pauses++; state = { ...state, status: "paused", error: "Download has been paused, downloaded files will be retained. Click Continue Download to resume the download." }; return { ...state }; },
 } } };
 function Harness() {
     const { modal } = App.useApp();
     const [result, setResult] = useState("");
     return <main className="settings-section space-y-4" style={{ padding: 24, maxWidth: 840, margin: "16px auto" }}>
-        <h2>深度捕捉组件</h2>
+        <h2>Depth capture component</h2>
         <DepthComponentsPanel />
-        <Button onClick={async () => { if (await confirmDepthComponents(modal)) { calls.tasks++; setResult("深度任务已创建"); } else setResult("已返回，未创建任务"); }}>使用深度动作捕捉</Button>
+        <Button onClick={async () => { if (await confirmDepthComponents(modal)) { calls.tasks++; setResult("Depth task has been created"); } else setResult("Returned, no task created"); }}>Using deep motion capture</Button>
         <output>{result}</output>
     </main>;
 }

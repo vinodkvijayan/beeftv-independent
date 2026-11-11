@@ -11,7 +11,7 @@ export function createDurableRequestBudget({ limit, file }) {
   const unavailable = () => ({
     allowed: false,
     reason: 'request_budget_storage_unavailable',
-    message: '无法安全保存模型请求总预算，已停止调用。请检查数据目录的可写权限和剩余空间；若计数文件损坏，请恢复有效备份后重启，勿删除文件清零。',
+    message: 'The model request total budget cannot be safely saved and the call has been stopped. Please check the writable permissions and remaining space of the data directory; if the count file is damaged, please restore a valid backup and then restart. Do not delete the file to clear it.',
   });
   if (budget.limit > 0) {
     try {

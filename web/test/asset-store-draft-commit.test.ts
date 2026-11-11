@@ -32,7 +32,7 @@ function switchScope(userId: string) {
     return () => setActiveUserScope(previous);
 }
 
-function textAsset(id: string, title = "文本"): Asset {
+function textAsset(id: string, title = "text"): Asset {
     return {
         id,
         kind: "text",
@@ -41,7 +41,7 @@ function textAsset(id: string, title = "文本"): Asset {
         tags: [],
         category: "other",
         status: "confirmed",
-        source: "手动添加",
+        source: "Add manually",
         data: { content: "hello" },
         createdAt: "2026-10-02T00:00:00.000Z",
         updatedAt: "2026-10-02T00:00:00.000Z",
@@ -104,12 +104,12 @@ describe("asset store draft commit identity", () => {
             desktopBackend();
             useAssetStore.setState({ assets: [textAsset("asset-receipt")] });
             try {
-                useAssetStore.getState().updateAsset("asset-receipt", { title: "保留修改" });
+                useAssetStore.getState().updateAsset("asset-receipt", { title: "Keep changes" });
                 await withAdapter(async () => envelope(receipt), async () => {
-                    await expect(persistWorkspaceAssetChanges()).rejects.toThrow("素材保存回执无效");
+                    await expect(persistWorkspaceAssetChanges()).rejects.toThrow("Invalid material save receipt");
                 });
                 expect(peekAssetStoreDraft("owner-a", "asset-receipt")?.kind).toBe("upsert");
-                expect(useAssetStore.getState().assets[0].title).toBe("保留修改");
+                expect(useAssetStore.getState().assets[0].title).toBe("Keep changes");
             } finally { restore(); }
         });
     }
@@ -118,9 +118,9 @@ describe("asset store draft commit identity", () => {
         const restore = switchScope("owner-a");
         desktopBackend();
         const urls: string[] = [];
-        useAssetStore.setState({ assets: [textAsset("asset-1", "已有")] });
+        useAssetStore.setState({ assets: [textAsset("asset-1", "Already have")] });
         try {
-            useAssetStore.getState().updateAsset("asset-1", { title: "已改" });
+            useAssetStore.getState().updateAsset("asset-1", { title: "changed" });
             await useAssetStore.getState().removeAsset("asset-1");
             await withAdapter(async (config) => {
                 urls.push(requestKey(config));
@@ -145,12 +145,12 @@ describe("asset store draft commit identity", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "第一版",
+                title: "first edition",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "v1" },
             });
             await withAdapter(async (config) => {
@@ -165,13 +165,13 @@ describe("asset store draft commit identity", () => {
             }, async () => {
                 const first = persistWorkspaceAssetChanges();
                 await entered.promise;
-                useAssetStore.getState().updateAsset(id, { title: "第二版" });
+                useAssetStore.getState().updateAsset(id, { title: "second edition" });
                 const second = persistWorkspaceAssetChanges();
                 gate.resolve();
                 await Promise.all([first, second]);
             });
-            expect(titles).toEqual(["第一版", "第二版"]);
-            expect(useAssetStore.getState().assets.find((item) => item.id === id)?.title).toBe("第二版");
+            expect(titles).toEqual(["first edition", "second edition"]);
+            expect(useAssetStore.getState().assets.find((item) => item.id === id)?.title).toBe("second edition");
             expect(peekAssetStoreDraft(getActiveUserScope(), id)).toBeUndefined();
         } finally {
             restore();
@@ -187,12 +187,12 @@ describe("asset store draft commit identity", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "待删",
+                title: "To be deleted",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "x" },
             });
             await withAdapter(async (config) => {
@@ -200,7 +200,7 @@ describe("asset store draft commit identity", () => {
                 if (String(config.method).toLowerCase() === "put") {
                     entered.resolve();
                     await gate.promise;
-                    return envelope({ asset: { id, title: "待删", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
+                    return envelope({ asset: { id, title: "To be deleted", createdAt: "2026-10-02T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" } });
                 }
                 return envelope({ id });
             }, async () => {
@@ -238,12 +238,12 @@ describe("asset store draft commit identity", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "重启前提交意图",
+                title: "Submit intent before restarting",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "keep" },
             });
             const asset = useAssetStore.getState().assets.find((item) => item.id === id);
@@ -276,21 +276,21 @@ describe("asset store draft commit identity", () => {
         const entered = deferred();
         const gate = deferred();
         try {
-            const asset = textAsset("asset-live", "原标题");
+            const asset = textAsset("asset-live", "original title");
             useAssetStore.setState({ assets: [asset] });
-            useAssetStore.getState().updateAsset("asset-live", { title: "提交中" });
+            useAssetStore.getState().updateAsset("asset-live", { title: "Submitting" });
             await withAdapter(async (config) => {
                 entered.resolve();
                 await gate.promise;
-                return envelope({ asset: { id: "asset-live", title: "服务端旧名", category: "other", status: "confirmed", createdAt: asset.createdAt, updatedAt: asset.updatedAt } });
+                return envelope({ asset: { id: "asset-live", title: "Server old name", category: "other", status: "confirmed", createdAt: asset.createdAt, updatedAt: asset.updatedAt } });
             }, async () => {
-                const pending = persistWorkspaceAssetLink({ asset: { ...asset, title: "提交中" } });
+                const pending = persistWorkspaceAssetLink({ asset: { ...asset, title: "Submitting" } });
                 await entered.promise;
-                useAssetStore.getState().updateAsset("asset-live", { title: "本地新名" });
+                useAssetStore.getState().updateAsset("asset-live", { title: "new local name" });
                 gate.resolve();
                 await pending;
             });
-            expect(useAssetStore.getState().assets.find((item) => item.id === "asset-live")?.title).toBe("本地新名");
+            expect(useAssetStore.getState().assets.find((item) => item.id === "asset-live")?.title).toBe("new local name");
         } finally {
             restore();
         }
@@ -326,17 +326,17 @@ describe("asset store draft commit identity", () => {
         try {
             const id = useAssetStore.getState().addAsset({
                 kind: "text",
-                title: "原标题",
+                title: "original title",
                 coverUrl: "",
                 tags: [],
                 category: "other",
                 status: "confirmed",
-                source: "手动添加",
+                source: "Add manually",
                 data: { content: "v1" },
             });
             await cacheRead.promise;
-            useAssetStore.getState().updateAsset(id, { title: "编辑后" });
-            await waitFor(() => [...memory.entries()].some(([key, value]) => isDraftsKey(key) && value.includes("编辑后")), "edited draft snapshot");
+            useAssetStore.getState().updateAsset(id, { title: "After editing" });
+            await waitFor(() => [...memory.entries()].some(([key, value]) => isDraftsKey(key) && value.includes("After editing")), "edited draft snapshot");
 
             cacheGate.resolve();
             await new Promise((resolve) => setTimeout(resolve, 20));
@@ -347,9 +347,9 @@ describe("asset store draft commit identity", () => {
             expect(peekAssetStoreDraft("owner-a", id)).toBeUndefined();
 
             await hydrateAssetStoreDrafts("owner-a");
-            expect(useAssetStore.getState().assets.find((item) => item.id === id)?.title).toBe("编辑后");
+            expect(useAssetStore.getState().assets.find((item) => item.id === id)?.title).toBe("After editing");
             expect(peekAssetStoreDraft("owner-a", id)?.kind).toBe("upsert");
-            expect(peekAssetStoreDraft("owner-a", id)?.asset?.title).toBe("编辑后");
+            expect(peekAssetStoreDraft("owner-a", id)?.asset?.title).toBe("After editing");
 
             await withAdapter(async (config) => {
                 urls.push(requestKey(config));
@@ -360,7 +360,7 @@ describe("asset store draft commit identity", () => {
                 await persistWorkspaceAssetChanges();
             });
             expect(urls).toEqual([`put /assets/${id}`]);
-            expect(titles).toEqual(["编辑后"]);
+            expect(titles).toEqual(["After editing"]);
         } finally {
             cacheGate.resolve();
             getItem.mockRestore();

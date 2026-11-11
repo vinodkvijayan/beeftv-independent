@@ -14,7 +14,7 @@ await hydrateModelConfig();
 function Harness() {
     const [visible, setVisible] = useState(true);
     const assistant = useCanvasAssistant({ canvasId: "production-test" });
-    const [nodes, setNodes] = useState<CanvasNodeData[]>([{ id: "result", type: CanvasNodeType.Image, title: "雨夜街角首帧", position: { x: 0, y: 0 }, width: 100, height: 100,
+    const [nodes, setNodes] = useState<CanvasNodeData[]>([{ id: "result", type: CanvasNodeType.Image, title: "First frame of street corner on a rainy night", position: { x: 0, y: 0 }, width: 100, height: 100,
         metadata: { taskId: "task", taskClientOperationId: "proposal:p1:source", taskStatus: "running", status: "loading" } }]);
     useEffect(() => {
         assistant.markProposalHandled("p1");
@@ -26,7 +26,7 @@ function Harness() {
         } });
     }, []);
     return <App><div style={{ height: "100vh", display: "flex", justifyContent: "flex-end" }}>
-        {visible ? <CanvasAssistantSidebar assistant={assistant} nodes={nodes} canvasTitle="双镜头创作验收（测试数据）" dockable readOnly={false} selectedNodeIds={["original"]} references={[]}
+        {visible ? <CanvasAssistantSidebar assistant={assistant} nodes={nodes} canvasTitle="Dual lens creation acceptance (test data)" dockable readOnly={false} selectedNodeIds={["original"]} references={[]}
             onLocateNodes={() => {}} onRunProposal={() => {}} onOpenModelSettings={() => {}} /> : null}
     </div></App>;
 }

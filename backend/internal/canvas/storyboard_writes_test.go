@@ -64,7 +64,7 @@ func storyboardRowsOf(t *testing.T, svc *Service, canvasID, nodeID string) []map
 			return node.Metadata.Storyboard.Rows
 		}
 	}
-	t.Fatalf("节点不存在: %s", nodeID)
+	t.Fatalf("Node does not exist: %s", nodeID)
 	return nil
 }
 
@@ -76,27 +76,27 @@ func TestAppendUserCanvasStoryboardRowsBuildsCompleteRow(t *testing.T) {
 	svc, canvasID, nodeID, revision := storyboardFixture(t)
 
 	summary, created, err := svc.AppendUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowDraft{{
-		PlotDescription:   strPtr("夜巷，主角回头"),
-		VideoMotionPrompt: strPtr("缓慢推进"),
-		MustHave:          &[]string{"霓虹灯", "雨伞"},
+		PlotDescription:   strPtr("Night alley, the protagonist looks back"),
+		VideoMotionPrompt: strPtr("advance slowly"),
+		MustHave:          &[]string{"neon light", "umbrella"},
 	}}, revision)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if summary.Revision != revision+1 {
-		t.Fatalf("追加后 revision = %d", summary.Revision)
+		t.Fatalf("After appending revision = %d", summary.Revision)
 	}
 	if len(created) != 1 || created[0].ShotNumber != 1 || created[0].ID == "" {
 		t.Fatalf("created = %#v", created)
 	}
 	rows := storyboardRowsOf(t, svc, canvasID, nodeID)
 	if len(rows) != 1 {
-		t.Fatalf("行数 = %d", len(rows))
+		t.Fatalf("Number of rows = %d", len(rows))
 	}
 	row := rows[0]
 	// 覆盖给出的字段。
-	if row["plotDescription"] != "夜巷，主角回头" || row["videoMotionPrompt"] != "缓慢推进" {
-		t.Fatalf("写入字段 = %#v", row)
+	if row["plotDescription"] != "Night alley, the protagonist looks back" || row["videoMotionPrompt"] != "advance slowly" {
+		t.Fatalf("Write field = %#v", row)
 	}
 	if mustHave, ok := row["mustHave"].([]any); !ok || len(mustHave) != 2 {
 		t.Fatalf("mustHave = %#v", row["mustHave"])
@@ -111,22 +111,22 @@ func TestAppendUserCanvasStoryboardRowsBuildsCompleteRow(t *testing.T) {
 	} {
 		got, exists := row[field]
 		if !exists {
-			t.Fatalf("行缺少字段 %s: %#v", field, row)
+			t.Fatalf("Row is missing field %s: %#v", field, row)
 		}
 		if wantList, ok := want.([]any); ok {
 			gotList, ok := got.([]any)
 			if !ok || len(gotList) != len(wantList) {
-				t.Fatalf("字段 %s = %#v", field, got)
+				t.Fatalf("Field %s = %#v", field, got)
 			}
 			continue
 		}
 		if got != want {
-			t.Fatalf("字段 %s = %#v，期望 %#v", field, got, want)
+			t.Fatalf("Field %s = %#v, expect %#v", field, got, want)
 		}
 	}
 	if id, _ := row["id"].(string); id == "" || id == created[0].ID {
 		if id == "" {
-			t.Fatalf("行缺少 id: %#v", row)
+			t.Fatalf("Row is missing id: %#v", row)
 		}
 	}
 }
@@ -145,7 +145,7 @@ func TestAppendUserCanvasStoryboardRowsContinuesShotNumbers(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(created) != 1 || created[0].ShotNumber != 3 {
-		t.Fatalf("第二批 created = %#v（首批 %#v）", created, second)
+		t.Fatalf("The second batch created = %#v (the first batch %#v)", created, second)
 	}
 }
 
@@ -155,7 +155,7 @@ func TestAppendUserCanvasStoryboardRowsRejectsNonScriptNode(t *testing.T) {
 	_, _, err := svc.AppendUserCanvasStoryboardRows("owner", canvasID, "txt", []StoryboardRowDraft{{}}, revision)
 	var appError *kernel.AppError
 	if !errors.As(err, &appError) || appError.Status != http.StatusBadRequest {
-		t.Fatalf("非 script 节点应被拒绝，实际 %v", err)
+		t.Fatalf("Non-script nodes should be rejected, actual %v", err)
 	}
 }
 
@@ -163,8 +163,8 @@ func TestAppendUserCanvasStoryboardRowsRejectsNonScriptNode(t *testing.T) {
 func TestUpdateUserCanvasStoryboardRowsPartialPatch(t *testing.T) {
 	svc, canvasID, nodeID, revision := storyboardFixture(t)
 	summary, created, err := svc.AppendUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowDraft{{
-		VideoMotionPrompt: strPtr("缓慢推进"),
-		Dialogue:          strPtr("旧台词"),
+		VideoMotionPrompt: strPtr("advance slowly"),
+		Dialogue:          strPtr("old lines"),
 	}}, revision)
 	if err != nil {
 		t.Fatal(err)
@@ -172,20 +172,20 @@ func TestUpdateUserCanvasStoryboardRowsPartialPatch(t *testing.T) {
 
 	updated, _, err := svc.UpdateUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowPatch{{
 		RowID:              created[0].ID,
-		StoryboardRowDraft: StoryboardRowDraft{Dialogue: strPtr("新台词")},
+		StoryboardRowDraft: StoryboardRowDraft{Dialogue: strPtr("new lines")},
 	}}, summary.Revision)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if updated.Revision != summary.Revision+1 {
-		t.Fatalf("更新后 revision = %d", updated.Revision)
+		t.Fatalf("After update revision = %d", updated.Revision)
 	}
 	rows := storyboardRowsOf(t, svc, canvasID, nodeID)
-	if rows[0]["dialogue"] != "新台词" {
+	if rows[0]["dialogue"] != "new lines" {
 		t.Fatalf("dialogue = %#v", rows[0]["dialogue"])
 	}
-	if rows[0]["videoMotionPrompt"] != "缓慢推进" {
-		t.Fatalf("未给出的字段被改写: %#v", rows[0])
+	if rows[0]["videoMotionPrompt"] != "advance slowly" {
+		t.Fatalf("Fields not given are overwritten: %#v", rows[0])
 	}
 
 	// 未知行 ID：整批拒绝且不推进 revision。
@@ -195,7 +195,7 @@ func TestUpdateUserCanvasStoryboardRowsPartialPatch(t *testing.T) {
 	}}, updated.Revision)
 	var appError *kernel.AppError
 	if !errors.As(err, &appError) || appError.Status != http.StatusNotFound {
-		t.Fatalf("未知行应整批拒绝，实际 %v", err)
+		t.Fatalf("Unknown rows should be rejected in bulk, actual %v", err)
 	}
 }
 
@@ -204,7 +204,7 @@ func TestUpdateUserCanvasStoryboardRowsPartialPatch(t *testing.T) {
 func TestUpdateUserCanvasStoryboardRowsBindKeepsOneOutputPerKind(t *testing.T) {
 	svc := newCanvasHistoryTestService(t)
 	created, err := svc.UpsertUserCanvasProject("owner", json.RawMessage(`{
-		"id":"canvas-bind","revision":0,"title":"分镜",
+"id":"canvas-bind","revision":0,"title":"storyboard",
 		"nodes":[
 			{"id":"script","type":"script","metadata":{"storyboard":{"rows":[{"id":"r1","shotNumber":1,"imageNodeId":"img-a"},{"id":"r2","shotNumber":2,"imageNodeId":"img-a"}]}}},
 			{"id":"img-a","type":"image"},{"id":"img-b","type":"image"},{"id":"vid","type":"video"},{"id":"txt","type":"text"},
@@ -314,7 +314,7 @@ func TestUpdateUserCanvasStoryboardRowsRejectsEmptyPatch(t *testing.T) {
 	summary, created, _ := svc.AppendUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowDraft{{}}, revision)
 	_, _, err := svc.UpdateUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowPatch{{RowID: created[0].ID}}, summary.Revision)
 	if err == nil {
-		t.Fatal("空 patch 应被拒绝")
+		t.Fatal("Empty patches should be rejected")
 	}
 }
 
@@ -336,15 +336,15 @@ func TestRemoveUserCanvasStoryboardRowsRenumbers(t *testing.T) {
 	}
 	rows := storyboardRowsOf(t, svc, canvasID, nodeID)
 	if len(rows) != 2 {
-		t.Fatalf("行数 = %d", len(rows))
+		t.Fatalf("Number of rows = %d", len(rows))
 	}
 	if rows[0]["shotNumber"] != float64(1) || rows[1]["shotNumber"] != float64(2) {
-		t.Fatalf("镜号未重排: %#v", rows)
+		t.Fatalf("Mirror number is not rearranged: %#v", rows)
 	}
 
 	// 未知行：整批拒绝。
 	if _, _, err := svc.RemoveUserCanvasStoryboardRows("owner", canvasID, nodeID, []string{"shot-missing"}, after.Revision); err == nil {
-		t.Fatal("未知行应整批拒绝")
+		t.Fatal("Unknown rows should be rejected in bulk")
 	}
 }
 
@@ -356,10 +356,10 @@ func TestStoryboardRowsRejectStaleRevision(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, _, err := svc.AppendUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowDraft{{}}, revision); err == nil {
-		t.Fatal("过期 revision 应被拒绝")
+		t.Fatal("Expired revisions should be rejected")
 	}
 	if first.Revision <= revision {
-		t.Fatalf("revision 未推进: %d", first.Revision)
+		t.Fatalf("revision not advanced: %d", first.Revision)
 	}
 }
 
@@ -368,7 +368,7 @@ func TestStoryboardRowsRejectOversizedBatch(t *testing.T) {
 	svc, canvasID, nodeID, revision := storyboardFixture(t)
 	drafts := make([]StoryboardRowDraft, maxStoryboardRowsPerCall+1)
 	if _, _, err := svc.AppendUserCanvasStoryboardRows("owner", canvasID, nodeID, drafts, revision); err == nil {
-		t.Fatal("超上限批次应被拒绝")
+		t.Fatal("Batch exceeding the upper limit should be rejected")
 	}
 }
 
@@ -379,13 +379,13 @@ func TestUpdateUserCanvasStoryboardRowsWithoutSyncedPromptReportsNoAlsoChanged(t
 		t.Fatal(err)
 	}
 	_, update, err := svc.UpdateUserCanvasStoryboardRows("owner", canvasID, nodeID, []StoryboardRowPatch{{
-		RowID: created[0].ID, StoryboardRowDraft: StoryboardRowDraft{Dialogue: strPtr("新台词")},
+		RowID: created[0].ID, StoryboardRowDraft: StoryboardRowDraft{Dialogue: strPtr("new lines")},
 	}}, appended.Revision)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(update.SyncedNodeIDs) != 0 || len(update.AlsoChanged) != 0 {
-		t.Fatalf("没有绑定节点时不应有连带改动: %#v", update)
+		t.Fatalf("There should be no associated changes when there is no bound node: %#v", update)
 	}
 }
 
@@ -410,15 +410,15 @@ func TestUpdateUserCanvasStoryboardRowsAutoSyncsBoundNodeDrafts(t *testing.T) {
 		{
 			RowID: "r1",
 			StoryboardRowDraft: StoryboardRowDraft{
-				ImageGenerationPrompt: strPtr("新首帧1：雨夜特写"),
-				VideoMotionPrompt:     strPtr("新视频1：缓慢拉远"),
+				ImageGenerationPrompt: strPtr("New first frame 1: Close-up of rainy night"),
+				VideoMotionPrompt:     strPtr("New video 1: Slowly zoom out"),
 			},
 		},
 		{
 			RowID: "r2",
 			StoryboardRowDraft: StoryboardRowDraft{
-				ImageGenerationPrompt: strPtr("新首帧2：剧情回退同步"),
-				VideoMotionPrompt:     strPtr("新视频2：推镜"),
+				ImageGenerationPrompt: strPtr("New First Frame 2: Plot Rewind Synchronization"),
+				VideoMotionPrompt:     strPtr("New Video 2: Push Mirror"),
 			},
 		},
 	}, created.Revision)
@@ -429,9 +429,9 @@ func TestUpdateUserCanvasStoryboardRowsAutoSyncsBoundNodeDrafts(t *testing.T) {
 		t.Fatalf("synced/skipped receipt = %#v", update)
 	}
 	wantChanged := []writechange.Node{
-		{NodeID: "img-1", Title: "镜1首帧", Fields: []string{"composerContent"}},
-		{NodeID: "img-2", Title: "镜2首帧", Fields: []string{"composerContent"}},
-		{NodeID: "vid-2", Title: "镜2视频", Fields: []string{"composerContent", "prompt"}},
+		{NodeID: "img-1", Title: "Mirror 1 first frame", Fields: []string{"composerContent"}},
+		{NodeID: "img-2", Title: "Mirror 2 first frame", Fields: []string{"composerContent"}},
+		{NodeID: "vid-2", Title: "mirror 2 video", Fields: []string{"composerContent", "prompt"}},
 	}
 	if !reflect.DeepEqual(update.AlsoChanged, wantChanged) {
 		t.Fatalf("alsoChanged = %#v, want %#v", update.AlsoChanged, wantChanged)
@@ -441,15 +441,15 @@ func TestUpdateUserCanvasStoryboardRowsAutoSyncsBoundNodeDrafts(t *testing.T) {
 		t.Fatal(err)
 	}
 	imgMeta := findCanvasNode(doc, "img-1")["metadata"].(map[string]any)
-	if imgMeta["composerContent"] != "参考资产：@角色1\n新首帧1：雨夜特写" || imgMeta["prompt"] != "已提交首帧1" {
-		t.Fatalf("带参考资产前缀的首帧草稿应保留前缀并保留历史提示词: %#v", imgMeta)
+	if imgMeta["composerContent"] != "Reference asset: @character1\nNew first frame 1: Close-up of rainy night" || imgMeta["prompt"] != "First frame 1 submitted" {
+		t.Fatalf("The first frame draft with the reference asset prefix should retain the prefix and retain the historical prompt word: %#v", imgMeta)
 	}
 	img2Meta := findCanvasNode(doc, "img-2")["metadata"].(map[string]any)
-	if img2Meta["composerContent"] != "新首帧2：剧情回退同步" || img2Meta["prompt"] != "已提交首帧2" {
-		t.Fatalf("plotDescription 回退与仅含 storageKey 的节点应同步草稿并保留历史提示词: %#v", img2Meta)
+	if img2Meta["composerContent"] != "New First Frame 2: Plot Rewind Synchronization" || img2Meta["prompt"] != "First frame 2 submitted" {
+		t.Fatalf("The plotDescription rollback and the node containing only storageKey should synchronize the draft and retain the historical prompt words: %#v", img2Meta)
 	}
 	vidMeta := findCanvasNode(doc, "vid-1")["metadata"].(map[string]any)
-	if vidMeta["composerContent"] != "用户单独手改过的视频草稿" {
-		t.Fatalf("单独手改过的视频草稿不应被覆盖: %#v", vidMeta)
+	if vidMeta["composerContent"] != "A draft video that has been manually modified by the user" {
+		t.Fatalf("Video drafts that have been edited manually should not be overwritten: %#v", vidMeta)
 	}
 }

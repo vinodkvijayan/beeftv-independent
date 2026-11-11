@@ -1,14 +1,14 @@
-# BeefTV 桌面发布
+#BeefTV Desktop Publishing
 
-公开发布还须核对[媒体组件的许可与源码交付](media-source-distribution.md)。流水线会附带许可文件和 macOS ffprobe 源码包；预构建组件的完整源码材料仍需分发者落实，不能把构建成功视为已完成全部许可义务。
+Public distribution is subject to [Licensing and Source Delivery of Media Components](media-source-distribution.md). The pipeline will come with the license file and macOS ffprobe source code package; the complete source code materials of the pre-built components still need to be implemented by the distributor, and a successful build cannot be regarded as completing all license obligations.
 
-生产桌面包使用仓库根目录的 `VERSION` 作为唯一版本源。发布脚本会把版本号、当前 Git 提交和 UTC 构建时间同时注入前端与 Go 后端，并生成不依赖 Vite 开发服务器的 Wails 应用包。
+The production desktop package uses `VERSION` in the repository root directory as the only version source. The release script injects the version number, current Git commit, and UTC build time into both the front-end and Go back-end, and generates a Wails application package that does not rely on the Vite development server.
 
-带自动更新的生产包还要注入更新源地址和 Ed25519 公钥。密钥、草稿发布、签名清单和回滚语义见下方「桌面自动更新」。`v1.5.2` 及以前的安装包不含更新器，不能靠补发清单给已经装好的二进制补上自动更新。
+Production packages with automatic updates also need to inject the update source address and Ed25519 public key. See "Desktop Automatic Updates" below for keys, draft releases, signature lists, and rollback semantics. `v1.5.2` and previous installation packages do not contain an updater, and you cannot rely on the reissue list to automatically update already installed binaries.
 
-本地合同检查仍由 `scripts/verify-beeftv-local-release.sh` 负责。macOS 发布脚本会先跑该门禁；Windows 发布脚本只做本机打包，不重复整套门禁。
+Local contract checking remains the responsibility of `scripts/verify-beeftv-local-release.sh`. The macOS publishing script will run the access control first; the Windows publishing script only does local packaging and does not repeat the entire set of access control.
 
-前端未压缩产物的默认体积上限为 105 MiB，可通过 `BEEFTV_WEB_BUDGET_MIB` 调整。包含 FFmpeg、MediaPipe 和预设资源的主线基线约为 99.24 MiB；自动更新增量约 25 KiB。此上限不是 zip 下载大小。
+The default size limit for front-end uncompressed products is 105 MiB, adjustable via `BEEFTV_WEB_BUDGET_MIB`. Mainline baseline with FFmpeg, MediaPipe, and preset assets is ~99.24 MiB; auto-update increments are ~25 KiB. This limit is not the zip download size.
 
 ## macOS
 
@@ -16,25 +16,25 @@
 ./scripts/build-beeftv-release.sh
 ```
 
-macOS 构建会从固定源码构建并校验原生媒体探测组件，不要求构建机预装 BeefTV。可用 `BEEFTV_FFMPEG_RUNTIME` 提供额外编码器，并用 `BEEFTV_FFMPEG_LICENSE` 指定许可文件（默认查找同目录 `ffmpeg.LICENSE`）；显式指定但缺失或不可执行时构建失败。打包时仍校验编码器目标架构和系统动态库依赖，公开分发须满足上方媒体组件交付要求。
+macOS builds build and verify native media detection components from fixed source and do not require the build machine to have BeefTV pre-installed. Additional encoders can be provided with `BEEFTV_FFMPEG_RUNTIME`, and the license file is specified with `BEEFTV_FFMPEG_LICENSE` (default search is in the same directory as `ffmpeg.LICENSE`); the build fails when explicitly specified but missing or not executable. The encoder target architecture and system dynamic library dependencies are still verified when packaging, and public distribution must meet the above media component delivery requirements.
 
-如果系统没有全局 Go，可通过 `BEEFTV_GO_DIR` 指定本地工具链目录：
+If the system does not have global Go, you can specify the local tool chain directory through `BEEFTV_GO_DIR`:
 
 ```bash
 BEEFTV_GO_DIR=/tmp/beeftv-go.rpIfVN/go ./scripts/build-beeftv-release.sh
 ```
 
-生产自动更新包需要额外环境变量：
+Additional environment variables are required to produce automatic update packages:
 
-| 变量 | 作用 |
+| Variable | Function |
 | --- | --- |
-| `BEEFTV_UPDATER_PUBLIC_KEY` | 注入更新源公钥；缺省则更新器保持关闭 |
-| `BEEFTV_UPDATER_FEED_URL` | 可选，默认官方 `desktop-update-v2.json` 地址（`v2.0.6` 及更早版本使用 `desktop-update.json`） |
-| `BEEFTV_WAILS_PLATFORM` | 可选，例如 `darwin/arm64` 或 `darwin/amd64` |
-| `BEEFTV_SKIP_LOCAL_VERIFY` | 设为 `1` 时跳过本地门禁；发布流水线的校验作业会跑门禁 |
-| `BEEFTV_EXTRA_LDFLAGS` | 追加到 Wails `-ldflags` |
+| `BEEFTV_UPDATER_PUBLIC_KEY` | Inject the update source public key; by default, the updater remains closed |
+| `BEEFTV_UPDATER_FEED_URL` | Optional, default official `desktop-update-v2.json` address (`v2.0.6` and earlier versions use `desktop-update.json`) |
+| `BEEFTV_WAILS_PLATFORM` | Optional, such as `darwin/arm64` or `darwin/amd64` |
+| `BEEFTV_SKIP_LOCAL_VERIFY` | When set to `1`, the local access control is skipped; the verification job of the release pipeline will run the access control |
+| `BEEFTV_EXTRA_LDFLAGS` | Append to Wails `-ldflags` |
 
-产物：
+Products:
 
 ```text
 backend/cmd/desktop/build/bin/BeefTV.app
@@ -42,23 +42,23 @@ backend/cmd/desktop/build/bin/BeefTV.app/Contents/Resources/plugin-packages/*.be
 backend/cmd/desktop/build/bin/BeefTV.app/Contents/Resources/agent-host/bundled-plugins/{beeftv-plugin-market,beeftv-plugin-ll2,beeftv-plugin-ysdui}
 ```
 
-验收重点：
+Key points for acceptance:
 
-- `backend/cmd/desktop/build/bin/BeefTV.app` 存在；
-- Wails 将 `frontend/dist` 编译进应用二进制；应用包内应存在 `Contents/MacOS/BeefTV`，并由构建日志确认完成 `Compiling frontend` 与 `Packaging application`；
-- macOS `Info.plist` 的 `CFBundleShortVersionString` 和 `CFBundleVersion` 与根目录 `VERSION`（去掉 `v` 前缀）一致；
-- `/api/health/live` 与 `/api/system/version` 返回的版本信息来自同一份发布元数据；
-- 发布启动不需要 `127.0.0.1:3000` 的 Vite 开发服务器。
+- `backend/cmd/desktop/build/bin/BeefTV.app` exists;
+- Wails compiles `frontend/dist` into the application binary; `Contents/MacOS/BeefTV` should exist in the application package, and `Compiling frontend` and `Packaging application` are confirmed by the build log;
+- `CFBundleShortVersionString` and `CFBundleVersion` of macOS `Info.plist` are consistent with the root directory `VERSION` (remove the `v` prefix);
+- The version information returned by `/api/health/live` and `/api/system/version` comes from the same release metadata;
+- Release launch of Vite development server that does not require `127.0.0.1:3000`.
 
-## Windows（amd64，必须在 Windows 本机执行）
+## Windows (amd64, must be executed on Windows native machine)
 
-在仓库根目录执行：
+Execute in the warehouse root directory:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-beeftv-windows-release.ps1
 ```
 
-产物：
+Products:
 
 ```text
 backend\cmd\desktop\build\bin\BeefTV.exe
@@ -66,103 +66,103 @@ backend\cmd\desktop\build\bin\plugin-packages\*.beeftv-plugin
 backend\cmd\desktop\build\bin\agent-host\bundled-plugins\{beeftv-plugin-market,beeftv-plugin-ll2,beeftv-plugin-ysdui}
 ```
 
-官方协议插件归档（`*.beeftv-plugin`）必须和 `BeefTV.exe` 放在同一目录下的 `plugin-packages\`（不能在 `plugin-packages\` 下放子目录，否则已发布客户端的应用内更新校验会拒绝）；随包 pi 插件目录（按 `plugin-packages/bundled-plugin-dirs.txt` 清单）统一放在 `agent-host\bundled-plugins\` 下，随 `agent-host` 整树更新。从开始菜单、快捷方式或资源管理器启动时，工作目录不一定是仓库或 exe 所在目录；应用按可执行文件位置查找官方插件与随包插件目录，不依赖当前工作目录。
+The official protocol plug-in archive (`*.beeftv-plugin`) must be placed in `plugin-packages\` in the same directory as `BeefTV.exe` (subdirectories cannot be placed under `plugin-packages\`, otherwise the in-application update verification of the published client will be rejected); the package pi plug-in directory (according to the `plugin-packages/bundled-plugin-dirs.txt` list) is placed under `agent-host\bundled-plugins\`, and the entire tree is updated with `agent-host`. When starting from the start menu, shortcut or resource manager, the working directory is not necessarily the directory where the warehouse or exe is located; the application searches for the official plug-in and packaged plug-in directories based on the location of the executable file, and does not rely on the current working directory.
 
-### 本机前提
+### Native prerequisites
 
-脚本发现缺工具就退出，不会安装全局工具，也不会改用户 PATH。
+The script will exit when it finds that the tool is missing. It will not install global tools or change the user's PATH.
 
-| 前提 | 用途 | 依据 |
+| Premise | Purpose | Basis |
 | --- | --- | --- |
-| Windows 10/11 amd64 | Wails Windows 目标 | [Wails CLI platforms](https://wails.io/docs/reference/cli) |
-| Go 1.25 或更新，且在 PATH（或 `BEEFTV_GO_DIR\bin\go.exe`） | 编译桌面后端；`backend/go.mod` 要求 1.25 | 仓库 `backend/go.mod` |
-| Bun 在 PATH | `wails.json` 的 `bun install --frozen-lockfile` 与 `bun run build:desktop` | 仓库 `backend/cmd/desktop/wails.json` |
-| `CGO_ENABLED` 不能是 `0` | `gorm.io/driver/sqlite` 依赖 `github.com/mattn/go-sqlite3` | [go-sqlite3 README](https://github.com/mattn/go-sqlite3#windows) |
-| PATH 中的 `gcc`/`clang`，或可执行的 `CC` | 编译 go-sqlite3。Go 1.25 起 Windows CGO 需要支持 DWARF 5 的 GCC（binutils 2.37 或更新） | [go-sqlite3 Windows](https://github.com/mattn/go-sqlite3#windows)、[Go Minimum Requirements · cgo](https://go.dev/wiki/MinimumRequirements#cgo) |
-| 已有 `plugin-packages/*.beeftv-plugin`，或能现场打包 | 官方协议包是运行时依赖 | 仓库 `plugin-packages/build-packages.sh` |
-| Microsoft WebView2 Runtime | 运行 Wails 窗口。Windows 11 通常已安装 | [Wails Windows](https://wails.io/docs/guides/windows)、[Wails installation](https://wails.io/docs/gettingstarted/installation) |
+| Windows 10/11 amd64 | Wails Windows target | [Wails CLI platforms](https://wails.io/docs/reference/cli) |
+| Go 1.25 or newer and in PATH (or `BEEFTV_GO_DIR\bin\go.exe`) | Compiling the desktop backend; `backend/go.mod` requires 1.25 | Repository `backend/go.mod` |
+| Bun in PATH | `bun install --frozen-lockfile` and `bun run build:desktop` of `wails.json` | Warehouse `backend/cmd/desktop/wails.json` |
+| `CGO_ENABLED` cannot be `0` | `gorm.io/driver/sqlite` depends on `github.com/mattn/go-sqlite3` | [go-sqlite3 README](https://github.com/mattn/go-sqlite3#windows) |
+| `gcc`/`clang` in PATH, or executable `CC` | Compile go-sqlite3. Go 1.25 onwards Windows CGO requires GCC with DWARF 5 support (binutils 2.37 or newer) | [go-sqlite3 Windows](https://github.com/mattn/go-sqlite3#windows)、[Go Minimum Requirements · cgo](https://go.dev/wiki/MinimumRequirements#cgo) |
+| Already have `plugin-packages/*.beeftv-plugin`, or can be packaged on site | The official protocol package is a runtime dependency | Warehouse `plugin-packages/build-packages.sh` |
+| Microsoft WebView2 Runtime | Run Wails window. Windows 11 is usually installed | [Wails Windows](https://wails.io/docs/guides/windows)、[Wails installation](https://wails.io/docs/gettingstarted/installation) |
 
-现场打包官方插件时的顺序：
+The order when packaging official plug-ins on site:
 
-1. 若已有 `plugin-packages/*.beeftv-plugin`，直接使用；
-2. 否则若本机有 `bash`、`zip` 和 `node`，调用现有 `plugin-packages/build-packages.sh`；
-3. 否则用 Bun 或 Node 运行 `plugin-packages/embed-documentation.mjs`，再用 PowerShell 写出带正斜杠路径的 zip。反斜杠路径会被插件校验拒绝。
+1. If you already have `plugin-packages/*.beeftv-plugin`, use it directly;
+2. Otherwise, if the local machine has `bash`, `zip` and `node`, call the existing `plugin-packages/build-packages.sh`;
+3. Otherwise, use Bun or Node to run `plugin-packages/embed-documentation.mjs`, and then use PowerShell to write the zip with forward slash path. Backslash paths will be rejected by plugin validation.
 
-构建使用与 macOS 相同的 Wails 模块 `github.com/wailsapp/wails/v2/cmd/wails@v2.16.0`，并显式传入 `-platform windows/amd64`、`-webview2 download`。Wails 把生产二进制写到 `build/bin`。缺少 WebView2 时，下载策略会提示安装官方 bootstrapper。
+The build uses the same Wails module `github.com/wailsapp/wails/v2/cmd/wails@v2.16.0` as macOS, and explicitly passes in `-platform windows/amd64`, `-webview2 download`. Wails writes the production binary to `build/bin`. When WebView2 is missing, the download policy prompts to install the official bootstrapper.
 
-本脚本不生成 NSIS 安装包。Wails 的 `-nsis` 需要另装 NSIS，且默认安装脚本是否包含 `plugin-packages\` 未经本仓库验证。当前支持的发布形态是：把 `BeefTV.exe` 和旁边的 `plugin-packages\` 一起分发。
+This script does not generate an NSIS installation package. Wails' `-nsis` requires NSIS to be installed separately, and whether the default installation script contains `plugin-packages\` has not been verified by this repository. The currently supported release form is: distribute `BeefTV.exe` together with `plugin-packages\` next to it.
 
-### NSIS 安装包
+### NSIS installation package
 
-`scripts/package-desktop-installer.py --platform windows-amd64` 调用 `scripts/installers/windows.nsi`，把 `BeefTV.exe`、`plugin-packages\`、`agent-host\`、`cli\`、`media-runtime\` 等载荷打成 `BeefTV-vX.Y.Z-windows-amd64-setup.exe`。
+`scripts/package-desktop-installer.py --platform windows-amd64` calls `scripts/installers/windows.nsi` to type `BeefTV.exe`, `plugin-packages\`, `agent-host\`, `cli\`, `media-runtime\` and other loads into `BeefTV-vX.Y.Z-windows-amd64-setup.exe`.
 
 - 安装位置可选。默认 `%LOCALAPPDATA%\Programs\BeefTV`；覆盖安装默认沿用上一次的安装位置（读取注册表 `InstallLocation`），用户仍可另选。静默安装用 `/D=<目录>` 指定。
 - 无论选择哪个文件夹，安装包都装入其下名为 `BeefTV` 的子目录：选择 `D:\Apps` 会安装到 `D:\Apps\BeefTV`。
 - 安装器以当前用户权限运行（`RequestExecutionLevel user`）。它会拒绝盘符根目录、非空的非 BeefTV 目录（避免覆盖用户数据）以及当前用户无写权限的目录（例如 `Program Files`，需改用其他文件夹），并在目录页给出提示。
 - 卸载只删除随包文件、`agent-host`、`plugin-packages`、`cli`、`media-runtime` 和根目录清单内的文件；未知用户文件保留。安装位置的临时暂存和备份目录与被替换目录同卷，替换完成前不删除旧程序。
 
-在非 Windows 主机交叉编译出来的 exe，不能当作 Windows 验收通过。
+An exe cross-compiled on a non-Windows host cannot be regarded as passing Windows acceptance.
 
-## 启动目录与数据目录
+## Startup directory and data directory
 
-桌面进程默认数据目录来自 Go 的 `os.UserConfigDir()`，再拼 `BeefTV`：
+The default data directory of the desktop process comes from Go's `os.UserConfigDir()`, and then spells it as `BeefTV`:
 
-| 系统 | 默认数据目录 |
+| System | Default Data Directory |
 | --- | --- |
 | Windows | `%AppData%\BeefTV`（Roaming） |
 | macOS | `~/Library/Application Support/BeefTV` |
 
 其中包含 SQLite、本地资源和迁移备份。隔离调试时设置 `CANVAS_DESKTOP_DATA_DIR`，或启动桌面程序时传入 `--data-dir=/绝对路径/独立测试目录`；启动参数优先于环境变量，拒绝相对路径和文件系统根目录。`CANVAS_BACKEND_DATA_DIR` 只作用于 `cmd/server`，不会改桌面数据目录。
 
-官方插件源目录是安装包内的只读输入；启动后会复制到数据目录下的 `plugin-packages\`。源目录找不到时，桌面后端无法完成启动。
+The official plug-in source directory is a read-only input in the installation package; it will be copied to `plugin-packages\` in the data directory after startup. The desktop backend cannot complete startup when the source directory cannot be found.
 
-需要知道的限制：
+Restrictions to know:
 
-- 未签名的 `BeefTV.exe` 可能被 SmartScreen 拦截；本脚本不签名。
-- 构建机没有 C 编译器时，脚本会失败。常见 MSYS2/MinGW 路径若存在但不在 PATH，脚本会指出路径，不会自动加入 PATH。
-- 数据库连接串目前把数据目录与 `/open_ai_canvas.db` 直接拼接。Windows 一般接受正斜杠；数据目录名里如果出现 `?` 或 `#`，可能被当成 DSN 参数。
+- Unsigned `BeefTV.exe` may be intercepted by SmartScreen; this script does not sign it.
+- The script fails when the build machine does not have a C compiler. If a common MSYS2/MinGW path exists but is not in PATH, the script will point out the path and will not automatically add it to PATH.
+- The database connection string currently splices the data directory directly with `/open_ai_canvas.db`. Windows generally accepts forward slashes; if `?` or `#` appears in the data directory name, it may be regarded as a DSN parameter.
 
-发布前先停止 Wails/Vite 开发进程，避免开发输出与生产构建并发写入同一目录。
+Stop the Wails/Vite development process before publishing to avoid concurrent writing of development output to the same directory as the production build.
 
-## 桌面自动更新
+## Desktop automatic update
 
-自动更新只服务于已经装过「带更新器的生产包」的用户。检查、下载、安装都在应用内完成；安装并重启前，正在运行的版本不会被替换。
+Automatic updates only serve users who have installed the "production package with updater". Checking, downloading, and installation are all completed within the application; the running version will not be replaced before installation and restart.
 
-### 现有安装
+### Existing installation
 
-`v1.5.2` 及以前的安装包里没有更新器。给仓库补上更新源或签名清单，不会让这些已经装好的版本自己升级。
+There is no updater in the `v1.5.2` and previous installation packages. Adding update sources or signature lists to the repository will not allow these already installed versions to be upgraded by themselves.
 
-用户需要先手动下载并安装第一个带更新器的版本。之后就可以在应用里检查更新。项目、素材、设置、BeefTV 账号连接和自定义插件会留在原来的数据目录，不会跟着安装包走。
+Users need to manually download and install the first version with an updater first. You can then check for updates in the app. Projects, materials, settings, BeefTV account connections and custom plug-ins will remain in the original data directory and will not follow the installation package.
 
-### 会保留的数据
+### Data that will be retained
 
-更新包只替换应用本身：
+The update package only replaces the application itself:
 
-| 系统 | 被替换 | 不会进更新包、也不会被替换 |
+| System | Replaced | Will not receive update package and will not be replaced |
 | --- | --- | --- |
 | macOS | `BeefTV.app` | `~/Library/Application Support/BeefTV` |
-| Windows | `BeefTV.exe` 和旁边的 `plugin-packages\*.beeftv-plugin` | `%AppData%\BeefTV` |
+| Windows | `BeefTV.exe` and next to `plugin-packages\*.beeftv-plugin` | `%AppData%\BeefTV` |
 
-应用包身份和可执行文件路径保持不变，所以前端 IndexedDB 会继续可用。官方插件随应用包更新；用户自己装的插件如果放在数据目录里，会留下来。
+The application package identity and executable path remain unchanged, so the front-end IndexedDB will continue to be available. Official plug-ins are updated with the application package; plug-ins installed by users will remain if they are placed in the data directory.
 
-程序与数据必须使用独立目录。尤其不要把 Windows zip 解压到 `%AppData%\BeefTV`，也不要将 `CANVAS_DESKTOP_DATA_DIR` 指向 exe 所在目录。更新器会在退出前拒绝这类目录重叠。
+Programs and data must use separate directories. In particular, do not unzip the Windows zip to `%AppData%\BeefTV`, and do not point `CANVAS_DESKTOP_DATA_DIR` to the directory where the exe is located. The updater will reject such directory overlaps before exiting.
 
-更新包禁止带上 `.env`、SQLite 数据库和 `.settings-key`。打包工具遇到用户数据目录会直接拒绝。
+The update package is prohibited from bringing `.env`, SQLite database and `.settings-key`. When the packaging tool encounters the user data directory, it will be directly rejected.
 
-### 更新签名和 Apple 签名
+### Update Signature and Apple Signature
 
-这是两件独立的事。
+These are two separate things.
 
-- **更新签名**：Ed25519 签的是 `desktop-update.json` 里的清单。清单写明每个系统包的下载地址、SHA-256 和大小。应用用编译进去的公钥验签，再核对 zip 哈希。不依赖 Apple 证书，也不走业务云接口。
-- **Apple 签名 / 公证**：决定下载后的 `.app` 能否通过 Gatekeeper 的默认信任检查。现有 macOS 脚本仍使用 ad hoc `codesign --sign -`，没有 Developer ID 身份或 Apple 公证；首次手动安装可能被拦截。更新器本身不依赖 Apple 证书，但要让用户无需手动放行，需要 Developer ID Application 签名及 Apple 公证。首次安装指引见 [快速开始](../QUICKSTART.md#下载与首次打开)。
+- **Update signature**: Ed25519 signed the list in `desktop-update.json`. The manifest states the download address, SHA-256 and size of each system package. The application verifies the signature using the compiled public key and then checks the zip hash. It does not rely on Apple certificates or use business cloud interfaces.
+- **Apple Signature/Notarization**: Determines whether the downloaded `.app` can pass Gatekeeper's default trust check. Existing macOS scripts still use ad hoc `codesign --sign -` without Developer ID status or Apple notarization; first manual installation may be blocked. The updater itself does not rely on Apple certificates, but does require Developer ID Application signature and Apple notarization so that users do not need to manually release it. For first-time installation instructions, see [Quick Start](../QUICKSTART.md#Download and first-time opening).
 
-发布验收必须分别记录安装包哈希、`codesign --verify --deep --strict` 和 `spctl --assess --type execute --verbose=4` 的结果。前两项通过不代表 Gatekeeper 放行；还需在没有历史放行记录的 Mac 上，通过浏览器下载、解压并从 Finder 首次打开验收。GitHub 与 Cloudflare 提供相同字节的包时，不会改变 Apple 对应用签名的判断。
+Release acceptance must record the results of the installation package hash, `codesign --verify --deep --strict` and `spctl --assess --type execute --verbose=4` respectively. Passing the first two items does not mean Gatekeeper release; it also needs to be downloaded, decompressed and opened from Finder for the first time on a Mac without historical release records through a browser for acceptance. When GitHub and Cloudflare provide the same byte package, it does not change Apple's determination of the app signature.
 
-Windows 目前也不做 Authenticode 签名。SmartScreen 可能拦截首次手动安装。
+Windows does not currently do Authenticode signing either. SmartScreen may block first manual installation.
 
-### 密钥
+### Key
 
-在本机生成，不要写进仓库，也不要在终端打印私钥：
+Generate it locally, do not write it into the warehouse, and do not print the private key in the terminal:
 
 ```bash
 cd backend
@@ -171,40 +171,40 @@ go run ./cmd/update-release gen-key \
   --public-key /path/to/beeftv-updater.public
 ```
 
-私钥文件权限是 `0600`，内容是 64 字节 Ed25519 私钥的标准 Base64。公钥是 32 字节公钥的标准 Base64。
+The private key file permissions are `0600` and the content is the standard Base64 of a 64-byte Ed25519 private key. The public key is a standard Base64 32-byte public key.
 
-GitHub 仓库配置：
+GitHub repository configuration:
 
-| 位置 | 名称 | 内容 |
+| Location | Name | Content |
 | --- | --- | --- |
-| Actions secret | `BEEFTV_UPDATER_PRIVATE_KEY` | 私钥文件全文 |
-| Actions variable | `BEEFTV_UPDATER_PUBLIC_KEY` | 公钥文件全文 |
+| Actions secret | `BEEFTV_UPDATER_PRIVATE_KEY` | Full text of private key file |
+| Actions variable | `BEEFTV_UPDATER_PUBLIC_KEY` | Full text of public key file |
 
-发布流水线会用私钥推导公钥，必须和变量一致，否则失败，不会发布未签名更新源。
+The release pipeline will use the private key to derive the public key, which must be consistent with the variable, otherwise it will fail and the unsigned update source will not be released.
 
-本地要打带更新器的包时，导出公钥即可：
+When you want to download a package with an updater locally, just export the public key:
 
 ```bash
 export BEEFTV_UPDATER_PUBLIC_KEY="$(tr -d '[:space:]' < /path/to/beeftv-updater.public)"
 ./scripts/build-beeftv-release.sh
 ```
 
-脚本会把下面两个链接期变量写进二进制：
+The script will write the following two link-time variables into the binary:
 
-- `infinite-canvas/backend/internal/desktopupdate.FeedURL` = `https://updates.beefapi.com/beeftv/desktop-update-v2.json`（`v2.1.0+`；`v2.0.6` 及以前为 `desktop-update.json`）
-- `infinite-canvas/backend/internal/desktopupdate.PublicKey` = 公钥 Base64
+- `infinite-canvas/backend/internal/desktopupdate.FeedURL` = `https://updates.beefapi.com/beeftv/desktop-update-v2.json` (`v2.1.0+`; `v2.0.6` and previously `desktop-update.json`)
+- `infinite-canvas/backend/internal/desktopupdate.PublicKey` = public key Base64
 
-两个都为空时，应用里的更新器保持关闭，但仍显示当前版本。
+When both are empty, the updater in the app remains closed but still displays the current version.
 
-**丢失私钥**：已经发出去的包只认当时编进去的公钥。新密钥签的清单，旧包验不过。换密钥等于重新发一个需要用户手动安装的引导包。不要轮换生产密钥，除非旧私钥已经泄露或确认丢失。
+**Lost private key**: The package that has been sent out only recognizes the public key compiled at that time. The list signed by the new key cannot be verified by the old package. Changing the key is equivalent to re-issuing a boot package that requires manual installation by the user. Do not rotate production keys unless the old private key has been compromised or is confirmed lost.
 
-**泄露私钥**：立刻停用自动更新源（不要再发布用该密钥签的清单），换新密钥，并让用户手动安装新引导包。
+**Leaking the private key**: Immediately disable the automatic update source (do not publish manifests signed with this key again), replace the key with a new one, and let users manually install the new boot package.
 
-### 发布
+### Publish
 
-版本号只来自仓库根目录 `VERSION`，必须是稳定的 `vMAJOR.MINOR.PATCH`。不要用预发布号，也不要按 `main` 的 commit SHA 轮询。
+The version number only comes from the warehouse root directory `VERSION` and must be stable `vMAJOR.MINOR.PATCH`. Do not use the pre-release number, and do not poll by the commit SHA of `main`.
 
-正式文件名固定为：
+The official file name is fixed as:
 
 ```text
 BeefTV-vX.Y.Z-darwin-arm64.zip
@@ -216,15 +216,15 @@ desktop-update.json
 desktop-update-v2.json
 ```
 
-Actions 中的 `desktop-*` 临时安装包保留 7 天，用于发布任务之间传递文件及短期排查。正式 GitHub Release 和 R2 下载文件不受此期限影响。清理历史临时包前，应确认对应发布任务成功，且对应版本的平台安装包和更新清单齐全；未确认发布成功的包和升级验证报告保留。
+The `desktop-*` temporary installation package in Actions is retained for 7 days and is used for file transfer between release tasks and short-term troubleshooting. Official GitHub Release and R2 downloads are not affected by this deadline. Before clearing historical temporary packages, you should confirm that the corresponding release task is successful, and that the platform installation package and update list of the corresponding version are complete; packages and upgrade verification reports that have not been confirmed to be successfully released will be retained.
 
-zip 里的布局：
+Layout in zip:
 
-- macOS：`BeefTV.app/...`，保留可执行权限；内部安全符号链接会被解成普通文件，不会写成 zip 符号链接项。随包插件目录位于 `Contents/Resources/agent-host/bundled-plugins/`。
-- Windows：根目录的 `BeefTV.exe`、`plugin-packages/*.beeftv-plugin`（仅扁平文件）与 `agent-host/`（含 `agent-host/bundled-plugins/` 随包插件目录）。
-- Linux x64：`BeefTV-linux/` 内包含 `BeefTV`、`cli/beeftv`、`agent-host/`（含 `agent-host/bundled-plugins/` 随包插件目录）和 `plugin-packages/`。在 Ubuntu 24.04 原生构建，使用 GTK3 和 WebKitGTK 4.1；安装依赖和启动方法见 [Linux 安装说明](linux-install.md)。更新和回滚替换整个程序目录，用户数据留在配置目录。
+- macOS: `BeefTV.app/...`, retain executable permissions; internal secure symlinks will be decoded into normal files and will not be written as zip symlink items. The included plug-in directory is located at `Contents/Resources/agent-host/bundled-plugins/`.
+- Windows: `BeefTV.exe`, `plugin-packages/*.beeftv-plugin` (flat files only) and `agent-host/` (including `agent-host/bundled-plugins/` packaged plug-in directory) in the root directory.
+- Linux x64: `BeefTV-linux/` includes `BeefTV`, `cli/beeftv`, `agent-host/` (including the plug-in directory included with `agent-host/bundled-plugins/`) and `plugin-packages/`. Built natively on Ubuntu 24.04, using GTK3 and WebKitGTK 4.1; for installation dependencies and startup methods, see [Linux Installation Instructions](linux-install.md). Updates and rollbacks replace the entire program directory, leaving user data in the configuration directory.
 
-新版本更新清单和安装包使用 Cloudflare R2（国内源镜像同步至 CNB `https://cnb.cool/beeftv-downloads/desktop`）：
+The new version update list and installation package use Cloudflare R2 (domestic source mirrors are synchronized to CNB `https://cnb.cool/beeftv-downloads/desktop`):
 
 ```text
 https://updates.beefapi.com/beeftv/desktop-update.json
@@ -233,64 +233,64 @@ https://updates.beefapi.com/beeftv/desktop-update-v2.json
 
 `v2.0.6` 及更早客户端使用 `desktop-update.json`（`schema: 1`，严格解码，只含单 `url`）；`v2.1.0` 起使用 `desktop-update-v2.json`（`schema: 2`，含 `urls: [国内源, R2]` 或 `[R2]`，并可选携带 `deltas[fromVersion]` 增量包）。客户端按系统时区或语言判断：中国大陆优先连接国内源（CNB），其他地区优先 R2；任一源连接失败、超时或持续低速时自动切换另一源并从已下载字节续传，最终以同一份 `sha256` 校验为准。
 
-当 `desktop-update-v2.json` 包含匹配当前运行版本的 `deltas[currentVersion]` 时，`v2.1.0+` 客户端优先下载增量包 `BeefTV-vX.Y.Z-<platform>-from-vA.B.C.delta.zip`：未变化的运行时文件（如 `node`、`ffmpeg`、静态插件）直接从本机安装目录复用并逐文件核验 SHA-256，主程序可执行文件使用内置纯 Go 二进制差分补丁（`BTDELTA1`）还原并核验新版本 SHA-256，把常规升级下载量从 160–280 MB 压缩至数 MB。若本机已安装文件缺失或哈希不符、或增量包下载/校验失败，更新器会自动无缝回退为下载并安装完整平台 `.zip`。
+When `desktop-update-v2.json` contains `deltas[currentVersion]` that matches the current running version, the `v2.1.0+` client gives priority to downloading the incremental package `BeefTV-vX.Y.Z-<platform>-from-vA.B.C.delta.zip`: unchanged runtime files (such as `node`, `ffmpeg`, static plug-ins) are reused directly from the local installation directory and verified SHA-256 file by file. The main program executable file uses the built-in pure Go The binary differential patch (`BTDELTA1`) restores and verifies the new version SHA-256, compressing the regular upgrade download size from 160–280 MB to a few MB. If the installed files on the local machine are missing or have inconsistent hashes, or the incremental package download/verification fails, the updater will automatically and seamlessly fall back to downloading and installing the complete platform `.zip`.
 
-流水线先验证 R2 和遗留 COS 清单入口的条件写能力，再建 draft，四个平台构建任务把包保存为 Actions 产物。收齐后基于上一正式版本的平台 `.zip` 构建并自检四个平台的 `.delta.zip`（若上一正式版本缺少对应 `.zip` 则跳过增量包），生成签名清单，先将版本包（含完整 `.zip` 与 `.delta.zip`）和版本清单写入 R2 不可变路径并从公开地址完整读回校验。之后发布 GitHub Release，按旧 ETag 条件替换 R2 最新清单（同时激活仅含 R2 地址的 `desktop-update-v2.json`），再将已激活的原始签名信封同步到遗留 COS 清单入口。随后 `mirror` 作业触发 CNB 将四个安装包、四个完整更新 ZIP 与（若存在）四个增量 `.delta.zip` 同步到 CNB 并完成匿名 Range 续传与完整 SHA-256 校验，并在 GitHub Actions 侧再次对全部更新 ZIP（含 `.delta.zip`）执行匿名 HTTP 206 续传与完整 SHA-256 校验，校验全部通过后才将包含国内源与 R2 双源地址的 `desktop-update-v2.json` 条件激活到 R2；若镜像作业失败，只需重跑 `mirror-desktop.yml`，不重跑整个发版。失败或缺包不会激活 R2 更新源。COS 同步失败会使发布作业失败，但不会回滚已生效的 R2 清单或删除正式 GitHub Release。
+The pipeline first verifies the conditional writing capabilities of R2 and legacy COS manifest entries, and then builds the draft. The four platform construction tasks save the package as an Actions product. After collecting them all, build and self-check `.delta.zip` of the four platforms based on the last official version of the platform `.zip` (if the previous official version lacks the corresponding `.zip`, skip the incremental package), generate a signature list, first write the version package (including complete `.zip` and `.delta.zip`) and the version list into the R2 immutable path and read it back completely from the public address for verification. Then publish a GitHub Release, replace the latest R2 list according to the old ETag conditions (while activating `desktop-update-v2.json` containing only the R2 address), and then synchronize the activated original signature envelope to the legacy COS list entry. Then the `mirror` job triggers CNB to synchronize four installation packages, four complete update ZIPs and (if existing) four incremental `.delta.zip` to CNB and complete anonymous Range resume transmission and complete SHA-256 verification, and perform anonymous HTTP 206 resume transmission and complete SHA-256 on the GitHub Actions side again for all update ZIPs (including `.delta.zip`). Verification, only after all verifications are passed will the `desktop-update-v2.json` condition containing the domestic source and R2 dual source addresses be activated to R2; if the mirroring job fails, you only need to rerun `mirror-desktop.yml`, and do not need to rerun the entire release. Failure or missing packages will not activate the R2 update source. Failure in COS synchronization will cause the release job to fail, but will not roll back the active R2 manifest or delete the official GitHub Release.
 
-Linux 发布任务会从最终 ZIP 解压执行随包 CLI，并在 Xvfb 中启动桌面程序，确认本地后端和可见窗口。PR 的 `Linux desktop package checks` 提前执行同一构建与启动检查，不发布版本，也不调用付费模型。
+The Linux release task will extract the packaged CLI from the final ZIP and launch the desktop program in Xvfb, confirming the local backend and visible windows. PR's `Linux desktop package checks` performs the same build and launch checks ahead of time, without releasing a version or calling a paid model.
 
-v1.5.6 及以前的更新器仍内置 GitHub 清单地址。如果旧客户端无法连接 GitHub，需要先手动安装新版；远端清单无法改写尚未更新的程序。后续历史客户端内置 `updates.beefapi.com` 或 COS 清单地址，因此迁移必须保留这两类入口，不能只修改新包里的 FeedURL。旧签名信封、版本对象和内含的下载地址保持原样；原有 COS 包仍可读取。迁移前已签名的清单即使放到 R2，也不会自动将其内部 COS 地址改成 R2；通过下一次正常发布的新签名清单切换下载地址，不重建或重签同一版本。
+Updaters v1.5.6 and earlier still have a built-in GitHub manifest address. If the old client cannot connect to GitHub, you need to manually install the new version first; the remote manifest cannot overwrite programs that have not been updated. Subsequent historical clients have built-in `updates.beefapi.com` or COS list addresses, so migration must retain these two types of entries and cannot just modify the FeedURL in the new package. The old signature envelope, version object and contained download address remain intact; the original COS package can still be read. Even if the signed manifest before migration is placed in R2, its internal COS address will not be automatically changed to R2; the download address will be switched through the new signature manifest released normally next time, and the same version will not be rebuilt or re-signed.
 
-### R2 发布配置
+### R2 release configuration
 
-使用原有 `beeftv-releases` 桶及自定义域名 `updates.beefapi.com`，只存放公开发行文件。Actions 使用原有 Secret `BEEFTV_R2_ACCESS_KEY_ID`、`BEEFTV_R2_SECRET_ACCESS_KEY` 和 Variable `BEEFTV_R2_ENDPOINT`，region 为 `auto`。更新签名密钥保持不变。版本对象长期缓存且不可变，最新清单禁止缓存；生产下载不使用限流的 `r2.dev` 开发域名。
+Use the original `beeftv-releases` bucket and custom domain name `updates.beefapi.com` to store only public release documents. Actions uses the original Secret `BEEFTV_R2_ACCESS_KEY_ID`, `BEEFTV_R2_SECRET_ACCESS_KEY` and Variable `BEEFTV_R2_ENDPOINT`, and the region is `auto`. The update signing key remains unchanged. The version object is cached for a long time and is immutable. The latest list prohibits caching; production downloads do not use the current-limited `r2.dev` development domain name.
 
-`scripts/publish-desktop-r2.py` 默认使用 R2。`stage` 执行存储端完整读回及公网完整大小/SHA256 校验；`activate` 仍要求 GitHub 最新正式版本和原始签名信封一致。正式作业在两个步骤之间共享 `--verification-receipt "$RUNNER_TEMP/release-public-verification.json"`，保留两轮完整读取，激活时对有有效回执的包执行条件 Range 检查。回执不上传、不跨作业复用，清单始终完整读取和验签。
+`scripts/publish-desktop-r2.py` uses R2 by default. `stage` performs full readback on the storage side and full size/SHA256 verification on the public network; `activate` still requires the latest official version of GitHub to be consistent with the original signature envelope. The formal job shares `--verification-receipt "$RUNNER_TEMP/release-public-verification.json"` between the two steps, retains two rounds of complete reads, and performs a conditional Range check on packages with valid receipts when activated. Receipts are not uploaded or reused across jobs, and the list is always fully read and verified.
 
-`bridge-cos` 只用于已内置 COS 更新地址的客户端。它固定从 `https://updates.beefapi.com/beeftv` 验证四个平台 ZIP、版本清单、已激活的最新清单及 GitHub 最新正式版本，随后通过下面的 COS 锁和 claim 协议备份、条件更新并完整读回原 COS 最新清单。只写小型清单和备份，不向 COS 复制新安装包；它不接受安装器 staging 或跨存储回执快捷检查。更新源中的包地址继续指向 R2。失败后保留 R2 正式发布状态，按 COS 恢复说明处理遗留锁，不能无条件覆盖旧入口。
+`bridge-cos` is only used for clients with built-in COS update address. It is fixed to verify the four platform ZIP, version list, activated latest list and GitHub latest official version from `https://updates.beefapi.com/beeftv`, and then backup, conditional update and completely read back the original COS latest list through the following COS lock and claim protocol. Only writes small manifests and backups, and does not copy new installation packages to COS; it does not accept installer staging or cross-store receipt shortcut checks. The packet address in the update source continues to point to R2. After failure, the official release status of R2 is retained, and legacy locks are handled according to COS recovery instructions. Old entries cannot be overwritten unconditionally.
 
-切换自定义域名的原 COS 重定向规则前，先核对原 R2 域名绑定、历史文件清单和新增版本的原始文件大小/SHA256；只补齐缺失对象，已有内容不同时停止。保留原重定向规则作为回滚资料。源码合并、R2 文件准备、公开域名切换和下一次桌面发版分别记录验收，不能将合并当成已切换。
+Before switching the original COS redirection rules of the custom domain name, first check the original R2 domain name binding, historical file list, and the original file size/SHA256 of the new version; only the missing objects are filled in, and the existing content is stopped at the same time. Keep the original redirection rules as rollback data. Source code merging, R2 file preparation, public domain name switching and next desktop release are recorded for acceptance respectively, and merging cannot be regarded as switching.
 
-### 遗留 COS 清单入口和人工恢复
+### Legacy COS inventory entry and manual recovery
 
-保留广州公开桶 `beeftv-components-1481187348` 的原 `beeftv/` 文件和 `beeftv/desktop-update.json` 更新入口。这里只为历史客户端同步小型清单；新包由 R2 提供。旧更新域名迁移与官网发布分开验证，不改变更新签名密钥。
+Keep the original `beeftv/` file and `beeftv/desktop-update.json` update entry of Guangzhou public bucket `beeftv-components-1481187348`. Only a small manifest is synced here for historical clients; new packages are provided by R2. The migration of the old updated domain name is verified separately from the official website release, and the update signature key is not changed.
 
-仓库 Actions 需要以下配置：
+Warehouse Actions require the following configuration:
 
-- Secret `BEEFTV_COS_ACCESS_KEY_ID`、`BEEFTV_COS_SECRET_ACCESS_KEY`：仅对发行前缀拥有所需对象读写权限，不使用账户管理员令牌。只允许删除 `beeftv/.publication-probes/` 的测试对象和 `beeftv/.publication-locks/` 的发布锁；发行文件及 `beeftv/.publication-claims/` 不应授予删除权限。锁和 claim 不配置生命周期或自动清理，存储桶版本控制必须保持关闭；开启或暂停版本控制都会使禁止覆盖的保证失效。
-- 遗留入口固定 endpoint `https://cos.ap-guangzhou.myqcloud.com`、region `ap-guangzhou`、bucket `beeftv-components-1481187348`，使用虚拟主机寻址。
-- 原有 `BEEFTV_UPDATER_PRIVATE_KEY` 和 `BEEFTV_UPDATER_PUBLIC_KEY` 保持不变。
+- Secret `BEEFTV_COS_ACCESS_KEY_ID`, `BEEFTV_COS_SECRET_ACCESS_KEY`: Only have required object read and write permissions on the release prefix, without using the account administrator token. Only the test object of `beeftv/.publication-probes/` and the release lock of `beeftv/.publication-locks/` are allowed to be deleted; delete permission should not be granted to release files and `beeftv/.publication-claims/`. Locks and claims are not configured for lifecycle or automatic cleanup, and bucket versioning must remain turned off; turning versioning on or pausing invalidates the guarantee against overwriting.
+- Legacy entrance fixed endpoint `https://cos.ap-guangzhou.myqcloud.com`, region `ap-guangzhou`, bucket `beeftv-components-1481187348`, using virtual host addressing.
+- The original `BEEFTV_UPDATER_PRIVATE_KEY` and `BEEFTV_UPDATER_PUBLIC_KEY` remain unchanged.
 
-`scripts/publish-desktop-r2.py` 保留历史文件名，支持 `--provider cos|r2`，复用 `update-release verify` 验签。COS 使用 Python 标准库和 SigV4 签名的单次 HTTP 请求，原子创建依赖 `x-cos-forbid-overwrite: true`；R2 保留 AWS CLI v2 的原生 `IfMatch`、`IfNoneMatch`。COS 的 S3 兼容接口可能忽略这些 S3 条件头，不能用它们保护 COS 最新清单。每次操作先在目标桶的随机对象上验证原生禁止覆盖及原始字节不变；检测到失效立即停发。
+`scripts/publish-desktop-r2.py` retains the historical file name, supports `--provider cos|r2`, and reuses `update-release verify` for signature verification. COS uses the Python standard library and a single HTTP request signed by SigV4 to atomically create dependency `x-cos-forbid-overwrite: true`; R2 retains the native `IfMatch` and `IfNoneMatch` of AWS CLI v2. COS's S3-compatible interface may ignore these S3 conditional headers and cannot use them to protect COS's latest manifest. Each operation first verifies that native overwriting is prohibited and the original bytes remain unchanged on a random object in the target bucket; if a failure is detected, the issuance is stopped immediately.
 
-COS 发布使用以下对象，公开下载文件与内部发布对象各有固定前缀：
+COS publishing uses the following objects. Public download files and internal publishing objects have fixed prefixes:
 
 - 不可变版本文件：`beeftv/vX.Y.Z/<文件名>`，使用原生禁止覆盖创建，已有内容逐字节核验。
 - 发布锁：`beeftv/.publication-locks/<SHA256(目标key)>.json`，按目标固定命名，包含随机 nonce、GitHub 仓库/run/attempt/job 和创建时间。时间仅供排障，不是自动接管期限。创建回执丢失时只读回同一 nonce，不盲重发创建。
 - ETag 消费记录：`beeftv/.publication-claims/<SHA256(JSON([目标key,预期ETag]))>.json`，原子创建后永久保留，记录预期 ETag、下一份完整字节的大小/SHA256 和持锁者。同一预期 ETag 只能消费一次。首次清单不存在时使用 JSON `null`，不使用随机值或字符串 `"null"`；另一目标使用不同标识。
 - 测试对象及其 claim：`beeftv/.publication-probes/`，与正式 claim 隔离，成功后清理。真云双客户端探针需要显式运行 `python3 scripts/probe-desktop-cos.py --run`，不在普通本地单测中请求云端。
 
-最新清单在持锁期间读取并核对预期 ETag，再原子创建消费记录，最后上传并完整读回核验。消费记录存在即拒写，避免 COS 源站短暂读到旧 ETag 时重复执行同一替换。预期不存在时，目标 PUT 同时带原生禁止覆盖，防止历史清单的短暂 404 在尚无 null claim 时被误当成首次发布；目标已存在返回 409 时拒写并保留 claim。消费记录或目标写入的回执不确定、读回失败时保留锁与已写入的 claim，停止后续发布。解锁前只确认自己的 nonce，DELETE 只发送一次；只有 HTTP 200/204 算释放确认。非成功状态或丢失回执始终报“解锁未确认”，后续 GET 404 不能证明删除成功，也不能据此重删，以免删除下一位持锁者的锁。
+The latest list reads and checks the expected ETag during the lock period, then creates the consumption record atomically, and finally uploads it and reads it back completely for verification. Reject writing when the consumption record exists, preventing the COS origin station from repeatedly performing the same replacement when it briefly reads the old ETag. When the target PUT is not expected to exist, the target PUT also has a native prohibition of overwriting to prevent the short-lived 404 in the history list from being mistaken for the first release when there is no null claim; when the target already exists and returns 409, it refuses to write and retains the claim. The receipt of the consumption record or target write is uncertain. When the readback fails, the lock and the written claim are retained, and subsequent publishing is stopped. Only confirm your own nonce before unlocking, and DELETE is only sent once; only HTTP 200/204 counts as release confirmation. Non-successful status or lost receipt will always report "Unconfirmed Unlock". Subsequent GET 404 cannot prove that the deletion is successful, nor can it be repeated based on this to avoid deleting the lock of the next lock holder.
 
-所有写最新清单的工具、初次迁移和人工操作都必须遵守同一锁及 claim 协议。不能用 COSCMD、通用复制脚本或另一套发布器无条件覆盖最新清单。迁移前确认旧发行作业已结束，发布凭据不得修改桶版本控制或生命周期。
+All tools that write up-to-date manifests, initial migrations, and manual operations must adhere to the same lock and claim protocol. The latest manifest cannot be unconditionally overwritten with COSCMD, a universal replication script, or another set of publishers. Before migrating, confirm that the old release job has ended and release credentials must not modify the bucket versioning or life cycle.
 
 `stage` 只准备版本对象；`activate` 确认 GitHub 最新正式版本及公开清单与本次签名清单一致、全部公开对象可校验后，备份上一份清单，再执行上述条件更新。公网检查使用该版本客户端的请求标识。重复执行已成功的同一版本是幂等的，已有对象内容不同或试图降级会失败。历史 R2 操作必须显式指定 `--provider r2 --region auto --bucket beeftv-releases --endpoint-url <原账户端点> --public-base https://updates.beefapi.com/beeftv`。
 
-`stage` 和 `activate` 的本地回执绑定签名信封、存储配置和 GitHub 仓库/run/attempt/job，不上传为产物，也不跨作业或跨次发布复用。遗留 COS 人工操作必须显式指定 `--provider cos`；桥接命令不借用 R2 的存储回执。
+The local receipts of `stage` and `activate` are bound to the signature envelope, storage configuration and GitHub warehouse/run/attempt/job, and are not uploaded as products, nor reused across jobs or releases. Legacy COS manual operations must explicitly specify `--provider cos`; bridge commands do not borrow R2's storage receipt.
 
-仅 COS 的 `activate` 使用回执快捷检查：先用随机错误 ETag 确认该对象拒绝请求并返回 412，再发送带原强 ETag 的 `If-Match` 和前 1024 字节 Range 请求，核对 206、ETag、Content-Range、大小及该片段哈希。文件变化、缺失、条件请求失效、不支持所需 Range 或返回不同片段都会阻止激活。没有回执或完整校验时缺少强 ETag 的文件仍执行完整校验；存在但不匹配当前发布或作业的回执直接报错。清单始终完整读取、验签和核对，锁及 claim 协议不变；`resume` 不使用回执快捷检查。COS 大包传输从三轮降为两轮，激活仅增加每包 1 KiB 和一次拒绝探测。
+Only COS's `activate` uses a receipt quick check: first use a random error ETag to confirm that the object rejects the request and returns 412, then sends `If-Match` with the original strong ETag and the first 1024 bytes of Range request, check 206, ETag, Content-Range, size and the fragment hash. File changes, missing files, invalid conditional requests, not supporting the required Range, or returning different fragments will prevent activation. When there is no receipt or complete verification, files lacking a strong ETag will still be fully verified; if a receipt exists but does not match the current release or job, an error will be reported directly. The list is always fully read, signed, and checked, and the lock and claim protocols remain unchanged; `resume` does not use receipt quick checks. COS large packet transmission is reduced from three rounds to two rounds, and activation only adds 1 KiB per packet and one rejection probe.
 
-R2 自定义域名的 CF 缓存命中可能忽略 `If-Match`，不能复用上述 HTTP 证明。R2 的 `stage`、`activate` 和 COS 桥接中的 R2 来源检查都完整读取公开文件并核对 SHA256；R2 回执仍验证作业绑定，但不记录或复用包的 HTTP 证明。完整校验不产生 R2 外网下行流量费，存储和请求仍按实际使用计费。R2 存储端的条件 PUT 与公开缓存读取分开验证，最新清单继续使用条件激活和完整读回。
+The CF cache hit of R2 custom domain name may ignore `If-Match`, and the above HTTP certificate cannot be reused. R2's `stage`, `activate`, and R2 origin checks in the COS bridge all fully read the exposed file and check SHA256; R2 receipts still verify the job binding, but do not log or reuse the HTTP attestation of the package. Complete verification does not incur R2 external network downlink traffic charges, and storage and requests are still billed according to actual usage. Conditional PUT on the R2 storage side is verified separately from public cache reads, and the latest manifests continue to use conditional activation and full readback.
 
-#### 遗留锁与未完成 claim 的人工恢复
+#### Manual recovery of legacy locks and unfinished claims
 
-锁不会自动过期，也不能靠删除 claim 重试另一份清单。`resume` 只处理未解锁的同一次故障写入，执行前必须取得以下现场证据：
+The lock does not automatically expire, nor can you delete the claim and try another listing. `resume` only processes the same failed write that has not been unlocked. The following on-site evidence must be obtained before execution:
 
-1. 人工冻结全部最新清单 writer，包括 Actions、初次迁移和人工发布；查明没有后继发布。按原锁的仓库、run、attempt、job 保存 GitHub Actions 状态及原日志，确认整个原 attempt 已终态、进程已停止。
-2. 确认所有在途 COS PUT 已结束。作业终态本身不能证明一次丢回执的远端 PUT 已结束，必要时用 COS 请求日志核查。原发布日志还必须证明**从未发送释放锁的 DELETE**。如果 DELETE 已发送、回执未知、日志不完整或无法确认，禁止使用 `resume`；旧锁 GET 可能是陈旧值，不能代替这些证据。
-3. 从 COS 读取并保存原锁和对应 claim 的完整原始字节，不重新排版 JSON。核对固定目标 `beeftv/desktop-update.json`、原 nonce、claim 的 publisher、预期 ETag 和下一份大小/SHA256，并取回原始签名信封。claim 不存在或其回执未知时，不能根据一次 GET 404 生成另一份 claim；先查清原请求结果。
+1. Manually freeze all latest list writers, including Actions, initial migration and manual release; check that there is no subsequent release. Save the GitHub Actions status and original log according to the original locked warehouse, run, attempt, and job, and confirm that the entire original attempt has terminated and the process has stopped.
+2. Confirm that all COS PUTs in transit have ended. The job final status itself cannot prove that a remote PUT that lost a receipt has ended. If necessary, use the COS request log to check. The original release log must also prove that the DELETE that released the lock was never sent. `resume` is prohibited if the DELETE has been sent, the receipt is unknown, the log is incomplete, or cannot be confirmed; old lock GETs may be stale values ​​and cannot replace these evidences.
+3. Read and save the original lock and the complete original bytes of the corresponding claim from COS without reformatting JSON. Check fixed target `beeftv/desktop-update.json`, original nonce, claim's publisher, expected ETag and next copy size/SHA256, and retrieve the original signed envelope. When the claim does not exist or its receipt is unknown, another claim cannot be generated based on a GET 404; first check the original request result.
 
-在已配置发行 COS 凭据、官方更新公钥 `BEEFTV_UPDATER_PUBLIC_KEY` 和 `gh` 认证的受控环境中，从仓库根目录执行：
+In a controlled environment configured with issuing COS credentials, official update public keys `BEEFTV_UPDATER_PUBLIC_KEY` and `gh` certification, execute from the repository root directory:
 
 ```bash
 go -C backend build -o /tmp/beeftv-update-release ./cmd/update-release
@@ -305,31 +305,31 @@ python3 scripts/publish-desktop-r2.py resume \
   --confirm-writers-frozen --confirm-no-inflight-put --confirm-no-unlock-attempt
 ```
 
-三个确认参数分别表示操作员已取得上述冻结、在途 PUT 结束、从未解锁的证据；不能取得时不执行。入口会自行检查官方 `glanderness/BeefTV` 原 run/attempt 的 GitHub API 状态，重新验签、检查四平台公开文件及 GitHub 最新正式版本的精确清单字节，再逐字节匹配当前锁/claim。它只接受原 claim 大小/SHA256 对应的同一信封，不新建 nonce 或 claim，也不删除 claim。目标已经是这份清单时只核验并释放原锁；目标仍为原 ETag 时才续写同一份清单，首次不存在仍使用原生禁止覆盖。其他状态、不同 nonce/目标/字节一律停发。仅在完整读回匹配后发送一次解锁 DELETE，非 HTTP 200/204 仍报未确认。
+The three confirmation parameters respectively indicate that the operator has obtained the above-mentioned freezing, PUT completion in transit, and never unlocked evidence; if it cannot be obtained, it will not be executed. The portal will self-check the GitHub API status of the official `glanderness/BeefTV` original run/attempt, re-verify and check the public documents of the four platforms and the precise list of bytes of the latest official version of GitHub, and then match the current lock/claim byte by byte. It only accepts the same envelope corresponding to the original claim size/SHA256, and does not create a new nonce or claim, nor delete a claim. When the target is already in this list, only the original lock is verified and released; when the target is still the original ETag, the same list is continued. If it does not exist for the first time, the native prohibition of overwriting is still used. Transmission of other states and different nonces/targets/bytes will be stopped. Only send an unlocking DELETE after a complete readback of the match, non-HTTP 200/204 will still report unconfirmed.
 
-如果原故障来自 `bridge-cos`，使用完全相同的参数和证据，把命令换为 `resume-cos-bridge`。它固定从 R2 核对包、版本清单和已激活的最新清单，随后恢复原 COS claim，并从 COS 完整读回最新清单；不接受安装器 staging 或校验回执。普通 `resume` 仍用于包地址属于 COS 的历史发行。
+If the original fault came from `bridge-cos`, change the command to `resume-cos-bridge` using exactly the same parameters and evidence. It always checks the package, version manifest, and the latest activated manifest from R2, then restores the original COS claim and reads back the latest manifest from COS in its entirety; it does not accept installer staging or verification receipts. The plain `resume` is still used for historical releases where the package address belongs to COS.
 
-已尝试 DELETE 的故障不属于这个恢复入口。先保持全部 writer 冻结，核验最终公开 feed 和原请求日志，再由操作员单独处置遗留锁；不得借恢复重发 PUT 或盲重删。记录恢复证据后才恢复正常发行。
+Failures for which DELETE was attempted do not belong to this recovery entry. First keep all writers frozen, verify the final public feed and the original request log, and then let the operator handle the remaining locks alone; resending PUT or blind deletion by recovery is not allowed. Normal issuance resumes after recording evidence of recovery.
 
-切换公开入口前，要复制并核验所有保留历史版本的包及原始签名信封，逐项记录大小和完整 SHA256，验证匿名下载、Range 续传，以及已安装旧版读取原 feed 后的真实更新。COS 当前源站若未通过条件写自检，允许准备历史副本与兼容读取，但不能激活新的最新清单。
+Before switching to the public entrance, it is necessary to copy and verify all packages and original signature envelopes that retain historical versions, record the size and complete SHA256 item by item, verify anonymous downloads, range resumes, and the actual updates after reading the original feed of the installed old version. If the COS current origin site fails the conditional write self-test, it is allowed to prepare historical copies and read compatible copies, but it cannot activate a new latest list.
 
-如果 GitHub 发布成功而存储激活失败，保留正式版本及所有不可变对象。先核查存储与公开入口；没有遗留锁和未完成 claim 时才用同一版本原始清单重跑原命令（R2 为 `activate`，旧入口为 `bridge-cos`），否则遵守上述恢复条件。不要删除正式 tag 或重建不同内容的同版本包。条件写成功但最终回读失败时，新清单可能已经生效，不能把它当作未发布。已经安装新版本的客户端不自动降级。
+If GitHub publishing succeeds but storage activation fails, the official version and all immutable objects are retained. First check the storage and public entries; only when there are no remaining locks and unfinished claims, rerun the original command with the same version of the original list (R2 is `activate`, the old entry is `bridge-cos`), otherwise the above recovery conditions are followed. Do not remove official tags or rebuild the same version of the package with different content. When the condition is written successfully but the final readback fails, the new list may have taken effect and cannot be treated as unpublished. Clients that have already installed a new version are not automatically downgraded.
 
-在 `glanderness/BeefTV` 的 `main` 上手动运行 `.github/workflows/release-desktop.yml`。输入的 `confirm_version` 必须和 `VERSION` 一致。`CHANGELOG.md` 必须有对应的 `## vX.Y.Z` 段落，这段文字会同时成为 GitHub Release 说明和清单里的 `notes`。
+Manually run `.github/workflows/release-desktop.yml` on `main` on `glanderness/BeefTV`. The input `confirm_version` must be consistent with `VERSION`. `CHANGELOG.md` must have a corresponding `## vX.Y.Z` paragraph, and this text will become `notes` in both the GitHub Release description and the manifest.
 
-工作流会拒绝：
+The workflow will reject:
 
-- 在非 `main`、非官方仓库上发布
-- 缺少密钥或公私钥不匹配
-- 标签或 Release 已经存在（包括 draft）
-- 新版本不高于已经发布的稳定版本
-- 四个平台包还没齐就签名
+- Published on non-`main`, unofficial repository
+- Missing key or mismatch between public and private keys
+- Label or Release already exists (including draft)
+- The new version is no higher than the already released stable version
+- Signed before all four platform packages were collected
 
-Apple 公证不在这条工作流里。macOS 作业沿用现有脚本的 ad hoc 签名。Windows 作业安装 MSYS2 UCRT64 GCC，并核对 binutils ≥ 2.37，以符合 Go 1.25 的 DWARF 5 要求；不要用 Chocolatey mingw 或旧版 TDM-GCC。
+Apple notarization is not included in this workflow. macOS jobs inherit the ad hoc signature of existing scripts. Windows jobs install MSYS2 UCRT64 GCC and check binutils ≥ 2.37 to comply with DWARF 5 requirements of Go 1.25; do not use Chocolatey mingw or older versions of TDM-GCC.
 
-同一版本的资源是不可变的。不要覆盖已发布的 tag、zip 或 `desktop-update.json`。
+Resources of the same version are immutable. Do not overwrite published tags, zips or `desktop-update.json`.
 
-本地打包和签名（用测试密钥，不要用生产私钥做实验）：
+Pack and sign locally (use test key, do not experiment with production private key):
 
 ```bash
 cd backend
@@ -351,22 +351,22 @@ go run ./cmd/update-release sign \
   --output /tmp/desktop-update.json
 ```
 
-### 回滚
+### Rollback
 
-客户端在退出前校验并把更新准备到程序所在磁盘；无写入权限、磁盘空间不足或签名错误时保留当前运行的应用。替换/启动失败会尝试恢复旧程序。程序旁的 `.beeftv-update-*` 目录暂存旧程序和恢复记录；本地后端启动、界面挂载、素材与画布缓存成功加载，且本地工作区与两类资源列表读取成功后，客户端自动清理同一安装位置已成功升级的目录（包括旧版本遗留目录）。失败、回滚、记录不完整或含额外文件的目录继续保留。Windows 升级锁随句柄关闭删除；macOS 保留零字节 `.BeefTV.update.lock`，防止仍使用旧版锁协议的助手并发替换应用，它不存储升级包或旧程序。清理失败不阻塞使用，下次启动重试。已启动的新进程不会自动降级，以免把迁移后的数据库交给旧程序；恢复旧程序时需另行确认数据库兼容或还原匹配的数据备份。
+The client verifies and prepares updates to the disk where the program is located before exiting; the currently running application is retained when there is no write permission, insufficient disk space, or a signature error. Replacement/launch failure attempts to restore the old program. The `.beeftv-update-*` directory next to the program temporarily stores old programs and recovery records; after the local backend is started, the interface is mounted, the material and canvas cache are successfully loaded, and the local workspace and two types of resource lists are read successfully, the client automatically cleans up the directories that have been successfully upgraded in the same installation location (including the legacy directories of the old version). Directories that failed, rolled back, were incompletely logged, or contained extra files are retained. Windows upgrade locks are deleted when the handle is closed; macOS reserves zero bytes `.BeefTV.update.lock` to prevent concurrent replacement of apps by assistants that still use the legacy lock protocol. It does not store upgrade packages or legacy programs. If the cleanup fails, it will not block the use and try again next time. The new process that has been started will not be automatically downgraded to avoid handing over the migrated database to the old program; when restoring the old program, you need to confirm the database compatibility or restore a matching data backup.
 
-已经发布的版本不能收回。已经更新成功的用户，不会因为删除 GitHub Release 而回到旧包。
+Published versions cannot be withdrawn. Users who have successfully updated will not return to the old package due to deletion of GitHub Release.
 
-发现新版本有问题：
+Found a problem with the new version:
 
-1. 不要改写或删除该版本的 zip 和 `desktop-update.json`，可能还有人正在下载。
-2. 在 `CHANGELOG.md` 写清问题，把 `VERSION` 升到更高的稳定号。
-3. 从修复后的 `main` 再跑一次发布工作流。
-4. 已安装更新器的用户检查更新后会拿到更高版本。
+1. Do not rewrite or delete this version of zip and `desktop-update.json`, others may still be downloading it.
+2. Write the problem clearly in `CHANGELOG.md` and upgrade `VERSION` to a higher stable number.
+3. Run the release workflow again from the repaired `main`.
+4. Users who have installed the updater will get a higher version after checking for updates.
 
-如果某个 draft 失败且从未公开：确认没有用户能下到它之后，可以删除该 draft 和对应 tag，再对同一 `VERSION` 重试。已经公开的 tag 不要复用。
+If a draft fails and has never been made public: After confirming that no user can download it, you can delete the draft and the corresponding tag and try again with the same `VERSION`. Do not reuse tags that have been made public.
 
-`/releases/latest` 指向最近一次发布的正式版，按发布时间而不是按最大版本号。只按时间顺序发布递增的稳定版本。
-# 真实生成门禁
+`/releases/latest` points to the latest official version released, based on release time rather than the maximum version number. Only incremental stable releases are released in chronological order.
+# Really generate access control
 
-每次发版先完成发版门禁验收，公开仓库的 `docs/release-evidence/` 目录只保留当前 `VERSION` 对应的单份最小发版回执 `docs/release-evidence/<VERSION>.json`（版本号 `version`、源码指纹 `sourceDigest`、发版门禁是否通过 `passed`、完整内部证据文件的 SHA-256 摘要 `evidenceSha256`）。完整验收明细与授权记录保存在内部证据目录，并在本地生成或复核回执时通过 `node scripts/verify-real-generation-release.mjs --evidence-file <path>` 核验其字节哈希与 `evidenceSha256` 一致；公开仓库的发布工作流在创建 draft 前通过 `node scripts/verify-real-generation-release.mjs` 校验唯一最小回执结构、`passed === true`、`evidenceSha256` 格式及当前发布源码指纹 `sourceDigest` 绑定，不允许只凭单元测试或健康检查发布。
+The release access control acceptance must be completed before each release. The `docs/release-evidence/` directory of the public warehouse only retains the single minimum release receipt `docs/release-evidence/<VERSION>.json` corresponding to the current `VERSION` (version number `version`, source code fingerprint `sourceDigest`, whether the release access control has passed `passed`, and the SHA-256 summary of the complete internal evidence file `evidenceSha256`). The complete acceptance details and authorization records are saved in the internal evidence directory, and when generating or reviewing the receipt locally, the byte hash is verified to be consistent with `evidenceSha256` through `node scripts/verify-real-generation-release.mjs --evidence-file <path>`; the release workflow of the public warehouse uses `node scripts/verify-real-generation-release.mjs` to verify the unique minimum receipt structure, `passed === true`, `evidenceSha256` format and the current release source code fingerprint `sourceDigest` before creating the draft. Bindings do not allow releases based solely on unit tests or health checks.

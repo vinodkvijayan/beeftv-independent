@@ -18,7 +18,7 @@ func requireAssistantSkillPins(db *gorm.DB) error {
 		return err
 	}
 	if !has {
-		return fmt.Errorf("本地助手技能版本范围缺失，请启用自动迁移")
+		return fmt.Errorf("The local assistant skill version range is missing, please enable automatic migration")
 	}
 	return nil
 }

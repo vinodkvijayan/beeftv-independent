@@ -41,8 +41,8 @@ func newDeletionDomain(t *testing.T) (*Service, *gorm.DB, string) {
 
 func TestOccupiedMessageNamesBusinessRecord(t *testing.T) {
 	message := OccupiedMessage([]ResourceUsage{
-		{Kind: "画布", ID: "canvas-1", Title: "广告分镜"},
-		{Kind: "画布", ID: "canvas-1", Title: "广告分镜"},
+		{Kind: "canvas", ID: "canvas-1", Title: "Advertising storyboard"},
+		{Kind: "canvas", ID: "canvas-1", Title: "Advertising storyboard"},
 	})
 	if !strings.Contains(message, "画布「广告分镜」") || !strings.Contains(message, "解除引用") {
 		t.Fatalf("message = %q", message)
@@ -80,8 +80,8 @@ func TestDeleteLocalObjectRemovesOnlyResourceDirectoryFile(t *testing.T) {
 func TestDeleteAssetKeepsLiveCanvasResource(t *testing.T) {
 	svc, db, _ := newDeletionDomain(t)
 	resource := model.Resource{ID: "resource-canvas", UserID: "user-1", Provider: "local", ObjectKey: "users/user-1/image/canvas.png", Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-canvas", UserID: "user-1", Title: "画布素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-canvas"}}`}
-	canvas := model.CanvasProject{ID: "canvas-live", UserID: "user-1", Title: "仍在使用的画布", PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-canvas"}}]}`}
+	asset := model.Asset{ID: "asset-canvas", UserID: "user-1", Title: "Canvas material", PayloadJSON: `{"data":{"storageKey":"resource:resource-canvas"}}`}
+	canvas := model.CanvasProject{ID: "canvas-live", UserID: "user-1", Title: "canvas still in use", PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-canvas"}}]}`}
 	for _, item := range []any{&resource, &asset, &canvas} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -147,7 +147,7 @@ func TestDetachedCleanupKeepsReferencedResource(t *testing.T) {
 		CreatedAt: old, UpdatedAt: old,
 	}
 	asset := model.Asset{
-		ID: "asset-backed", UserID: "user-1", Title: "素材库图片",
+		ID: "asset-backed", UserID: "user-1", Title: "Stock image",
 		PayloadJSON: `{"data":{"storageKey":"resource:resource-backed"}}`, CreatedAt: old, UpdatedAt: old,
 	}
 	for _, item := range []any{&orphan, &backed, &asset} {
@@ -253,8 +253,8 @@ func TestDeleteAssetAndResourcesAbortsWhenLiveCanvasAppears(t *testing.T) {
 		t.Fatal(err)
 	}
 	resource := model.Resource{ID: "resource-live", UserID: "user-1", Provider: "local", ObjectKey: objectKey, Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-live", UserID: "user-1", Title: "素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-live"}}`}
-	canvas := model.CanvasProject{ID: "canvas-live", UserID: "user-1", Title: "画布", PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-live"}}]}`}
+	asset := model.Asset{ID: "asset-live", UserID: "user-1", Title: "Material", PayloadJSON: `{"data":{"storageKey":"resource:resource-live"}}`}
+	canvas := model.CanvasProject{ID: "canvas-live", UserID: "user-1", Title: "canvas", PayloadJSON: `{"nodes":[{"data":{"storageKey":"resource:resource-live"}}]}`}
 	for _, item := range []any{&resource, &asset, &canvas} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -298,7 +298,7 @@ func TestDeleteAssetEnqueuesOutboxWithoutRemovingBytes(t *testing.T) {
 		t.Fatal(err)
 	}
 	resource := model.Resource{ID: "resource-keep", UserID: "user-1", Provider: "local", ObjectKey: objectKey, Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-keep", UserID: "user-1", Title: "可删素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-keep"}}`}
+	asset := model.Asset{ID: "asset-keep", UserID: "user-1", Title: "Deletable material", PayloadJSON: `{"data":{"storageKey":"resource:resource-keep"}}`}
 	for _, item := range []any{&resource, &asset} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -333,7 +333,7 @@ func TestDeleteAssetAndResourcesAbortsWhenQueuedTaskAppearsAfterPreflight(t *tes
 		t.Fatal(err)
 	}
 	resource := model.Resource{ID: "resource-task-race", UserID: "user-1", Provider: "local", ObjectKey: objectKey, Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-task-race", UserID: "user-1", Title: "素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-task-race"}}`}
+	asset := model.Asset{ID: "asset-task-race", UserID: "user-1", Title: "Material", PayloadJSON: `{"data":{"storageKey":"resource:resource-task-race"}}`}
 	for _, item := range []any{&resource, &asset} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -345,12 +345,12 @@ func TestDeleteAssetAndResourcesAbortsWhenQueuedTaskAppearsAfterPreflight(t *tes
 		t.Fatal(err)
 	}
 	for _, document := range snapshot.Documents {
-		if document.Kind == "任务" || document.Kind == "任务日志" || document.Kind == "任务结果" {
+		if document.Kind == "Task" || document.Kind == "Mission log" || document.Kind == "Task results" {
 			t.Fatalf("preflight already saw %s %s", document.Kind, document.ID)
 		}
 	}
 	task := model.Task{
-		ID: "task-queued-after-preflight", UserID: "user-1", Prompt: "排队中的生成",
+		ID: "task-queued-after-preflight", UserID: "user-1", Prompt: "Queued builds",
 		Status: model.TaskStatusQueued, InputJSON: `{"storageKey":"resource:resource-task-race"}`,
 	}
 	if err := db.Create(&task).Error; err != nil {
@@ -397,8 +397,8 @@ func TestDeleteAssetAndResourcesAllowsCompletedTaskOutput(t *testing.T) {
 	}
 	payload := `{"url":"/api/resources/resource-completed/file"}`
 	resource := model.Resource{ID: "resource-completed", UserID: "user-1", Provider: "local", ObjectKey: objectKey, Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-completed", UserID: "user-1", Title: "生成图片", PayloadJSON: payload}
-	task := model.Task{ID: "task-completed", UserID: "user-1", Prompt: "已完成", Status: model.TaskStatusSucceeded, InputJSON: `{}`, ResultJSON: payload}
+	asset := model.Asset{ID: "asset-completed", UserID: "user-1", Title: "Generate pictures", PayloadJSON: payload}
+	task := model.Task{ID: "task-completed", UserID: "user-1", Prompt: "Completed", Status: model.TaskStatusSucceeded, InputJSON: `{}`, ResultJSON: payload}
 	log := model.TaskLog{ID: "log-completed", UserID: "user-1", TaskID: task.ID, Payload: payload}
 	result := model.Result{ID: "result-completed", UserID: "user-1", TaskID: task.ID, URL: "/api/resources/resource-completed/file", Payload: payload}
 	for _, item := range []any{&resource, &asset, &task, &log, &result} {
@@ -457,7 +457,7 @@ func TestDeleteAndAdmissionDoNotDropQueuedTaskMaterial(t *testing.T) {
 		t.Fatal(err)
 	}
 	resource := model.Resource{ID: "resource-admit-race", UserID: "user-1", Provider: "local", ObjectKey: objectKey, Status: model.ResourceStatusReady}
-	asset := model.Asset{ID: "asset-admit-race", UserID: "user-1", Title: "素材", PayloadJSON: `{"data":{"storageKey":"resource:resource-admit-race"}}`}
+	asset := model.Asset{ID: "asset-admit-race", UserID: "user-1", Title: "Material", PayloadJSON: `{"data":{"storageKey":"resource:resource-admit-race"}}`}
 	for _, item := range []any{&resource, &asset} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -469,7 +469,7 @@ func TestDeleteAndAdmissionDoNotDropQueuedTaskMaterial(t *testing.T) {
 		Provider: "local", ObjectKey: objectKey, Status: model.ResourceDeletionStatusPending,
 	}
 	task := model.Task{
-		ID: "task-admit-race", UserID: "user-1", Prompt: "并发准入",
+		ID: "task-admit-race", UserID: "user-1", Prompt: "Concurrent admission",
 		Status: model.TaskStatusQueued, InputJSON: `{"storageKey":"resource:resource-admit-race"}`,
 	}
 	var deleteErr, admitErr error
@@ -563,11 +563,11 @@ func TestDeletionWorkerRetriesFailedPhysicalDelete(t *testing.T) {
 func TestDeleteUserAssetWithResourcesHonorsArchivedExpectation(t *testing.T) {
 	svc, db, _ := newDeletionDomain(t)
 	archived := model.Asset{
-		ID: "asset-archived", UserID: "user-1", Title: "回收站",
+		ID: "asset-archived", UserID: "user-1", Title: "recycle bin",
 		Status: model.AssetVersionStatusArchived, PayloadJSON: `{"title":"回收站"}`,
 	}
 	restored := model.Asset{
-		ID: "asset-restored", UserID: "user-1", Title: "已恢复",
+		ID: "asset-restored", UserID: "user-1", Title: "Restored",
 		Status: model.AssetVersionStatusArchived, PayloadJSON: `{"title":"已恢复"}`,
 	}
 	for _, item := range []any{&archived, &restored} {
@@ -607,7 +607,7 @@ func TestDeleteUserAssetWithResourcesHonorsArchivedExpectation(t *testing.T) {
 func TestDeleteAssetAndResourcesRejectsRestoredStatusInSameTransaction(t *testing.T) {
 	_, db, _ := newDeletionDomain(t)
 	asset := model.Asset{
-		ID: "asset-tx-restored", UserID: "user-1", Title: "事务恢复",
+		ID: "asset-tx-restored", UserID: "user-1", Title: "transaction recovery",
 		Status: model.AssetVersionStatusArchived, PayloadJSON: `{"title":"事务恢复"}`,
 	}
 	if err := db.Create(&asset).Error; err != nil {
@@ -641,7 +641,7 @@ func TestDeleteAssetAndResourcesConcurrentRestoreKeepsActiveAsset(t *testing.T) 
 		t.Fatal(err)
 	}
 	asset := model.Asset{
-		ID: "asset-restore-race", UserID: "user-1", Title: "并发恢复",
+		ID: "asset-restore-race", UserID: "user-1", Title: "Concurrent recovery",
 		Status: model.AssetVersionStatusArchived, PayloadJSON: `{"title":"并发恢复"}`,
 	}
 	if err := db.Create(&asset).Error; err != nil {

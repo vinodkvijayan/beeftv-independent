@@ -33,10 +33,10 @@ func TestE2EGenerationRedirectKeepsAuthOnlyForExactOrigin(t *testing.T) {
 		}
 		got := request.Header.Get("Authorization")
 		if tc.wantAuth && got != "Bearer secret" {
-			t.Fatalf("%s 应保留 Authorization，实际 %q", tc.url, got)
+			t.Fatalf("%s should retain Authorization, actual %q", tc.url, got)
 		}
 		if !tc.wantAuth && got != "" {
-			t.Fatalf("%s 不应携带 Authorization，实际 %q", tc.url, got)
+			t.Fatalf("%s should not carry Authorization, but actually %q", tc.url, got)
 		}
 	}
 }
@@ -73,12 +73,12 @@ func TestE2EGenerationRedirectDropsAuthAndStillDownloads(t *testing.T) {
 	first, redirected := upstreamAuth, cdnAuth
 	mu.Unlock()
 	if first != "Bearer real-secret-key" {
-		t.Fatalf("上游基址没有收到真实密钥: %q", first)
+		t.Fatalf("The upstream base address did not receive the real key: %q", first)
 	}
 	if redirected != "" {
-		t.Fatalf("跨域重定向仍携带 Authorization: %q", redirected)
+		t.Fatalf("Cross-domain redirection still carries Authorization: %q", redirected)
 	}
 	if response.StatusCode != http.StatusOK || !strings.Contains(string(body), "cdn-ok") {
-		t.Fatalf("重定向后的下载未成功: %d %q", response.StatusCode, body)
+		t.Fatalf("Unsuccessful download after redirection: %d %q", response.StatusCode, body)
 	}
 }

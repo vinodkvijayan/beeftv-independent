@@ -490,7 +490,7 @@ func TestDisconnectRemoveFailureSucceedsWithWarning(t *testing.T) {
 	if integration["connected"] != false || integration["needsRetry"] != false {
 		t.Fatalf("integration = %+v", integration)
 	}
-	if warning != "BeefTV 已停止接受 Claude Code 的访问。Claude Code 里的 BeefTV 连接没能自动移除，可以在它的 MCP 设置里手动删除。" {
+	if warning != "BeefTV has stopped accepting visits from Claude Code. The BeefTV connection in Claude Code is not automatically removed and can be manually deleted in its MCP settings." {
 		t.Fatalf("warning = %q", warning)
 	}
 	if len(registry.List()) != 0 {

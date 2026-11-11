@@ -40,12 +40,12 @@ func registerSkillRoutes(r *gin.RouterGroup, owners workspaceOwners, skillsDomai
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, skills.SkillPackageUploadMaxBytes)
 		file, err := c.FormFile("file")
 		if err != nil {
-			failService(c, kernel.BadAuthRequest("请选择 Markdown 或 ZIP 技能文件"))
+			failService(c, kernel.BadAuthRequest("Please select Markdown or ZIP skills file"))
 			return
 		}
 		isPrivate, err := parseOptionalBool(c.PostForm("isPrivate"))
 		if err != nil {
-			failService(c, kernel.BadAuthRequest("isPrivate 必须是布尔值"))
+			failService(c, kernel.BadAuthRequest("isPrivate must be a Boolean value"))
 			return
 		}
 		sourceType := strings.ToLower(strings.TrimSpace(c.PostForm("sourceType")))
@@ -77,7 +77,7 @@ func registerSkillRoutes(r *gin.RouterGroup, owners workspaceOwners, skillsDomai
 			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32<<10)
 			var req skills.SkillGitHubInstallRequest
 			if err := c.ShouldBindJSON(&req); err != nil {
-				failService(c, kernel.BadAuthRequest("GitHub 技能数据格式无效"))
+				failService(c, kernel.BadAuthRequest("GitHub skill data format is invalid"))
 				return
 			}
 			skill, err := skillsDomain.InstallGitHubSkill(user.ID, req)
@@ -238,7 +238,7 @@ func registerSkillRoutes(r *gin.RouterGroup, owners workspaceOwners, skillsDomai
 		}
 		var req skills.SkillMutationRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			failService(c, kernel.BadAuthRequest("技能数据格式无效"))
+			failService(c, kernel.BadAuthRequest("Invalid skill data format"))
 			return
 		}
 		skill, err := skillsDomain.CreateSkill(user.ID, req)
@@ -257,7 +257,7 @@ func registerSkillRoutes(r *gin.RouterGroup, owners workspaceOwners, skillsDomai
 		}
 		var req skills.SkillMutationRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			failService(c, kernel.BadAuthRequest("技能数据格式无效"))
+			failService(c, kernel.BadAuthRequest("Invalid skill data format"))
 			return
 		}
 		skill, err := skillsDomain.UpdateSkill(user.ID, c.Param("id"), req)

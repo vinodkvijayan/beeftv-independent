@@ -22,7 +22,7 @@ import (
 // resource repository, so no second SQLite writer is opened inside the receipt.
 func (s *operationSession) ExportCanvasProjectArchive(ctx context.Context, userID, operationID string, document json.RawMessage) (*model.Resource, error) {
 	if s.tx == nil {
-		return nil, operations.PreconditionFailed("export_transaction_required", "工程导出需要业务事务", nil)
+		return nil, operations.PreconditionFailed("export_transaction_required", "Project export requires business transactions", nil)
 	}
 	if ctx == nil {
 		ctx = context.Background()
@@ -61,19 +61,19 @@ func (s *operationSession) ExportCanvasProjectArchive(ctx context.Context, userI
 		return nil, err
 	}
 	if info.Size() <= 0 || info.Size() > megabytes(policy.Resource.GeneratedFileMB) {
-		return nil, BadAuthRequest(fmt.Sprintf("工程包不能超过 %dMB", policy.Resource.GeneratedFileMB))
+		return nil, BadAuthRequest(fmt.Sprintf("The project package cannot exceed %dMB", policy.Resource.GeneratedFileMB))
 	}
 	stored, err := s.repo.UserStoredFileBytes(userID)
 	if err != nil {
 		return nil, err
 	}
 	if stored+info.Size() >= gigabytes(policy.Resource.StoredFileGB) {
-		return nil, QuotaExceeded("工程包超过工作区存储额度")
+		return nil, QuotaExceeded("The project package exceeds the workspace storage quota")
 	}
 	day := time.Now().UTC().Format("2006-01-02")
 	if err = s.repo.ReserveIdentifiedDailyUpload(userID, day, key, info.Size(), megabytes(policy.Resource.DailyUploadMB)); err != nil {
 		if errors.Is(err, repository.ErrDailyUploadLimitExceeded) {
-			return nil, QuotaExceeded("工程包超过今日保存额度")
+			return nil, QuotaExceeded("The project package exceeds today’s saving quota")
 		}
 		return nil, err
 	}

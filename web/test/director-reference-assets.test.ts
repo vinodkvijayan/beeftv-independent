@@ -8,11 +8,11 @@ function image(id: string, title: string): CanvasNodeData {
     return { ...createCanvasNode(CanvasNodeType.Image, { x: 0, y: 0 }), id, title, metadata: { content: `/assets/${id}.png` } };
 }
 
-describe("导演台参考图片接入画布资源图", () => {
-    test("只连接有效图片、去重，并把图片 id 合并到导演节点引用", () => {
-        const target = { ...createCanvasNode(CanvasNodeType.Video, { x: 0, y: 0 }, { workflowKind: "shot", composerContent: "夜晚的街道" }), id: "director", metadata: { workflowKind: "shot", composerContent: "夜晚的街道", referenceAssetNodeIds: ["old-image"] } } as CanvasNodeData;
-        const first = image("image-1", "参考图 1");
-        const second = image("image-2", "参考图 2");
+describe("The director's desk reference picture is connected to the canvas resource picture", () => {
+    test("Only connect valid images, remove duplicates, and merge image IDs into director node references.", () => {
+        const target = { ...createCanvasNode(CanvasNodeType.Video, { x: 0, y: 0 }, { workflowKind: "shot", composerContent: "street at night" }), id: "director", metadata: { workflowKind: "shot", composerContent: "street at night", referenceAssetNodeIds: ["old-image"] } } as CanvasNodeData;
+        const first = image("image-1", "Reference Figure 1");
+        const second = image("image-2", "Reference Figure 2");
         const nonImage = { ...first, id: "video-1", type: CanvasNodeType.Video };
 
         const result = connectDirectorReferenceNodes([target, first, second, nonImage], [], ["image-1", "image-1", "image-2", "video-1"], "director", () => "edge");
@@ -20,12 +20,12 @@ describe("导演台参考图片接入画布资源图", () => {
         expect(result.connections.map(({ fromNodeId, toNodeId }) => [fromNodeId, toNodeId])).toEqual([["image-1", "director"], ["image-2", "director"]]);
         expect(result.linkedSourceIds).toEqual(["image-1", "image-2"]);
         expect(result.nodes[0].metadata?.referenceAssetNodeIds).toEqual(["old-image", "image-1", "image-2"]);
-        expect(result.nodes[0].metadata?.composerContent).toBe("夜晚的街道");
+        expect(result.nodes[0].metadata?.composerContent).toBe("street at night");
     });
 
-    test("重复操作不重复建边，非导演节点和缺失资源不改变数据", () => {
+    test("Repeated operations do not create edges again, and non-director nodes and missing resources do not change data.", () => {
         const target = { ...createCanvasNode(CanvasNodeType.Video, { x: 0, y: 0 }, { workflowKind: "shot" }), id: "director" };
-        const source = image("image-1", "参考图");
+        const source = image("image-1", "Reference picture");
         const edge = { id: "existing", fromNodeId: source.id, toNodeId: target.id };
         const input = [target, source];
 
@@ -40,10 +40,10 @@ describe("导演台参考图片接入画布资源图", () => {
         expect(rejected.connections).toEqual([]);
     });
 
-    test("替换图源只解除导演台已连接的旧图片，不删除素材或其他节点连接", () => {
+    test("Replacing the picture source only unblocks the old pictures connected to the director's desk, and does not delete the materials or other node connections.", () => {
         const target = { ...createCanvasNode(CanvasNodeType.Video, { x: 0, y: 0 }, { workflowKind: "shot", referenceAssetNodeIds: ["old-image", "old-video"] }), id: "director" };
-        const oldImage = image("old-image", "旧参考图");
-        const nextImage = image("new-image", "新参考图");
+        const oldImage = image("old-image", "Old reference picture");
+        const nextImage = image("new-image", "New reference image");
         const video = { ...createCanvasNode(CanvasNodeType.Video, { x: 0, y: 0 }), id: "old-video" };
         const unrelatedEdge = { id: "video-edge", fromNodeId: video.id, toNodeId: target.id };
         const imageEdge = { id: "image-edge", fromNodeId: oldImage.id, toNodeId: target.id };

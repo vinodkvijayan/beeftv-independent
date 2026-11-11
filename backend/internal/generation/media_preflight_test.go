@@ -94,7 +94,7 @@ func TestMediaTransportNamesOnlyBlockedReferences(t *testing.T) {
 	if err == nil {
 		t.Fatal("accepted local references")
 	}
-	for _, label := range []string{"参考图片 2", "参考视频 1", "参考音频 1"} {
+	for _, label := range []string{"Reference picture 2", "Reference video 1", "Reference Audio 1"} {
 		if !strings.Contains(err.Error(), label) {
 			t.Fatal(err)
 		}
@@ -267,7 +267,7 @@ func TestLumaBlocksLocalFirstFrameUntilItHasAPublicURL(t *testing.T) {
 			err := ValidateMediaTransport(ctx, input)
 			var appErr *kernel.AppError
 			if !errors.As(err, &appErr) || appErr.Reason != "reference_media_requires_url" || !strings.Contains(err.Error(), "参考图片 1") {
-				t.Fatalf("本地首帧必须带可操作的拦截原因，实际 error = %v", err)
+				t.Fatalf("The local first frame must have an operable reason for interception, actual error = %v", err)
 			}
 		})
 	}
@@ -275,9 +275,9 @@ func TestLumaBlocksLocalFirstFrameUntilItHasAPublicURL(t *testing.T) {
 	withURL := base
 	withURL.ReferenceImages = []Media{{URL: "https://cdn.example/first.png"}}
 	if err := ValidateMediaTransport(ctx, withURL); err != nil {
-		t.Fatalf("在线首帧被挡住: %v", err)
+		t.Fatalf("The first online frame is blocked: %v", err)
 	}
 	if err := ValidateMediaTransport(ctx, base); err != nil {
-		t.Fatalf("纯文本请求被挡住: %v", err)
+		t.Fatalf("Plain text request blocked: %v", err)
 	}
 }

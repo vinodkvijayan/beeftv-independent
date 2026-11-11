@@ -35,28 +35,28 @@ func TestCanvasSubcommandGuards(t *testing.T) {
 	for _, args := range cases {
 		err := run(args)
 		if err == nil {
-			t.Fatalf("%v 应返回用法错误", args)
+			t.Fatalf("%v should return a usage error", args)
 		}
 		cliErr, ok := err.(*cliError)
 		if !ok || cliErr.code != exitUsage {
-			t.Fatalf("%v 应为 exitUsage，得到 %v", args, err)
+			t.Fatalf("%v expected exitUsage, got %v", args, err)
 		}
 	}
 	if calls != 0 {
-		t.Fatalf("用法错误不应发出任何 HTTP 请求，实际 %d 次", calls)
+		t.Fatalf("Usage error should not make any HTTP requests, actual %d times", calls)
 	}
 }
 
 // -h/--help 属于正常退出，不是错误。
 func TestHelpFlagExitsCleanly(t *testing.T) {
 	if err := run([]string{"canvas", "node", "update", "--help"}); err != nil {
-		t.Fatalf("--help 应正常退出，得到 %v", err)
+		t.Fatalf("--help should exit normally, getting %v", err)
 	}
 	if err := run([]string{"--help"}); err != nil {
-		t.Fatalf("顶层 --help 应正常退出，得到 %v", err)
+		t.Fatalf("Top-level --help should exit normally, getting %v", err)
 	}
 	if err := run([]string{"-h"}); err != nil {
-		t.Fatalf("顶层 -h 应正常退出，得到 %v", err)
+		t.Fatalf("Top-level -h should exit normally, getting %v", err)
 	}
 }
 
@@ -76,27 +76,27 @@ func TestInvalidFlagsAreUsageErrorsWithoutWrites(t *testing.T) {
 	cases := [][]string{
 		{"canvas", "node", "update", "--canvas", "c1", "--node", "n1", "--expected-revision", "1", "--op-id", "op-1", "--nope", "x"},
 		{"canvas", "node", "update", "--canvas", "c1", "--node", "n1", "--expected-revision", "not-a-number", "--op-id", "op-1", "--prompt", "p"},
-		{"canvas", "nodes", "create", "--canvas", "c1", "--expected-revision", "abc", "--op-id", "op-2", "--node", "标题:image"},
+		{"canvas", "nodes", "create", "--canvas", "c1", "--expected-revision", "abc", "--op-id", "op-2", "--node", "Title:image"},
 		{"canvas", "edge", "create", "--canvas", "c1", "--from", "a", "--to", "b", "--expected-revision", "1.5", "--op-id", "op-3"},
 	}
 	for _, args := range cases {
 		err := run(args)
 		if err == nil {
-			t.Fatalf("%v 应返回用法错误", args)
+			t.Fatalf("%v should return a usage error", args)
 		}
 		cliErr, ok := err.(*cliError)
 		if !ok {
-			t.Fatalf("%v 应为 *cliError，得到 %T(%v)", args, err, err)
+			t.Fatalf("%v expected *cliError, got %T(%v)", args, err, err)
 		}
 		if cliErr.code != exitUsage {
-			t.Fatalf("%v 应为 exitUsage，得到 %d", args, cliErr.code)
+			t.Fatalf("%v expected exitUsage, got %d", args, cliErr.code)
 		}
 		if cliErr.reason != "bad_flags" {
-			t.Fatalf("%v 的 reason 应为 bad_flags，得到 %q", args, cliErr.reason)
+			t.Fatalf("The reason of %v should be bad_flags, get %q", args, cliErr.reason)
 		}
 	}
 	if calls != 0 {
-		t.Fatalf("flag 解析失败不应发出任何 HTTP 请求，实际 %d 次", calls)
+		t.Fatalf("Flag parsing failure should not issue any HTTP requests, actual %d times", calls)
 	}
 }
 
@@ -126,18 +126,18 @@ func TestReadOnlyTightensOperationSetLocally(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(all) != 4 {
-		t.Fatalf("非只读模式应拿到全部操作，实际 %d", len(all))
+		t.Fatalf("Non-read-only mode should get all operations, actual %d", len(all))
 	}
 	tightened, err := c.listOps(true)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(tightened) != 2 {
-		t.Fatalf("只读模式应只保留只读操作，实际 %d", len(tightened))
+		t.Fatalf("Read-only mode should only retain read-only operations, actual %d", len(tightened))
 	}
 	for _, op := range tightened {
 		if !op.ReadOnly {
-			t.Fatalf("只读模式仍暴露写操作 %s", op.ID)
+			t.Fatalf("Read-only mode still exposes write operations %s", op.ID)
 		}
 	}
 }
@@ -164,7 +164,7 @@ func TestDesktopTokenHeaderIsSentWhenConfigured(t *testing.T) {
 		t.Fatal(err)
 	}
 	if seen != "desktop-shell-token" {
-		t.Fatalf("应发送桌面启动令牌头，得到 %q", seen)
+		t.Fatalf("Should send desktop boot token header, get %q", seen)
 	}
 
 	// 未配置时不发送该头，独立 server 形态不受影响。
@@ -178,7 +178,7 @@ func TestDesktopTokenHeaderIsSentWhenConfigured(t *testing.T) {
 		t.Fatal(err)
 	}
 	if seen != "" {
-		t.Fatalf("未配置时不应发送桌面启动令牌头，得到 %q", seen)
+		t.Fatalf("Desktop boot token header should not be sent when not configured, getting %q", seen)
 	}
 }
 
@@ -211,10 +211,10 @@ func TestBaseURLComesFromRuntimeDiscovery(t *testing.T) {
 
 	base, source := resolveBaseURL()
 	if base != server.URL {
-		t.Fatalf("应连上发现到的地址，得到 %q", base)
+		t.Fatalf("You should connect to the found address and get %q", base)
 	}
 	if source == "" {
-		t.Fatal("应说明地址来源")
+		t.Fatal("The source of the address should be stated")
 	}
 	c, err := newClient()
 	if err != nil {
@@ -224,10 +224,10 @@ func TestBaseURLComesFromRuntimeDiscovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	if seenClient != "client-test" || seenAuth != "Bearer client-token-test" {
-		t.Fatalf("应只带客户端自己的凭据，得到 %q / %q", seenClient, seenAuth)
+		t.Fatalf("Should just bring the client's own credentials, get %q / %q", seenClient, seenAuth)
 	}
 	if seenDesktop != "" {
-		t.Fatalf("外部客户端不该带桌面启动令牌，得到 %q", seenDesktop)
+		t.Fatalf("External client should not bring desktop startup token, get %q", seenDesktop)
 	}
 }
 
@@ -258,7 +258,7 @@ func TestStaleRuntimeFileIsIgnored(t *testing.T) {
 	t.Setenv("BEEFTV_DATA_DIR", dataDir)
 	base, _ := resolveBaseURL()
 	if base != "" {
-		t.Fatalf("过期运行时文件应被忽略，得到 %q", base)
+		t.Fatalf("Expired runtime files should be ignored, resulting in %q", base)
 	}
 	c, err := newClient()
 	if err != nil {
@@ -281,7 +281,7 @@ func TestExplicitBaseURLWinsOverDiscovery(t *testing.T) {
 	t.Setenv("BEEFTV_BASE_URL", "http://127.0.0.1:8080/api")
 	base, source := resolveBaseURL()
 	if base != "http://127.0.0.1:8080/api" || source != "BEEFTV_BASE_URL" {
-		t.Fatalf("显式地址应优先，得到 %q（%s）", base, source)
+		t.Fatalf("The explicit address should take precedence, getting %q (%s)", base, source)
 	}
 }
 
@@ -341,10 +341,10 @@ func TestApproveOrdersAndClientApprovalFlag(t *testing.T) {
 		t.Fatalf("agent token must not load owner token: owner=%q client=%q", lastOwner, lastClient)
 	}
 
-	if err := run([]string{"canvas", "create", "--title", "新画布"}); err == nil {
+	if err := run([]string{"canvas", "create", "--title", "new canvas"}); err == nil {
 		t.Fatal("canvas create without --op-id must fail")
 	}
-	if err := run([]string{"canvas", "create", "--title", "新画布", "--canvas", "c-new", "--op-id", "op-create-1", "--json"}); err != nil {
+	if err := run([]string{"canvas", "create", "--title", "new canvas", "--canvas", "c-new", "--op-id", "op-create-1", "--json"}); err != nil {
 		t.Fatalf("canvas create failed: %v", err)
 	}
 	if lastPath != "/ops/canvas.create" || lastBody["opId"] != "op-create-1" {

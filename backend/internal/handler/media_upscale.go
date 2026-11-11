@@ -20,7 +20,7 @@ type mediaUpscaleService interface {
 
 func registerMediaUpscaleRoutes(r *gin.RouterGroup, svc mediaUpscaleService) {
 	r.POST("/media-upscale/tasks/:id/recover", func(c *gin.Context) {
-		if !requireTrustedDesktopWritePrincipal(c, "原任务恢复只能由当前桌面界面发起") {
+		if !requireTrustedDesktopWritePrincipal(c, "Original task recovery can only be initiated from the current desktop interface") {
 			return
 		}
 		user, e := currentUser(c, svc)
@@ -45,7 +45,7 @@ func registerMediaUpscaleRoutes(r *gin.RouterGroup, svc mediaUpscaleService) {
 	for _, path := range []string{"estimate", "tasks"} {
 		action := path
 		r.POST("/media-upscale/"+action, func(c *gin.Context) {
-			if !requireTrustedDesktopWritePrincipal(c, "超分只能由当前桌面界面发起") {
+			if !requireTrustedDesktopWritePrincipal(c, "Super score can only be initiated from the current desktop interface") {
 				return
 			}
 			user, e := currentUser(c, svc)

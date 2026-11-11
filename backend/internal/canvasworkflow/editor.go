@@ -88,7 +88,7 @@ func PresentOperations(host CompileHost) []Operation {
 	if snapshot, err := host.ProviderConfig(); err == nil {
 		upscaleChannels := []FieldOption{}
 		if host.UpscaleAvailable("") == nil {
-			upscaleChannels = append(upscaleChannels, FieldOption{Label: "官方算力", Value: "beeftv"})
+			upscaleChannels = append(upscaleChannels, FieldOption{Label: "Official computing power", Value: "beeftv"})
 		}
 		textModels := []FieldOption{}
 		for _, model := range DescribeModels(snapshot) {
@@ -127,7 +127,7 @@ func PresentOperations(host CompileHost) []Operation {
 	if err != nil {
 		for i := range operations {
 			if IsMediaOperation(operations[i].ID) || operations[i].ID == "video.trim" || operations[i].ID == "video.merge" {
-				operations[i].UnavailableReason = "本机媒体编码器不可用，请更新安装版后重试"
+				operations[i].UnavailableReason = "The native media encoder is unavailable, please update the installation version and try again"
 			}
 		}
 	}

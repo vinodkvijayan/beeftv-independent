@@ -42,7 +42,7 @@ test("local workspace bootstrap is the product startup contract", () => {
     expect(userSession).not.toContain("syncRemoteUserData");
     expect(userSession).not.toContain("getModelCatalogForSession");
     expect(sidebarNav).toContain("footer: []");
-    expect(sidebarNav).not.toContain('title: "退出登录"');
+    expect(sidebarNav).not.toContain('title: "Log out"');
     expect(imageStorage).toContain("const localRuntime = isLocalRuntimeMode();");
     expect(imageStorage).toContain("The desktop Go resource service is local storage");
     expect(imageStorage).not.toContain("if (!localOnly) try");

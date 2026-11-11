@@ -218,7 +218,7 @@ test("a missing video source skips the picture, keeps the clock and audio runnin
         await page.waitForFunction(() => Boolean((window as any).timelinePlaybackFixture));
         await page.getByRole("button", { name: "Play", exact: true }).click();
         await page.getByRole("alert").waitFor();
-        expect(await page.getByRole("alert").innerText()).toContain("视频");
+        expect(await page.getByRole("alert").innerText()).toContain("video");
         // 视频素材缺失也不能让时钟卡在缓冲：音轨继续走，时间线不会假死。
         await page.waitForFunction(() => (window as any).timelinePlaybackFixture.snapshot().playhead > 1400);
         const state = await snapshot(page);
@@ -264,7 +264,7 @@ test("a muted video track failing still reports the skipped picture", async () =
         await page.getByRole("button", { name: "Play", exact: true }).click();
         await page.getByRole("alert").waitFor();
         // 静音只关掉声音；画面被跳过仍必须提示，音频与时钟继续。
-        expect(await page.getByRole("alert").innerText()).toContain("视频");
+        expect(await page.getByRole("alert").innerText()).toContain("video");
         await page.waitForFunction(() => (window as any).timelinePlaybackFixture.snapshot().playhead > 1400);
         const state = await snapshot(page);
         expect(state.playing).toBe(true);

@@ -36,22 +36,22 @@ func testTextMessageTask() *model.Task {
 }
 
 func TestIsMessageRevisionConflictUsesTypedReasonOnly(t *testing.T) {
-	if isMessageRevisionConflict(errors.New("对话已更新，当前草稿未覆盖已保存内容")) {
+	if isMessageRevisionConflict(errors.New("Conversation updated, current draft does not overwrite saved content")) {
 		t.Fatal("must not parse Chinese text as a revision conflict")
 	}
 	if isMessageRevisionConflict(errors.New("revision conflict stale")) {
 		t.Fatal("must not parse error strings as a revision conflict")
 	}
-	if isMessageRevisionConflict(conflict("conversation_deleted", "对话已删除，无法再写入")) {
+	if isMessageRevisionConflict(conflict("conversation_deleted", "The conversation has been deleted and can no longer be written to")) {
 		t.Fatal("deleted must not retry as a revision conflict")
 	}
-	if isMessageRevisionConflict(conflict("message_task_mismatch", "消息未关联该任务")) {
+	if isMessageRevisionConflict(conflict("message_task_mismatch", "The message is not associated with the task")) {
 		t.Fatal("task mismatch must not retry as a revision conflict")
 	}
-	if isMessageRevisionConflict(conflict("conflict", "对话已更新，当前草稿未覆盖已保存内容")) {
+	if isMessageRevisionConflict(conflict("conflict", "Conversation updated, current draft does not overwrite saved content")) {
 		t.Fatal("generic conflict must not retry after typed mapping")
 	}
-	if !isMessageRevisionConflict(conflict("stale_revision", "对话已更新，当前草稿未覆盖已保存内容")) {
+	if !isMessageRevisionConflict(conflict("stale_revision", "Conversation updated, current draft does not overwrite saved content")) {
 		t.Fatal("typed stale_revision must retry")
 	}
 }
@@ -59,7 +59,7 @@ func TestIsMessageRevisionConflictUsesTypedReasonOnly(t *testing.T) {
 func TestAttachMessageRetriesOnlyStaleRevision(t *testing.T) {
 	stale := &fakeMessagePorts{fakePorts: fakePorts{task: testTextMessageTask()}}
 	stale.attach = func(MessageAttachInput) (ConversationView, error) {
-		return ConversationView{}, conflict("stale_revision", "对话已更新，当前草稿未覆盖已保存内容")
+		return ConversationView{}, conflict("stale_revision", "Conversation updated, current draft does not overwrite saved content")
 	}
 	if _, err := AttachMessage(stale, "user-1", MessageRequest{ConversationID: "conv-1", MessageID: "msg-1", TaskID: "task-1"}); !isBindReason(err, "stale_revision") {
 		t.Fatalf("stale = %v", err)
@@ -70,7 +70,7 @@ func TestAttachMessageRetriesOnlyStaleRevision(t *testing.T) {
 
 	deleted := &fakeMessagePorts{fakePorts: fakePorts{task: testTextMessageTask()}}
 	deleted.attach = func(MessageAttachInput) (ConversationView, error) {
-		return ConversationView{}, conflict("conversation_deleted", "对话已删除，无法再写入")
+		return ConversationView{}, conflict("conversation_deleted", "The conversation has been deleted and can no longer be written to")
 	}
 	if _, err := AttachMessage(deleted, "user-1", MessageRequest{ConversationID: "conv-1", MessageID: "msg-1", TaskID: "task-1"}); !isBindReason(err, "conversation_deleted") {
 		t.Fatalf("deleted = %v", err)
@@ -81,7 +81,7 @@ func TestAttachMessageRetriesOnlyStaleRevision(t *testing.T) {
 
 	mismatch := &fakeMessagePorts{fakePorts: fakePorts{task: testTextMessageTask()}}
 	mismatch.attach = func(MessageAttachInput) (ConversationView, error) {
-		return ConversationView{}, conflict("message_task_mismatch", "消息未关联该任务")
+		return ConversationView{}, conflict("message_task_mismatch", "The message is not associated with the task")
 	}
 	if _, err := AttachMessage(mismatch, "user-1", MessageRequest{ConversationID: "conv-1", MessageID: "msg-1", TaskID: "task-1"}); !isBindReason(err, "message_task_mismatch") {
 		t.Fatalf("mismatch = %v", err)
@@ -97,7 +97,7 @@ func TestAttachMessageUsesDurableTextNotClientURL(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if receipt.Content != "成片旁白" || receipt.MediaType != "text" || receipt.Revision != 4 {
+	if receipt.Content != "Narration of the finished film" || receipt.MediaType != "text" || receipt.Revision != 4 {
 		t.Fatalf("receipt = %#v", receipt)
 	}
 	if receipt.EffectKey != localtask.AttachMessageEffectKey("task-1", "msg-1", 0) {

@@ -45,7 +45,7 @@ try {
         await page.waitForTimeout(500);
         if (route.startsWith("/settings")) {
             const bodyText = await page.locator("body").innerText();
-            const forbiddenLocalLabels = ["我的对象存储", "支付充值", "积分运营", "积分超市", "充值 / 兑换"];
+            const forbiddenLocalLabels = ["My object storage", "Pay recharge", "Points operation", "points supermarket", "Recharge/Redeem"];
             const visibleForbiddenLabels = forbiddenLocalLabels.filter((label) => bodyText.includes(label));
             if (visibleForbiddenLabels.length) {
                 failures.push(`${route}: local settings rendered hosted/commercial labels: ${visibleForbiddenLabels.join(", ")}`);
@@ -93,7 +93,7 @@ try {
     await page.waitForURL(/\/canvas\/[^/]+$/, { timeout: 15_000 });
     await page.waitForTimeout(600);
     const canvasBodyText = await page.locator("body").innerText();
-    const forbiddenCanvasLabels = ["云端历史", "云端版本待确认", "积分超市", "开通会员", "积分余额"];
+    const forbiddenCanvasLabels = ["Cloud history", "Cloud version to be confirmed", "points supermarket", "Open membership", "Points balance"];
     const visibleForbiddenCanvasLabels = forbiddenCanvasLabels.filter((label) => canvasBodyText.includes(label));
     if (visibleForbiddenCanvasLabels.length) {
         failures.push(`local canvas rendered hosted/commercial labels: ${visibleForbiddenCanvasLabels.join(", ")}`);

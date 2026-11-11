@@ -1,19 +1,19 @@
 ---
 name: publish-beeftv-skill
-description: 当用户要求把创作方法、已有 Skill 或文件投稿到 BeefTV 技能市场，或查询本次稿件状态时使用。支持外部 Codex、Claude Code 等有终端能力的 Agent；无需运行 BeefTV 桌面应用。
+description: Used when users request to submit creative methods, existing skills or files to the BeefTV skills market, or to check the status of this manuscript. Supports agents with terminal capabilities such as external Codex and Claude Code; no need to run BeefTV desktop application.
 ---
 
-# 整理并投稿创作方法
+# Organize and submit creative methods
 
-帮助作者整理内容、准备私有草稿并公开发布。文件投稿与对话投稿使用同一套服务，确认预览后立即公开发布。
+Help authors organize content, prepare private drafts, and publish publicly. Document submission and dialogue submission use the same set of services, and they will be released to the public immediately after the preview is confirmed.
 
-1. 确定此次投稿的范围。只整理方法、必要引用和用户选定的示例，不打包整个项目、画布素材、聊天记录或账户配置。内置助手用 `skill.draft` 和 `skill.publish.prepare` 准备本地草稿，随后由产品中的确认操作继续；不要代为调用上传或发布接口。
-2. 外部助手在一个明确目录中准备 `SKILL.md` 和必要文件。
-3. 在目录外准备 metadata JSON：name、description、license、versionLabel，及必要的 sourceUrl、requirements、showcase。优先沿用作者已明确的许可；来源或改编授权不清楚时询问作者，不自行授予开源许可。
-4. 使用 `beeftv skills inspect DIRECTORY --metadata METADATA_FILE` 获取确切文件清单、contentHash 和 archiveSha256。向用户展示这些文件、说明、许可及将上传的示例。只有用户明确确认上传范围后，才继续上传。
-5. 为此次投稿指定目录外的私有 `--state` 文件，不提交到 Git。运行 `authorize`，把输出的 verificationUrl 和 userCode 交给用户在浏览器授权，按返回的 interval 再 `poll`。不读取、复制或打印状态文件内的 accessToken/deviceCode；不使用模型 API Key 或桌面 Cookie。
-6. 使用匹配 inspect 结果的 `upload DIRECTORY --metadata METADATA_FILE --state STATE_FILE --confirm-upload --content-hash HASH --archive-sha256 HASH`。这只生成私有草稿，不代表已公开发布。
-7. 运行 `preview --state STATE_FILE`，向用户展示作者、元信息、实际文件和示例。用户明确确认这版公开投稿后，再用对应 revision 与 previewDigest 执行 `submit --confirm-submit` 立即公开发布。
-8. 用 `status` 获取真实发布状态和回执。授权过期重新授权并继续同一状态文件；上传回执丢失时重试原请求，不创建重复草稿。预览或内容改变后需要新的对应确认。可用 `revoke` 撤销投稿授权。
+1. Determine the scope of this submission. Only methods, necessary references, and user-selected examples are organized, not entire projects, canvas assets, chat logs, or account configurations. The built-in assistant prepares a local draft with `skill.draft` and `skill.publish.prepare`, which is then continued by a confirmation operation in the product; do not call the upload or publish interfaces on your behalf.
+2. The external assistant prepares `SKILL.md` and the necessary files in an explicit directory.
+3. Prepare metadata JSON outside the directory: name, description, license, versionLabel, and necessary sourceUrl, requirements, and showcase. Priority will be given to using the author's explicit license; if the source or adaptation authorization is unclear, ask the author and do not grant an open source license on your own.
+4. Use `beeftv skills inspect DIRECTORY --metadata METADATA_FILE` to get the exact file listing, contentHash and archiveSha256. Show users these files, instructions, licenses, and examples of what will be uploaded. Only after the user explicitly confirms the upload scope will the upload continue.
+5. Private `--state` files outside the directory specified for this submission will not be submitted to Git. Run `authorize`, give the output verificationUrl and userCode to the user for authorization in the browser, press the returned interval and then `poll`. Does not read, copy, or print the accessToken/deviceCode in the state file; does not use the model API Key or desktop cookies.
+6. Use `upload DIRECTORY --metadata METADATA_FILE --state STATE_FILE --confirm-upload --content-hash HASH --archive-sha256 HASH` that matches the inspect result. This only generates a private draft and does not mean it has been published publicly.
+7. Run `preview --state STATE_FILE` to show the user the author, meta information, actual files, and examples. After the user explicitly confirms the public submission of this version, then use the corresponding revision and previewDigest to execute `submit --confirm-submit` to immediately publish it to the public.
+8. Use `status` to get the real release status and receipt. If the authorization expires, re-authorize and continue the same status file; if the upload receipt is lost, the original request will be retried and no duplicate draft will be created. New corresponding confirmation is required after preview or content changes. Use `revoke` to revoke submission authorization.
 
-命令均以 `beeftv skills` 开头。已有明确确认对同一文件和版本继续有效，不反复询问；确认不能授权其他文件或后续改版。只报告服务器回执支持的状态：已上传、待确认发布、已发布或已撤回。
+The commands all start with `beeftv skills`. It has been clearly confirmed that the same file and version will continue to be valid without repeated inquiries; confirmation cannot authorize other files or subsequent revisions. Only statuses supported by server receipts are reported: Uploaded, Pending Release, Published, or Withdrawn.

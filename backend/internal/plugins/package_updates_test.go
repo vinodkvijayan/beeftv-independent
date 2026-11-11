@@ -42,9 +42,9 @@ func npmFixture(t *testing.T, latest map[string]string) {
 			return
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"name": name, "version": version, "description": name + " 的说明",
-			"author": map[string]string{"name": "社区作者"}, "repository": map[string]string{"url": "git+https://github.com/example/" + name + ".git"},
-			"beeftv": map[string]string{"name": "显示名 " + name},
+			"name": name, "version": version, "description": name + " description",
+			"author": map[string]string{"name": "community author"}, "repository": map[string]string{"url": "git+https://github.com/example/" + name + ".git"},
+			"beeftv": map[string]string{"name": "display name" + name},
 		})
 	}))
 	prevLoopback, prevRegistries := allowLoopbackMarketURLsForTest, npmRegistriesForTest
@@ -135,8 +135,8 @@ func TestOneLineRegistryEntriesAreFilledFromNpm(t *testing.T) {
 		t.Fatalf("items = %+v", items)
 	}
 	item := items[0]
-	if item.ID != "beeftv-plugin-community" || item.Name != "显示名 beeftv-plugin-community" || item.Version != "0.3.0" ||
-		item.Author != "社区作者" || item.Repository != "https://github.com/example/beeftv-plugin-community" || !item.Recommended || item.SHA256 != "" {
+	if item.ID != "beeftv-plugin-community" || item.Name != "Display name beeftv-plugin-community" || item.Version != "0.3.0" ||
+		item.Author != "community author" || item.Repository != "https://github.com/example/beeftv-plugin-community" || !item.Recommended || item.SHA256 != "" {
 		t.Fatalf("item = %+v", item)
 	}
 	if hits := loadCuratedRegistryItemsWithCache(context.Background(), "nothing-matches", NpmMirrorRegistry, cachePath, map[string]View{}); len(hits) != 0 {

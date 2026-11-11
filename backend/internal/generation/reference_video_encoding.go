@@ -167,10 +167,10 @@ func ReferenceVideoFrameRateError(config Config, index int, fps float64) error {
 		return nil
 	}
 	if fps <= 0 || math.IsNaN(fps) || math.IsInf(fps, 0) {
-		return kernel.BadAuthRequest(fmt.Sprintf("第 %d 个参考视频帧率无法读取，请重新导出 MP4/MOV 后上传", index+1))
+		return kernel.BadAuthRequest(fmt.Sprintf("The frame rate of the reference video %d cannot be read. Please re-export MP4/MOV and upload it.", index+1))
 	}
 	if fps > 0 && (fps < 24-1e-6 || fps > 60+1e-6) {
-		return kernel.BadAuthRequest(fmt.Sprintf("第 %d 个参考视频平均帧率为 %.3f FPS，需要 24–60 FPS；请将参考视频重新导出为 24–60 FPS 后再提交", index+1, fps))
+		return kernel.BadAuthRequest(fmt.Sprintf("Reference video %d has an average frame rate of %.3f FPS and requires 24–60 FPS; please re-export the reference video to 24–60 FPS before submitting", index+1, fps))
 	}
 	return nil
 }
@@ -178,7 +178,7 @@ func ReferenceVideoFrameRateError(config Config, index int, fps float64) error {
 func ApplySeedance2VideoProbe(config Config, index int, media *Media, data []byte) error {
 	w, h, durationMs := playback.ProbeGeneratedVideoMedia(data)
 	if w <= 0 || h <= 0 {
-		return kernel.BadAuthRequest(fmt.Sprintf("第 %d 个参考视频尺寸无法读取，请重新导出 MP4/MOV 后导入", index+1))
+		return kernel.BadAuthRequest(fmt.Sprintf("The reference video size %d cannot be read. Please re-export MP4/MOV and then import it.", index+1))
 	}
 	media.Width, media.Height = w, h
 	_, fps := ReferenceVideoEncoding(data)

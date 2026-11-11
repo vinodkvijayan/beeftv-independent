@@ -4,32 +4,32 @@ import { DIRECTOR_INTERACTIVE_SELECTOR, blocksDirectorShortcut, isDirectorIntera
 
 const press = (overrides: Partial<DirectorKeyEvent> & { key: string }): DirectorKeyEvent => ({ ...overrides });
 
-describe("变换模式快捷键", () => {
-    test("与 LibTV 一致：V/R/F 映射到平移/旋转/缩放", () => {
+describe("Change mode shortcut key", () => {
+    test("Consistent with LibTV: V/R/F mapped to pan/rotate/zoom", () => {
         expect(resolveDirectorShortcut(press({ key: "v" }))).toEqual({ kind: "transform-mode", mode: "translate" });
         expect(resolveDirectorShortcut(press({ key: "r" }))).toEqual({ kind: "transform-mode", mode: "rotate" });
         expect(resolveDirectorShortcut(press({ key: "f" }))).toEqual({ kind: "transform-mode", mode: "scale" });
     });
 
-    test("保留不冲突的旧快捷键 W/E", () => {
+    test("Keep non-conflicting old shortcut keys W/E", () => {
         expect(resolveDirectorShortcut(press({ key: "w" }))).toEqual({ kind: "transform-mode", mode: "translate" });
         expect(resolveDirectorShortcut(press({ key: "e" }))).toEqual({ kind: "transform-mode", mode: "rotate" });
     });
 
-    test("大写与 Shift 组合仍然生效", () => {
+    test("Uppercase and Shift combinations still work", () => {
         expect(resolveDirectorShortcut(press({ key: "W" }))).toEqual({ kind: "transform-mode", mode: "translate" });
         expect(resolveDirectorShortcut(press({ key: "E", shiftKey: true }))).toEqual({ kind: "transform-mode", mode: "rotate" });
     });
 
-    test("带 Ctrl/Cmd 时不再当作变换模式", () => {
+    test("No longer treated as transformation mode when using Ctrl/Cmd", () => {
         // Ctrl+R 是刷新，绝不能被解析成旋转。
         expect(resolveDirectorShortcut(press({ key: "r", ctrlKey: true }))).toBeNull();
         expect(resolveDirectorShortcut(press({ key: "w", metaKey: true }))).toBeNull();
     });
 });
 
-describe("对象操作快捷键", () => {
-    test("方向键只解析为选择对象的方向移动，且不劫持输入控件或组合键", () => {
+describe("Object operation shortcut keys", () => {
+    test("The direction keys are only interpreted as moving in the direction of the selected object and do not hijack input controls or key combinations.", () => {
         expect(resolveDirectorShortcut(press({ key: "ArrowUp" }))).toEqual({ kind: "nudge-selected", direction: "up" });
         expect(resolveDirectorShortcut(press({ key: "ArrowLeft" }))).toEqual({ kind: "nudge-selected", direction: "left" });
         expect(resolveDirectorShortcut(press({ key: "ArrowDown", shiftKey: true }))).toEqual({ kind: "nudge-selected", direction: "down", fine: true });
@@ -38,80 +38,80 @@ describe("对象操作快捷键", () => {
         expect(resolveDirectorShortcut(press({ key: "ArrowRight", altKey: true }))).toBeNull();
     });
 
-    test("Shift+A 打开添加到场景菜单，普通 A 不触发", () => {
+    test("Shift+A opens the add to scene menu, normal A does not trigger", () => {
         expect(resolveDirectorShortcut(press({ key: "A", shiftKey: true }))).toEqual({ kind: "open-add-menu" });
         expect(resolveDirectorShortcut(press({ key: "a" }))).toBeNull();
         expect(resolveDirectorShortcut(press({ key: "A", shiftKey: true, isInteractiveTarget: true }))).toBeNull();
     });
 
-    test("Delete 与 Backspace 都删除选中对象", () => {
+    test("Delete and Backspace both delete the selected object", () => {
         expect(resolveDirectorShortcut(press({ key: "Delete" }))).toEqual({ kind: "delete-selected" });
         expect(resolveDirectorShortcut(press({ key: "Backspace" }))).toEqual({ kind: "delete-selected" });
     });
 
-    test("H 切换显隐、Escape 取消选择", () => {
+    test("H switches visibility, Escape cancels selection", () => {
         expect(resolveDirectorShortcut(press({ key: "h" }))).toEqual({ kind: "toggle-visibility" });
         expect(resolveDirectorShortcut(press({ key: "Escape" }))).toEqual({ kind: "deselect" });
     });
 
-    test("没有执行路径的键不解析：F2 重命名、Ctrl+D 复制", () => {
+    test("Keys without execution paths are not resolved: F2 rename, Ctrl+D copy", () => {
         expect(resolveDirectorShortcut(press({ key: "F2" }))).toBeNull();
         expect(resolveDirectorShortcut(press({ key: "d", ctrlKey: true }))).toBeNull();
         expect(resolveDirectorShortcut(press({ key: "d", metaKey: true }))).toBeNull();
     });
 
-    test("空格切换播放", () => {
+    test("Space switch play", () => {
         expect(resolveDirectorShortcut(press({ key: " " }))).toEqual({ kind: "toggle-play" });
         expect(resolveDirectorShortcut(press({ key: "Spacebar" }))).toEqual({ kind: "toggle-play" });
     });
 });
 
-describe("撤销/重做", () => {
-    test("Ctrl/Cmd+Z 撤销", () => {
+describe("Undo/Redo", () => {
+    test("Ctrl/Cmd+Z Undo", () => {
         expect(resolveDirectorShortcut(press({ key: "z", ctrlKey: true }))).toEqual({ kind: "undo" });
         expect(resolveDirectorShortcut(press({ key: "z", metaKey: true }))).toEqual({ kind: "undo" });
     });
 
-    test("Ctrl/Cmd+Shift+Z 与 Ctrl/Cmd+Y 都是重做", () => {
+    test("Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y are both redone", () => {
         expect(resolveDirectorShortcut(press({ key: "z", ctrlKey: true, shiftKey: true }))).toEqual({ kind: "redo" });
         expect(resolveDirectorShortcut(press({ key: "Z", metaKey: true, shiftKey: true }))).toEqual({ kind: "redo" });
         expect(resolveDirectorShortcut(press({ key: "y", ctrlKey: true }))).toEqual({ kind: "redo" });
     });
 
-    test("裸 Z/Y 不触发撤销重做", () => {
+    test("Naked Z/Y does not trigger undo and redo", () => {
         for (const key of ["z", "y"]) expect(resolveDirectorShortcut(press({ key }))).toBeNull();
     });
 });
 
-describe("修饰键与未知键边界", () => {
-    test("Alt 组合一律不解析，留给系统", () => {
+describe("Modifier keys and unknown key boundaries", () => {
+    test("Alt combinations are never parsed and are left to the system", () => {
         expect(resolveDirectorShortcut(press({ key: "w", altKey: true }))).toBeNull();
         expect(resolveDirectorShortcut(press({ key: "z", ctrlKey: true, altKey: true }))).toBeNull();
     });
 
-    test("未映射的键返回 null", () => {
+    test("Unmapped keys return null", () => {
         for (const key of ["q", "1", "Tab", "", "F5"]) {
             expect(resolveDirectorShortcut(press({ key }))).toBeNull();
         }
     });
 });
 
-describe("交互控件语境不劫持按键", () => {
-    test("isInteractiveTarget 为真时所有快捷键都不解析", () => {
+describe("Interaction control context does not hijack keystrokes", () => {
+    test("When isInteractiveTarget is true, all shortcut keys are not parsed.", () => {
         for (const key of ["w", "Delete", "Backspace", "h", "Escape", " "]) {
             expect(resolveDirectorShortcut(press({ key, isInteractiveTarget: true }))).toBeNull();
         }
         expect(resolveDirectorShortcut(press({ key: "z", ctrlKey: true, isInteractiveTarget: true }))).toBeNull();
     });
 
-    test("文本输入控件判为交互语境", () => {
+    test("Text input control is determined as interactive context", () => {
         expect(isDirectorInteractiveNode({ tagName: "INPUT" })).toBe(true);
         expect(isDirectorInteractiveNode({ tagName: "textarea" })).toBe(true);
         expect(isDirectorInteractiveNode({ tagName: "SELECT" })).toBe(true);
         expect(isDirectorInteractiveNode({ isContentEditable: true })).toBe(true);
     });
 
-    test("BUTTON 与 A 判为交互语境：Space/Delete 属于控件自己", () => {
+    test("BUTTON and A are judged as interactive contexts: Space/Delete belongs to the control itself", () => {
         expect(isDirectorInteractiveNode({ tagName: "BUTTON" })).toBe(true);
         expect(isDirectorInteractiveNode({ tagName: "button" })).toBe(true);
         expect(isDirectorInteractiveNode({ tagName: "A" })).toBe(true);
@@ -120,21 +120,21 @@ describe("交互控件语境不劫持按键", () => {
         expect(isDirectorInteractiveNode({ tagName: "SUMMARY" })).toBe(true);
     });
 
-    test("常见 role 型控件判为交互语境", () => {
+    test("Common role-type controls are judged as interactive contexts", () => {
         const roles = ["textbox", "combobox", "spinbutton", "searchbox", "button", "switch", "tab", "menuitem", "menuitemcheckbox", "menuitemradio", "option", "slider", "checkbox", "radio", "link", "listbox", "menu", "radiogroup", "treeitem"];
         for (const role of roles) {
             expect(isDirectorInteractiveNode({ tagName: "DIV", getAttribute: (name: string) => (name === "role" ? role : null) })).toBe(true);
         }
     });
 
-    test("contenteditable 属性形式也判为交互语境", () => {
+    test("The contenteditable attribute form is also considered an interactive context", () => {
         for (const value of ["", "true"]) {
             expect(isDirectorInteractiveNode({ tagName: "DIV", getAttribute: (name: string) => (name === "contenteditable" ? value : null) })).toBe(true);
         }
         expect(isDirectorInteractiveNode({ tagName: "DIV", getAttribute: (name: string) => (name === "contenteditable" ? "false" : null) })).toBe(false);
     });
 
-    test("普通元素、未知 role 与非法目标不判为交互语境", () => {
+    test("Ordinary elements, unknown roles, and illegal targets are not considered interaction contexts.", () => {
         expect(isDirectorInteractiveNode({ tagName: "DIV", getAttribute: () => null })).toBe(false);
         expect(isDirectorInteractiveNode({ tagName: "SPAN" })).toBe(false);
         expect(isDirectorInteractiveNode({ tagName: "DIV", getAttribute: () => "presentation" })).toBe(false);
@@ -144,8 +144,8 @@ describe("交互控件语境不劫持按键", () => {
     });
 });
 
-describe("blocksDirectorShortcut：交互祖先同样阻止全局快捷键", () => {
-    test("有 closest 时用选择器向上找，命中祖先即阻止", () => {
+describe("blocksDirectorShortcut: Interactive ancestors also block global shortcuts", () => {
+    test("When there is closest, use the selector to search upwards. If the ancestor is hit, it will be blocked.", () => {
         // 按钮里的 <svg>/<span>：event.target 是子元素，只判自身会漏掉整个控件。
         const queried: string[] = [];
         const nestedChild = {
@@ -159,12 +159,12 @@ describe("blocksDirectorShortcut：交互祖先同样阻止全局快捷键", () 
         expect(queried).toEqual([DIRECTOR_INTERACTIVE_SELECTOR]);
     });
 
-    test("closest 没命中交互祖先时放行", () => {
+    test("closest is released when the interactive ancestor is not hit.", () => {
         const plainChild = { tagName: "SPAN", closest: () => null };
         expect(blocksDirectorShortcut(plainChild)).toBe(false);
     });
 
-    test("选择器覆盖标签、role 与 contenteditable 三类", () => {
+    test("The selector covers three categories: label, role and contenteditable", () => {
         for (const fragment of ["button", "a", "input", "textarea", "select", "option", "label", "summary"]) {
             expect(DIRECTOR_INTERACTIVE_SELECTOR.split(",")).toContain(fragment);
         }
@@ -174,14 +174,14 @@ describe("blocksDirectorShortcut：交互祖先同样阻止全局快捷键", () 
         expect(DIRECTOR_INTERACTIVE_SELECTOR).toContain('[contenteditable="true"]');
     });
 
-    test("没有 closest 的目标退化为单节点判定", () => {
+    test("The goal without closest degenerates into a single node decision.", () => {
         expect(blocksDirectorShortcut({ tagName: "BUTTON" })).toBe(true);
         expect(blocksDirectorShortcut({ tagName: "DIV", getAttribute: () => null })).toBe(false);
         expect(blocksDirectorShortcut(null)).toBe(false);
         expect(blocksDirectorShortcut("button")).toBe(false);
     });
 
-    test("普通 DIV 容器仍允许全局快捷键：视口空白处按 W/Delete 必须生效", () => {
+    test("Ordinary DIV containers still allow global shortcut keys: pressing W/Delete in the blank space of the viewport must take effect", () => {
         const viewportBackdrop = { tagName: "DIV", closest: () => null };
         expect(blocksDirectorShortcut(viewportBackdrop)).toBe(false);
         expect(resolveDirectorShortcut(press({ key: "w", isInteractiveTarget: blocksDirectorShortcut(viewportBackdrop) }))).toEqual({ kind: "transform-mode", mode: "translate" });
@@ -189,7 +189,7 @@ describe("blocksDirectorShortcut：交互祖先同样阻止全局快捷键", () 
     });
 });
 
-describe("releaseDirectorFocusAfterPointer：点完工具按钮后快捷键必须立刻可用", () => {
+describe("releaseDirectorFocusAfterPointer: The shortcut key must be available immediately after clicking the tool button", () => {
     const fakeButton = () => {
         let blurred = 0;
         return {
@@ -200,29 +200,29 @@ describe("releaseDirectorFocusAfterPointer：点完工具按钮后快捷键必�
         };
     };
 
-    test("鼠标激活（detail > 0）释放焦点", () => {
+    test("Mouse activation (detail > 0) releases focus", () => {
         const target = fakeButton();
         releaseDirectorFocusAfterPointer({ detail: 1, currentTarget: target });
         expect(target.blurCount()).toBe(1);
     });
 
-    test("键盘激活（detail === 0）保留焦点，Tab 序列不断", () => {
+    test("Keyboard activation (detail === 0) retains focus and the Tab sequence continues", () => {
         const target = fakeButton();
         releaseDirectorFocusAfterPointer({ detail: 0, currentTarget: target });
         expect(target.blurCount()).toBe(0);
     });
 
-    test("双击等多次点击仍然释放焦点", () => {
+    test("Double-click or multiple clicks still release focus", () => {
         const target = fakeButton();
         releaseDirectorFocusAfterPointer({ detail: 2, currentTarget: target });
         expect(target.blurCount()).toBe(1);
     });
 
-    test("目标没有 blur 方法时不抛异常", () => {
+    test("No exception will be thrown when the target does not have a blur method", () => {
         expect(() => releaseDirectorFocusAfterPointer({ detail: 1, currentTarget: {} })).not.toThrow();
     });
 
-    test("释放焦点后守卫不再拦截：这正是修复的行为", () => {
+    test("Guards no longer intercept after releasing focus: this is exactly the behavior that was fixed", () => {
         // 焦点在按钮上 -> 拦截；释放到视口容器 -> 放行。
         const button = { tagName: "BUTTON", closest: () => ({ tagName: "BUTTON" }) };
         expect(resolveDirectorShortcut(press({ key: "Delete", isInteractiveTarget: blocksDirectorShortcut(button) }))).toBeNull();

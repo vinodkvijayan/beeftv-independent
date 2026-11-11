@@ -74,7 +74,7 @@ func TestExportDiagnosticBundleAdapterRejectsForeignTask(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = (&Service{repo: repository.New(db)}).ExportDiagnosticBundle("user-1", DiagnosticExportRequest{TaskID: "foreign-task"})
-	if err == nil || !strings.Contains(err.Error(), "任务不存在或无权访问") {
+	if err == nil || !strings.Contains(err.Error(), "Task does not exist or does not have access rights") {
 		t.Fatalf("foreign task error = %v", err)
 	}
 }

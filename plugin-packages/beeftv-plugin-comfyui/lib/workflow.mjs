@@ -104,14 +104,14 @@ export function prepareWorkflow(raw, objectInfo) {
     const { graph, fixedSeeds } = convertEditorGraph(raw, objectInfo ?? {});
     return { graph, appMode: extractAppMode(raw, Object.keys(graph)), fixedSeeds };
   }
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("工作流文件不是 ComfyUI 的格式");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("The workflow file is not in the ComfyUI format");
   const graph = {};
   for (const [id, node] of Object.entries(raw)) {
     if (node && typeof node === "object" && typeof node.class_type === "string") {
       graph[id] = { ...node, inputs: { ...(node.inputs ?? {}) } };
     }
   }
-  if (Object.keys(graph).length === 0) throw new Error("工作流文件里没有能执行的节点");
+  if (Object.keys(graph).length === 0) throw new Error("There is no executable node in the workflow file.");
   return { graph, appMode: null, fixedSeeds: new Set() };
 }
 

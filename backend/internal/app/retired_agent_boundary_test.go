@@ -54,26 +54,26 @@ func retiredAgentProductService(t *testing.T) (*Service, *gorm.DB) {
 
 func TestGenericTaskCreationRejectsRetiredAgentOperations(t *testing.T) {
 	for _, request := range []CreateTaskRequest{
-		{Type: "canvas_text", Operation: "cloud_agent", Prompt: "帮我改画布"},
-		{Type: "canvas_text", Operation: "cloud_agent_step", Prompt: "继续执行"},
+		{Type: "canvas_text", Operation: "cloud_agent", Prompt: "Help me change the canvas"},
+		{Type: "canvas_text", Operation: "cloud_agent_step", Prompt: "Continue execution"},
 		// 记忆压缩的 operation 不以 cloud_agent 开头，曾经能绕过前缀判定自动调用文本模型。
-		{Type: "canvas_text", Operation: "agent_memory_compact", Prompt: "压缩优化个人 Agent 记忆"},
-		{Type: "canvas_text", Prompt: "帮我改画布", Input: map[string]any{"mode": "text", "cloudAgent": map[string]any{"version": 1}}},
+		{Type: "canvas_text", Operation: "agent_memory_compact", Prompt: "Compression optimization of personal Agent memory"},
+		{Type: "canvas_text", Prompt: "Help me change the canvas", Input: map[string]any{"mode": "text", "cloudAgent": map[string]any{"version": 1}}},
 	} {
 		s, db := retiredAgentService(t)
 		_, err := s.CreateTask("user", request)
 		if err == nil {
-			t.Fatalf("通用任务入口仍然接受了退场 Agent 请求: %#v", request)
+			t.Fatalf("The general task entrance still accepts the exit Agent request: %#v", request)
 		}
 		if !strings.Contains(err.Error(), "Agent") || !strings.Contains(err.Error(), "已下线") {
-			t.Fatalf("错误信息不是产品边界: %v", err)
+			t.Fatalf("Error message is not a product boundary: %v", err)
 		}
 		var count int64
 		if err = db.Model(&model.Task{}).Count(&count).Error; err != nil {
 			t.Fatal(err)
 		}
 		if count != 0 {
-			t.Fatalf("被拒绝的请求写了 %d 条任务", count)
+			t.Fatalf("The rejected request wrote %d tasks", count)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func newLegacyAgentProbeWith(t *testing.T, s *Service, db *gorm.DB) (*Service, *
 		_, _ = w.Write([]byte(`{"choices":[{"message":{"content":"不应发生"}}]}`))
 	}))
 	t.Cleanup(upstream.Close)
-	if err := db.Create(&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "本地测试渠道", BaseURL: upstream.URL, APIKey: "test-only"}).Error; err != nil {
+	if err := db.Create(&model.ModelChannel{ID: "channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "Local test channel", BaseURL: upstream.URL, APIKey: "test-only"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	capabilityConfig, err := json.Marshal(DefaultModelCapabilityConfigForModel(string(model.ChannelInterfaceChatCompletion), "text-test"))
@@ -122,19 +122,19 @@ func TestWorkerTerminatesLegacyAgentTasksWithoutCallingModel(t *testing.T) {
 	}{
 		{
 			name: "cloud_agent operation", operation: cloudAgentOperation,
-			inputJSON: `{"mode":"text","prompt":"帮我改画布","config":{"channelId":"channel","model":"text-test"}}`,
+			inputJSON: `{"mode":"text","prompt":"Help me change the canvas","config":{"channelId":"channel","model":"text-test"}}`,
 		},
 		{
 			name: "cloud_agent_step operation", operation: "cloud_agent_step",
-			inputJSON: `{"mode":"text","prompt":"继续执行","config":{"channelId":"channel","model":"text-test"}}`,
+			inputJSON: `{"mode":"text","prompt":"Continue execution","config":{"channelId":"channel","model":"text-test"}}`,
 		},
 		{
 			name: "legacy input.cloudAgent marker without operation", operation: "canvas_text",
-			inputJSON: `{"mode":"text","cloudAgent":{"version":1},"prompt":"帮我改画布","config":{"channelId":"channel","model":"text-test"}}`,
+			inputJSON: `{"mode":"text","cloudAgent":{"version":1},"prompt":"Help me change the canvas","config":{"channelId":"channel","model":"text-test"}}`,
 		},
 		{
 			name: "agent memory compact operation", operation: cloudAgentMemoryCompactOp,
-			inputJSON: `{"mode":"text","prompt":"压缩优化个人 Agent 记忆","config":{"channelId":"channel","model":"text-test"}}`,
+			inputJSON: `{"mode":"text","prompt":"Compression and optimization of personal Agent memory","config":{"channelId":"channel","model":"text-test"}}`,
 		},
 	}
 	for index, testCase := range cases {
@@ -143,7 +143,7 @@ func TestWorkerTerminatesLegacyAgentTasksWithoutCallingModel(t *testing.T) {
 			now := time.Now()
 			legacy := model.Task{
 				ID: fmt.Sprintf("legacy-agent-%d", index), UserID: "user", ProjectID: "canvas-1", Type: "canvas_text",
-				Operation: testCase.operation, Status: model.TaskStatusQueued, Stage: "排队中", Prompt: "帮我改画布",
+				Operation: testCase.operation, Status: model.TaskStatusQueued, Stage: "Queuing", Prompt: "Help me change the canvas",
 				CreatedAt: now, UpdatedAt: now, InputJSON: testCase.inputJSON,
 			}
 			if err := db.Create(&legacy).Error; err != nil {
@@ -153,21 +153,21 @@ func TestWorkerTerminatesLegacyAgentTasksWithoutCallingModel(t *testing.T) {
 				t.Fatal(err)
 			}
 			if upstreamHits.Load() != 0 {
-				t.Fatalf("退场 Agent 任务仍然调用了模型 %d 次", upstreamHits.Load())
+				t.Fatalf("The exit Agent task still called the model %d times", upstreamHits.Load())
 			}
 			var stored model.Task
 			if err := db.First(&stored, "id = ?", legacy.ID).Error; err != nil {
-				t.Fatalf("历史任务行被删除: %v", err)
+				t.Fatalf("Historical task line deleted: %v", err)
 			}
-			if stored.Status != model.TaskStatusFailed || stored.Stage != "功能已下线" {
-				t.Fatalf("历史任务 status=%s stage=%s, want failed/功能已下线", stored.Status, stored.Stage)
+			if stored.Status != model.TaskStatusFailed || stored.Stage != "Function is offline" {
+				t.Fatalf("Historical tasks status=%s stage=%s, want failed/function has been offline", stored.Status, stored.Stage)
 			}
 			if !strings.Contains(stored.Error, "Agent") || !strings.Contains(stored.Error, "已下线") {
-				t.Fatalf("历史 Agent 任务失败原因不是产品边界: %q", stored.Error)
+				t.Fatalf("Historical Agent task failure reason is not product boundary: %q", stored.Error)
 			}
 			// 终态结算仍走既有机制：租约由 UpdateTaskTerminalState 释放。
 			if stored.LeaseOwner != "" || stored.LeaseExpiresAt != nil {
-				t.Fatalf("拒绝后租约没有释放: owner=%q expires=%v", stored.LeaseOwner, stored.LeaseExpiresAt)
+				t.Fatalf("The lease is not released after rejection: owner=%q expires=%v", stored.LeaseOwner, stored.LeaseExpiresAt)
 			}
 		})
 	}
@@ -178,23 +178,23 @@ func TestRetryOfLegacyAgentTaskIsRefused(t *testing.T) {
 	now := time.Now()
 	legacy := model.Task{
 		ID: "legacy-agent-failed", UserID: "user", ProjectID: "canvas-1", Type: "canvas_text", Operation: cloudAgentOperation,
-		Status: model.TaskStatusFailed, Stage: "任务失败", Error: "上一版失败原因", Prompt: "帮我改画布",
+		Status: model.TaskStatusFailed, Stage: "Task failed", Error: "Reason for failure of previous version", Prompt: "Help me change the canvas",
 		CreatedAt: now, UpdatedAt: now, InputJSON: `{"mode":"text","prompt":"帮我改画布"}`,
 	}
 	if err := db.Create(&legacy).Error; err != nil {
 		t.Fatal(err)
 	}
 	if _, err := s.RetryTask("user", legacy.ID); err == nil {
-		t.Fatal("退场 Agent 任务仍然可以重试")
+		t.Fatal("Exiting Agent tasks can still be retried")
 	} else if !strings.Contains(err.Error(), "已下线") {
-		t.Fatalf("重试拒绝原因不是产品边界: %v", err)
+		t.Fatalf("Retry rejection reason is not a product boundary: %v", err)
 	}
 	var stored model.Task
 	if err := db.First(&stored, "id = ?", legacy.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Status != model.TaskStatusFailed || stored.Error != "上一版失败原因" {
-		t.Fatalf("重试被拒后历史任务记录被改动: status=%s error=%q", stored.Status, stored.Error)
+	if stored.Status != model.TaskStatusFailed || stored.Error != "Reason for failure of previous version" {
+		t.Fatalf("The historical task record was changed after the retry was rejected: status=%s error=%q", stored.Status, stored.Error)
 	}
 }
 
@@ -210,7 +210,7 @@ func TestWorkerStartDoesNotScheduleRetiredAgentMemoryCompaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := db.Create(&model.AgentLesson{
-		ID: "lesson-1", Topic: "画布改写", Category: "canvas", Situation: "需要改画布", Lesson: "先读快照",
+		ID: "lesson-1", Topic: "Canvas rewrite", Category: "canvas", Situation: "Need to change canvas", Lesson: "read first snapshot",
 		Status: model.AgentLessonStatusApproved, AuthorUserID: "user",
 	}).Error; err != nil {
 		t.Fatal(err)
@@ -230,7 +230,7 @@ func TestWorkerStartDoesNotScheduleRetiredAgentMemoryCompaction(t *testing.T) {
 			stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			_ = s.StopWorker(stopCtx)
 			cancel()
-			t.Fatalf("worker 启动后仍然派发了旧 Agent 记忆压缩: tasks=%d status=%q compactTaskId=%q", compactTasks, setting.LastStatus, setting.CompactTaskID)
+			t.Fatalf("The old Agent memory compression is still distributed after the worker starts: tasks=%d status=%q compactTaskId=%q", compactTasks, setting.LastStatus, setting.CompactTaskID)
 		}
 		if time.Now().After(deadline) {
 			break
@@ -243,7 +243,7 @@ func TestWorkerStartDoesNotScheduleRetiredAgentMemoryCompaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	if upstreamHits.Load() != 0 {
-		t.Fatalf("旧 Agent 记忆压缩仍然调用了模型 %d 次", upstreamHits.Load())
+		t.Fatalf("Old Agent memory compression still called the model %d times", upstreamHits.Load())
 	}
 }
 
@@ -264,7 +264,7 @@ func TestRetiredAgentRuntimeEntrypointsAreGone(t *testing.T) {
 		"CompactUserAgentMemories",
 	} {
 		if _, ok := serviceType.MethodByName(name); ok {
-			t.Fatalf("退场入口仍然存在: Service.%s", name)
+			t.Fatalf("The exit entrance still exists: Service.%s", name)
 		}
 	}
 }
@@ -272,20 +272,20 @@ func TestRetiredAgentRuntimeEntrypointsAreGone(t *testing.T) {
 func TestAgentRequestsWithoutCloudAgentMarkerAreNotRetired(t *testing.T) {
 	s, db := retiredAgentService(t)
 	_, err := s.CreateTask("user", CreateTaskRequest{
-		Type: "canvas_text", Operation: "text", Prompt: "点评这张图",
+		Type: "canvas_text", Operation: "text", Prompt: "Comment on this picture",
 		Input: map[string]any{
-			"mode": "text", "prompt": "点评这张图",
-			"agentRequests": map[string]any{"canonical": map[string]any{"messages": []any{map[string]any{"role": "user", "content": "点评"}}}},
+			"mode": "text", "prompt": "Comment on this picture",
+			"agentRequests": map[string]any{"canonical": map[string]any{"messages": []any{map[string]any{"role": "user", "content": "Review"}}}},
 		},
 	})
 	if err != nil && strings.Contains(err.Error(), "已下线") {
-		t.Fatalf("普通工具文本任务被当成退场 Agent: %v", err)
+		t.Fatalf("Ordinary tool text tasks are treated as exit Agent: %v", err)
 	}
 	var count int64
 	if err := db.Model(&model.Task{}).Where("operation LIKE ?", "cloud_agent%").Count(&count).Error; err != nil {
 		t.Fatal(err)
 	}
 	if count != 0 {
-		t.Fatalf("工具文本任务写了 %d 条旧 Agent operation", count)
+		t.Fatalf("The tool text task wrote %d old Agent operations", count)
 	}
 }

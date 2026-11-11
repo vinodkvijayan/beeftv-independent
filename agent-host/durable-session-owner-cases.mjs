@@ -72,20 +72,20 @@ processTest('legacy handoff survives failed pointer publication and restart with
       if (destination.endsWith('current.json')) throw Object.assign(new Error('fixture denied'), { code: 'EACCES' });
       return rename(source, destination);
     });
-    await assert.rejects(fixture.store.handoffSession('canvas', '原始交接说明', 'legacy-a'), { reason: 'session_pointer_failed' });
+    await assert.rejects(fixture.store.handoffSession('canvas', 'Original handover instructions', 'legacy-a'), { reason: 'session_pointer_failed' });
     assert.equal(fixture.store.sessions.get('canvas'), previous);
     t.mock.restoreAll();
     await fixture.close();
     fixture = await modelFixture(directory, 'fixture', ['fixture']);
-    const entry = await fixture.store.handoffSession('canvas', '不应覆盖先前交接', 'legacy-a');
-    const submission = await fixture.store.submit(entry, { turnId: 'handoff-turn', content: '首轮消息' });
+    const entry = await fixture.store.handoffSession('canvas', 'Previous handovers should not be overwritten', 'legacy-a');
+    const submission = await fixture.store.submit(entry, { turnId: 'handoff-turn', content: 'First round of news' });
     await fixture.store.wait(entry, submission);
-    const again = await fixture.store.handoffSession('canvas', '不应重置已有轮次', 'legacy-a');
+    const again = await fixture.store.handoffSession('canvas', 'Existing rounds should not be reset', 'legacy-a');
     assert.equal(again, entry);
     assert.equal((await fixture.store.history('canvas', entry.sessionId)).turns.length, 1);
-    assert(JSON.stringify(fixture.payloads).includes('原始交接说明'));
-    assert(!JSON.stringify(fixture.payloads).includes('不应覆盖先前交接'));
-    const other = await fixture.store.handoffSession('canvas', '另一个旧会话', 'legacy-b');
+    assert(JSON.stringify(fixture.payloads).includes('Original handover instructions'));
+    assert(!JSON.stringify(fixture.payloads).includes('Previous handovers should not be overwritten'));
+    const other = await fixture.store.handoffSession('canvas', 'another old session', 'legacy-b');
     assert.notEqual(other.sessionId, entry.sessionId);
     const sessions = await fixture.store.listCanvasSessions('canvas');
     assert.equal(sessions.length, 3); // Explicit new session plus two distinct legacy sources.
@@ -112,14 +112,14 @@ processTest('crash recovery rejects authority changing frozen read-only to full-
  const recovered=await run(directory,'permission-upgrade');assert.equal(recovered.code,0,recovered.output);
 });
 test('history projection keeps the curated reasoning view and still drops provider blocks', () => {
-  const reasoning = [{ id: 'entry:0', text: '先读画布。', status: 'done' }];
-  const projected = publicDurableTurn({ turnId: 't', reply: '正文', reasoning,
+  const reasoning = [{ id: 'entry:0', text: 'Read the canvas first.', status: 'done' }];
+  const projected = publicDurableTurn({ turnId: 't', reply: 'Text', reasoning,
     content: [{ type: 'thinking', thinking: 'raw', thinkingSignature: 'signature-secret' }], effects: {} });
   assert.deepEqual(projected.reasoning, reasoning);
   assert(!JSON.stringify(projected).includes('signature-secret'));
   assert(!('content' in projected));
   // 没有思考的回合不写空字段，界面据此不生成空抽屉。
-  assert(!('reasoning' in publicDurableTurn({ turnId: 't', reply: '正文' })));
+  assert(!('reasoning' in publicDurableTurn({ turnId: 't', reply: 'Text' })));
 });
 test('history projection excludes native media bytes and replay defaults unknown writes to unsafe', () => {
   const projected = publicDurableTurn({ turnId: 't', userText: 'read', content: [{ type: 'image', data: 'large-native-image' }],
@@ -135,7 +135,7 @@ test('public provider failures hide upstream detail while retaining internal dia
   for (const errorReason of ['model_error', 'provider_error']) {
     const internal = { error: detail, errorReason, cancelled: false, reply: '', turnId: 'failed-turn' };
     const visible = publicDurableTurn(internal);
-    assert.equal(visible.error, '模型没有完成回复。已经完成的操作会保留，请检查结果后再继续。');
+    assert.equal(visible.error, 'The model did not complete the reply. Completed operations will be retained, please check the results before continuing.');
     assert.equal(visible.errorReason, errorReason);
     assert.equal(visible.cancelled, false);
     assert.equal(internal.error, detail, 'projection must not overwrite diagnostic records');
@@ -237,20 +237,20 @@ processTest('legacy JSONL handoff seeds a new Durable session with the old trans
     const timestamp = '2026-10-07T12:00:00.000Z';
     const rows = [
       { type: 'session', version: 3, id: sessionId, timestamp, cwd },
-      { type: 'message', id: 'u', parentId: null, timestamp, message: { role: 'user', content: [{ type: 'text', text: '旧会话原始需求' }], timestamp: 1 } },
-      { type: 'message', id: 'a', parentId: 'u', timestamp, message: { role: 'assistant', content: [{ type: 'text', text: '旧会话历史回执' }], timestamp: 2 } },
+      { type: 'message', id: 'u', parentId: null, timestamp, message: { role: 'user', content: [{ type: 'text', text: 'Old session original demand' }], timestamp: 1 } },
+      { type: 'message', id: 'a', parentId: 'u', timestamp, message: { role: 'assistant', content: [{ type: 'text', text: 'Old session history receipts' }], timestamp: 2 } },
     ];
     fs.writeFileSync(path.join(sessionDir, `2026-10-07T12-00-00-000Z_${sessionId}.jsonl`), rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
 
     const entry = await fixture.store.handoffSession('canvas', legacy.readHandoffNote('canvas', sessionId));
     const view = await entry.root.context(BACKGROUND_CONTEXT);
-    assert(view.head && (view.head.model || []).some((message) => message.role === 'user' && JSON.stringify(message.content).includes('旧会话原始需求')));
+    assert(view.head && (view.head.model || []).some((message) => message.role === 'user' && JSON.stringify(message.content).includes('Old session original demand')));
 
-    const submission = await fixture.store.submit(entry, { turnId: 'handoff-turn', content: '继续改一下' });
+    const submission = await fixture.store.submit(entry, { turnId: 'handoff-turn', content: 'Keep changing it' });
     await fixture.store.wait(entry, submission);
     const payload = JSON.stringify(fixture.payloads.at(-1));
-    assert(payload.includes('旧会话原始需求'));
-    assert(payload.includes('旧会话历史回执'));
-    assert(payload.includes('继续改一下'));
+    assert(payload.includes('Old session original demand'));
+    assert(payload.includes('Old session history receipts'));
+    assert(payload.includes('Keep changing it'));
   } finally { await fixture.close(); }
 });

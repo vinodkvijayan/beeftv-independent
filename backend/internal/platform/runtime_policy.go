@@ -203,7 +203,7 @@ func (s *Service) readRuntimePolicy() (*model.SystemSetting, RuntimePolicySettin
 	}
 	value := DefaultRuntimePolicy()
 	if strings.TrimSpace(setting.ValueJSON) == "" || json.Unmarshal([]byte(setting.ValueJSON), &value) != nil {
-		return nil, RuntimePolicySetting{}, errors.New("资源与请求策略配置格式无效")
+		return nil, RuntimePolicySetting{}, errors.New("The resource and request policy configuration format is invalid")
 	}
 	if err := validateRuntimePolicy(value); err != nil {
 		return nil, RuntimePolicySetting{}, err
@@ -214,85 +214,85 @@ func (s *Service) readRuntimePolicy() (*model.SystemSetting, RuntimePolicySettin
 func validateRuntimePolicy(value RuntimePolicySetting) error {
 	resource := value.Resource
 	for label, item := range map[string]int64{
-		"普通资源单文件": resource.ResourceUploadMB,
-		"单个生成资源":  resource.GeneratedFileMB,
+		"Ordinary resource list file": resource.ResourceUploadMB,
+		"Single generated resource":  resource.GeneratedFileMB,
 	} {
 		if item < 1 || item > maxRuntimeUploadMB {
-			return kernel.BadAuthRequest(fmt.Sprintf("%s必须是 1-%d MB 的整数", label, maxRuntimeUploadMB))
+			return kernel.BadAuthRequest(fmt.Sprintf("%s must be an integer from 1-%d MB", label, maxRuntimeUploadMB))
 		}
 	}
 	if resource.DailyUploadMB < 1 || resource.DailyUploadMB > maxRuntimeDataMB {
-		return kernel.BadAuthRequest(fmt.Sprintf("每日上传量必须是 1-%d MB 的整数", maxRuntimeDataMB))
+		return kernel.BadAuthRequest(fmt.Sprintf("Daily upload volume must be an integer from 1-%d MB", maxRuntimeDataMB))
 	}
 	if resource.StoredFileGB < 1 || resource.StoredFileGB > maxRuntimeStorageGB || resource.TaskDataGB < 1 || resource.TaskDataGB > maxRuntimeStorageGB {
-		return kernel.BadAuthRequest(fmt.Sprintf("账号文件与任务数据容量必须是 1-%d GB 的整数", maxRuntimeStorageGB))
+		return kernel.BadAuthRequest(fmt.Sprintf("The account file and task data capacity must be an integer of 1-%d GB", maxRuntimeStorageGB))
 	}
 	if resource.StructuredDataMB < 1 || resource.StructuredDataMB > maxRuntimeDataMB {
-		return kernel.BadAuthRequest(fmt.Sprintf("结构化数据容量必须是 1-%d MB 的整数", maxRuntimeDataMB))
+		return kernel.BadAuthRequest(fmt.Sprintf("Structured data capacity must be an integer from 1-%d MB", maxRuntimeDataMB))
 	}
 	storedMB := resource.StoredFileGB * 1024
 	if resource.ResourceUploadMB > storedMB || resource.GeneratedFileMB > storedMB {
-		return kernel.BadAuthRequest("单文件上限不能大于账号文件总容量")
+		return kernel.BadAuthRequest("The upper limit of a single file cannot be greater than the total capacity of account files.")
 	}
 	for label, item := range map[string]int64{
-		"素材数量": resource.AssetCount, "画布数量": resource.CanvasCount,
-		"任务历史数量": resource.TaskCount, "请求日志数量": resource.APICallLogCount,
+		"Material quantity": resource.AssetCount, "Number of canvases": resource.CanvasCount,
+		"Task history number": resource.TaskCount, "Number of request logs": resource.APICallLogCount,
 	} {
 		if item < 1 || item > maxRuntimeCount {
-			return kernel.BadAuthRequest(fmt.Sprintf("%s必须是 1-%d 的整数", label, maxRuntimeCount))
+			return kernel.BadAuthRequest(fmt.Sprintf("%s must be an integer from 1-%d", label, maxRuntimeCount))
 		}
 	}
 	if resource.RecycleBinRetentionDays < 0 || resource.RecycleBinRetentionDays > 365 {
-		return kernel.BadAuthRequest("回收站保留天数必须是 0-365 的整数 (0 表示不自动清理)")
+		return kernel.BadAuthRequest("The number of days the recycle bin is kept must be an integer from 0-365 (0 means no automatic cleaning)")
 	}
 	task := value.Task
 	for label, item := range map[string]int{
-		"Worker 并发数": task.WorkerConcurrency, "全局渠道并发数": task.ChannelConcurrency, "活动任务上限": task.ActiveTaskLimit,
+		"Number of concurrent workers": task.WorkerConcurrency, "Global channel concurrency number": task.ChannelConcurrency, "Activity task limit": task.ActiveTaskLimit,
 	} {
 		if item < 1 || item > maxRuntimeConcurrency {
-			return kernel.BadAuthRequest(fmt.Sprintf("%s必须是 1-%d 的整数", label, maxRuntimeConcurrency))
+			return kernel.BadAuthRequest(fmt.Sprintf("%s must be an integer from 1-%d", label, maxRuntimeConcurrency))
 		}
 	}
 	for label, item := range map[string]int{
-		"图片任务超时": task.ImageTimeoutMinutes, "文本任务超时": task.TextTimeoutMinutes,
-		"音频任务超时": task.AudioTimeoutMinutes, "视频任务超时": task.VideoTimeoutMinutes,
-		"分镜任务超时": task.StoryboardTimeoutMinutes, "默认任务超时": task.DefaultTimeoutMinutes,
+		"Image task timed out": task.ImageTimeoutMinutes, "Text task timeout": task.TextTimeoutMinutes,
+		"Audio task timeout": task.AudioTimeoutMinutes, "Video task timeout": task.VideoTimeoutMinutes,
+		"Storyboard task timeout": task.StoryboardTimeoutMinutes, "Default task timeout": task.DefaultTimeoutMinutes,
 	} {
 		if item < 1 || item > maxRuntimeTimeoutMinutes {
-			return kernel.BadAuthRequest(fmt.Sprintf("%s必须是 1-%d 分钟的整数", label, maxRuntimeTimeoutMinutes))
+			return kernel.BadAuthRequest(fmt.Sprintf("%s must be an integer of 1-%d minutes", label, maxRuntimeTimeoutMinutes))
 		}
 	}
 	request := value.Request
 	for label, item := range map[string]int{
-		"任务创建频控": request.TaskCreatePerMinute,
-		"资源上传频控": request.ResourceUploadPerMinute, "资源导入频控": request.ResourceImportPerMinute,
-		"素材写入频控": request.AssetWritePerMinute,
-		"画布写入频控": request.CanvasWritePerMinute, "系统渠道频控": request.SystemRelayPerMinute,
-		"自定义渠道频控": request.CustomRelayPerMinute,
+		"Task creation frequency control": request.TaskCreatePerMinute,
+		"Resource upload frequency control": request.ResourceUploadPerMinute, "Resource import frequency control": request.ResourceImportPerMinute,
+		"Material writing frequency control": request.AssetWritePerMinute,
+		"Canvas writing frequency control": request.CanvasWritePerMinute, "System channel frequency control": request.SystemRelayPerMinute,
+		"Custom channel frequency control": request.CustomRelayPerMinute,
 	} {
 		if item < 1 || item > maxRuntimeRate {
-			return kernel.BadAuthRequest(fmt.Sprintf("%s必须是 1-%d 的整数", label, maxRuntimeRate))
+			return kernel.BadAuthRequest(fmt.Sprintf("%s must be an integer from 1-%d", label, maxRuntimeRate))
 		}
 	}
 	if request.CustomRelayConcurrency < 1 || request.CustomRelayConcurrency > maxRuntimeConcurrency {
-		return kernel.BadAuthRequest(fmt.Sprintf("自定义渠道并发必须是 1-%d 的整数", maxRuntimeConcurrency))
+		return kernel.BadAuthRequest(fmt.Sprintf("Custom channel concurrency must be an integer from 1-%d", maxRuntimeConcurrency))
 	}
 	for label, item := range map[string]int64{
-		"自定义渠道请求体": request.CustomRelayRequestMB, "自定义渠道响应体": request.CustomRelayResponseMB,
-		"系统渠道请求体": request.SystemRelayRequestMB, "系统渠道响应体": request.SystemRelayResponseMB,
+		"Custom channel request body": request.CustomRelayRequestMB, "Custom channel response body": request.CustomRelayResponseMB,
+		"System channel request body": request.SystemRelayRequestMB, "System channel response body": request.SystemRelayResponseMB,
 	} {
 		if item < 1 || item > maxRuntimeUploadMB {
-			return kernel.BadAuthRequest(fmt.Sprintf("%s必须是 1-%d MB 的整数", label, maxRuntimeUploadMB))
+			return kernel.BadAuthRequest(fmt.Sprintf("%s must be an integer from 1-%d MB", label, maxRuntimeUploadMB))
 		}
 	}
 	if request.CustomRelayTimeoutMinutes < 1 || request.CustomRelayTimeoutMinutes > maxRuntimeTimeoutMinutes {
-		return kernel.BadAuthRequest(fmt.Sprintf("自定义渠道超时必须是 1-%d 分钟的整数", maxRuntimeTimeoutMinutes))
+		return kernel.BadAuthRequest(fmt.Sprintf("Custom channel timeout must be an integer of 1-%d minutes", maxRuntimeTimeoutMinutes))
 	}
 	if request.ChannelCircuitFailureCount < 1 || request.ChannelCircuitFailureCount > maxRuntimeConcurrency {
-		return kernel.BadAuthRequest(fmt.Sprintf("渠道熔断失败次数必须是 1-%d 的整数", maxRuntimeConcurrency))
+		return kernel.BadAuthRequest(fmt.Sprintf("The number of channel circuit breaker failures must be an integer from 1-%d", maxRuntimeConcurrency))
 	}
 	if request.ChannelCircuitOpenSeconds < 1 || request.ChannelCircuitOpenSeconds > 86_400 {
-		return kernel.BadAuthRequest("渠道熔断时长必须是 1-86400 秒的整数")
+		return kernel.BadAuthRequest("The channel circuit breaker duration must be an integer from 1 to 86400 seconds.")
 	}
 	return nil
 }

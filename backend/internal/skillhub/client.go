@@ -165,15 +165,15 @@ func (c *Client) BaseURL() string { return c.base.String() }
 func New(base string) (*Client, error) {
 	u, err := url.Parse(strings.TrimRight(base, "/"))
 	if err != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "127.0.0.1" || u.Hostname() == "localhost" || u.Hostname() == "::1"))) {
-		return nil, fmt.Errorf("技能市场地址必须是可信 HTTPS 服务")
+		return nil, fmt.Errorf("Skill Market address must be a trusted HTTPS service")
 	}
 	c := &Client{base: u}
 	c.HTTP = &http.Client{Timeout: 45 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
 		if req.URL.Scheme != u.Scheme || req.URL.Host != u.Host || !strings.HasPrefix(req.URL.Path, u.Path+"/") {
-			return fmt.Errorf("技能市场下载跳转到未信任地址")
+			return fmt.Errorf("Skill Market download jumps to untrusted address")
 		}
 		if len(via) > 3 {
-			return fmt.Errorf("技能市场跳转过多")
+			return fmt.Errorf("Skill market jumps too much")
 		}
 		return nil
 	}}
@@ -186,14 +186,14 @@ func (c *Client) URL(route string) (string, error) {
 		return "", err
 	}
 	if strings.Contains(u.Path, "..") || strings.Contains(u.Path, "\\") {
-		return "", fmt.Errorf("技能市场路径无效")
+		return "", fmt.Errorf("Skill market path is invalid")
 	}
 	if u.IsAbs() || u.Host != "" {
 		if u.Scheme != c.base.Scheme || u.Host != c.base.Host {
-			return "", fmt.Errorf("技能市场地址不受信任")
+			return "", fmt.Errorf("Skill Market address is not trusted")
 		}
 		if !strings.HasPrefix(u.Path, c.base.Path+"/") {
-			return "", fmt.Errorf("技能市场路径不受信任")
+			return "", fmt.Errorf("Skills market path is not trusted")
 		}
 		return u.String(), nil
 	}
@@ -240,7 +240,7 @@ func Decode(res *http.Response, out any) error {
 		} `json:"error"`
 	}
 	if err := json.NewDecoder(io.LimitReader(res.Body, 2<<20)).Decode(&e); err != nil {
-		return &Error{Status: 502, Reason: "market_unreadable", Message: "技能市场返回内容无法读取"}
+		return &Error{Status: 502, Reason: "market_unreadable", Message: "The content returned by the skill market cannot be read."}
 	}
 	if res.StatusCode < 200 || res.StatusCode >= 300 || !e.Success {
 		if e.Reason == "" {
@@ -270,7 +270,7 @@ func (c *Client) JSON(ctx context.Context, method, route, token, key string, inp
 	}
 	res, err := c.Request(ctx, method, route, token, "application/json", key, body)
 	if err != nil {
-		return &Error{Status: 503, Reason: "market_unavailable", Message: "技能市场暂时无法连接，请稍后重试"}
+		return &Error{Status: 503, Reason: "market_unavailable", Message: "The skill market is temporarily unable to connect, please try again later."}
 	}
 	return Decode(res, out)
 }
@@ -281,7 +281,7 @@ func (c *Client) Archive(ctx context.Context, route string) ([]byte, error) {
 func (c *Client) ArchiveWithToken(ctx context.Context, route, token string) ([]byte, error) {
 	res, err := c.Request(ctx, "GET", route, token, "", "", nil)
 	if err != nil {
-		return nil, &Error{Status: 503, Reason: "market_unavailable", Message: "技能市场暂时无法连接，请稍后重试"}
+		return nil, &Error{Status: 503, Reason: "market_unavailable", Message: "The skill market is temporarily unable to connect, please try again later."}
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
@@ -292,7 +292,7 @@ func (c *Client) ArchiveWithToken(ctx context.Context, route, token string) ([]b
 		return nil, err
 	}
 	if len(data) > MaxArchiveBytes {
-		return nil, fmt.Errorf("技能下载包超过100MiB")
+		return nil, fmt.Errorf("Skill download package exceeds 100MiB")
 	}
 	return data, nil
 }

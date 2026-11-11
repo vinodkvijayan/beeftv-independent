@@ -1,8 +1,8 @@
-# Novita 视频异步 API
+# Novita Video Asynchronous API
 
-Novita 视频插件使用 `/v3/video/create` 创建任务，以 query 参数携带任务 ID 查询统一异步结果。模型字段名为 `model_name`，不是通用 `model`。
+The Novita video plug-in uses `/v3/video/create` to create a task, and uses the query parameter to carry the task ID to query the unified asynchronous results. The model field is named `model_name`, not the generic `model`.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,17 +13,17 @@ Authorization: Bearer <NOVITA_API_KEY>
 Content-Type: application/json
 ```
 
-## 模型与约束
+## Models and Constraints
 
-Novita 聚合多个视频模型，不同 `model_name` 的字段、图片要求、时长、比例和价格可能不同。当前插件只提供共同子集：提示词、单张参考图、时长和比例；不能据此认定所有 Novita 视频模型都接受相同参数。
+Novita aggregates multiple video models, and the fields, picture requirements, duration, ratio and price of different `model_name` may be different. Currently the plugin only provides a common subset: prompt words, single reference image, duration and scale; it cannot be assumed that all Novita video models accept the same parameters.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-`model -> model_name`，`images[0] -> image_url`，时长默认 5 秒，比例默认 `16:9`。`resolution`、参考视频、参考音频、音频生成和水印当前不发送。
+`model -> model_name`, `images[0] -> image_url`, the default duration is 5 seconds, and the default ratio is `16:9`. `resolution`, reference video, reference audio, audio generation and watermark are not currently sent.
 
-## 创建请求示例
+## Create request example
 
 ```bash
 curl "{channel_base_url}/v3/video/create" \
@@ -38,18 +38,18 @@ curl "{channel_base_url}/v3/video/create" \
   }'
 ```
 
-## 查询与下载
+## Query and download
 
-创建响应应返回 `task_id/id`。查询时任务 ID会进行 URL query 编码：
+The create response should return `task_id/id`. When querying, the task ID will be URL query encoded:
 
 ```bash
 curl "{channel_base_url}/v3/async/task-result?task_id=task_xxx" \
   -H "Authorization: Bearer <NOVITA_API_KEY>"
 ```
 
-成功结果由统一 parser 从视频数组或 URL 字段读取。Novita 若针对某模型返回独特嵌套结构，应建立该模型 fixture，而不是继续扩展全局模糊字段。当前没有取消接口；任务退款和结果保留期以 Novita 当前规则为准。
+Success results are read from the video array or URL field by the unity parser. If Novita returns a unique nested structure for a model, it should build a fixture for that model instead of continuing to expand the global fuzzy fields. There is currently no cancellation interface; task refunds and result retention periods are subject to Novita's current rules.
 
-## 官方资料
+## Official information
 
 - [Novita Unified Video Generation](https://novita.ai/docs/api-reference/reference-unified-video-generation)
 - [Novita Task Result Query](https://novita.ai/docs/api-reference/model-apis-task-result)

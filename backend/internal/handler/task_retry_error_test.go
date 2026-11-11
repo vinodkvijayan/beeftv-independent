@@ -29,8 +29,8 @@ func TestTaskRetryHandlerPreservesStructuredErrors(t *testing.T) {
 		message string
 	}{
 		{"paused delivery during drain", model.TaskStatusSucceeded, "delivery_paused", true, http.StatusServiceUnavailable, "unavailable", localtask.DrainRetryMessage},
-		{"failed task during drain", model.TaskStatusFailed, "任务失败", true, http.StatusServiceUnavailable, "unavailable", localtask.DrainRetryMessage},
-		{"ordinary retry error", model.TaskStatusSucceeded, "生成完成", false, http.StatusBadRequest, "invalid_argument", localtask.RetryOnlyFailedOrCancelled},
+		{"failed task during drain", model.TaskStatusFailed, "Task failed", true, http.StatusServiceUnavailable, "unavailable", localtask.DrainRetryMessage},
+		{"ordinary retry error", model.TaskStatusSucceeded, "Generation completed", false, http.StatusBadRequest, "invalid_argument", localtask.RetryOnlyFailedOrCancelled},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "retry-errors.db")),

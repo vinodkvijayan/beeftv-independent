@@ -41,8 +41,8 @@ func TestDecodeVerboseJSON(t *testing.T) {
 	if segments[0].StartMs != 0 || segments[0].EndMs != 2015 {
 		t.Fatalf("seg0 = %d-%d, want 0-2015", segments[0].StartMs, segments[0].EndMs)
 	}
-	if segments[0].Text != "大家好" {
-		t.Fatalf("seg0 text = %q, want 大家好 (trimmed)", segments[0].Text)
+	if segments[0].Text != "Hello everyone" {
+		t.Fatalf("seg0 text = %q, want Hello everyone (trimmed)", segments[0].Text)
 	}
 	if segments[1].StartMs != 4120 || segments[1].EndMs != 6121 {
 		t.Fatalf("seg1 = %d-%d, want 4120-6121", segments[1].StartMs, segments[1].EndMs)
@@ -67,11 +67,11 @@ func TestBuildSRT(t *testing.T) {
 		t.Fatalf("timestamp %q", got)
 	}
 	segments := []Segment{
-		{StartMs: 0, EndMs: 2015, Text: "大家好"},
-		{StartMs: 2500, EndMs: 6121, Text: "今天天气不错"},
+		{StartMs: 0, EndMs: 2015, Text: "Hello everyone"},
+		{StartMs: 2500, EndMs: 6121, Text: "The weather is nice today"},
 	}
 	srt := BuildSRT(segments)
-	want := "1\n00:00:00,000 --> 00:00:02,015\n大家好\n\n2\n00:00:02,500 --> 00:00:06,121\n今天天气不错\n\n"
+	want := "1\n00:00:00,000 --> 00:00:02,015\nHello everyone\n\n2\n00:00:02,500 --> 00:00:06,121\nThe weather is nice today"
 	if srt != want {
 		t.Fatalf("srt mismatch:\n got %q\nwant %q", srt, want)
 	}
@@ -136,7 +136,7 @@ func TestClientTranscribeReturnsSegments(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if language != "zh" || len(segments) != 1 || segments[0].Text != "你好" || segments[0].EndMs != 1500 {
+	if language != "zh" || len(segments) != 1 || segments[0].Text != "hello" || segments[0].EndMs != 1500 {
 		t.Fatalf("segments=%+v language=%s", segments, language)
 	}
 }

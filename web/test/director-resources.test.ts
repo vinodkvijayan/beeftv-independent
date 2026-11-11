@@ -19,8 +19,8 @@ function meshWith(geometry: BoxGeometry, material: MeshStandardMaterial | MeshSt
     return new Mesh(geometry, material as never);
 }
 
-describe("共享资源只释放一次（C 回归）", () => {
-    test("多个 mesh 共享 geometry/material 时各只 dispose 一次", () => {
+describe("Shared resources are released only once (C regression)", () => {
+    test("When multiple meshes share geometry/material, they can only be disposed once.", () => {
         const geometry = counted(new BoxGeometry(1, 1, 1));
         const material = counted(new MeshStandardMaterial());
         const root = new Group();
@@ -32,7 +32,7 @@ describe("共享资源只释放一次（C 回归）", () => {
         expect(material.calls.count).toBe(1);
     });
 
-    test("共享 texture 只 dispose 一次", () => {
+    test("Shared texture only disposes once", () => {
         const texture = counted(new Texture());
         const first = new MeshStandardMaterial();
         const second = new MeshStandardMaterial();
@@ -45,7 +45,7 @@ describe("共享资源只释放一次（C 回归）", () => {
         expect(texture.calls.count).toBe(1);
     });
 
-    test("数组材质全部释放，并覆盖各自纹理", () => {
+    test("All array materials are released and their respective textures are covered.", () => {
         const a = counted(new MeshStandardMaterial());
         const b = counted(new MeshStandardMaterial());
         const textureA = counted(new Texture());
@@ -61,7 +61,7 @@ describe("共享资源只释放一次（C 回归）", () => {
         expect(textureB.calls.count).toBe(1);
     });
 
-    test("多种纹理槽位都会被收集", () => {
+    test("Various texture slots will be collected", () => {
         const material = new MeshStandardMaterial();
         const slots = [counted(new Texture()), counted(new Texture()), counted(new Texture())];
         material.map = slots[0].target;
@@ -73,7 +73,7 @@ describe("共享资源只释放一次（C 回归）", () => {
         slots.forEach((slot) => expect(slot.calls.count).toBe(1));
     });
 
-    test("空输入是安全的", () => {
+    test("Empty input is safe", () => {
         expect(() => disposeDirectorObject3D(null)).not.toThrow();
         expect(() => disposeDirectorObject3D(undefined)).not.toThrow();
         expect(() => disposeDirectorHelper(null)).not.toThrow();
@@ -81,8 +81,8 @@ describe("共享资源只释放一次（C 回归）", () => {
     });
 });
 
-describe("SkeletonHelper / mixer / 组合释放", () => {
-    test("helper 自有 geometry 与 material 都被释放", () => {
+describe("SkeletonHelper / mixer / combination release", () => {
+    test("Helper's own geometry and material are released", () => {
         const helper = new SkeletonHelper(new Object3D());
         const geometry = counted(helper.geometry);
         const material = counted(helper.material as MeshStandardMaterial);
@@ -91,7 +91,7 @@ describe("SkeletonHelper / mixer / 组合释放", () => {
         expect(material.calls.count).toBe(1);
     });
 
-    test("mixer 停止全部动作并 uncacheRoot", () => {
+    test("mixer stops all actions and uncacheRoot", () => {
         const root = new Object3D();
         const mixer = new AnimationMixer(root);
         mixer.clipAction(new AnimationClip("idle", 1, [])).play();
@@ -112,7 +112,7 @@ describe("SkeletonHelper / mixer / 组合释放", () => {
         expect(uncached).toEqual([root]);
     });
 
-    test("组合释放覆盖 model + helper + mixer（晚到回调复用同一 helper）", () => {
+    test("Combined release coverage model + helper + mixer (late arrival callback reuses the same helper)", () => {
         const geometry = counted(new BoxGeometry(1, 1, 1));
         const material = counted(new MeshStandardMaterial());
         const model = new Group();
@@ -133,7 +133,7 @@ describe("SkeletonHelper / mixer / 组合释放", () => {
         expect(stopped.count).toBe(1);
     });
 
-    test("被替换掉的原材质与其纹理会被释放，替换后的新材质不受影响", () => {
+    test("The replaced original material and its texture will be released, and the new material after replacement will not be affected.", () => {
         const original = counted(new MeshStandardMaterial());
         const originalTexture = counted(new Texture());
         original.target.map = originalTexture.target;
@@ -144,14 +144,14 @@ describe("SkeletonHelper / mixer / 组合释放", () => {
         expect(replacement.calls.count).toBe(0);
     });
 
-    test("重复出现在列表中的材质只释放一次", () => {
+    test("Materials that appear repeatedly in the list are only released once", () => {
         const material = counted(new MeshStandardMaterial());
         disposeDirectorMaterials([material.target, material.target, null, undefined]);
         expect(material.calls.count).toBe(1);
     });
 });
 
-describe("GLTF clone 的 GPU 所有权（#1 回归）", () => {
+describe("GPU ownership of GLTF clones (regression #1)", () => {
     /** 造一棵带共享 geometry/material/texture 的 source，模拟 gltf.scene。 */
     function sourceScene() {
         const geometry = counted(new BoxGeometry(1, 1, 1));
@@ -166,7 +166,7 @@ describe("GLTF clone 的 GPU 所有权（#1 回归）", () => {
         return { root, geometry, material, texture };
     }
 
-    test("active adopt 不释放 source 的共享资源", () => {
+    test("active adopt does not release the shared resources of source", () => {
         const source = sourceScene();
         const ownership = resolveDirectorLoadOwnership({ active: true, generation: 3, currentGeneration: 3 });
         expect(ownership).toEqual({ adopt: true, disposeSource: false });
@@ -181,7 +181,7 @@ describe("GLTF clone 的 GPU 所有权（#1 回归）", () => {
         expect(clonedMesh.material).toBe(source.material.target);
     });
 
-    test("owned clone 最终 cleanup 让共享资源恰好释放一次", () => {
+    test("owned clone final cleanup allows shared resources to be released exactly once", () => {
         const source = sourceScene();
         const clone = SkeletonUtils.clone(source.root);
         const mixer = new AnimationMixer(clone);
@@ -192,7 +192,7 @@ describe("GLTF clone 的 GPU 所有权（#1 回归）", () => {
         expect(source.texture.calls.count).toBe(1);
     });
 
-    test("stale / 未采纳的晚到 source 会被释放", () => {
+    test("stale / unadopted late sources will be released", () => {
         const stale = resolveDirectorLoadOwnership({ active: true, generation: 1, currentGeneration: 2 });
         expect(stale).toEqual({ adopt: false, disposeSource: true });
         const unmounted = resolveDirectorLoadOwnership({ active: false, generation: 2, currentGeneration: 2 });
@@ -204,7 +204,7 @@ describe("GLTF clone 的 GPU 所有权（#1 回归）", () => {
         expect(orphan.texture.calls.count).toBe(1);
     });
 
-    test("采纳后 source 不再被单独释放：不会出现二次 dispose", () => {
+    test("After adoption, source will no longer be released separately: there will be no secondary dispose", () => {
         const source = sourceScene();
         const clone = SkeletonUtils.clone(source.root);
         // 只释放 owned clone（当前实现的语义），source 层级交给 GC。
@@ -215,8 +215,8 @@ describe("GLTF clone 的 GPU 所有权（#1 回归）", () => {
     });
 });
 
-describe("纹理识别必须基于 isTexture（#8 回归）", () => {
-    test("带 dispose 但非 Texture 的值不会被当作纹理释放", () => {
+describe("Texture recognition must be based on isTexture (#8 regression)", () => {
+    test("Values with dispose but not Texture will not be released as textures", () => {
         const material = new MeshStandardMaterial();
         const impostor = {
             dispose: () => {
@@ -231,7 +231,7 @@ describe("纹理识别必须基于 isTexture（#8 回归）", () => {
         expect(impostorCalls).toBe(0);
     });
 
-    test("真实 Texture 仍然被识别并去重释放", () => {
+    test("The real Texture is still recognized and deduplicated.", () => {
         const texture = counted(new Texture());
         expect(texture.target.isTexture).toBe(true);
         const first = new MeshStandardMaterial();
@@ -246,7 +246,7 @@ describe("纹理识别必须基于 isTexture（#8 回归）", () => {
     });
 });
 
-describe("采纳中途抛错的精确清理（#3 回归）", () => {
+describe("Adopt precise cleanup of errors thrown midway (#3 regression)", () => {
     /** 造一棵带共享 geometry/material/texture 的 source，模拟 gltf.scene。 */
     function sourceScene() {
         const geometry = counted(new BoxGeometry(1, 1, 1));
@@ -260,7 +260,7 @@ describe("采纳中途抛错的精确清理（#3 回归）", () => {
         return { root, geometry, material, texture };
     }
 
-    test("clone 已建成时只释放 clone(+mixer)，共享资源恰好一次", () => {
+    test("Only clone(+mixer) is released when clone has been built, and the shared resources are shared exactly once", () => {
         const source = sourceScene();
         const clone = SkeletonUtils.clone(source.root);
         const mixer = new AnimationMixer(clone);
@@ -277,7 +277,7 @@ describe("采纳中途抛错的精确清理（#3 回归）", () => {
         expect(source.texture.calls.count).toBe(1);
     });
 
-    test("clone 尚未建成时释放未采纳的 source", () => {
+    test("Release unadopted source when clone has not been built yet", () => {
         const source = sourceScene();
         disposeDirectorAdoptionFailure({ clone: null, mixer: null, source: source.root });
         expect(source.geometry.calls.count).toBe(1);
@@ -285,7 +285,7 @@ describe("采纳中途抛错的精确清理（#3 回归）", () => {
         expect(source.texture.calls.count).toBe(1);
     });
 
-    test("clone 未建成但 mixer 已建成时也会停掉 mixer", () => {
+    test("The mixer will also be stopped when the clone is not built but the mixer is built.", () => {
         const source = sourceScene();
         const orphanMixer = new AnimationMixer(new Group());
         let stopped = 0;
@@ -298,11 +298,11 @@ describe("采纳中途抛错的精确清理（#3 回归）", () => {
         expect(source.geometry.calls.count).toBe(1);
     });
 
-    test("全空输入是安全空操作", () => {
+    test("All-empty input is a safe no-op", () => {
         expect(() => disposeDirectorAdoptionFailure({ clone: null, mixer: null, source: null })).not.toThrow();
     });
 
-    test("重复调用不 double-dispose 同一批资源", () => {
+    test("Repeated calls do not double-dispose the same batch of resources", () => {
         const source = sourceScene();
         const clone = SkeletonUtils.clone(source.root);
         disposeDirectorAdoptionFailure({ clone, mixer: null, source: source.root });

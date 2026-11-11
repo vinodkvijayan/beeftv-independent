@@ -19,7 +19,7 @@ const results = [1000, 10000, 50000].map((nodeCount) => {
     const nodes = Array.from({ length: nodeCount }, (_, index) => ({
         id: `node-${index}`,
         type: index % 50 < 35 ? "image" : index % 50 < 49 ? "video" : "text",
-        title: `节点 ${index}`,
+        title: `node${index}`,
         position: { x: (index % 250) * 360, y: Math.floor(index / 250) * 220 },
         width: 320,
         height: 180,
@@ -63,15 +63,15 @@ const regressions: Array<{ nodeCount: number; metric: string; baselineMs: number
 if (baselinePath) {
     const baseline = JSON.parse(readFileSync(baselinePath, "utf8")) as typeof report;
     if (baseline.fixtureVersion !== report.fixtureVersion || baseline.runtime !== report.runtime || baseline.platform !== report.platform) {
-        throw new Error("性能基线的 fixture、运行时或平台不一致，不能比较");
+        throw new Error("The performance baseline has inconsistent fixtures, runtimes, or platforms and cannot be compared");
     }
     for (const result of results) {
         const previous = baseline.results.find((row) => row.nodeCount === result.nodeCount);
-        if (!previous || previous.serializedBytes !== result.serializedBytes) throw new Error("性能基线缺少同规模的固定数据");
+        if (!previous || previous.serializedBytes !== result.serializedBytes) throw new Error("Performance baseline lacks fixed data of the same scale");
         for (const metric of ["serialize", "parse", "buildSpatialIndex", "query500Viewports"] as const) {
             const baselineMs = previous[metric]?.medianMs;
             const currentMs = result[metric].medianMs;
-            if (!Number.isFinite(baselineMs) || baselineMs < 0) throw new Error("性能基线测量值无效");
+            if (!Number.isFinite(baselineMs) || baselineMs < 0) throw new Error("Invalid performance baseline measurement");
             if (currentMs > baselineMs * 1.5 && currentMs - baselineMs > 2) {
                 regressions.push({ nodeCount: result.nodeCount, metric, baselineMs, currentMs });
             }

@@ -113,7 +113,7 @@ func TestRetainsOfficialPluginForUnretrievedTaskOnly(t *testing.T) {
 	if !ok {
 		t.Fatal("plugin needed to retrieve an unfinished task was deleted")
 	}
-	if item.Retention == nil || !strings.Contains(strings.Join(item.Retention.Reasons, ""), "未完成或待取回结果的任务") {
+	if item.Retention == nil || !strings.Contains(strings.Join(item.Retention.Reasons, ""), "Tasks that are not completed or whose results are yet to be retrieved") {
 		t.Fatalf("retention = %#v", item.Retention)
 	}
 }

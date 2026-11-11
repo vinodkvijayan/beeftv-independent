@@ -50,15 +50,15 @@ func newLockOrderFixture(t *testing.T) *lockOrderFixture {
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	service := NewLocal(repository.New(db), t.TempDir())
 	encoded, err := json.Marshal(map[string]any{
-		"id": "lock-canvas", "title": "锁顺序", "revision": 0,
+		"id": "lock-canvas", "title": "Lock order", "revision": 0,
 		"nodes": []any{
-			map[string]any{"id": "n1", "type": "text", "title": "节点", "position": map[string]any{"x": 1, "y": 1},
-				"width": 320, "height": 220, "metadata": map[string]any{"content": "原始"}},
+			map[string]any{"id": "n1", "type": "text", "title": "node", "position": map[string]any{"x": 1, "y": 1},
+				"width": 320, "height": 220, "metadata": map[string]any{"content": "original"}},
 		},
 		"connections": []any{},
 	})
@@ -87,7 +87,7 @@ func (fx *lockOrderFixture) revision() int64 {
 	case int64:
 		return v
 	default:
-		fx.t.Fatalf("画布 revision 类型异常: %T", doc["revision"])
+		fx.t.Fatalf("Canvas revision type exception: %T", doc["revision"])
 	}
 	return 0
 }
@@ -95,7 +95,7 @@ func (fx *lockOrderFixture) revision() int64 {
 func (fx *lockOrderFixture) executeNodeUpdate() error {
 	raw, err := json.Marshal(map[string]any{
 		"canvasId": fx.canvasID, "nodeId": "n1", "expectedRevision": fx.revision(),
-		"patch": map[string]any{"title": "事务内写入"}, "operationId": "lock-order-node-update",
+		"patch": map[string]any{"title": "write within transaction"}, "operationId": "lock-order-node-update",
 	})
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (fx *lockOrderFixture) prepareUndo() {
 	}
 	raw, err := json.Marshal(map[string]any{
 		"canvasId": fx.canvasID, "expectedRevision": fx.revision(),
-		"nodes":       []any{map[string]any{"title": "回合节点", "type": "text"}},
+		"nodes":       []any{map[string]any{"title": "round node", "type": "text"}},
 		"operationId": "lock-order-turn-create",
 	})
 	if err != nil {
@@ -143,7 +143,7 @@ func (fx *lockOrderFixture) createTaskHoldingMutex(held chan struct{}) error {
 	}
 	task := &model.Task{
 		ID: "lock-create-1", UserID: fx.userID, Type: "canvas_text",
-		Status: model.TaskStatusQueued, Prompt: "锁顺序创建", InputJSON: "{}",
+		Status: model.TaskStatusQueued, Prompt: "Lock order creation", InputJSON: "{}",
 	}
 	fx.service.storageMu.Lock()
 	defer fx.service.storageMu.Unlock()
@@ -171,7 +171,7 @@ func (fx *lockOrderFixture) saveTaskHoldingMutex(task model.Task, held chan stru
 	}
 	completed := task
 	completed.Status = model.TaskStatusSucceeded
-	completed.Stage = "任务完成"
+	completed.Stage = "Mission accomplished"
 	completed.Progress = 100
 	completed.ResultJSON = `{"ok":true}`
 	now := time.Now()
@@ -245,9 +245,9 @@ func runLockOrderAgainstTask(t *testing.T, fx *lockOrderFixture, txPath, taskPat
 	select {
 	case <-txReady:
 	case err := <-txErr:
-		t.Fatalf("事务路径在 WithStorageLock 之前返回: %v", err)
+		t.Fatalf("Transaction path returned before WithStorageLock: %v", err)
 	case <-time.After(4 * time.Second):
-		t.Fatal("事务路径未进入 WithStorageLock")
+		t.Fatal("Transaction path does not enter WithStorageLock")
 	}
 
 	taskErr := make(chan error, 1)
@@ -262,9 +262,9 @@ func runLockOrderAgainstTask(t *testing.T, fx *lockOrderFixture, txPath, taskPat
 	select {
 	case <-held:
 	case err := <-taskErr:
-		t.Fatalf("任务路径在拿到 storageMu 之前返回: %v", err)
+		t.Fatalf("The task path returns before getting storageMu: %v", err)
 	case <-time.After(4 * time.Second):
-		t.Fatal("任务路径未拿到 storageMu")
+		t.Fatal("The task path did not get storageMu")
 	}
 	proceedOnce.Do(func() { close(proceed) })
 
@@ -278,14 +278,14 @@ func runLockOrderAgainstTask(t *testing.T, fx *lockOrderFixture, txPath, taskPat
 		case err := <-taskErr:
 			gotTask = err
 		case <-deadline:
-			t.Fatalf("单连接锁顺序未在时限内结束 tx=%v task=%v", pendingText(gotTx), pendingText(gotTask))
+			t.Fatalf("The single connection lock sequence did not end within the time limit tx=%v task=%v", pendingText(gotTx), pendingText(gotTask))
 		}
 	}
 	if gotTx != nil {
-		t.Fatalf("事务路径失败: %v", gotTx)
+		t.Fatalf("Transaction path failed: %v", gotTx)
 	}
 	if gotTask != nil {
-		t.Fatalf("任务路径失败: %v", gotTask)
+		t.Fatalf("Task path failed: %v", gotTask)
 	}
 }
 
@@ -293,7 +293,7 @@ var errPending = errors.New("pending")
 
 func pendingText(err error) string {
 	if err == errPending {
-		return "未返回"
+		return "Not returned"
 	}
 	if err == nil {
 		return "ok"
@@ -304,25 +304,25 @@ func pendingText(err error) string {
 func TestMapConversationAttachErrorUsesTypedReasons(t *testing.T) {
 	t.Helper()
 	deleted := mapConversationAttachError(&conversation.Error{
-		Status: http.StatusConflict, Reason: conversation.ReasonDeleted, Message: "对话已删除，无法再写入",
+		Status: http.StatusConflict, Reason: conversation.ReasonDeleted, Message: "The conversation has been deleted and can no longer be written to",
 	})
 	var bindErr *taskbinding.Error
 	if !errors.As(deleted, &bindErr) || bindErr.Reason != "conversation_deleted" || bindErr.Status != 409 {
 		t.Fatalf("deleted = %#v", deleted)
 	}
 	mismatch := mapConversationAttachError(&conversation.Error{
-		Status: http.StatusConflict, Reason: conversation.ReasonMessageTaskMismatch, Message: "这条消息已经换了任务，不能再写入这次结果",
+		Status: http.StatusConflict, Reason: conversation.ReasonMessageTaskMismatch, Message: "This message has changed tasks and the results cannot be written again.",
 	})
 	if !errors.As(mismatch, &bindErr) || bindErr.Reason != "message_task_mismatch" {
 		t.Fatalf("mismatch = %#v", mismatch)
 	}
 	stale := mapConversationAttachError(&conversation.Error{
-		Status: http.StatusConflict, Reason: conversation.ReasonConflict, Message: "对话已更新，当前草稿未覆盖已保存内容",
+		Status: http.StatusConflict, Reason: conversation.ReasonConflict, Message: "Conversation updated, current draft does not overwrite saved content",
 	})
 	if !errors.As(stale, &bindErr) || bindErr.Reason != "stale_revision" {
 		t.Fatalf("stale = %#v", stale)
 	}
-	if mapped := mapConversationAttachError(errors.New("对话已更新，当前草稿未覆盖已保存内容")); mapped.Error() != "对话已更新，当前草稿未覆盖已保存内容" {
+	if mapped := mapConversationAttachError(errors.New("Conversation updated, current draft does not overwrite saved content")); mapped.Error() != "Conversation updated, current draft does not overwrite saved content" {
 		t.Fatalf("untyped text must pass through: %v", mapped)
 	}
 }
@@ -391,9 +391,9 @@ func TestSingleConnectionDocumentCommitDoesNotDeadlockAgainstDocumentLimitReads(
 	select {
 	case <-limitAtQuery:
 	case err := <-limitErr:
-		t.Fatalf("容量上限读取在进入查询回调前返回: %v", err)
+		t.Fatalf("The capacity limit read returns: %v before entering the query callback.", err)
 	case <-time.After(4 * time.Second):
-		t.Fatal("容量上限读取未进入查询回调")
+		t.Fatal("Capacity upper limit reading does not enter the query callback")
 	}
 
 	commitErr := make(chan error, 1)
@@ -403,16 +403,16 @@ func TestSingleConnectionDocumentCommitDoesNotDeadlockAgainstDocumentLimitReads(
 			"expectedRevision": expectedRev,
 			"operationId":      "lock-order-document-commit",
 			"document": map[string]any{
-				"title": "整份文档提交",
+				"title": "Submit the entire document",
 				"nodes": []any{
 					map[string]any{
 						"id":       "n1",
 						"type":     "text",
-						"title":    "提交后节点",
+						"title":    "Post-commit node",
 						"position": map[string]any{"x": 10, "y": 20},
 						"width":    320,
 						"height":   220,
-						"metadata": map[string]any{"content": "更新内容"},
+						"metadata": map[string]any{"content": "Update content"},
 					},
 				},
 				"connections": []any{},
@@ -441,13 +441,13 @@ func TestSingleConnectionDocumentCommitDoesNotDeadlockAgainstDocumentLimitReads(
 		case err := <-limitErr:
 			gotLimit = err
 		case <-deadline:
-			t.Fatalf("document.commit 与容量上限读取在单连接下发生死锁 commit=%v limit=%v", pendingText(gotCommit), pendingText(gotLimit))
+			t.Fatalf("document.commit and capacity limit reading deadlock occurs under single connection commit=%v limit=%v", pendingText(gotCommit), pendingText(gotLimit))
 		}
 	}
 	if gotCommit != nil {
-		t.Fatalf("document.commit 失败: %v", gotCommit)
+		t.Fatalf("document.commit failed: %v", gotCommit)
 	}
 	if gotLimit != nil {
-		t.Fatalf("容量上限读取失败: %v", gotLimit)
+		t.Fatalf("Failed to read capacity limit: %v", gotLimit)
 	}
 }

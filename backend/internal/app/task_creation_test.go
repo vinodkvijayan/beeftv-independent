@@ -89,7 +89,7 @@ func TestCreateTaskRejectsCrossTypeRetryFromDepthCapture(t *testing.T) {
 	}
 	svc := &Service{repo: repository.New(db)}
 	_, err = svc.CreateTask("user", CreateTaskRequest{
-		Type: "canvas_video", Prompt: "生成深度动作参考",
+		Type: "canvas_video", Prompt: "Generate deep action reference",
 		Input: map[string]any{"metadata": map[string]any{"retryOf": parent.ID}},
 	})
 	if err == nil || !strings.Contains(err.Error(), "任务类型不一致") {

@@ -22,7 +22,7 @@ func TestProbeLocalNativeAndFailures(t *testing.T) {
 	if _, err := ResolveFFprobe(); err != nil {
 		t.Skip(err)
 	}
-	path := filepath.Join(t.TempDir(), "中文 media.mp4")
+	path := filepath.Join(t.TempDir(), "Chinese media.mp4")
 	cmd := exec.Command(ffmpeg, "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=64x48:r=5:d=0.4", "-c:v", "libx264", "-pix_fmt", "yuv420p", path)
 	HideConsole(cmd)
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -96,7 +96,7 @@ func TestAlreadyCanceledProbeDoesNotStartProcess(t *testing.T) {
 }
 
 func TestBundledFFprobeRelocation(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "中文 install")
+	root := filepath.Join(t.TempDir(), "Chinese install")
 	want := filepath.Join(root, "agent-host", "media-runtime", "ffprobe.exe")
 	if err := os.MkdirAll(filepath.Dir(want), 0o755); err != nil {
 		t.Fatal(err)
@@ -112,7 +112,7 @@ func TestBundledFFprobeRelocation(t *testing.T) {
 }
 
 func TestBundledDarwinFFprobeRelocationAndCLI(t *testing.T) {
-	contents := filepath.Join(t.TempDir(), "中文 bundle", "Contents")
+	contents := filepath.Join(t.TempDir(), "Chinese bundle", "Contents")
 	want := filepath.Join(contents, "Resources", "agent-host", "media-runtime", "ffprobe")
 	if err := os.MkdirAll(filepath.Dir(want), 0o755); err != nil {
 		t.Fatal(err)

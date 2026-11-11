@@ -1,49 +1,49 @@
-# Agnes AI 视频协议
+#AgnesAIVideoProtocol
 
-Agnes AI 官方视频接口使用 Bearer API Key 和异步任务模型。宿主实现覆盖 `agnes-video-v2.0`、`agnes-video-2.5`、`agnes-video-2.5-flash`，创建任务后保存响应中的 `video_id`，再查询任务状态。官方国际站 Base URL 为 `https://apihub.agnes-ai.com/v1`；密钥只配置在后端渠道，不进入浏览器 URL、日志或任务正文。
+Agnes AI official video interface uses Bearer API Key and asynchronous task model. The host implementation covers `agnes-video-v2.0`, `agnes-video-2.5`, and `agnes-video-2.5-flash`. After creating the task, save `video_id` in the response, and then query the task status. The base URL of the official international site is `https://apihub.agnes-ai.com/v1`; the key is only configured in the back-end channel and does not enter the browser URL, logs or task text.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
-创建请求发送到 `/v1/videos`。轮询接口比较特殊：它位于同一主机的根路径 `/agnesapi`，而不是 Base URL 的 `/v1` 下。宿主通过“同源根路径”合同拼接请求，因此配置 `https://apihub.agnes-ai.com/v1` 时会得到 `https://apihub.agnes-ai.com/agnesapi?...`，不会错误拼成 `/v1/agnesapi`，也不会把主机硬编码进协议适配器。
+Create request sent to `/v1/videos`. The polling interface is special: it is under the root path `/agnesapi` of the same host, not the Base URL `/v1`. The host splices requests through the "same root path" contract, so when configuring `https://apihub.agnes-ai.com/v1` you get `https://apihub.agnes-ai.com/agnesapi?...`, not misspelled as `/v1/agnesapi`, and the host is not hard-coded into the protocol adapter.
 
-请求头使用 `Authorization: Bearer <API_KEY>` 和 `Content-Type: application/json`。创建响应优先读取 `video_id`，兼容读取 `task_id` 和 `id`；轮询始终携带 `video_id`，并在模型名可用时携带 `model_name`。
+The request headers use `Authorization: Bearer <API_KEY>` and `Content-Type: application/json`. The creation response preferentially reads `video_id`, and is compatible with reads `task_id` and `id`; polling always carries `video_id`, and `model_name` when the model name is available.
 
-## 模型与模式
+## Models and Patterns
 
-- `agnes-video-2.5`：支持 `text`、`keyframe`、`reference`。时长为字符串 `"4"` 到 `"12"`，默认 5 秒；分辨率支持 `720P`、`960P`、`2K`。
-- `agnes-video-2.5-flash`：模式与 2.5 相同，但固定 `720P`，参考图最多 5 张，不支持参考视频。
-- `agnes-video-v2.0`：支持文生视频、单图生视频和多关键帧；时长由 `num_frames / frame_rate` 控制，`num_frames` 必须符合 `8n + 1` 且不超过 441。
+- `agnes-video-2.5`: Supports `text`, `keyframe`, `reference`. The duration is the string `"4"` to `"12"`, the default is 5 seconds; the resolution supports `720P`, `960P`, and `2K`.
+- `agnes-video-2.5-flash`: The mode is the same as 2.5, but `720P` is fixed, the reference picture can be up to 5, and the reference video is not supported.
+- `agnes-video-v2.0`: supports Vincent video, single-image video and multiple key frames; the duration is controlled by `num_frames / frame_rate`, `num_frames` must comply with `8n + 1` and not exceed 441.
 
-2.5 系列未显式传 `mode` 时，纯文本使用 `text`；存在音频或视频时使用 `reference`；只有一至两张图片时使用 `keyframe`。如果业务需要把图片当风格或主体参考，应在扩展参数中明确传 `mode: "reference"`。模式与媒体组合不合法时，宿主在发出上游请求前直接拒绝。
+When the 2.5 series does not explicitly transmit `mode`, `text` is used for plain text; `reference` is used when there is audio or video; `keyframe` is used when there are only one or two pictures. If the business needs to use pictures as style or subject reference, `mode: "reference"` should be clearly passed in the extended parameters. When the combination of mode and media is illegal, the host directly rejects the request before sending the upstream request.
 
-## 参数映射
+## Parameter mapping
 
 {{PARAMETERS}}
 
 ### Agnes Video 2.5 / 2.5 Flash
 
-公共请求字段包括 `model`、`prompt`、`mode`、`seconds`、`size`、`aspect_ratio`、`seed`、`n`。宿主固定 `n: 1`。宿主字段 `images` 在 `keyframe` 模式把前两张图片依次映射为 `first_frame`、`last_frame`；在 `reference` 模式映射为官方图片数组。宿主字段 `videos`、`audios` 分别映射为官方同名数组。参考视频当前发送 `{ "url": "..." }`，不臆造 `start_seconds` 或 `require_audio`。
+Common request fields include `model`, `prompt`, `mode`, `seconds`, `size`, `aspect_ratio`, `seed`, `n`. Host fixed `n: 1`. The host field `images` maps the first two pictures to `first_frame` and `last_frame` in sequence in `keyframe` mode; in `reference` mode it maps to the official picture array. Host fields `videos` and `audios` are respectively mapped to official arrays with the same name. The reference video currently sends `{ "url": "..." }`, not infer `start_seconds` or `require_audio`.
 
 ### Agnes Video V2.0
 
-单张 `images` 输入映射为 `image`；多张图片映射为 `extra_body.image` 并设置 `extra_body.mode: "keyframes"`。宿主字段 `duration` 会按 `frame_rate`（缺省 24）换算到最近的 `8n + 1` 帧并限制在 441 帧内。高级字段 `width`、`height`、`num_frames`、`frame_rate`、`num_inference_steps`、`seed`、`negative_prompt` 可由模型协议扩展参数传入。V2.0 不使用 `aspectRatio` 或 `resolution` 直接猜测尺寸。
+A single `images` input is mapped to `image`; multiple pictures are mapped to `extra_body.image` and set to `extra_body.mode: "keyframes"`. The host field `duration` will be scaled to the nearest `8n + 1` frame by `frame_rate` (default 24) and limited to 441 frames. Advanced fields `width`, `height`, `num_frames`, `frame_rate`, `num_inference_steps`, `seed`, `negative_prompt` can be passed in by model protocol extension parameters. V2.0 does not use `aspectRatio` or `resolution` to directly guess the size.
 
-## 响应、状态与错误
+## Response, status and errors
 
-创建成功响应中的 `video_id` 是推荐轮询标识。状态映射为：`queued` -> 等待，`in_progress` -> 处理中，`completed` -> 成功，`failed` -> 失败。成功结果优先读取 2.5 官方结构中的 `metadata.url`，并兼容 V2.0 返回的顶层 `url`；如果响应宣称完成却没有视频 URL，宿主会返回真实协议错误，不生成假 URL。失败信息优先读取 `error.message`，其次读取顶层 `message` 或 `detail`。
+`video_id` in the creation success response is the recommended polling ID. The status mapping is: `queued` -> waiting, `in_progress` -> processing, `completed` -> successful, `failed` -> failed. The successful result reads `metadata.url` in the 2.5 official structure first, and is compatible with the top-level `url` returned by V2.0; if the response claims completion but does not have a video URL, the host will return a true protocol error and will not generate a fake URL. The failure information reads `error.message` first, followed by the top-level `message` or `detail`.
 
-参考媒体必须是 Agnes 服务可公开访问且在任务完成前持续有效的 URL。适配器声明了公共媒体 URL 要求，宿主运行时会按现有资源流程准备上游可访问地址；本机、私网、Cookie 保护或很快过期的链接不能作为 Agnes 输入。
+The reference media must be a URL that is publicly accessible to the Agnes service and remains valid until the task is completed. The adapter declares the public media URL requirement, and the host runtime will prepare the upstream accessible address according to the existing resource process; local, private network, cookie protected, or links that will expire soon cannot be entered as Agnes.
 
-## 官方资料
+## Official information
 
-- 官网：<https://agnes-ai.com/>
-- 文档首页：<https://wiki.agnes-ai.com/en/docs/overview>
-- Agnes Video 2.5：<https://wiki.agnes-ai.com/en/docs/agnes-video-25>
+- Official website: <https://agnes-ai.com/>
+- Document homepage: <https://wiki.agnes-ai.com/en/docs/overview>
+- Agnes Video 2.5: <https://wiki.agnes-ai.com/en/docs/agnes-video-25>
 - Agnes Video 2.5 Flash：<https://wiki.agnes-ai.com/en/docs/agnes-video-25-flash>
-- Agnes Video V2.0：<https://wiki.agnes-ai.com/en/docs/agnes-video-v20>
+- Agnes Video V2.0: <https://wiki.agnes-ai.com/en/docs/agnes-video-v20>
 
-官方当前给出的创建接口是 `POST https://apihub.agnes-ai.com/v1/videos`，推荐查询接口是 `GET https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>&model_name=<MODEL>`。价格和促销会变化，不在协议适配器中固化。
+The official creation interface currently provided is `POST https://apihub.agnes-ai.com/v1/videos`, and the recommended query interface is `GET https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>&model_name=<MODEL>`. Prices and promotions change and are not fixed in the protocol adapter.
 
 {{CONTRACT}}

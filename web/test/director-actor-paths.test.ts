@@ -3,10 +3,10 @@ import { describe, expect, test } from "bun:test";
 import { createDirectorActorPath, createDirectorActorPenPath, createDirectorActorPencilPath, editDirectorActorPathAtTime, removeDirectorActorPath, retimeDirectorActorPath, setDirectorActorPathFacing, updateDirectorActorPathTransform } from "@/lib/canvas/director/director-actor-paths";
 import { createDirectorActor, interpolateDirectorTransform } from "@/lib/canvas/director/director-scene";
 
-const actor = () => createDirectorActor("角色A", [0, 0, 0]);
+const actor = () => createDirectorActor("Role A", [0, 0, 0]);
 
-describe("导演台角色运动轨迹", () => {
-    test("直线路径从演员当前位置向前推进，播放头和输出读取同一组关键帧", () => {
+describe("Director's stage character movement trajectory", () => {
+    test("A straight path advances forward from the actor's current position, with the playhead and output reading the same set of keyframes", () => {
         const source = actor();
         const result = createDirectorActorPath(source, "line", 10);
         expect(result.motionPath).toMatchObject({ kind: "line", duration: 10, facePath: true });
@@ -16,14 +16,14 @@ describe("导演台角色运动轨迹", () => {
         expect(interpolateDirectorTransform(result.transform, result.keyframes, 10).position).toEqual([0, 0, 4]);
     });
 
-    test("更改轨迹时长保留空间路线但重定时关键帧", () => {
+    test("Changing track duration preserves spatial alignment but retimes keyframes", () => {
         const result = retimeDirectorActorPath(createDirectorActorPath(actor(), "line", 10), 5);
         expect(result.motionPath?.duration).toBe(5);
         expect(result.keyframes.map((key) => key.time)).toEqual([0, 5]);
         expect(interpolateDirectorTransform(result.transform, result.keyframes, 2.5).position).toEqual([0, 0, 2]);
     });
 
-    test("轨迹属性只编辑播放头的插值位置，不移动整条路径", () => {
+    test("The track properties only edit the interpolation position of the playhead and do not move the entire path.", () => {
         const created = createDirectorActorPath(actor(), "line", 10);
         const edited = editDirectorActorPathAtTime(created, 2, { ...created.transform, position: [1, 0, 0.8] });
         expect(edited.keyframes).toHaveLength(3);
@@ -32,7 +32,7 @@ describe("导演台角色运动轨迹", () => {
         expect(interpolateDirectorTransform(edited.transform, edited.keyframes, 10).position).toEqual([0, 0, 4]);
     });
 
-    test("圆环和矩形路径的中心及半程站位与参考页一致", () => {
+    test("The center and half-way positions of circular and rectangular paths are consistent with the reference page", () => {
         const ring = createDirectorActorPath(actor(), "ring", 10);
         expect(ring.motionPath?.transform.position).toEqual([-2, 0, 0]);
         expect(interpolateDirectorTransform(ring.transform, ring.keyframes, 5).position[0]).toBeCloseTo(-4, 5);
@@ -41,7 +41,7 @@ describe("导演台角色运动轨迹", () => {
         expect(interpolateDirectorTransform(rectangle.transform, rectangle.keyframes, 5).position).toEqual([4, 0, 3]);
     });
 
-    test("圆环轨迹用平滑采样播放，但时间轴只暴露起点、半程和终点", () => {
+    test("The circular trajectory is played with smooth sampling, but the timeline only exposes the start, half and end points", () => {
         const ring = createDirectorActorPath(actor(), "ring", 10);
         expect(ring.keyframes.length).toBeGreaterThan(20);
         const controls = ring.keyframes.filter((frame) => ring.motionPath?.controlKeyframeIds?.includes(frame.id));
@@ -52,7 +52,7 @@ describe("导演台角色运动轨迹", () => {
         }
     });
 
-    test("路径位置和等比缩放移动整条轨迹，不改变演员本身的身材比例", () => {
+    test("Path position and proportional scaling move the entire trajectory without changing the actor's body proportions", () => {
         const created = createDirectorActorPath(actor(), "line", 10);
         const shifted = updateDirectorActorPathTransform(created, { ...created.motionPath!.transform, position: [1, 0, 2] });
         expect(shifted.keyframes.map((key) => key.transform.position)).toEqual([[1, 0, 0], [1, 0, 4]]);
@@ -61,7 +61,7 @@ describe("导演台角色运动轨迹", () => {
         expect(scaled.transform.scale).toEqual(created.transform.scale);
     });
 
-    test("沿路径朝向只改变轨道旋转；关闭后恢复人物原始朝向", () => {
+    test("Only changes the orbital rotation along the path orientation; restores the original orientation of the character after turning it off.", () => {
         const source = { ...actor(), transform: { ...actor().transform, rotation: [0, 0.4, 0] as [number, number, number] } };
         const ring = createDirectorActorPath(source, "ring", 10);
         expect(ring.keyframes.some((key) => key.transform.rotation[1] !== source.transform.rotation[1])).toBe(true);
@@ -69,7 +69,7 @@ describe("导演台角色运动轨迹", () => {
         expect(unbound.keyframes.every((key) => key.transform.rotation[1] === source.transform.rotation[1])).toBe(true);
     });
 
-    test("移除轨迹时恢复创建前的关键帧，不清空用户原有动画", () => {
+    test("When removing a track, the keyframes before creation are restored and the user's original animation is not cleared.", () => {
         const source = actor();
         const prior = [{ id: "manual", time: 1, transform: { ...source.transform, position: [3, 0, 0] as [number, number, number] } }];
         const withPath = createDirectorActorPath({ ...source, keyframes: prior }, "line", 10);
@@ -79,7 +79,7 @@ describe("导演台角色运动轨迹", () => {
         expect(restored.motionPath).toBeUndefined();
     });
 
-    test("铅笔轨迹按画布手势的空间距离分配时间，并以演员原位置起步", () => {
+    test("The pencil trace is timed according to the spatial distance of the canvas gesture and starts from the actor's original position", () => {
         const result = createDirectorActorPencilPath(actor(), [{ x: 5, z: 8 }, { x: 8, z: 8 }, { x: 8, z: 12 }], 7);
         expect(result?.motionPath).toMatchObject({ kind: "pencil", duration: 7 });
         expect(result?.keyframes).toHaveLength(10);
@@ -91,16 +91,16 @@ describe("导演台角色运动轨迹", () => {
         expect(result?.motionPath?.transform.position).toEqual([1.5, 0, 2]);
     });
 
-    test("铅笔单点手势不覆盖演员原有轨道", () => {
+    test("Pencil single-point gesture does not cover the actor's original track", () => {
         expect(createDirectorActorPencilPath(actor(), [{ x: 5, z: 8 }, { x: 5, z: 8 }], 7)).toBeNull();
     });
 
-    test("缓慢的小幅连续拖拽按累计位移采样，不会误判为单点", () => {
+    test("Slow and small continuous dragging samples according to the accumulated displacement, and will not be misjudged as a single point.", () => {
         const result = createDirectorActorPencilPath(actor(), [{ x: 0, z: 0 }, { x: 0.03, z: 0 }, { x: 0.06, z: 0 }, { x: 0.09, z: 0 }], 3);
         expect(result?.keyframes.at(-1)?.transform.position[0]).toBeCloseTo(0.09, 5);
     });
 
-    test("钢笔逐点路径从演员位置出发、穿过控制点，并保留可编辑的控制时间点", () => {
+    test("Pen point-by-point path starts from actor position, passes through control points, and retains editable control time points", () => {
         const result = createDirectorActorPenPath(actor(), [{ x: 2, z: 0 }, { x: 2, z: 2 }], 6);
         expect(result?.motionPath).toMatchObject({ kind: "pen", duration: 6 });
         expect(result?.motionPath?.transform.position).toEqual([1, 0, 1]);
@@ -111,7 +111,7 @@ describe("导演台角色运动轨迹", () => {
         expect(controls.map((frame) => frame.time)).toEqual([0, 3, 6]);
     });
 
-    test("钢笔重复点击同一点不创建空动画", () => {
+    test("Repeatedly clicking the same point with the pen does not create an empty animation", () => {
         expect(createDirectorActorPenPath(actor(), [{ x: 0, z: 0 }, { x: 0, z: 0 }], 6)).toBeNull();
     });
 });

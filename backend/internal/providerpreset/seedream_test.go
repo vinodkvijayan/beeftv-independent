@@ -77,7 +77,7 @@ func TestResolveSeedreamSizeFollowsOfficialPerModelLimits(t *testing.T) {
 				t.Fatalf("%s %q error copy should name the model: %v", item.family, item.size, err)
 			}
 			// 这句话会原样显示在画布上，不能带像素区间、宽高比小数这类内部口径。
-			for _, jargon := range []string{"总像素", "宽高比 0.", "区间"} {
+			for _, jargon := range []string{"total pixels", "Aspect ratio 0.", "interval"} {
 				if strings.Contains(err.Error(), jargon) {
 					t.Fatalf("%s %q error copy leaks %q: %v", item.family, item.size, jargon, err)
 				}
@@ -100,35 +100,35 @@ func TestResolveSeedreamSizeErrorsReadLikeUserCopy(t *testing.T) {
 	}{
 		{
 			family: "4.5", size: "1K",
-			want: "Seedream 4.5 没有 1K 档位，请改选 2K、4K，或直接填宽x高像素（例如 2560x1440）",
+			want: "Seedream 4.5 does not have a 1K level, please select 2K, 4K instead, or directly fill in width x height pixels (for example, 2560x1440)",
 		},
 		{
 			family: "pro", size: "4K",
-			want: "Seedream 5.0 Pro 没有 4K 档位，请改选 1K、1.5K、2K，或直接填宽x高像素（例如 1280x720）",
+			want: "Seedream 5.0 Pro does not have 4K gear, please choose 1K, 1.5K, 2K instead, or directly fill in width x height pixels (for example, 1280x720)",
 		},
 		{
 			family: "4.5", size: "1500x1500",
-			want: "Seedream 4.5 的图片至少要 2560x1440（369 万像素），1500x1500 只有 225 万像素",
+			want: "Seedream 4.5 images must be at least 2560x1440 (3.69 million pixels), 1500x1500 only has 2.25 million pixels",
 		},
 		{
 			family: "pro", size: "512x512",
-			want: "Seedream 5.0 Pro 的图片至少要 1280x720（92 万像素），512x512 只有 26 万像素",
+			want: "Seedream 5.0 Pro pictures must be at least 1280x720 (920,000 pixels), 512x512 only has 260,000 pixels",
 		},
 		{
 			family: "4.0", size: "4096x200",
-			want: "Seedream 4.0 支持最宽 16:1、最窄 1:16 的图片，4096x200 超出这个范围",
+			want: "Seedream 4.0 supports images with the widest 16:1 and the narrowest 1:16, 4096x200 exceeds this range",
 		},
 		{
 			family: "pro", size: "1080p",
-			want: "Seedream 5.0 Pro 看不懂尺寸 1080p，请填 1K、1.5K、2K 档位、16:9 这类画布比例，或宽x高像素（例如 1280x720）",
+			want: "Seedream 5.0 Pro cannot understand the size of 1080p. Please fill in the 1K, 1.5K, 2K gears, canvas ratios such as 16:9, or width x height pixels (for example, 1280x720)",
 		},
 		{
 			family: "pro", size: "2048x2048", layers: true,
-			want: "Seedream 5.0 Pro 的图层拆分不支持 2048x2048，请改选 1K、1.5K、2K 档位，或选「跟随原图」",
+			want: "The layer splitting of Seedream 5.0 Pro does not support 2048x2048. Please select 1K, 1.5K, 2K instead, or select \"Follow the original image\"",
 		},
 		{
 			family: "pro", size: "4K", layers: true,
-			want: "Seedream 5.0 Pro 的图层拆分不支持 4K，请改选 1K、1.5K、2K 档位，或选「跟随原图」",
+			want: "Seedream 5.0 Pro's layer splitting does not support 4K, please select 1K, 1.5K, 2K instead, or select \"Follow original image\"",
 		},
 	} {
 		_, err := ResolveSeedreamSize(item.family, item.size, item.layers)

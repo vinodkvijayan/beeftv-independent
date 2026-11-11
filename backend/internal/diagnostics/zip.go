@@ -19,7 +19,7 @@ func buildZIP(brandName string, bundleID string, manifest manifest, collection *
 		return nil, err
 	}
 	newline := string(rune(10))
-	readme := fmt.Sprintf("%s 用户诊断包%s%s诊断编号：%s%s时间范围：%s 至 %s%s%s该文件由用户主动导出，仅包含有限时间范围内的脱敏诊断摘要。%s", brandName, newline, newline, bundleID, newline, collection.Window.From.Format(time.RFC3339), collection.Window.To.Format(time.RFC3339), newline, newline, newline)
+	readme := fmt.Sprintf("%s User diagnostic package %s%s Diagnosis number: %s%s Time range: %s to %s%s%s This file is actively exported by the user and only contains a desensitization diagnostic summary within a limited time range. %s", brandName, newline, newline, bundleID, newline, collection.Window.From.Format(time.RFC3339), collection.Window.To.Format(time.RFC3339), newline, newline, newline)
 	if err := writeZipFile(archive, "README.txt", []byte(readme)); err != nil {
 		return nil, err
 	}

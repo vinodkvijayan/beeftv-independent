@@ -27,7 +27,7 @@ func TestSavedPortraitProjectRendersPortraitAfterSubtitleEdit(t *testing.T) {
 	if err := json.Unmarshal([]byte(`{"version":2,"output":{"width":180,"height":320,"fps":24},"durationMs":1000,"tracks":[{"id":"shots","kind":"video"},{"id":"captions","kind":"subtitle"}],"clips":[{"id":"v","kind":"video","trackId":"shots","startMs":0,"durationMs":1000,"directMedia":{"storageKey":"resource:source"}},{"id":"s","kind":"subtitle","trackId":"captions","startMs":0,"durationMs":1000,"text":"旧字幕"}]}`), &project); err != nil {
 		t.Fatal(err)
 	}
-	project.Clips[1].Text = "新字幕，继续翻开"
+	project.Clips[1].Text = "New subtitles, continue to open"
 	saved, _ := json.Marshal(project)
 	if err := json.Unmarshal(saved, &project); err != nil {
 		t.Fatal(err)

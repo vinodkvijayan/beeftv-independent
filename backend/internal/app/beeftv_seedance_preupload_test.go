@@ -270,7 +270,7 @@ func TestBeefTVSeedancePreuploadCompleteErrorPreventsGenerate(t *testing.T) {
 	)
 	err := prepareBeefTVSeedanceReferences(harness.ctx(), input.Config, &input, nil)
 	var upload *generation.ReferenceUploadError
-	if !errors.As(err, &upload) || upload.Meta.Stage != "complete" || upload.Meta.Attempt != 1 || !strings.Contains(upload.Detail, "还没有收到文件，请先把文件传完再确认") {
+	if !errors.As(err, &upload) || upload.Meta.Stage != "complete" || upload.Meta.Attempt != 1 || !strings.Contains(upload.Detail, "The document has not been received yet. Please upload the document first and then confirm.") {
 		t.Fatalf("error = %v, want user-facing complete message", err)
 	}
 	if harness.generates != 0 || harness.completes != 1 {

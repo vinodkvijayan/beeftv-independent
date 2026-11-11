@@ -15,7 +15,7 @@ func TestClientAssetPayloadRepairsWorkflowAssetDocument(t *testing.T) {
 		PayloadJSON: `{
 			"id":"workflow-asset-test",
 			"kind":"video",
-			"title":"镜头01 · 视频",
+			"title":"Lens 01 · Video",
 			"category":"material",
 			"status":"confirmed",
 			"tags":[],

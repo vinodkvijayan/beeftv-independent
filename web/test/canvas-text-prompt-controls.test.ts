@@ -12,9 +12,9 @@ test("video prompt tools move camera control below the prompt", async () => {
     const panel = await Bun.file(new URL("../src/components/canvas/canvas-node-prompt-panel.tsx", import.meta.url)).text();
     const toolsStart = panel.indexOf("const tools = [");
     const tools = panel.slice(toolsStart, panel.indexOf("];", toolsStart));
-    expect(tools).not.toContain('label: "参考"');
-    expect(tools).not.toContain('label: "标记"');
-    expect(tools).not.toContain('label: "特效"');
-    expect(tools).not.toContain('label: "角色库"');
-    expect(panel).toContain('label="运镜"');
+    expect(tools).not.toContain('label: "reference"');
+    expect(tools).not.toContain('label: "mark"');
+    expect(tools).not.toContain('label: "special effects"');
+    expect(tools).not.toContain('label: "Character library"');
+    expect(panel).toContain('label="Yunjing"');
 });

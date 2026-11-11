@@ -1,10 +1,10 @@
-# BeefTV 插件市场（`beeftv-plugin-market`）
+#BeefTV plug-in market (`beeftv-plugin-market`)
 
-`beeftv-plugin-market` 随 BeefTV 桌面包预装并默认启用（位于 `agent-host/bundled-plugins/`），通过 `pluginCenter.section` 插槽挂载在插件中心左侧的「插件市场」栏。
+`beeftv-plugin-market` is pre-installed with the BeefTV desktop package and enabled by default (located in `agent-host/bundled-plugins/`), and is mounted in the "Plug-in Market" column on the left side of the plug-in center through the `pluginCenter.section` slot.
 
-## 功能特性
+## Features
 
-- **精选推荐列表（国内加速链）**：联网时优先通过国内可直连的 `cdn.jsdelivr.net` 镜像与 GitHub 官方源（`raw.githubusercontent.com`）读取 `Sunnyender-org/beeftv-plugins` 的 `registry.json` 并缓存到本地；断网或超时时自动无缝回退到本地缓存与内置离线副本。
-- **npm 社区搜索**：按 `beeftv-plugin` / `pi-package` 检索所选下载源（默认 `https://registry.npmmirror.com`）上的社区插件包。
-- **下载源切换**：支持在国内镜像（`https://registry.npmmirror.com`，默认）与 npm 官方源（`https://registry.npmjs.org`）之间切换。
-- **远程详情与多源在线安装**：未安装时即可在线读取插件 `README.md`、仓库链接与版本信息；点击安装或更新时，支持从 npm 镜像、预打包镜像 `.tgz`（含 SHA-256 校验）与 `github:owner/repo` 在线下载安装。
+- **Selected recommendation list (domestic acceleration chain)**: When connected to the Internet, `Sunnyender-org/beeftv-plugins`'s `registry.json` will be read and cached locally through the domestic directly connected `cdn.jsdelivr.net` mirror and GitHub official source (`raw.githubusercontent.com`); when the network is disconnected or times out, it will automatically and seamlessly fall back to the local cache and built-in offline copy.
+- **npm Community Search**: Retrieve community plugin packages on the selected download source (default `https://registry.npmmirror.com`) by `beeftv-plugin` / `pi-package`.
+- **Download source switching**: Support switching between domestic mirror (`https://registry.npmmirror.com`, default) and npm official source (`https://registry.npmjs.org`).
+- **Remote details and multi-source online installation**: You can read the plug-in `README.md`, warehouse link and version information online when it is not installed; when you click to install or update, you can download and install online from the npm image, pre-packaged image `.tgz` (including SHA-256 verification) and `github:owner/repo`.

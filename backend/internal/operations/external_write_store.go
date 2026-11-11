@@ -109,9 +109,9 @@ func BuildCanvasCreateWriteRecord(opID, canvasID, turnID string, caller Caller, 
 	}
 	title, _ := afterDoc["title"].(string)
 	title = strings.TrimSpace(title)
-	summary := "新建画布"
+	summary := "New canvas"
 	if title != "" {
-		summary = "新建画布 " + title
+		summary = "New canvas" + title
 	}
 	now := time.Now().UTC().Format(time.RFC3339)
 	return &ExternalCanvasWrite{
@@ -293,22 +293,22 @@ func summarizeCanvasWrite(opName string, nodes []CanvasNodeRef, createdEdges, de
 	}
 	parts := []string{}
 	if len(createdTitles) > 0 {
-		parts = append(parts, "新增 "+formatTitleSample(createdTitles))
+		parts = append(parts, "New"+formatTitleSample(createdTitles))
 	}
 	if len(updatedTitles) > 0 {
-		parts = append(parts, "修改 "+formatTitleSample(updatedTitles))
+		parts = append(parts, "Modify"+formatTitleSample(updatedTitles))
 	}
 	if len(deletedTitles) > 0 {
-		parts = append(parts, "删除 "+formatTitleSample(deletedTitles))
+		parts = append(parts, "Delete"+formatTitleSample(deletedTitles))
 	}
 	if len(createdEdges) > 0 || len(deletedEdges) > 0 {
-		parts = append(parts, "调整连线")
+		parts = append(parts, "Adjust wiring")
 	}
 	if timelineUpdated {
-		parts = append(parts, "更新时间线")
+		parts = append(parts, "Update timeline")
 	}
 	if len(parts) == 0 {
-		return "更新画布 (" + opName + ")"
+		return "updatecanvas(" + opName + ")"
 	}
 	return strings.Join(parts, " · ")
 }
@@ -317,7 +317,7 @@ func formatTitleSample(titles []string) string {
 	if len(titles) <= 2 {
 		return strings.Join(titles, "、")
 	}
-	return fmt.Sprintf("%s 等 %d 个节点", strings.Join(titles[:2], "、"), len(titles))
+	return fmt.Sprintf("%s and other %d nodes", strings.Join(titles[:2], "、"), len(titles))
 }
 
 func UpsertCanvasWriteInTx(tx *gorm.DB, userID string, write ExternalCanvasWrite) error {
@@ -397,10 +397,10 @@ func (s *Store) ListExternalCanvasWrites(userID, canvasID string) ([]ExternalCan
 
 func (s *Store) UndoExternalCanvasWrite(ctx context.Context, binder DomainBinder, userID, canvasID, opID string, restrictClientID ...string) (*ExternalCanvasWriteUndoResult, error) {
 	if !s.Available() {
-		return nil, newError(CodeInternal, "op_store_unavailable", "操作记录存储不可用", nil)
+		return nil, newError(CodeInternal, "op_store_unavailable", "Operation record storage is unavailable", nil)
 	}
 	if binder == nil {
-		return nil, newError(CodeInternal, "op_domain_unavailable", "操作域绑定不可用", nil)
+		return nil, newError(CodeInternal, "op_domain_unavailable", "Operation domain binding is not available", nil)
 	}
 	if ctx == nil {
 		ctx = context.Background()
@@ -416,14 +416,14 @@ func (s *Store) UndoExternalCanvasWrite(ctx context.Context, binder DomainBinder
 			return findErr
 		}
 		if write.Undone {
-			return Conflict("already_undone", "这次外部改动已经撤销过了", map[string]any{
+			return Conflict("already_undone", "This external change has been undone", map[string]any{
 				"opId":           write.OpID,
 				"undoneRevision": write.UndoneRevision,
 			})
 		}
 		domain := binder.BindDomain(tx)
 		if domain == nil {
-			return newError(CodeInternal, "op_domain_unavailable", "操作域绑定不可用", nil)
+			return newError(CodeInternal, "op_domain_unavailable", "Operation domain binding is not available", nil)
 		}
 		currentRaw, readErr := domain.UserCanvasProject(userID, write.CanvasID)
 		if readErr != nil {
@@ -441,14 +441,14 @@ func (s *Store) UndoExternalCanvasWrite(ctx context.Context, binder DomainBinder
 				createdInstanceMatch = reflect.DeepEqual(createdDoc, currentDoc)
 			}
 			if currentRev != write.RevisionAfter || !createdInstanceMatch {
-				return Conflict("canvas_changed_since_write", "画布在该次外部创建后又被修改，已停止删除", map[string]any{
+				return Conflict("canvas_changed_since_write", "The canvas was modified after this external creation and deletion has stopped.", map[string]any{
 					"currentRevision": currentRev,
 					"writeRevision":   write.RevisionAfter,
 				})
 			}
 			deleter, ok := domain.(CanvasProjectCreator)
 			if !ok {
-				return Unsupported("canvas_delete_unavailable", "当前工作区无法撤销新建画布")
+				return Unsupported("canvas_delete_unavailable", "The new canvas cannot be undone in the current workspace")
 			}
 			if delErr := deleter.DeleteUserCanvasProject(userID, write.CanvasID); delErr != nil {
 				return mapDomainError(delErr)
@@ -514,7 +514,7 @@ func findExternalWriteForUndoInTx(tx *gorm.DB, userID, canvasID, opID, requiredC
 		var rec model.AgentOpRecord
 		err := tx.Where("user_id = ? AND op_id = ?", userID, canvasWriteOpID(trimmedOpID)).First(&rec).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, NotFound("external_write_not_found", "未找到对应的外部写入记录")
+			return nil, NotFound("external_write_not_found", "The corresponding external write record was not found")
 		}
 		if err != nil {
 			return nil, AsError(err)
@@ -524,15 +524,15 @@ func findExternalWriteForUndoInTx(tx *gorm.DB, userID, canvasID, opID, requiredC
 			return nil, AsError(err)
 		}
 		if !write.IsExternal() || (trimmedCanvasID != "" && write.CanvasID != trimmedCanvasID) {
-			return nil, NotFound("external_write_not_found", "未找到对应的外部写入记录")
+			return nil, NotFound("external_write_not_found", "The corresponding external write record was not found")
 		}
 		if requiredClientID != "" && strings.TrimSpace(write.ClientID) != requiredClientID {
-			return nil, PermissionDenied("permission_denied", "外部客户端只能撤销自己发起的写入")
+			return nil, PermissionDenied("permission_denied", "External clients can only undo writes initiated by themselves")
 		}
 		return &write, nil
 	}
 	if trimmedCanvasID == "" {
-		return nil, InvalidArg("invalid_params", "需要指定 opId 或 canvasId")
+		return nil, InvalidArg("invalid_params", "Need to specify opId or canvasId")
 	}
 	query := tx.Where("user_id = ? AND op = ? AND payload_hash = ? AND status = ?", userID, canvasWriteOpName, trimmedCanvasID, "write:active")
 	if requiredClientID != "" {
@@ -551,12 +551,12 @@ func findExternalWriteForUndoInTx(tx *gorm.DB, userID, canvasID, opID, requiredC
 			return &write, nil
 		}
 	}
-	return nil, NotFound("external_write_not_found", "当前画布没有可撤销的外部写入")
+	return nil, NotFound("external_write_not_found", "There are no undoable external writes to the current canvas")
 }
 
 func buildRestoredDocumentForExternalUndo(write *ExternalCanvasWrite, currentDoc map[string]any, currentRev int64) (map[string]any, error) {
 	if len(write.BeforeDocument) == 0 {
-		return nil, PreconditionFailed("missing_undo_snapshot", "该次写入缺少撤销快照", nil)
+		return nil, PreconditionFailed("missing_undo_snapshot", "This write lacks an undo snapshot", nil)
 	}
 	var beforeDoc map[string]any
 	if err := json.Unmarshal(write.BeforeDocument, &beforeDoc); err != nil {
@@ -568,7 +568,7 @@ func buildRestoredDocumentForExternalUndo(write *ExternalCanvasWrite, currentDoc
 		return beforeDoc, nil
 	}
 	if currentRev < write.RevisionAfter || write.DocumentUpdated || write.TimelineUpdated || len(write.AfterDocument) == 0 {
-		return nil, Conflict("canvas_changed_since_write", "画布在该次外部写入后又被修改，已停止覆盖", map[string]any{
+		return nil, Conflict("canvas_changed_since_write", "The canvas has been modified again after this external write, and the overwriting has stopped.", map[string]any{
 			"currentRevision": currentRev,
 			"writeRevision":   write.RevisionAfter,
 		})
@@ -578,7 +578,7 @@ func buildRestoredDocumentForExternalUndo(write *ExternalCanvasWrite, currentDoc
 		return nil, AsError(err)
 	}
 	if !canSurgicallyRevertWrite(write, beforeDoc, afterDoc, currentDoc) {
-		return nil, Conflict("canvas_changed_since_write", "画布在该次外部写入后又修改了相关节点，已停止覆盖", map[string]any{
+		return nil, Conflict("canvas_changed_since_write", "The canvas has modified related nodes after this external write and has stopped covering it.", map[string]any{
 			"currentRevision": currentRev,
 			"writeRevision":   write.RevisionAfter,
 		})

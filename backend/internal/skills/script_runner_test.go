@@ -85,7 +85,7 @@ func TestSkillScriptTimeoutDefaultsAndLimits(t *testing.T) {
 	}
 	s, _ := agentSkillFixture(t)
 	pin := installAgentSkill(t, s, map[string]string{
-		"SKILL.md":       "---\nname: 超时测试\ndescription: 验证默认与最大超时\n---\n运行 scripts/run.js",
+		"SKILL.md":       "---\nname: timeout test\ndescription: Verification default and maximum timeout\n---\nRun scripts/run.js",
 		"scripts/run.js": "console.log('ok')",
 	})
 
@@ -115,7 +115,7 @@ func TestSkillScriptTimeoutDefaultsAndLimits(t *testing.T) {
 func TestSkillScriptPathContainmentAndSymlinkRejection(t *testing.T) {
 	s, _ := agentSkillFixture(t)
 	pin := installAgentSkill(t, s, map[string]string{
-		"SKILL.md":            "---\nname: 脚本测试\ndescription: 测试路径隔离\n---\n按需运行脚本",
+		"SKILL.md":            "---\nname: script test\ndescription: Test path isolation\n---\nRun script on demand",
 		"scripts/ok.js":       "console.log('ok')",
 		"references/note.txt": "hello",
 	})
@@ -140,7 +140,7 @@ func TestSkillScriptPathContainmentAndSymlinkRejection(t *testing.T) {
 
 	// Tamper the installed zip on disk to inject a symlink entry; extraction must reject it.
 	tamperedPin := installAgentSkill(t, s, map[string]string{
-		"SKILL.md":       "---\nname: 篡改测试\ndescription: 测试软链接拒绝\n---\n说明",
+		"SKILL.md":       "---\nname: Tamper Test\ndescription: Test soft link rejection\n---\nDescription",
 		"scripts/run.js": "console.log('hi')",
 	})
 	zipPath := filepath.Join(s.dataDir, "skill-packages", tamperedPin.SkillID, tamperedPin.VersionID+".zip")
@@ -207,7 +207,7 @@ process.stdin.on('end', () => {
 });
 `
 	pin := installAgentSkill(t, s, map[string]string{
-		"SKILL.md":            "---\nname: 隔离执行\ndescription: 验证隔离沙箱\n---\n原始内容",
+		"SKILL.md":            "---\nname: isolated execution\ndescription: Verification isolation sandbox\n---\noriginal content",
 		"scripts/run.js":      scriptSrc,
 		"references/data.txt": "REF_OK",
 	})

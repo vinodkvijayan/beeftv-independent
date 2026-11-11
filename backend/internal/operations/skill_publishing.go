@@ -13,7 +13,7 @@ type SkillPublishing interface {
 }
 
 func registerSkillPublishingOps(r *Registry) {
-	r.Register(Op{ID: "skill.draft", AssistantCanvas: true, Scope: ScopeCanvas, Summary: "保存私人技能草稿（不上传）", Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"instruction":{"type":"string"}},"required":["canvasId","name","description","instruction"],"additionalProperties":false}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
+	r.Register(Op{ID: "skill.draft", AssistantCanvas: true, Scope: ScopeCanvas, Summary: "Save private skill draft (do not upload)", Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"instruction":{"type":"string"}},"required":["canvasId","name","description","instruction"],"additionalProperties":false}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 		var a struct {
 			CanvasID    string `json:"canvasId"`
 			Name        string `json:"name"`
@@ -25,7 +25,7 @@ func registerSkillPublishingOps(r *Registry) {
 		}
 		p, ok := ctx.Domain.(SkillPublishing)
 		if !ok {
-			return nil, Unsupported("skill_unavailable", "当前工作区无法保存技能草稿")
+			return nil, Unsupported("skill_unavailable", "The skill draft cannot be saved in the current workspace.")
 		}
 		if _, e := ctx.Domain.UserCanvasProject(ctx.UserID, a.CanvasID); e != nil {
 			return nil, mapDomainError(e)
@@ -33,7 +33,7 @@ func registerSkillPublishingOps(r *Registry) {
 		v, e := p.DraftSkill(ctx.UserID, skills.SkillMutationRequest{SkillName: a.Name, Description: a.Description, Instruction: a.Instruction, Tag: "others", IsPrivate: true})
 		return v, mapDomainError(e)
 	}})
-	r.Register(Op{ID: "skill.publish.prepare", AssistantCanvas: true, Scope: ScopeCanvas, Summary: "准备技能投稿预览，等待用户确认上传", Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"skillId":{"type":"string"},"publicationTarget":{"type":"string","enum":["new","existing"]},"marketSkillId":{"type":"string","description":"existing时填市场ID，禁填本机skillId"},"metadata":{"type":"object","properties":{"license":{"type":"string"},"requirements":{"type":"array","description":"纯文字填[]，禁填text","items":{"type":"string","enum":["beeftv.canvas","model.image","model.video","model.audio"]}},"requirementNotes":{"type":"string"}},"required":["license","requirements"]}},"required":["canvasId","skillId","publicationTarget","metadata"]}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
+	r.Register(Op{ID: "skill.publish.prepare", AssistantCanvas: true, Scope: ScopeCanvas, Summary: "Prepare skill submission preview and wait for user confirmation to upload", Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"skillId":{"type":"string"},"publicationTarget":{"type":"string","enum":["new","existing"]},"marketSkillId":{"type":"string","description":"existing时填市场ID，禁填本机skillId"},"metadata":{"type":"object","properties":{"license":{"type":"string"},"requirements":{"type":"array","description":"纯文字填[]，禁填text","items":{"type":"string","enum":["beeftv.canvas","model.image","model.video","model.audio"]}},"requirementNotes":{"type":"string"}},"required":["license","requirements"]}},"required":["canvasId","skillId","publicationTarget","metadata"]}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 		var a struct {
 			skills.PublicationTarget
 			CanvasID string            `json:"canvasId"`
@@ -45,12 +45,12 @@ func registerSkillPublishingOps(r *Registry) {
 		}
 		p, ok := ctx.Domain.(SkillPublishing)
 		if !ok {
-			return nil, Unsupported("skill_unavailable", "当前工作区无法准备投稿")
+			return nil, Unsupported("skill_unavailable", "The current workspace cannot be prepared for submission")
 		}
 		v, e := p.PrepareSkillPublication(ctx.UserID, a.SkillID, a.CanvasID, a.Metadata, a.PublicationTarget)
 		return map[string]any{"plan": v, "actionRequired": "user_upload_confirmation"}, mapDomainError(e)
 	}})
-	r.Register(Op{ID: "skill.publish.status", AssistantCanvas: true, ReadOnly: true, Scope: ScopeWorkspaceRead, Summary: "读取技能投稿状态", Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"planId":{"type":"string"}},"required":["canvasId","planId"],"additionalProperties":false}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
+	r.Register(Op{ID: "skill.publish.status", AssistantCanvas: true, ReadOnly: true, Scope: ScopeWorkspaceRead, Summary: "Read skill submission status", Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"planId":{"type":"string"}},"required":["canvasId","planId"],"additionalProperties":false}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 		var a struct {
 			CanvasID string `json:"canvasId"`
 			PlanID   string `json:"planId"`
@@ -60,11 +60,11 @@ func registerSkillPublishingOps(r *Registry) {
 		}
 		p, ok := ctx.Domain.(SkillPublishing)
 		if !ok {
-			return nil, Unsupported("skill_unavailable", "当前工作区无法读取投稿")
+			return nil, Unsupported("skill_unavailable", "Submissions cannot be read in the current workspace")
 		}
 		v, e := p.SkillPublicationStatus(ctx.UserID, a.PlanID)
 		if e == nil && v.CanvasID != a.CanvasID {
-			return nil, PermissionDenied("publication_canvas_mismatch", "这份投稿不属于当前画布")
+			return nil, PermissionDenied("publication_canvas_mismatch", "This contribution does not belong to the current canvas")
 		}
 		return v, mapDomainError(e)
 	}})

@@ -16,7 +16,7 @@ func TestReferencePreparationSavedCopySeparatesManualAndAutomaticRetry(t *testin
 				t.Fatalf("saved preparation was not restored: %+v", restored)
 			}
 		}
-		for _, text := range []string{copy.reason, "参考图片上传失败", copy.reason + "。请重新生成。", original.UserMessage() + " extra"} {
+		for _, text := range []string{copy.reason, "Reference image upload failed", copy.reason + ". Please regenerate.", original.UserMessage() + " extra"} {
 			if _, restored := persistedReferencePreparationFailure(text); restored {
 				t.Fatalf("unproved text restored preparation: %q", text)
 			}
@@ -59,7 +59,7 @@ func TestEarlierUnknownDominatesLaterPreparation(t *testing.T) {
 }
 
 func TestTypedGatewayProofRetainsPreparationCopy(t *testing.T) {
-	message := "参考图片上传失败，本次尚未开始生成。请稍后重试。"
+	message := "The reference image upload failed and the generation has not started yet. Please try again later."
 	body := fmt.Sprintf(`{"error":{"code":"image_reference_upload_failed","message":%q,"metadata":{"submission_state":"not_submitted"}}}`, message)
 	failure := ClassifyError(RequestPreparationError{Cause: HTTPError{StatusCode: 503, Body: body}})
 	if failure.UserMessage() != message || failure.Uncertain || failure.Retryable || failure.BlocksManualRetry() || !failure.BlocksAutomaticRetry() {

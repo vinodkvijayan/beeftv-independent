@@ -37,7 +37,7 @@ func capturePluginCommand(t *testing.T, args ...string) (map[string]any, error) 
 
 func TestPluginTryBuildsTheRequestWithoutSendingIt(t *testing.T) {
 	out, err := capturePluginCommand(t, "try", filepath.Join("..", "..", "..", "plugin-packages", "openai-chat-completions"),
-		"--base-url", "https://openrouter.ai/api/v1", "--model", "m-1", "--prompt", "你好", "--options", `{"temperature":0.3}`)
+		"--base-url", "https://openrouter.ai/api/v1", "--model", "m-1", "--prompt", "hello", "--options", `{"temperature":0.3}`)
 	if err != nil {
 		t.Fatal(err)
 	}

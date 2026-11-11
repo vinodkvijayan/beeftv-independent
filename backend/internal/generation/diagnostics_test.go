@@ -16,7 +16,7 @@ func TestDiagnosticSummaryHidesMountedAndNetworkPaths(t *testing.T) {
 
 func TestDiagnosticSummaryDoesNotMangleHTTPURLsAsLocalPaths(t *testing.T) {
 	for _, msg := range []string{
-		`本次请求准备失败：Get "https://beeftv.app/v1/models": EOF`,
+		`The preparation of this request failed: Get "https://beeftv.app/v1/models": EOF`,
 		`Post "https://beeftv.app/v1/media/tasks": connection reset by peer`,
 		`Put "https://storage.example.com/media/uploads/part1?X-Amz-Signature=secret": unexpected EOF`,
 	} {

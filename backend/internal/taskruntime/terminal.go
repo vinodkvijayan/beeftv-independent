@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const StageRequestNotSent = "请求尚未提交"
+const StageRequestNotSent = "The request has not been submitted yet"
 
 // Terminal owns lease-fenced terminal writes and the common completion order.
 // Replay, delivery and route logs remain on their domain ports.
@@ -85,13 +85,13 @@ func (c *Terminal) HandleExecutionFailure(task *model.Task, err error, providerS
 			return c.HandleAlreadyCancelled(*latest)
 		}
 		task.Status = model.TaskStatusCancelled
-		task.Stage = "任务已取消"
-		task.Error = "任务已取消"
+		task.Stage = "Task canceled"
+		task.Error = "Task canceled"
 		if terminalErr := c.markTerminalState(task); terminalErr != nil {
 			return terminalErr
 		}
-		c.finalizeReplay(task, model.TaskStatusCancelled, "文本回放草稿归并失败")
-		_ = c.logger.Log(task.UserID, task.ID, "warn", "任务已取消", "")
+		c.finalizeReplay(task, model.TaskStatusCancelled, "Text playback draft merge failed")
+		_ = c.logger.Log(task.UserID, task.ID, "warn", "Task canceled", "")
 		return nil
 	}
 
@@ -102,7 +102,7 @@ func (c *Terminal) HandleExecutionFailure(task *model.Task, err error, providerS
 	c.captureFailure(task, err, source)
 	task.Status = model.TaskStatusFailed
 	c.ensureFailedAttemptLogged(task, err)
-	task.Stage = "任务失败"
+	task.Stage = "Task failed"
 	var imageRecovery generation.ImageRecoveryError
 	var unknown generation.SubmissionUnknownError
 	if errors.As(err, &imageRecovery) || errors.As(err, &unknown) {
@@ -117,20 +117,20 @@ func (c *Terminal) HandleExecutionFailure(task *model.Task, err error, providerS
 	if terminalErr := c.markTerminalState(task); terminalErr != nil {
 		return errors.Join(err, terminalErr)
 	}
-	c.finalizeReplay(task, model.TaskStatusFailed, "文本回放草稿归并失败")
-	_ = c.logger.Log(task.UserID, task.ID, "error", "任务处理失败", task.Error)
+	c.finalizeReplay(task, model.TaskStatusFailed, "Text playback draft merge failed")
+	_ = c.logger.Log(task.UserID, task.ID, "error", "Task processing failed", task.Error)
 	return err
 }
 
 func (c *Terminal) HandleAlreadyCancelled(task model.Task) error {
-	c.finalizeReplay(&task, model.TaskStatusCancelled, "文本回放草稿归并失败")
-	_ = c.logger.Log(task.UserID, task.ID, "warn", "任务已取消，worker 已停止执行", "")
+	c.finalizeReplay(&task, model.TaskStatusCancelled, "Text playback draft merge failed")
+	_ = c.logger.Log(task.UserID, task.ID, "warn", "The task has been canceled and the worker has stopped executing", "")
 	return nil
 }
 
 func (c *Terminal) HandleCancelledResult(task model.Task) error {
-	c.finalizeReplay(&task, model.TaskStatusCancelled, "文本回放草稿归并失败")
-	_ = c.logger.Log(task.UserID, task.ID, "warn", "任务已取消，丢弃生成结果", "")
+	c.finalizeReplay(&task, model.TaskStatusCancelled, "Text playback draft merge failed")
+	_ = c.logger.Log(task.UserID, task.ID, "warn", "The task has been canceled and the generated results are discarded", "")
 	return nil
 }
 
@@ -149,13 +149,13 @@ func (c *Terminal) HandleResultPersistenceFailure(task *model.Task, saveErr erro
 
 	task.Status = model.TaskStatusFailed
 	c.captureFailure(task, saveErr, "local_result")
-	task.Stage = "任务结果保存失败"
+	task.Stage = "Failed to save task results"
 	task.Error = c.userFacingMessage(saveErr)
 	if terminalErr := c.markTerminalState(task); terminalErr != nil {
 		return false, errors.Join(saveErr, terminalErr)
 	}
-	c.finalizeReplay(task, model.TaskStatusFailed, "文本回放草稿归并失败")
-	_ = c.logger.Log(task.UserID, task.ID, "error", "任务结果保存失败", task.Error)
+	c.finalizeReplay(task, model.TaskStatusFailed, "Text playback draft merge failed")
+	_ = c.logger.Log(task.UserID, task.ID, "error", "Failed to save task results", task.Error)
 	return false, saveErr
 }
 
@@ -167,28 +167,28 @@ func (c *Terminal) ensureFailedAttemptLogged(task *model.Task, err error) {
 }
 
 func (c *Terminal) HandleSuccess(task *model.Task) error {
-	c.finalizeReplay(task, model.TaskStatusSucceeded, "文本回放窗口更新失败")
+	c.finalizeReplay(task, model.TaskStatusSucceeded, "Text playback window update failed")
 	var completionErr error
 	completedTask, fetchErr := c.repo.Task(task.ID)
 	if fetchErr != nil {
-		completionErr = fmt.Errorf("任务成功后读取任务产物失败：%w", fetchErr)
-		_ = c.logger.Log(task.UserID, task.ID, "error", "任务成功但读取任务产物失败", fetchErr.Error())
+		completionErr = fmt.Errorf("Failed to read the task product after the task is successful: %w", fetchErr)
+		_ = c.logger.Log(task.UserID, task.ID, "error", "The task succeeded but failed to read the task products", fetchErr.Error())
 	} else {
 		if deliverErr := c.outputs.DeliverSucceededTask(*completedTask); deliverErr != nil {
-			_ = c.logger.Log(task.UserID, task.ID, "error", "任务成功但结果交付失败", deliverErr.Error())
-			completionErr = fmt.Errorf("任务成功后的结果交付失败：%w", deliverErr)
+			_ = c.logger.Log(task.UserID, task.ID, "error", "Task succeeded but result delivery failed", deliverErr.Error())
+			completionErr = fmt.Errorf("The result delivery failed after the task was successful: %w", deliverErr)
 		}
 		if registerErr := c.outputs.RegisterTaskOutputFromTask(*completedTask); registerErr != nil {
 			// 任务成功与产物登记分开记账；登记失败保持步骤异常，允许项目页幂等补登记。
-			_ = c.logger.Log(task.UserID, task.ID, "error", "任务成功但项目产物登记失败", registerErr.Error())
-			completionErr = errors.Join(completionErr, fmt.Errorf("任务成功后的项目产物登记失败：%w", registerErr))
+			_ = c.logger.Log(task.UserID, task.ID, "error", "The task was successful but the project product registration failed", registerErr.Error())
+			completionErr = errors.Join(completionErr, fmt.Errorf("Project product registration failed after the task was successful: %w", registerErr))
 		}
 		if deliverErr := c.outputs.DeliverSucceededTask(*completedTask); deliverErr != nil {
-			_ = c.logger.Log(task.UserID, task.ID, "error", "任务成功但结果交付失败", deliverErr.Error())
-			completionErr = errors.Join(completionErr, fmt.Errorf("任务成功后的结果交付失败：%w", deliverErr))
+			_ = c.logger.Log(task.UserID, task.ID, "error", "Task succeeded but result delivery failed", deliverErr.Error())
+			completionErr = errors.Join(completionErr, fmt.Errorf("The result delivery failed after the task was successful: %w", deliverErr))
 		}
 	}
-	_ = c.logger.Log(task.UserID, task.ID, "info", "任务完成，结果已持久化", "")
+	_ = c.logger.Log(task.UserID, task.ID, "info", "The task is completed and the results are persisted", "")
 	return completionErr
 }
 
@@ -197,7 +197,7 @@ func (c *Terminal) markTerminalState(task *model.Task) error {
 	task.CompletedAt = &completedAt
 	updated, err := c.repo.UpdateTaskTerminalState(task.ID, task.LeaseOwner, model.TaskStatusRunning, task.Status, task.Stage, task.Error, completedAt, task.FailureDiagnostics)
 	if err != nil {
-		return fmt.Errorf("写入任务终态失败：%w", err)
+		return fmt.Errorf("Failed to write task final status: %w", err)
 	}
 	if !updated {
 		return repository.ErrTaskStateConflict

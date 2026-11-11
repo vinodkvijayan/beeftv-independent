@@ -40,11 +40,11 @@ func PrepareRetryCredentials(host CompileHost, run model.CanvasWorkflowRun, node
 	}
 	plain, err := host.DecryptSetting(run.RecipeCipher)
 	if err != nil {
-		return "", BadRequest("无法读取工作流配方，请先恢复工作区密钥")
+		return "", BadRequest("Unable to read workflow recipe, please restore workspace key first")
 	}
 	var recipes RecipesByNode
 	if json.Unmarshal([]byte(plain), &recipes) != nil {
-		return "", BadRequest("工作流配方无法读取，请重新保存模板")
+		return "", BadRequest("The workflow recipe cannot be read, please save the template again")
 	}
 	recipe, ok := recipes[nodeID]
 	if !ok || recipe.ChannelID == "" {
@@ -52,11 +52,11 @@ func PrepareRetryCredentials(host CompileHost, run model.CanvasWorkflowRun, node
 	}
 	decoded, err := host.DecryptTaskInput(task.InputJSON)
 	if err != nil {
-		return "", BadRequest("原任务配方无法解密，请先恢复工作区密钥")
+		return "", BadRequest("The original task recipe cannot be decrypted, please restore the workspace key first")
 	}
 	var input map[string]any
 	if json.Unmarshal([]byte(decoded), &input) != nil || input == nil {
-		return "", BadRequest("原任务配方无法读取，请重新保存模板")
+		return "", BadRequest("The original task recipe cannot be read, please save the template again")
 	}
 	previousCredentials := CredentialFingerprint(input)
 	if err = RefreshCredentials(host, input, recipe.ChannelID); err != nil {
@@ -64,7 +64,7 @@ func PrepareRetryCredentials(host CompileHost, run model.CanvasWorkflowRun, node
 	}
 	if previousCredentials == CredentialFingerprint(input) {
 		if authFailure {
-			return "", BadRequest("此步骤上次鉴权失败，当前连接凭据尚未更新，请在设置中修正 API Key 后再重试")
+			return "", BadRequest("This step failed to authenticate last time. The current connection credentials have not been updated. Please correct the API Key in the settings and try again.")
 		}
 		return "", nil
 	}
@@ -93,7 +93,7 @@ func ChannelID(host CompileHost, input map[string]any, logical string) (string, 
 	}
 	config, _ := input["config"].(map[string]any)
 	if config == nil {
-		return "", BadRequest("原生成步骤缺少模型配置")
+		return "", BadRequest("The original generation step is missing model configuration")
 	}
 	if beeftv.IsManagedChannel(stringValue(config["channelId"]), stringValue(config["credentialRef"]), stringValue(config["baseUrl"])) {
 		return "@beeftv", nil
@@ -113,7 +113,7 @@ func ChannelID(host CompileHost, input map[string]any, logical string) (string, 
 		}
 	}
 	if len(ids) != 1 {
-		return "", BadRequest("无法唯一找到原生成步骤的可用渠道，请在设置中启用原模型渠道并重新手动运行该节点")
+		return "", BadRequest("Unable to uniquely find an available channel for the original generation step, please enable the original model channel in the settings and re-run the node manually")
 	}
 	for id := range ids {
 		return id, nil
@@ -127,7 +127,7 @@ func RefreshCredentials(host CompileHost, input map[string]any, channelID string
 	}
 	config, _ := input["config"].(map[string]any)
 	if config == nil {
-		return BadRequest("生成步骤的模型配置缺失")
+		return BadRequest("Model configuration for build step is missing")
 	}
 	if IsOfficialWorkflowChannel(channelID) {
 		key, base, e := host.ManagedCredential()
@@ -135,7 +135,7 @@ func RefreshCredentials(host CompileHost, input map[string]any, channelID string
 			return e
 		}
 		if key == "" {
-			return BadRequest("BeefTV 连接已断开，请先在设置中重新连接")
+			return BadRequest("BeefTV connection has been disconnected, please reconnect in settings first")
 		}
 		config["apiKey"] = key
 		config["baseUrl"] = base
@@ -159,10 +159,10 @@ func RefreshCredentials(host CompileHost, input map[string]any, channelID string
 		}
 	}
 	if current == nil {
-		return BadRequest("工作流使用的模型渠道已删除，请恢复渠道或重新保存工作流")
+		return BadRequest("The model channel used by the workflow has been deleted. Please restore the channel or save the workflow again.")
 	}
 	if enabled, ok := current["enabled"].(bool); ok && !enabled {
-		return BadRequest("工作流使用的模型渠道已停用，请先在设置中启用")
+		return BadRequest("The model channel used by the workflow has been disabled. Please enable it in settings first.")
 	}
 	body, _ := json.Marshal(snapshot)
 	modelName := stringValue(config["model"])
@@ -171,12 +171,12 @@ func RefreshCredentials(host CompileHost, input map[string]any, channelID string
 		if candidate.ChannelID == channelID && candidate.Model == modelName && candidate.Enabled {
 			found = true
 			if candidate.Protocol != "" && candidate.Protocol != stringValue(config["interfaceType"]) {
-				return BadRequest("工作流模型的协议已改变，请手动运行节点后重新保存工作流")
+				return BadRequest("The protocol of the workflow model has changed. Please run the node manually and save the workflow again.")
 			}
 		}
 	}
 	if !found {
-		return BadRequest("工作流使用的模型已从渠道移除，请恢复模型或重新保存工作流")
+		return BadRequest("The model used by the workflow has been removed from the channel, please restore the model or re-save the workflow")
 	}
 	for _, key := range []string{"apiKey", "secretKey", "headers", "baseUrl", "referenceAssetOrigin"} {
 		if value, ok := current[key]; ok {

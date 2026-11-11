@@ -101,7 +101,7 @@ func TestPluginRuntimeRefreshesExistingOfficialPackageDocumentation(t *testing.T
 		t.Fatal(err)
 	}
 	stale := pkg.Manifest
-	stale.Metadata.Documentation = "# OpenAI Images\n\n旧版本摘要。"
+	stale.Metadata.Documentation = "#OpenAIImages\n\nSummary of old versions."
 	stale.Metadata.Enabled = false
 	staleRaw, err := json.Marshal(stale)
 	if err != nil {
@@ -277,7 +277,7 @@ func TestSeedanceLegacyProtocolResolvesInstalledProvider(t *testing.T) {
 }
 
 func TestPluginRuntimeDropsRemovedOfficialProtocol(t *testing.T) {
-	staleManifest := json.RawMessage(`{"apiVersion":"beeftv.plugin/v2","id":"removed-official-protocol","version":"1.0.0","name":"Removed Official Protocol","author":"Test","documentation":"# Removed\n\n## BeefTV运行时合同","contributes":{"providers":[{"id":"removed-official-protocol","label":"Removed","capabilities":["video"],"scopes":["canvas"],"create":{"method":"POST","path":"/tasks","body":{"prompt":{"$ref":"request.prompt"}}},"response":{"status":"pending"}}]}}`)
+	staleManifest := json.RawMessage(`{"apiVersion":"beeftv.plugin/v2","id":"removed-official-protocol","version":"1.0.0","name":"Removed Official Protocol","author":"Test","documentation":"# Removed\n\n## BeefTV runtime contract","contributes":{"providers":[{"id":"removed-official-protocol","label":"Removed","capabilities":["vide o"],"scopes":["canvas"],"create":{"method":"POST","path":"/tasks","body":{"prompt":{"$ref":"request.prompt"}}},"response":{"status":"pending"}}]}}`)
 	registryData, err := json.Marshal([]pluginRegistryRecord{{ID: "removed-official-protocol", Raw: staleManifest, Source: PluginOriginOfficial}})
 	if err != nil {
 		t.Fatal(err)

@@ -74,7 +74,7 @@ func TestMCPTimelineUpdateSchemaHasNoRootCombinator(t *testing.T) {
 		}
 	}
 	description, _ := schema["description"].(string)
-	if !strings.Contains(description, "timeline 与 refreshNodeIds 必须且只能提供一个") {
+	if !strings.Contains(description, "timeline and refreshNodeIds must and can only provide one") {
 		t.Fatalf("two-mode constraint missing from MCP schema: %q", description)
 	}
 	properties, _ := schema["properties"].(map[string]any)

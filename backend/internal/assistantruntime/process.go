@@ -100,7 +100,7 @@ func commandParts(config HostConfig) ([]string, error) {
 		parts = []string{config.HostCommand}
 	}
 	if len(parts) == 0 {
-		return nil, invalidArg("empty_host_command", "未配置宿主启动命令")
+		return nil, invalidArg("empty_host_command", "Host startup command not configured")
 	}
 	return parts, nil
 }
@@ -133,7 +133,7 @@ func (s *supervisor) startOwned(config HostConfig, fingerprint string, timeout t
 		tcp, ok := listener.(*net.TCPListener)
 		if !ok {
 			_ = listener.Close()
-			return errors.New("宿主监听套接字类型无效")
+			return errors.New("Invalid host listening socket type")
 		}
 		listenFile, err = tcp.File()
 		if err != nil {
@@ -259,7 +259,7 @@ func waitChildReady(baseURL, nonce, token string, timeout time.Duration, done <-
 	for time.Now().Before(deadline) {
 		select {
 		case <-done:
-			return errors.New("宿主进程在就绪前退出")
+			return errors.New("The host process exited before it was ready")
 		default:
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 400*time.Millisecond)
@@ -272,9 +272,9 @@ func waitChildReady(baseURL, nonce, token string, timeout time.Duration, done <-
 	}
 	select {
 	case <-done:
-		return errors.New("宿主进程在就绪前退出")
+		return errors.New("The host process exited before it was ready")
 	default:
-		return errors.New("宿主未在时限内就绪")
+		return errors.New("The host is not ready within the time limit")
 	}
 }
 
@@ -314,7 +314,7 @@ func (s *supervisor) stopLocked() error {
 			select {
 			case <-done:
 			case <-time.After(3 * time.Second):
-				waitErr = errors.New("宿主进程未在超时内退出")
+				waitErr = errors.New("The host process did not exit within the timeout")
 			}
 		}
 	}

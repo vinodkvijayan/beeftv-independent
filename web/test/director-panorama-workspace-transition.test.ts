@@ -44,8 +44,8 @@ test("workspace hydration aborts and drains a panorama materializer before switc
         await materializing;
         const transition = applyUserSession({
             contractVersion: 1, profile: "local", capabilities: { localAssets: true, providerCalls: true },
-            user: { id: "owner-b", username: "local", displayName: "本地工作区", role: "user", status: "active", createdAt: "", updatedAt: "" },
-            workspace: { id: "owner-b", name: "本地工作区", owner: "local", storage: "sqlite" }, storageMode: "local",
+            user: { id: "owner-b", username: "local", displayName: "local workspace", role: "user", status: "active", createdAt: "", updatedAt: "" },
+            workspace: { id: "owner-b", name: "local workspace", owner: "local", storage: "sqlite" }, storageMode: "local",
         });
         await Promise.resolve();
         expect(materializerSignal?.aborted).toBe(true);

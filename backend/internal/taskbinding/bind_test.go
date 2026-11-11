@@ -37,7 +37,7 @@ func (f *fakePorts) BindExistingNode(_ string, patch NodePatch) (NodeBindResult,
 	if f.bind != nil {
 		return f.bind(patch)
 	}
-	return NodeBindResult{Revision: 4, Node: map[string]any{"id": patch.NodeID, "title": "手工标题"}}, nil
+	return NodeBindResult{Revision: 4, Node: map[string]any{"id": patch.NodeID, "title": "Manual title"}}, nil
 }
 
 func testImageTask() *model.Task {
@@ -92,7 +92,7 @@ func TestBindTextUsesDurableResultJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if receipt.Content != "成片旁白" || ports.lastPatch.Storyboard == nil {
+	if receipt.Content != "Narration of the finished film" || ports.lastPatch.Storyboard == nil {
 		t.Fatalf("text receipt = %#v patch=%#v", receipt, ports.lastPatch)
 	}
 	if ports.binds != 1 {
@@ -103,7 +103,7 @@ func TestBindTextUsesDurableResultJSON(t *testing.T) {
 func TestBindRejectsUnreadableAndNotReadyOutputs(t *testing.T) {
 	unreadable := &fakePorts{
 		task:      testImageTask(),
-		outputErr: precondition("delivery_unreadable", "任务产物无法读取"),
+		outputErr: precondition("delivery_unreadable", "Task product cannot be read"),
 	}
 	if _, err := Bind(unreadable, "user-1", Request{CanvasID: "canvas-1", TaskID: "task-1", NodeID: "node-1"}); !isBindReason(err, "delivery_unreadable") {
 		t.Fatalf("unreadable = %v", err)
@@ -148,7 +148,7 @@ func TestBindRetriesRevisionConflictThenStops(t *testing.T) {
 		asset:    testAsset("generation_abc", "user-1", "res-1"),
 	}
 	ports.bind = func(NodePatch) (NodeBindResult, error) {
-		return NodeBindResult{}, conflict("stale_revision", "云端画布已有更新")
+		return NodeBindResult{}, conflict("stale_revision", "Cloud Canvas has been updated")
 	}
 	if _, err := Bind(ports, "user-1", Request{CanvasID: "canvas-1", TaskID: "task-1", NodeID: "node-1"}); !isBindReason(err, "stale_revision") {
 		t.Fatalf("stale = %v", err)

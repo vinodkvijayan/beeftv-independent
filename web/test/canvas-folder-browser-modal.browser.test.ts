@@ -11,7 +11,7 @@ afterAll(async () => {
     await browser.close();
 });
 
-test("文件夹全屏浏览层列出内容，搜索能过滤，Esc 和「收起文件夹」都能关闭", async () => {
+test("Folder full-screen browsing layer lists the contents, search can be filtered, Esc and \"folder\" can be closed", async () => {
     const build = await Bun.build({
         entrypoints: [import.meta.dir + "/fixtures/canvas-folder-browser-modal-harness.tsx"],
         target: "browser",
@@ -33,22 +33,22 @@ test("文件夹全屏浏览层列出内容，搜索能过滤，Esc 和「收起�
         : { contentType: "text/html", body: `<div id="root"></div><script type="module" src="/harness.js"></script>` }));
     await page.goto("https://folder.test/");
 
-    const dialog = page.locator('[aria-label="镜头集 文件夹内容"]');
-    await dialog.waitFor({ timeout: 5_000 }).catch((error) => { throw new Error(`${error.message}\n页面错误：\n${pageErrors.join("\n")}`); });
+    const dialog = page.locator('[aria-label="Lens Collection Folder Contents"]');
+    await dialog.waitFor({ timeout: 5_000 }).catch((error) => { throw new Error(`${error.message}Page error:${pageErrors.join("\n")}`); });
     expect(await page.locator("[data-folder-browser-card]").count()).toBe(6);
-    expect(await page.getByRole("button", { name: "打开 镜头 1" }).count()).toBe(1);
+    expect(await page.getByRole("button", { name: "Open lens 1" }).count()).toBe(1);
 
-    await page.getByPlaceholder("搜索文件夹内节点...").fill("片尾");
+    await page.getByPlaceholder("Search for nodes in a folder...").fill("Ending");
     expect(await page.locator("[data-folder-browser-card]").count()).toBe(1);
-    expect(await page.getByRole("button", { name: "打开 片尾" }).count()).toBe(1);
+    expect(await page.getByRole("button", { name: "Open the end credits" }).count()).toBe(1);
 
-    await page.getByPlaceholder("搜索文件夹内节点...").fill("");
+    await page.getByPlaceholder("Search for nodes in a folder...").fill("");
     expect(await page.locator("[data-folder-browser-card]").count()).toBe(6);
 
     await page.keyboard.press("Escape");
     expect((await page.evaluate(() => (window as any).folderProbe.events()))).toContain("close");
 
-    await page.getByRole("button", { name: "收起文件夹" }).click();
+    await page.getByRole("button", { name: "Collapse folder" }).click();
     const events: string[] = await page.evaluate(() => (window as any).folderProbe.events());
     expect(events.filter((event) => event === "close")).toHaveLength(2);
 }, 60_000);

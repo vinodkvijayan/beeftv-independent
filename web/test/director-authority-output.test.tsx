@@ -36,7 +36,7 @@ function directorNode(sceneId: string, shotId: string): CanvasNodeData {
     return {
         id: "director",
         type: CanvasNodeType.Director,
-        title: "导演台",
+        title: "Director's desk",
         position: { x: 0, y: 0 },
         width: 640,
         height: 640,
@@ -96,7 +96,7 @@ afterEach(async () => {
 describe("director cover and output ownership", () => {
     test("cover upload ignores a delayed scene switch", async () => {
         const restore = switchScope("owner-a");
-        const scene = createDirectorScene("镜头");
+        const scene = createDirectorScene("lens");
         const node = directorNode(scene.id, scene.shots[0].id);
         const nodesRef = { current: [node] };
         const projectId = useCanvasStore.getState().createProject("cover scope");
@@ -142,12 +142,12 @@ describe("director cover and output ownership", () => {
         spies.push(ensure);
         try {
             const director = mountDirector(projectId, node, scene, nodesRef);
-            const pending = director.applyDirectorOutput({ scene, shot: scene.shots[0], prompt: "构图", beauty: new Blob(["image"]) });
+            const pending = director.applyDirectorOutput({ scene, shot: scene.shots[0], prompt: "composition", beauty: new Blob(["image"]) });
             await entered.promise;
             nodesRef.current = [{ ...node, metadata: { ...node.metadata, directorSceneId: "other-scene" } }];
             useCanvasStore.getState().updateProject(projectId, { nodes: nodesRef.current });
             gate.resolve();
-            await expect(pending).rejects.toThrow("输出期间项目或镜头已切换、删除，请重试");
+            await expect(pending).rejects.toThrow("The project or lens has been switched or deleted during output, please try again.");
             expect(ensure).not.toHaveBeenCalled();
             expect(nodesRef.current.some((item) => item.type === CanvasNodeType.Image)).toBe(false);
         } finally {
@@ -175,7 +175,7 @@ describe("director cover and output ownership", () => {
                 return { data: { code: 0, msg: "", data: { asset: { id: "unexpected" } } }, status: 200, statusText: "OK", headers: {}, config: {} as never };
             }, async () => {
                 const director = mountDirector(projectId, node, scene, nodesRef);
-                const result = await director.applyDirectorOutput({ scene, shot: scene.shots[0], prompt: "构图", beauty: new Blob(["image"]) });
+                const result = await director.applyDirectorOutput({ scene, shot: scene.shots[0], prompt: "composition", beauty: new Blob(["image"]) });
                 expect(result).toEqual({ confirmed: false });
                 const preview = nodesRef.current.find((item) => item.type === CanvasNodeType.Image);
                 expect(preview?.metadata?.storageKey).toBe("image:output");

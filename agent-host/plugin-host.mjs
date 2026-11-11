@@ -22,7 +22,7 @@ async function run({ module, fn, args = {} }, signal) {
   const impl = exports[fn] ?? exports.default?.[fn];
   // models 可以不写；返回 null 让后端提示用户手动添加模型。
   if (typeof impl !== 'function' && fn === 'models') return null;
-  if (typeof impl !== 'function') throw new Error(`插件没有实现 ${fn}`);
+  if (typeof impl !== 'function') throw new Error(`The plugin is not implemented${fn}`);
   const ctx = { config: args.config ?? {}, signal, log: (message) => send({ event: 'log', level: 'info', message: String(message) }) };
   if (fn === 'models') return impl(ctx);
   return fn === 'submit' ? impl(args.request, ctx) : impl(args.taskId, args.request, ctx);
@@ -41,7 +41,7 @@ lines.on('line', (line) => {
     return;
   }
   if (message.method === 'abort') {
-    inflight.get(message.params?.id)?.abort(new Error('调用已取消'));
+    inflight.get(message.params?.id)?.abort(new Error('Call canceled'));
     // 回一句，后端靠它判断事件循环有没有卡死。
     send({ id: message.id, result: null });
     return;

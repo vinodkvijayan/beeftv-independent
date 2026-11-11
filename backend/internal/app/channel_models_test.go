@@ -176,7 +176,7 @@ func TestChannelModelMatchesIntentUsesPersistedCapabilityContract(t *testing.T) 
 
 func TestPublicSystemChannelCatalogIsolatesCorruptModel(t *testing.T) {
 	svc, db := newChannelModelTestService(t)
-	channel := model.ModelChannel{ID: "system-channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "系统渠道"}
+	channel := model.ModelChannel{ID: "system-channel", Scope: model.ChannelScopeSystem, Enabled: true, Name: "System channels"}
 	if err := db.Create(&channel).Error; err != nil {
 		t.Fatal(err)
 	}

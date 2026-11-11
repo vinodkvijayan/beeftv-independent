@@ -47,10 +47,10 @@ func SelectTaskModel(req TaskSelectRequest, lookup TaskSelectLookup) (TaskSelect
 	customChannelTask := TaskInputUsesCustomChannel(input)
 	if req.FrontendEnabled && !TaskInputUsesSystemChannel(input) && !customChannelTask {
 		if strings.TrimSpace(req.LogicalModelID) == "" {
-			return TaskSelectResult{}, InvalidModelSelection("前台模型模式下必须指定 logicalModelId")
+			return TaskSelectResult{}, InvalidModelSelection("The logicalModelId must be specified in the foreground model mode")
 		}
 		if lookup.ResolveLogical == nil {
-			return TaskSelectResult{}, InvalidModelSelection("前台模型模式下必须指定 logicalModelId")
+			return TaskSelectResult{}, InvalidModelSelection("The logicalModelId must be specified in the foreground model mode")
 		}
 		intent := ModelRequestIntentFromTaskInput(input, req.Type, req.Operation)
 		routed, err := lookup.ResolveLogical(req.LogicalModelID, intent)
@@ -61,7 +61,7 @@ func SelectTaskModel(req TaskSelectRequest, lookup TaskSelectLookup) (TaskSelect
 	}
 
 	if strings.TrimSpace(req.LogicalModelID) != "" {
-		return TaskSelectResult{}, ModelCatalogMismatch("模型目录已更新，请重新选择")
+		return TaskSelectResult{}, ModelCatalogMismatch("The model catalog has been updated, please select again")
 	}
 	if !customChannelTask {
 		resolved, err := ResolveSystemChannelModelSelection(input, req.Type, req.Operation, lookup)
@@ -79,36 +79,36 @@ func SelectTaskModel(req TaskSelectRequest, lookup TaskSelectLookup) (TaskSelect
 func ResolveSystemChannelModelSelection(input map[string]any, taskType string, operation string, lookup TaskSelectLookup) (map[string]any, error) {
 	config, ok := input["config"].(map[string]any)
 	if !ok {
-		return input, InvalidModelSelection("缺少模型配置")
+		return input, InvalidModelSelection("Missing model configuration")
 	}
 
 	channelID := strings.TrimSpace(admissionString(config["channelId"]))
 	modelKey := strings.TrimPrefix(strings.TrimSpace(admissionString(config["model"])), "models/")
 
 	if channelID == "" || modelKey == "" {
-		return input, InvalidModelSelection("必须指定系统渠道和模型")
+		return input, InvalidModelSelection("System channel and model must be specified")
 	}
 	if lookup.SystemChannel == nil || lookup.ChannelModelByKey == nil {
-		return input, InvalidModelSelection("指定的渠道不存在")
+		return input, InvalidModelSelection("The specified channel does not exist")
 	}
 
 	channel, err := lookup.SystemChannel(channelID)
 	if err != nil {
-		return input, InvalidModelSelection("指定的渠道不存在")
+		return input, InvalidModelSelection("The specified channel does not exist")
 	}
 	if !channel.Enabled || channel.Scope != model.ChannelScopeSystem {
-		return input, InvalidModelSelection("指定的渠道不可用")
+		return input, InvalidModelSelection("The specified channel is unavailable")
 	}
 
 	channelModel, err := lookup.ChannelModelByKey(channelID, modelKey)
 	if err != nil {
-		return input, InvalidModelSelection("指定的模型不存在")
+		return input, InvalidModelSelection("The specified model does not exist")
 	}
 	if !channelModel.Enabled {
-		return input, InvalidModelSelection("指定的模型已停用")
+		return input, InvalidModelSelection("The specified model is deactivated")
 	}
 	if channelModel.Protocol == "" {
-		return input, InvalidModelSelection("指定的模型未配置请求协议")
+		return input, InvalidModelSelection("The specified model does not have a request protocol configured")
 	}
 
 	nextConfig := make(map[string]any, len(config)+6)
@@ -131,13 +131,13 @@ func ResolveSystemChannelModelSelection(input map[string]any, taskType string, o
 
 	capabilityConfig, err := normalizedChannelModelCapability(channelModel)
 	if err != nil {
-		return input, InvalidModelSelection("指定的模型能力配置无效，请联系管理员")
+		return input, InvalidModelSelection("The specified model capability configuration is invalid, please contact the administrator")
 	}
 	var capabilitySpec *CapabilitySpec
 	if normalizeCapability(channelModel.Capability) != "audio" {
 		spec, specErr := CapabilitySpecFromModelCapabilityConfig(capabilityConfig, channelModel.Capability)
 		if specErr != nil {
-			return input, InvalidModelSelection("指定的模型能力配置无效，请联系管理员")
+			return input, InvalidModelSelection("The specified model capability configuration is invalid, please contact the administrator")
 		}
 		capabilitySpec = &spec
 	}
@@ -151,14 +151,14 @@ func ResolveSystemChannelModelSelection(input map[string]any, taskType string, o
 
 	intent := ModelRequestIntentFromTaskInput(input, taskType, operation)
 	if normalizeCapability(intent.Capability) != normalizeCapability(channelModel.Capability) {
-		return input, ModelCapabilityNotSupported("所选模型与任务能力不匹配")
+		return input, ModelCapabilityNotSupported("The selected model does not match the mission capabilities")
 	}
 	if normalizeCapability(channelModel.Capability) != "audio" {
 		if capabilitySpec == nil {
-			return input, InvalidModelSelection("指定的模型能力配置无效，请联系管理员")
+			return input, InvalidModelSelection("The specified model capability configuration is invalid, please contact the administrator")
 		}
 		if match := MatchCapability(*capabilitySpec, intent); !match.Matched {
-			return input, ModelCapabilityNotSupported("所选模型不支持当前请求：" + strings.Join(match.Reasons, "；"))
+			return input, ModelCapabilityNotSupported("The selected model does not support the current request:" + strings.Join(match.Reasons, "；"))
 		}
 	}
 
@@ -185,7 +185,7 @@ func ResolveSystemChannelModelSelection(input map[string]any, taskType string, o
 		variant = channelModelVariantForIntent(*channelModel, intent)
 	}
 	if len(channelModel.Variants) > 0 && variant == nil {
-		return input, ModelCapabilityNotSupported("指定的模型不支持当前规格")
+		return input, ModelCapabilityNotSupported("The specified model does not support the current specification")
 	}
 
 	nextConfig["channelId"] = channel.ID

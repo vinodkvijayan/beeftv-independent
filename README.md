@@ -110,7 +110,7 @@ Connect media, local processing, and AI generation in an editable workflow. The 
   </tr>
 </table>
 
-[Production record](docs/content/docs/overview/examples.mdx#工作流单人物替换) (Chinese)
+[Production record](docs/content/docs/overview/examples.mdx#Workflow single character replacement) (Chinese)
 
 - **Connect processing and generation:** Adapt frame rate locally; use the video and character image as separate generation references.
 - **Keep the configuration editable:** Adjust nodes, connections, models, prompts, and output settings, then save a template revision.

@@ -51,7 +51,7 @@ func openReplay(t *testing.T) (*gorm.DB, *Service) {
 
 func createTask(t *testing.T, db *gorm.DB, id, user, taskType string, status model.TaskStatus) {
 	t.Helper()
-	task := model.Task{ID: id, UserID: user, Type: taskType, Status: status, Stage: "文本持久化（前端自管）", Progress: 5}
+	task := model.Task{ID: id, UserID: user, Type: taskType, Status: status, Stage: "Text persistence (front-end self-managed)", Progress: 5}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -71,13 +71,13 @@ func TestIsRequest(t *testing.T) {
 		input map[string]any
 		want  bool
 	}{
-		{"replay 布尔 true", map[string]any{"replay": true}, true},
-		{"replay 字符串 true", map[string]any{"replay": "true"}, true},
-		{"replay 字符串 True 大小写", map[string]any{"replay": "TRUE"}, true},
-		{"replay 布尔 false", map[string]any{"replay": false}, false},
-		{"无 replay 字段", map[string]any{"mode": "text"}, false},
-		{"replay 空字符串", map[string]any{"replay": ""}, false},
-		{"replay 数字", map[string]any{"replay": 1}, false},
+		{"replay boolean true", map[string]any{"replay": true}, true},
+		{"replay string true", map[string]any{"replay": "true"}, true},
+		{"replay string True case", map[string]any{"replay": "TRUE"}, true},
+		{"replay boolean false", map[string]any{"replay": false}, false},
+		{"No replay field", map[string]any{"mode": "text"}, false},
+		{"replay empty string", map[string]any{"replay": ""}, false},
+		{"replay number", map[string]any{"replay": 1}, false},
 		{"replay nil", map[string]any{"replay": nil}, false},
 		{"nil input", nil, false},
 	}
@@ -96,17 +96,17 @@ func TestAppendRejectsForeignOwnerAndNonText(t *testing.T) {
 	if _, err := svc.Append("other", "text-1", "hello"); err == nil {
 		t.Fatal("foreign owner must not append")
 	}
-	if _, err := svc.Append("owner", "image-1", "hello"); authMessage(err) != "只有文本生成任务支持增量回放" {
+	if _, err := svc.Append("owner", "image-1", "hello"); authMessage(err) != "Only text generation tasks support incremental playback" {
 		t.Fatalf("non-text append: %v", err)
 	}
-	if _, err := svc.Append("owner", "text-1", "   "); authMessage(err) != "文本增量不能为空" {
+	if _, err := svc.Append("owner", "text-1", "   "); authMessage(err) != "Text increment cannot be empty" {
 		t.Fatalf("empty append: %v", err)
 	}
-	if _, err := svc.Append("owner", "text-1", strings.Repeat("x", MaxEventBytes+1)); authMessage(err) != "单条文本增量不能超过 64KB" {
+	if _, err := svc.Append("owner", "text-1", strings.Repeat("x", MaxEventBytes+1)); authMessage(err) != "A single text increment cannot exceed 64KB" {
 		t.Fatalf("oversize event: %v", err)
 	}
-	item, err := svc.Append("owner", "text-1", "第一段")
-	if err != nil || item.Sequence != 1 || item.Content != "第一段" {
+	item, err := svc.Append("owner", "text-1", "first paragraph")
+	if err != nil || item.Sequence != 1 || item.Content != "first paragraph" {
 		t.Fatalf("append: %#v %v", item, err)
 	}
 }
@@ -115,10 +115,10 @@ func TestAppendAllowsStoryboardAndAgentNames(t *testing.T) {
 	db, svc := openReplay(t)
 	createTask(t, db, "board", "owner", "storyboard", model.TaskStatusRunning)
 	createTask(t, db, "agent", "owner", "cloud_agent_step", model.TaskStatusRunning)
-	if _, err := svc.Append("owner", "board", "镜号"); err != nil {
+	if _, err := svc.Append("owner", "board", "mirror number"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.Append("owner", "agent", "步骤"); err != nil {
+	if _, err := svc.Append("owner", "agent", "steps"); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -129,10 +129,10 @@ func TestCompleteOwnsStatusAndClosesWindow(t *testing.T) {
 	if _, err := svc.Append("owner", "replay-1", "hello"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.Complete("owner", "replay-1", "   "); authMessage(err) != "文本内容不能为空" {
+	if _, err := svc.Complete("owner", "replay-1", "   "); authMessage(err) != "Text content cannot be empty" {
 		t.Fatalf("empty complete: %v", err)
 	}
-	if _, err := svc.Complete("owner", "replay-1", strings.Repeat("x", MaxTaskBytes+1)); authMessage(err) != "文本内容过大" {
+	if _, err := svc.Complete("owner", "replay-1", strings.Repeat("x", MaxTaskBytes+1)); authMessage(err) != "Text content is too large" {
 		t.Fatalf("oversize complete: %v", err)
 	}
 	if _, err := svc.Complete("other", "replay-1", "hello"); err == nil {
@@ -145,10 +145,10 @@ func TestCompleteOwnsStatusAndClosesWindow(t *testing.T) {
 	if taskResultText(task.ResultJSON) != "hello" {
 		t.Fatalf("result json: %s", task.ResultJSON)
 	}
-	if _, err := svc.Append("owner", "replay-1", "more"); authMessage(err) != "已结束任务不能继续写入文本增量" {
+	if _, err := svc.Append("owner", "replay-1", "more"); authMessage(err) != "The ended task cannot continue to write text increments" {
 		t.Fatalf("closed append: %v", err)
 	}
-	if _, err := svc.Complete("owner", "replay-1", "hello"); authMessage(err) != "该文本任务已结束或不属于你，无法完成" {
+	if _, err := svc.Complete("owner", "replay-1", "hello"); authMessage(err) != "The text task has ended or does not belong to you and cannot be completed." {
 		t.Fatalf("repeat complete: %v", err)
 	}
 }
@@ -156,7 +156,7 @@ func TestCompleteOwnsStatusAndClosesWindow(t *testing.T) {
 func TestCompleteRejectsNonReplayStatus(t *testing.T) {
 	db, svc := openReplay(t)
 	createTask(t, db, "queued", "owner", "text", model.TaskStatusQueued)
-	if _, err := svc.Complete("owner", "queued", "body"); authMessage(err) != "该文本任务已结束或不属于你，无法完成" {
+	if _, err := svc.Complete("owner", "queued", "body"); authMessage(err) != "The text task has ended or does not belong to you and cannot be completed." {
 		t.Fatalf("queued complete: %v", err)
 	}
 }
@@ -196,7 +196,7 @@ func TestFinalizeKeepsDraftOnCancelAndShortensSuccessWindow(t *testing.T) {
 	logs := &testLog{}
 	svc := New(NewStore(repository.New(db)), Dependencies{Logger: logs, Now: func() time.Time { return fixed }})
 	createTask(t, db, "fail-1", "owner", "text", model.TaskStatusRunning)
-	if _, err := svc.Append("owner", "fail-1", "草稿"); err != nil {
+	if _, err := svc.Append("owner", "fail-1", "draft"); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Model(&model.Task{}).Where("id = ?", "fail-1").Update("status", model.TaskStatusFailed).Error; err != nil {
@@ -209,7 +209,7 @@ func TestFinalizeKeepsDraftOnCancelAndShortensSuccessWindow(t *testing.T) {
 	if err := db.First(&failed, "id = ?", "fail-1").Error; err != nil {
 		t.Fatal(err)
 	}
-	if failed.TextDraft != "草稿" {
+	if failed.TextDraft != "draft" {
 		t.Fatalf("failed draft: %q", failed.TextDraft)
 	}
 	var failedDelta model.TaskTextDelta
@@ -221,10 +221,10 @@ func TestFinalizeKeepsDraftOnCancelAndShortensSuccessWindow(t *testing.T) {
 	}
 
 	createTask(t, db, "ok-1", "owner", "text", model.TaskStatusTextReplay)
-	if _, err := svc.Append("owner", "ok-1", "成片"); err != nil {
+	if _, err := svc.Append("owner", "ok-1", "Completed film"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.Complete("owner", "ok-1", "成片"); err != nil {
+	if _, err := svc.Complete("owner", "ok-1", "Completed film"); err != nil {
 		t.Fatal(err)
 	}
 	var okDelta model.TaskTextDelta
@@ -333,12 +333,12 @@ func TestConcurrentCompleteAndAppendCloseTheWindow(t *testing.T) {
 		if !read.Complete {
 			t.Fatal("complete did not close the task")
 		}
-		if _, err := svc.Append("owner", "close", "after"); authMessage(err) != "已结束任务不能继续写入文本增量" {
+		if _, err := svc.Append("owner", "close", "after"); authMessage(err) != "The ended task cannot continue to write text increments" {
 			t.Fatalf("post-complete append: %v", err)
 		}
 		return
 	}
-	if authMessage(appendErr) != "已结束任务不能继续写入文本增量" {
+	if authMessage(appendErr) != "The ended task cannot continue to write text increments" {
 		t.Fatalf("racing append: %v", appendErr)
 	}
 }
@@ -406,7 +406,7 @@ func TestQuotaUsesExistingEventAndByteCaps(t *testing.T) {
 		t.Fatal(err)
 	}
 	mapped, err := svc.Append("owner", "quota", "x")
-	if mapped != nil || authMessage(err) != "文本回放增量已达到配额，请等待任务归并后继续" {
+	if mapped != nil || authMessage(err) != "The text playback increment has reached the quota, please wait for the tasks to be merged before continuing." {
 		t.Fatalf("mapped quota: %#v %v", mapped, err)
 	}
 }

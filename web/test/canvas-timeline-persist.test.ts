@@ -19,7 +19,7 @@ function sampleTimeline(): TimelineProject {
                 trackId: "audio-1",
                 startMs: 0,
                 durationMs: 5600,
-                title: "旁白",
+                title: "narration",
                 sourceStartMs: 0,
                 sourceDurationMs: 5600,
             },
@@ -39,7 +39,7 @@ describe("canvas timeline persistence", () => {
         try {
             withCanvasStorePersistenceSuppressed(() => {
                 useCanvasStore.setState({ projects: [] });
-                const id = useCanvasStore.getState().createProject("验收画布");
+                const id = useCanvasStore.getState().createProject("acceptance canvas");
                 const timeline = sampleTimeline();
                 useCanvasStore.getState().updateProject(id, { timeline });
                 const stored = useCanvasStore.getState().openProject(id);
@@ -66,10 +66,10 @@ describe("canvas timeline persistence", () => {
         try {
             withCanvasStorePersistenceSuppressed(() => {
                 useCanvasStore.setState({ projects: [] });
-                const id = useCanvasStore.getState().createProject("验收画布");
+                const id = useCanvasStore.getState().createProject("acceptance canvas");
                 useCanvasStore.getState().updateProject(id, { timeline: sampleTimeline() });
                 useCanvasStore.getState().updateProject(id, {
-                    nodes: [{ id: "7vvfM674HnenwTekmj88V", type: "audio", title: "旁白", position: { x: 0, y: 0 }, width: 320, height: 120, metadata: { durationMs: 5600 } }] as never,
+                    nodes: [{ id: "7vvfM674HnenwTekmj88V", type: "audio", title: "narration", position: { x: 0, y: 0 }, width: 320, height: 120, metadata: { durationMs: 5600 } }] as never,
                 });
                 const loaded = reloadedTimeline(useCanvasStore.getState().openProject(id));
                 expect(loaded.durationMs).toBe(5600);
@@ -85,14 +85,14 @@ describe("canvas timeline persistence", () => {
         let closed = false;
         const error = await runTimelineDialogSaveAttempt(
             async () => {
-                throw new Error("画布后端持久化失败");
+                throw new Error("Canvas backend persistence failed");
             },
             () => {
                 closed = true;
             },
         );
         expect(closed).toBe(false);
-        expect((error as Error).message).toBe("画布后端持久化失败");
+        expect((error as Error).message).toBe("Canvas backend persistence failed");
         closed = false;
         const ok = await runTimelineDialogSaveAttempt(
             async () => undefined,
@@ -106,8 +106,8 @@ describe("canvas timeline persistence", () => {
 
     test("timeline dialog subtitle does not expose an implementation phase", () => {
         const source = readFileSync(new URL("../src/components/canvas/canvas-timeline-dialog.tsx", import.meta.url), "utf8");
-        expect(source).toContain("多轨时间线");
-        expect(source).not.toContain("第二期 ·");
+        expect(source).toContain("Multi-track timeline");
+        expect(source).not.toContain("Issue 2 ·");
         expect(source).toContain("loading={saving}");
         expect(source).toContain("if (saving) return");
     });

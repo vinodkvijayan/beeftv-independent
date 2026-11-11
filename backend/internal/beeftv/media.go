@@ -125,7 +125,7 @@ type MediaTaskMissingError struct {
 	RequestID string
 }
 
-func (e *MediaTaskMissingError) Error() string { return "BeefTV 查不到这个编号的提交记录" }
+func (e *MediaTaskMissingError) Error() string { return "BeefTV cannot find the submission record for this number" }
 
 // IsMediaTaskNotFound 表示查询原编号时 BeefTV 查不到这次提交。
 func IsMediaTaskNotFound(err error) bool {
@@ -189,7 +189,7 @@ type MediaClient struct {
 func (c *MediaClient) endpoint(path string) (string, error) {
 	base, err := url.Parse(strings.TrimRight(c.BaseURL, "/"))
 	if err != nil || base.Host == "" || base.User != nil {
-		return "", errors.New("模型服务地址无效")
+		return "", errors.New("The model service address is invalid")
 	}
 	if !strings.HasSuffix(base.Path, "/v1") {
 		base.Path = strings.TrimRight(base.Path, "/") + "/v1"
@@ -225,7 +225,7 @@ func (c *MediaClient) validURLContext(ctx context.Context, raw string) error {
 		return err
 	}
 	if u.User != nil || (u.Scheme != "https" && !(c.AllowHTTPTest && u.Scheme == "http")) {
-		return errors.New("媒体地址需要安全的 HTTPS 链接")
+		return errors.New("Media address requires secure HTTPS link")
 	}
 	return nil
 }
@@ -286,7 +286,7 @@ func (c *MediaClient) sendWith(client *http.Client, req *http.Request, limit int
 		defer resp.Body.Close()
 		data, err = io.ReadAll(io.LimitReader(resp.Body, limit+1))
 		if err == nil && int64(len(data)) > limit {
-			err = errors.New("媒体服务控制响应过大")
+			err = errors.New("Media services control response is too large")
 		}
 		if err == nil && (resp.StatusCode < 200 || resp.StatusCode >= 300) {
 			var envelope struct {
@@ -294,7 +294,7 @@ func (c *MediaClient) sendWith(client *http.Client, req *http.Request, limit int
 			}
 			_ = json.Unmarshal(data, &envelope)
 			if envelope.Error.Message == "" {
-				envelope.Error.Message = fmt.Sprintf("媒体服务请求未能确认（HTTP %d）", resp.StatusCode)
+				envelope.Error.Message = fmt.Sprintf("Media service request failed to confirm (HTTP %d)", resp.StatusCode)
 			}
 			err = &MediaHTTPError{StatusCode: resp.StatusCode, TaskError: envelope.Error, Body: string(data), RequestID: resp.Header.Get("X-Request-Id")}
 		}
@@ -371,11 +371,11 @@ func (c *MediaClient) Discover(ctx context.Context) (MediaDiscovery, error) {
 		} `json:"data"`
 	}
 	if json.Unmarshal(data, &payload) != nil || header.Get(MediaProtocolHeader) != MediaProtocolVersion || payload.MediaProtocol.Version != MediaProtocolVersion {
-		return MediaDiscovery{}, errors.New("模型服务暂不支持当前媒体协议，本次尚未开始生成")
+		return MediaDiscovery{}, errors.New("The model service does not currently support the current media protocol, and the generation has not started yet.")
 	}
 	d := payload.MediaProtocol
 	if d.TaskSubmitURL != "/v1/media/tasks" || d.TaskQueryURLTemplate != "/v1/media/tasks/{task_ref}" || d.UploadsURL != "/v1/media/uploads" {
-		return MediaDiscovery{}, errors.New("媒体服务任务接口声明无效，本次尚未开始生成")
+		return MediaDiscovery{}, errors.New("The media service task interface statement is invalid and the generation has not started yet.")
 	}
 	d.Models = make(map[string]MediaModelCapability, len(payload.Data))
 	for _, model := range payload.Data {
@@ -387,7 +387,7 @@ func (c *MediaClient) Discover(ctx context.Context) (MediaDiscovery, error) {
 
 func (c *MediaClient) Execute(ctx context.Context, request MediaRequest, refs []LocalMediaReference) (map[string]any, error) {
 	if request.TaskRef == "" || c.State == nil {
-		return nil, errors.New("媒体任务缺少持久化提交身份")
+		return nil, errors.New("Media task missing persistent commit identity")
 	}
 	// Consult the existing send fence before opening a reference. A restart can
 	// collect the task even after the original local files have been deleted.
@@ -409,22 +409,22 @@ func (c *MediaClient) Execute(ctx context.Context, request MediaRequest, refs []
 		}
 	}
 	if !supported {
-		return nil, errors.New("媒体服务尚未支持当前任务类型")
+		return nil, errors.New("Media Services does not yet support the current task type")
 	}
 	if request.MediaType == "audio" || request.MediaType == "upscale" {
 		model := d.Models[request.Model]
 		capability, ok := model.Capabilities[request.MediaType]
 		if !ok || model.Version == "" || capability.MaxOutputs != 1 || !mediaStringMember(capability.Operations, request.Operation) {
-			return nil, errors.New("当前模型尚未声明所选媒体操作，本次尚未提交")
+			return nil, errors.New("The current model has not declared the selected media operation, and it has not been submitted yet.")
 		}
 		for key := range request.Options {
 			if !mediaStringMember(capability.Options, key) {
-				return nil, fmt.Errorf("当前模型未声明参数 %s，本次尚未提交", key)
+				return nil, fmt.Errorf("The current model does not declare the parameter %s, which has not been submitted yet.", key)
 			}
 		}
 		for _, ref := range refs {
 			if !mediaStringMember(capability.ReferenceKinds, ref.Kind) {
-				return nil, errors.New("当前模型不接受所选参考素材类型，本次尚未提交")
+				return nil, errors.New("The current model does not accept the selected reference material type and has not been submitted yet.")
 			}
 		}
 	}
@@ -436,7 +436,7 @@ func (c *MediaClient) Execute(ctx context.Context, request MediaRequest, refs []
 			return nil, err
 		}
 		if err := c.validURLContext(ctx, link); err != nil {
-			return nil, errors.New("媒体参考素材需要 HTTPS 链接")
+			return nil, errors.New("Media reference material requires HTTPS link")
 		}
 		request.Input.References = append(request.Input.References, MediaReference{Kind: ref.Kind, Role: ref.Role, URL: link})
 	}
@@ -487,7 +487,7 @@ func mediaStringMember(values []string, value string) bool {
 func decodeMediaTask(data []byte, ref, kind string) (MediaTask, error) {
 	var task MediaTask
 	if json.Unmarshal(data, &task) != nil || task.TaskRef != ref || task.MediaType != kind {
-		return task, errors.New("媒体任务响应身份不一致")
+		return task, errors.New("Media task response identity inconsistent")
 	}
 	return task, nil
 }
@@ -497,7 +497,7 @@ func decodeMediaTask(data []byte, ref, kind string) (MediaTask, error) {
 // 原任务，没收到才第一次执行，所以不会产生第二次付费生成。
 func (c *MediaClient) Resubmit(ctx context.Context, rawURL string, header http.Header, body []byte, ref, kind string) (MediaTask, error) {
 	if ref == "" || strings.TrimSpace(header.Get("Idempotency-Key")) != ref {
-		return MediaTask{}, errors.New("原请求的提交编号与任务不一致，不能补交")
+		return MediaTask{}, errors.New("The submission number of the original request is inconsistent with the task and cannot be resubmitted.")
 	}
 	ctx = c.networkContext(ctx)
 	if err := c.validURLContext(ctx, rawURL); err != nil {
@@ -523,7 +523,7 @@ func (c *MediaClient) Resubmit(ctx context.Context, rawURL string, header http.H
 
 func (c *MediaClient) Query(ctx context.Context, ref, kind string) (MediaTask, error) {
 	if ref == "" {
-		return MediaTask{}, errors.New("媒体任务编号为空")
+		return MediaTask{}, errors.New("Media task number is empty")
 	}
 	req, err := c.request(ctx, http.MethodGet, "/media/tasks/"+url.PathEscape(ref), nil)
 	if err != nil {
@@ -596,5 +596,5 @@ func (t MediaTask) failure() error {
 		}
 		return &err
 	}
-	return &MediaTaskError{Code: "media_task_failed", Category: "upstream", TaskID: t.TaskID, Message: "媒体生成失败，请保留原任务查询结算"}
+	return &MediaTaskError{Code: "media_task_failed", Category: "upstream", TaskID: t.TaskID, Message: "Media generation failed, please keep the original task to query settlement"}
 }

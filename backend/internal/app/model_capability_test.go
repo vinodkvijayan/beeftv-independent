@@ -367,7 +367,7 @@ func TestSeedanceReferenceAudioMessageNamesItemAndFix(t *testing.T) {
 		ReferenceAudios: []providerMedia{{DurationMs: 1900, Bytes: 1000}},
 	}
 	err := validateVideoTask(profile, input)
-	if err == nil || !strings.Contains(err.Error(), "第 1 段参考音频时长为 1.90 秒") || !strings.Contains(err.Error(), "需要改到 2–15 秒") || !strings.Contains(err.Error(), "请换一段更长的音频") {
+	if err == nil || !strings.Contains(err.Error(), "Reference audio duration 1 is 1.90 seconds") || !strings.Contains(err.Error(), "需要改到 2–15 秒") || !strings.Contains(err.Error(), "Please change to a longer audio") {
 		t.Fatalf("audio duration message: %v", err)
 	}
 }
@@ -442,7 +442,7 @@ func TestSeedanceReferenceDurationWithoutPersistedCapability(t *testing.T) {
 }
 
 func TestValidateImageTaskDelegatesGrokPromptLengthToUpstream(t *testing.T) {
-	prompt := strings.Repeat("中", 4001)
+	prompt := strings.Repeat("Medium", 4001)
 	input := canvasGenerationInput{
 		Mode:   "image",
 		Prompt: prompt,
@@ -455,7 +455,7 @@ func TestValidateImageTaskDelegatesGrokPromptLengthToUpstream(t *testing.T) {
 }
 
 func TestValidateImageTaskDoesNotApplyQualityPromptLimitToGrokLite(t *testing.T) {
-	prompt := strings.Repeat("中", 4001)
+	prompt := strings.Repeat("Medium", 4001)
 	input := canvasGenerationInput{
 		Mode:   "image",
 		Prompt: prompt,
@@ -472,7 +472,7 @@ func TestValidateVideoTaskDelegatesPromptLengthToUpstream(t *testing.T) {
 	profile.References.PromptMaxChars = 10_000
 	input := canvasGenerationInput{
 		Mode:   "video",
-		Prompt: strings.Repeat("镜", 23_142),
+		Prompt: strings.Repeat("mirror", 23_142),
 		Config: providerConfig{Model: "MiniMax H3", VideoSeconds: "6", Size: "16:9", VQuality: "720p"},
 	}
 
@@ -485,13 +485,13 @@ func TestValidateVideoTaskDelegatesPromptLengthToUpstream(t *testing.T) {
 func TestDefaultVideoPromptMaxCharsAllowsComposedCanvasPrompt(t *testing.T) {
 	profile := DefaultModelCapabilityConfigForModel("seedance-videos-compatible", "sd-2.5").Video
 	if profile.References.PromptMaxChars != 0 {
-		t.Fatalf("视频默认提示词上限 = %d, want 0", profile.References.PromptMaxChars)
+		t.Fatalf("Video default prompt word limit = %d, want 0", profile.References.PromptMaxChars)
 	}
 
 	for _, length := range []int{2399, 8001, 32001} {
-		composed := canvasGenerationInput{Mode: "video", Prompt: strings.Repeat("镜", length), Config: providerConfig{Model: "sd-2.5", VideoSeconds: "6", Size: "16:9", VQuality: "720p"}}
+		composed := canvasGenerationInput{Mode: "video", Prompt: strings.Repeat("mirror", length), Config: providerConfig{Model: "sd-2.5", VideoSeconds: "6", Size: "16:9", VQuality: "720p"}}
 		if err := validateVideoTask(profile, composed); err != nil {
-			t.Fatalf("合成提示词 %d 字符被拒绝: %v", length, err)
+			t.Fatalf("Synthetic prompt word %d character rejected: %v", length, err)
 		}
 	}
 }
@@ -506,10 +506,10 @@ func TestValidateImageTaskEnforcesGPTImage2CustomSizeLimits(t *testing.T) {
 	}
 
 	tests := map[string]string{
-		"4096x2048": "最长边",
-		"3840x2161": "16 的倍数",
-		"3840x1024": "宽高比",
-		"640x640":   "总像素",
+		"4096x2048": "longest side",
+		"3840x2161": "Multiples of 16",
+		"3840x1024": "aspect ratio",
+		"640x640":   "total pixels",
 	}
 	for size, want := range tests {
 		t.Run(size, func(t *testing.T) {
@@ -725,8 +725,8 @@ func TestNormalizeVideoCapabilityAllowsOmittedRatio(t *testing.T) {
 	profile := DefaultModelCapabilityConfigForModel("autodl-comfyui", "minimax_h3_lightx2v_no_pic").Video
 	profile.Ratios = nil
 	profile.DefaultRatio = ""
-	profile.Resolutions = []string{"480p竖", "480p横"}
-	profile.DefaultResolution = "480p竖"
+	profile.Resolutions = []string{"480p vertical", "480p horizontal"}
+	profile.DefaultResolution = "480p vertical"
 
 	result, err := NormalizeModelCapabilityConfig("video", "autodl-comfyui", &ModelCapabilityConfig{Version: 1, Video: profile})
 	if err != nil {
@@ -735,7 +735,7 @@ func TestNormalizeVideoCapabilityAllowsOmittedRatio(t *testing.T) {
 	if result.Video == nil || len(result.Video.Ratios) != 0 || result.Video.DefaultRatio != "" {
 		t.Fatalf("normalized video ratios = %#v", result.Video)
 	}
-	if err := validateVideoTask(result.Video, canvasGenerationInput{Config: providerConfig{Model: "minimax_h3_lightx2v_no_pic", VideoSeconds: "6", VQuality: "480p竖"}}); err != nil {
+	if err := validateVideoTask(result.Video, canvasGenerationInput{Config: providerConfig{Model: "minimax_h3_lightx2v_no_pic", VideoSeconds: "6", VQuality: "480p vertical"}}); err != nil {
 		t.Fatalf("validateVideoTask() error = %v", err)
 	}
 }

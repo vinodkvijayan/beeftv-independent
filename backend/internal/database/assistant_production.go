@@ -15,7 +15,7 @@ func requireAssistantProductionAuthorization(db *gorm.DB) error {
 		return err
 	}
 	if !has {
-		return fmt.Errorf("助手制作授权结构缺失，请启用自动迁移")
+		return fmt.Errorf("The assistant production authorization structure is missing, please enable automatic migration.")
 	}
 	return nil
 }

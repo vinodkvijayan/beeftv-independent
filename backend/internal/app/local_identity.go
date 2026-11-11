@@ -32,7 +32,7 @@ func (s *Service) WorkspaceOwner(id string) (*model.User, error) {
 
 func (s *Service) PublicAuthUser(user *model.User) (AuthUser, error) {
 	if user == nil {
-		return AuthUser{}, Unauthorized("本地工作区尚未初始化")
+		return AuthUser{}, Unauthorized("The local workspace has not been initialized yet")
 	}
 	return AuthUser{User: *user}, nil
 }

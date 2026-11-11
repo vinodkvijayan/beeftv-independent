@@ -7,7 +7,7 @@ import { findGenerationTaskByOperation } from "@/services/api/task-center";
 const task = { id: "original", projectId: "canvas", type: "canvas_video", status: "queued" } as GenerationTask;
 
 test.each([undefined, "", "   "])("a missing operation identity %p is rejected before task lookup", async (operationId) => {
-    await expect(findGenerationTaskByOperation(operationId as string, "canvas")).rejects.toThrow("缺少提交标识");
+    await expect(findGenerationTaskByOperation(operationId as string, "canvas")).rejects.toThrow("Missing commit id");
 });
 
 test("lost response finds the original admission without a second POST", async () => {
@@ -53,7 +53,7 @@ test("deterministic 4xx on replay surfaces the validation error when receipt loo
     let posts = 0;
     await expect(submitGenerationCommand({ prompt: "test" }, "canvas:op", async () => {
         if (++posts === 1) throw new ApiError("timeout", { status: 408 });
-        throw new ApiError("当前模型要求参考图片使用公网 HTTPS 链接", { status: 400, reason: "reference_media_requires_url" });
+        throw new ApiError("The current model requires reference images to use public HTTPS links.", { status: 400, reason: "reference_media_requires_url" });
     }, async () => undefined)).rejects.toMatchObject({ status: 400, reason: "reference_media_requires_url" });
     expect(posts).toBe(2);
 });

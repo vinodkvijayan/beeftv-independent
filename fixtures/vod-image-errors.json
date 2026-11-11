@@ -2,164 +2,164 @@
   "copies": {
     "capacity": {
       "category": "concurrency",
-      "reason": "图片服务当前繁忙",
-      "action": "请稍后再试",
+      "reason": "Image service is currently busy",
+      "action": "Please try again later",
       "uncertain": false
     },
     "rate": {
       "category": "throttled",
-      "reason": "图片服务请求过于频繁",
-      "action": "请稍后再试",
+      "reason": "Image service requests are too frequent",
+      "action": "Please try again later",
       "uncertain": false
     },
     "channel_auth": {
       "category": "permission",
-      "reason": "当前图片服务未通过授权",
-      "action": "请联系支持检查渠道权限后再试",
+      "reason": "The current image service has not been authorized",
+      "action": "Please contact support to check channel permissions and try again",
       "uncertain": false
     },
     "channel_config": {
       "category": "permission",
-      "reason": "当前图片服务配置有误",
-      "action": "请联系支持检查服务配置后再试",
+      "reason": "The current image service configuration is incorrect",
+      "action": "Please contact support to check the service configuration and try again",
       "uncertain": false
     },
     "input_missing": {
       "category": "input_inaccessible",
-      "reason": "参考素材不存在或已无法访问",
-      "action": "请检查并更换参考素材后重新生成",
+      "reason": "The reference material does not exist or is no longer accessible",
+      "action": "Please check and replace the reference material before regenerating",
       "uncertain": false
     },
     "invalid_params": {
       "category": "invalid_params",
-      "reason": "图片生成参数不符合要求",
-      "action": "请检查模型、尺寸、格式和数量后再试",
+      "reason": "Image generation parameters do not meet requirements",
+      "action": "Please check the model, size, format and quantity before trying again",
       "uncertain": false
     },
     "invalid_media": {
       "category": "invalid_params",
-      "reason": "参考素材格式不受当前模型支持",
-      "action": "请转换图片格式后更换参考素材",
+      "reason": "The reference material format is not supported by the current model",
+      "action": "Please convert the image format and replace the reference material",
       "uncertain": false
     },
     "duplicate": {
       "category": "submission_uncertain",
-      "reason": "检测到已有相同的图片任务",
-      "action": "请先查看原任务结果，不要重复提交",
+      "reason": "Detected that the same image task already exists",
+      "action": "Please check the original task results first and do not submit again.",
       "uncertain": true
     },
     "create_unknown": {
       "category": "submission_uncertain",
-      "reason": "尚未确认图片任务是否创建成功",
-      "action": "请联系支持核对原任务，不要重复提交",
+      "reason": "It has not been confirmed whether the picture task was created successfully",
+      "action": "Please contact support to verify the original task and do not submit it again.",
       "uncertain": true
     },
     "task_internal": {
       "category": "async_failed",
-      "reason": "图片任务因模型服务内部错误而失败",
-      "action": "请保留排查信息并联系支持核对结果，再决定是否重新生成",
+      "reason": "Image task failed due to model service internal error",
+      "action": "Please keep the troubleshooting information and contact support to check the results before deciding whether to regenerate it.",
       "uncertain": false
     },
     "task_failed": {
       "category": "async_failed",
-      "reason": "模型未能完成这次图片生成",
-      "action": "请保留排查信息并联系支持核对原因，再决定是否重新生成",
+      "reason": "The model failed to complete this image generation",
+      "action": "Please retain the troubleshooting information and contact support to check the cause before deciding whether to regenerate it.",
       "uncertain": false
     },
     "task_timeout": {
       "category": "timeout",
-      "reason": "图片任务执行超时",
-      "action": "请联系支持查询原任务结果，不要立即重新生成",
+      "reason": "Image task execution timeout",
+      "action": "Please contact support to check the original task results and do not regenerate immediately.",
       "uncertain": true
     },
     "cancelled": {
       "category": "cancelled",
-      "reason": "图片任务已取消",
-      "action": "如仍需生成，请确认后重新提交",
+      "reason": "Image task canceled",
+      "action": "If you still need to generate it, please confirm and resubmit.",
       "uncertain": false
     },
     "query_failed": {
       "category": "submission_uncertain",
-      "reason": "暂时无法查询图片任务结果",
-      "action": "请稍后查看原任务，不要重复提交",
+      "reason": "Temporarily unable to query image task results",
+      "action": "Please check the original task later and do not submit it again",
       "uncertain": true
     },
     "query_missing": {
       "category": "submission_uncertain",
-      "reason": "暂时无法找到原图片任务",
-      "action": "请联系支持核对任务记录，不要重复提交",
+      "reason": "The original image task cannot be found at the moment",
+      "action": "Please contact support to check the task record and do not submit it repeatedly.",
       "uncertain": true
     },
     "query_auth": {
       "category": "submission_uncertain",
-      "reason": "图片服务暂时无权查询原任务",
-      "action": "请联系支持检查渠道权限并恢复查询，不要重复提交",
+      "reason": "The image service does not have the right to query the original task at the moment.",
+      "action": "Please contact support to check channel permissions and resume the query. Do not submit again.",
       "uncertain": true
     },
     "unknown": {
       "category": "submission_uncertain",
-      "reason": "图片任务结果尚未确认",
-      "action": "请先查看原任务或联系支持核对，不要重复提交",
+      "reason": "The result of the picture task has not yet been confirmed",
+      "action": "Please check the original task first or contact support for verification. Do not submit again.",
       "uncertain": true
     },
     "partial": {
       "category": "partial_success",
-      "reason": "部分图片已生成，任务未全部完成",
-      "action": "请联系支持取回图片，再决定是否补做",
+      "reason": "Some pictures have been generated, but not all tasks have been completed.",
+      "action": "Please contact support to retrieve the image and then decide whether to re-do it.",
       "uncertain": true
     },
     "results_missing": {
       "category": "results_missing",
-      "reason": "图片任务已结束，但未返回可用图片",
-      "action": "请联系支持核对原任务，不要重复提交",
+      "reason": "Image task ended, but no available images were returned",
+      "action": "Please contact support to verify the original task and do not submit it again.",
       "uncertain": true
     },
     "download_failed": {
       "category": "download_failed",
-      "reason": "图片已生成，但下载失败",
-      "action": "请联系支持取回原图片，不要重新生成",
+      "reason": "The image was generated but failed to download",
+      "action": "Please contact support to retrieve the original image, do not regenerate it",
       "uncertain": true
     },
     "request_large": {
       "category": "input_too_large",
-      "reason": "图片请求的数据量超过服务上限",
-      "action": "请减少参考素材或压缩图片后再试",
+      "reason": "The amount of data requested by the image exceeds the service limit",
+      "action": "Please reduce the reference material or compress the image and try again",
       "uncertain": false
     },
     "unsupported": {
       "category": "model_missing",
-      "reason": "当前图片服务不支持这次请求",
-      "action": "请联系支持检查模型、接口和地域设置",
+      "reason": "The current image service does not support this request",
+      "action": "Please contact support to check model, interface and locale settings",
       "uncertain": false
     },
     "response_large": {
       "category": "submission_uncertain",
-      "reason": "图片服务返回的数据超过接口上限",
-      "action": "请联系支持取回结果，不要重复提交",
+      "reason": "The data returned by the image service exceeds the upper limit of the interface",
+      "action": "Please contact support to retrieve the results and do not submit again.",
       "uncertain": true
     },
     "source_busy": {
       "category": "input_inaccessible",
-      "reason": "图片任务所需资源正在被占用",
-      "action": "请确认参考素材可用后再试",
+      "reason": "The resources required for the image task are being occupied",
+      "action": "Please confirm that the reference material is available before trying again",
       "uncertain": false
     },
     "dry_run": {
       "category": "invalid_params",
-      "reason": "本次为服务检查，未执行图片生成",
-      "action": "请联系支持检查渠道配置后再试",
+      "reason": "This is a service check and no image generation is performed.",
+      "action": "Please contact support to check the channel configuration and try again",
       "uncertain": false
     },
     "moderation": {
       "category": "moderation_input",
-      "reason": "提示词或参考素材未通过内容安全审核",
-      "action": "请调整提示词或参考素材后重新生成",
+      "reason": "The prompt word or reference material did not pass the content security review",
+      "action": "Please adjust the prompt words or reference materials and regenerate",
       "uncertain": false
     },
     "query_rejected": {
       "category": "submission_uncertain",
-      "reason": "原图片任务查询被服务拒绝",
-      "action": "请联系支持修复查询，不要重复提交",
+      "reason": "The original image task query was rejected by the service",
+      "action": "Please contact support to fix the query and do not submit it again.",
       "uncertain": true
     }
   },

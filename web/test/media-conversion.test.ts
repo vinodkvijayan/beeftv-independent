@@ -14,8 +14,8 @@ function node(type: CanvasNodeType, id: string, metadata: CanvasNodeData["metada
 
 const config = {} as AiConfig;
 
-describe("本地转换节点注册", () => {
-    test("只允许一个图片或视频输入，完成后才作为图片素材", () => {
+describe("Local conversion node registration", () => {
+    test("Only one picture or video is allowed to be input, and it will be used as picture material after completion.", () => {
         expect(getNodeAcceptedInputKinds(CanvasNodeType.MediaConversion)).toEqual(["image", "video"]);
         expect(getNodeMaxInputCount(CanvasNodeType.MediaConversion)).toBe(1);
         expect(getNodeResourceKind(node(CanvasNodeType.MediaConversion, "conversion"))).toBeNull();
@@ -27,7 +27,7 @@ describe("本地转换节点注册", () => {
         }))).toBeNull();
     });
 
-    test("连接规则接受图片和视频，拒绝没有可读媒体的节点及第二个输入", () => {
+    test("Connection rules accept images and videos, reject nodes without readable media and second input", () => {
         const image = node(CanvasNodeType.Image, "image");
         const video = node(CanvasNodeType.Video, "video");
         const text = node(CanvasNodeType.Text, "text");
@@ -37,11 +37,11 @@ describe("本地转换节点注册", () => {
 
         expect(canvasConnectionError(config, nodes, [], candidate(image.id))).toBe("");
         expect(canvasConnectionError(config, nodes, [], candidate(video.id))).toBe("");
-        expect(canvasConnectionError(config, nodes, [], candidate(text.id))).toContain("转换节点只接受图片或视频输入");
-        expect(canvasConnectionError(config, nodes, [{ id: "existing", fromNodeId: image.id, toNodeId: conversion.id }], candidate(video.id))).toContain("转换节点最多连接 1 个输入");
+        expect(canvasConnectionError(config, nodes, [], candidate(text.id))).toContain("Transform nodes only accept image or video input");
+        expect(canvasConnectionError(config, nodes, [{ id: "existing", fromNodeId: image.id, toNodeId: conversion.id }], candidate(video.id))).toContain("Transform nodes can be connected to a maximum of 1 input");
     });
 
-    test("下游生成会阻止未完成或待更新的转换结果", () => {
+    test("Downstream builds block transformation results that are not completed or pending updates", () => {
         const conversion = node(CanvasNodeType.MediaConversion, "conversion", {
             mediaConversion: { schemaVersion: 1, operation: "depth", status: "unavailable" },
         });
@@ -58,7 +58,7 @@ describe("本地转换节点注册", () => {
         expect(findPendingMediaConversionInput(target.id, [input, conversion, target], connections)).toBeNull();
     });
 
-    test("完成后的转换结果可作为生成参考图", async () => {
+    test("The completed conversion result can be used as a reference image to generate", async () => {
         const { nodeReferenceImage } = await import("../src/lib/canvas/canvas-project-generation");
         expect(nodeReferenceImage(node(CanvasNodeType.MediaConversion, "conversion", {
             storageKey: "image:scope:result",
@@ -80,14 +80,14 @@ describe("本地转换节点注册", () => {
     });
 });
 
-describe("图片本地转换算法", () => {
-    test("灰度转换保留 alpha 并使用感知亮度", () => {
+describe("Image local conversion algorithm", () => {
+    test("Grayscale conversion preserves alpha and uses perceived brightness", () => {
         const pixels = new Uint8ClampedArray([255, 0, 0, 200, 0, 255, 0, 100]);
         const output = transformPixels(pixels, 2, 1, "grayscale");
         expect(Array.from(output)).toEqual([76, 76, 76, 200, 150, 150, 150, 100]);
     });
 
-    test("Canny 转换输出黑白边缘图并保留 alpha", () => {
+    test("Canny converts output black and white edge images and preserves alpha", () => {
         const pixels = new Uint8ClampedArray([
             0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255,
             0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255,
@@ -102,7 +102,7 @@ describe("图片本地转换算法", () => {
         }
     });
 
-    test("浏览器算法转换把模型操作交给本机 Runtime", async () => {
+    test("Browser algorithm conversion transfers model operations to the native runtime", async () => {
         await expect(convertImageLocally("", "depth")).rejects.toMatchObject<LocalImageConversionError>({ code: "model_missing" });
     });
 });

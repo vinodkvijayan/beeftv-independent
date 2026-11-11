@@ -77,11 +77,11 @@ func (m *Manager) WriteToken(kind agentops.ClientKind, token string) (string, er
 		return "", ErrUnsupported
 	}
 	if err := m.ensureStateDir(); err != nil {
-		return "", fmt.Errorf("保存连接凭据失败：%w", err)
+		return "", fmt.Errorf("Failed to save connection credentials: %w", err)
 	}
 	path := m.TokenPath(kind)
 	if err := writeTokenFile(path, strings.TrimSpace(token)); err != nil {
-		return "", fmt.Errorf("保存连接凭据失败：%w", err)
+		return "", fmt.Errorf("Failed to save connection credentials: %w", err)
 	}
 	return path, nil
 }
@@ -144,7 +144,7 @@ func (m *Manager) DeleteToken(kind agentops.ClientKind) error {
 		return ErrUnsupported
 	}
 	if err := os.Remove(m.TokenPath(kind)); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("删除连接凭据失败：%w", err)
+		return fmt.Errorf("Failed to delete connection credentials: %w", err)
 	}
 	return nil
 }

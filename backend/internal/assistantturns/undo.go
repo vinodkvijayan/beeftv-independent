@@ -20,7 +20,7 @@ func (s *Service) lockOpenTurn(tx *gorm.DB, userID, turnID, canvasID string) (Re
 		imported, importErr := s.importLegacyIfMissing(tx, id)
 		if importErr != nil {
 			if isMissing(importErr) {
-				return Record{}, &Error{Reason: ReasonNotOpen, Message: "这一轮不存在或已结束"}
+				return Record{}, &Error{Reason: ReasonNotOpen, Message: "This round does not exist or has ended"}
 			}
 			return Record{}, importErr
 		}
@@ -35,7 +35,7 @@ func (s *Service) lockOpenTurn(tx *gorm.DB, userID, turnID, canvasID string) (Re
 		rec = decoded
 	}
 	if rec.UserID != userID || (rec.CanvasID != canvasID && Mode(rec.PermissionMode) != PermissionFullAccess) || rec.Undone || rec.effectiveState() != StateOpen {
-		return Record{}, &Error{Reason: ReasonNotOpen, Message: "这一轮不存在或已结束"}
+		return Record{}, &Error{Reason: ReasonNotOpen, Message: "This round does not exist or has ended"}
 	}
 	if err := s.continuationTurnAllowed(tx, id); err != nil {
 		return Record{}, err
@@ -47,7 +47,7 @@ func (s *Service) lockOpenTurn(tx *gorm.DB, userID, turnID, canvasID string) (Re
 		return Record{}, result.Error
 	}
 	if result.RowsAffected != 1 {
-		return Record{}, &Error{Reason: ReasonNotOpen, Message: "这一轮不存在或已结束"}
+		return Record{}, &Error{Reason: ReasonNotOpen, Message: "This round does not exist or has ended"}
 	}
 	return rec, nil
 }
@@ -67,7 +67,7 @@ func (s *Service) Undo(userID, canvasID, turnID string) (int64, error) {
 		return 0, storeUnavailable()
 	}
 	if s.canvas == nil {
-		return 0, errors.New("画布存储不可用")
+		return 0, errors.New("Canvas storage is not available")
 	}
 	var restoredRevision int64
 	err := s.store.DB().Transaction(func(tx *gorm.DB) error {
@@ -86,7 +86,7 @@ func (s *Service) Undo(userID, canvasID, turnID string) (int64, error) {
 			return errNotFound()
 		}
 		if rec.Undone {
-			return &Error{Reason: ReasonAlreadyUndone, Message: "这一轮已经撤销过了"}
+			return &Error{Reason: ReasonAlreadyUndone, Message: "This round has been canceled"}
 		}
 		if rec.Change == nil {
 			receipts, receiptErr := s.store.SucceededByTurn(tx, rec.UserID, rec.TurnID)
@@ -108,7 +108,7 @@ func (s *Service) Undo(userID, canvasID, turnID string) (int64, error) {
 			}
 		}
 		if rec.Change == nil {
-			return &Error{Reason: ReasonNoChange, Message: "这一轮没有改动画布"}
+			return &Error{Reason: ReasonNoChange, Message: "No canvas changes were made this round"}
 		}
 		session := s.canvas.BoundTo(tx)
 		changes := rec.Change.CanvasChanges
@@ -142,14 +142,14 @@ func (s *Service) Undo(userID, canvasID, turnID string) (int64, error) {
 			}
 			currentRevision := DocumentRevision(currentDoc)
 			if currentRevision != change.RevisionAfter || change.RevisionBefore != snapshot.RevisionBefore {
-				return &Error{Reason: ReasonCanvasChanged, Message: "画布在这一轮之后又被改过，已停止撤销"}
+				return &Error{Reason: ReasonCanvasChanged, Message: "The canvas has been modified again after this round and undo has been stopped."}
 			}
 			var restored map[string]any
 			if err := json.Unmarshal(snapshot.Document, &restored); err != nil {
 				return err
 			}
 			if !MatchesChange(restored, currentDoc, &change) {
-				return &Error{Reason: ReasonCanvasChanged, Message: "无法安全撤销这一轮，画布内容已保留"}
+				return &Error{Reason: ReasonCanvasChanged, Message: "This round cannot be safely undone, canvas content has been preserved"}
 			}
 			if currentRevision != snapshot.RevisionBefore+1 || change.DocumentUpdated {
 				ops, opErr := s.store.OpsByIDs(tx, rec.UserID, change.OperationIDs)
@@ -157,7 +157,7 @@ func (s *Service) Undo(userID, canvasID, turnID string) (int64, error) {
 					return opErr
 				}
 				if !OperationsCoverSpan(ops, targetID, change.OperationIDs, snapshot.RevisionBefore, currentRevision) {
-					return &Error{Reason: ReasonCanvasChanged, Message: "无法安全撤销这一轮，画布内容已保留"}
+					return &Error{Reason: ReasonCanvasChanged, Message: "This round cannot be safely undone, canvas content has been preserved"}
 				}
 			}
 			restored["id"] = targetID

@@ -93,11 +93,11 @@ func TestUnknownAcceptedRouteIsNotResubmittedAfterLeaseExpiry(t *testing.T) {
 		UserID:         "user",
 		Type:           "canvas_text",
 		Status:         model.TaskStatusRunning,
-		Stage:          "调用生成模型",
+		Stage:          "Call the generated model",
 		LeaseOwner:     "dead-worker",
 		LeaseExpiresAt: &past,
 		Attempts:       1,
-		InputJSON:      `{"mode":"text","prompt":"不要重发","config":{"channelId":"channel","model":"text-test"}}`,
+		InputJSON:      `{"mode":"text","prompt":"Do not resend","config":{"channelId":"channel","model":"text-test"}}`,
 		CreatedAt:      time.Now().Add(-time.Minute),
 		UpdatedAt:      time.Now().Add(-time.Minute),
 	}

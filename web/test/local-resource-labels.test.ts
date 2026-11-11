@@ -9,7 +9,7 @@ describe("local resource labels", () => {
         const source = readFileSync(resolve(root, "src/lib/canvas/resource-storage-status.ts"), "utf8");
         expect(source).toContain('import { isLocalRuntimeMode } from "@/lib/runtime-mode";');
         expect(source).toContain("storageKey.startsWith(\"resource:\") ? (localRuntime ? \"local\" : \"oss\") : \"local\"");
-        expect(source).toContain("保存在本机资源目录，不会上传到云端");
+        expect(source).toContain("Saved in the local resource directory and will not be uploaded to the cloud");
     });
 
     test("only shows the legacy remote-upload warning in hosted mode", () => {
@@ -17,7 +17,7 @@ describe("local resource labels", () => {
         expect(source).toContain("const browserFallback = Boolean(metadata.storageKey && !resourceIdFromStorageKey(metadata.storageKey));");
         expect(source).toContain("const localOnly = browserFallback && localRuntime;");
         expect(source).toContain("const remotePending = browserFallback && !localRuntime;");
-        expect(source).toContain("已保存在本机缓存，资源服务暂不可用");
+        expect(source).toContain("It has been saved in the local cache and the resource service is temporarily unavailable.");
     });
 
     test("canvas text uploads use the same local-first media boundary", () => {

@@ -33,7 +33,7 @@ function succeededImageSummary(partial: Partial<GenerationTask> = {}): Generatio
         projectId: "lelvpvjEnuJ98wD_f2FI7",
         type: "canvas_image",
         status: "succeeded",
-        prompt: "金色湖畔露营车",
+        prompt: "Golden Lakeside Campervan",
         previewUrl: "/api/resources/generated-image/file",
         previewKind: "image",
         clientContext: { nodeId: "image-1790921196364-0djku" },
@@ -57,11 +57,11 @@ function succeededImageDetail(partial: Partial<GenerationTask> = {}): Generation
 function wipedCanvasProject(): CanvasProject {
     return {
         id: "lelvpvjEnuJ98wD_f2FI7",
-        title: "未命名项目",
+        title: "Unnamed project",
         nodes: [{
             id: "image-1790921196364-0djku",
             type: CanvasNodeType.Image,
-            title: "图片",
+            title: "pictures",
             position: { x: 0, y: 0 },
             width: 320,
             height: 180,
@@ -101,7 +101,7 @@ function selectGate(partial: Partial<CanvasGenerationHistorySelectGate> = {}): C
 
 describe("LibTV generation history picker", () => {
     test("queries and filters successful media generation tasks", () => {
-        expect(picker).toContain('title="生成历史"');
+        expect(picker).toContain('title="Generate History"');
         expect(picker).toContain("listGenerationTasks(100, { projectId, activeOnly: false }, undefined, signal)");
         expect(picker).toContain("insertableCanvasGenerationHistoryTasks");
         expect(picker).toContain("queryGenerationTask(task.id, { signal: request.signal })");
@@ -118,7 +118,7 @@ describe("LibTV generation history picker", () => {
         expect(picker).not.toContain("localTaskHistoryFromProjects");
         expect(picker).not.toContain("isLocalWorkspaceMode");
         expect(picker).not.toContain("loadCanvasGenerationHistory");
-        expect(picker).toContain("query.isError ? <>生成历史暂时无法读取");
+        expect(picker).toContain("query.isError? <>The generation history cannot be read temporarily.");
         expect(picker).toContain('queryKey: ["canvas-generation-history", projectId]');
         expect(historySource).toContain("export function insertableCanvasGenerationHistoryTasks");
         expect(historySource).not.toContain("loadCanvasGenerationHistory");
@@ -151,34 +151,34 @@ describe("LibTV generation history picker", () => {
         });
         expect(resolved.resultJson).toContain("resource:generated-image");
 
-        expect(() => assertCanvasGenerationHistoryTaskForInsert({ ...detail, status: "failed", error: "上游内容审核未通过" }, {
+        expect(() => assertCanvasGenerationHistoryTaskForInsert({ ...detail, status: "failed", error: "Upstream content review failed" }, {
             projectId: "lelvpvjEnuJ98wD_f2FI7",
             expectedId: summary.id,
-        })).toThrow("上游内容审核未通过");
+        })).toThrow("Upstream content review failed");
         expect(() => assertCanvasGenerationHistoryTaskForInsert(detail, {
             projectId: "other-canvas",
             expectedId: summary.id,
-        })).toThrow("生成任务不属于当前画布");
+        })).toThrow("The build task does not belong to the current canvas");
         expect(() => assertCanvasGenerationHistoryTaskForInsert({ ...detail, resultJson: undefined }, {
             projectId: "lelvpvjEnuJ98wD_f2FI7",
             expectedId: summary.id,
-        })).toThrow("该任务没有可插入的生成结果");
+        })).toThrow("This task has no pluggable build results");
         expect(() => assertCanvasGenerationHistoryTaskForInsert({ ...detail, id: "other-task" }, {
             projectId: "lelvpvjEnuJ98wD_f2FI7",
             expectedId: summary.id,
-        })).toThrow("该任务没有可插入的生成结果");
+        })).toThrow("This task has no pluggable build results");
         expect(() => assertCanvasGenerationHistoryTaskForInsert({ ...detail, projectId: "" }, {
             projectId: "lelvpvjEnuJ98wD_f2FI7",
             expectedId: summary.id,
-        })).toThrow("生成任务不属于当前画布");
+        })).toThrow("The build task does not belong to the current canvas");
         expect(() => assertCanvasGenerationHistoryTaskForInsert(detail, {
             projectId: "   ",
             expectedId: summary.id,
-        })).toThrow("生成任务不属于当前画布");
+        })).toThrow("The build task does not belong to the current canvas");
         expect(() => assertCanvasGenerationHistoryTaskForInsert(detail, {
             projectId: "",
             expectedId: summary.id,
-        })).toThrow("生成任务不属于当前画布");
+        })).toThrow("The build task does not belong to the current canvas");
         expect(insertableCanvasGenerationHistoryTasks([succeededImageSummary({ projectId: "" })], { projectId: "   " })).toEqual([]);
     });
 
@@ -255,16 +255,16 @@ describe("LibTV generation history picker", () => {
         })).rejects.toThrow("backend down");
         const listQuery = picker.slice(picker.indexOf("const query = useQuery"), picker.indexOf("const tasks = useMemo"));
         expect(listQuery).not.toContain(".catch(");
-        expect(picker).toContain("query.isError ? <>生成历史暂时无法读取");
+        expect(picker).toContain("query.isError? <>The generation history cannot be read temporarily.");
     });
 
     test("keeps project scope when listing insertable history", () => {
         const listed = insertableCanvasGenerationHistoryTasks([
             succeededImageSummary(),
             succeededImageSummary({ id: "foreign", projectId: "canvas-b" }),
-        ], { projectId: "lelvpvjEnuJ98wD_f2FI7", keyword: "湖畔" });
+        ], { projectId: "lelvpvjEnuJ98wD_f2FI7", keyword: "Lakeside" });
         expect(listed).toHaveLength(1);
-        expect(insertableCanvasGenerationHistoryTasks([succeededImageSummary()], { projectId: "lelvpvjEnuJ98wD_f2FI7", keyword: "无匹配" })).toEqual([]);
+        expect(insertableCanvasGenerationHistoryTasks([succeededImageSummary()], { projectId: "lelvpvjEnuJ98wD_f2FI7", keyword: "No match" })).toEqual([]);
     });
 
     test("inserts from persisted resultJson without requiring node preview", async () => {
@@ -327,7 +327,7 @@ describe("LibTV generation history picker", () => {
         expect(insert).toContain("insertedNodes.reduce");
         expect(insert).toContain("rebaseInsertedCanvasNode(nodes, inserted)");
         expect(insert.indexOf("runOwnedCanvasHistoryInsert")).toBeLessThan(insert.indexOf("setGenerationHistoryOpen(false)"));
-        expect(insert.indexOf("runOwnedCanvasHistoryInsert")).toBeLessThan(insert.indexOf('message.success("已从生成历史插入到画布")'));
+        expect(insert.indexOf("runOwnedCanvasHistoryInsert")).toBeLessThan(insert.indexOf('message.success("Inserted into canvas from build history")'));
         expect(insert.indexOf("flushCanvasStorePersistence")).toBe(-1);
         expect(insert.indexOf("saveCanvasProject")).toBe(-1);
         expect(editorDialogs).toContain("generation.insertGenerationHistoryTask");
@@ -340,7 +340,7 @@ describe("LibTV generation history picker", () => {
             projectId: "7vvfM674HnenwTekmj88V",
             type: "canvas_audio",
             status: "succeeded",
-            prompt: "一段旁白",
+            prompt: "a narration",
             previewUrl: audioUrl,
             resultJson: JSON.stringify({ mode: "audio", audio: { dataUrl: audioUrl, url: audioUrl, storageKey: "resource:audio-owned" } }),
             attempts: 1,

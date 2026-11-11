@@ -65,7 +65,7 @@ func TestYSDUIMediaUploadRejectsCorruptImageAndOversizeMediaBeforeUpload(t *test
 	ctx := context.Background()
 	input := Input{
 		Mode:   "image",
-		Prompt: "图生图",
+		Prompt: "Tu Sheng Tu",
 		Config: Config{
 			InterfaceType: "ysdui-image",
 			BaseURL:       "http://127.0.0.1:18080",
@@ -163,7 +163,7 @@ func TestYSDUIMediaUploadPreuploadsLocalAndInlineReferencesBeforeCreate(t *testi
 
 	imageInput := Input{
 		Mode:   "image",
-		Prompt: "把参考图改成水彩风格",
+		Prompt: "Change the reference image to watercolor style",
 		Config: Config{
 			InterfaceType: "ysdui-image",
 			BaseURL:       server.URL,
@@ -214,7 +214,7 @@ func TestYSDUIMediaUploadPreuploadsLocalAndInlineReferencesBeforeCreate(t *testi
 	createBody = nil
 	videoInput := Input{
 		Mode:   "video",
-		Prompt: "让画面动起来",
+		Prompt: "Make the picture move",
 		Config: Config{
 			InterfaceType: "ysdui-video",
 			BaseURL:       server.URL,
@@ -267,7 +267,7 @@ func TestYSDUIMediaUploadFailureStopsInPreparationBeforeCreate(t *testing.T) {
 		if r.URL.Path == "/api/file/v1/upload" {
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"code":    500,
-				"message": "文件服务暂不可用",
+				"message": "File service is temporarily unavailable",
 			})
 			return
 		}
@@ -278,7 +278,7 @@ func TestYSDUIMediaUploadFailureStopsInPreparationBeforeCreate(t *testing.T) {
 
 	input := Input{
 		Mode:   "image",
-		Prompt: "图生图测试",
+		Prompt: "Graph test",
 		Config: Config{
 			InterfaceType: "ysdui-image-task",
 			BaseURL:       server.URL,

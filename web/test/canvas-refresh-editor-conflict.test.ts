@@ -93,7 +93,7 @@ function canvas(revision: number, nodes: CanvasNodeData[]): CanvasProject {
     return {
         id: "c1",
         revision,
-        title: "画布",
+        title: "canvas",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
         nodes,
@@ -124,7 +124,7 @@ function mountEditor(initial: CanvasNodeData[]) {
     return editor;
 }
 
-const assistantNodes = [textNode("a1", "助手文本一"), textNode("a2", "助手文本二")];
+const assistantNodes = [textNode("a1", "Assistant text one"), textNode("a2", "Assistant text two")];
 
 async function confirmedAssistantCanvas() {
     server.document = canvas(0, assistantNodes) as never;
@@ -144,9 +144,9 @@ beforeEach(() => {
     useCanvasStore.setState({ projects: [] });
 });
 
-describe("外部撤销到达编辑器", () => {
-    test("重新生成遇到旧任务回执时不暂停保存，下一次提交使用新版本", async () => {
-        const failed: CanvasNodeData = { ...textNode("retry", "视频"), metadata: { status: "error", taskId: "old-task", taskStatus: "failed", errorDetails: "旧失败" } };
+describe("External undo reaches editor", () => {
+    test("When regenerating an old task receipt, the save will not be paused, and the new version will be used for the next submission.", async () => {
+        const failed: CanvasNodeData = { ...textNode("retry", "video"), metadata: { status: "error", taskId: "old-task", taskStatus: "failed", errorDetails: "old failure" } };
         server.document = canvas(0, [failed]) as never;
         server.revision = 0;
         useCanvasStore.setState({ projects: [canvas(0, [failed])] });
@@ -168,7 +168,7 @@ describe("外部撤销到达编辑器", () => {
         expect((server.document?.nodes as CanvasNodeData[])[0].metadata).toEqual(retry.metadata);
     });
 
-    test("编辑器副本只多了节点时间戳：删除照常落到编辑器，不暂停保存", async () => {
+    test("The editor copy only has more node timestamps: deletion falls to the editor as usual, and saving is not paused.", async () => {
         await confirmedAssistantCanvas();
         const editor = mountEditor(assistantNodes.map(stamp));
         server.document = canvas(2, []) as never;
@@ -182,15 +182,15 @@ describe("外部撤销到达编辑器", () => {
         expect(canvasBackendSubmitPaused("c1", scope)).toBe(false);
     });
 
-    test("编辑器里有真实冲突：保留本地画面，顶栏出现最新版本，自动提交暂停", async () => {
+    test("There is a real conflict in the editor: the local screen is retained, the latest version appears in the top bar, and automatic submission is suspended.", async () => {
         await confirmedAssistantCanvas();
-        const editor = mountEditor([{ ...stamp(assistantNodes[0]), title: "用户刚改的标题" }, stamp(assistantNodes[1])]);
+        const editor = mountEditor([{ ...stamp(assistantNodes[0]), title: "The title just changed by the user" }, stamp(assistantNodes[1])]);
         server.document = canvas(2, []) as never;
 
         await refreshLocalCanvasProjectIfChanged("c1");
 
         expect(editor.held).toBe(1);
-        expect(editor.nodes.map((node) => node.title)).toEqual(["用户刚改的标题", "助手文本二"]);
+        expect(editor.nodes.map((node) => node.title)).toEqual(["The title just changed by the user", "Assistant text two"]);
         const conflict = canvasExternalRevisionConflict(scope, "c1");
         expect(conflict?.remoteRevision).toBe(2);
         expect(conflict?.candidate.nodes).toEqual([]);

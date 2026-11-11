@@ -13,7 +13,7 @@ import (
 func TestVideoCapabilityDefaultsMatchSharedFixture(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "fixtures", "video-capability-defaults.json"))
 	if err != nil {
-		t.Fatalf("读取共享契约夹具失败：%v", err)
+		t.Fatalf("Failed to read shared contract fixture: %v", err)
 	}
 	var cases []struct {
 		Protocol string         `json:"protocol"`
@@ -21,16 +21,16 @@ func TestVideoCapabilityDefaultsMatchSharedFixture(t *testing.T) {
 		Config   map[string]any `json:"config"`
 	}
 	if err := json.Unmarshal(raw, &cases); err != nil {
-		t.Fatalf("解析共享契约夹具失败：%v", err)
+		t.Fatalf("Failed to parse shared contract fixture: %v", err)
 	}
 	for _, item := range cases {
 		actual, err := json.Marshal(defaultVideoCapabilityConfig(item.Protocol, item.Model))
 		if err != nil {
-			t.Fatalf("%s/%s 序列化失败：%v", item.Protocol, item.Model, err)
+			t.Fatalf("%s/%s serialization failed: %v", item.Protocol, item.Model, err)
 		}
 		var actualMap map[string]any
 		if err := json.Unmarshal(actual, &actualMap); err != nil {
-			t.Fatalf("%s/%s 解析失败：%v", item.Protocol, item.Model, err)
+			t.Fatalf("%s/%s parsing failed: %v", item.Protocol, item.Model, err)
 		}
 		assertFixtureSubset(t, item.Protocol+"/"+item.Model, item.Config, actualMap)
 	}
@@ -44,26 +44,26 @@ func assertFixtureSubset(t *testing.T, label string, expected any, actual any) {
 	case map[string]any:
 		got, ok := actual.(map[string]any)
 		if !ok {
-			t.Fatalf("%s: 期望对象，实际 %T", label, actual)
+			t.Fatalf("%s: expected object, actual %T", label, actual)
 		}
 		for key, value := range want {
 			actualValue, exists := got[key]
 			if !exists {
-				t.Fatalf("%s: 缺少字段 %s", label, key)
+				t.Fatalf("%s: Missing field %s", label, key)
 			}
 			assertFixtureSubset(t, label+"."+key, value, actualValue)
 		}
 	case []any:
 		got, ok := actual.([]any)
 		if !ok || len(got) != len(want) {
-			t.Fatalf("%s: 期望 %v，实际 %v", label, want, actual)
+			t.Fatalf("%s: expected %v, actual %v", label, want, actual)
 		}
 		for index := range want {
 			assertFixtureSubset(t, label+"["+strconv.Itoa(index)+"]", want[index], got[index])
 		}
 	default:
 		if want != actual {
-			t.Fatalf("%s: 期望 %v，实际 %v", label, want, actual)
+			t.Fatalf("%s: expected %v, actual %v", label, want, actual)
 		}
 	}
 }

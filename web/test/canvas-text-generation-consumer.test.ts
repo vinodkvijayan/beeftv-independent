@@ -8,7 +8,7 @@ test("hydrates a completed text task from the generation result before consuming
         id: "task-text-1",
         type: "canvas_text",
         status: "succeeded",
-        prompt: "你好",
+        prompt: "hello",
     } as GenerationTask;
     let consumedTask: GenerationTask | undefined;
 
@@ -17,7 +17,7 @@ test("hydrates a completed text task from the generation result before consuming
             projectId: "canvas-1",
             nodeId: "text-node-1",
             mode: "text",
-            prompt: "你好",
+            prompt: "hello",
             config: {} as never,
         },
         {
@@ -28,12 +28,12 @@ test("hydrates a completed text task from the generation result before consuming
             },
             runTask: async (options) => {
                 options.onTaskCreated?.(terminalTask);
-                return { mode: "text", text: "你好！有什么可以帮你？" };
+                return { mode: "text", text: "Hello! How can I help you?" };
             },
         },
     );
 
-    expect(JSON.parse(consumedTask?.resultJson || "{}").text).toBe("你好！有什么可以帮你？");
+    expect(JSON.parse(consumedTask?.resultJson || "{}").text).toBe("Hello! How can I help you?");
 });
 
 test("preserves existing text task result fields while hydrating the final text", async () => {
@@ -41,13 +41,13 @@ test("preserves existing text task result fields while hydrating the final text"
         id: "task-text-2",
         type: "canvas_text",
         status: "succeeded",
-        prompt: "你好",
+        prompt: "hello",
         resultJson: JSON.stringify({ mode: "text", reasoning: "brief reasoning" }),
     } as GenerationTask;
     let consumedTask: GenerationTask | undefined;
 
     await runCanvasGenerationTaskToConsumer(
-        { projectId: "canvas-1", nodeId: "text-node-2", mode: "text", prompt: "你好", config: {} as never },
+        { projectId: "canvas-1", nodeId: "text-node-2", mode: "text", prompt: "hello", config: {} as never },
         {
             prepareTarget: async () => undefined,
             bindTask: () => undefined,
@@ -56,10 +56,10 @@ test("preserves existing text task result fields while hydrating the final text"
             },
             runTask: async (options) => {
                 options.onTaskCreated?.(terminalTask);
-                return { mode: "text", text: "最终正文", reasoning: "brief reasoning" };
+                return { mode: "text", text: "final text", reasoning: "brief reasoning" };
             },
         },
     );
 
-    expect(JSON.parse(consumedTask?.resultJson || "{}")).toEqual({ mode: "text", reasoning: "brief reasoning", text: "最终正文" });
+    expect(JSON.parse(consumedTask?.resultJson || "{}")).toEqual({ mode: "text", reasoning: "brief reasoning", text: "final text" });
 });

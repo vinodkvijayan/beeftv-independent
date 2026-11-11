@@ -18,7 +18,7 @@ func validateChannelModelTierCapabilities(tiers []model.ChannelModelVariant, raw
 	}
 	config, err := DecodeModelCapabilityConfig(rawCapabilityConfig)
 	if err != nil || config == nil || config.Video == nil {
-		return kernel.BadAuthRequest("视频模型能力配置无效，无法校验变体规格")
+		return kernel.BadAuthRequest("The video model capability configuration is invalid and the variant specifications cannot be verified.")
 	}
 	resolutionSupported := make(map[string]bool, len(config.Video.Resolutions))
 	for _, resolution := range config.Video.Resolutions {
@@ -30,7 +30,7 @@ func validateChannelModelTierCapabilities(tiers []model.ChannelModelVariant, raw
 	}
 	for _, tier := range tiers {
 		if tier.Resolution != "*" && !resolutionSupported[normalizeChannelModelTierResolution(tier.Resolution)] {
-			return kernel.BadAuthRequest("变体分辨率不在该视频模型支持范围内：" + tier.Resolution)
+			return kernel.BadAuthRequest("Variant resolutions are not supported by this video model:" + tier.Resolution)
 		}
 		if tier.VideoSeconds == 0 {
 			continue
@@ -39,10 +39,10 @@ func validateChannelModelTierCapabilities(tiers []model.ChannelModelVariant, raw
 			continue
 		}
 		if config.Video.Duration.Selection == "enum" && !durationSupported[tier.VideoSeconds] {
-			return kernel.BadAuthRequest(fmt.Sprintf("变体时长 %d 秒不在该视频模型支持范围内", tier.VideoSeconds))
+			return kernel.BadAuthRequest(fmt.Sprintf("The variant duration %d seconds is not supported by this video model", tier.VideoSeconds))
 		}
 		if config.Video.Duration.Selection == "range" && !videoDurationAllowed(config.Video.Duration, tier.VideoSeconds) {
-			return kernel.BadAuthRequest(fmt.Sprintf("变体时长 %d 秒不在该视频模型支持范围内", tier.VideoSeconds))
+			return kernel.BadAuthRequest(fmt.Sprintf("The variant duration %d seconds is not supported by this video model", tier.VideoSeconds))
 		}
 	}
 	return nil
@@ -69,7 +69,7 @@ func normalizeChannelModelTierSelector(capability string, input ChannelModelVari
 		case "videoSeconds":
 			seconds, err := strconv.Atoi(value)
 			if err != nil || seconds < 0 {
-				return nil, "", 0, kernel.BadAuthRequest("视频变体时长必须是非负整数")
+				return nil, "", 0, kernel.BadAuthRequest("Video variant duration must be a non-negative integer")
 			}
 			if seconds == 0 {
 				continue
@@ -78,14 +78,14 @@ func normalizeChannelModelTierSelector(capability string, input ChannelModelVari
 		case "imageCount":
 			count, err := strconv.Atoi(value)
 			if err != nil || count < 0 {
-				return nil, "", 0, kernel.BadAuthRequest("参考图片数量必须是非负整数")
+				return nil, "", 0, kernel.BadAuthRequest("The number of reference images must be a non-negative integer")
 			}
 			if count == 0 {
 				continue
 			}
 			value = strconv.Itoa(count)
 		default:
-			return nil, "", 0, kernel.BadAuthRequest("模型变体不支持规格字段：" + key)
+			return nil, "", 0, kernel.BadAuthRequest("Model variants do not support specification fields:" + key)
 		}
 		selector[key] = value
 	}
@@ -99,23 +99,23 @@ func normalizeChannelModelTierSelector(capability string, input ChannelModelVari
 			selector["videoSeconds"] = strconv.Itoa(input.VideoSeconds)
 		}
 	} else if input.Resolution != "" && normalizeChannelModelTierResolution(input.Resolution) != "*" {
-		return nil, "", 0, kernel.BadAuthRequest("非视频模型不能使用视频分辨率变体")
+		return nil, "", 0, kernel.BadAuthRequest("Non-video models cannot use the video resolution variant")
 	} else if input.VideoSeconds != 0 {
-		return nil, "", 0, kernel.BadAuthRequest("非视频模型不能使用视频时长变体")
+		return nil, "", 0, kernel.BadAuthRequest("Non-video models cannot use the video duration variant")
 	}
 	for _, key := range []string{"quality", "size"} {
 		if _, exists := selector[key]; exists && capability != "image" {
-			return nil, "", 0, kernel.BadAuthRequest("只有图片模型可以按 " + key + " 配置变体")
+			return nil, "", 0, kernel.BadAuthRequest("Only picture models can be pressed" + key + " Configuration variants")
 		}
 	}
 	if _, exists := selector["vquality"]; exists && capability != "video" {
-		return nil, "", 0, kernel.BadAuthRequest("只有视频模型可以按分辨率配置变体")
+		return nil, "", 0, kernel.BadAuthRequest("Only video models can configure variants by resolution")
 	}
 	if _, exists := selector["videoSeconds"]; exists && capability != "video" {
-		return nil, "", 0, kernel.BadAuthRequest("只有视频模型可以按时长配置变体")
+		return nil, "", 0, kernel.BadAuthRequest("Only video models can configure variants by duration")
 	}
 	if _, exists := selector["imageCount"]; exists && capability != "video" {
-		return nil, "", 0, kernel.BadAuthRequest("只有视频模型可以按参考图片数量配置变体")
+		return nil, "", 0, kernel.BadAuthRequest("Only video models can configure variants by number of reference images")
 	}
 	resolution := "*"
 	if value := selector["vquality"]; value != "" {
@@ -185,10 +185,10 @@ func normalizeAdminChannelModelDeleteIDs(values []string) ([]string, error) {
 		result = append(result, id)
 	}
 	if len(result) == 0 {
-		return nil, kernel.BadAuthRequest("请至少选择一个要删除的渠道模型")
+		return nil, kernel.BadAuthRequest("Please select at least one channel model to delete")
 	}
 	if len(result) > maxAdminChannelModelBatchDeleteCount {
-		return nil, kernel.BadAuthRequest("单次最多删除 100 个渠道模型")
+		return nil, kernel.BadAuthRequest("A maximum of 100 channel models can be deleted at a time")
 	}
 	return result, nil
 }
@@ -216,7 +216,7 @@ func protocolCapabilityFromMetadata(metadata ProtocolMeta) string {
 func NormalizeChannelModelContract(lookup ProtocolLookup, channel *model.ModelChannel, req ChannelModelRequest) (string, string, string, model.ChannelInterfaceType, error) {
 	modelKey := strings.TrimPrefix(strings.TrimSpace(req.ModelKey), "models/")
 	if modelKey == "" {
-		return "", "", "", "", kernel.BadAuthRequest("请填写模型标识")
+		return "", "", "", "", kernel.BadAuthRequest("Please fill in the model ID")
 	}
 	providerModelKey := strings.TrimPrefix(strings.TrimSpace(req.ProviderModelKey), "models/")
 	if providerModelKey == "" {
@@ -224,21 +224,21 @@ func NormalizeChannelModelContract(lookup ProtocolLookup, channel *model.ModelCh
 	}
 	capability := normalizeCapability(req.Capability)
 	if capability == "" {
-		return "", "", "", "", kernel.BadAuthRequest("请选择模型能力")
+		return "", "", "", "", kernel.BadAuthRequest("Please select model capabilities")
 	}
 	if lookup == nil {
-		return "", "", "", "", kernel.BadAuthRequest("请选择有效的模型请求协议")
+		return "", "", "", "", kernel.BadAuthRequest("Please select a valid model request protocol")
 	}
 	meta, ok := lookup(strings.TrimSpace(req.Protocol))
 	if !ok || !meta.Enabled || meta.UnavailableReason != "" {
-		return "", "", "", "", kernel.BadAuthRequest("请选择有效的模型请求协议")
+		return "", "", "", "", kernel.BadAuthRequest("Please select a valid model request protocol")
 	}
 	protocol := model.ChannelInterfaceType(meta.ID)
 	if expected := protocolCapabilityFromMetadata(meta); expected != "" && expected != capability {
-		return "", "", "", "", kernel.BadAuthRequest("模型能力与请求协议不匹配")
+		return "", "", "", "", kernel.BadAuthRequest("Model capabilities do not match request protocol")
 	}
 	if channel != nil && (protocol == model.ChannelInterfaceVolcengineJiMengImage || protocol == model.ChannelInterfaceVolcengineJiMengVideo) && (strings.TrimSpace(channel.APIKey) == "" || strings.TrimSpace(channel.SecretKey) == "") {
-		return "", "", "", "", kernel.BadAuthRequest("即梦官方协议需要先在渠道中配置 Access Key 和 Secret Key")
+		return "", "", "", "", kernel.BadAuthRequest("Jimeng official agreement requires first configuring the Access Key and Secret Key in the channel")
 	}
 	return modelKey, providerModelKey, capability, protocol, nil
 }
@@ -264,7 +264,7 @@ func NormalizeChannelModelVariants(req ChannelModelRequest, capability string, p
 			return nil, keyErr
 		}
 		if seen[key] {
-			return nil, kernel.BadAuthRequest("同一个操作和规格组合只能配置一个上游变体")
+			return nil, kernel.BadAuthRequest("Only one upstream variant can be configured for the same operation and specification combination")
 		}
 		seen[key] = true
 		enabled := input.Enabled == nil || *input.Enabled

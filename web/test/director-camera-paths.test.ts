@@ -5,10 +5,10 @@ import { createDirectorReproScene } from "@/lib/canvas/director/director-repro-f
 import { resolveDirectorCameraLocalFraming } from "@/lib/canvas/director/director-view-modes";
 import { Vector3 } from "three";
 
-describe("导演台主机位轨迹", () => {
+describe("Director's host position trajectory", () => {
     const camera = createDirectorReproScene().cameras[0];
 
-    test("直线路径从当前机位出发，沿注视目标方向形成可播放的位移", () => {
+    test("The linear path starts from the current camera position and forms a playable displacement along the direction of the gaze target.", () => {
         const keys = createDirectorCameraPathKeyframes("line", camera, 4);
         expect(keys.map((key) => key.time)).toEqual([0, 4]);
         expect(keys[0].transform.position).toEqual(camera.transform.position);
@@ -17,7 +17,7 @@ describe("导演台主机位轨迹", () => {
         expect(keys.map((key) => key.fov)).toEqual([camera.fov, camera.fov]);
     });
 
-    test("铅笔手势从原机位起步并沿拖拽轨迹移动，保留焦点、视角和高度", () => {
+    test("The pencil gesture starts from the original camera position and moves along the drag trajectory, retaining focus, perspective and height.", () => {
         const keys = createDirectorCameraDrawnPathKeyframes("pencil", camera, [{ x: 4, z: 8 }, { x: 6, z: 8 }, { x: 6, z: 12 }], 10);
         expect(keys).toHaveLength(10);
         keys?.[0].transform.position.forEach((value, axis) => expect(value).toBeCloseTo(camera.transform.position[axis], 5));
@@ -28,7 +28,7 @@ describe("导演台主机位轨迹", () => {
         expect(createDirectorCameraDrawnPathKeyframes("pencil", camera, [{ x: 1, z: 1 }], 10)).toBeNull();
     });
 
-    test("钢笔逐点路线穿过控制点，双击点被重复采集也不产生空帧", () => {
+    test("The pen passes through the control points point by point. Double-clicking the point will not produce an empty frame even if the point is repeatedly collected.", () => {
         const keys = createDirectorCameraDrawnPathKeyframes("pen", camera, [{ x: 6, z: 6 }, { x: 6, z: 6 }, { x: 8, z: 4 }], 10);
         expect(keys?.length).toBeGreaterThan(10);
         expect(keys?.[0].transform.position).toEqual(camera.transform.position);
@@ -37,7 +37,7 @@ describe("导演台主机位轨迹", () => {
         expect(createDirectorCameraDrawnPathKeyframes("pen", camera, [{ x: 6, z: 6 }, { x: 6, z: 6 }], 10)).toBeNull();
     });
 
-    test("圆环和矩形路径闭合、保留机位高度，并在片段内分布关键帧", () => {
+    test("Circular and rectangular path closures, preserving camera height, and distributing keyframes within the clip", () => {
         for (const kind of ["ring", "rectangle"] as const) {
             const keys = createDirectorCameraPathKeyframes(kind, camera, 4);
             expect(keys.length).toBeGreaterThanOrEqual(5);
@@ -48,7 +48,7 @@ describe("导演台主机位轨迹", () => {
         }
     });
 
-    test("修改镜头时长时按比例移动轨迹关键帧，不改变原位置和帧身份", () => {
+    test("When modifying the shot duration, move the trajectory keyframe proportionally without changing the original position and frame identity.", () => {
         const keys = createDirectorCameraPathKeyframes("rectangle", camera, 4);
         const retimed = retimeDirectorCameraPathKeyframes(keys, 4, 8);
         expect(retimed.map((key) => key.time)).toEqual([0, 2, 4, 6, 8]);
@@ -56,7 +56,7 @@ describe("导演台主机位轨迹", () => {
         expect(retimed.map((key) => key.transform.position)).toEqual(keys.map((key) => key.transform.position));
     });
 
-    test("替换推近写入两秒运镜，追加横移从前段末尾无跳帧地继续", () => {
+    test("Replace zoom-in and write two seconds of camera movement, and add traverse to continue from the end of the previous section without skipping frames.", () => {
         const replaced = createDirectorMotionPresetKeyframes("push_in", "replace", camera, 4);
         expect(replaced.keyframes.map((key) => key.time)).toEqual([0, 2]);
         expect(replaced.keyframes[1].transform.position[2]).toBeLessThan(camera.transform.position[2]);
@@ -67,7 +67,7 @@ describe("导演台主机位轨迹", () => {
         expect(appended.duration).toBe(4);
     });
 
-    test("追加运镜超过当前镜头时长时延长镜头，环绕和螺旋有多段空间采样", () => {
+    test("Added the ability to extend the lens when the camera movement exceeds the duration of the current lens, with multi-segment spatial sampling in surrounds and spirals", () => {
         const first = createDirectorMotionPresetKeyframes("orbit", "replace", camera, 4);
         expect(first.keyframes.length).toBeGreaterThan(3);
         const second = createDirectorMotionPresetKeyframes("spiral", "append", { ...camera, keyframes: first.keyframes }, 4);
@@ -78,7 +78,7 @@ describe("导演台主机位轨迹", () => {
         expect(third.keyframes.at(-1)?.time).toBe(6);
     });
 
-    test("预设写出位置、焦点和视角三轨，追加段继承上一段末帧光学状态", () => {
+    test("The three tracks of position, focus and angle of view are written by default, and the additional segment inherits the optical state of the last frame of the previous segment.", () => {
         const replaced = createDirectorMotionPresetKeyframes("push_in", "replace", camera, 4);
         expect(replaced.keyframes.map((key) => key.target)).toEqual([camera.target, camera.target]);
         expect(replaced.keyframes.map((key) => key.fov)).toEqual([camera.fov, camera.fov]);
@@ -89,7 +89,7 @@ describe("导演台主机位轨迹", () => {
         expect(appended.keyframes[2].fov).toBe(35);
     });
 
-    test("在播放头编辑焦点与视角只改当前相机帧，并保留相邻帧和基准机位", () => {
+    test("Editing the focus and perspective in the playhead only changes the current camera frame, while retaining adjacent frames and reference camera positions.", () => {
         const preset = createDirectorMotionPresetKeyframes("push_in", "replace", camera, 4);
         const edited = updateDirectorCameraOpticsAtTime({ ...camera, keyframes: preset.keyframes }, 1, 1, { target: [1, 1.2, 0], fov: 35 });
         expect(edited.keyframes.map((key) => key.time)).toEqual([0, 1, 2]);
@@ -101,7 +101,7 @@ describe("导演台主机位轨迹", () => {
         expect(edited.lookAtMode).toBe("coordinates");
     });
 
-    test("只编辑焦点不凭空创建视角帧，之后编辑视角可复用同一时刻的焦点帧", () => {
+    test("Only edit the focus and do not create perspective frames out of thin air. You can reuse the focus frame at the same time when editing the perspective later.", () => {
         const preset = createDirectorMotionPresetKeyframes("push_in", "replace", camera, 4);
         const focusOnly = updateDirectorCameraOpticsAtTime({ ...camera, keyframes: preset.keyframes }, 1, 1, { target: [1, 1.2, 0] });
         expect(focusOnly.keyframes[1].target).toEqual([1, 1.2, 0]);
@@ -114,7 +114,7 @@ describe("导演台主机位轨迹", () => {
         expect(withFov.keyframes[1].fov).toBe(35);
     });
 
-    test("属性面板在运镜中只改播放头帧，静态机位则仍改基础值", () => {
+    test("In the property panel, only the playback frame is changed during camera movement, while the static camera position still changes the basic value.", () => {
         const preset = createDirectorMotionPresetKeyframes("push_in", "replace", camera, 4);
         const animated = { ...camera, keyframes: preset.keyframes };
         const target = updateDirectorCameraPropertyAtTime(animated, 1, 1, { target: [2, 1.2, 0] });
@@ -134,7 +134,7 @@ describe("导演台主机位轨迹", () => {
         expect(staticFov.keyframes).toEqual([]);
     });
 
-    test("空轨道点击位置菱形会创建第一帧，不顺手创建焦点和视角", () => {
+    test("Clicking the position diamond on an empty track will create the first frame, which does not create focus and perspective easily.", () => {
         const keyed = recordDirectorCameraPositionAtTime(camera, 0, 0);
         expect(keyed.keyframes).toHaveLength(1);
         expect(keyed.keyframes[0].positionKeyed).toBe(true);
@@ -143,7 +143,7 @@ describe("导演台主机位轨迹", () => {
         expect(keyed.transform).toEqual(camera.transform);
     });
 
-    test("空轨道点击旋转菱形只创建旋转帧，已有位置帧则复用帧身份", () => {
+    test("Clicking the rotation diamond on an empty track will only create a rotation frame. If there is an existing position frame, the frame identity will be reused.", () => {
         const rotation: [number, number, number] = [0.2, 0.4, 0];
         const keyed = recordDirectorCameraRotationAtTime(camera, 0, 0, rotation);
         expect(keyed.keyframes).toHaveLength(1);
@@ -159,7 +159,7 @@ describe("导演台主机位轨迹", () => {
         expect(both.keyframes[0].rotationKeyed).toBe(true);
     });
 
-    test("手动坐标与手动旋转互切时保留当前可见视线", () => {
+    test("The current visible line of sight is retained when manual coordinates and manual rotation are tangent to each other.", () => {
         const scene = createDirectorReproScene();
         const initial = { ...scene.cameras[0], transform: { ...scene.cameras[0].transform, position: [0, 1.91, 7.6] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }, target: [0, 1.2, 0] as [number, number, number], lookAtMode: "coordinates" as const };
         const direction = (current: typeof initial) => {

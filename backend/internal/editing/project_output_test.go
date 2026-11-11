@@ -14,7 +14,7 @@ func TestProjectOutputSurvivesSaveAndExplicitOverride(t *testing.T) {
 	}
 	project.Tracks = append(project.Tracks, Track{ID: "v", Kind: KindImage})
 	project.Clips = append(project.Clips, Clip{ID: "v", Kind: KindImage, TrackID: "v", DurationMs: 1000, Volume: 1, DirectMedia: &DirectMedia{StorageKey: "resource:image"}})
-	project.Clips[0].Text = "新句"
+	project.Clips[0].Text = "new sentence"
 	saved, _ := json.Marshal(project)
 	var reopened Project
 	if err := json.Unmarshal(saved, &reopened); err != nil {
@@ -27,7 +27,7 @@ func TestProjectOutputSurvivesSaveAndExplicitOverride(t *testing.T) {
 	if plan.Output.Width != 720 || plan.Output.Height != 1280 || plan.Output.FPS != 24 || plan.Output.SampleRate != 48000 || plan.Output.BurnSubtitles {
 		t.Fatalf("lost saved output %+v", plan.Output)
 	}
-	if reopened.Tracks[0].Label != "片尾字幕" || reopened.Tracks[0].Order == nil || *reopened.Tracks[0].Order != 4 || !reopened.Tracks[0].Locked || reopened.Clips[0].Title != "片尾" || reopened.Clips[0].SubtitleEntryIndex == nil || *reopened.Clips[0].SubtitleEntryIndex != 0 {
+	if reopened.Tracks[0].Label != "Ending credits" || reopened.Tracks[0].Order == nil || *reopened.Tracks[0].Order != 4 || !reopened.Tracks[0].Locked || reopened.Clips[0].Title != "Ending" || reopened.Clips[0].SubtitleEntryIndex == nil || *reopened.Clips[0].SubtitleEntryIndex != 0 {
 		t.Fatalf("lost editable fields: %s", saved)
 	}
 	plan, err = Compile(reopened, nil, Options{Width: 1080, Height: 1920})

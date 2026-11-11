@@ -46,35 +46,35 @@ func (e *ModelError) WithDetails(details map[string]any) *ModelError {
 
 func ModelCapabilityNotSupported(message string) error {
 	if message == "" {
-		message = "当前模型不支持该能力"
+		message = "The current model does not support this capability"
 	}
 	return NewModelError(ErrCodeModelCapabilityNotSupported, message)
 }
 
 func ModelRouteUnavailable(message string) error {
 	if message == "" {
-		message = "没有可用供应线路"
+		message = "No supply lines available"
 	}
 	return NewModelError(ErrCodeModelRouteUnavailable, message)
 }
 
 func ProviderRequestFailed(message string) error {
 	if message == "" {
-		message = "模型服务返回失败，请检查请求内容或渠道配置"
+		message = "The model service failed to return, please check the request content or channel configuration."
 	}
 	return NewModelError(ErrCodeProviderRequestFailed, message)
 }
 
 func ModelCatalogMismatch(message string) error {
 	if message == "" {
-		message = "模型目录已更新，请重新选择"
+		message = "The model catalog has been updated, please select again"
 	}
 	return NewModelError(ErrCodeModelCatalogMismatch, message)
 }
 
 func InvalidModelSelection(message string) error {
 	if message == "" {
-		message = "无效的模型选择"
+		message = "Invalid model selection"
 	}
 	return NewModelError(ErrCodeInvalidModelSelection, message)
 }
@@ -97,7 +97,7 @@ func FormatModelError(err error) string {
 			return string(modelErr.ErrorCode)
 		}
 		if len(modelErr.Details) > 0 {
-			return kernel.StringValue(modelErr.Message) + " (错误码: " + string(modelErr.ErrorCode) + ")"
+			return kernel.StringValue(modelErr.Message) + " (Error code:" + string(modelErr.ErrorCode) + ")"
 		}
 		return modelErr.Message
 	}

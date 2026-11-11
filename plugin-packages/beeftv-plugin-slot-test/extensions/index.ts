@@ -4,16 +4,16 @@ import { Type } from "typebox";
 export default function registerSlotTestExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "slot_test_ping",
-    label: "插槽测试探针",
+    label: "Socket test probe",
     description:
-      "回显测试问候消息，并可选择在当前画布创建一个 slot-test-node 插槽测试节点。",
+      "Echo a test greeting message and optionally create a slot-test-node slot test node in the current canvas.",
     parameters: Type.Object({
-      message: Type.String({ description: "要回显的测试消息" }),
+      message: Type.String({ description: "test message to echo" }),
       createNode: Type.Optional(
-        Type.Boolean({ description: "是否顺便在画布上创建一个插槽测试节点" }),
+        Type.Boolean({ description: "Whether to create a slot test node on the canvas by the way" }),
       ),
       expectedRevision: Type.Optional(
-        Type.Number({ description: "画布期望版本号（若未传则自动读取）" }),
+        Type.Number({ description: "Canvas expected version number (if not passed, it will be read automatically)" }),
       ),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
@@ -26,19 +26,19 @@ export default function registerSlotTestExtension(pi: ExtensionAPI) {
             .map((part) => ("text" in part ? part.text : ""))
             .join("");
           if (read.isError) {
-            throw new Error(`读取画布失败：${readText}`);
+            throw new Error(`Failed to read canvas:${readText}`);
           }
           revision = Number(/"revision"\s*:\s*(\d+)/.exec(readText)?.[1]);
         }
         if (!Number.isSafeInteger(revision)) {
-          throw new Error("无法确定当前画布 revision");
+          throw new Error("Unable to determine current canvas revision");
         }
         const created = await ctx.executeTool("canvas_nodes_create", {
           expectedRevision: revision,
           nodes: [
             {
               type: "slot-test-node",
-              title: "插槽测试节点",
+              title: "Socket test node",
               prompt: params.message,
             },
           ],
@@ -47,16 +47,16 @@ export default function registerSlotTestExtension(pi: ExtensionAPI) {
           .map((part) => ("text" in part ? part.text : ""))
           .join("");
         if (created.isError) {
-          throw new Error(`创建插槽测试节点失败：${createdText}`);
+          throw new Error(`Failed to create slot test node:${createdText}`);
         }
-        createdNodeInfo = "，并已在画布创建 slot-test-node 节点";
+        createdNodeInfo = ", and the slot-test-node node has been created in the canvas";
       }
 
       return {
         content: [
           {
             type: "text",
-            text: `插槽测试响应：${params.message}${createdNodeInfo}`,
+            text: `Slot test response:${params.message}${createdNodeInfo}`,
           },
         ],
         details: {

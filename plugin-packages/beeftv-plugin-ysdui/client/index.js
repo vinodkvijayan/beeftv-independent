@@ -33,20 +33,20 @@ function capabilityBadgeStyle(capability) {
     return {
       background: "rgba(59, 130, 246, 0.12)",
       color: "#2563eb",
-      label: "文本",
+      label: "text",
     };
   }
   if (capability === "image") {
     return {
       background: "rgba(16, 185, 129, 0.12)",
       color: "#059669",
-      label: "图片",
+      label: "pictures",
     };
   }
   return {
     background: "rgba(139, 92, 246, 0.12)",
     color: "#7c3aed",
-    label: "视频",
+    label: "video",
   };
 }
 
@@ -96,7 +96,7 @@ function createYsduiSettingsPanel(host) {
     );
     const [statusMessage, setStatusMessage] = React.useState(
       existingChannel?.hasApiKey || existingChannel?.apiKey
-        ? `已连接「${existingChannel.name}」渠道（已启用 ${existingChannel.models?.length || 0} 个模型）`
+        ? `Connected "${existingChannel.name}” channel (enabled${existingChannel.models?.length || 0} model)`
         : "",
     );
     const [errorMessage, setErrorMessage] = React.useState("");
@@ -113,7 +113,7 @@ function createYsduiSettingsPanel(host) {
       const trimmedKey = apiKey.trim();
       const trimmedUrl = baseUrl.trim().replace(/\/+$/, "") || DEFAULT_BASE_URL;
       if (!trimmedKey) {
-        setErrorMessage("请先填写银盛云枢壹算 API Key");
+        setErrorMessage("Please fill in the Yinshengyunshu Yishuan API Key first");
         return;
       }
       setCatalogChecking(true);
@@ -140,7 +140,7 @@ function createYsduiSettingsPanel(host) {
           const data = await resp.json().catch(() => ({}));
           if (!resp.ok || (typeof data?.code === "number" && data.code !== 0)) {
             throw new Error(
-              data?.msg || data?.error || `读取在线目录失败（HTTP ${resp.status}）`,
+              data?.msg || data?.error || `Failed to read online directory (HTTP${resp.status}）`,
             );
           }
           const rawModels = Array.isArray(data?.data?.models)
@@ -153,9 +153,9 @@ function createYsduiSettingsPanel(host) {
             .filter(Boolean);
         }
         setOnlineModels(ids);
-        setStatusMessage(`在线目录验证成功：共发现 ${ids.length} 个上游模型`);
+        setStatusMessage(`Online catalog verification successful: total found${ids.length} upstream models`);
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : "读取在线目录失败");
+        setErrorMessage(err instanceof Error ? err.message : "Failed to read online directory");
       } finally {
         setCatalogChecking(false);
       }
@@ -166,11 +166,11 @@ function createYsduiSettingsPanel(host) {
       const trimmedUrl = baseUrl.trim().replace(/\/+$/, "") || DEFAULT_BASE_URL;
       const hasSavedKey = Boolean(existingChannel?.hasApiKey || existingChannel?.apiKey);
       if (!trimmedKey && !hasSavedKey) {
-        setErrorMessage("请填写有效的银盛云枢壹算 API Key（sk-...）");
+        setErrorMessage("Please fill in the valid Yinshengyunshu Yisheng API Key (sk-...)");
         return;
       }
       if (!selectedModels.length) {
-        setErrorMessage("请至少勾选 1 个要同步的模型");
+        setErrorMessage("Please check at least 1 model to be synchronized");
         return;
       }
       setSaving(true);
@@ -189,16 +189,16 @@ function createYsduiSettingsPanel(host) {
           existingChannel,
         });
         if (!host?.channels?.upsert) {
-          throw new Error("当前宿主版本不支持同步模型渠道");
+          throw new Error("The current host version does not support synchronized model channels");
         }
         await host.channels.upsert(channel);
         setSynced(true);
         setStatusMessage(
-          `已将「${YSDUI_CHANNEL_NAME}」与 ${channel.models.length} 个模型同步至「设置 -> 模型服务」！`,
+          `Already "${YSDUI_CHANNEL_NAME}” with${channel.models.length} Synchronize each model to "Settings -> Model Service"!`,
         );
-        host?.ui?.notify?.("银盛云枢壹算渠道与模型已同步至模型服务", "success");
+        host?.ui?.notify?.("Yinshengyunshu one calculation channel and model have been synchronized to the model service", "success");
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : "保存并同步渠道失败");
+        setErrorMessage(err instanceof Error ? err.message : "Saving and syncing channels failed");
       } finally {
         setSaving(false);
       }
@@ -240,7 +240,7 @@ function createYsduiSettingsPanel(host) {
           h(
             "div",
             { style: { fontWeight: 600, fontSize: "14px" } },
-            "银盛云枢壹算 (OneAxis) · BYOK 一键接入",
+            "OneAxis · BYOK one-click access",
           ),
           h(
             "span",
@@ -254,7 +254,7 @@ function createYsduiSettingsPanel(host) {
                 fontWeight: 600,
               },
             },
-            "官方内置插件",
+            "Official built-in plug-in",
           ),
         ),
         h(
@@ -267,7 +267,7 @@ function createYsduiSettingsPanel(host) {
               lineHeight: 1.6,
             },
           },
-          `只需填写一个银盛云枢壹算 API Key，即可一键配置 DeepSeek、Qwen、GLM、Kimi、混元、豆包 Seedream 5.0 / Seedance 2.0 & 2.5、Wan 3.0、MiniMax H3 与 WAND-Vega 共 ${YSDUI_PRESET_MODELS.length} 款文本、图像与视频模型协议。`,
+          `Just fill in a Yinshengyunshu API Key to configure DeepSeek, Qwen, GLM, Kimi, Hunyuan, Doubao Seedream 5.0 / Seedance 2.0 & 2.5, Wan 3.0, MiniMax H3 and WAND-Vega in one click${YSDUI_PRESET_MODELS.length} Text, image and video model agreement.`,
         ),
       ),
 
@@ -290,7 +290,7 @@ function createYsduiSettingsPanel(host) {
               htmlFor: "ysdui-plugin-base-url",
               style: { fontSize: "12px", fontWeight: 600 },
             },
-            "接口地址 (Base URL)",
+            "Interface address (Base URL)",
           ),
           h("input", {
             id: "ysdui-plugin-base-url",
@@ -318,14 +318,14 @@ function createYsduiSettingsPanel(host) {
               htmlFor: "ysdui-plugin-api-key",
               style: { fontSize: "12px", fontWeight: 600 },
             },
-            "银盛云枢壹算 API Key",
+            "Yinshengyunshu Yisheng API Key",
           ),
           h(
             "div",
             { style: { display: "flex", gap: "8px" } },
             h("input", {
               id: "ysdui-plugin-api-key",
-              "aria-label": "银盛云枢壹算 API Key",
+              "aria-label": "Yinshengyunshu Yisheng API Key",
               type: showKey ? "text" : "password",
               value: apiKey,
               onChange: (e) => setApiKey(e.target.value),
@@ -354,7 +354,7 @@ function createYsduiSettingsPanel(host) {
                   cursor: "pointer",
                 },
               },
-              showKey ? "隐藏" : "显示",
+              showKey ? "hide" : "show",
             ),
             h(
               "button",
@@ -373,7 +373,7 @@ function createYsduiSettingsPanel(host) {
                   cursor: catalogChecking ? "wait" : "pointer",
                 },
               },
-              catalogChecking ? "验证中..." : "验证在线目录",
+              catalogChecking ? "Verifying..." : "Verify online catalog",
             ),
           ),
         ),
@@ -401,7 +401,7 @@ function createYsduiSettingsPanel(host) {
           h(
             "span",
             { style: { fontSize: "12px", fontWeight: 600 } },
-            `预置协议模型（已选 ${selectedModels.length} / ${YSDUI_PRESET_MODELS.length}）`,
+            `Preset protocol model (selected${selectedModels.length} / ${YSDUI_PRESET_MODELS.length}）`,
           ),
           h(
             "button",
@@ -421,7 +421,7 @@ function createYsduiSettingsPanel(host) {
                 cursor: "pointer",
               },
             },
-            selectedModels.length === YSDUI_PRESET_MODELS.length ? "取消全选" : "全选模型",
+            selectedModels.length === YSDUI_PRESET_MODELS.length ? "Deselect all" : "Select all models",
           ),
         ),
         h(
@@ -512,7 +512,7 @@ function createYsduiSettingsPanel(host) {
                   ? h(
                       "div",
                       { style: { fontSize: "10px", color: "#059669", marginTop: "2px" } },
-                      "● 上游目录已确认在线",
+                      "● The upstream directory has been confirmed online",
                     )
                   : null,
               ),
@@ -575,7 +575,7 @@ function createYsduiSettingsPanel(host) {
                       whiteSpace: "nowrap",
                     },
                   },
-                  "前往模型服务查看与测试 →",
+                  "Go to the model service to view and test →",
                 )
               : null,
           )
@@ -609,7 +609,7 @@ function createYsduiSettingsPanel(host) {
               cursor: saving ? "wait" : "pointer",
             },
           },
-          saving ? "同步中..." : "一键保存并同步到模型服务",
+          saving ? "Syncing..." : "Save and sync to model service with one click",
         ),
       ),
     );
@@ -620,7 +620,7 @@ export function activate(host) {
   const SettingsPanel = createYsduiSettingsPanel(host);
   const dispose = host.contribute("app.settings", {
     id: "ysdui-settings",
-    label: "银盛云枢壹算算力与多模态渠道",
+    label: "Yinshengyunshu computing power and multi-modal channels",
     component: SettingsPanel,
   });
   return () => {

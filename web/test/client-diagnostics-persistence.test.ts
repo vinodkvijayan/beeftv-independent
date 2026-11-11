@@ -31,7 +31,7 @@ test("pending hydration and writes stay owned during A-B-A switches; stale expor
     store.setScope("A"); store.record(event("A1")); const stale = store.snapshot().then(() => "unexpected_success", error => error.message);
     store.setScope("B"); store.record(event("B1"));
     expect((await store.snapshot()).events.map(item => item.id)).toEqual(["B1"]);
-    store.setScope("A"); store.record(event("A2")); release(); expect(await stale).toContain("账号已切换");
+    store.setScope("A"); store.record(event("A2")); release(); expect(await stale).toContain("Account has been switched");
     expect((await store.snapshot()).events.map(item => item.id)).toEqual(["A1", "A2"]);
     expect(values.get("A")).not.toContain("B1"); expect(values.get("B")).not.toContain("A1");
 });
@@ -50,7 +50,7 @@ test("limits preserve decisive events over successful polling and persist loss c
 test("byte and age limits report missing evidence instead of claiming a complete bundle", async () => {
     const h = harness(); const store = h.make(); store.setScope("owner");
     store.record(event("old", { timestamp: new Date(now - 25 * 3600_000).toISOString() }));
-    for (let n = 0; n < 100; n++) store.record(event(`large-${n}`, { message: "中".repeat(3000) }));
+    for (let n = 0; n < 100; n++) store.record(event(`large-${n}`, { message: "Medium".repeat(3000) }));
     const snapshot = await store.snapshot();
     expect(snapshot.coverage.expiredCount).toBe(1); expect(snapshot.coverage.droppedCount).toBeGreaterThan(0);
     expect(new TextEncoder().encode(JSON.stringify(snapshot.events)).byteLength).toBeLessThanOrEqual(snapshot.coverage.maxBytes);

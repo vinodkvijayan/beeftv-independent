@@ -11,10 +11,10 @@ function Harness() {
     const [notesOpen, setNotesOpen] = useState(false);
     return <ConfigProvider theme={{ algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm }}><App>
         <main style={{ padding: 20, width: "100%", boxSizing: "border-box", background: dark ? "#141414" : "#fff" }}>
-            <ExpandableSearch value={value} onChange={setValue} placeholder="搜索项目" />
+            <ExpandableSearch value={value} onChange={setValue} placeholder="Search items" />
             <output>{value}</output>
-            <button onClick={() => setDark(!dark)}>切换主题</button>
-            <button onClick={() => setNotesOpen(true)}>更新日志</button>
+            <button onClick={() => setDark(!dark)}>switch theme</button>
+            <button onClick={() => setNotesOpen(true)}>Change log</button>
             <AppChangelogDialog open={notesOpen} onClose={() => setNotesOpen(false)} />
         </main>
     </App></ConfigProvider>;

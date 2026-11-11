@@ -24,14 +24,14 @@ function slice(source: string, from: string, to: string) {
     return source.slice(start, end);
 }
 
-describe("新建场景直达空导演台", () => {
-    test("创建函数只接收画布位置并创建空场景", () => {
+describe("The newly created scene leads directly to the empty director's podium", () => {
+    test("The create function only receives the canvas position and creates an empty scene", () => {
         expect(hook).toContain("const createDirectorShot = useCallback((position?: Position) => {");
         expect(hook).toContain('createDirectorSceneFromTemplate("empty", `镜头 ${shotIndex}`)');
         expect(hook).toContain("setDirectorNodeId(node.id);");
     });
 
-    test("画布三个创建入口直接创建，右键入口传递点击位置", () => {
+    test("The three creation portals of the canvas are created directly, and the right-click portal passes the click position.", () => {
         expect(project).toContain("onOpenDirector: () => createDirectorShot()");
         expect(project).toContain("onOpenDirector={() => createDirectorShot()}");
         expect(project).toContain("onOpenDirector={(position) => createDirectorShot(position)}");
@@ -39,7 +39,7 @@ describe("新建场景直达空导演台", () => {
         expect(project).not.toContain("directorTemplateRequest");
     });
 
-    test("新建导演台节点是独立类型且不声明视频生成输入", () => {
+    test("The new director's desk node is an independent type and does not declare video generation input.", () => {
         expect(hook).toContain("createCanvasNode(CanvasNodeType.Director");
         expect(hook).toContain("node.title = directorTitle;");
         expect(hook).toContain("nextDirectorNodeIndex(nodesRef.current)");
@@ -50,17 +50,17 @@ describe("新建场景直达空导演台", () => {
 
 });
 
-describe("已有场景不触发模板选择", () => {
-    test("openDirectorWorkbench 命中已存在场景时不建新场景、不弹模板", () => {
-        const opener = slice(hook, "const openDirectorWorkbench = useCallback", "/** 每次保存都基于 store");
+describe("Existing scenes do not trigger template selection", () => {
+    test("openDirectorWorkbench does not create a new scene or play a template when it hits an existing scene.", () => {
+        const opener = slice(hook, "const openDirectorWorkbench = useCallback", "/** Each save is based on store");
         // 只有找不到场景（孤儿节点修复）才补建。
         expect(opener).toContain("if (!scene) {");
         expect(opener).toContain('createDirectorSceneFromTemplate("empty"');
         expect(opener).not.toContain("setDirectorTemplateRequest");
     });
 
-    test("节点不再承载生成提示词，场景生成入口留给后续导演台功能", () => {
-        const opener = slice(hook, "const openDirectorWorkbench = useCallback", "/** 每次保存都基于 store");
+    test("The node no longer carries the generation prompt words, and the scene generation entrance is left to the subsequent director's desk function.", () => {
+        const opener = slice(hook, "const openDirectorWorkbench = useCallback", "/** Each save is based on store");
         expect(opener).toContain("setDirectorNodeId(nodeId);");
         expect(opener).not.toContain("updateDirectorShotPrompt");
         expect(directorNodePanel).not.toContain("onPromptChange");
@@ -68,43 +68,43 @@ describe("已有场景不触发模板选择", () => {
         expect(directorNodePanel).not.toContain("textarea");
     });
 
-    test("孤儿修复用空场景兜底：用户没选过就不许塞演员", () => {
-        const opener = slice(hook, "const openDirectorWorkbench = useCallback", "/** 每次保存都基于 store");
+    test("Empty scenes for orphan repair: no actors allowed if the user has not selected them", () => {
+        const opener = slice(hook, "const openDirectorWorkbench = useCallback", "/** Each save is based on store");
         expect(opener).not.toContain('createDirectorSceneFromTemplate("monologue"');
         expect(opener).not.toContain("createDirectorActor");
     });
 
-    test("workbench 自身不含模板选择逻辑：打开已保存场景不改写内容", () => {
+    test("The workbench itself does not contain template selection logic: opening a saved scene does not rewrite the content.", () => {
         expect(workbench).not.toContain("DIRECTOR_TEMPLATES");
         expect(workbench).not.toContain("createDirectorSceneFromTemplate");
     });
 });
 
-describe("导演台场景菜单的相机与灯光操作", () => {
-    test("角色菜单按预设身份分组，不依赖旧版九预设的数组下标", () => {
+describe("Camera and lighting operations on the director’s desk scene menu", () => {
+    test("The character menu is grouped by default identity and does not rely on the array subscript of the old version nine defaults.", () => {
         expect(workbench).not.toContain("DIRECTOR_ACTOR_PRESET_OPTIONS.slice(0, 8)");
         expect(workbench).not.toContain("DIRECTOR_ACTOR_PRESET_OPTIONS.slice(8)");
         expect(workbench).toContain('DIRECTOR_ACTOR_PRESET_OPTIONS.filter((preset) => preset.id !== "geometric")');
         expect(workbench).toContain('DIRECTOR_ACTOR_PRESET_OPTIONS.filter((preset) => preset.id === "geometric")');
     });
-    test("添加菜单提供 LibTV 同类的机位、太阳光、点光源、聚光灯并接入真实创建逻辑", () => {
+    test("The added menu provides LibTV-like camera positions, sunlight, point light sources, spotlights and access to real creation logic", () => {
         const menu = slice(workbench, "const addObjectMenuItems:", "const addShot =");
         expect(menu).toContain('key: "camera"');
         expect(menu).toContain('addPresetCamera("current")');
         expect(menu).toContain('key: "sun"');
-        expect(menu).toContain('addLight("directional", "太阳光"');
+        expect(menu).toContain('addLight("directional", "sunlight"');
         expect(menu).toContain('key: "point-light"');
-        expect(menu).toContain('addLight("point", "点光源"');
+        expect(menu).toContain('addLight("point", "Point light source"');
         expect(menu).toContain('key: "spotlight"');
-        expect(menu).toContain('addLight("spot", "聚光灯"');
+        expect(menu).toContain('addLight("spot", "spotlight"');
         expect(slice(workbench, "const addObject = (object:", "const addPrimitive =")).toContain('setMode(object.kind === "actor" ? "pose" : "layout")');
         expect(slice(workbench, "const addPresetCamera =", "const addLight =")).toContain('setMode("camera")');
         expect(slice(workbench, "const addLight =", "const addLightMenuItems:")).toContain('setMode("layout")');
     });
 });
 
-describe("LibTV 场景资产聚焦交互", () => {
-    test("机位、对象、灯光场景树行都提供聚焦动作并调用视口取景控制", () => {
+describe("LibTV scene assets focus on interaction", () => {
+    test("Camera positions, objects, and lighting scene tree rows all provide focus actions and call viewport framing controls.", () => {
         expect(workbench).toContain("onFocus={() => focusSceneCamera(item.camera)}");
         expect(workbench).toContain("onFocus={() => focusSceneObject(item.object)}");
         expect(workbench).toContain("onFocus={() => focusSceneLight(item.light)}");
@@ -115,22 +115,22 @@ describe("LibTV 场景资产聚焦交互", () => {
     });
 });
 
-describe("导演节点参考图入口", () => {
-    test("导演台节点暂不显示上传与提示词框控件", () => {
+describe("Director node reference map entrance", () => {
+    test("The director's desk node does not currently display the upload and prompt word box controls.", () => {
         expect(directorNodePanel).not.toContain("onAddReference");
         expect(directorNodePanel).not.toContain("onRemoveReference");
-        expect(directorNodePanel).not.toContain("场景描述");
+        expect(directorNodePanel).not.toContain("scene description");
         expect(uploadHook).toContain('imageInputRef.current.accept = "image/*";');
     });
 });
 
-describe("模式接线", () => {
-    test("workbench 从 store 读 mode，并按 capabilities 派生显示", () => {
+describe("Mode wiring", () => {
+    test("workbench reads mode from store and derives display by capabilities", () => {
         expect(workbench).toContain("const mode = useDirectorWorkbenchStore((state) => state.mode);");
         expect(workbench).toContain("const capabilities = directorModeCapabilities(mode);");
     });
 
-    test("动画模式把 Transform 轨迹接入视口，隐藏演员和零长度轨迹不显示", () => {
+    test("Animation mode connects the Transform track to the viewport, hiding actors and zero-length tracks and not displaying them.", () => {
         expect(workbench).toContain("showMotionPaths={workspaceView === \"scene\" && sequencerVisible}");
         expect(viewport).toContain('object.visible && (object.kind === "actor" || object.primitive === "character")');
         expect(viewport).toContain("directorTransformPathLength(object.keyframes) > 0.001");
@@ -138,24 +138,24 @@ describe("模式接线", () => {
         expect(viewport).toContain("interpolateDirectorTransform(sorted[0].transform, sorted, playhead).position");
     });
 
-    test("选中演员后可直接进入姿势控制，关键帧仍由动画能力单独把关", () => {
+    test("After selecting the actor, you can directly enter the posture control, and the key frames are still controlled separately by the animation ability.", () => {
         const inspector = slice(workbench, "function ObjectInspector(", "function LightInspector(");
         expect(inspector).toContain("{isActor ? <>");
         expect(inspector).not.toContain("isActor && capabilities.bones ? <>");
-        expect(inspector).toContain('role="tablist" aria-label="角色属性"');
+        expect(inspector).toContain('role="tablist" aria-label="Role attributes"');
         expect(inspector).toContain("directorProceduralPoseControlGroups");
         expect(inspector).toContain('data-director-pose-axis={label}');
         expect(inspector).toContain("axisDirections={axisDirections(axisIndex, direction)}");
         expect(inspector).toContain('{tab !== "motion" && capabilities.keyframes ? <>');
-        expect(workbench).toContain('label: "手臂 — 肩"');
-        expect(workbench).toContain('label: "腿部 — 髋"');
-        expect(workbench).toContain('pairedSemanticAxes("leftLowerArm", "rightLowerArm", ["弯曲"], [0])');
-        expect(workbench).toContain('pairedSemanticAxes("leftUpperArm", "rightUpperArm", ["前举", "外展", "扭转"], [0, 2, 1], [-1, -1, 1], [-1, 1, 1])');
+        expect(workbench).toContain('label: "arm — shoulder"');
+        expect(workbench).toContain('label: "leg — hip"');
+        expect(workbench).toContain('pairedSemanticAxes("leftLowerArm", "rightLowerArm", ["curved"], [0])');
+        expect(workbench).toContain('pairedSemanticAxes("leftUpperArm", "rightUpperArm", ["forward", "abduction", "twist"], [0, 2, 1], [-1, -1, 1], [-1, 1, 1])');
         // motionClips 不得再作为放行条件：带动画的普通模型不是演员。
         expect(workbench).not.toContain('object.primitive === "character" || motionClips.length) ? <>');
     });
 
-    test("站立预设复位全身姿态，逐骨骼重置不删除动画轨道", () => {
+    test("The standing preset resets the whole body posture and resets bone by bone without deleting the animation track.", () => {
         const inspector = slice(workbench, "function ObjectInspector(", "function LightInspector(");
         expect(inspector).toContain('onClick={() => applyPose(option.value)}');
         expect(inspector).toContain('const applyPose = (pose: DirectorPose) => onUpdate({ pose, activeMotionClipId: undefined, boneOverrides: {} })');
@@ -164,25 +164,25 @@ describe("模式接线", () => {
         expect(inspector).not.toContain("boneTracks: []");
     });
 
-    test("动作片段与骨骼入口解耦：任何带 Clip 的对象都能调播放速度/循环", () => {
-        expect(workbench).toContain('{tab !== "motion" && motionClips.length ? <><Field label="动作片段">');
+    test("Action clips are decoupled from bone entries: any object with a Clip can adjust the playback speed/loop", () => {
+        expect(workbench).toContain('{tab !== "motion" && motionClips.length ? <><Field label="action clips">');
         const inspector = slice(workbench, "function ObjectInspector(", "function LightInspector(");
-        expect(inspector).toContain('aria-label="动作开始时间"');
+        expect(inspector).toContain('aria-label="Action start time"');
         expect(inspector).toContain("snapDirectorTime(value ?? 0, fps)");
         expect(workbench).toContain("fps={activeShot?.fps || 24} shotDuration={activeShot?.duration || 15}");
     });
 
-    test("关键帧入口由 keyframes 把关", () => {
+    test("Keyframe entry is controlled by keyframes", () => {
         expect(workbench).toContain('{tab !== "motion" && capabilities.keyframes ? <>');
     });
 
-    test("渲染视图下拉按当前模式过滤，而不是写死五项", () => {
+    test("The rendering view drop-down filters by the current mode instead of hard-coding five items.", () => {
         expect(dock).toContain("renderModes: DirectorRenderMode[];");
         expect(dock).toContain("RENDER_VIEW_BUTTONS.filter((item) => renderModes.includes(item.mode))");
         expect(workbench).toContain("renderModes={capabilities.renderModes}");
     });
 
-    test("dock 不是绕过模式门控的第二条路径：渲染视图按钮同样按 renderModes 过滤", () => {
+    test("dock is not a second way around mode gating: render view buttons are also filtered by renderModes", () => {
         expect(dock).toContain("renderModes: DirectorRenderMode[];");
         expect(dock).toContain("RENDER_VIEW_BUTTONS.filter((item) => renderModes.includes(item.mode))");
         // 写死的按钮会绕过门控。
@@ -190,27 +190,27 @@ describe("模式接线", () => {
         expect(workbench).toContain("renderModes={capabilities.renderModes}");
     });
 
-    test("store 层夹住 renderMode：任何路径都无法设置当前模式不允许的视图", () => {
+    test("store layer clamps renderMode: No path can set a view that is not allowed by the current mode", () => {
         expect(store).toContain("setRenderMode: (renderMode) => set((state) => (directorModeCapabilities(state.mode).renderModes.includes(renderMode) ? { renderMode } : {})),");
     });
 
-    test("摄影机模式固定显示 shot/camera 检查器", () => {
+    test("Camera mode fixed display shot/camera inspector", () => {
         expect(workbench).toContain("selectedObject && !capabilities.cameraTools ?");
         expect(workbench).toContain("selectedLight && !capabilities.cameraTools ?");
     });
 
-    test("运镜生成只更新首尾帧并提示到动画模式继续编辑，不清空手工关键帧", () => {
+    test("The camera movement generation only updates the first and last frames and prompts you to go to animation mode to continue editing, without clearing the manual keyframes.", () => {
         expect(workbench).toContain("resolveDirectorCameraMoveKeyframes(item.keyframes");
-        expect(workbench).toContain("已更新运镜首尾关键帧，可在动画模式继续编辑");
+        expect(workbench).toContain("The first and last keyframes of the camera movement have been updated and can be edited in animation mode.");
         expect(workbench).not.toContain("keyframes: [{ id: nanoid(), time: 0, transform: start }");
     });
 
-    test("小屏把属性检查器放到下方而不是隐藏，姿态与骨骼入口仍可达", () => {
+    test("For small screens, put the attribute inspector below instead of hiding it, and the posture and bone entrances are still accessible.", () => {
         expect(workbench).toContain("max-lg:col-span-2 max-lg:max-h-[40vh] max-lg:border-l-0 max-lg:border-t");
         expect(workbench).not.toContain("border-l max-lg:hidden");
     });
 
-    test("store 切离动画模式时停止播放、关闭 Auto Key，并夹回允许的渲染视图", () => {
+    test("When the store switches out of animation mode, it stops playback, turns off Auto Key, and clips back to the allowed rendering view.", () => {
         const directorStore = useDirectorWorkbenchStore;
         directorStore.getState().reset();
         directorStore.getState().setMode("animate");
@@ -224,20 +224,20 @@ describe("模式接线", () => {
         directorStore.getState().reset();
     });
 
-    test("mode 不写进 DirectorScene：类型文件里没有 mode 字段", () => {
+    test("mode is not written to DirectorScene: there is no mode field in the type file", () => {
         const types = readFileSync(resolve(import.meta.dir, "../src/types/director.ts"), "utf8");
         const sceneType = slice(types, "export type DirectorScene = {", "};");
         expect(sceneType).not.toContain("mode");
     });
 
-    test("切模式不重建会话：初始化 effect 的依赖里没有 mode", () => {
-        const initEffect = slice(workbench, "// 会话初始化只认 scene id", "// 打开会话时检查合法本地恢复候选");
+    test("Switching modes does not rebuild the session: there is no mode in the dependencies of the initialized effect.", () => {
+        const initEffect = slice(workbench, "//Session initialization only recognizes scene id", "// Check for valid local recovery candidates when opening a session");
         // 依赖里出现 mode 就意味着换视图会 resetWorkbench + 清空 history。
         expect(initEffect).toContain("}, [open, resetWorkbench, scene, writeDraft]);");
         expect(initEffect).not.toContain("mode");
     });
 
-    test("draft/history/save 的生命周期 effect 一律不依赖 mode", () => {
+    test("The life cycle effect of draft/history/save does not depend on mode.", () => {
         // 逐个锁住依赖数组：任一处混入 mode，切模式就会掉草稿或掉历史。
         expect(workbench).toContain("}, [message, modal, open, scene, writeDraft]);");
         expect(workbench).toContain("}, [mirrorDraft, stagedTransaction]);");
@@ -247,8 +247,8 @@ describe("模式接线", () => {
     });
 });
 
-describe("异步导演台输出使用最新权威状态", () => {
-    test("上传后重新核验节点与场景，并把预览引用合入最新 scene", () => {
+describe("Asynchronous director console output uses the latest authoritative state", () => {
+    test("After uploading, recheck the nodes and scene, and merge the preview reference into the latest scene", () => {
         expect(hook).toContain("const sourceNodeAtStart = nodesRef.current.find");
         expect(hook).toContain("const outputProjectId = projectId;");
         expect(hook).toContain("projectIdRef.current !== outputProjectId");
@@ -273,8 +273,8 @@ describe("异步导演台输出使用最新权威状态", () => {
     });
 });
 
-describe("编辑模式迁移到导演工具菜单", () => {
-    test("所有模式入口保留可见名称、快捷提示并正确调用模式切换", () => {
+describe("Edit mode moved to Director Tools menu", () => {
+    test("All mode entries retain visible names, shortcut prompts and correctly invoke mode switches", () => {
         const modeMenu = slice(dock, 'key: "director-mode"', 'key: "workspace-view"');
         expect(modeMenu).toContain("DIRECTOR_MODES.map");
         expect(modeMenu).toContain("title: item.hint");
@@ -282,13 +282,13 @@ describe("编辑模式迁移到导演工具菜单", () => {
         expect(modeMenu).toContain("releaseMenuFocus(domEvent.detail)");
     });
 
-    test("菜单保持当前模式与工作区的选中态", () => {
+    test("Menu keeps current mode and workspace selected", () => {
         expect(dock).toContain("`director-mode-${mode}`");
         expect(dock).toContain("`workspace-${workspaceView}`");
     });
 
-    test("模式样式继续使用主题感知语义 token，不新增硬编码颜色", () => {
-        const block = slice(styles, "/* 一级模式切换。", ".director-actor-colors {");
+    test("Mode styles continue to use theme-aware semantic tokens, and no new hard-coded colors are added.", () => {
+        const block = slice(styles, "/* Level one mode switching.", ".director-actor-colors {");
         expect(block).toContain("var(--control-selected-bg)");
         expect(block).toContain("var(--control-focus-ring)");
         expect(block).not.toMatch(/rgba?\(/);
@@ -296,19 +296,19 @@ describe("编辑模式迁移到导演工具菜单", () => {
     });
 });
 
-describe("LibTV 导演台紧凑顶栏入口迁移", () => {
-    test("顶栏不再占用独立编辑模式或场景/预演切换条", () => {
-        expect(workbench).not.toContain('<nav className="director-mode-switch" aria-label="导演台模式">');
-        expect(workbench).not.toContain('aria-label="导演台工作区视图"');
+describe("LibTV director’s desk compact roof entrance relocation", () => {
+    test("The top bar no longer occupies the independent editing mode or scene/preview switching bar", () => {
+        expect(workbench).not.toContain('<nav className="director-mode-switch" aria-label="Director Mode">');
+        expect(workbench).not.toContain('aria-label="Director\'s desk workspace view"');
     });
 
-    test("底部更多工具菜单保留模式、工作区、历史与工作台功能；对象添加统一从场景面板进入", () => {
-        expect(dock).toContain('label: "导演台模式"');
-        expect(dock).toContain('key: "director-navigation", label: "导演台导航"');
+    test("More tool menus at the bottom retain mode, workspace, history and workbench functions; object additions are uniformly entered from the scene panel", () => {
+        expect(dock).toContain('label: "Director\'s desk mode"');
+        expect(dock).toContain('key: "director-navigation", label: "director navigation"');
         expect(dock).toContain("DIRECTOR_MODES.map");
-        expect(dock).toContain('label: "工作区视图"');
-        expect(dock).toContain('label: "场景调度"');
-        expect(dock).toContain('label: "成片预演"');
+        expect(dock).toContain('label: "workspace view"');
+        expect(dock).toContain('label: "scenario"');
+        expect(dock).toContain('label: "Preview of the finished film"');
         expect(dock).toContain("onModeChange(item.mode)");
         expect(dock).toContain('onWorkspaceViewChange("scene")');
         expect(dock).toContain('onWorkspaceViewChange("preview")');
@@ -316,8 +316,8 @@ describe("LibTV 导演台紧凑顶栏入口迁移", () => {
         expect(dock).toContain('key: "apply-to-canvas"');
         expect(dock).not.toContain('key: "add-actor"');
         expect(dock).not.toContain('key: "add-box"');
-        expect(dock).not.toContain('aria-label="导演台导航" aria-haspopup="menu"');
-        expect(workbench).toContain('AddMenuButton label="添加场景对象" items={addObjectMenuItems}');
+        expect(dock).not.toContain('aria-label="Director\'s Desk Navigation" aria-haspopup="menu"');
+        expect(workbench).toContain('AddMenuButton label="Add scene object" items={addObjectMenuItems}');
     });
 
 });

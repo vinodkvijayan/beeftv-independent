@@ -158,7 +158,7 @@ func BuildGenerationOrderTargetViews(domain Domain, targets []GenerationTarget) 
 }
 
 func registerGenerationSubmit(r *Registry) {
-	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.generation.submit", Summary: "凭已批准生成单执行画布生成并计费", Scope: ScopeCanvas,
+	r.Register(Op{ReplaySafe: true, AssistantCanvas: true, ID: "canvas.generation.submit", Summary: "Execute canvas generation and bill based on approved generation order", Scope: ScopeCanvas,
 		Params: json.RawMessage(`{"type":"object","properties":{"canvasId":{"type":"string"},"proposalId":{"type":"string"},"orderId":{"type":"string"},"nodeIds":{"type":"array","items":{"type":"string"},"minItems":1,"maxItems":8},"kind":{"type":"string","enum":["image","video","audio"]},"expectedRevision":{"type":"integer","minimum":1},"expectedModelConfigRevision":{"type":"integer","minimum":0}},"required":["canvasId","nodeIds"]}`), Handler: opGenerationSubmit})
 }
 
@@ -181,17 +181,17 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 	}
 	external := ctx.Caller.Kind == CallerExternal && !ctx.Caller.ReadOnly
 	if !external && ctx.TurnID == "" {
-		return nil, PermissionDenied("production_authorization_required", "请先确认本次制作方案")
+		return nil, PermissionDenied("production_authorization_required", "Please confirm this production plan first")
 	}
 	if strings.TrimSpace(args.CanvasID) == "" || len(args.NodeIDs) == 0 || len(args.NodeIDs) > 8 {
-		return nil, InvalidArg("invalid_batch", "canvasId 和 1 至 8 个 nodeIds 必填")
+		return nil, InvalidArg("invalid_batch", "canvasId and 1 to 8 nodeIds required")
 	}
 	approvalMode := ctx.Caller.EffectiveApprovalMode()
 	orderRecorder, hasOrderRecorder := ctx.Domain.(GenerationOrderRecorder)
 	var existingOrder *GenerationOrder
 	if external {
 		if ctx.OperationID == "" {
-			return nil, InvalidArg("generation_snapshot_required", "请先读取生成提议，并提交画布版本、模型配置版本和稳定 operationId")
+			return nil, InvalidArg("generation_snapshot_required", "Please read the generation proposal first and submit the canvas version, model configuration version and stable operationId")
 		}
 		if proposalID != "" && hasOrderRecorder {
 			order, err := orderRecorder.LookupGenerationOrder(ctx.UserID, proposalID)
@@ -199,7 +199,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 				return nil, AsError(err)
 			}
 			if order == nil || order.CanvasID != args.CanvasID {
-				return nil, NotFound("generation_order_not_found", "生成单不存在")
+				return nil, NotFound("generation_order_not_found", "The generation order does not exist")
 			}
 			existingOrder = order
 		}
@@ -210,7 +210,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 				if hint == "" {
 					hint = "<proposalId>"
 				}
-				return nil, PermissionDenied("generation_approval_required", "当前凭据设为「每次问我」，请先在 BeefTV 界面确认或运行 beeftv approve "+hint+" 批准生成单；Agent 自身凭据不能自批")
+				return nil, PermissionDenied("generation_approval_required", "The current credentials are set to \"Ask me every time\", please first confirm in the BeefTV interface or run beeftv approve"+hint+" Approval generation form; Agent's own credentials cannot self-approve")
 			}
 			if existingOrder.Status == GenerationOrderSubmitted && len(existingOrder.TaskIDs) > 0 {
 				return map[string]any{
@@ -224,11 +224,11 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 			}
 		case ApprovalModeAuto:
 			if (args.ExpectedRevision != nil && *args.ExpectedRevision < 1) || (args.ExpectedModelConfigRevision != nil && *args.ExpectedModelConfigRevision < 0) {
-				return nil, InvalidArg("generation_snapshot_required", "expectedRevision 和 expectedModelConfigRevision 无效")
+				return nil, InvalidArg("generation_snapshot_required", "expectedRevision and expectedModelConfigRevision are invalid")
 			}
 		default:
 			if args.ExpectedRevision == nil || *args.ExpectedRevision < 1 || args.ExpectedModelConfigRevision == nil || *args.ExpectedModelConfigRevision < 0 {
-				return nil, InvalidArg("generation_snapshot_required", "请先读取生成提议，并提交画布版本、模型配置版本和稳定 operationId")
+				return nil, InvalidArg("generation_snapshot_required", "Please read the generation proposal first and submit the canvas version, model configuration version and stable operationId")
 			}
 		}
 	}
@@ -242,7 +242,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 	}
 	currentRevision := canvasRevision(doc)
 	if external && args.ExpectedRevision != nil && currentRevision != *args.ExpectedRevision {
-		return nil, Conflict("revision_conflict", "画布已变化，请重新读取并确认生成内容", nil)
+		return nil, Conflict("revision_conflict", "The canvas has changed, please re-read and confirm the generated content", nil)
 	}
 	targets, err := GenerationTargets(ctx.Domain, doc, args.NodeIDs)
 	if err != nil {
@@ -252,7 +252,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 	var firstChoice AssistantGenerationModel
 	for i, target := range targets {
 		if args.Kind != "" && target.Kind != args.Kind {
-			return nil, InvalidArg("generation_kind_mismatch", "请按素材类型分批生成")
+			return nil, InvalidArg("generation_kind_mismatch", "Please generate in batches according to material type")
 		}
 		if external {
 			choice, err := ctx.Domain.ResolveAssistantGenerationModel(target.Kind, target.ModelKey)
@@ -260,7 +260,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 				return nil, AsError(err)
 			}
 			if args.ExpectedModelConfigRevision != nil && choice.Revision != *args.ExpectedModelConfigRevision {
-				return nil, Conflict("generation_config_changed", "模型配置已变化，请重新读取生成提议", nil)
+				return nil, Conflict("generation_config_changed", "The model configuration has changed, please re-read the generation proposal", nil)
 			}
 			if i == 0 {
 				firstChoice = choice
@@ -269,7 +269,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 		}
 	}
 	if external && existingOrder != nil && !generationTargetsContainBatch(existingOrder.Targets, targets) {
-		return nil, Conflict("generation_targets_changed", "画布上的生成参数已变化，请重新读取生成提议", nil)
+		return nil, Conflict("generation_targets_changed", "The build parameters on the canvas have changed, please re-read the build proposal", nil)
 	}
 	nodes := map[string]map[string]any{}
 	for _, v := range canvasNodes(doc) {
@@ -282,7 +282,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 	if external {
 		port, ok := ctx.Domain.(ExternalGenerationAdmission)
 		if !ok {
-			return nil, Unsupported("generation_unavailable", "当前工作区不能提交生成")
+			return nil, Unsupported("generation_unavailable", "The current workspace cannot be submitted for generation")
 		}
 		out, err := port.SubmitExternalGeneration(ctx.UserID, ctx.OperationID, args.CanvasID, targets)
 		if err != nil {
@@ -304,7 +304,7 @@ func opGenerationSubmit(ctx *Context, raw json.RawMessage) (any, error) {
 	}
 	port, ok := ctx.Domain.(AuthorizedGenerationAdmission)
 	if !ok {
-		return nil, Unsupported("generation_unavailable", "当前工作区不能自动执行制作")
+		return nil, Unsupported("generation_unavailable", "The current workspace cannot automatically perform production")
 	}
 	return port.SubmitAuthorizedGeneration(ctx.UserID, ctx.TurnID, args.CanvasID, targets)
 }
@@ -411,7 +411,7 @@ func extractSubmittedTaskIDs(submitResult any) []string {
 // the model cannot replace approved prompt/model/quantity between those steps.
 func GenerationTargets(domain Domain, doc map[string]any, ids []string) ([]GenerationTarget, error) {
 	if len(ids) == 0 || len(ids) > 24 {
-		return nil, InvalidArg("invalid_batch", "制作素材须为1至24项")
+		return nil, InvalidArg("invalid_batch", "Production materials must be from 1 to 24 items")
 	}
 	nodes := map[string]map[string]any{}
 	graph := generationDependencyGraph{nodes: nodes, incoming: map[string][]string{}, config: map[string]string{}}
@@ -436,7 +436,7 @@ func GenerationTargets(domain Domain, doc map[string]any, ids []string) ([]Gener
 		n := nodes[id]
 		kind := nodeGenerationKind(n)
 		if n == nil || (kind != "image" && kind != "video" && kind != "audio") {
-			return nil, InvalidArg("invalid_generation_node", "请使用当前画布的图片、视频或音频节点")
+			return nil, InvalidArg("invalid_generation_node", "Please use the image, video or audio node of the current canvas")
 		}
 		meta := dependencyMetadata(n)
 		choice, err := domain.ResolveAssistantGenerationModel(kind, nodeSelectedModel(n))
@@ -444,14 +444,14 @@ func GenerationTargets(domain Domain, doc map[string]any, ids []string) ([]Gener
 			return nil, AsError(err)
 		}
 		if choice.ModelKey == "" || choice.KindMismatch {
-			return nil, PreconditionFailed("generation_model_unavailable", "素材模型暂不可用，请重新选择", nil)
+			return nil, PreconditionFailed("generation_model_unavailable", "The material model is currently unavailable, please select again.", nil)
 		}
 		prompt := dependencyString(meta, "composerContent")
 		if prompt == "" {
 			prompt = dependencyString(meta, "prompt")
 		}
 		if strings.TrimSpace(prompt) == "" {
-			return nil, InvalidArg("missing_prompt", "制作素材缺少提示词或旁白文本")
+			return nil, InvalidArg("missing_prompt", "The production material is missing prompt words or narration text")
 		}
 		parameters := map[string]string{}
 		for _, key := range []string{"size", "quality", "count", "transparentBackground", "seconds", "vquality", "generateAudio", "watermark", "audioVoice", "audioFormat", "audioSpeed", "audioPitch", "audioVolume", "audioInstructions", "videoStartFrameNodeId", "videoEndFrameNodeId", "videoMiddleFrameNodeId"} {
@@ -472,7 +472,7 @@ func GenerationTargets(domain Domain, doc map[string]any, ids []string) ([]Gener
 				}
 				maxImages, _ := strconv.Atoi(parameters["seedreamMaxImages"])
 				if parameters["seedreamMode"] == "layers" || (family != "pro" && family != "flash" && maxImages > 1) {
-					return nil, InvalidArg("production_seedream_multiple_outputs", "整片制作暂不支持 Seedream 图层拆分或组图。请先在画布生成图片，再用已有图片继续制作。")
+					return nil, InvalidArg("production_seedream_multiple_outputs", "Whole-film production does not currently support Seedream layer splitting or grouping. Please generate images on the canvas first, and then use existing images to continue creating.")
 				}
 			}
 			if err := validateModelGenerationParameters(domain, kind, choice.ModelKey, parameters); err != nil {
@@ -489,7 +489,7 @@ func GenerationTargets(domain Domain, doc map[string]any, ids []string) ([]Gener
 			}
 		}
 		if count := parameters["count"]; count != "" && count != "1" {
-			return nil, InvalidArg("production_image_count", "整片制作请为每张图片建立独立节点")
+			return nil, InvalidArg("production_image_count", "For the entire film production, please create independent nodes for each picture.")
 		}
 		refs := graph.references(id, kind)
 		sort.Strings(refs)

@@ -16,7 +16,7 @@ func (s *Service) LinkCanvasUnit(userID string, projectID string, req LinkCanvas
 	canvasID := strings.TrimSpace(req.CanvasID)
 	unitID := strings.TrimSpace(req.UnitID)
 	if canvasID == "" || unitID == "" {
-		return model.CanvasUnitLink{}, kernel.BadAuthRequest("画布和章节不能为空")
+		return model.CanvasUnitLink{}, kernel.BadAuthRequest("Canvas and Chapter cannot be empty")
 	}
 	canvas, err := s.repo.CanvasProjectForUser(userID, canvasID)
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *Service) UnlinkCanvasUnit(userID string, projectID string, canvasID str
 		return err
 	}
 	if canvas.ProjectID != projectID {
-		return kernel.BadAuthRequest("画布不属于当前项目")
+		return kernel.BadAuthRequest("The canvas does not belong to the current project")
 	}
 	if _, err := s.repo.CanvasUnitLink(projectID, canvas.ID, strings.TrimSpace(unitID)); err != nil {
 		return err
@@ -67,7 +67,7 @@ func (s *Service) UnlinkCanvasProject(userID string, projectID string, canvasID 
 		return err
 	}
 	if canvas.ProjectID != projectID {
-		return kernel.BadAuthRequest("画布不属于当前项目")
+		return kernel.BadAuthRequest("The canvas does not belong to the current project")
 	}
 	now := time.Now()
 	payloadJSON, err := canvasPayloadWithoutProject(canvas.PayloadJSON, now)
@@ -91,7 +91,7 @@ func rewriteCanvasPayloadProjectID(payloadJSON string, projectID string, updated
 	if strings.TrimSpace(payloadJSON) == "" {
 		payload = map[string]any{}
 	} else if err := json.Unmarshal([]byte(payloadJSON), &payload); err != nil {
-		return "", kernel.BadAuthRequest("画布数据格式错误，无法更新项目关系")
+		return "", kernel.BadAuthRequest("The canvas data format is wrong and the project relationship cannot be updated.")
 	}
 	if assign {
 		payload["projectId"] = projectID

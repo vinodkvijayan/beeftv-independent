@@ -80,7 +80,7 @@ func TestProcessCanvasGenerationNoVariantSKUPostsOnceWithProviderKey(t *testing.
 		Config: providerConfig{ChannelID: channel.ID, ChannelModelKey: item.ModelKey, Model: "gpt-4"},
 	})
 	_, err = service.processCanvasGenerationTask(ctx, task.UserID, "", task.Type, "", string(hostile))
-	if err == nil || !strings.Contains(err.Error(), "系统渠道模型标识不一致") {
+	if err == nil || !strings.Contains(err.Error(), "System channel model identification is inconsistent") {
 		t.Fatalf("hostile mismatch error = %v", err)
 	}
 	if posts.Load() != 0 {
@@ -122,7 +122,7 @@ data: [DONE]
 	if err != nil {
 		t.Fatalf("ordinary canvas_text: %v", err)
 	}
-	if textResult["text"] != "可见回答" {
+	if textResult["text"] != "Visible answer" {
 		t.Fatalf("ordinary result = %#v", textResult)
 	}
 	replay, err := service.TaskTextReplay(textTask.UserID, textTask.ID, 0)
@@ -130,7 +130,7 @@ data: [DONE]
 		t.Fatal(err)
 	}
 	joined := joinTaskText(replay.Deltas)
-	if joined != "可见回答" {
+	if joined != "Visible answer" {
 		t.Fatalf("ordinary task body = %q", joined)
 	}
 	if strings.Contains(joined, "内部分析") {
@@ -150,10 +150,10 @@ data: [DONE]
 	if err != nil {
 		t.Fatalf("agent canvas_text: %v", err)
 	}
-	if agentResult["text"] != "可见回答" {
+	if agentResult["text"] != "Visible answer" {
 		t.Fatalf("agent result = %#v", agentResult)
 	}
-	if agentResult["reasoning"] != "内部分析" {
+	if agentResult["reasoning"] != "internal analysis" {
 		t.Fatalf("agent reasoning lost: %#v", agentResult)
 	}
 	agentReplay, err := service.TaskTextReplay(agentTask.UserID, agentTask.ID, 0)

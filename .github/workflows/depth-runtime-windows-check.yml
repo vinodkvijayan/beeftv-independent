@@ -59,15 +59,15 @@ jobs:
         run: |
           $name = "beeftv-depth-runtime-v1-windows-amd64-cuda.zip"
           $metadata = Get-Content -LiteralPath "./build/depth-runtime/$name.json" -Raw | ConvertFrom-Json
-          if ($metadata.parts.Count -lt 2) { throw "CUDA 运行包没有生成 Release 分片" }
+          if ($metadata.parts.Count -lt 2) { throw "CUDA runtime package does not generate Release fragments" }
           $total = [long]0
           foreach ($part in $metadata.parts) {
             $path = Join-Path "./build/depth-runtime" $part.name
-            if ($part.size -ge 2GB -or (Get-Item -LiteralPath $path).Length -ne $part.size) { throw "Release 分片超限或大小不匹配" }
-            if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $part.sha256) { throw "Release 分片哈希不匹配" }
+            if ($part.size -ge 2GB -or (Get-Item -LiteralPath $path).Length -ne $part.size) { throw "Release fragment exceeds limit or size mismatch" }
+            if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $part.sha256) { throw "Release shard hash mismatch" }
             $total += [long]$part.size
           }
-          if ($total -ne [long]$metadata.size) { throw "Release 分片总大小不匹配" }
+          if ($total -ne [long]$metadata.size) { throw "Release shard total size does not match" }
       - name: Probe pinned Small model on Windows CPU
         if: matrix.variant == 'cpu'
         shell: pwsh
@@ -77,12 +77,12 @@ jobs:
           $model = Join-Path $modelDir "video_depth_anything_vits.pth"
           Invoke-WebRequest -Uri "https://github.com/glanderness/BeefTV/releases/download/v1.5.5/video_depth_anything_vits.pth" -OutFile $model
           $zip = Resolve-Path ./build/depth-runtime/beeftv-depth-runtime-v1-windows-amd64-cpu.zip
-          $unpacked = Join-Path $env:RUNNER_TEMP "beeftv-depth-中文 path"
+          $unpacked = Join-Path $env:RUNNER_TEMP "beeftv-depth-Chinese path"
           Expand-Archive -LiteralPath $zip -DestinationPath $unpacked
           $env:PYTHONPATH = (Resolve-Path ./tools/depth-capture).Path
           $env:PATH = "$unpacked\bin;$env:PATH"
           & (Join-Path $unpacked ".python\python.exe") -m unittest discover -s ./tools/depth-capture/tests -v
-          if ($LASTEXITCODE -ne 0) { throw "Windows Python 单元测试失败" }
+          if ($LASTEXITCODE -ne 0) { throw "Windows Python unit tests fail" }
           ./scripts/test-depth-runtime-windows.ps1 -Variant cpu -RuntimeRoot $unpacked -ModelRuntime (Split-Path $modelDir)
       - name: Store verified runtime metadata
         uses: actions/upload-artifact@v4

@@ -17,11 +17,11 @@ const server = await createServer({ server: { host: "127.0.0.1", port: 0, cors: 
             const path = new URL(request.url, "http://fixture").pathname;
             if (path === "/__light_references") {
                 response.setHeader("Content-Type", "text/html; charset=utf-8");
-                response.end(await vite.transformIndexHtml(path, '<html><body><button id="block-cache">占满预览下载队列</button><button id="prepare-references">准备已有图片和角色</button><button id="prepare-derived">准备绘图和调色</button><pre id="status">等待测试</pre><script type="module" src="/test/fixtures/canvas-generation-light-references.fixture.ts"></script></body></html>')); return;
+                response.end(await vite.transformIndexHtml(path, '<html><body><button id="block-cache">Full preview download queue</button><button id="prepare-references">Prepare existing images and characters</button><button id="prepare-derived">Prepare drawing and color grading</button><pre id="status">Waiting for testing</pre><script type="module" src="/test/fixtures/canvas-generation-light-references.fixture.ts"></script></body></html>')); return;
             }
             if (path === "/__light_references/state") return json(response, { blocked: held.size, uploads: uploaded.size, blobReads });
             if (/^\/api\/resources\/blocked-\d+\/file$/.test(path)) { held.add(response); response.on("close", () => held.delete(response)); return; }
-            if (path === "/api/projects/project/characters/character") return json(response, { code: 0, msg: "ok", data: { asset: { id: "character", title: "禾禾" }, character: { versionId: "v2", definition: {}, representations: [{ id: "main", resourceId: "character-main", role: "primary" }, { id: "side", resourceId: "character-side", role: "side" }] } } });
+            if (path === "/api/projects/project/characters/character") return json(response, { code: 0, msg: "ok", data: { asset: { id: "character", title: "Hehe" }, character: { versionId: "v2", definition: {}, representations: [{ id: "main", resourceId: "character-main", role: "primary" }, { id: "side", resourceId: "character-side", role: "side" }] } } });
             if (path === "/api/resources" && request.method === "POST") {
                 const chunks = []; for await (const chunk of request) chunks.push(chunk);
                 const form = await new Request("http://fixture", { method: "POST", headers: request.headers, body: Buffer.concat(chunks) }).formData();

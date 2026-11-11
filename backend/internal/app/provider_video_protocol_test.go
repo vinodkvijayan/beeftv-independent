@@ -77,7 +77,7 @@ func TestCustomVideoProtocolPreservesFiveImagesAcrossEndpoints(t *testing.T) {
 					policy.Sleep = func(context.Context, time.Duration) error { return nil }
 					result, err := runVideoTaskWithPolicy(context.Background(), canvasGenerationInput{Mode: "video", Prompt: "Use all five references.", Config: config, ReferenceImages: images}, policy)
 					if selected == "newapi" {
-						if err == nil || !strings.Contains(err.Error(), "最多支持一张参考图") || creates+polls+downloads != 0 {
+						if err == nil || !strings.Contains(err.Error(), "Supports at most one reference picture") || creates+polls+downloads != 0 {
 							t.Fatalf("Sora protocol must reject unsendable images before submission: err=%v calls=%d/%d/%d", err, creates, polls, downloads)
 						}
 						return

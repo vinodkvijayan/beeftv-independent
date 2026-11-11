@@ -8,7 +8,7 @@ function node(id: string, type: CanvasNodeType, width = 320, height = 180, locke
 }
 
 describe("canvas media-aware layout", () => {
-    test("无连线时按文本、图片、视频、音频分成纵向泳道", () => {
+    test("When there is no connection, it is divided into vertical lanes according to text, pictures, videos and audios.", () => {
         const text = node("text", CanvasNodeType.Text, 300, 120);
         const image = node("image", CanvasNodeType.Image, 420, 260);
         const video = node("video", CanvasNodeType.Video, 500, 280);
@@ -21,7 +21,7 @@ describe("canvas media-aware layout", () => {
         expect(positions.get("image")!.y).toBeGreaterThanOrEqual(positions.get("text")!.y + text.height);
     });
 
-    test("有连线时保持从左到右的拓扑层，同时分离媒体泳道", () => {
+    test("Maintain left-to-right topology when connected, while separating media lanes", () => {
         const text = node("text", CanvasNodeType.Text);
         const image = node("image", CanvasNodeType.Image);
         const video = node("video", CanvasNodeType.Video);
@@ -37,7 +37,7 @@ describe("canvas media-aware layout", () => {
         expect(positions.get("image")!.y).toBeLessThan(positions.get("video")!.y);
     });
 
-    test("同一拓扑层和媒体泳道中的不同尺寸节点不会重叠", () => {
+    test("Nodes of different sizes in the same topology layer and media swim lanes do not overlap", () => {
         const first = node("first", CanvasNodeType.Image, 420, 300);
         const second = node("second", CanvasNodeType.Image, 240, 120);
         const positions = layoutCanvasFlow([first, second], []);
@@ -45,7 +45,7 @@ describe("canvas media-aware layout", () => {
         expect(positions.get("second")!.y).toBeGreaterThanOrEqual(positions.get("first")!.y + first.height);
     });
 
-    test("自动整理只返回可移动节点，并忽略选区外连接", () => {
+    test("Automatic sorting only returns movable nodes and ignores connections outside the selection.", () => {
         const image = node("image", CanvasNodeType.Image);
         const video = node("video", CanvasNodeType.Video);
         const locked = node("locked", CanvasNodeType.Image, 320, 180, true);
@@ -56,7 +56,7 @@ describe("canvas media-aware layout", () => {
         expect(positions.get("image")!.y).toBeLessThan(positions.get("video")!.y);
     });
 
-    test("节点类型映射为稳定的四类泳道", () => {
+    test("Node types are mapped to stable four-category swim lanes", () => {
         expect(canvasLayoutLane(node("script", CanvasNodeType.Script))).toBe("text");
         expect(canvasLayoutLane(node("drawing", CanvasNodeType.Drawing))).toBe("image");
         expect(canvasLayoutLane(node("video", CanvasNodeType.Video))).toBe("video");

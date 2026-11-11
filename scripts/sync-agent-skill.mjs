@@ -10,7 +10,7 @@ const source = join(root, "plugins", "beeftv-skills", "skills", "beeftv-canvas",
 const target = join(root, "backend", "internal", "agentconnect", "skilldata", "SKILL.md");
 
 if (!existsSync(source)) {
-    console.error(`缺少规范技能：${source}`);
+    console.error(`Missing normative skills:${source}`);
     process.exit(1);
 }
 
@@ -18,13 +18,13 @@ const check = process.argv.includes("--check");
 if (check) {
     const current = existsSync(target) ? readFileSync(target, "utf8") : "";
     if (current !== readFileSync(source, "utf8")) {
-        console.error("后端嵌入技能与规范技能不一致；运行 bun scripts/sync-agent-skill.mjs");
+        console.error("Backend embedded skills are inconsistent with canonical skills; run bun scripts/sync-agent-skill.mjs");
         process.exit(1);
     }
-    console.log("技能副本一致。");
+    console.log("The skill copies are consistent.");
     process.exit(0);
 }
 
 mkdirSync(dirname(target), { recursive: true });
 copyFileSync(source, target);
-console.log(`已同步技能：${target}`);
+console.log(`Synced skills:${target}`);

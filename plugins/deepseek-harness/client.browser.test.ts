@@ -99,10 +99,10 @@ test('BeefTV Agent keeps the native conversation and sends the selected collabor
   const state = await openWorkbench()
   const { page, contexts } = state
   expect(await page.getByRole('heading', { name: 'BeefTV Agent' }).count()).toBe(1)
-  expect(await page.getByText('当前会话', { exact: true }).count()).toBe(0)
+  expect(await page.getByText('current session', { exact: true }).count()).toBe(0)
   expect(await page.getByRole('complementary', { name: 'BeefTV Agent' }).evaluate(element => element.getBoundingClientRect().width)).toBe(432)
-  await page.getByRole('button', { name: '素材', exact: true }).click()
-  await page.waitForFunction(() => document.querySelector('[title="整理与复用创作素材"]')?.getAttribute('aria-pressed') === 'true')
+  await page.getByRole('button', { name: 'Material', exact: true }).click()
+  await page.waitForFunction(() => document.querySelector('[title="Organization and reuse of creative materials"]')?.getAttribute('aria-pressed') === 'true')
   await page.waitForTimeout(30)
   expect(contexts.at(-1)?.agentMode).toBe('assets')
   expect(contexts.every(report => report.connectionId === 'connection-local')).toBe(true)
@@ -167,11 +167,11 @@ test('a rejected old connection refreshes status silently while other context fa
   let rejection = 409
   await page.route('**/beeftv/context', route => route.fulfill({ status: rejection, json: { error: 'Context request failed' } }))
   const refreshed = page.waitForResponse('**/beeftv/status')
-  await page.getByRole('button', { name: '素材', exact: true }).click()
+  await page.getByRole('button', { name: 'Material', exact: true }).click()
   await refreshed
   expect(await page.getByRole('alert').count()).toBe(0)
   rejection = 500
-  await page.getByRole('button', { name: '生态', exact: true }).click()
+  await page.getByRole('button', { name: 'ecology', exact: true }).click()
   await page.getByRole('alert').waitFor()
   expect(await page.getByRole('alert').textContent()).toBe('Context request failed')
   await page.close()
@@ -180,16 +180,16 @@ test('a rejected old connection refreshes status silently while other context fa
 test('workspace selection stays open across refresh and an in-flight connect rejects stale status', async () => {
   const state = await openWorkbench()
   const { page } = state
-  await page.getByRole('button', { name: '工作台操作' }).click()
-  await page.getByRole('button', { name: '切换工作区' }).click()
+  await page.getByRole('button', { name: 'Workbench operation' }).click()
+  await page.getByRole('button', { name: 'Switch workspace' }).click()
   await refresh(page)
-  expect(await page.getByRole('button', { name: '使用独立工作区' }).count()).toBe(1)
+  expect(await page.getByRole('button', { name: 'Use a separate workspace' }).count()).toBe(1)
   let release!: () => void
   await page.route('**/beeftv/connect', async route => {
     await new Promise<void>(resolve => { release = resolve })
     await route.fulfill({ json: { ...state.status(), mode: 'standalone', appURL: new URL('/workspace/standalone/', server.url).href } })
   })
-  await page.getByRole('button', { name: '使用独立工作区' }).click()
+  await page.getByRole('button', { name: 'Use a separate workspace' }).click()
   const reads = state.reads()
   await page.evaluate(() => window.dispatchEvent(new Event('focus')))
   await page.waitForTimeout(50)
@@ -205,7 +205,7 @@ test('the toolbar is removed and resizing preserves the workspace and native cha
   expect(await page.locator('.beeftv-harness-toolbar').count()).toBe(0)
   expect(await page.locator('.beeftv-harness-workspace').evaluate(element => element.getBoundingClientRect().top)).toBe(0)
   await page.locator('iframe').evaluate(element => { element.dataset.retained = 'yes' })
-  const separator = page.getByRole('separator', { name: '调整 BeefTV Agent 宽度' })
+  const separator = page.getByRole('separator', { name: 'Adjust BeefTV Agent width' })
   const pane = page.getByRole('complementary', { name: 'BeefTV Agent' })
   const bounds = await separator.boundingBox()
   if (!bounds) throw new Error('Missing resize handle')
@@ -231,8 +231,8 @@ test('the toolbar is removed and resizing preserves the workspace and native cha
   await page.waitForFunction(() => document.querySelector('[aria-label="BeefTV Agent"]')?.getBoundingClientRect().width === 320)
   expect(await page.locator('iframe').getAttribute('data-retained')).toBe('yes')
   expect(await page.evaluate(() => (window as any).nativeMounts)).toBe(1)
-  await page.getByRole('button', { name: '工作台操作' }).click()
-  await page.getByRole('button', { name: '新建会话', exact: true }).click()
+  await page.getByRole('button', { name: 'Workbench operation' }).click()
+  await page.getByRole('button', { name: 'New session', exact: true }).click()
   expect(await page.evaluate(() => (window as any).createdSessions)).toBe(1)
   await page.close()
 })
@@ -262,7 +262,7 @@ test('the workspace follows host window-control clearance across sidebar and ful
 test('hidden mounts read status once and keep subsequent hidden polling idle', async () => {
   const { page, reads } = await openWorkbench({ hidden: true, clock: true })
   expect(reads()).toBe(1)
-  expect(await page.getByText('正在读取本机连接状态…', { exact: true }).count()).toBe(0)
+  expect(await page.getByText('Reading local connection status...', { exact: true }).count()).toBe(0)
   await page.clock.fastForward(15_000)
   await page.evaluate(() => {
     window.dispatchEvent(new Event('focus'))
@@ -274,7 +274,7 @@ test('hidden mounts read status once and keep subsequent hidden polling idle', a
 
 test('an outdated local App shows its upgrade requirement and is connected only after it passes the check', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
-  const upgrade = '本机 BeefTV 版本为 2.1.6，需要 2.2.0 或更高版本。请升级后重新连接。'
+  const upgrade = 'Native BeefTV version is 2.1.6, requires 2.2.0 or higher. Please reconnect after upgrading.'
   let status: Record<string, any> = { connected: false, mode: null, switching: false, error: null, connectionId: null, localApp: { compatible: false, version: '2.1.6', message: upgrade } }
   const connects: Array<Record<string, any>> = []
   await page.route('**/beeftv/status', route => route.fulfill({ json: status }))
@@ -331,7 +331,7 @@ test('a timed-out status read reports failure and releases polling for a success
   await page.waitForFunction(() => (window as any).statusAttempts === 1)
   await page.evaluate(() => (window as any).expireStatus())
   await page.getByRole('alert').waitFor()
-  expect(await page.getByRole('alert').textContent()).toBe('读取工作区连接超时，请重试')
+  expect(await page.getByRole('alert').textContent()).toBe('Reading workspace connection timed out, please try again')
   const retry = page.waitForResponse('**/beeftv/status')
   await page.evaluate(() => (window as any).pollStatus())
   await retry

@@ -95,10 +95,10 @@ func TestRegisteredClientCannotCreatePaidTasksWithDesktopHeaders(t *testing.T) {
 		body    string
 		message string
 	}{
-		{"/api/tasks", `{"type":"canvas_text","prompt":"手工写一段分镜"}`, "任务只能由当前桌面界面创建"},
-		{"/api/timeline/renders", string(renderBody), "时间线渲染只能由当前桌面界面创建"},
-		{"/api/timeline/transcriptions", string(transBody), "字幕转写只能由当前桌面界面创建"},
-		{"/api/depth-captures", string(depthBody), "深度捕捉只能由当前桌面界面创建"},
+		{"/api/tasks", `{"type":"canvas_text","prompt":"手工写一段分镜"}`, "Tasks can only be created from the current desktop interface"},
+		{"/api/timeline/renders", string(renderBody), "Timeline rendering can only be created by the current desktop interface"},
+		{"/api/timeline/transcriptions", string(transBody), "Subtitle transcription can only be created from the current desktop interface"},
+		{"/api/depth-captures", string(depthBody), "Depth captures can only be created from the current desktop interface"},
 	}
 
 	assertForbidden := func(t *testing.T, headers map[string]string, probe struct {
@@ -131,7 +131,7 @@ func TestRegisteredClientCannotCreatePaidTasksWithDesktopHeaders(t *testing.T) {
 			t.Fatalf("trusted desktop UI should create %s: %d %s", probe.path, created.Code, created.Body.String())
 		}
 	}
-	if capture.gen.Prompt != "手工写一段分镜" || capture.render.ClientOperationID != "timeline:auth-render" || capture.trans.ClientOperationID != "timeline:auth-trans" || capture.depth.ClientOperationID != "depth:auth-1" {
+	if capture.gen.Prompt != "Write a storyboard by hand" || capture.render.ClientOperationID != "timeline:auth-render" || capture.trans.ClientOperationID != "timeline:auth-trans" || capture.depth.ClientOperationID != "depth:auth-1" {
 		t.Fatalf("trusted UI did not reach admission: gen=%+v render=%+v trans=%+v depth=%+v", capture.gen, capture.render, capture.trans, capture.depth)
 	}
 
@@ -169,7 +169,7 @@ func TestHostedTaskCreateStillAllowsWorkspaceOwnerWithoutDesktopTrust(t *testing
 	if created.Code != http.StatusOK {
 		t.Fatalf("hosted owner create should succeed when DesktopTrust is unset: %d %s", created.Code, created.Body.String())
 	}
-	if capture.gen.Type != "canvas_text" || capture.gen.Prompt != "托管所有者创建" {
+	if capture.gen.Type != "canvas_text" || capture.gen.Prompt != "Created by hosting owner" {
 		t.Fatalf("hosted owner did not reach admission: %+v", capture.gen)
 	}
 }
@@ -213,7 +213,7 @@ func TestRegisteredClientCannotRetryPaidTasksWithDesktopHeaders(t *testing.T) {
 		"X-Desktop-Token": "launch", "X-Beeftv-UI-Bootstrap": "ui",
 	}
 	path := "/api/tasks/retry-auth-1/retry"
-	message := "任务只能由当前桌面界面重试"
+	message := "Tasks can only be retried from the current desktop interface"
 	for _, probe := range []struct {
 		label   string
 		headers map[string]string
@@ -231,7 +231,7 @@ func TestRegisteredClientCannotRetryPaidTasksWithDesktopHeaders(t *testing.T) {
 		}
 	}
 	blocked := loadTask(t, db, "retry-auth-1")
-	if blocked.Status != model.TaskStatusFailed || blocked.Error != "请求过于频繁" || blocked.RouteRun != 0 {
+	if blocked.Status != model.TaskStatusFailed || blocked.Error != "Requests are too frequent" || blocked.RouteRun != 0 {
 		t.Fatalf("forbidden callers retried the task: status=%s error=%q routeRun=%d", blocked.Status, blocked.Error, blocked.RouteRun)
 	}
 
@@ -288,9 +288,9 @@ func seedRetryableFailedTask(t *testing.T, db *gorm.DB, userID, id string) {
 	t.Helper()
 	task := model.Task{
 		ID: id, UserID: userID, Type: "canvas_text",
-		Status: model.TaskStatusFailed, Stage: "任务失败", Error: "请求过于频繁",
-		Prompt:    "手工写一段分镜",
-		InputJSON: `{"mode":"text","prompt":"手工写一段分镜","config":{"channelId":"channel","model":"text-test"}}`,
+		Status: model.TaskStatusFailed, Stage: "Task failed", Error: "Requests are too frequent",
+		Prompt:    "Write a storyboard by hand",
+		InputJSON: `{"mode":"text","prompt":"Write a storyboard manually","config":{"channelId":"channel","model":"text-test"}}`,
 	}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)

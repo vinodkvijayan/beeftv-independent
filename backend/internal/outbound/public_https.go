@@ -33,7 +33,7 @@ func resolvePublicHost(ctx context.Context, host string) ([]net.IP, error) {
 	if !allowPrivateHost {
 		for _, ip := range addresses {
 			if blockedCustomRelayIP(ip) {
-				return nil, BadAuthRequest("媒体地址不允许访问内网或保留地址")
+				return nil, BadAuthRequest("Media addresses are not allowed to access the intranet or reserved addresses")
 			}
 		}
 	}
@@ -50,10 +50,10 @@ func validatePublicHTTPSURLContext(ctx context.Context, raw string, resolve func
 	}
 	parsed, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || (parsed.Scheme != "https" && parsed.Scheme != "http") || parsed.Hostname() == "" || parsed.User != nil || parsed.Fragment != "" {
-		return nil, BadAuthRequest("媒体地址需要安全的 HTTPS 链接")
+		return nil, BadAuthRequest("Media address requires secure HTTPS link")
 	}
 	if parsed.Scheme == "http" && !(allowPrivateUpstreams() || AllowedPrivateUpstreamHost(parsed.Hostname())) {
-		return nil, BadAuthRequest("媒体地址需要安全的 HTTPS 链接")
+		return nil, BadAuthRequest("Media address requires secure HTTPS link")
 	}
 	if _, err := resolve(ctx, parsed.Hostname()); err != nil {
 		return nil, err

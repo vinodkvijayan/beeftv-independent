@@ -130,11 +130,11 @@ func normalizeLogicalDefaults(spec CapabilitySpec, defaults map[string]any) (map
 	for rawName, value := range defaults {
 		name := canonicalCapabilityOptionName(rawName)
 		if _, exists := result[name]; exists {
-			return nil, kernel.BadAuthRequest("默认参数存在重复别名：" + name)
+			return nil, kernel.BadAuthRequest("There are duplicate aliases for the default parameters:" + name)
 		}
 		constraint, ok := spec.Options[name]
 		if !ok || !matchOptionConstraint(name, constraint, value) {
-			return nil, kernel.BadAuthRequest("默认参数 " + name + " 不在前台模型能力范围内")
+			return nil, kernel.BadAuthRequest("Default parameters" + name + " Not within the capabilities of the front-end model")
 		}
 		// `*` 只表示允许任意自定义值，不能作为创作端默认参数发送。
 		if normalizedScalar(value) == "*" {
@@ -153,7 +153,7 @@ func normalizeLogicalDefaults(spec CapabilitySpec, defaults map[string]any) (map
 func channelModelCapabilitySpec(channelModel model.ChannelModel) (CapabilitySpec, error) {
 	config, err := DecodeModelCapabilityConfig(channelModel.CapabilityConfigJSON)
 	if err != nil {
-		return CapabilitySpec{}, kernel.BadAuthRequest("渠道模型能力配置无效，请先修复渠道模型")
+		return CapabilitySpec{}, kernel.BadAuthRequest("The channel model capability configuration is invalid. Please repair the channel model first.")
 	}
 	if config != nil {
 		config, err = NormalizeModelCapabilityConfigForModel(normalizeCapability(channelModel.Capability), string(channelModel.Protocol), kernel.FirstNonEmpty(channelModel.ProviderModelKey, channelModel.ModelKey), config)
@@ -217,7 +217,7 @@ func capabilitySpecWithVariants(spec CapabilitySpec, channelModel model.ChannelM
 func channelModelDefaultOptions(channelModel model.ChannelModel, spec CapabilitySpec) (map[string]any, error) {
 	config, err := DecodeModelCapabilityConfig(channelModel.CapabilityConfigJSON)
 	if err != nil {
-		return nil, kernel.BadAuthRequest("渠道模型能力配置无效，请先修复渠道模型")
+		return nil, kernel.BadAuthRequest("The channel model capability configuration is invalid. Please repair the channel model first.")
 	}
 	if config != nil {
 		config, err = NormalizeModelCapabilityConfigForModel(normalizeCapability(channelModel.Capability), string(channelModel.Protocol), kernel.FirstNonEmpty(channelModel.ProviderModelKey, channelModel.ModelKey), config)
@@ -273,7 +273,7 @@ func channelModelDefaultOptions(channelModel model.ChannelModel, spec Capability
 func validateProductSpecWithinRoutes(product CapabilitySpec, routeSpecs []CapabilitySpec) error {
 	for _, routeSpec := range routeSpecs {
 		if normalizeCapability(routeSpec.Capability) != normalizeCapability(product.Capability) {
-			return kernel.BadAuthRequest("供应线路能力类型与前台模型不一致")
+			return kernel.BadAuthRequest("Supply line capability type is inconsistent with front-end model")
 		}
 	}
 	if len(product.Operations) == 0 {
@@ -285,7 +285,7 @@ func validateProductSpecWithinRoutes(product CapabilitySpec, routeSpecs []Capabi
 			}
 		}
 		if !unrestricted {
-			return kernel.BadAuthRequest("创作端生成方式必须从供应线路支持的选项中选择")
+			return kernel.BadAuthRequest("The authoring side generation method must be selected from the options supported by the supply line")
 		}
 	} else {
 		for _, operation := range product.Operations {
@@ -297,18 +297,18 @@ func validateProductSpecWithinRoutes(product CapabilitySpec, routeSpecs []Capabi
 				}
 			}
 			if !supported {
-				return kernel.BadAuthRequest("创作端生成方式不受任何供应线路支持：" + operation)
+				return kernel.BadAuthRequest("The authoring side generation method is not supported by any supply line:" + operation)
 			}
 		}
 	}
 	for name, constraint := range product.Inputs {
 		if !inputConstraintCovered(constraint, name, routeSpecs) {
-			return kernel.BadAuthRequest("创作端输入范围超出供应线路能力：" + name)
+			return kernel.BadAuthRequest("The authoring side input range exceeds the supply line capability:" + name)
 		}
 	}
 	for name, constraint := range product.Options {
 		if !optionConstraintCovered(constraint, name, routeSpecs) {
-			return kernel.BadAuthRequest("创作端参数超出供应线路能力：" + name)
+			return kernel.BadAuthRequest("The creative side parameters exceed the supply line capabilities:" + name)
 		}
 	}
 	return nil

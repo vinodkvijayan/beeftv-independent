@@ -60,7 +60,7 @@ func TestVideoDeliveryStreamIsVisibleOnWorkspaceTask(t *testing.T) {
 	const providerID = "provider-video"
 	now := time.Now()
 	expires := now.Add(time.Minute)
-	task := model.Task{ID: taskID, UserID: "local", Type: "canvas_video", Status: model.TaskStatusRunning, Stage: "正在取回生成结果", LeaseOwner: "delivery-fixture", LeaseExpiresAt: &expires, CreatedAt: now, UpdatedAt: now}
+	task := model.Task{ID: taskID, UserID: "local", Type: "canvas_video", Status: model.TaskStatusRunning, Stage: "Retrieving generated results", LeaseOwner: "delivery-fixture", LeaseExpiresAt: &expires, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)
 	}

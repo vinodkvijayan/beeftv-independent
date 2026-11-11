@@ -20,13 +20,13 @@ function Harness() {
     useEffect(() => { useCanvasStore.getState().updateProject(projectId, { nodes }); }, [nodes, projectId]);
     const generation = useCanvasGeneration({ projectId, projectLoaded: true, nodes, nodesRef, setNodes });
     const [hasId, setHasId] = useState(true);
-    const task: GenerationTask = { id: "original", type: "canvas_video", status: "failed", providerRequestId: hasId ? "upstream-original" : undefined, prompt: "test", error: "视频下载中断", attempts: 1, createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z" };
+    const task: GenerationTask = { id: "original", type: "canvas_video", status: "failed", providerRequestId: hasId ? "upstream-original" : undefined, prompt: "test", error: "Video download interrupted", attempts: 1, createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z" };
     return <>
         <button onClick={() => setProjectId("canvas-b")}>switch project</button>
         <button onClick={() => setHasId(false)}>missing receipt</button>
         <button onClick={() => { void generation.retrieveTaskResult(task); void generation.retrieveTaskResult(task); }}>double retrieve</button>
         <pre id="snapshot">{JSON.stringify({ projectId, nodes, retrieving: generation.retrievingTaskId })}</pre>
-        <CanvasProjectStatusDialogs theme={{ node: { stroke: "gray", panel: "white", muted: "gray", fill: "white" } }} task={projectId === "canvas-a" ? task : null} taskLogs={[{ id: "log", level: "error", summary: "视频下载中断，请取回结果", createdAt: task.createdAt }]} taskLoading={false} onCloseTask={() => {}} onRetrieveTask={generation.retrieveTaskResult} retrievingTaskId={generation.retrievingTaskId} superResolveNode={null} onCloseSuperResolve={() => {}} onUseLocalUpscale={() => {}} previewNode={null} onClosePreview={() => {}} clearConfirmOpen={false} onCancelClear={() => {}} onConfirmClear={() => {}} />
+        <CanvasProjectStatusDialogs theme={{ node: { stroke: "gray", panel: "white", muted: "gray", fill: "white" } }} task={projectId === "canvas-a" ? task : null} taskLogs={[{ id: "log", level: "error", summary: "Video download interrupted, please retrieve the results", createdAt: task.createdAt }]} taskLoading={false} onCloseTask={() => {}} onRetrieveTask={generation.retrieveTaskResult} retrievingTaskId={generation.retrievingTaskId} superResolveNode={null} onCloseSuperResolve={() => {}} onUseLocalUpscale={() => {}} previewNode={null} onClosePreview={() => {}} clearConfirmOpen={false} onCancelClear={() => {}} onConfirmClear={() => {}} />
     </>;
 }
 createRoot(document.getElementById("root")!).render(<QueryClientProvider client={new QueryClient()}><App><Harness /></App></QueryClientProvider>);

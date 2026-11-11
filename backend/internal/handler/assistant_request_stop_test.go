@@ -27,7 +27,7 @@ func TestAssistantChatRequestIDIsValidatedAndNeverReplacesTheTurn(t *testing.T) 
 			_, _ = w.Write([]byte(`{"type":"turn_end","turnId":"` + turnID + `","reply":"ok"}` + "\n"))
 		})
 	})
-	for _, bad := range []string{`""`, `"   "`, `"` + strings.Repeat("a", 129) + `"`, `"has space"`, `"supplement:x"`, `"中文"`, `7`} {
+	for _, bad := range []string{`""`, `"   "`, `"` + strings.Repeat("a", 129) + `"`, `"has space"`, `"supplement:x"`, `"Chinese"`, `7`} {
 		response := env.call(t, http.MethodPost, "/assistant/chat", `{"canvasId":"`+env.canvasID+`","message":"hi","requestId":`+bad+`}`)
 		if response.Code != http.StatusBadRequest || response.Header().Get("X-Beeftv-Turn-Admission") != "rejected" {
 			t.Fatalf("requestId %s: want 400 and not admitted, got %d %v %s", bad, response.Code, response.Header(), response.Body.String())

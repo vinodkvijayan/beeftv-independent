@@ -1,8 +1,8 @@
-# 火山方舟 Agent Plan 视频任务
+#VolcanoArk Agent Plan video mission
 
-本插件使用 Agent Plan 专属 Contents Generations Tasks 异步接口。提示词、参考图、参考视频和参考音频组成 `content[]`；比例、分辨率、时长、生成音频和水印位于顶层任务参数。请求体与官方 Ark Seedance 一致，入口改为 `/api/plan/v3`。
+This plug-in uses Agent Plan’s exclusive Contents Generations Tasks asynchronous interface. Prompt word, reference picture, reference video and reference audio constitute `content[]`; scale, resolution, duration, generated audio and watermark are located in the top-level task parameters. The request body is consistent with the official Ark Seedance, and the entry is changed to `/api/plan/v3`.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -14,30 +14,30 @@ Authorization: Bearer <AGENT_PLAN_API_KEY>
 Content-Type: application/json
 ```
 
-与官方 `/api/v3` 的差异：
+Differences from the official `/api/v3`:
 
-| 项 | 官方 Ark | Agent Plan |
+| Item | Official Ark | Agent Plan |
 | --- | --- | --- |
 | Base URL | `https://ark.cn-beijing.volces.com/api/v3` | `https://ark.cn-beijing.volces.com/api/plan/v3` |
-| API Key | 推理接入控制台 Key | Agent Plan 专属 Key |
-| 计费 | 推理后付费/项目额度 | AFP 套餐抵扣 |
-| 请求体 | contents/generations/tasks | 同左 |
+| API Key | Inference Access Console Key | Agent Plan Exclusive Key |
+| Billing | Post-inference payment/project quota | AFP package deduction |
+| Request body | contents/generations/tasks | Same as left |
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-全模态参考的素材映射如下：
+The material mapping for full-modal reference is as follows:
 
-- 图片：`{"type":"image_url","image_url":{"url":"..."},"role":"reference_image"}`
-- 视频：`{"type":"video_url","video_url":{"url":"..."},"role":"reference_video"}`
-- 音频：`{"type":"audio_url","audio_url":{"url":"..."},"role":"reference_audio"}`
+- Picture: `{"type":"image_url","image_url":{"url":"..."},"role":"reference_image"}`
+- Video: `{"type":"video_url","video_url":{"url":"..."},"role":"reference_video"}`
+- Audio: `{"type":"audio_url","audio_url":{"url":"..."},"role":"reference_audio"}`
 
-单次最多发送 9 张图片、3 个视频和 3 个音频。参考素材可以组合使用，但上游不支持纯音频或“文本 + 音频”。
+You can send up to 9 pictures, 3 videos and 3 audios at a time. Reference material can be combined, but audio-only or "text + audio" is not supported upstream.
 
-## 官方资料
+## Official information
 
-- [火山方舟 Agent Plan 文档](https://www.volcengine.com/docs/82379/2375486)
-- [火山方舟内容生成任务文档](https://www.volcengine.com/docs/82379/1520757)
+- [Volcano Ark Agent Plan Document](https://www.volcengine.com/docs/82379/2375486)
+- [Volcano Ark Content Generation Task Document](https://www.volcengine.com/docs/82379/1520757)
 
 {{CONTRACT}}

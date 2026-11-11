@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	DrainRecoverMessage          = "服务正在重启，暂不执行结果取回"
-	RecoverUnsupportedStatusText = "仅支持对失败或待入库任务执行结果取回"
-	RecoverUnsupportedTypeText   = "该任务类型不支持免费结果取回"
+	DrainRecoverMessage          = "The service is being restarted and the results will not be retrieved yet."
+	RecoverUnsupportedStatusText = "Only supports retrieval of failed or pending task execution results"
+	RecoverUnsupportedTypeText   = "This task type does not support free result retrieval"
 )
 
 type manualRecoveryKey struct{}
@@ -38,7 +38,7 @@ func ManualRecovery(ctx context.Context) bool {
 // Persistence.CreateAdmitted, or Service.Retry.
 func (s *Service) RecoverTask(ctx context.Context, userID, id string) (*model.Task, error) {
 	if s.store == nil {
-		return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	if s.deps.Runtime == nil || s.deps.Recovery == nil || s.deps.Present == nil {
 		return nil, unavailable()

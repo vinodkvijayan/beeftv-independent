@@ -243,21 +243,21 @@ func capabilityImageSizeFromConfig(size ImageSizeConfig) *CapabilityImageSize {
 
 func validateImageCapabilityConfig(value *ImageCapabilityConfig) error {
 	if value.References.PromptMaxChars < 0 || value.References.PromptMaxChars > 1000000 {
-		return kernel.BadAuthRequest("提示词最大字符数必须在 0-1000000 之间，0 表示交由服务商校验")
+		return kernel.BadAuthRequest("The maximum number of characters in the prompt word must be between 0 and 1000000. 0 means that it will be verified by the service provider.")
 	}
 	if value.References.MaxImages < 0 || value.References.MaxImages > 100 || value.References.MaxImageBytes < 0 {
-		return kernel.BadAuthRequest("图片引用限制无效")
+		return kernel.BadAuthRequest("Image quotation limit is invalid")
 	}
 	if value.MaxOutputs < 1 || value.MaxOutputs > 100 {
-		return kernel.BadAuthRequest("单次图片数量必须在 1-100 之间")
+		return kernel.BadAuthRequest("The number of images at a time must be between 1-100")
 	}
 	if value.FixedOutputs < 0 || value.FixedOutputs > value.MaxOutputs {
-		return kernel.BadAuthRequest("固定图片数量必须在单次图片数量范围内")
+		return kernel.BadAuthRequest("The fixed number of images must be within the range of the number of images at a time")
 	}
 	// response_format 只支持两个取值；留空交给请求侧按 b64_json 处理。
 	if format := strings.ToLower(strings.TrimSpace(value.ResponseFormat.Value)); format != "" {
 		if format != ImageResponseFormatBase64 && format != ImageResponseFormatURL {
-			return kernel.BadAuthRequest("图片响应格式仅支持 b64_json 或 url")
+			return kernel.BadAuthRequest("Image response format only supports b64_json or url")
 		}
 		value.ResponseFormat.Value = format
 	}
@@ -269,30 +269,30 @@ func validateImageCapabilityConfig(value *ImageCapabilityConfig) error {
 		value.Size.AllowCustom = false
 	case "size", "aspect_ratio":
 		if strings.TrimSpace(value.Size.Default) == "" {
-			return kernel.BadAuthRequest("请配置默认图片尺寸或比例")
+			return kernel.BadAuthRequest("Please configure default image size or ratio")
 		}
 		if !value.Size.AllowCustom && !containsCapabilityString(value.Size.Values, value.Size.Default) {
-			return kernel.BadAuthRequest("默认图片尺寸必须属于支持值")
+			return kernel.BadAuthRequest("Default image size must be among supported values")
 		}
 	default:
-		return kernel.BadAuthRequest("尺寸参数仅支持不发送、size 或 aspect_ratio")
+		return kernel.BadAuthRequest("The size parameter only supports not sending, size or aspect_ratio")
 	}
 	seenPresets := make(map[string]bool)
 	for _, preset := range value.Size.Presets {
 		if preset.Tier != "1k" && preset.Tier != "2k" && preset.Tier != "4k" {
-			return kernel.BadAuthRequest("图片分辨率档位仅支持 1K、2K、4K")
+			return kernel.BadAuthRequest("Image resolution ranges only support 1K, 2K, and 4K")
 		}
 		parts := strings.Split(preset.Ratio, ":")
 		if len(parts) != 2 {
-			return kernel.BadAuthRequest("图片预设比例格式无效")
+			return kernel.BadAuthRequest("The image default ratio format is invalid")
 		}
 		w, ew := strconv.Atoi(parts[0])
 		h, eh := strconv.Atoi(parts[1])
 		if ew != nil || eh != nil || w <= 0 || h <= 0 || w > 100000 || h > 100000 || max(w, h) > min(w, h)*3 {
-			return kernel.BadAuthRequest("图片预设比例无效")
+			return kernel.BadAuthRequest("Image default ratio is invalid")
 		}
 		if preset.Width <= 0 || preset.Height <= 0 || max(preset.Width, preset.Height) > 3840 || max(preset.Width, preset.Height) > min(preset.Width, preset.Height)*3 || preset.Width*preset.Height < 655360 || preset.Width*preset.Height > 8294400 || preset.Size != fmt.Sprintf("%dx%d", preset.Width, preset.Height) {
-			return kernel.BadAuthRequest("图片预设像素尺寸无效")
+			return kernel.BadAuthRequest("Image default pixel size is invalid")
 		}
 		// 容许像素取整误差，但不能将横屏尺寸标记成竖屏或其他比例。
 		difference := preset.Width*h - preset.Height*w
@@ -300,7 +300,7 @@ func validateImageCapabilityConfig(value *ImageCapabilityConfig) error {
 			difference = -difference
 		}
 		if difference*1000 > preset.Height*w*25 {
-			return kernel.BadAuthRequest("图片预设像素尺寸与宽高比不一致")
+			return kernel.BadAuthRequest("The default pixel size of the image is inconsistent with the aspect ratio")
 		}
 		a, b := w, h
 		for b != 0 {
@@ -308,7 +308,7 @@ func validateImageCapabilityConfig(value *ImageCapabilityConfig) error {
 		}
 		key := fmt.Sprintf("%s:%d:%d", preset.Tier, w/a, h/a)
 		if seenPresets[key] {
-			return kernel.BadAuthRequest("图片尺寸预设重复")
+			return kernel.BadAuthRequest("Image size defaults are repeated")
 		}
 		seenPresets[key] = true
 		requestValue := preset.Size
@@ -316,19 +316,19 @@ func validateImageCapabilityConfig(value *ImageCapabilityConfig) error {
 			requestValue = preset.Ratio
 		}
 		if !containsCapabilityString(value.Size.Values, requestValue) {
-			return kernel.BadAuthRequest("图片预设必须包含在尺寸支持值中")
+			return kernel.BadAuthRequest("Image presets must be included in the size support values")
 		}
 	}
 	if value.Quality.Supported {
 		if len(value.Quality.Values) == 0 || strings.TrimSpace(value.Quality.Default) == "" || !containsCapabilityString(value.Quality.Values, value.Quality.Default) {
-			return kernel.BadAuthRequest("请配置图片质量支持值和默认值")
+			return kernel.BadAuthRequest("Please configure the image quality support value and default value")
 		}
 	} else {
 		value.Quality.Values = []string{}
 		value.Quality.Default = "auto"
 	}
 	if err := validateImagePresetSelection(value, value.Quality.Default, value.Size.Default); err != nil {
-		return kernel.BadAuthRequest("默认图片分辨率与宽高比不在已配置的组合中")
+		return kernel.BadAuthRequest("Default image resolution and aspect ratio are not among the configured combinations")
 	}
 	if !value.TransparentBackground.Supported {
 		value.TransparentBackground.Default = false
@@ -392,7 +392,7 @@ func validateImageTask(profile *ImageCapabilityConfig, input TaskInput) error {
 				return kernel.BadAuthRequest(err.Error())
 			}
 			if q := strings.ToLower(strings.TrimSpace(input.Config.Quality)); q != "" && q != "auto" && q != "any" {
-				return kernel.BadAuthRequest("当前图片模型不支持质量选项，请选择自动")
+				return kernel.BadAuthRequest("The current image model does not support quality options, please select automatic")
 			}
 		}
 	}
@@ -407,18 +407,18 @@ func validateImageTask(profile *ImageCapabilityConfig, input TaskInput) error {
 	}
 	modelName := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(input.Config.Model)), "models/")
 	if len(input.ReferenceImages) > profile.References.MaxImages {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前图片模型最多支持 %d 张参考图", profile.References.MaxImages))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current picture model supports up to %d reference pictures.", profile.References.MaxImages))
 	}
 	for _, media := range input.ReferenceImages {
 		if profile.References.MaxImageBytes > 0 && media.Bytes > profile.References.MaxImageBytes {
-			return kernel.BadAuthRequest("参考图片文件超过当前模型大小限制")
+			return kernel.BadAuthRequest("The reference image file exceeds the current model size limit")
 		}
 	}
 	if input.Mask != nil && !profile.References.MaskSupported {
-		return kernel.BadAuthRequest("当前图片模型不支持蒙版编辑")
+		return kernel.BadAuthRequest("The current image model does not support mask editing")
 	}
 	if profile.Size.Parameter != "none" && !profile.Size.AllowCustom && strings.TrimSpace(input.Config.Size) != "" && !containsCapabilityString(profile.Size.Values, input.Config.Size) {
-		return kernel.BadAuthRequest("图片尺寸不在当前模型支持范围内")
+		return kernel.BadAuthRequest("The image size is not supported by the current model")
 	}
 	if !sourced && profile.Size.Parameter == "size" && profile.Size.AllowCustom && strings.HasPrefix(modelName, "gpt-image-2") && !containsCapabilityString(profile.Size.Values, input.Config.Size) {
 		if err := validateGPTImage2CustomSize(input.Config.Size); err != nil {
@@ -432,17 +432,17 @@ func validateImageTask(profile *ImageCapabilityConfig, input TaskInput) error {
 	}
 	quality := strings.TrimSpace(input.Config.Quality)
 	if profile.Quality.Supported && quality != "" && !strings.EqualFold(quality, "auto") && !strings.EqualFold(quality, "any") && !imageQualityValueAllowed(profile.Quality.Values, quality) {
-		return kernel.BadAuthRequest("图片质量不在当前模型支持范围内")
+		return kernel.BadAuthRequest("Image quality is not supported by the current model")
 	}
 	if err := validateImagePresetSelection(profile, qualityForImageValidation(quality, profile.Quality.Default), kernel.FirstNonEmpty(input.Config.Size, profile.Size.Default)); err != nil {
 		return err
 	}
 	count, err := strconv.Atoi(strings.TrimSpace(input.Config.Count))
 	if profile.FixedOutputs > 0 && (err != nil || count != profile.FixedOutputs) {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前图片模型每次固定生成 %d 张", profile.FixedOutputs))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current image model generates %d images each time.", profile.FixedOutputs))
 	}
 	if err == nil && count > profile.MaxOutputs {
-		return kernel.BadAuthRequest(fmt.Sprintf("当前图片模型单次最多生成 %d 张", profile.MaxOutputs))
+		return kernel.BadAuthRequest(fmt.Sprintf("The current image model can generate at most %d images at a time.", profile.MaxOutputs))
 	}
 	return nil
 }
@@ -467,7 +467,7 @@ func validateImagePresetSelection(profile *ImageCapabilityConfig, quality, ratio
 			return nil
 		}
 	}
-	return kernel.BadAuthRequest("当前分辨率不支持所选图片宽高比")
+	return kernel.BadAuthRequest("The selected image aspect ratio is not supported by the current resolution")
 }
 
 func imageResolutionTier(quality string) string {
@@ -506,15 +506,15 @@ func validateMossImageCustomSize(value string) error {
 	}
 	parts := strings.Split(value, "x")
 	if len(parts) != 2 {
-		return errors.New("自定义图片尺寸请使用宽x高，例如 1024x1024")
+		return errors.New("Please use width x height for custom image size, for example 1024x1024")
 	}
 	width, widthErr := strconv.Atoi(parts[0])
 	height, heightErr := strconv.Atoi(parts[1])
 	if widthErr != nil || heightErr != nil || width < 256 || height < 256 || width > 2048 || height > 2048 {
-		return errors.New("图片尺寸宽高需在 256 到 2048px 之间")
+		return errors.New("Image size must be between 256 and 2048px in width and height")
 	}
 	if width%8 != 0 || height%8 != 0 {
-		return errors.New("图片尺寸宽高必须是 8 的倍数")
+		return errors.New("Image size width and height must be a multiple of 8")
 	}
 	return nil
 }
@@ -526,25 +526,25 @@ func validateGPTImage2CustomSize(value string) error {
 	}
 	parts := strings.Split(value, "x")
 	if len(parts) != 2 {
-		return errors.New("自定义图片尺寸请使用宽x高，例如 3840x1920")
+		return errors.New("Please use width x height for custom image size, for example 3840x1920")
 	}
 	width, widthErr := strconv.Atoi(parts[0])
 	height, heightErr := strconv.Atoi(parts[1])
 	if widthErr != nil || heightErr != nil || width <= 0 || height <= 0 {
-		return errors.New("图片尺寸必须是正整数")
+		return errors.New("Image size must be a positive integer")
 	}
 	if width%16 != 0 || height%16 != 0 {
-		return errors.New("图片尺寸宽高必须是 16 的倍数")
+		return errors.New("Image size width and height must be a multiple of 16")
 	}
 	if max(width, height) > 3840 {
-		return errors.New("图片尺寸最长边不能超过 3840px")
+		return errors.New("The longest side of the image size cannot exceed 3840px")
 	}
 	if max(width, height) > min(width, height)*3 {
-		return errors.New("图片宽高比不能超过 3:1")
+		return errors.New("Image aspect ratio cannot exceed 3:1")
 	}
 	pixels := int64(width) * int64(height)
 	if pixels < 655360 || pixels > 8294400 {
-		return errors.New("图片总像素需在 655360 到 8294400 之间")
+		return errors.New("The total pixels of the image must be between 655360 and 8294400")
 	}
 	return nil
 }

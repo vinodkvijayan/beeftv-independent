@@ -4,9 +4,9 @@
 // 3. 挂载 assistant.toolCard（美化 ecommerce_hero_arrange 工具在助手面板里的结果卡片）
 
 const SCENE_STYLES = [
-  { value: "studio", label: "棚拍质感", promptPrefix: "电商商业棚拍主图，柔光箱立体布光，纯净高级背景" },
-  { value: "lifestyle", label: "生活场景", promptPrefix: "电商真实生活场景主图，自然日光，高代入感生活美学" },
-  { value: "festival", label: "节日促销", promptPrefix: "电商大促氛围主图，喜庆高级光影，突出核心视觉焦点" },
+  { value: "studio", label: "Studio shot texture", promptPrefix: "The main image of the e-commerce commercial studio shoot, soft box three-dimensional lighting, pure high-end background" },
+  { value: "lifestyle", label: "life scenes", promptPrefix: "The main picture of the e-commerce real life scene, natural daylight, high immersive life aesthetics" },
+  { value: "festival", label: "holiday promotion", promptPrefix: "The main image of the e-commerce promotion atmosphere, festive high-end light and shadow, highlighting the core visual focus" },
 ];
 
 const SCENE_COUNTS = [1, 2, 4];
@@ -18,7 +18,7 @@ export function activate(host) {
   function EcommerceHeroNodeCard(props) {
     const pluginData = props?.node?.metadata?.pluginData || {};
     const [productTitle, setProductTitle] = React.useState(
-      pluginData.productTitle || props?.node?.title || "新款主推商品",
+      pluginData.productTitle || props?.node?.title || "New featured products",
     );
     const [imageUrl, setImageUrl] = React.useState(pluginData.imageUrl || "");
     const [sceneStyle, setSceneStyle] = React.useState(
@@ -53,24 +53,24 @@ export function activate(host) {
           : 2;
 
         const canvasId = host.context.getCanvasId();
-        if (!canvasId) throw new Error("请先打开一张画布");
+        if (!canvasId) throw new Error("Please open a canvas first");
         const current = await host.ops.call("canvas.get", { canvasId });
         const expectedRevision = current?.canvas?.revision;
-        if (!Number.isSafeInteger(expectedRevision)) throw new Error("读不到画布版本，请刷新后重试");
+        if (!Number.isSafeInteger(expectedRevision)) throw new Error("Unable to read canvas version, please refresh and try again");
 
         const drafts = Array.from({ length: count }, (_, idx) => ({
           type: "image",
-          title: `${productTitle || "商品"} · ${styleItem.label} #${idx + 1}`,
-          prompt: `${styleItem.promptPrefix}，商品主体：${productTitle || "主推商品"}，第 ${idx + 1} 视角构图${imageUrl ? `，参考商品图：${imageUrl}` : ""}。`,
+          title: `${productTitle || "merchandise"} · ${styleItem.label} #${idx + 1}`,
+          prompt: `${styleItem.promptPrefix}, commodity subject:${productTitle || "Featured products"}, No.${idx + 1} perspective composition${imageUrl ? `, refer to the product picture:${imageUrl}` : ""}。`,
         }));
         await host.ops.call("canvas.nodes.create", { canvasId, expectedRevision, nodes: drafts });
-        setStatusMessage(`已创建 ${count} 个${styleItem.label}主图节点`);
+        setStatusMessage(`Created${count} a${styleItem.label}Main graph node`);
         host.ui?.notify?.(
-          `已为「${productTitle || "商品"}」生成 ${count} 个主图节点`,
+          `has been "${productTitle || "merchandise"}"Generate${count} main graph nodes`,
           "success",
         );
       } catch (err) {
-        const msg = err?.message || "创建主图节点失败";
+        const msg = err?.message || "Failed to create main graph node";
         setStatusMessage(msg);
         host.ui?.notify?.(msg, "error");
       } finally {
@@ -110,12 +110,12 @@ export function activate(host) {
           h(
             "span",
             { style: { fontWeight: 600, fontSize: 13 } },
-            "🛍️ 一键商品主图",
+            "🛍️ One-click product main image",
           ),
           h(
             "span",
             { style: { fontSize: 11, opacity: 0.65 } },
-            `${sceneCount} 张场景图`,
+            `${sceneCount} scene picture`,
           ),
         ),
         h("input", {
@@ -126,7 +126,7 @@ export function activate(host) {
             setProductTitle(e.target.value);
             syncPluginData({ productTitle: e.target.value });
           },
-          placeholder: "输入商品名称（如：复古蓝牙音箱）",
+          placeholder: "Enter the product name (for example: retro Bluetooth speaker)",
           style: {
             width: "100%",
             padding: "6px 8px",
@@ -145,7 +145,7 @@ export function activate(host) {
             setImageUrl(e.target.value);
             syncPluginData({ imageUrl: e.target.value });
           },
-          placeholder: "粘贴商品白底图 URL 或连接上游图片节点",
+          placeholder: "Paste the product white background image URL or connect the upstream image node",
           style: {
             width: "100%",
             padding: "6px 8px",
@@ -159,7 +159,7 @@ export function activate(host) {
         h(
           "div",
           { style: { display: "flex", gap: 6, alignItems: "center" } },
-          h("span", { style: { opacity: 0.75, whiteSpace: "nowrap" } }, "风格："),
+          h("span", { style: { opacity: 0.75, whiteSpace: "nowrap" } }, "Style:"),
           h(
             "select",
             {
@@ -182,7 +182,7 @@ export function activate(host) {
               h("option", { key: item.value, value: item.value }, item.label),
             ),
           ),
-          h("span", { style: { opacity: 0.75, whiteSpace: "nowrap" } }, "张数："),
+          h("span", { style: { opacity: 0.75, whiteSpace: "nowrap" } }, "Number of sheets:"),
           h(
             "div",
             { style: { display: "flex", gap: 4 } },
@@ -210,7 +210,7 @@ export function activate(host) {
                     cursor: "pointer",
                   },
                 },
-                `${count}张`,
+                `${count}images`,
               ),
             ),
           ),
@@ -247,7 +247,7 @@ export function activate(host) {
               cursor: submitting ? "wait" : "pointer",
             },
           },
-          submitting ? "正在创建主图节点…" : "生成主图节点",
+          submitting ? "Creating main graph node..." : "Generate main graph nodes",
         ),
       ),
     );
@@ -256,10 +256,10 @@ export function activate(host) {
   host.contribute("canvas.node", {
     id: "ecommerce-hero",
     type: "ecommerce-hero",
-    label: "一键商品主图",
-    title: "一键商品主图",
-    defaultTitle: "商品主图",
-    description: "上传商品白底图/实拍图，选择场景张数并生成电商主图",
+    label: "One-click product main image",
+    title: "One-click product main image",
+    defaultTitle: "Product main image",
+    description: "Upload the white background image/real shot of the product, select the number of scenes and generate the e-commerce main image",
     defaultWidth: 320,
     defaultHeight: 280,
     defaultSize: { width: 320, height: 280 },
@@ -280,8 +280,8 @@ export function activate(host) {
 
   host.contribute("canvas.addNodeMenu", {
     id: "ecommerce-hero-add",
-    label: "一键商品主图",
-    title: "一键商品主图",
+    label: "One-click product main image",
+    title: "One-click product main image",
     nodeType: "ecommerce-hero",
     section: "node",
     defaultOrder: 89,
@@ -292,7 +292,7 @@ export function activate(host) {
   host.contribute("assistant.toolCard", {
     id: "ecommerce-hero-tool-card",
     toolName: "ecommerce_hero_arrange",
-    label: "一键编排商品主图",
+    label: "Arrange product main images with one click",
     render: ({ args, result, status }) =>
       h(
         "div",
@@ -309,12 +309,12 @@ export function activate(host) {
         h(
           "div",
           { style: { fontWeight: 600 } },
-          `🛍️ 一键商品主图编排 · ${args?.productTitle || "商品"}`,
+          `🛍️ One-click product main image arrangement ·${args?.productTitle || "merchandise"}`,
         ),
         h(
           "div",
           { style: { marginTop: 4, opacity: 0.85 } },
-          `卖点：${args?.sellingPoints || "未填写"} · 场景张数：${args?.sceneCount ?? 2} 张 · 状态：${status || "completed"}`,
+          `Selling Points:${args?.sellingPoints || "Not filled in"} · Number of scenes:${args?.sceneCount ?? 2} Zhang · Status:${status || "completed"}`,
         ),
         result
           ? h(

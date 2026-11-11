@@ -32,7 +32,7 @@ func localSkillFixture(t *testing.T) *Service {
 	if err := db.AutoMigrate(&model.Workspace{}); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "workspace", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "workspace", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	return s
@@ -55,7 +55,7 @@ func TestPluginSkillsKeepTheirFilesAcrossRestart(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "skills", "cutter")
 	writeLocalSkill(t, dir, map[string]string{"SKILL.md": "---\nname: cutter\ndescription: Clip workflow\n---\nBody", "scripts/trim.sh": "ffmpeg"})
 	s := localSkillFixture(t)
-	if err := s.SyncPluginSkills("beeftv-plugin-cutter", "剪辑插件", "1.2.0", []string{dir}); err != nil {
+	if err := s.SyncPluginSkills("beeftv-plugin-cutter", "Edit plug-in", "1.2.0", []string{dir}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.RetireExternalSkills(); err != nil {
@@ -98,9 +98,9 @@ func zipSkill(t *testing.T, files map[string][]byte) []byte {
 }
 
 func TestSkillPackageOnlyLimitsTotalSize(t *testing.T) {
-	description := strings.Repeat("述", maxSkillDescriptionRunes)
+	description := strings.Repeat("describe", maxSkillDescriptionRunes)
 	files := map[string][]byte{
-		"SKILL.md":      []byte("---\nname: big\ndescription: " + description + "\n---\n正文"),
+		"SKILL.md":      []byte("---\nname: big\ndescription: " + description + "---\nText"),
 		"assets/big.md": bytes.Repeat([]byte("a"), 9<<20),
 	}
 	for index := 0; index < 600; index++ {

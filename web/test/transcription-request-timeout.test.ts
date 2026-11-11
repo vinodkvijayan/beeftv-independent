@@ -27,12 +27,12 @@ test("timeout is readable Chinese, never auto-retries and preserves uncertain su
     let calls = 0;
     apiClient.defaults.adapter = async config => { calls++; throw new AxiosError("timeout of 35000ms exceeded", "ECONNABORTED", config); };
     try {
-        await expect(getTranscriptionModels()).rejects.toThrow("读取转写模型超时");
+        await expect(getTranscriptionModels()).rejects.toThrow("Read transcription model timeout");
         expect(calls).toBe(1);
         let failure: unknown;
         try { await createTimelineTranscriptionTask({ resourceId: "resource", model: "hy-asr-3.0-preview", clientOperationId: "stable-operation" }); } catch (error) { failure = error; }
         expect(failure).toBeInstanceOf(ApiError);
-        expect((failure as Error).message).toContain("任务可能已创建");
+        expect((failure as Error).message).toContain("The task may have been created");
         expect(isUncertainLocalExecutorSubmit(failure)).toBe(true);
         const intent = localExecutorIntentAfterError({ clientOperationId: "stable-operation", frozenInputKey: "same-input" }, failure);
         expect(nextLocalExecutorClientOperationId(intent, "same-input")).toBe("stable-operation");

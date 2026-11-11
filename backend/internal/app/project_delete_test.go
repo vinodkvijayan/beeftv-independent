@@ -46,22 +46,22 @@ func newProjectDeleteTestService(t *testing.T) (*Service, *gorm.DB) {
 
 func TestDeleteProjectUnlinksCanvasAndKeepsIndependentRecords(t *testing.T) {
 	service, db := newProjectDeleteTestService(t)
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "分镜", PayloadJSON: `{"projectId":"project-1","nodes":[]}`}
-	asset := model.Asset{ID: "asset-1", UserID: "user-1", Title: "角色", Status: model.AssetVersionStatusConfirmed}
-	task := model.Task{ID: "task-1", UserID: "user-1", ProjectID: project.ID, Status: model.TaskStatusSucceeded, Prompt: "已完成"}
-	canvasTask := model.Task{ID: "task-2", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusSucceeded, Prompt: "画布任务"}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "Storyboard", PayloadJSON: `{"projectId":"project-1","nodes":[]}`}
+	asset := model.Asset{ID: "asset-1", UserID: "user-1", Title: "role", Status: model.AssetVersionStatusConfirmed}
+	task := model.Task{ID: "task-1", UserID: "user-1", ProjectID: project.ID, Status: model.TaskStatusSucceeded, Prompt: "Completed"}
+	canvasTask := model.Task{ID: "task-2", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusSucceeded, Prompt: "canvas task"}
 	seed := []any{
 		&project,
 		&canvas,
-		&model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "第一集"},
+		&model.ProjectUnit{ID: "unit-1", ProjectID: project.ID, Title: "Episode 1"},
 		&model.CanvasUnitLink{ID: "canvas-link-1", ProjectID: project.ID, CanvasID: canvas.ID, UnitID: "unit-1"},
 		&asset,
 		&model.ProjectAssetLink{ID: "asset-link-1", ProjectID: project.ID, AssetID: asset.ID},
-		&model.ProjectAssetFolder{ID: "folder-1", ProjectID: project.ID, Name: "角色", NameKey: "角色"},
-		&model.ProjectAssetCandidate{ID: "candidate-1", ProjectID: project.ID, UnitID: "unit-1", Name: "角色", Status: "pending_confirmation"},
-		&model.Shot{ID: "shot-1", ProjectID: project.ID, UnitID: "unit-1", CurrentRevisionID: "revision-1", Title: "镜头一"},
-		&model.ShotRevision{ID: "revision-1", ShotID: "shot-1", Version: 1, PlotDescription: "角色入场"},
+		&model.ProjectAssetFolder{ID: "folder-1", ProjectID: project.ID, Name: "role", NameKey: "role"},
+		&model.ProjectAssetCandidate{ID: "candidate-1", ProjectID: project.ID, UnitID: "unit-1", Name: "role", Status: "pending_confirmation"},
+		&model.Shot{ID: "shot-1", ProjectID: project.ID, UnitID: "unit-1", CurrentRevisionID: "revision-1", Title: "Shot 1"},
+		&model.ShotRevision{ID: "revision-1", ShotID: "shot-1", Version: 1, PlotDescription: "Character entry"},
 		&model.ShotArtifact{ID: "artifact-1", ProjectID: project.ID, UnitID: "unit-1", ShotID: "shot-1", RevisionID: "revision-1", Type: "storyboard", Version: 1, Status: "ready"},
 		&task,
 		&canvasTask,
@@ -141,8 +141,8 @@ func TestDeleteProjectUnlinksCanvasAndKeepsIndependentRecords(t *testing.T) {
 
 func TestDeleteUserCanvasProjectPreservesHistoricalTaskScope(t *testing.T) {
 	service, db := newProjectDeleteTestService(t)
-	canvas := model.CanvasProject{ID: "canvas-delete-1", UserID: "user-1", Title: "待删除画布", PayloadJSON: `{"id":"canvas-delete-1"}`}
-	task := model.Task{ID: "task-canvas-delete-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusSucceeded, Prompt: "已完成"}
+	canvas := model.CanvasProject{ID: "canvas-delete-1", UserID: "user-1", Title: "Canvas to be deleted", PayloadJSON: `{"id":"canvas-delete-1"}`}
+	task := model.Task{ID: "task-canvas-delete-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusSucceeded, Prompt: "Completed"}
 	canvasLink := model.CanvasUnitLink{ID: "canvas-link-delete-1", ProjectID: "project-1", CanvasID: canvas.ID, UnitID: "unit-1", Role: "primary"}
 	for _, item := range []any{&canvas, &canvasLink, &task} {
 		if err := db.Create(item).Error; err != nil {
@@ -175,9 +175,9 @@ func TestDeleteUserCanvasProjectPreservesHistoricalTaskScope(t *testing.T) {
 
 func TestDeleteProjectRejectsActiveProjectOrCanvasTasks(t *testing.T) {
 	service, db := newProjectDeleteTestService(t)
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "分镜", PayloadJSON: `{"projectId":"project-1"}`}
-	activeTask := model.Task{ID: "task-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusRunning, Prompt: "生成中"}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "Storyboard", PayloadJSON: `{"projectId":"project-1"}`}
+	activeTask := model.Task{ID: "task-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusRunning, Prompt: "Generating"}
 	for _, item := range []any{&project, &canvas, &activeTask} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -185,7 +185,7 @@ func TestDeleteProjectRejectsActiveProjectOrCanvasTasks(t *testing.T) {
 	}
 
 	err := service.ProjectService().DeleteProject("user-1", project.ID)
-	if err == nil || err.Error() != "项目仍有进行中的生成任务，请等待任务完成或取消后再删除" {
+	if err == nil || err.Error() != "The project still has ongoing build tasks, please wait for the tasks to be completed or canceled before deleting them." {
 		t.Fatalf("DeleteProject() error = %v", err)
 	}
 	var storedProject model.Project
@@ -203,9 +203,9 @@ func TestDeleteProjectRejectsActiveProjectOrCanvasTasks(t *testing.T) {
 
 func TestRepositoryDeleteProjectRechecksActiveTasksInsideTransaction(t *testing.T) {
 	service, db := newProjectDeleteTestService(t)
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "分镜", PayloadJSON: `{"projectId":"project-1"}`}
-	activeTask := model.Task{ID: "task-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusQueued, Prompt: "排队中"}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "Storyboard", PayloadJSON: `{"projectId":"project-1"}`}
+	activeTask := model.Task{ID: "task-1", UserID: "user-1", ProjectID: canvas.ID, Status: model.TaskStatusQueued, Prompt: "Queuing"}
 	for _, item := range []any{&project, &canvas, &activeTask} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)
@@ -231,8 +231,8 @@ func TestRepositoryDeleteProjectRechecksActiveTasksInsideTransaction(t *testing.
 
 func TestDeleteProjectRejectsCanvasPayloadThatCannotBeUpdated(t *testing.T) {
 	service, db := newProjectDeleteTestService(t)
-	project := model.Project{ID: "project-1", UserID: "user-1", Name: "短剧", Status: model.ProjectStatusActive}
-	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "分镜", PayloadJSON: "{"}
+	project := model.Project{ID: "project-1", UserID: "user-1", Name: "skit", Status: model.ProjectStatusActive}
+	canvas := model.CanvasProject{ID: "canvas-1", UserID: "user-1", ProjectID: project.ID, Title: "Storyboard", PayloadJSON: "{"}
 	for _, item := range []any{&project, &canvas} {
 		if err := db.Create(item).Error; err != nil {
 			t.Fatal(err)

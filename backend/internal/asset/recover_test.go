@@ -470,7 +470,7 @@ func TestRecoverOwnedReadyMissingRejectsIdentityDrift(t *testing.T) {
 			Kind: "video", FileName: "other.mp4", MimeType: "video/mp4",
 			Size: 99, Body: bytes.NewReader([]byte("different-bytes")),
 		}, nil
-	}); err == nil || !strings.Contains(err.Error(), "上传幂等标识已用于其他文件") {
+	}); err == nil || !strings.Contains(err.Error(), "Upload idempotent flag already used in other files") {
 		t.Fatalf("drift error = %v", err)
 	}
 	latest, lookupErr := repo.Resource(first.ID)

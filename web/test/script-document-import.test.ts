@@ -100,72 +100,73 @@ describe("script-document-import", () => {
     });
 
     it("strips document extensions cleanly for titles", () => {
-        expect(stripScriptDocumentExtension("第一集_雨夜追凶.docx")).toBe("第一集_雨夜追凶");
-        expect(stripScriptDocumentExtension("/path/to/分镜脚本.MD")).toBe("分镜脚本");
+        expect(stripScriptDocumentExtension("Episode 1_Chasing the Murderer on a Rainy Night.docx")).toBe("Episode 1_Chasing the murderer on a rainy night");
+        expect(stripScriptDocumentExtension("/path/to/storyboard script.MD")).toBe("Storyboard");
         expect(stripScriptDocumentExtension("   ")).toBe("");
     });
 
     it("decodes XML entities and formats Word XML paragraphs and tables", () => {
         expect(decodeXmlEntities("A &amp; B &lt;3&gt; &quot;Hi&quot; &apos;OK&apos; &#65; &#x4E2D;")).toBe(
-            "A & B <3> \"Hi\" 'OK' A 中",
+            "A & B <3> \"Hi\" 'OK' A in",
         );
 
         const xml = [
             `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`,
             `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>`,
-            `<w:p><w:r><w:t>第一场：天台夜雨</w:t></w:r></w:p>`,
-            `<w:p><w:r><w:t>林默站在霓虹灯下</w:t><w:br/><w:t>手里握着旧怀表 &amp; 录音笔。</w:t></w:r></w:p>`,
-            `<w:tbl><w:tr><w:tc><w:p><w:r><w:t>镜号1</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>全景推进</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`,
+            `<w:p><w:r><w:t>The first scene: Night rain on the rooftop</w:t></w:r></w:p>`,
+            `<w:p><w:r><w:t>Lin Mo stood under the neon light</w:t><w:br/><w:t>Holding an old pocket watch and voice recorder in his hands. </w:t></w:r></w:p>`,
+            `<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Mirror number 1</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Panorama advancement</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`,
             `</w:body></w:document>`,
         ].join("");
 
         expect(extractWordDocumentXmlText(xml)).toBe(
-            "第一场：天台夜雨\n林默站在霓虹灯下\n手里握着旧怀表 & 录音笔。\n镜号1\t全景推进",
+            "The first scene: Night rain on the rooftop\nLin Mo stood under the neon lights\nHolding old pocket watch & voice recorder in hand.\nMirror No. 1 Panoramic Advancement",
         );
     });
 
     it("extracts UTF-8 text and title from .txt and .md files", async () => {
         const mdFile = new File(
-            ["# 第一幕\r\n\r\n\r\n雨夜街道，特写镜头。\r\n\r\n第二幕：追逐\r\n"],
-            "都市悬疑分镜.md",
+            ["# Act 1\r\n\r\n\r\nRainy night street, close-up.\r\n\r\nAct Two: The Chase\r"],
+            "Urban suspense storyboard.md",
             { type: "text/markdown" },
         );
         const result = await extractScriptDocumentText(mdFile);
-        expect(result.title).toBe("都市悬疑分镜");
-        expect(result.content).toBe("# 第一幕\n\n雨夜街道，特写镜头。\n\n第二幕：追逐");
+        expect(result.title).toBe("Urban suspense storyboard");
+        expect(result.content).toBe("# Act 1\n\nRainy night street, close-up.\n\nAct Two: The Chase");
     });
 
     it("extracts text from a stored (method 0) .docx ZIP archive", async () => {
-        const xml = `<w:document><w:body><w:p><w:r><w:t>第1集 开场</w:t></w:r></w:p><w:p><w:r><w:t>主角推门而入。</w:t></w:r></w:p></w:body></w:document>`;
+        const xml = `<w:document><w:body><w:p><w:r><w:t>Episode 1 Opening</w:t></w:r></w:p><w:p><w:r><w:t>The protagonist opens the door and enters. </w:t></w:r></w:p></w:body></w:document>`;
         const buffer = await buildSynthesizedDocxBuffer(xml, { method: 0 });
-        const file = new File([buffer], "第一集剧本.docx", {
+        const file = new File([buffer], "Episode 1 script.docx", {
             type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
 
         const result = await extractScriptDocumentText(file);
-        expect(result.title).toBe("第一集剧本");
-        expect(result.content).toBe("第1集 开场\n主角推门而入。");
+        expect(result.title).toBe("First episode script");
+        expect(result.content).toBe("Episode 1 Opening\nThe protagonist opens the door and enters.");
     });
 
     it("extracts text from a deflate-raw compressed (method 8) .docx ZIP archive", async () => {
         const xml = [
             `<w:document><w:body>`,
-            `<w:p><w:r><w:t>场景一：咖啡馆（日 / 内）</w:t></w:r></w:p>`,
-            `<w:p><w:r><w:t>对白：&quot;你终于来了。&quot;</w:t><w:tab/><w:t>（低声）</w:t></w:r></w:p>`,
+            `<w:p><w:r><w:t>Scene 1: Cafe (day/intraday)</w:t></w:r></w:p>`,
+            `<w:p><w:r><w:t>Dialogue: "You are finally here."</w:t><w:tab/><w:t>(whisper)</w:t></w:r></w:p>`,
             `</w:body></w:document>`,
         ].join("");
         const buffer = await buildSynthesizedDocxBuffer(xml, { method: 8 });
-        const result = await extractScriptDocumentText(buffer, "咖啡馆对手戏.docx");
+        const result = await extractScriptDocumentText(buffer, "Cafe rivalry.docx");
 
-        expect(result.title).toBe("咖啡馆对手戏");
-        expect(result.content).toBe(`场景一：咖啡馆（日 / 内）\n对白："你终于来了。"\t（低声）`);
+        expect(result.title).toBe("Cafe rivalry");
+        expect(result.content).toBe(`Scene 1: Cafe (Japan / Domestic)
+Dialogue: "You're finally here." (whisper)`);
     });
 
     it("falls back to local file headers when central directory is absent", async () => {
-        const xml = `<w:document><w:body><w:p><w:r><w:t>本地头部解析成功</w:t></w:r></w:p></w:body></w:document>`;
+        const xml = `<w:document><w:body><w:p><w:r><w:t>Local header parsed successfully</w:t></w:r></w:p></w:body></w:document>`;
         const buffer = await buildSynthesizedDocxBuffer(xml, { method: 8, omitCentralDirectory: true });
         const result = await extractScriptDocumentText(buffer, "fallback.docx");
         expect(result.title).toBe("fallback");
-        expect(result.content).toBe("本地头部解析成功");
+        expect(result.content).toBe("Local header parsing successful");
     });
 });

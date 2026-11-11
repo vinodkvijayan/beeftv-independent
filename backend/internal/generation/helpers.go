@@ -214,7 +214,7 @@ func BadAuthRequest(message string) error {
 func applySeedance2VideoProbe(ctx context.Context, config Config, index int, media *Media, data []byte) error {
 	runtime, ok := RuntimeFromContext(ctx)
 	if !ok || runtime.Probe == nil {
-		return errors.New("参考视频无法校验，请重新导入")
+		return errors.New("The reference video cannot be verified, please re-import it.")
 	}
 	return runtime.Probe.ProbeSeedance2Video(config, index, media, data)
 }
@@ -225,7 +225,7 @@ func ensureChatCompletionStreamUsage(payload map[string]any) error {
 		var ok bool
 		options, ok = value.(map[string]any)
 		if !ok {
-			return errors.New("stream_options 必须是 JSON 对象")
+			return errors.New("stream_options must be a JSON object")
 		}
 	}
 	options["include_usage"] = true

@@ -6,7 +6,7 @@ const source = readFileSync(resolve(import.meta.dir, "../src/components/canvas/c
 
 describe("local project progress copy", () => {
     test("distinguishes local persistence from remote synchronization", () => {
-        expect(source).toContain('syncProgress?.message?.includes("本地")');
+        expect(source).toContain('syncProgress?.message?.includes("local")');
         expect(source).toContain('{isLocalSave ? "本地保存中" : "云端同步中"}');
         expect(source).toContain('{isLocalSave ? "媒体保存" : "媒体上传"}');
     });

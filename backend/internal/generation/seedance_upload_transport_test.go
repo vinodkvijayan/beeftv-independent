@@ -74,8 +74,8 @@ func TestReferenceUpload400PrependsReferenceIndexAndSupportsTIFF(t *testing.T) {
 		Cause:      cause,
 	}
 	failure := ClassifyError(uploadErr)
-	if failure.Reason != "参考图片 3：无法识别文件" || failure.Action != "图片用 PNG、JPEG、WebP、GIF、BMP 或 TIFF。视频用 MP4 或 MOV。音频用 MP3 或 WAV" || !strings.HasPrefix(failure.ProviderMessage, "参考图片 3：无法识别文件") {
-		t.Fatalf("reason=%q action=%q message=%q, want server passthrough with 参考图片 3：", failure.Reason, failure.Action, failure.ProviderMessage)
+	if failure.Reason != "Reference picture 3: Unable to recognize file" || failure.Action != "Use PNG, JPEG, WebP, GIF, BMP or TIFF for images. For videos use MP4 or MOV. Audio in MP3 or WAV" || !strings.HasPrefix(failure.ProviderMessage, "Reference picture 3: Unable to recognize file") {
+		t.Fatalf("reason=%q action=%q message=%q, want server passthrough with Reference picture 3:", failure.Reason, failure.Action, failure.ProviderMessage)
 	}
 }
 
@@ -125,10 +125,10 @@ func TestManagedMediaUpload400PreservesReferenceAudioIndexAndServerMessage(t *te
 	if failure.Category != CategoryInvalidParams || failure.Uncertain || !failure.BlocksAutomaticRetry() {
 		t.Fatalf("unexpected failure classification: %+v", failure)
 	}
-	if failure.Reason != "参考音频 1：无法识别文件" || !strings.Contains(failure.Action, "音频用 MP3 或 WAV") || failure.RequestID != "req-upload-audio-1" {
+	if failure.Reason != "Reference Audio 1: File not recognized" || !strings.Contains(failure.Action, "音频用 MP3 或 WAV") || failure.RequestID != "req-upload-audio-1" {
 		t.Fatalf("upload 400 passthrough mismatch: %+v", failure)
 	}
-	task := &model.Task{Stage: "准备中"}
+	task := &model.Task{Stage: "In preparation"}
 	CaptureTaskFailureDiagnostics(task, err, "provider_request")
 	if task.FailureDiagnostics == nil || task.FailureDiagnostics.Source != "reference_upload" {
 		t.Fatalf("diagnostics = %+v, want source reference_upload", task.FailureDiagnostics)
@@ -145,7 +145,7 @@ func TestServerChineseReferenceCountAndRequestIDSuffixPassthrough(t *testing.T) 
 	if failure.Category != CategoryInvalidParams || !failure.FromCode || failure.RequestID != "req_ref_count_10" {
 		t.Fatalf("unexpected classification: %+v", failure)
 	}
-	if failure.Reason != "当前模型最多支持 9 个参考图片" || failure.Action != "请减少参考图片（本次传入 10 个）后再提交" {
+	if failure.Reason != "The current model supports up to 9 reference images" || failure.Action != "Please reduce the number of reference images (input 10 this time) before submitting" {
 		t.Fatalf("unexpected copy: reason=%q action=%q", failure.Reason, failure.Action)
 	}
 	if strings.Contains(failure.UserMessage(), "请求编号:") {
@@ -157,7 +157,7 @@ func TestServerChineseReferenceCountAndRequestIDSuffixPassthrough(t *testing.T) 
 	}
 
 	futureServerCopy := ClassifyHTTP(http.StatusBadRequest, "400 Bad Request", `{"error":{"message":"当前模型不支持同时传入首尾帧和参考音频，请移除其一后再提交","type":"invalid_request_error","code":"invalid_video_parameters"}} (请求编号: req_outer_zh_888)`)
-	if futureServerCopy.Category != CategoryInvalidParams || futureServerCopy.Reason != "当前模型不支持同时传入首尾帧和参考音频" || futureServerCopy.Action != "请移除其一后再提交" || futureServerCopy.RequestID != "req_outer_zh_888" {
+	if futureServerCopy.Category != CategoryInvalidParams || futureServerCopy.Reason != "The current model does not support passing in first and last frames and reference audio at the same time" || futureServerCopy.Action != "Please remove one of them before submitting" || futureServerCopy.RequestID != "req_outer_zh_888" {
 		t.Fatalf("unmatched server Chinese 400 message was not passed through: %+v", futureServerCopy)
 	}
 	reloadedFuture := ClassifyText(futureServerCopy.UserMessage())
@@ -184,7 +184,7 @@ func TestServerChineseReferenceCountAndRequestIDSuffixPassthrough(t *testing.T) 
 	}
 
 	// Transient and generic Chinese strings must not be promoted to invalid_params.
-	for _, transient := range []string{"当前模型服务暂时不可用，请稍后重试", "生成失败，请重试", "生成失败，请调整后重试", "请求频率过高，请调整请求时间后重试"} {
+	for _, transient := range []string{"The current model service is temporarily unavailable, please try again later.", "Generation failed, please try again", "Generation failed, please adjust and try again", "The request frequency is too high, please adjust the request time and try again."} {
 		if got := ClassifyText(transient); got.Category == CategoryInvalidParams {
 			t.Fatalf("transient/generic Chinese text %q promoted to invalid_params: %+v", transient, got)
 		}

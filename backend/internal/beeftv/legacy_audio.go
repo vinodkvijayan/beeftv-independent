@@ -25,7 +25,7 @@ func LegacySpeechPayload(options LegacySpeechOptions) (map[string]any, string) {
 		voice = ""
 	} else if strings.Contains(id, "minimax-speech") {
 		switch strings.ToLower(voice) {
-		case "", "中文", "alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse", "marin", "cedar":
+		case "", "Chinese", "alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse", "marin", "cedar":
 			voice = "male-qn-qingse"
 		}
 	} else if voice == "" {

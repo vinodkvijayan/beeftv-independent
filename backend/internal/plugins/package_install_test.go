@@ -39,7 +39,7 @@ func writeSamplePluginDir(t *testing.T, version string) string {
 	if err := os.WriteFile(filepath.Join(dir, "dist", "client.js"), []byte("export function activate(ctx) {}"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "skills", "storyboard-grid", "SKILL.md"), []byte("---\nname: 分镜九宫格\ndescription: 拆解九宫格\n---\n# 分镜九宫格\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "skills", "storyboard-grid", "SKILL.md"), []byte("---\nname: Storyboard Nine Palaces\ndescription: Dismantle the Nine-Gong Grid\n---\n#narrative nine palace grid"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "extensions", "index.ts"), []byte("export default function() {}"), 0o644); err != nil {
@@ -48,21 +48,21 @@ func writeSamplePluginDir(t *testing.T, version string) string {
 	pkgJSON := `{
 		"name": "storyboard-grid-test",
 		"version": "` + version + `",
-		"description": "测试分镜九宫格插件",
+		"description": "Test the storyboard plug-in",
 		"author": "BeefTV",
 		"pi": {
 			"extensions": ["./extensions/index.ts"],
 			"skills": ["./skills"]
 		},
 		"beeftv": {
-			"name": "分镜九宫格测试",
+			"name": "Nine-square grid test",
 			"client": "./dist/client.js",
 			"contributes": {
 				"canvasNodes": [
 					{
 						"id": "storyboard-grid-test",
-						"label": "分镜九宫格测试",
-						"defaultTitle": "分镜九宫格测试",
+						"label": "Nine-square grid test",
+						"defaultTitle": "Nine-square grid test",
 						"defaultSize": { "width": 520, "height": 420 },
 						"renderer": "client"
 					}
@@ -882,8 +882,8 @@ func TestMarketChinaMirrorSearchReadmeAndOnlineTarballInstall(t *testing.T) {
 						"package": {
 							"name": "beeftv-plugin-character-replacement",
 							"version": "0.1.0",
-							"description": "AI 角色替换工作室",
-							"keywords": ["beeftv-plugin", "pi-package", "character-replacement"],
+							"description": "AI character replacement studio",
+							"keywords": ["beefv-plugin", "pi-package", "character-replacement"],
 							"links": {"repository": "https://github.com/Sunnyender-org/beeftv-plugins"},
 							"publisher": {"username": "beeftv"}
 						}
@@ -903,7 +903,7 @@ func TestMarketChinaMirrorSearchReadmeAndOnlineTarballInstall(t *testing.T) {
 			_, _ = w.Write(tgzBytes)
 		case r.URL.Path == "/readme/README.md":
 			w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
-			_, _ = w.Write([]byte("# AI 角色替换工作室（远程镜像 README）\n\n支持双阶段角色替换与时间轴回插。"))
+			_, _ = w.Write([]byte("# AI character replacement studio (remote mirror README)\n\nSupports two-stage character replacement and timeline back-insertion."))
 		default:
 			http.NotFound(w, r)
 		}
@@ -927,17 +927,17 @@ func TestMarketChinaMirrorSearchReadmeAndOnlineTarballInstall(t *testing.T) {
 				{
 					"id": "beeftv-plugin-character-replacement",
 					"packageName": "beeftv-plugin-character-replacement",
-					"name": "AI 角色替换工作室",
+					"name": "AI Character Replacement Studio",
 					"version": "0.1.0",
-					"description": "二阶段角色替换",
+					"description": "Second-stage role replacement",
 					"author": "BeefTV",
-					"category": "短剧与视频创作",
+					"category": "Short plays and video creation",
 					"recommended": true,
 					"repo": "https://github.com/Sunnyender-org/beeftv-plugins/tree/main/plugins/beeftv-plugin-character-replacement",
 					"readme": %q,
 					"mirrorTarball": %q,
 					"sha256": %q,
-					"tags": ["角色替换"]
+					"tags": ["role replacement"]
 				}
 			]
 		}`, server.URL+"/readme/README.md", server.URL+"/packages/beeftv-plugin-character-replacement-0.1.0.tgz", sha)
@@ -949,7 +949,7 @@ func TestMarketChinaMirrorSearchReadmeAndOnlineTarballInstall(t *testing.T) {
 	}
 
 	// 1. Test npmmirror plain-text search & Go-side keyword filtering
-	npmHits, ok := searchSingleNpmRegistry(context.Background(), server.URL+"/npmmirror.com", "角色", map[string]View{})
+	npmHits, ok := searchSingleNpmRegistry(context.Background(), server.URL+"/npmmirror.com", "role", map[string]View{})
 	if !ok || len(npmHits) != 1 || npmHits[0].ID != "beeftv-plugin-character-replacement" {
 		t.Fatalf("expected npmmirror search to return beeftv-plugin-character-replacement and filter out unrelated-package, got ok=%v hits=%+v", ok, npmHits)
 	}

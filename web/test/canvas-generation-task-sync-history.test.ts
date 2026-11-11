@@ -12,7 +12,7 @@ function mediaNode(type: CanvasNodeType.Image | CanvasNodeType.Video | CanvasNod
         position: { x: 40, y: 40 },
         width: 320,
         height: 180,
-        metadata: { prompt: "历史结果" },
+        metadata: { prompt: "historical results" },
     };
 }
 
@@ -22,7 +22,7 @@ function task(type: string, result: unknown): GenerationTask {
         projectId: "7vvfM674HnenwTekmj88V",
         type,
         status: "succeeded",
-        prompt: "历史结果",
+        prompt: "historical results",
         resultJson: JSON.stringify(result),
         attempts: 1,
         createdAt: "2026-09-24T00:00:00.000Z",

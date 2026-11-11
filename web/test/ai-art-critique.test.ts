@@ -30,15 +30,15 @@ function response(value: unknown): ToolResponseResult {
     };
 }
 
-const input = { dataUrl: "data:image/png;base64,placeholder", title: "测试图片", sourceFingerprint: "v1-test" };
+const input = { dataUrl: "data:image/png;base64,placeholder", title: "test picture", sourceFingerprint: "v1-test" };
 
-describe("AI 审美批改插件注册", () => {
-    test("节点只接受图片并隐藏输出端口", () => {
+describe("AI aesthetic correction plug-in registration", () => {
+    test("The node only accepts images and hides the output port", () => {
         expect(getNodeAcceptedInputKind(ART_CRITIQUE_NODE_TYPE)).toBe("image");
         expect(getNodeDefinition(ART_CRITIQUE_NODE_TYPE)?.showOutputConnection).toBe(false);
     });
 
-    test("启用后出现在添加节点菜单", () => {
+    test("Appears in the Add Node menu when enabled", () => {
         const baseContext = {
             workspaceMode: "simple" as const,
             isProjectLinked: false,
@@ -51,13 +51,13 @@ describe("AI 审美批改插件注册", () => {
     });
 });
 
-describe("AI 审美批改报告解析", () => {
-    test("解析 AI 生成的局部编辑提示词并按问题 ID 应用", () => {
+describe("AI aesthetic correction report analysis", () => {
+    test("Parse AI-generated local editing prompt words and apply them by issue ID", () => {
         const issue = {
             id: "issue-1",
             category: "lighting",
-            title: "主体脸部受光不足",
-            explanation: "脸部暗部过重，表情与互动的可读性下降。",
+            title: "Insufficient light on the subject’s face",
+            explanation: "The dark parts of the face are too heavy, and the readability of expressions and interactions is reduced.",
             severity: "high",
             confidence: 0.9,
             target: {
@@ -67,63 +67,63 @@ describe("AI 审美批改报告解析", () => {
                     { x: 0.6, y: 0.6 },
                 ],
             },
-            targetDescription: "女性主体的脸部",
+            targetDescription: "female subject face",
             suggestion: {
-                goal: "提升人物表情的可读性",
-                actions: ["提高脸部局部亮度", "保留原有光线方向"],
-                preserve: ["保留夜景氛围"],
-                expectedEffect: "人物重新成为视觉焦点",
+                goal: "Improve the readability of character expressions",
+                actions: ["Improve local brightness on face", "Keep original light direction"],
+                preserve: ["Preserve the night scene atmosphere"],
+                expectedEffect: "Characters return to the visual focus",
             },
         } satisfies import("../src/lib/art-critique/contracts").ArtCritiqueIssue;
         const result = parseEditPromptPayload({
-            prompts: [{ issueId: "issue-1", editPrompt: "只提高女性主体脸部的局部亮度，保留窗光方向、人物身份、构图和夜景氛围。" }],
+            prompts: [{ issueId: "issue-1", editPrompt: "Only the local brightness of the female subject's face is increased, while the window light direction, character identity, composition and night scene atmosphere are retained." }],
         });
         const warnings: string[] = [];
         const applied = applyEditPrompts([issue], result.prompts, warnings);
 
-        expect(applied[0].editPrompt).toContain("女性主体脸部");
+        expect(applied[0].editPrompt).toContain("female subject face");
         expect(warnings).toHaveLength(0);
     });
 
-    test("AI 提示词缺失时不使用本地拼接替代", () => {
+    test("Local splicing substitution is not used when AI prompt words are missing", () => {
         const issue = {
             id: "issue-1",
             category: "lighting" as const,
-            title: "主体脸部受光不足",
-            explanation: "脸部暗部过重。",
+            title: "Insufficient light on the subject’s face",
+            explanation: "Dark parts of the face are too heavy.",
             severity: "high" as const,
             confidence: 0.9,
             target: { type: "global" as const, points: [] },
-            suggestion: { goal: "提升可读性", actions: ["提高局部亮度"], preserve: ["保留夜景氛围"], expectedEffect: "人物更突出" },
+            suggestion: { goal: "Improve readability", actions: ["Increase local brightness"], preserve: ["Preserve the night scene atmosphere"], expectedEffect: "Characters stand out more" },
         };
         const warnings: string[] = [];
         const applied = applyEditPrompts([issue], [], warnings);
 
         expect(applied[0].editPrompt).toBeUndefined();
-        expect(warnings[0]).toContain("不会使用本地拼接替代");
+        expect(warnings[0]).toContain("Local splicing overrides will not be used");
     });
 
-    test("使用版本化 Rubric 并把高优先级问题排在前面", () => {
+    test("Use versioned rubrics and prioritize high-priority issues first", () => {
         const report = parseArtCritiqueResponse(
             response({
-                summary: "画面有明确主体。",
-                strengths: ["色彩统一"],
+                summary: "The picture has a clear subject.",
+                strengths: ["Color unity"],
                 issues: [
                     {
                         id: "low-first",
                         category: "color",
-                        title: "颜色略杂",
-                        explanation: "次要区域饱和度略高。",
+                        title: "The color is slightly mixed",
+                        explanation: "The secondary areas are slightly more saturated.",
                         severity: "low",
                         confidence: 0.98,
                         target: { type: "global", points: [] },
-                        suggestion: { goal: "收拢色彩", actions: ["降低次要区域饱和度"], preserve: ["保留主体强调色"], expectedEffect: "主体更突出" },
+                        suggestion: { goal: "gather colors", actions: ["Decrease secondary area saturation"], preserve: ["Keep the main accent color"], expectedEffect: "The subject is more prominent" },
                     },
                     {
                         id: "high-second",
                         category: "composition",
-                        title: "主体方向感不足",
-                        explanation: "主体与留白方向关系不清。",
+                        title: "Insufficient sense of subject direction",
+                        explanation: "The relationship between the subject and the direction of the blank space is unclear.",
                         severity: "high",
                         confidence: 0.7,
                         target: {
@@ -133,7 +133,7 @@ describe("AI 审美批改报告解析", () => {
                                 { x: 0.6, y: 0.8 },
                             ],
                         },
-                        suggestion: { goal: "增强方向感", actions: ["调整主体位置"], preserve: ["保留人物姿态"], expectedEffect: "视线移动更自然" },
+                        suggestion: { goal: "Enhance sense of direction", actions: ["Adjust subject position"], preserve: ["Preserve character posture"], expectedEffect: "Eyes move more naturally" },
                     },
                 ],
             }),
@@ -143,39 +143,39 @@ describe("AI 审美批改报告解析", () => {
         expect(report.issues.map((issue) => issue.id)).toEqual(["high-second", "low-first"]);
     });
 
-    test("Prompt 包含 Rubric 版本、参考方法和构图意图约束", () => {
+    test("Prompt contains rubric version, reference method and compositional intent constraints", () => {
         const systemText = artCritiqueMessages(input)[0].content;
         expect(typeof systemText).toBe("string");
         expect(systemText).toContain(ART_CRITIQUE_RUBRIC_VERSION);
         expect(systemText).toContain("CADB / SAMP-Net");
-        expect(systemText).toContain("不能仅因没有使用三分法就报告");
+        expect(systemText).toContain("Do not report simply because the rule of thirds was not used");
         expect(buildArtCritiqueRubricPrompt()).toContain("HumanAesExpert");
         expect(ART_CRITIQUE_RUBRIC).toHaveLength(4);
     });
 
-    test("窄 Reviewer Prompt 只注入自己的规则并允许没有问题", () => {
+    test("Narrow Reviewer Prompt only injects its own rules and allows no issues", () => {
         const prompt = buildArtCritiqueRubricPrompt({ categories: ["color"], includeReferenceMapping: false });
-        expect(prompt).toContain("【色彩｜color】");
-        expect(prompt).not.toContain("【构图与视觉层级｜composition】");
-        expect(prompt).not.toContain("参考方法映射");
-        expect(prompt).toContain("允许没有问题");
+        expect(prompt).toContain("【Color｜color】");
+        expect(prompt).not.toContain("【Composition and visual hierarchy｜composition】");
+        expect(prompt).not.toContain("Reference method mapping");
+        expect(prompt).toContain("Allow no problem");
     });
 
-    test("保留报告合同并把不完整的局部目标降级为全局问题", () => {
+    test("Preserve reporting contracts and demote incomplete local goals to global issues", () => {
         const report = parseArtCritiqueResponse(
             response({
-                summary: "主体明确，但画面层次还可以更集中。",
-                strengths: ["主体轮廓清楚"],
+                summary: "The subject is clear, but the picture level could be more focused.",
+                strengths: ["The subject is clearly outlined"],
                 issues: [
                     {
                         id: "composition-1",
                         category: "composition",
-                        title: "主体偏离视觉重心",
-                        explanation: "主体周围留白不均。",
+                        title: "The subject deviates from the visual center of gravity",
+                        explanation: "The white space around the subject is uneven.",
                         severity: "high",
                         confidence: 0.86,
                         target: { type: "box", points: [{ x: 0.2, y: 0.3 }] },
-                        suggestion: { goal: "集中注意力", actions: ["收紧左侧留白"], preserve: ["保留主体姿态"], expectedEffect: "视觉重心更稳定" },
+                        suggestion: { goal: "focus", actions: ["Tighten the left margin"], preserve: ["Keep the subject's posture"], expectedEffect: "The visual center of gravity is more stable" },
                     },
                 ],
             }),
@@ -186,26 +186,26 @@ describe("AI 审美批改报告解析", () => {
         expect(report.issues[0].target).toEqual({ type: "global", points: [] });
     });
 
-    test("最多保留五个问题并裁剪越界坐标", () => {
+    test("Keep up to five questions and clip out-of-bounds coordinates", () => {
         const issues = Array.from({ length: 8 }, (_, index) => ({
             id: `issue-${index}`,
             category: "color",
-            title: `问题 ${index}`,
-            explanation: "需要调整。",
+            title: `problem${index}`,
+            explanation: "Needs adjustment.",
             severity: "low",
             confidence: 2,
             target: { type: "point", points: [{ x: -1, y: 2 }] },
-            suggestion: { goal: "改善", actions: ["调整"], preserve: [], expectedEffect: "更统一" },
+            suggestion: { goal: "improve", actions: ["adjust"], preserve: [], expectedEffect: "more unified" },
         }));
-        const report = parseArtCritiqueResponse(response({ summary: "总结", strengths: [], issues }), input);
+        const report = parseArtCritiqueResponse(response({ summary: "Summary", strengths: [], issues }), input);
         expect(report.issues).toHaveLength(5);
         expect(report.issues[0].confidence).toBe(1);
         expect(report.issues[0].target.points[0]).toEqual({ x: 0, y: 1 });
     });
 });
 
-describe("AI 审美批改标注几何", () => {
-    test("box 目标转换为四边形并计算边界", () => {
+describe("AI aesthetic correction annotation geometry", () => {
+    test("The box target is converted to a quadrilateral and the bounds are calculated", () => {
         const target = {
             type: "box" as const,
             points: [
@@ -222,29 +222,29 @@ describe("AI 审美批改标注几何", () => {
         expect(targetBounds(target)).toEqual({ x: 0.2, y: 0.1, width: 0.6000000000000001, height: 0.6 });
     });
 
-    test("severity 使用固定颜色角色", () => {
+    test("severity uses a fixed color role", () => {
         expect(ART_CRITIQUE_SEVERITY_COLORS.high).toBe("#ef4444");
         expect(ART_CRITIQUE_SEVERITY_COLORS.medium).toBe("#f59e0b");
     });
 
-    test("定位失败时用问题描述生成参考区域或多个参考点", () => {
+    test("Use the problem description to generate a reference area or multiple reference points when positioning fails.", () => {
         const foreground = referenceTargetForIssue({
             category: "composition",
-            title: "前景人物压过主体",
-            explanation: "左侧前景的视觉重量过重。",
-            targetDescription: "左侧前景人物与主体区域",
+            title: "The foreground figure overwhelms the subject",
+            explanation: "The left foreground has too much visual weight.",
+            targetDescription: "The person in the foreground and the subject area on the left",
         });
         const table = referenceTargetForIssue({
             category: "proportion",
-            title: "桌沿切断人物关系",
-            explanation: "桌沿和桌腿位于画面下方。",
-            targetDescription: "桌沿、桌腿和桌面静物",
+            title: "The edge of the table cuts off the relationship between characters",
+            explanation: "The edge and legs of the table are located at the bottom of the picture.",
+            targetDescription: "Table edge, table legs and table top still life",
         });
         const highlights = referenceTargetForIssue({
             category: "color",
-            title: "多处高饱和暖色亮点分散焦点",
-            explanation: "画面中存在多个分散的暖色亮点。",
-            targetDescription: "多处高饱和暖色亮点",
+            title: "Multiple highly saturated warm color highlights distract the focus",
+            explanation: "There are multiple scattered bright spots of warm color in the picture.",
+            targetDescription: "Many highly saturated warm color highlights",
         });
 
         expect(foreground.type).toBe("box");
@@ -255,12 +255,12 @@ describe("AI 审美批改标注几何", () => {
         expect(highlights.points.length).toBeGreaterThan(1);
     });
 
-    test("无效框坐标会被识别并修复为可见参考框", () => {
+    test("Invalid frame coordinates are recognized and fixed to visible reference frames", () => {
         const issue = {
             id: "invalid-box",
             category: "composition" as const,
-            title: "前景暗部压过主体",
-            explanation: "左侧前景形成连续暗部。",
+            title: "The dark part of the foreground overwhelms the subject",
+            explanation: "The foreground on the left forms a continuous dark part.",
             severity: "high" as const,
             confidence: 0.9,
             target: {
@@ -270,8 +270,8 @@ describe("AI 审美批改标注几何", () => {
                     { x: 0.8, y: 0.1 },
                 ],
             },
-            targetDescription: "左侧前景人物",
-            suggestion: { goal: "减轻干扰", actions: ["降低前景对比"], preserve: [], expectedEffect: "主体更突出" },
+            targetDescription: "Foreground figure on the left",
+            suggestion: { goal: "Reduce distractions", actions: ["Reduce foreground contrast"], preserve: [], expectedEffect: "The subject is more prominent" },
         };
         expect(isRenderableArtCritiqueTarget(issue.target)).toBe(false);
         const repaired = repairIssueTarget(issue);
@@ -281,8 +281,8 @@ describe("AI 审美批改标注几何", () => {
     });
 });
 
-describe("AI 审美批改多阶段管线", () => {
-    test("阶段工具覆盖场景、Reviewer、聚合、定位、提示词生成和复核", () => {
+describe("AI aesthetic correction multi-stage pipeline", () => {
+    test("Stage tools cover scenarios, Reviewer, aggregation, positioning, prompt word generation and review", () => {
         expect(Object.values(artCritiquePipelineTools).map((tool) => tool.function.name)).toEqual([
             "analyze_art_scene",
             "review_art_composition",
@@ -296,17 +296,17 @@ describe("AI 审美批改多阶段管线", () => {
         ]);
     });
 
-    test("解析场景和候选问题", () => {
+    test("Analyze scenarios and candidate questions", () => {
         const result = parseSceneReviewPayload({
             scene: {
                 imageType: "portrait",
-                style: ["电影感"],
-                subjects: [{ id: "person", description: "坐在桌边的人物", importance: "primary" }],
-                intendedFocus: "人物表情",
-                compositionType: ["对角线"],
-                lightingType: ["窗光"],
-                mood: "安静",
-                estimatedIntent: "表现人物的孤独感",
+                style: ["Cinematic feel"],
+                subjects: [{ id: "person", description: "person sitting at table", importance: "primary" }],
+                intendedFocus: "Character expression",
+                compositionType: ["diagonal"],
+                lightingType: ["window light"],
+                mood: "quiet",
+                estimatedIntent: "Express the character’s loneliness",
                 sceneDepth: "medium",
             },
             candidates: [
@@ -314,13 +314,13 @@ describe("AI 审美批改多阶段管线", () => {
                     id: "c-1",
                     checkId: "subject-placement",
                     category: "composition",
-                    title: "主体被左侧前景压住",
-                    observation: "左侧前景占据很大面积",
-                    reason: "人物视觉重量被削弱",
-                    evidence: ["前景轮廓覆盖画面左侧"],
+                    title: "The subject is suppressed by the left foreground",
+                    observation: "The foreground on the left occupies a large area",
+                    reason: "The visual weight of the character is weakened",
+                    evidence: ["The foreground outline covers the left side of the frame"],
                     severity: 0.8,
                     confidence: 0.9,
-                    targetDescription: "左侧前景与人物区域",
+                    targetDescription: "Left foreground and character area",
                 },
             ],
         });
@@ -329,104 +329,104 @@ describe("AI 审美批改多阶段管线", () => {
         expect(result.candidates[0].confidence).toBe(0.9);
     });
 
-    test("按规则 ID、Reviewer、图片类型、证据和置信度过滤候选", () => {
+    test("Filter candidates by Rule ID, Reviewer, Image Type, Evidence and Confidence", () => {
         const result = parseSceneReviewPayload({
             scene: {
                 imageType: "landscape",
                 style: [],
                 subjects: [],
-                intendedFocus: "风景层次",
+                intendedFocus: "landscape level",
                 compositionType: [],
                 lightingType: [],
-                mood: "平静",
-                estimatedIntent: "表现空间感",
+                mood: "calm",
+                estimatedIntent: "Express a sense of space",
                 sceneDepth: "deep",
             },
             candidates: [
-                { id: "valid", checkId: "visual-balance", category: "composition", title: "有效问题", observation: "有证据", reason: "影响表达", evidence: ["左侧重量明显"], severity: 0.8, confidence: 0.8, targetDescription: "左侧" },
-                { id: "no-rule", checkId: "made-up-rule", category: "composition", title: "未知规则", observation: "有证据", reason: "影响表达", evidence: ["证据"], severity: 0.8, confidence: 0.9, targetDescription: "画面" },
-                { id: "no-evidence", checkId: "visual-balance", category: "composition", title: "没有证据", observation: "看起来不平衡", reason: "影响表达", evidence: [], severity: 0.8, confidence: 0.9, targetDescription: "画面" },
-                { id: "low-confidence", checkId: "visual-balance", category: "composition", title: "置信度低", observation: "证据不足", reason: "影响表达", evidence: ["模糊"], severity: 0.8, confidence: 0.2, targetDescription: "画面" },
-                { id: "wrong-reviewer", checkId: "visual-balance", category: "color", title: "类别不匹配", observation: "有证据", reason: "影响表达", evidence: ["证据"], severity: 0.8, confidence: 0.9, targetDescription: "画面" },
+                { id: "valid", checkId: "visual-balance", category: "composition", title: "valid question", observation: "There is evidence", reason: "affect expression", evidence: ["There is significant weight on the left side"], severity: 0.8, confidence: 0.8, targetDescription: "left side" },
+                { id: "no-rule", checkId: "made-up-rule", category: "composition", title: "unknown rules", observation: "There is evidence", reason: "affect expression", evidence: ["evidence"], severity: 0.8, confidence: 0.9, targetDescription: "Picture" },
+                { id: "no-evidence", checkId: "visual-balance", category: "composition", title: "no evidence", observation: "looks unbalanced", reason: "affect expression", evidence: [], severity: 0.8, confidence: 0.9, targetDescription: "Picture" },
+                { id: "low-confidence", checkId: "visual-balance", category: "composition", title: "low confidence", observation: "Insufficient evidence", reason: "affect expression", evidence: ["Blurred"], severity: 0.8, confidence: 0.2, targetDescription: "Picture" },
+                { id: "wrong-reviewer", checkId: "visual-balance", category: "color", title: "category mismatch", observation: "There is evidence", reason: "affect expression", evidence: ["evidence"], severity: 0.8, confidence: 0.9, targetDescription: "Picture" },
             ],
         });
         expect(result.candidates.map((candidate) => candidate.id)).toEqual(["valid"]);
         expect(result.candidates[0].checkId).toBe("visual-balance");
     });
-    test("聚合结果保留建议并按优先级排序", () => {
+    test("Aggregated results retain recommendations and sort them by priority", () => {
         const result = parseAggregatePayload({
-            summary: "主体明确，但层级还可以更集中。",
-            strengths: ["色彩统一"],
+            summary: "The main body is clear, but the hierarchy can be more centralized.",
+            strengths: ["Color unity"],
             issues: [
                 {
                     id: "low",
                     category: "color",
-                    title: "次要区域略鲜艳",
-                    explanation: "背景有局部高饱和色块。",
+                    title: "Secondary areas are slightly brighter",
+                    explanation: "The background has local highly saturated color patches.",
                     severity: "low",
                     confidence: 0.95,
-                    targetDescription: "背景右上角",
-                    suggestion: { goal: "降低干扰", actions: ["降低饱和度"], preserve: ["保留主体强调色"], expectedEffect: "主体更突出" },
+                    targetDescription: "Background upper right corner",
+                    suggestion: { goal: "Reduce interference", actions: ["Reduce saturation"], preserve: ["Keep the main accent color"], expectedEffect: "The subject is more prominent" },
                     sourceCandidateIds: ["c-2"],
                 },
                 {
                     id: "high",
                     category: "lighting",
-                    title: "人物和背景分离不足",
-                    explanation: "人物脸部和墙面明度接近。",
+                    title: "Insufficient separation of characters and background",
+                    explanation: "The brightness of the character's face and the wall are close.",
                     severity: "high",
                     confidence: 0.72,
-                    targetDescription: "人物脸部和后方墙面",
-                    suggestion: { goal: "增强分离", actions: ["提高脸部局部亮度"], preserve: ["保留窗光方向"], expectedEffect: "焦点更清楚" },
+                    targetDescription: "Character’s face and rear wall",
+                    suggestion: { goal: "Enhanced separation", actions: ["Improve local brightness on face"], preserve: ["Keep window light direction"], expectedEffect: "Focus is clearer" },
                     sourceCandidateIds: ["c-3"],
                 },
             ],
         });
         expect(result.issues.map((issue) => issue.id)).toEqual(["high", "low"]);
-        expect(result.issues[0].suggestion.actions).toEqual(["提高脸部局部亮度"]);
+        expect(result.issues[0].suggestion.actions).toEqual(["Improve local brightness on face"]);
     });
 
-    test("聚合结果只能引用真实候选并过滤无来源问题", () => {
+    test("Aggregation results can only reference real candidates and filter unsourced issues", () => {
         const candidates = [
             {
                 id: "c-valid",
                 checkId: "palette",
                 kind: "issue" as const,
                 category: "color" as const,
-                title: "背景颜色干扰",
-                observation: "背景右上角有一块高饱和色块",
-                reason: "它抢走了主体的注意力",
-                evidence: ["右上角色块与主体形成强烈饱和度对比"],
+                title: "background color interference",
+                observation: "There is a highly saturated color patch in the upper right corner of the background",
+                reason: "It steals the subject's attention",
+                evidence: ["The character block on the upper right forms a strong saturation contrast with the main body."],
                 severity: 0.8,
                 confidence: 0.85,
-                targetDescription: "背景右上角",
+                targetDescription: "Background upper right corner",
                 reviewer: "color" as const,
             },
         ];
         const aggregate = parseAggregatePayload({
-            summary: "主体明确。",
-            strengths: ["主体清楚"],
+            summary: "The subject is clear.",
+            strengths: ["The subject is clear"],
             issues: [
                 {
                     id: "valid",
                     category: "color",
-                    title: "背景颜色干扰",
-                    explanation: "背景高饱和色块抢走注意力。",
+                    title: "background color interference",
+                    explanation: "Highly saturated color blocks in the background steal attention.",
                     severity: "medium",
                     confidence: 0.8,
-                    targetDescription: "背景右上角",
-                    suggestion: { goal: "降低干扰", actions: ["降低饱和度"], preserve: ["保留主体颜色"], expectedEffect: "主体更突出" },
+                    targetDescription: "Background upper right corner",
+                    suggestion: { goal: "Reduce interference", actions: ["Reduce saturation"], preserve: ["Keep body color"], expectedEffect: "The subject is more prominent" },
                     sourceCandidateIds: ["c-valid"],
                 },
                 {
                     id: "invented",
                     category: "lighting",
-                    title: "凭空新增的问题",
-                    explanation: "输入候选中不存在这个问题。",
+                    title: "Questions added out of thin air",
+                    explanation: "This problem does not exist with input candidates.",
                     severity: "high",
                     confidence: 0.9,
-                    targetDescription: "画面",
-                    suggestion: { goal: "改善", actions: ["调整"], preserve: [], expectedEffect: "更好" },
+                    targetDescription: "Picture",
+                    suggestion: { goal: "improve", actions: ["adjust"], preserve: [], expectedEffect: "better" },
                     sourceCandidateIds: ["missing-candidate"],
                 },
             ],
@@ -437,36 +437,36 @@ describe("AI 审美批改多阶段管线", () => {
         expect(warnings).toHaveLength(1);
     });
 
-    test("可选方向不能伪装成问题，且只能引用同类候选", () => {
+    test("Optional directions cannot be disguised as questions and can only refer to similar candidates.", () => {
         const candidates = [
             {
                 id: "c-option",
                 checkId: "temperature",
                 kind: "option" as const,
                 category: "color" as const,
-                title: "尝试更冷的氛围",
-                observation: "画面当前冷暖平衡，存在向冷色偏移的空间",
-                reason: "这可能让情绪更克制，但不是确定性缺陷",
-                evidence: ["主体和背景的冷暖关系清楚"],
+                title: "Try a cooler atmosphere",
+                observation: "The picture currently has a balance of cool and warm colors, and there is room for a shift towards cooler colors.",
+                reason: "This may make the mood more restrained, but it is not a definite flaw",
+                evidence: ["The relationship between warm and cold temperatures between the subject and the background is clear"],
                 severity: 0.6,
                 confidence: 0.82,
-                targetDescription: "整体色调",
+                targetDescription: "Overall tone",
                 reviewer: "color" as const,
             },
         ];
         const aggregate = parseAggregatePayload({
-            summary: "画面整体成立。",
-            strengths: ["色彩关系清楚"],
+            summary: "The whole picture is established.",
+            strengths: ["Clear color relationship"],
             issues: [
                 {
                     id: "wrong-issue",
                     category: "color",
-                    title: "色彩错误",
-                    explanation: "把可选方向误写成了问题。",
+                    title: "Wrong color",
+                    explanation: "Optional directions were mistakenly written as questions.",
                     severity: "medium",
                     confidence: 0.9,
-                    targetDescription: "整体色调",
-                    suggestion: { goal: "改善", actions: ["调整"], preserve: [], expectedEffect: "更好" },
+                    targetDescription: "Overall tone",
+                    suggestion: { goal: "improve", actions: ["adjust"], preserve: [], expectedEffect: "better" },
                     sourceCandidateIds: ["c-option"],
                 },
             ],
@@ -474,10 +474,10 @@ describe("AI 审美批改多阶段管线", () => {
                 {
                     id: "valid-option",
                     category: "color",
-                    title: "尝试更冷的氛围",
-                    explanation: "如果想强化克制感，可以考虑向冷色移动。",
+                    title: "Try a cooler atmosphere",
+                    explanation: "If you want to enhance your sense of restraint, consider moving to cooler colors.",
                     confidence: 0.84,
-                    suggestion: { goal: "尝试冷色氛围", actions: ["小幅降低色温"], preserve: ["保留主体肤色"], expectedEffect: "情绪更克制" },
+                    suggestion: { goal: "Try cool colors", actions: ["Slightly lower color temperature"], preserve: ["Preserve subject skin tone"], expectedEffect: "Emotions are more controlled" },
                     sourceCandidateIds: ["c-option"],
                 },
             ],
@@ -489,27 +489,27 @@ describe("AI 审美批改多阶段管线", () => {
         expect(warnings).toHaveLength(1);
     });
 
-    test("低置信度定位降级为全局，复核拒绝项被过滤", () => {
+    test("Low-confidence positioning is downgraded to global, and review rejections are filtered.", () => {
         const issues = [
             {
                 id: "confirmed",
                 category: "composition" as const,
-                title: "主体位置",
-                explanation: "主体偏向一侧。",
+                title: "subject position",
+                explanation: "The subject is tilted to one side.",
                 severity: "high" as const,
                 confidence: 0.9,
                 target: { type: "global" as const, points: [] },
-                suggestion: { goal: "改善", actions: ["调整位置"], preserve: [], expectedEffect: "更平衡" },
+                suggestion: { goal: "improve", actions: ["Adjust position"], preserve: [], expectedEffect: "more balanced" },
             },
             {
                 id: "rejected",
                 category: "color" as const,
-                title: "颜色问题",
-                explanation: "颜色关系不清。",
+                title: "color problem",
+                explanation: "The color relationship is unclear.",
                 severity: "medium" as const,
                 confidence: 0.8,
                 target: { type: "global" as const, points: [] },
-                suggestion: { goal: "改善", actions: ["调整颜色"], preserve: [], expectedEffect: "更统一" },
+                suggestion: { goal: "improve", actions: ["Adjust color"], preserve: [], expectedEffect: "more unified" },
             },
         ];
         const grounded = applyGrounding(issues, [
@@ -540,25 +540,25 @@ describe("AI 审美批改多阶段管线", () => {
         expect(grounded[1].target.type).toBe("global");
 
         const verified = applyVerification(grounded, [
-            { issueId: "confirmed", verification: { verdict: "confirmed", confidence: 0.92, reason: "图像证据清楚" } },
-            { issueId: "rejected", verification: { verdict: "rejected", confidence: 0.9, reason: "与图像不符" } },
+            { issueId: "confirmed", verification: { verdict: "confirmed", confidence: 0.92, reason: "Image evidence is clear" } },
+            { issueId: "rejected", verification: { verdict: "rejected", confidence: 0.9, reason: "Does not match the image" } },
         ]);
         expect(verified.issues.map((issue) => issue.id)).toEqual(["confirmed"]);
         expect(verified.summary).toEqual({ checked: 2, confirmed: 1, uncertain: 0, rejected: 1 });
     });
 
-    test("定位服务失败时应用参考坐标并标记来源", () => {
+    test("Apply reference coordinates and mark source when location service fails", () => {
         const issues = [
             {
                 id: "reference-1",
                 category: "composition" as const,
-                title: "左侧前景人物过重",
-                explanation: "左侧前景人物形成连续暗色块。",
+                title: "The person in the foreground on the left is too heavy",
+                explanation: "The foreground figures on the left form a continuous dark block.",
                 severity: "high" as const,
                 confidence: 0.9,
                 target: { type: "global" as const, points: [] },
-                targetDescription: "左侧前景人物",
-                suggestion: { goal: "减轻干扰", actions: ["收窄前景人物"], preserve: [], expectedEffect: "主体更突出" },
+                targetDescription: "Foreground figure on the left",
+                suggestion: { goal: "Reduce distractions", actions: ["Narrow prospects"], preserve: [], expectedEffect: "The subject is more prominent" },
             },
         ];
         const grounded = applyReferenceCoordinates(issues);
@@ -566,14 +566,14 @@ describe("AI 审美批改多阶段管线", () => {
         expect(grounded[0].targetSource).toBe("reference");
     });
 
-    test("定位和复核解析保留置信度", () => {
+    test("Locate and review parsing to preserve confidence", () => {
         const grounding = parseGroundingPayload({ targets: [{ issueId: "i-1", target: { type: "global", points: [] }, groundingConfidence: 0.61 }] });
-        const verification = parseVerificationPayload({ decisions: [{ issueId: "i-1", verdict: "uncertain", confidence: 0.77, reason: "局部证据不够明确" }] });
+        const verification = parseVerificationPayload({ decisions: [{ issueId: "i-1", verdict: "uncertain", confidence: 0.77, reason: "Partial evidence is not clear enough" }] });
         expect(grounding.targets[0].groundingConfidence).toBe(0.61);
         expect(verification.decisions[0].verification.verdict).toBe("uncertain");
     });
 
-    test("定位解析支持分散问题的多个参考点", () => {
+    test("Positioning parsing supports multiple reference points for dispersed problems", () => {
         const grounding = parseGroundingPayload({
             targets: [
                 {
@@ -593,18 +593,18 @@ describe("AI 审美批改多阶段管线", () => {
         expect(targetPolygon(grounding.targets[0].target)).toHaveLength(2);
     });
 
-    test("模型返回无效框时改用参考区域而不是退化横线", () => {
+    test("When the model returns an invalid frame, the reference area is used instead of the degenerate horizontal line.", () => {
         const issues = [
             {
                 id: "grounding-invalid-box",
                 category: "composition" as const,
-                title: "前景暗部过重",
-                explanation: "左侧前景压过主体动线。",
+                title: "The dark parts of the foreground are too heavy",
+                explanation: "The foreground on the left presses the main moving line.",
                 severity: "high" as const,
                 confidence: 0.9,
                 target: { type: "global" as const, points: [] },
-                targetDescription: "左侧前景人物",
-                suggestion: { goal: "减轻前景重量", actions: ["缩小前景人物"], preserve: [], expectedEffect: "主体更突出" },
+                targetDescription: "Foreground figure on the left",
+                suggestion: { goal: "Reduce prospect weight", actions: ["Shrink foreground people"], preserve: [], expectedEffect: "The subject is more prominent" },
             },
         ];
         const grounded = applyGrounding(issues, [
@@ -625,28 +625,28 @@ describe("AI 审美批改多阶段管线", () => {
         expect(targetBounds(grounded[0].target).height).toBeGreaterThan(0.8);
     });
 
-    test("同类同根因问题会合并并保留来源与建议", () => {
+    test("Similar problems with the same root cause will be merged and the sources and suggestions will be retained.", () => {
         const issues = [
             {
                 id: "face-light",
                 category: "lighting" as const,
-                title: "主体脸部受光不足",
-                explanation: "脸部处于暗部，表情不清晰。",
+                title: "Insufficient light on the subject’s face",
+                explanation: "The face is in darkness and the expression is unclear.",
                 severity: "high" as const,
                 confidence: 0.9,
-                targetDescription: "主体脸部",
-                suggestion: { goal: "提升表情可读性", actions: ["提高脸部局部亮度"], preserve: ["保留冷色氛围"], expectedEffect: "表情更清楚" },
+                targetDescription: "subject face",
+                suggestion: { goal: "Improve emoticon readability", actions: ["Improve local brightness on face"], preserve: ["Keep the cool atmosphere"], expectedEffect: "Expression is clearer" },
                 sourceCandidateIds: ["lighting-exposure"],
             },
             {
                 id: "subject-separation",
                 category: "lighting" as const,
-                title: "人物暗部融入背景",
-                explanation: "人物亮度与背景接近，主体分离不足。",
+                title: "Dark parts of characters blend into the background",
+                explanation: "The brightness of the characters is close to that of the background, and the subject separation is insufficient.",
                 severity: "medium" as const,
                 confidence: 0.86,
-                targetDescription: "人物头发和右肩",
-                suggestion: { goal: "加强主体分离", actions: ["补充克制的轮廓光"], preserve: ["保留人物轮廓"], expectedEffect: "空间层次更清楚" },
+                targetDescription: "Character hair and right shoulder",
+                suggestion: { goal: "Strengthen the separation of subjects", actions: ["Complement restrained contour light"], preserve: ["Preserve character outlines"], expectedEffect: "The spatial hierarchy is clearer" },
                 sourceCandidateIds: ["lighting-separation"],
             },
         ];
@@ -654,7 +654,7 @@ describe("AI 审美批改多阶段管线", () => {
         const result = deduplicateAggregateIssues(issues, warnings);
         expect(result).toHaveLength(1);
         expect(result[0].sourceCandidateIds).toEqual(["lighting-exposure", "lighting-separation"]);
-        expect(result[0].suggestion.actions).toEqual(["提高脸部局部亮度", "补充克制的轮廓光"]);
-        expect(warnings).toEqual(["聚合阶段合并了 1 个重复或同根因问题。"]);
+        expect(result[0].suggestion.actions).toEqual(["Improve local brightness on face", "Complement restrained contour light"]);
+        expect(warnings).toEqual(["The aggregation phase merges 1 duplicate or same root cause issue."]);
     });
 });

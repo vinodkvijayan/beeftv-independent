@@ -102,17 +102,17 @@ export function compare(baseline, current) {
         if (after > before) failures.push(`${label}：${before} → ${after}`);
         else if (after < before) improvements.push(`${label}：${before} → ${after}`);
     };
-    check("backend/internal/app 非测试代码行数", baseline.appLines, current.appLines);
-    check("源码里写死的模型和厂商名", baseline.modelLiterals, current.modelLiterals);
-    check("直接依赖 *app.Service 的 handler 文件数", baseline.handlersUsingAppService, current.handlersUsingAppService);
-    check("读源码文字断言的测试文件数", baseline.sourceTextTests, current.sourceTextTests);
+    check("backend/internal/app Number of lines of non-test code", baseline.appLines, current.appLines);
+    check("The model and manufacturer name are hard-coded in the source code", baseline.modelLiterals, current.modelLiterals);
+    check("Number of handler files that directly depend on *app.Service", baseline.handlersUsingAppService, current.handlersUsingAppService);
+    check("Number of test files for reading source text assertions", baseline.sourceTextTests, current.sourceTextTests);
     for (const [path, lines] of Object.entries(current.largeFiles)) {
         const before = baseline.largeFiles[path];
-        if (before === undefined) failures.push(`新的超大文件（>${LARGE_FILE_LINES} 行）：${path} ${lines} 行`);
-        else check(`超大文件 ${path}`, before, lines);
+        if (before === undefined) failures.push(`New very large files (>${LARGE_FILE_LINES} OK):${path} ${lines} OK`);
+        else check(`Very large files${path}`, before, lines);
     }
     for (const [path, lines] of Object.entries(baseline.largeFiles)) {
-        if (current.largeFiles[path] === undefined) improvements.push(`超大文件 ${path}：${lines} 行 → 已不超过 ${LARGE_FILE_LINES} 行`);
+        if (current.largeFiles[path] === undefined) improvements.push(`Very large files${path}：${lines} row → no more than${LARGE_FILE_LINES} OK`);
     }
     return { failures, improvements };
 }
@@ -126,7 +126,7 @@ function printFixHotspots(days) {
         if (line.startsWith("@@")) isFix = /^@@fix[(:]/.test(line);
         else if (isFix && /^(backend|web\/src|agent-host)\//.test(line) && !/(_test\.go|\.test\.tsx?)$/.test(line)) counts.set(line, (counts.get(line) ?? 0) + 1);
     }
-    console.log(`近 ${days} 天 fix 提交最集中的文件：`);
+    console.log(`near${days} Day fix commits the most concentrated files:`);
     for (const [path, count] of [...counts].sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`  ${count}\t${path}`);
 }
 
@@ -139,24 +139,24 @@ function main() {
     const { topModelLiteralFiles, ...snapshot } = current;
     if (args.includes("--update")) {
         writeFileSync(baselinePath, `${JSON.stringify(snapshot, null, 2)}\n`);
-        console.log(`已更新结构基线：${relative(root, baselinePath).split(sep).join("/")}`);
+        console.log(`Updated structural baseline:${relative(root, baselinePath).split(sep).join("/")}`);
         return;
     }
     const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
     const { failures, improvements } = compare(baseline, snapshot);
-    for (const line of improvements) console.log(`变好了 ${line}`);
-    if (improvements.length) console.log("可以运行 node scripts/structure-budget.mjs --update 收紧基线。");
+    for (const line of improvements) console.log(`Get better${line}`);
+    if (improvements.length) console.log("You can run node scripts/structure-budget.mjs --update to tighten the baseline.");
     if (!failures.length) {
-        console.log("结构预算通过。");
+        console.log("The structural budget was approved.");
         return;
     }
-    console.error("结构预算未通过（这些数字只许变小）：");
+    console.error("Structural budget not passed (these numbers can only get smaller):");
     for (const line of failures) console.error(`  - ${line}`);
     if (current.modelLiterals > baseline.modelLiterals) {
-        console.error("模型名最多的文件：");
+        console.error("Files with the most model names:");
         for (const [path, count] of topModelLiteralFiles) console.error(`  ${count}\t${path}`);
     }
-    console.error("如果确实需要，在 PR 说明里写清理由，然后运行 node scripts/structure-budget.mjs --update。");
+    console.error("If necessary, write the reason for cleanup in the PR description and run node scripts/structure-budget.mjs --update.");
     process.exitCode = 1;
 }
 

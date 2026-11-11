@@ -9,19 +9,19 @@ import (
 
 func ValidateSubmissionScope(run *model.CreationRun, version int64, req TaskRequest) error {
 	if run.Status == "paused" || run.Status == "cancelled" || run.Status == "completed" {
-		return Conflict("请先恢复创作任务")
+		return Conflict("Please resume creation tasks first")
 	}
 	if req.Type == "canvas_text" || req.Type == "text" {
 		if req.ProjectID != "" && req.ProjectID != run.CanvasID {
-			return Conflict("规划任务的画布关联不匹配")
+			return Conflict("Canvas association mismatch for planning tasks")
 		}
 		return nil
 	}
 	if run.CanvasID == "" || req.ProjectID != run.CanvasID {
-		return Conflict("媒体任务必须提交到当前创作画布")
+		return Conflict("Media tasks must be submitted to the current authoring canvas")
 	}
 	if run.ApprovedAt == nil || version != run.ApprovedProposalVersion || run.ApprovedProposalHash == "" {
-		return Conflict("请先确认当前方案")
+		return Conflict("Please confirm the current plan first")
 	}
 	var ops []CanvasOp
 	_ = json.Unmarshal([]byte(run.ApprovedOperationsJSON), &ops)
@@ -46,10 +46,10 @@ func ValidateSubmissionScope(run *model.CreationRun, version int64, req TaskRequ
 			prompt = stringValue(meta["text"])
 		}
 		if strings.TrimSpace(req.Prompt) != strings.TrimSpace(prompt) || prompt == "" {
-			return Conflict("任务提示词已超出获批方案")
+			return Conflict("The task prompt words have exceeded the approved plan")
 		}
 		if stringValue(meta["model"]) == "" || stringValue(meta["model"]) != req.Model {
-			return Conflict("模型与已批准方案不同")
+			return Conflict("Model differs from approved plan")
 		}
 		config, _ := req.Input["config"].(map[string]any)
 		for _, key := range []string{"size", "videoSeconds", "vquality", "quality"} {
@@ -70,26 +70,26 @@ func ValidateSubmissionScope(run *model.CreationRun, version int64, req TaskRequ
 				}
 			}
 			if approved != "" && approved != candidate {
-				return Conflict("生成规格与已批准方案不同")
+				return Conflict("Generated specifications differ from approved plan")
 			}
 		}
 		refs, _ := meta["referenceNodeIds"].([]any)
 		images, _ := req.Input["referenceImages"].([]any)
 		if len(refs) != len(images) {
-			return Conflict("参考素材数量与已批准方案不同")
+			return Conflict("The number of reference materials is different from the approved plan")
 		}
 		for index, ref := range refs {
 			image, _ := images[index].(map[string]any)
 			if stringValue(ref) != stringValue(image["id"]) {
-				return Conflict("参考素材与已批准方案不同")
+				return Conflict("The reference material is different from the approved plan")
 			}
 		}
 		for _, kind := range []string{"referenceVideos", "referenceAudios"} {
 			if values, ok := req.Input[kind].([]any); ok && len(values) > 0 {
-				return Conflict("本期方案尚未授权视频或音频参考输入")
+				return Conflict("No video or audio reference input has been authorized for this project")
 			}
 		}
 		return nil
 	}
-	return Conflict("任务节点不在已批准方案范围内")
+	return Conflict("The task node is not within the scope of the approved plan")
 }

@@ -53,7 +53,7 @@ func (s *Service) finalizeCharacterTurnaroundTask(task model.Task, result map[st
 	projectID := strings.TrimSpace(task.ProjectID)
 	assetID := strings.TrimSpace(input.Metadata.CharacterAssetID)
 	if projectID == "" || assetID == "" {
-		return false, errors.New("三视图任务缺少项目或角色标识")
+		return false, errors.New("Three-view task is missing project or role ID")
 	}
 	encodedResult, err := json.Marshal(result)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *Service) finalizeCharacterTurnaroundTask(task model.Task, result map[st
 		return false, err
 	}
 	if len(output.Images) == 0 || strings.TrimSpace(output.Images[0].ResourceID) == "" {
-		return false, errors.New("三视图任务没有返回已持久化的图片资源")
+		return false, errors.New("The three-view task did not return persisted image resources")
 	}
 
 	s.characterTaskMu.Lock()
@@ -105,7 +105,7 @@ func (s *Service) reconcileCharacterTurnaroundTasks(userID string, projectID str
 		}
 		if applied {
 			recovered = true
-			_ = s.log(userID, task.ID, "info", "已将历史三视图任务恢复到角色卡", "")
+			_ = s.log(userID, task.ID, "info", "The historical three-view mission has been restored to the character card", "")
 		}
 	}
 	return recovered

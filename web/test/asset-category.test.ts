@@ -3,19 +3,19 @@ import { describe, expect, test } from "bun:test";
 import { assetCategoryLabel, defaultAssetCategoryForKind, normalizeAssetCategory } from "@/lib/asset-category";
 
 describe("asset category contract", () => {
-    test("旧服饰、武器和配饰统一迁移为道具", () => {
+    test("Old clothing, weapons and accessories are uniformly migrated to props", () => {
         expect(normalizeAssetCategory("wardrobe")).toBe("prop");
         expect(normalizeAssetCategory("weapon")).toBe("prop");
         expect(normalizeAssetCategory("accessory")).toBe("prop");
     });
 
-    test("旧画风迁移为素材，未知值归入其他", () => {
+    test("The old style of painting is migrated to materials, and the unknown values are classified into other", () => {
         expect(normalizeAssetCategory("style")).toBe("material");
         expect(normalizeAssetCategory("unknown")).toBe("other");
-        expect(assetCategoryLabel("material")).toBe("素材");
+        expect(assetCategoryLabel("material")).toBe("Material");
     });
 
-    test("未分类媒体默认归入素材", () => {
+    test("Uncategorized media is classified as material by default", () => {
         expect(defaultAssetCategoryForKind("image")).toBe("material");
         expect(defaultAssetCategoryForKind("video")).toBe("material");
         expect(defaultAssetCategoryForKind("audio")).toBe("material");

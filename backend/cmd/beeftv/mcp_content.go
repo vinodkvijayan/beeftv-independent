@@ -9,7 +9,7 @@ import (
 )
 
 // videoPartNote replaces video bytes that MCP cannot carry as a content block.
-const videoPartNote = "视频片段未附带：MCP 没有视频内容类型。看画面请用 mode=frames，看连续动作或听声音请用 media.review。"
+const videoPartNote = "Video clip not included: MCP does not have a video content type. Please use mode=frames to see the picture, and use media.review to see the continuous action or listen to the sound."
 
 type mcpMediaPart struct {
 	Type     string          `json:"type"`
@@ -54,7 +54,7 @@ func opToolContent(raw json.RawMessage) []mcp.Content {
 		data, err := base64.StdEncoding.DecodeString(part.Data)
 		switch {
 		case err != nil || len(data) == 0:
-			fact["note"] = "媒体数据无法解码，未附带"
+			fact["note"] = "Media data cannot be decoded and is not included"
 		case strings.HasPrefix(part.MimeType, "image/"):
 			blocks = append(blocks, &mcp.ImageContent{Data: data, MIMEType: part.MimeType})
 			fact["attached"] = "image"

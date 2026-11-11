@@ -19,12 +19,12 @@ import (
 func TestCanvasLibraryFolderAndDrawingPersistAndCAS(t *testing.T) {
 	svc := newCanvasHistoryTestService(t)
 	userID := "owner"
-	folderRaw, _ := json.Marshal(map[string]any{"id": "folder-1", "name": "剧集"})
+	folderRaw, _ := json.Marshal(map[string]any{"id": "folder-1", "name": "drama series"})
 	folder, err := svc.UpsertUserCanvasFolder(userID, "folder-1", folderRaw)
-	if err != nil || folder.Name != "剧集" || folder.ID != "folder-1" {
+	if err != nil || folder.Name != "drama series" || folder.ID != "folder-1" {
 		t.Fatalf("folder upsert: %+v %v", folder, err)
 	}
-	canvasRaw := json.RawMessage(`{"id":"canvas","revision":0,"title":"分镜","folderId":"folder-1","nodes":[{"id":"n-drawing","type":"drawing","metadata":{"drawingId":"sketch"}}]}`)
+	canvasRaw := json.RawMessage(`{"id":"canvas","revision":0,"title":"storyboard","folderId":"folder-1","nodes":[{"id":"n-drawing","type":"drawing","metadata":{"drawingId":"sketch"}}]}`)
 	created, err := svc.UpsertUserCanvasProject(userID, canvasRaw)
 	if err != nil {
 		t.Fatal(err)
@@ -264,7 +264,7 @@ func TestCanvasDrawingPreviewBlocksResourceCleanup(t *testing.T) {
 	if err := svc.repo.CreateResource(&model.Resource{ID: "res-1", UserID: "owner", Kind: "image", Status: model.ResourceStatusReady}); err != nil {
 		t.Fatal(err)
 	}
-	if err := svc.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "图", PayloadJSON: "{}"}); err != nil {
+	if err := svc.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "Figure", PayloadJSON: "{}"}); err != nil {
 		t.Fatal(err)
 	}
 	raw, _ := json.Marshal(map[string]any{
@@ -280,7 +280,7 @@ func TestCanvasDrawingPreviewBlocksResourceCleanup(t *testing.T) {
 	}
 	found := false
 	for _, ref := range snapshot.Direct {
-		if ref.Kind == "画板预览" && ref.ResourceID == "res-1" {
+		if ref.Kind == "Artboard preview" && ref.ResourceID == "res-1" {
 			found = true
 			break
 		}
@@ -305,10 +305,10 @@ func TestCanvasFolderCoverBlocksResourceCleanup(t *testing.T) {
 	if err := svc.repo.CreateResource(&model.Resource{ID: "cover-1", UserID: "owner", Kind: "image", Status: model.ResourceStatusReady}); err != nil {
 		t.Fatal(err)
 	}
-	if err := svc.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "图", PayloadJSON: "{}"}); err != nil {
+	if err := svc.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "Figure", PayloadJSON: "{}"}); err != nil {
 		t.Fatal(err)
 	}
-	raw, _ := json.Marshal(map[string]any{"id": "folder-1", "name": "剧集", "coverResourceId": "cover-1"})
+	raw, _ := json.Marshal(map[string]any{"id": "folder-1", "name": "drama series", "coverResourceId": "cover-1"})
 	if _, err := svc.UpsertUserCanvasFolder("owner", "folder-1", raw); err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +332,7 @@ func TestCanvasDrawingWriteAndResourceDeleteSerialize(t *testing.T) {
 	if err := a.repo.CreateResource(&model.Resource{ID: "res-1", UserID: "owner", Kind: "image", Status: model.ResourceStatusReady}); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "图", PayloadJSON: "{}"}); err != nil {
+	if err := a.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "Figure", PayloadJSON: "{}"}); err != nil {
 		t.Fatal(err)
 	}
 	var events []string
@@ -440,7 +440,7 @@ func TestCanvasLibraryCloseReopenRetainsSnapshotAndRefs(t *testing.T) {
 	}
 	found := false
 	for _, ref := range snapshot.Direct {
-		if ref.ResourceID == "res-1" && ref.Kind == "画板预览" {
+		if ref.ResourceID == "res-1" && ref.Kind == "Artboard preview" {
 			found = true
 		}
 	}
@@ -451,7 +451,7 @@ func TestCanvasLibraryCloseReopenRetainsSnapshotAndRefs(t *testing.T) {
 
 func TestCanvasSaveRejectsTombstonedLibraryFolder(t *testing.T) {
 	svc := newCanvasHistoryTestService(t)
-	folderRaw, _ := json.Marshal(map[string]any{"id": "folder-1", "name": "剧集"})
+	folderRaw, _ := json.Marshal(map[string]any{"id": "folder-1", "name": "drama series"})
 	if _, err := svc.UpsertUserCanvasFolder("owner", "folder-1", folderRaw); err != nil {
 		t.Fatal(err)
 	}
@@ -544,7 +544,7 @@ func TestCanvasDrawingRejectsMalformedJSON(t *testing.T) {
 	}
 	_, err := svc.UpsertUserCanvasDrawing("owner", "canvas", "sketch", json.RawMessage(`{"drawingId":`))
 	var appError *kernel.AppError
-	if !errors.As(err, &appError) || appError.Status != http.StatusBadRequest || appError.Error() != "画板数据格式错误" {
+	if !errors.As(err, &appError) || appError.Status != http.StatusBadRequest || appError.Error() != "Artboard data format error" {
 		t.Fatalf("malformed drawing json = %v", err)
 	}
 }
@@ -558,7 +558,7 @@ func TestCanvasDrawingRenderBlocksResourceCleanup(t *testing.T) {
 	if err := svc.repo.CreateResource(&model.Resource{ID: "render-1", UserID: "owner", Kind: "image", Status: model.ResourceStatusReady}); err != nil {
 		t.Fatal(err)
 	}
-	if err := svc.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "图", PayloadJSON: "{}"}); err != nil {
+	if err := svc.repo.UpsertAsset(&model.Asset{ID: "asset-1", UserID: "owner", Title: "Figure", PayloadJSON: "{}"}); err != nil {
 		t.Fatal(err)
 	}
 	raw, _ := json.Marshal(map[string]any{
@@ -600,7 +600,7 @@ func (h *limitedQuotaHost) AdmitStructuredQuota(usage repository.UserStorageUsag
 		if mb < 1 {
 			mb = 1
 		}
-		return kernel.QuotaExceeded(fmt.Sprintf("账号画布和素材数据已达到 %dMB 上限，请先删除不需要的内容", mb))
+		return kernel.QuotaExceeded(fmt.Sprintf("The account canvas and material data have reached the upper limit of %dMB. Please delete unnecessary content first.", mb))
 	}
 	return nil
 }

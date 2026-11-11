@@ -59,7 +59,7 @@ mock.module("@/services/api/request", () => ({
             if (server.rejectNextWrite) {
                 const status = server.rejectNextWrite.status;
                 server.rejectNextWrite = null;
-                throw new ApiError("画布已被其他入口修改", { status, reason: "canvas_revision_conflict" });
+                throw new ApiError("The canvas has been modified by another entry", { status, reason: "canvas_revision_conflict" });
             }
             server.revision += 1;
             const id = String(body.project.id);
@@ -71,7 +71,7 @@ mock.module("@/services/api/request", () => ({
             if (server.rejectNextWrite) {
                 const status = server.rejectNextWrite.status;
                 server.rejectNextWrite = null;
-                throw new ApiError("画布已被其他入口修改", { status, reason: "stale_revision" });
+                throw new ApiError("The canvas has been modified by another entry", { status, reason: "stale_revision" });
             }
             server.revision += 1;
             const document = body.params?.document ?? {};
@@ -134,10 +134,10 @@ function canvas(revision: number, patch: Record<string, unknown> = {}) {
     return {
         id: "c1",
         revision,
-        title: "画布",
+        title: "canvas",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
-        nodes: [{ id: "n1", type: "image", title: "镜头1", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "服务端提示" } }],
+        nodes: [{ id: "n1", type: "image", title: "Shot 1", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "Server prompt" } }],
         connections: [],
         chatSessions: [],
         activeChatId: null,
@@ -177,111 +177,111 @@ beforeEach(() => {
     useCanvasStore.setState({ projects: [] });
 });
 
-describe("画布刷新接缝（服务端基线）", () => {
-    test("刷新通知抛错仍完成投影，基线与 live 一致", async () => {
+describe("Canvas refresh seam (server baseline)", () => {
+    test("Even if the refresh notification throws an error, the projection is still completed, and the baseline is consistent with live.", async () => {
         await establishConfirmedBaseline();
-        replaceServerDocument(canvas(4, { title: "外部新增内容" }));
+        replaceServerDocument(canvas(4, { title: "External new content" }));
         rejectEditorMerge = true;
         const applied = await refreshLocalCanvasProjectIfChanged("c1");
-        expect(applied?.title).toBe("外部新增内容");
-        expect(useCanvasStore.getState().projects[0].title).toBe("外部新增内容");
+        expect(applied?.title).toBe("External new content");
+        expect(useCanvasStore.getState().projects[0].title).toBe("External new content");
         expect(useCanvasStore.getState().projects[0].revision).toBe(4);
         expect(canvasExternalRevisionConflict(scope, "c1")).toBeUndefined();
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
         expect(server.puts.length).toBe(1);
     });
-    test("本地内容与服务端确认内容一致时，外部新 revision 立即可见", async () => {
+    test("When the local content is consistent with the content confirmed by the server, the new external revision is immediately visible", async () => {
         await establishConfirmedBaseline();
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
 
-        replaceServerDocument(canvas(2, { title: "外部改名", nodes: [{ id: "n1", type: "image", title: "镜头1", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "外部提示" } }] }));
+        replaceServerDocument(canvas(2, { title: "external name change", nodes: [{ id: "n1", type: "image", title: "Shot 1", position: { x: 0, y: 0 }, width: 320, height: 220, metadata: { prompt: "external cues" } }] }));
         const applied = await refreshLocalCanvasProjectIfChanged("c1");
 
-        expect(applied?.title).toBe("外部改名");
-        expect(useCanvasStore.getState().projects[0].nodes[0].metadata?.prompt).toBe("外部提示");
+        expect(applied?.title).toBe("external name change");
+        expect(useCanvasStore.getState().projects[0].nodes[0].metadata?.prompt).toBe("external cues");
         expect(notifications.map((item) => item.id)).toContain("c1");
     });
 
-    test("外部刷新落地后，后续手工提交使用新的 expectedRevision", async () => {
+    test("After external refresh is implemented, subsequent manual submissions will use the new expectedRevision.", async () => {
         await establishConfirmedBaseline();
-        replaceServerDocument(canvas(2, { title: "助手改过" }));
+        replaceServerDocument(canvas(2, { title: "Assistant corrected" }));
         await refreshLocalCanvasProjectIfChanged("c1");
-        useCanvasStore.getState().updateProject("c1", { title: "手工再改" });
+        useCanvasStore.getState().updateProject("c1", { title: "Modify again by hand" });
         await syncLocalCanvasProjectToBackend("c1");
         expect(server.posts).toEqual([expect.objectContaining({ path: "/ops/canvas.document.commit", expectedRevision: 2 })]);
-        expect(useCanvasStore.getState().projects[0].title).toBe("手工再改");
+        expect(useCanvasStore.getState().projects[0].title).toBe("Modify again by hand");
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
     });
 
-    test("GET 返回后用户又编辑：再检查一次，保留用户值并把远端留作候选", async () => {
+    test("The user edits after GET returns: check again, retain the user value and leave the remote end as a candidate", async () => {
         await establishConfirmedBaseline();
         // 挂起这次 GET，模拟「请求在途时用户继续编辑」。
         server.releaseGet = () => {};
         const pending = refreshLocalCanvasProjectIfChanged("c1");
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        replaceServerDocument(canvas(3, { title: "外部改名" }));
-        useCanvasStore.getState().updateProject("c1", { title: "用户刚改的标题" });
+        replaceServerDocument(canvas(3, { title: "external name change" }));
+        useCanvasStore.getState().updateProject("c1", { title: "The title just changed by the user" });
         (server as unknown as { pendingResolve: () => void }).pendingResolve();
         server.releaseGet = null;
         const applied = await pending;
 
         expect(applied).toBeUndefined();
         const live = useCanvasStore.getState().projects[0];
-        expect(live.title).toBe("用户刚改的标题");
+        expect(live.title).toBe("The title just changed by the user");
         expect(canvasExternalRevisionConflict(scope, "c1")?.remoteRevision).toBe(3);
-        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("外部改名");
+        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("external name change");
     });
 
-    test("HTTP 提交尚未落地时不会被判成可安全刷新", async () => {
+    test("HTTP submissions will not be judged as safe to refresh before they have landed.", async () => {
         await establishConfirmedBaseline();
-        useCanvasStore.getState().updateProject("c1", { title: "本地新标题" });
+        useCanvasStore.getState().updateProject("c1", { title: "local new title" });
 
         // 服务端还没确认这次编辑：即使本地内容已经写进浏览器存储也必须算未确认。
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(true);
     });
 
-    test("用户显式以最新为准：采用候选，本地回到已确认状态且不重复回写", async () => {
+    test("The user explicitly uses the latest one: adopt the candidate, return to the confirmed state locally and do not write back repeatedly.", async () => {
         await establishConfirmedBaseline();
-        useCanvasStore.getState().updateProject("c1", { title: "本地新标题" });
-        replaceServerDocument(canvas(4, { title: "外部改名" }));
-        useSyncProgressStore.getState().setProjectProgress("c1", { phase: "conflict", message: "旧提交已暂停" });
+        useCanvasStore.getState().updateProject("c1", { title: "local new title" });
+        replaceServerDocument(canvas(4, { title: "external name change" }));
+        useSyncProgressStore.getState().setProjectProgress("c1", { phase: "conflict", message: "Old commits are paused" });
         await refreshLocalCanvasProjectIfChanged("c1");
-        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("外部改名");
+        expect(canvasExternalRevisionConflict(scope, "c1")?.candidate.title).toBe("external name change");
 
         const accepted = await acceptExternalCanvasRevision("c1");
 
-        expect(accepted?.title).toBe("外部改名");
-        expect(useCanvasStore.getState().projects[0].title).toBe("外部改名");
+        expect(accepted?.title).toBe("external name change");
+        expect(useCanvasStore.getState().projects[0].title).toBe("external name change");
         expect(canvasExternalRevisionConflict(scope, "c1")).toBeUndefined();
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(false);
         expect(server.puts.length).toBe(1);
     });
 
-    test("本地编辑的是旧白名单之外的字段时，外部刷新同样不得静默覆盖", async () => {
+    test("When a field outside the old whitelist is edited locally, external refresh must not silently overwrite it either.", async () => {
         await establishConfirmedBaseline();
         // folderId 不在旧的七字段白名单里：编辑它曾会被判成「本地干净」而直接被外部内容覆盖。
         useCanvasStore.getState().updateProject("c1", { folderId: "folder-keep-me" });
-        replaceServerDocument(canvas(5, { title: "外部改名", folderId: "folder-from-external" }));
+        replaceServerDocument(canvas(5, { title: "external name change", folderId: "folder-from-external" }));
 
         const applied = await refreshLocalCanvasProjectIfChanged("c1");
 
         expect(applied).toBeUndefined();
         const live = useCanvasStore.getState().projects[0];
         expect(live.folderId).toBe("folder-keep-me");
-        expect(live.title).toBe("画布");
+        expect(live.title).toBe("canvas");
         expect(canvasExternalRevisionConflict(scope, "c1")?.remoteRevision).toBe(5);
     });
 
-    test("提交被服务端按 revision 拒绝：暂停自动提交，且不改写本地内容", async () => {
+    test("The submission was rejected by the server by revision: automatic submission is suspended and local content is not rewritten.", async () => {
         await establishConfirmedBaseline();
-        useCanvasStore.getState().updateProject("c1", { title: "本地新标题" });
+        useCanvasStore.getState().updateProject("c1", { title: "local new title" });
         server.rejectNextWrite = { status: 409 };
 
         await expect(syncLocalCanvasProjectToBackend("c1")).rejects.toThrow();
 
         expect(projectSyncProgress("c1")?.phase).toBe("conflict");
-        expect(useCanvasStore.getState().projects[0].title).toBe("本地新标题");
+        expect(useCanvasStore.getState().projects[0].title).toBe("local new title");
         expect(hasUnconfirmedCanvasEdits("c1")).toBe(true);
     });
 });

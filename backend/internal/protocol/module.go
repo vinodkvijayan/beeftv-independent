@@ -25,7 +25,7 @@ type ModuleProvider struct {
 	Auth     ManifestAuth
 }
 
-var errModuleProvider = errors.New("JS 生成接口由插件宿主执行，不构造 HTTP 请求")
+var errModuleProvider = errors.New("The JS generation interface is executed by the plug-in host and does not construct an HTTP request.")
 
 func (m ModuleProvider) Metadata() Metadata { return m.Info }
 
@@ -62,7 +62,7 @@ func BindModuleProviders(adapters []Adapter, dir, revision string) []Adapter {
 		if strings.TrimSpace(dir) == "" {
 			info := module.Info
 			info.Enabled = false
-			info.UnavailableReason = "JS 生成接口只能来自 npm 插件包"
+			info.UnavailableReason = "JS generation interface can only come from npm plug-in package"
 			adapters[index] = UnavailableAdapter{Info: info}
 			continue
 		}

@@ -42,10 +42,10 @@ type Host struct {
 
 func RequireAdmin(user *model.User) error {
 	if user == nil {
-		return kernel.Unauthorized("请先登录")
+		return kernel.Unauthorized("Please log in first")
 	}
 	if user.Role != model.UserRoleAdmin {
-		return kernel.Forbidden("需要管理员权限")
+		return kernel.Forbidden("Requires administrator rights")
 	}
 	return nil
 }
@@ -264,13 +264,13 @@ func DeleteSystemChannel(repo *repository.Repository, invalidateRoutes func(), a
 	channel, err := repo.AdminSystemChannel(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return kernel.BadAuthRequest("系统渠道不存在或已删除")
+			return kernel.BadAuthRequest("The system channel does not exist or has been deleted")
 		}
 		return err
 	}
 	err = repo.DeleteSystemChannel(channel.ID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return kernel.BadAuthRequest("系统渠道不存在或已删除")
+		return kernel.BadAuthRequest("The system channel does not exist or has been deleted")
 	}
 	if err == nil && invalidateRoutes != nil {
 		invalidateRoutes()
@@ -399,7 +399,7 @@ func MergeVideoAPICallLog(repo *repository.Repository, log model.ApiCallLog) (bo
 
 func APICallLogs(repo *repository.Repository, actor *model.User, limit int) ([]model.ApiCallLog, error) {
 	if actor == nil {
-		return nil, kernel.Unauthorized("请先登录")
+		return nil, kernel.Unauthorized("Please log in first")
 	}
 	return repo.ApiCallLogs(actor.ID, actor.Role == model.UserRoleAdmin, limit)
 }

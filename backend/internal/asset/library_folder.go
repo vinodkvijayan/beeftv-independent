@@ -36,7 +36,7 @@ func (l *Library) CreateAssetFolder(userID string, req CreateAssetFolderRequest)
 				return existsErr
 			}
 			if exists {
-				return kernel.BadAuthRequest("已存在同名素材分类")
+				return kernel.BadAuthRequest("A material category with the same name already exists")
 			}
 			position, positionErr := tx.NextAssetFolderPosition(userID)
 			if positionErr != nil {
@@ -46,7 +46,7 @@ func (l *Library) CreateAssetFolder(userID string, req CreateAssetFolderRequest)
 			folder = model.AssetFolder{ID: kernel.NewID(), UserID: userID, Name: name, NameKey: nameKey, Position: position, CreatedAt: now, UpdatedAt: now}
 			if err := tx.CreateAssetFolder(&folder); err != nil {
 				if isAssetFolderNameConflict(err) {
-					return kernel.BadAuthRequest("已存在同名素材分类")
+					return kernel.BadAuthRequest("A material category with the same name already exists")
 				}
 				return err
 			}
@@ -74,7 +74,7 @@ func (l *Library) UpdateAssetFolder(userID string, folderID string, req UpdateAs
 			item, loadErr := tx.AssetFolderForUser(userID, folderID)
 			if loadErr != nil {
 				if isNotFound(loadErr) {
-					return kernel.BadAuthRequest("素材分类不存在")
+					return kernel.BadAuthRequest("Material classification does not exist")
 				}
 				return loadErr
 			}
@@ -83,17 +83,17 @@ func (l *Library) UpdateAssetFolder(userID string, folderID string, req UpdateAs
 				return existsErr
 			}
 			if exists {
-				return kernel.BadAuthRequest("已存在同名素材分类")
+				return kernel.BadAuthRequest("A material category with the same name already exists")
 			}
 			item.Name = name
 			item.NameKey = nameKey
 			item.UpdatedAt = time.Now().UTC()
 			if err := tx.UpdateAssetFolder(item); err != nil {
 				if isNotFound(err) {
-					return kernel.BadAuthRequest("素材分类不存在")
+					return kernel.BadAuthRequest("Material classification does not exist")
 				}
 				if isAssetFolderNameConflict(err) {
-					return kernel.BadAuthRequest("已存在同名素材分类")
+					return kernel.BadAuthRequest("A material category with the same name already exists")
 				}
 				return err
 			}
@@ -114,10 +114,10 @@ func (l *Library) DeleteAssetFolder(userID string, folderID string) error {
 	return l.host.WithStorageLock(func() error {
 		err := l.repo.DeleteAssetFolder(userID, strings.TrimSpace(folderID))
 		if isNotFound(err) {
-			return kernel.BadAuthRequest("素材分类不存在")
+			return kernel.BadAuthRequest("Material classification does not exist")
 		}
 		if errors.Is(err, repository.ErrAssetFolderAssignmentConflict) {
-			return kernel.NewAppError(http.StatusConflict, "素材已被其他操作更新，请重试")
+			return kernel.NewAppError(http.StatusConflict, "The material has been updated by other operations, please try again")
 		}
 		return err
 	})
@@ -129,10 +129,10 @@ func (l *Library) MoveUserAssetsToFolder(userID string, req MoveUserAssetsReques
 	}
 	ids := kernel.UniqueNonEmpty(req.AssetIDs)
 	if len(ids) == 0 {
-		return kernel.BadAuthRequest("请选择要移动的素材")
+		return kernel.BadAuthRequest("Please select the material you want to move")
 	}
 	if len(ids) > maxUserAssetMoveBatch {
-		return kernel.BadAuthRequest("一次最多移动 200 个素材")
+		return kernel.BadAuthRequest("Move up to 200 assets at a time")
 	}
 	folderID := strings.TrimSpace(req.FolderID)
 	return l.host.WithStorageLock(func() error {
@@ -140,7 +140,7 @@ func (l *Library) MoveUserAssetsToFolder(userID string, req MoveUserAssetsReques
 			if folderID != "" {
 				if _, err := tx.AssetFolderForUser(userID, folderID); err != nil {
 					if isNotFound(err) {
-						return kernel.BadAuthRequest("目标素材分类不存在")
+						return kernel.BadAuthRequest("The target material category does not exist")
 					}
 					return err
 				}
@@ -150,7 +150,7 @@ func (l *Library) MoveUserAssetsToFolder(userID string, req MoveUserAssetsReques
 				return err
 			}
 			if len(assets) != len(ids) {
-				return kernel.BadAuthRequest("部分素材不存在或不属于当前用户")
+				return kernel.BadAuthRequest("Some materials do not exist or do not belong to the current user")
 			}
 			now := time.Now().UTC()
 			for index := range assets {
@@ -180,14 +180,14 @@ func assignAssetFolder(tx *repository.Repository, userID string, item model.Asse
 		fresh, loadErr := tx.AssetForUser(userID, current.ID)
 		if loadErr != nil {
 			if isNotFound(loadErr) {
-				return kernel.BadAuthRequest("部分素材不存在或不属于当前用户")
+				return kernel.BadAuthRequest("Some materials do not exist or do not belong to the current user")
 			}
 			return loadErr
 		}
 		current = *fresh
 		now = time.Now().UTC()
 	}
-	return kernel.NewAppError(http.StatusConflict, "素材已被其他操作更新，请重试")
+	return kernel.NewAppError(http.StatusConflict, "The material has been updated by other operations, please try again")
 }
 
 func assetPayloadWithFolder(payloadJSON string, folderID string, updatedAt time.Time) (string, error) {
@@ -208,10 +208,10 @@ func assetPayloadWithFolder(payloadJSON string, folderID string, updatedAt time.
 func normalizeAssetFolderName(value string) (string, string, error) {
 	name := strings.TrimSpace(value)
 	if name == "" {
-		return "", "", kernel.BadAuthRequest("请输入素材分类名称")
+		return "", "", kernel.BadAuthRequest("Please enter the material category name")
 	}
 	if utf8.RuneCountInString(name) > 40 {
-		return "", "", kernel.BadAuthRequest("素材分类名称不能超过 40 个字符")
+		return "", "", kernel.BadAuthRequest("Material category name cannot exceed 40 characters")
 	}
 	return name, strings.ToLower(name), nil
 }

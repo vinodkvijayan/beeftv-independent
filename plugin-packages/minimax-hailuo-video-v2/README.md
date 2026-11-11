@@ -1,16 +1,16 @@
-# MiniMax Hailuo Video V2 / H3 协议插件
+# MiniMax Hailuo Video V2 / H3 protocol plug-in
 
-该包贡献兼容旧渠道 ID `minimax-video` 的声明式 provider。画布、创作页和短剧生产只提交统一 `GenerationRequest`；插件将图片、视频和音频按显式 role 转成 MiniMax `content[]`。
+This package contributes a declarative provider compatible with the old channel ID `minimax-video`. Canvas, creation page, and skit production only submit unified `GenerationRequest`; the plug-in converts images, videos, and audio to MiniMax `content[]` according to explicit roles.
 
-本插件由 BeefTV Contributors 维护，用于适配 MiniMax 相关服务接口；不表示 BeefTV 与该服务商存在隶属、授权或合作关系。
+This plug-in is maintained by BeefTV Contributors and is used to adapt to MiniMax-related service interfaces; it does not mean that BeefTV has an affiliation, authorization or cooperative relationship with the service provider.
 
-重点修复：
+Key fixes:
 
-- `resolution` 直接来自统一分辨率，不再遗漏。
-- 比例写入上游实际使用的 `ratio`；首尾帧模式强制 `adaptive`。
-- `watermark` 映射为 `aigc_watermark`。
-- `generateAudio` 映射为 `generate_audio`。
-- prompt 只放入 text block，不再同时发送顶层 prompt。
-- 首帧、尾帧和 reference image 依据 role 转换，不按 `0/1` 猜测。
+- `resolution` directly from unified resolution, no more missing.
+- Scale writes `ratio` actually used by upstream; first and last frame mode forces `adaptive`.
+- `watermark` maps to `aigc_watermark`.
+- `generateAudio` maps to `generate_audio`.
+- The prompt is only placed in the text block, and the top-level prompt is no longer sent at the same time.
+- The first frame, last frame and reference image are converted according to role, not guessed according to `0/1`.
 
-完整字段见 [docs/interface.md](docs/interface.md)。
+See [docs/interface.md](docs/interface.md) for the complete fields.

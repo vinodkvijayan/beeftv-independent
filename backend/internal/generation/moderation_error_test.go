@@ -42,7 +42,7 @@ func TestModerationContract(t *testing.T) {
 }
 
 func TestGenericWrapperRefinementPreservesAuthoritativeCodes(t *testing.T) {
-	persisted := "生成音频未通过上游版权审核。请调整音乐或音频相关提示词；如使用了参考音频，请检查并更换后重新生成。"
+	persisted := "The generated audio did not pass the upstream copyright review. Please adjust the music or audio related prompt words; if reference audio is used, please check and replace it and regenerate it."
 	for typeCode, category := range map[string]generation.FailureCategory{"authentication_error": generation.CategoryAuth, "permission_denied": generation.CategoryPermission} {
 		for _, field := range []string{"type", "status"} {
 			raw, _ := json.Marshal(map[string]any{"error": map[string]string{field: typeCode, "message": persisted}})

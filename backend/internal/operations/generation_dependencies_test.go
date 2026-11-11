@@ -77,10 +77,10 @@ func TestGenerationDependencyReferenceSelection(t *testing.T) {
 		{name: "config reference must finish", extra: []map[string]any{{"id": "config", "type": "config"}}, edges: [][2]string{{"shot", "config"}, {"empty", "config"}}, wantBlocked: true},
 		{name: "config inputs take precedence", extra: []map[string]any{{"id": "config", "type": "config"}}, edges: [][2]string{{"shot", "config"}, {"ready", "config"}, {"empty", "shot"}}},
 		{name: "explicit ready node selects subset", prompt: "use @[node:ready]", edges: [][2]string{{"empty", "shot"}, {"ready", "shot"}}},
-		{name: "numbered reference skips empty placeholder", prompt: "use @图片1", edges: [][2]string{{"empty", "shot"}, {"ready", "shot"}}},
-		{name: "numbered token needs boundary", prompt: "use @图片1suffix", edges: [][2]string{{"empty", "shot"}, {"ready", "shot"}}, wantBlocked: true},
+		{name: "numbered reference skips empty placeholder", prompt: "use @picture1", edges: [][2]string{{"empty", "shot"}, {"ready", "shot"}}},
+		{name: "numbered token needs boundary", prompt: "use @picture1suffix", edges: [][2]string{{"empty", "shot"}, {"ready", "shot"}}, wantBlocked: true},
 		{name: "explicit empty node is not silently skipped", prompt: "use @[node:empty]", edges: [][2]string{{"empty", "shot"}}, wantBlocked: true},
-		{name: "explicit text omits image reference", prompt: "use @文本1", extra: []map[string]any{{"id": "text", "type": "text", "metadata": map[string]any{"content": "instructions"}}}, edges: [][2]string{{"text", "shot"}, {"empty", "shot"}}},
+		{name: "explicit text omits image reference", prompt: "use @text1", extra: []map[string]any{{"id": "text", "type": "text", "metadata": map[string]any{"content": "instructions"}}}, edges: [][2]string{{"text", "shot"}, {"empty", "shot"}}},
 		{name: "video uses all connected media", kind: "video", prompt: "use @[node:ready]", edges: [][2]string{{"empty", "shot"}, {"ready", "shot"}}, wantBlocked: true},
 		{name: "structured frame still required", kind: "video", frame: "empty", prompt: "use @[node:ready]", edges: [][2]string{{"ready", "shot"}}, wantBlocked: true},
 		{name: "deleted structured frame", kind: "video", frame: "deleted", wantBlocked: true},
@@ -117,14 +117,14 @@ func TestGenerationDependencyNodeMentionUsesNormalizedBoundary(t *testing.T) {
 		blocked bool
 	}{
 		{"@[node:ready] next", false},
-		{"@[node:ready]，旁边", false},
-		{"@[node:ready]旁边", true},
+		{"@[node:ready], next to", false},
+		{"Next to @[node:ready]", true},
 		{"@[node:ready]suffix", true},
-		{"@图片1\u3000next", false},
-		{"@图片1\u00a0next", false},
-		{"@图片1\vnext", false},
-		{"@图片1\ufeffnext", false},
-		{"@图片1\u0085next", true},
+		{"@Picture1　next", false},
+		{"@Picture 1 next", false},
+		{"@picture1vnext", false},
+		{"@Picture1﻿next", false},
+		{"@Picture1next", true},
 	} {
 		t.Run(tc.prompt, func(t *testing.T) {
 			ready := imageNode("ready", "")

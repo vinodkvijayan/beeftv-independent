@@ -43,7 +43,7 @@ func ModelID(name string) string {
 
 func Validate(r Request, kind string) error {
 	if r.ResourceID == "" || r.ChannelID != "beeftv" || math.IsNaN(r.Scale) || math.IsInf(r.Scale, 0) || r.Scale < 1 || r.Scale > 4 || r.Scale != math.Trunc(r.Scale) {
-		return errors.New("请选择素材、官方算力及 1–4 倍整数倍率")
+		return errors.New("Please select the material, official computing power and 1–4 times integer multiplier")
 	}
 	for _, mode := range Modes() {
 		if mode.MediaType != kind || mode.Mode != r.Mode || mode.Models[0] != r.Model {
@@ -55,13 +55,13 @@ func Validate(r Request, kind string) error {
 				found = found || format == r.OutputFormat
 			}
 			if !found {
-				return errors.New("输出格式不受支持")
+				return errors.New("Output format is not supported")
 			}
 		}
 		if r.EnhancementStrength != "" && r.EnhancementStrength != "low" {
-			return errors.New("当前超分模型仅支持默认增强强度")
+			return errors.New("The current super-resolution model only supports default enhancement intensity")
 		}
 		return nil
 	}
-	return errors.New("此素材的模式或模型不受支持")
+	return errors.New("This asset's mode or model is not supported")
 }

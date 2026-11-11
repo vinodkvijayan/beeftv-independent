@@ -38,7 +38,7 @@ func RegisterModelCatalogRoutes(r *gin.RouterGroup, catalogs modelCatalogs) {
 		}
 		var intent modelcatalog.ModelRequestIntent
 		if err := c.ShouldBindJSON(&intent); err != nil {
-			fail(c, http.StatusBadRequest, errors.New("模型能力请求格式错误"))
+			fail(c, http.StatusBadRequest, errors.New("Model capability request format error"))
 			return
 		}
 		catalog, err := catalogs.ModelCatalog(&intent)

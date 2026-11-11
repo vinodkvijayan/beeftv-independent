@@ -87,7 +87,7 @@ func (u ManifestMediaUpload) ParseResponse(body []byte) (string, error) {
 	message := firstPathValue(payload, u.MessagePaths...)
 	if manifestError(payload, u.ErrorPaths, u.SuccessCodes) {
 		if message == "" {
-			message = "参考素材上传失败"
+			message = "Reference material upload failed"
 		}
 		return "", fmt.Errorf("%s", message)
 	}
@@ -96,7 +96,7 @@ func (u ManifestMediaUpload) ParseResponse(body []byte) (string, error) {
 		if message != "" {
 			return "", fmt.Errorf("%s", message)
 		}
-		return "", fmt.Errorf("参考素材上传未返回访问地址")
+		return "", fmt.Errorf("Reference material upload did not return access address")
 	}
 	return link, nil
 }

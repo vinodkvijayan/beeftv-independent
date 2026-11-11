@@ -13,7 +13,7 @@ const listen = (server) => new Promise((resolve) => server.listen(0, '127.0.0.1'
 function send(res, model, tool, args = {}) {
   res.writeHead(200, { 'content-type': 'text/event-stream' });
   const frame = (delta, finish_reason = null) => res.write('data: ' + JSON.stringify({ id: 'fixture', object: 'chat.completion.chunk', created: 1, model, choices: [{ index: 0, delta, finish_reason }] }) + '\n\n');
-  frame(tool ? { role: 'assistant', tool_calls: [{ index: 0, id: 'call-' + tool + '-' + modelCalls, type: 'function', function: { name: tool, arguments: JSON.stringify(args) } }] } : { role: 'assistant', content: args.finalText || '已读取实际参考图片、15秒音频和15秒视频。' });
+  frame(tool ? { role: 'assistant', tool_calls: [{ index: 0, id: 'call-' + tool + '-' + modelCalls, type: 'function', function: { name: tool, arguments: JSON.stringify(args) } }] } : { role: 'assistant', content: args.finalText || 'The actual reference image, 15 seconds of audio and 15 seconds of video have been read.' });
   frame({}, tool ? 'tool_calls' : 'stop'); res.end('data: [DONE]\n\n');
 }
 const captured = []; let expected;
@@ -121,7 +121,7 @@ try {
     await until(async () => { try { return (await fetch(base + '/health', { signal: AbortSignal.timeout(500) })).ok; } catch { return false; } });
   }
   await start();
-  await api('/chat', { canvasId: config.canvasId, turnId: config.turnId, message: '检查参考音视频的实际内容', revisionBefore: 1, attachments: [config.image,config.audio,config.video] });
+  await api('/chat', { canvasId: config.canvasId, turnId: config.turnId, message: 'Check the actual content of the reference audio and video', revisionBefore: 1, attachments: [config.image,config.audio,config.video] });
   let history;
   await until(async () => { history = await (await api('/history?canvasId=' + config.canvasId)).json(); return history.turns?.length === 1; });
   assert.equal(history.turns[0].error, null, JSON.stringify(history));

@@ -1,141 +1,141 @@
 # AGENTS.md
 
-本文件是BeefTV仓库中 AI、自动化工具和协作者的工作约定。用户当前任务优先于本文件；本文件优先于个人习惯。所有结论应能回溯到代码、配置、测试、日志或文档，不用历史印象替代现状。
+This document is the working convention for AI, automation tools and collaborators in the BeefTV repository. The user's current tasks take precedence over this document; this document takes precedence over personal habits. All conclusions should be traceable back to code, configurations, tests, logs, or documentation, and historical impressions should not be used to replace the current situation.
 
-## 1. 项目边界
+## 1. Project boundaries
 
-BeefTV（`glanderness/BeefTV`）是面向 AI 影视与短剧创作的工作台，当前仍在快速开发。公开接口、数据结构和部署配置可能直接调整；除非任务明确要求，不为旧字段、旧 API 或旧数据增加兼容层。
+BeefTV (`glanderness/BeefTV`) is a workbench for AI film, television and short drama creation, and is still under rapid development. Public interfaces, data structures, and deployment configurations may be adjusted directly; no compatibility layers are added for old fields, old APIs, or old data unless explicitly required by the task.
 
-仓库由几个边界清晰但可独立运行的单元组成：
+The warehouse consists of several units with clear boundaries but that can operate independently:
 
-| 单元 | 技术栈 | 入口 | 责任 |
+| Unit | Technology Stack | Entrance | Responsibility |
 | --- | --- | --- | --- |
-| `web/` | Vite、React 19、TypeScript、React Router、Ant Design、Tailwind、Zustand、TanStack Query | `web/src/application.tsx`、`web/src/router.tsx` | 工作区 UI、画布交互、浏览器缓存、API 调用和模型协议适配 |
-| `backend/` | Go 1.26、Gin、GORM、SQLite | `backend/cmd/desktop`、`backend/cmd/server` | 本地工作区 API、持久化任务、资源和外部模型协议适配 |
-| `docs/` | Next.js、Fumadocs、MDX | `docs/content/docs/` | 面向用户和开发者的专题文档；构建配置见 `docs/source.config.ts` |
+| `web/` | Vite, React 19, TypeScript, React Router, Ant Design, Tailwind, Zustand, TanStack Query | `web/src/application.tsx`, `web/src/router.tsx` | Workspace UI, canvas interaction, browser caching, API calls and model protocol adaptation |
+| `backend/` | Go 1.26, Gin, GORM, SQLite | `backend/cmd/desktop`, `backend/cmd/server` | Local workspace API, persistence tasks, resources and external model protocol adaptation |
+| `docs/` | Next.js, Fumadocs, MDX | `docs/content/docs/` | Special documentation for users and developers; see `docs/source.config.ts` for build configuration |
 
-根目录脚本负责 Wails 与本地开发验证。主线不依赖 PostgreSQL、Redis、登录或多租户部署。
+The root script is responsible for Wails and local development verification. Mainline does not rely on PostgreSQL, Redis, logins, or multi-tenant deployments.
 
-## 2. 开始工作前
+## 2. Before starting work
 
-1. 先读取任务涉及的入口、调用方、配置、锁文件和相邻测试；先理解现状，再决定是否抽象或重构。
-2. 使用 `rg` / `rg --files` 搜索，优先并行读取相关文件。不要为了“统一风格”改动无关模块、依赖、格式或用户已有修改。
-3. 先形成目标边界：页面负责什么、service 负责什么、handler/service/repository 如何分层、数据和错误如何流动。新增 helper 必须消除真实重复或隔离明确协议，不能只透传参数。
-4. 检查 `git status --short`。不覆盖、不回滚、不清理非本次产生的变更；不使用 `git reset --hard`、`git checkout --` 或宽范围删除。
-5. 手工编辑使用 `apply_patch`；默认使用 ASCII，业务中文或已有 Unicode 文件除外。注释只解释非直观算法、核心入口、安全边界和降级原因。
+1. First read the entry, caller, configuration, lock file and adjacent tests involved in the task; first understand the current situation, and then decide whether to abstract or refactor.
+2. Use `rg` / `rg --files` to search and read related files in parallel first. Do not change irrelevant modules, dependencies, formats or user-made changes for the sake of "unifying style".
+3. First form the target boundary: what the page is responsible for, what the service is responsible for, how the handler/service/repository is layered, and how data and errors flow. New helpers must eliminate true duplication or isolate clear protocols, and cannot just transparently transmit parameters.
+4. Check `git status --short`. Do not overwrite, roll back, or clean up changes not made this time; do not use `git reset --hard`, `git checkout --` or wide-range deletion.
+5. Use `apply_patch` for manual editing; ASCII is used by default, except for business Chinese or existing Unicode files. Comments only explain non-intuitive algorithms, core entry points, security boundaries, and reasons for downgrades.
 
-## 3. 目录职责和依赖方向
+## 3. Directory responsibilities and dependency direction
 
-### 前端
+### Front-end
 
-- `web/src/pages/`：路由页面及页面私有 hook/组件；页面协调流程，不直接拼装后端协议。
-- `web/src/layouts/`：路由级布局、全局浮层和页面壳；不要在页面重复设置全局 body 状态。
-- `web/src/components/`：真实跨页面复用的 UI 或交互能力；页面私有组件留在页面目录。
-- `web/src/services/api/`：业务 API、模型渠道协议、资源 API；不依赖 JSX、路由或 AntD 提示。
-- `web/src/services/`：文件、媒体、同步、缓存和生成任务等跨页面副作用。
-- `web/src/stores/`：跨页面状态和持久化配置；页面临时状态留在页面，媒体大对象不进 `localStorage`。
-- `web/src/lib/`：纯函数、画布算法、协议转换、设计 token 和可独立测试的基础能力。
-- `web/src/styles/globals.css`：变量、重置和必要的第三方覆盖；页面样式优先使用现有 token 或页面样式。
+- `web/src/pages/`: routing page and page private hook/component; page coordination process, without directly assembling the back-end protocol.
+- `web/src/layouts/`: Route-level layout, global floating layer and page shell; do not repeatedly set the global body state on the page.
+- `web/src/components/`: Real cross-page reusable UI or interactive capabilities; page private components remain in the page directory.
+- `web/src/services/api/`: Business API, model channel protocol, resource API; no reliance on JSX, routing or AntD hints.
+- `web/src/services/`: Cross-page side effects such as files, media, sync, cache and build tasks.
+- `web/src/stores/`: Cross-page status and persistence configuration; the temporary status of the page remains on the page, and the media large object does not enter `localStorage`.
+- `web/src/lib/`: Pure functions, canvas algorithms, protocol conversion, design tokens and basic capabilities that can be independently tested.
+- `web/src/styles/globals.css`: Variables, resets, and necessary third-party overrides; page styles take precedence over existing tokens or page styles.
 
-### 后端
+### Backend
 
-- `backend/internal/handler/`：HTTP 入参、本地 workspace context、调用领域端口和统一响应；不放数据库查询。
-- `backend/internal/bootstrap/` 与 `backend/internal/localapp/`：本地组合根和窄端口；启动层不得重新暴露巨型 `app.Service` 方法集。
-- `backend/internal/task/`、`asset/`、`project/`、`generation/`：本地领域合同与实现；新合同不得反向 import `internal/app`。
-- `backend/internal/app/`：跨域编排和尚未拆出的核心实现。Provider、Protocol、自定义渠道和插件是必须保留的本地扩展能力。
-- `backend/internal/repository/`：GORM 查询和持久化；不承载业务策略。
-- `backend/internal/model/`：结构、枚举和简单模型方法；不调用外部服务。
-- `backend/internal/provider/`：模型供应商能力和协议实现。
-- `backend/internal/database/`：数据库连接、迁移和连接池。
-- `backend/cmd/`：可执行入口、迁移和启动配置；启动参数不得绕过数据目录约束。
+- `backend/internal/handler/`: HTTP input parameters, local workspace context, calling domain port and unified response; database query is not included.
+- `backend/internal/bootstrap/` vs. `backend/internal/localapp/`: Native combined root and narrow ports; boot layer must not re-expose the giant `app.Service` method set.
+- `backend/internal/task/`, `asset/`, `project/`, `generation/`: local domain contracts and implementations; new contracts may not reverse import `internal/app`.
+- `backend/internal/app/`: Cross-domain orchestration and core implementation that has not yet been torn out. Provider, Protocol, custom channels and plug-ins are local extension capabilities that must be retained.
+- `backend/internal/repository/`: GORM query and persistence; does not carry business policies.
+- `backend/internal/model/`: Structures, enumerations, and simple model methods; no calls to external services.
+- `backend/internal/provider/`: Model provider capabilities and protocol implementation.
+- `backend/internal/database/`: Database connection, migration and connection pooling.
+- `backend/cmd/`: Executable entry, migration and startup configuration; startup parameters must not bypass data directory constraints.
 
-调用链应保持为：`HTTP -> handler -> localapp/domain port -> app/domain implementation -> repository/model`；需要模型上游时进入 `generation` / `provider` / `protocol` / `outbound`。
+The call chain should remain as: `HTTP -> handler -> localapp/domain port -> app/domain implementation -> repository/model`; enter `generation` / `provider` / `protocol` / `outbound` when the model is required upstream.
 
-### 插件和文档
+### Plugins and documentation
 
-- 修改 `docs/` 前确认内容属于专题文档，而不是把长篇说明重新复制到根 README。目录索引见 `docs/index.md`。
+- Before modifying `docs/`, confirm that the content belongs to the topic document instead of re-copying the long description to the root README. See `docs/index.md` for catalog index.
 
-## 4. 前端 API 和状态合同
+## 4. Front-end API and state contract
 
-### 后端业务 JSON
+### Backend business JSON
 
-业务 API 的唯一调用入口是 `web/src/services/api/request.ts` 导出的 `http`：
+The only call entry point for the business API is `http` exported by `web/src/services/api/request.ts`:
 
-- 模块写 `http.get/post/put/patch/delete`，由 `http` 解包 `{ code, data, msg, reason }`。不要再写 `request(apiClient.*)`，也不要再 `axios.create`。
-- 二进制或非信封响应用 `http.raw`（CSV、诊断包 zip）。
-- `apiClient` 只留给拦截器和 `http` 内部；默认 `VITE_CANVAS_BACKEND_URL || "/api"`。
-- `request()` 仍可用于测试信封解包，不是业务模块的调用面。
-- 后端成功响应为 `{ code: 0, data: T, msg: string }`；HTTP 200 不等于业务成功，`code !== 0` 必须抛错。失败时用 `ApiError.reason` / `ApiError.code` 判断类型，不要解析 `msg`。错误码见 `web/src/services/api/error-codes.ts` 与 `docs/content/docs/backend/http-api.mdx`。
-- OpenAPI 3.0 在 `GET /api/openapi.yaml`。不要从规范生成 TypeScript 客户端来替换 `http` 模块。
-- API 模块定义并导出接口类型；页面和 React Query 直接接收解包后的 `data`，不重复访问 `.data.data`。
-- 查询参数使用 `compactApiParams` / `serializeApiParams`；取消请求传递 `AbortSignal` 并保留取消语义。
-- `FormData` 不手动设置 `Content-Type`，让 Axios 生成 boundary。写路径失败必须向上抛出，不能 `catch { return defaultValue }`。
+- The module writes `http.get/post/put/patch/delete`, and `http` unpacks `{ code, data, msg, reason }`. No more `request(apiClient.*)`, no more `axios.create`.
+- Binary or non-envelope responses use `http.raw` (CSV, diagnostic package zip).
+- `apiClient` is reserved only for interceptors and `http` internally; defaults to `VITE_CANVAS_BACKEND_URL || "/api"`.
+- `request()` can still be used to test envelope unpacking and is not the calling surface of the business module.
+- The backend's successful response is `{ code: 0, data: T, msg: string }`; HTTP 200 does not mean business success, `code !== 0` must throw an error. When it fails, use `ApiError.reason` / `ApiError.code` to determine the type, and do not parse `msg`. See error codes `web/src/services/api/error-codes.ts` and `docs/content/docs/backend/http-api.mdx`.
+- OpenAPI 3.0 in `GET /api/openapi.yaml`. Do not generate a TypeScript client from the specification to replace the `http` module.
+- The API module defines and exports the interface type; the page and React Query directly receive the unpacked `data` without repeatedly accessing `.data.data`.
+- Query parameters use `compactApiParams` / `serializeApiParams`; cancellation requests pass `AbortSignal` and retain cancellation semantics.
+- `FormData` Instead of manually setting `Content-Type`, let Axios generate the boundary. Failure to write the path must be thrown upward, not `catch { return defaultValue }`.
 
-### 模型渠道和流式请求
+### Model Channels and Streaming Requests
 
-- 自定义渠道 URL/Header 仍由 `custom-channel-relay.ts` 的 `channelRequest` 解析；实际发出走 `channel-transport.ts` 的 `createChannelTransport`。image / video / audio 只组协议 payload，不再各自 `axios + channelRequest`。
-- 自定义渠道由本地后端 `/api/ai/custom` 中转；重建 headers 时清除 `x-goog-api-key` 和旧的 `X-Canvas-Upstream-Headers`，不得把第三方密钥放入浏览器 URL。
-- Provider 特有 payload、响应解包和状态机留在对应 `image.ts`、`video.ts`、`audio.ts`；不要塞进通用 `request.ts`。
-- 原始 `fetch` 仅用于媒体 blob/data URL、资源、Worker 或 SSE；必须检查 `response.ok`，传递正确的 `credentials` 和 `signal`。
-- 文本任务 SSE 是 `GET /api/tasks/:id/text-events`，游标是递增事件 `id`；断线使用 `Last-Event-ID` 或 `?after=`，不能把任务 ID 当游标。
-- 代理只对文本任务和明确的系统模型事件流路径关闭缓冲/缓存/gzip；不要给所有 `/api/` 请求复制长超时和 `proxy_buffering off`。
+- Custom channel URL/Header is still parsed by `channelRequest` of `custom-channel-relay.ts`; `createChannelTransport` of `channel-transport.ts` is actually sent. image / video / audio only group the protocol payload, and are no longer `axios + channelRequest` respectively.
+- The custom channel is relayed by the local backend `/api/ai/custom`; clear `x-goog-api-key` and the old `X-Canvas-Upstream-Headers` when rebuilding headers, and do not put third-party keys into the browser URL.
+- Provider-specific payload, response unpacking and state machine remain in corresponding `image.ts`, `video.ts`, `audio.ts`; do not plug into the general `request.ts`.
+- Raw `fetch` only for media blob/data URLs, resources, workers or SSE; `response.ok` must be checked, passing the correct `credentials` and `signal`.
+- The text task SSE is `GET /api/tasks/:id/text-events`, and the cursor is the increment event `id`; when disconnected, use `Last-Event-ID` or `?after=`, and the task ID cannot be used as a cursor.
+- Agent turns off buffering/cache/gzip only for text tasks and explicit system model event flow paths; do not copy long timeouts and `proxy_buffering off` for all `/api/` requests.
 
-### 数据、缓存和写路径
+### Data, cache and write paths
 
-- 画布、项目、任务、素材和大 JSON 使用按工作区命名空间区分的 `localforage`；`localStorage` 只保存小型配置、当前命名空间或 UI 偏好。命名空间（`getActiveUserScope` / `scopedStorageKey`）只用于区分本地存储，改动会让用户读不到已有数据。
-- BeefTV 不管账号：每个后端进程只服务一个本地工作区，运行中不会切换。账号、登录、钱包、余额和扣费归服务端 API；BeefTV 只记当前服务端连接，切换连接时刷新模型能力目录。不要为"异步操作期间切换账号"加保护或测试；异步写回只需核对画布、项目、节点是否仍是原目标。
-- 后端不可用时的本地缓存是降级，不代表服务端已保存。UI 必须区分“本地缓存成功”和“服务端持久化成功”。
-- 生成、激活、审批、权限、删除、上传、配额、账务和密钥相关操作属于强校验写路径；不使用空 ID、默认用户、默认权限或默认额度兜底。
-- 素材删除必须先检查项目、画布、任务和其他业务引用；有引用则保留并返回来源，无引用才清理物理对象。物理删除失败不得删除素材记录。
+- Canvas, projects, tasks, assets, and large JSON use `localforage` by workspace namespace; `localStorage` only saves small configurations, current namespace, or UI preferences. The namespace (`getActiveUserScope` / `scopedStorageKey`) is only used to distinguish local storage, and changes will prevent users from reading existing data.
+- BeefTV regardless of account: each backend process only serves one local workspace and will not switch during operation. Account, login, wallet, balance and deduction belong to the server API; BeefTV only remembers the current server connection and refreshes the model capability directory when switching connections. Do not add protection or testing for "switching accounts during asynchronous operations"; asynchronous writeback only needs to check whether the canvas, project, and node are still the original targets.
+- The local cache when the backend is unavailable is downgraded and does not mean that the server has saved it. The UI must distinguish between "local cache success" and "server-side persistence success".
+- Operations related to generation, activation, approval, permissions, deletion, uploading, quotas, accounting, and keys belong to the strong verification writing path; do not use empty IDs, default users, default permissions, or default quotas.
+- Material deletion must first check the project, canvas, task and other business references; if there are references, they will be retained and returned to the source. If there are no references, the physical objects will be cleaned up. Material records shall not be deleted if physical deletion fails.
 
-## 5. 后端响应、权限和安全
+## 5. Backend response, permissions and security
 
-- Gin 接口统一返回 `{ code, data, msg, reason }`；失败时 HTTP status 和业务 `code` 都应表达真实失败，不把所有错误包装成 200。机器可读原因放在 `reason`，见 `docs/content/docs/backend/http-api.mdx`。
-- 所有对象读取、更新、删除都在 service 校验当前用户和资源归属；管理员权限在 service 校验，不依赖前端隐藏按钮。
-- 默认开放本机回环（`localhost` / `127.0.0.1` / `::1`）和局域网私网模型上游，仅拦截链路本地（`169.254.0.0/16` 等）、未指定与多播地址；需要严格公网隔离的部署可显式设置 `CANVAS_ALLOW_PRIVATE_UPSTREAMS=false` 并通过 `CANVAS_ALLOWED_PRIVATE_UPSTREAM_HOSTS` 精确放行。
-- 用户 API Key 保存在浏览器本地，任务创建时可能提交给自部署后端；只在可信部署和 HTTPS 下使用真实密钥。日志、错误上报、URL、localStorage 和持久任务正文不得写入敏感 URL、Cookie 或 API Key。
-- 生产必须配置明确的 `CANVAS_CORS_ORIGINS`，保持 HTTPS，限制数据库、备份、数据目录和 `.settings-key` 权限；默认关闭公开注册。
-- 数据库字段或表变化时同步更新 `docs/content/docs/backend/backend-database.mdx`，不能只改 GORM model。
+- The Gin interface uniformly returns `{ code, data, msg, reason }`; upon failure, HTTP status and business `code` should express the true failure and do not wrap all errors into 200. The machine-readable reason is placed in `reason`, see `docs/content/docs/backend/http-api.mdx`.
+- All object reads, updates, and deletions are verified in the service to verify the current user and resource ownership; administrator permissions are verified in the service and do not rely on the front-end hidden button.
+- By default, local loopback (`localhost` / `127.0.0.1` / `::1`) and LAN private network model upstream are enabled, and only link local (`169.254.0.0/16`, etc.), unspecified, and multicast addresses are intercepted; deployments that require strict public network isolation can explicitly set `CANVAS_ALLOW_PRIVATE_UPSTREAMS=false` and pass `CANVAS_ALLOWED_PRIVATE_UPSTREAM_HOSTS` for accurate release.
+- The user API Key is saved locally in the browser and may be submitted to the self-deployment backend when the task is created; only use the real key under trusted deployment and HTTPS. Logs, error reports, URLs, localStorage, and persistent task bodies must not write sensitive URLs, cookies, or API Keys.
+- Production must configure explicit `CANVAS_CORS_ORIGINS`, maintain HTTPS, restrict database, backup, data directory and `.settings-key` permissions; public registration is turned off by default.
+- `docs/content/docs/backend/backend-database.mdx` is updated synchronously when database fields or tables change. You cannot just change the GORM model.
 
-## 6. 画布、UI 和设计系统
+## 6. Canvas, UI and Design System
 
-- 画布组件、状态、算法分别放在 `web/src/components/canvas/`、`web/src/stores/canvas/`、`web/src/lib/canvas/`。事件忽略选择器必须覆盖 modal、popover、dropdown 等浮层。
-- 画布拖拽、连接、缩放和快捷键要考虑 pointer capture、滚轮冒泡、焦点以及 `data-canvas-no-zoom` / `data-canvas-wheel-scroll` 边界。
-- 节点和对象名称要有可发现的铅笔入口并支持单击编辑；双击或右键不能是唯一入口。图片节点保持原始比例，面板不能长期遮挡主要画布空间。
-- Ant Design 共性主题和控件状态集中在 `web/src/lib/app-theme.ts` / `AppProviders`。自带外壳的产品弹窗用 `AppModal flush`，侧栏用 `AppDrawer`；不要再复制 `padding: 0` 的 Modal styles。内容外壳仍是 `.ant-modal-container`。
-- 第三方覆盖限定在具体组件，不新增全局 `.ant-modal-*`、`.dark .ant-switch-*`、`.ant-checkbox-*` 或 Segmented 状态补丁。新增 CSS 前先搜索同名选择器，回到唯一源规则修改。
-- 遵循 `docs/ui-design-system.md` 及项目三层 token：Primitive → Semantic → Component。inline style 优先引用 `var(--token-name)`，不要散落颜色、圆角、阴影和层级字面值。
-- 主操作、普通选中、Checkbox/Radio、Switch 是不同颜色角色；持久切换使用 `aria-pressed`，`type="primary"` 只表示当前主要命令。尊重 `prefers-reduced-motion`，键盘导航保留 `:focus-visible`。
+- Canvas components, states, and algorithms are placed in `web/src/components/canvas/`, `web/src/stores/canvas/`, and `web/src/lib/canvas/` respectively. The event ignore selector must cover modal, popover, dropdown and other floating layers.
+- Canvas drag, connect, zoom, and shortcuts take pointer capture, wheel bubbles, focus, and `data-canvas-no-zoom` / `data-canvas-wheel-scroll` boundaries into account.
+- Node and object names must have discoverable pencil entries and support single-click editing; double-click or right-click cannot be the only entry. Picture nodes maintain their original proportions, and panels cannot block the main canvas space for long periods of time.
+- Ant Design common themes and control states are concentrated in `web/src/lib/app-theme.ts` / `AppProviders`. Use `AppModal flush` for the product pop-up window that comes with its own shell, and `AppDrawer` for the sidebar; do not copy the Modal styles of `padding: 0`. The content casing is still `.ant-modal-container`.
+- Third-party coverage is limited to specific components, and no global `.ant-modal-*`, `.dark .ant-switch-*`, `.ant-checkbox-*` or Segmented status patches will be added. Before adding a new CSS, search for a selector with the same name and return to the unique source rule for modification.
+- Follow `docs/ui-design-system.md` and the three-layer token of the project: Primitive → Semantic → Component. Inline style gives priority to quoting `var(--token-name)`, and does not scatter color, rounded corners, shadows and level literals.
+- Main operation, normal selection, Checkbox/Radio, and Switch are roles of different colors; permanent switching uses `aria-pressed`, and `type="primary"` only represents the current main command. Respect `prefers-reduced-motion`, keyboard navigation remains in `:focus-visible`.
 
-## 7. 本地开发、部署和数据目录
+## 7. Local development, deployment and data directories
 
-### 技能列表展示硬约束
+### Skill list shows hard constraints
 
-- 技能市场、我的技能和我的投稿的列表名称区只展示技能名称。描述、作者、版本、文件数量与脚本文件、兼容性说明、使用条件和其他详情统一放在对应的详情视图中，禁止在列表恢复副标题、摘要或“含脚本”等说明文字。
-- 右侧仅保留用户认可的简短灰色来源标识及必要的操作、启用状态和投稿进度。来源标识使用“官方”“我的”“市场”“插件”等短文案，具体来源和权限说明放在提示或详情中，禁止扩展成第二行说明。
-- 新增技能信息时先接入详情视图。交付前检查三个子页面的列表，确认名称区没有附加说明，且详情入口能够读取完整信息。
+- Only skill names are displayed in the list name areas of Skill Market, My Skills and My Contributions. Description, author, version, number of files and script files, compatibility instructions, conditions of use and other details are placed in the corresponding details view. It is prohibited to restore subtitles, abstracts or "contains scripts" and other descriptive text in the list.
+-On the right side, only the short gray source identification approved by the user and the necessary operations, activation status and submission progress are retained. The source identification uses short copy such as "official", "my", "market" and "plug-in". The specific source and permission description are placed in the prompt or details and are not allowed to be expanded into a second line of description.
+- When adding skill information, first access the details view. Before delivery, check the list of three sub-pages to confirm that there are no additional instructions in the name area and that the details entry can read the complete information.
 
-- 先阅读 `.env.example` 和对应 Compose 文件。宿主机后端开发必须使用 Git 忽略的 `.local/project-workbench-debug`，通过 `CANVAS_BACKEND_DATA_DIR` 显式指定；不要把 `backend/data` 当作开发账号数据库。
-- 本地缓存放 `.local/cache`；不要提交数据库、上传文件、`.env`、真实密钥、构建产物或编辑器配置。
-- 宿主机开发：`backend/` 运行 `CANVAS_BACKEND_DATA_DIR=../.local/project-workbench-debug go run ./cmd/server`，`web/` 使用 Bun 和 Vite；不要用 pnpm/npm 覆盖同一套 `node_modules`，也不要提交 `pnpm-lock.yaml` 或 `package-lock.json`。Docker 热更新使用 `docker-compose.dev.yml`；本地构建运行使用 `docker-compose.local.yml`。
-- 单机 Compose 使用 `docker-compose.yml`（SQLite 数据卷，backend、web），源码构建可叠加 `docker-compose.build.yml`。公网只暴露 web 的 `3000`，backend `8080` 留在 Compose 网络内。
-- 默认不启动 dev server；只有用户明确要求浏览器预览或联调时才启动，并先确认端口、数据目录和现有进程。
-- macOS 本机唯一正式应用路径是 `/Applications/BeefTV.app`。需要更新本机应用时只运行 `./scripts/update-local-beeftv-app.sh`；不将 `build/bin/BeefTV.app` 作为可使用版本保留，不复制、重命名或存档额外 `.app` 副本。
-- 健康检查只能证明入口可用，不能替代登录、SSE、任务生成和资源访问验证。
+- Read `.env.example` and the corresponding Compose file first. Host back-end development must use `.local/project-workbench-debug`, which is ignored by Git, and explicitly specified through `CANVAS_BACKEND_DATA_DIR`; do not use `backend/data` as a development account database.
+- Place `.local/cache` in the local cache; do not submit databases, upload files, `.env`, real keys, build products, or editor configurations.
+- Host development: `backend/` runs `CANVAS_BACKEND_DATA_DIR=../.local/project-workbench-debug go run ./cmd/server`, `web/` uses Bun and Vite; do not use pnpm/npm to cover the same set of `node_modules`, and do not submit `pnpm-lock.yaml` or `package-lock.json`. Docker hot updates use `docker-compose.dev.yml`; local build runs use `docker-compose.local.yml`.
+- Standalone Compose uses `docker-compose.yml` (SQLite data volume, backend, web), and source code construction can be superimposed on `docker-compose.build.yml`. The public network only exposes the `3000` of the web, and the backend `8080` remains in the Compose network.
+- The dev server is not started by default; it will only be started if the user explicitly requests browser preview or joint debugging, and the port, data directory and existing processes must be confirmed first.
+- The only official application path for macOS is `/Applications/BeefTV.app`. Only run `./scripts/update-local-beeftv-app.sh` when native applications need to be updated; do not retain `build/bin/BeefTV.app` as a usable version, and do not copy, rename, or archive additional copies of `.app`.
+- Health checks can only prove that the portal is available and cannot replace login, SSE, task generation and resource access verification.
 
-## 8. 验证纪律
+## 8. Verify discipline
 
-项目当前默认不自动运行语法检查、类型检查、测试或构建。用户明确要求验证，或改动风险需要验证时，按范围选择最小充分命令，并在交付中如实记录：
+Projects currently do not automatically run syntax checks, type checks, tests, or builds by default. When the user explicitly requires verification, or the risk of change requires verification, select the minimum sufficient command according to the scope, and record it truthfully in the delivery:
 
-- 前端：`cd web && bun run build`；专项测试用 `bun test ...`。UI 退场规则用 `bun run lint`（只禁 antd Empty 和静态 `Modal.confirm`，不是风格检查）。
-- 后端：`cd backend && go test ./...`；涉及资源、任务或权限时补对应集成/冒烟路径。
-- 旧内置 Agent 已从产品运行面退场：`/agent/*` 路由不再注册，通用任务创建、任务重试和任务 Worker 拒绝 `cloud_agent`、`cloud_agent_step`、`agent_memory_compact`，旧轮次与记忆压缩调度保持停用，历史数据保留。当前分支的替换内核采用 `agent-host/` 中钉选的官方 pi SDK，Go 管理运行时、业务轮次及操作授权；React 使用 `/api/assistant/*`。宿主只有 Durable 一套执行运行时：旧 JSONL 会话只读历史，在旧会话里发新消息会以交接说明开一条新的 Durable 会话，不恢复旧 SDK 的 create/prompt/replace/abort 执行路径。核对官方 API 与实际接入路径，不能恢复旧入口或另建模型会话循环；零模型宿主验证、真实业务操作、付费模型验收与正式发布分别记证据。
-- 文档站：`cd docs && bun run types:check` 或 `bun run build`。
-- UI 变更能浏览器验证时，检查关键路由、明暗主题、滚动、弹窗、空态和核心交互；不能验证时说明替代依据，不把静态阅读或 `git diff` 写成运行验证。
+- Front end: `cd web && bun run build`; `bun test ...` for special testing. The UI exit rule uses `bun run lint` (only antd Empty and static `Modal.confirm` are prohibited, not style checking).
+- Backend: `cd backend && go test ./...`; when resources, tasks or permissions are involved, the corresponding integration/smoke path will be supplemented.
+- The old built-in Agent has been retired from the product running surface: `/agent/*` route is no longer registered, general task creation, task retry and task Worker reject `cloud_agent`, `cloud_agent_step`, `agent_memory_compact`, old rounds and memory compression scheduling remain disabled, and historical data is retained. The replacement kernel of the current branch uses the official pi SDK selected in `agent-host/`. Go manages the runtime, business rounds and operation authorization; React uses `/api/assistant/*`. The host only has a Durable execution runtime: the old JSONL session has a read-only history. Sending a new message in the old session will open a new Durable session with handover instructions, and the create/prompt/replace/abort execution path of the old SDK will not be restored. Check the official API and the actual access path, and you cannot restore the old entrance or create a new model session loop; zero model host verification, real business operations, paid model acceptance and official release are recorded separately as evidence.
+- Documentation station: `cd docs && bun run types:check` or `bun run build`.
+- When UI changes can be verified by the browser, key routing, light and dark themes, scrolling, pop-up windows, empty states and core interactions are checked; if verification cannot be performed, alternative basis is provided, and static reading or `git diff` is not written as running verification.
 
-同类失败连续三次时停止盲试，记录现象、已排除项和新假设，再切换路径或请求用户决策。
+Stop the blind trial when similar failures occur three times in a row, record the phenomena, excluded items, and new hypotheses, and then switch paths or ask the user to make a decision.
 
-## 9. 文档与交付
+## 9. Documentation and Delivery
 
 - 根 `README.md` 只保留项目定位、能力概览、快速开始、部署、安全和文档入口；详细专题写入 `docs/content/docs/`。
 - `README.md` 是根 README 的中文准稿；每次修改 `README.md` 时，同步更新 `README.en.md`，并在两个文件顶部保留语言切换链接。
@@ -145,11 +145,11 @@ BeefTV（`glanderness/BeefTV`）是面向 AI 影视与短剧创作的工作台�
 - Git 提交说明使用 `<type>(<scope>): <业务模块> - <变更摘要>`，`type` 为 `feat|fix|refactor|perf|docs|test|build|ci|chore|revert`。
 - 团队协作流程（交叉 review、付费授权、预算与合并/发版审批）另见团队私有工作约定，不在公开仓库维护。AI 代理默认不直接合并 PR 或发版。
 
-交付前至少检查：改动是否聚焦、调用方和类型是否同步、错误/权限/数据归属是否完整、必要文档是否同步、验证是否如实说明、是否留下密钥或本地数据，并**主动逐条复核第 10 节「防止屎山」且运行 `node scripts/structure-budget.mjs`**（无需用户提醒）。
+Before delivery, at least check: whether the changes are focused, whether the caller and type are synchronized, whether errors/permissions/data ownership are complete, whether necessary documents are synchronized, whether the verification is truthful, whether keys or local data are left, and **actively review Section 10 "Preventing Shit Mountains" item by item and run `node scripts/structure-budget.mjs`** (without user reminder).
 
-## 10. 防止屎山
+## 10. Prevent shit mountains
 
-重构后的结构靠下面几条守住，修 bug 和加功能时同样适用；每次改动提交或交付前必须主动自检，不等用户追问：
+The reconstructed structure is maintained by the following points, which are also applicable when fixing bugs and adding functions; each change must be actively self-checked before submission or delivery, without waiting for users to ask:
 
 - 同一个结论只在一处计算。任务能否重试、能否取回只读后端 `task.outcome`，前端不另行推断或补写；模型能力、协议、扣费结论和错误归类归服务端 API。
 - 客户端不加参考素材（尺寸、比例、像素、大小、格式、时长等）预检门禁；上游报错脱敏、真实原因透传与具体素材定位（如「第 N 张参考图 `@图片N`」）统一在服务端 API 完成，BeefTV 只展示与透传。

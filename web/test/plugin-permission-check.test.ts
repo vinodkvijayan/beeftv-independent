@@ -29,7 +29,7 @@ function fakePlugin(id: string, permissions: string[], slots: string[]): Registe
             id,
             name: id,
             version: "0.0.1",
-            description: "M5 测试插件",
+            description: "M5 test plug-in",
             author: "test",
             surfaces: ["fullscreen"],
             permissions,
@@ -48,8 +48,8 @@ afterAll(() => {
     unregisterPlugin(FAKE_FULL_ID);
 });
 
-describe("M5 权限表", () => {
-    it("8 个插槽每个都有精确的必需权限", () => {
+describe("M5 permission table", () => {
+    it("Each of the 8 slots has the exact required permissions", () => {
         // Record<EditorSlotKind, ...> 类型已保证键完整；运行期再兜底验证值与域合法。
         const expected: Record<(typeof ALL_SLOTS)[number], string> = {
             "timeline-panel": "timeline.command",
@@ -69,25 +69,25 @@ describe("M5 权限表", () => {
 });
 
 describe("checkEditorPermission（fail-closed）", () => {
-    it("空权限集拒绝", () => {
+    it("Empty permission set denied", () => {
         expect(checkEditorPermission(null, "timeline.read")).toBe(false);
         expect(checkEditorPermission(new Set<string>(), "timeline.read")).toBe(false);
     });
-    it("声明含必需权限则放行，缺则拒", () => {
+    it("If the statement contains necessary permissions, it will be allowed; if it lacks, it will be rejected.", () => {
         expect(checkEditorPermission(new Set(["timeline.command"]), "timeline.command")).toBe(true);
         expect(checkEditorPermission(new Set(["timeline.read"]), "timeline.command")).toBe(false);
     });
 });
 
 describe("pluginMayRenderEditorSlot", () => {
-    it("未注册插件 fail-closed 拒渲染", () => {
+    it("Unregistered plug-in fail-closed refuses to render", () => {
         expect(pluginMayRenderEditorSlot("m5-test-ghost", "inspector")).toEqual({
             allowed: false,
             reason: "plugin-not-registered",
             missing: null,
         });
     });
-    it("注册但缺权限 → 拒渲染并指出缺失权限", () => {
+    it("Registered but lacks permissions → refuse to render and point out missing permissions", () => {
         // 贡献 preview-renderer（只需 timeline.read）但想渲染 inspector（需 timeline.command）
         registerPlugin(fakePlugin(FAKE_READ_ONLY_ID, ["timeline.read"], ["preview-renderer"]));
         expect(pluginMayRenderEditorSlot(FAKE_READ_ONLY_ID, "inspector")).toEqual({
@@ -98,7 +98,7 @@ describe("pluginMayRenderEditorSlot", () => {
         // 只读插槽（preview-renderer）它反而有权限 → 放行，证明不是全量封杀
         expect(pluginMayRenderEditorSlot(FAKE_READ_ONLY_ID, "preview-renderer").allowed).toBe(true);
     });
-    it("权限齐备 → 放行", () => {
+    it("Complete permissions → Release", () => {
         registerPlugin(
             fakePlugin(FAKE_FULL_ID, ["timeline.read", "timeline.command", "export.run"], ["export-renderer"]),
         );
@@ -108,27 +108,27 @@ describe("pluginMayRenderEditorSlot", () => {
     });
 });
 
-describe("assertEditorPermission（命令代发断言）", () => {
-    it("未注册 → 抛错", () => {
+describe("assertEditorPermission (command generation assertion)", () => {
+    it("Not registered → throw error", () => {
         expect(() => assertEditorPermission("m5-test-ghost", "timeline.command")).toThrow(/未注册/);
     });
-    it("缺权限 → 抛错", () => {
+    it("Lack of permission → throw error", () => {
         expect(() => assertEditorPermission(FAKE_READ_ONLY_ID, "timeline.command")).toThrow(/缺少 timeline\.command/);
     });
-    it("权限齐备 → 通过（不抛）", () => {
+    it("Complete permissions → Passed (not thrown)", () => {
         expect(() => assertEditorPermission(FAKE_FULL_ID, "export.run")).not.toThrow();
     });
 });
 
-describe("editor-shell 真实回归（M5.2 接入后编辑器不得自我封锁）", () => {
+describe("editor-shell true return (the editor must not self-block after M5.2 is connected)", () => {
     // import 副作用注册 editor-shell；其 manifest 权限必须覆盖全部 8 个插槽的最小权限表。
-    it("editor-shell 全部 8 个插槽均可渲染", async () => {
+    it("All 8 slots of editor-shell can be rendered", async () => {
         await import("@/lib/plugins/builtin/editor/editor-shell");
         const permissions = pluginPermissions("editor-shell");
         expect(permissions).not.toBeNull();
         for (const slot of ALL_SLOTS) {
             const verdict = pluginMayRenderEditorSlot("editor-shell", slot);
-            expect(verdict.allowed, `editor-shell 渲染 ${slot} 应被允许`).toBe(true);
+            expect(verdict.allowed, `editor-shell rendering${slot} should be allowed`).toBe(true);
         }
     });
 });

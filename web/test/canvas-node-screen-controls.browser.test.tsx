@@ -78,15 +78,15 @@ for (const scale of [0.5, 0.35, 0.349, 0.25, 0.1, 0.05]) {
     test(`asset names remain available at ${scale * 100}% zoom, including grouped assets`, async () => {
         const noop = () => {};
         const nodes: CanvasNodeData[] = [
-            { id: "image", type: CanvasNodeType.Image, title: "主角正面参考", position: { x: 0, y: 0 }, width: 320, height: 240 },
-            { id: "grouped-video", parentId: "group", type: CanvasNodeType.Video, title: "第一场雨夜街道镜头", position: { x: 400, y: 0 }, width: 320, height: 240 },
-            { id: "grouped-image", parentId: "group", type: CanvasNodeType.Image, title: "第二场室内参考", position: { x: 800, y: 0 }, width: 320, height: 240 },
+            { id: "image", type: CanvasNodeType.Image, title: "Protagonist positive reference", position: { x: 0, y: 0 }, width: 320, height: 240 },
+            { id: "grouped-video", parentId: "group", type: CanvasNodeType.Video, title: "The first rainy night street shot", position: { x: 400, y: 0 }, width: 320, height: 240 },
+            { id: "grouped-image", parentId: "group", type: CanvasNodeType.Image, title: "Second indoor reference", position: { x: 800, y: 0 }, width: 320, height: 240 },
         ];
         const markup = renderToStaticMarkup(<>{nodes.map((data) => <CanvasNode key={data.id} data={data} scale={scale} isSelected={false} isRelated={false} isFocusRelated={false} isConnectionTarget={false} onMouseDown={noop} onHoverStart={noop} onHoverEnd={noop} onConnectStart={noop} onResize={noop} onTitleChange={noop} onContentChange={noop} onContextMenu={noop} />)}</>);
         await page.setContent(`${layout}<div id="world">${markup}</div>`);
         await setZoom(scale);
         for (const node of nodes) {
-            expect(await page.getByRole("button", { name: `编辑节点名称：${node.title}`, exact: true }).count()).toBe(1);
+            expect(await page.getByRole("button", { name: `Edit node name:${node.title}`, exact: true }).count()).toBe(1);
             expect(await page.locator(".canvas-node-external-header").getByText(node.title, { exact: true }).count()).toBe(1);
         }
     });
@@ -99,7 +99,7 @@ test("video crop controls stay legible and clickable at 20% zoom", async () => {
     const fullSizeSelection = await page.locator(".cursor-move").boundingBox();
     await setZoom(0.2);
 
-    const toolbar = await page.getByRole("button", { name: "取消裁切" }).boundingBox();
+    const toolbar = await page.getByRole("button", { name: "Cancel cropping" }).boundingBox();
     const handle = await page.getByRole("button", { name: "resize-nw" }).boundingBox();
     const zoomedSelection = await page.locator(".cursor-move").boundingBox();
     const label = page.locator("[data-video-crop-inline] span").first();
@@ -111,9 +111,9 @@ test("video crop controls stay legible and clickable at 20% zoom", async () => {
     expect(hit).toBe("resize-nw");
     const nodeBox = await page.locator("#node").boundingBox();
     expect(toolbar!.y).toBeGreaterThanOrEqual(nodeBox!.y + nodeBox!.height + 8);
-    const confirm = await page.getByRole("button", { name: "确认裁切" }).boundingBox();
+    const confirm = await page.getByRole("button", { name: "Confirm cutting" }).boundingBox();
     const toolbarHit = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("button")?.getAttribute("aria-label"), { x: confirm!.x + confirm!.width / 2, y: confirm!.y + confirm!.height / 2 });
-    expect(toolbarHit).toBe("确认裁切");
+    expect(toolbarHit).toBe("Confirm cutting");
 });
 
 test("image crop controls remain screen-sized and outside the image at 20% zoom", async () => {
@@ -122,8 +122,8 @@ test("image crop controls remain screen-sized and outside the image at 20% zoom"
     await setZoom(0.2);
 
     const nodeBox = await page.locator("#node").boundingBox();
-    const cancel = await page.getByRole("button", { name: "取消裁切" }).boundingBox();
-    const confirm = await page.getByRole("button", { name: "确认裁切" }).boundingBox();
+    const cancel = await page.getByRole("button", { name: "Cancel cropping" }).boundingBox();
+    const confirm = await page.getByRole("button", { name: "Confirm cutting" }).boundingBox();
     const handle = await page.getByRole("button", { name: "resize-nw" }).boundingBox();
     const label = page.locator("[data-image-crop-inline] span").first();
     expect(cancel!.height).toBeGreaterThanOrEqual(30);
@@ -134,13 +134,13 @@ test("image crop controls remain screen-sized and outside the image at 20% zoom"
     const hit = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.getAttribute("aria-label"), { x: handle!.x + handle!.width / 2, y: handle!.y + handle!.height / 2 });
     expect(hit).toBe("resize-nw");
     const toolbarHit = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("button")?.getAttribute("aria-label"), { x: confirm!.x + confirm!.width / 2, y: confirm!.y + confirm!.height / 2 });
-    expect(toolbarHit).toBe("确认裁切");
+    expect(toolbarHit).toBe("Confirm cutting");
 });
 
 test("failed node notice stays readable without overflowing its node at 20% zoom", async () => {
     const node = {
-        id: "failed-video", type: CanvasNodeType.Video, title: "视频 2", position: { x: 0, y: 0 }, width: 700, height: 400,
-        metadata: { status: "error", errorDetails: "模型服务请求失败，请检查账户余额后重试" },
+        id: "failed-video", type: CanvasNodeType.Video, title: "Video 2", position: { x: 0, y: 0 }, width: 700, height: 400,
+        metadata: { status: "error", errorDetails: "Model service request failed, please check your account balance and try again." },
     } as CanvasNodeData;
     const markup = renderToStaticMarkup(<CanvasNodeContent node={node} theme={canvasThemes.dark} isEditingContent={false} textareaRef={createRef<HTMLTextAreaElement>()} isBatchRoot={false} batchCount={0} batchExpanded={false} batchOpening={false} batchRecovering={false} onContentChange={() => {}} onStopEditing={() => {}} mentionReferences={[]} onRetry={() => {}} />);
     await page.setContent(`${layout}<div id="world"><div id="node">${markup}</div></div>`);
@@ -178,7 +178,7 @@ test("batch root failure is centered inside the card at different zoom levels", 
         expect(notice!.y).toBeGreaterThanOrEqual(card!.y - 1);
         expect(notice!.x + notice!.width).toBeLessThanOrEqual(card!.x + card!.width + 1);
         expect(notice!.y + notice!.height).toBeLessThanOrEqual(card!.y + card!.height + 1);
-        expect(await page.getByRole("button", { name: "查看原任务" }).count()).toBe(1);
+        expect(await page.getByRole("button", { name: "View original task" }).count()).toBe(1);
     }
 });
 
@@ -187,8 +187,8 @@ test("crop toolbar remains inside a narrow viewport at 20% zoom", async () => {
     const markup = renderToStaticMarkup(<CanvasVideoCropEditor videoUrl="data:video/mp4;base64,AAAA" videoDimensions={{ width: 1920, height: 1080 }} onCancel={() => {}} onConfirm={() => {}} />);
     await page.setContent(`${layout}<div id="world"><div id="node">${markup}</div></div>`);
     await setZoom(0.2);
-    const cancel = await page.getByRole("button", { name: "取消裁切" }).boundingBox();
-    const confirm = await page.getByRole("button", { name: "确认裁切" }).boundingBox();
+    const cancel = await page.getByRole("button", { name: "Cancel cropping" }).boundingBox();
+    const confirm = await page.getByRole("button", { name: "Confirm cutting" }).boundingBox();
     expect(cancel!.x).toBeGreaterThanOrEqual(0);
     expect(confirm!.x + confirm!.width).toBeLessThanOrEqual(360);
     await page.setViewportSize({ width: 1100, height: 700 });

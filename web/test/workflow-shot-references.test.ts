@@ -8,7 +8,7 @@ describe("workflow shot asset references", () => {
     test("builds ordered image references for bound media and characters", () => {
         const context = buildShotAssetReferenceContext(detail(), "shot-1");
 
-        expect(context.mentionReferences.map((reference) => reference.label)).toEqual(["雨夜街道", "林默"]);
+        expect(context.mentionReferences.map((reference) => reference.label)).toEqual(["rainy night street", "Lin Mo"]);
         expect(context.referenceImages.map((image) => image.id)).toEqual(["asset-scene", "asset-character"]);
         expect(context.referenceImages[1]?.storageKey).toBe("resource:character-cover");
     });
@@ -16,31 +16,31 @@ describe("workflow shot asset references", () => {
     test("resolves asset tokens to the submitted reference image order", () => {
         const context = buildShotAssetReferenceContext(detail(), "shot-1");
         const [scene, character] = context.mentionReferences;
-        const prompt = `让 ${canvasResourceMentionToken(character)} 从 ${canvasResourceMentionToken(scene)} 走近镜头`;
+        const prompt = `let${canvasResourceMentionToken(character)} from${canvasResourceMentionToken(scene)} Get closer to the camera`;
 
-        expect(resolveShotAssetMentionPrompt(prompt, context)).toContain("让 图片2 从 图片1 走近镜头");
+        expect(resolveShotAssetMentionPrompt(prompt, context)).toContain("Let Picture 2 move closer to the camera from Picture 1");
     });
 
     test("rejects stale mentions after an asset is unbound", () => {
         const context = buildShotAssetReferenceContext(detail(), "shot-1");
 
-        expect(() => resolveShotAssetMentionPrompt("跟随 @[asset:missing]", context)).toThrow("未绑定到当前镜头");
+        expect(() => resolveShotAssetMentionPrompt("Follow @[asset:missing]", context)).toThrow("Not bound to current shot");
     });
 
     test("adds bound assets as editable mention tokens without duplicating existing mentions", () => {
         const context = buildShotAssetReferenceContext(detail(), "shot-1");
-        const prompt = ensureShotAssetMentionPrompt("让 @[asset:asset-character] 走近镜头", context.mentionReferences);
+        const prompt = ensureShotAssetMentionPrompt("Let @[asset:asset-character] come closer to the camera", context.mentionReferences);
 
         expect(prompt).toContain("@[asset:asset-character]");
         expect(prompt.match(/@\[asset:asset-character\]/g)).toHaveLength(1);
-        expect(prompt).toContain("【场景与道具参考】\n雨夜街道：@[asset:asset-scene]");
+        expect(prompt).toContain("[Scene and prop reference]\nRainy Night Street: @[asset:asset-scene]");
     });
 });
 
 function detail(): ProjectDetail {
     const scene = {
         id: "asset-scene",
-        title: "雨夜街道",
+        title: "rainy night street",
         mediaType: "image",
         category: "environment",
         status: "confirmed",
@@ -53,7 +53,7 @@ function detail(): ProjectDetail {
     } satisfies ProjectAsset;
     const character = {
         id: "asset-character",
-        title: "林默",
+        title: "Lin Mo",
         mediaType: "entity",
         category: "character",
         status: "confirmed",
@@ -73,7 +73,7 @@ function detail(): ProjectDetail {
     } satisfies ProjectAsset;
     const audio = {
         id: "asset-audio",
-        title: "雨声",
+        title: "sound of rain",
         mediaType: "audio",
         category: "other",
         status: "confirmed",

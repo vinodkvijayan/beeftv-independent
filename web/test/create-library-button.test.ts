@@ -29,8 +29,8 @@ describe("creation library button", () => {
 
         expect(modePickerIndex).toBeGreaterThanOrEqual(0);
         expect(source).not.toContain("creation-composer-mode-row");
-        expect(dockSource).not.toContain('aria-label="打开素材库选择参考内容"');
-        expect(dockSource).not.toContain('aria-label="从本机上传附件"');
+        expect(dockSource).not.toContain('aria-label="Open the material library and select reference content"');
+        expect(dockSource).not.toContain('aria-label="Upload attachments from this computer"');
         expect(source).toContain("onClick={props.onOpenLibrary}");
         expect(source).toContain("creation-reference-add-button");
         expect(source).toContain('variant="creation"');
@@ -48,9 +48,9 @@ describe("creation library button", () => {
         expect(source.slice(uploadStart, uploadEnd)).not.toContain("setAttachments");
         expect(source).toContain("onUpload: uploadLibraryAssets");
         expect(source).not.toContain("onUpload={() => fileInputRef.current?.click()}");
-        expect(source).toContain("上传后保存到素材库");
-        expect(pickerSource).toContain("保存完成后会自动选中");
-        expect(source).toContain("个素材已上传到素材库并自动选中");
+        expect(source).toContain("Save to material library after uploading");
+        expect(pickerSource).toContain("It will be automatically selected after saving.");
+        expect(source).toContain("materials have been uploaded to the material library and automatically selected");
     });
 
     test("previews prompt reference images without removing them", () => {
@@ -65,7 +65,7 @@ describe("creation library button", () => {
         expect(canvasSource).toContain("onInsert(reference);");
     });
 
-    test("参考内容层叠轨道支持折叠、展开和 Reorder 排序", () => {
+    test("Reference content cascading track supports collapsing, expanding and reordering", () => {
         const source = readCreateWorkspaceSource();
         const styles = readFileSync(resolve(import.meta.dir, "../src/styles/globals.css"), "utf8");
 
@@ -82,8 +82,8 @@ describe("creation library button", () => {
         expect(source).toContain("isExpanded");
         expect(source).toContain("setReferencePanelExpanded");
         expect(source).toContain("aria-label={`查看全部 ${props.attachments.length} 个参考内容`}");
-        expect(source).toContain('aria-label="收起素材面板"');
-        expect(source).toContain("清空全部素材");
+        expect(source).toContain('aria-label="Collapse material panel"');
+        expect(source).toContain("Clear all materials");
         expect(source).toContain('role="group"');
         expect(source).toContain("aria-pressed={referenceFilter === filter.id}");
         expect(source).toContain('{ id: "image", label: "图片", count: referenceCounts.image, limit: creationReferenceLimit(props.referenceLimits, "image") }');
@@ -124,11 +124,11 @@ describe("creation library button", () => {
         expect(createSource).toContain("resolveResourceUrl(item.storageKey, item.previewUrl)");
     });
 
-    test("首个、中间和末尾参考内容都按稳定 id 独立删除并保留顺序", () => {
+    test("The first, middle and last reference content are independently deleted by stable id and the order is preserved.", () => {
         const attachments = [
-            { id: "first", name: "首个" },
-            { id: "middle", name: "中间" },
-            { id: "last", name: "末尾" },
+            { id: "first", name: "first" },
+            { id: "middle", name: "middle" },
+            { id: "last", name: "end" },
         ];
 
         expect(removeCreationAttachment(attachments, "first").map((item) => item.id)).toEqual(["middle", "last"]);
@@ -136,7 +136,7 @@ describe("creation library button", () => {
         expect(removeCreationAttachment(attachments, "last").map((item) => item.id)).toEqual(["first", "middle"]);
     });
 
-    test("删除按钮在指针按下阶段隔离拖拽，素材库入口职责独立", () => {
+    test("The delete button is isolated and dragged when the pointer is pressed, and the material library entry has independent responsibilities.", () => {
         const source = compactSource(readCreateWorkspaceSource());
 
         expect(source).toContain("onPointerDownCapture={(event) => event.stopPropagation()}");

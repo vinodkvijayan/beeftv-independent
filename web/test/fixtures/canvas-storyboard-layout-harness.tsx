@@ -13,8 +13,8 @@ const client = new QueryClient();
 function Harness() {
     const [heightWrites, setHeightWrites] = useState(0);
     const [node, setNode] = useState<CanvasNodeData>({
-        id: "script", type: CanvasNodeType.Script, title: "分镜", position: { x: 0, y: 0 }, width: 920, height: 360,
-        metadata: { storyboard: { referenceNodeIds: [], visibleColumns: ["shotNumber", "durationSeconds", "plotDescription", "dialogue", "imageGenerationPrompt", "videoMotionPrompt", "assets"], rows: [1, 2].map((number) => createStoryboardRow(number, { durationSeconds: 5, plotDescription: "黄衣外卖员站在电梯前", imageGenerationPrompt: "楼层显示13", videoMotionPrompt: "缓慢抬头" })) } },
+        id: "script", type: CanvasNodeType.Script, title: "Storyboard", position: { x: 0, y: 0 }, width: 920, height: 360,
+        metadata: { storyboard: { referenceNodeIds: [], visibleColumns: ["shotNumber", "durationSeconds", "plotDescription", "dialogue", "imageGenerationPrompt", "videoMotionPrompt", "assets"], rows: [1, 2].map((number) => createStoryboardRow(number, { durationSeconds: 5, plotDescription: "Delivery boy in yellow stands in front of the elevator", imageGenerationPrompt: "Floor display 13", videoMotionPrompt: "Raise your head slowly" })) } },
     });
     return <ConfigProvider theme={getAntThemeConfig(location.search.includes("dark"))}><App><QueryClientProvider client={client}>
         {location.search.includes("node") ? <div style={{ width: 920, height: 500 }}>

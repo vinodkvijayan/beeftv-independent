@@ -102,11 +102,11 @@ func TestStreamTaskTextEventsWritesSequenceAndTerminalEvent(t *testing.T) {
 	context, _ := gin.CreateTestContext(response)
 	context.Request = httptest.NewRequest("GET", "/api/tasks/task-1/text-events", nil)
 	replay := &textreplay.Result{
-		Deltas:    []model.TaskTextDelta{{Sequence: 8, Content: "增量"}},
+		Deltas:    []model.TaskTextDelta{{Sequence: 8, Content: "Increment"}},
 		Complete:  true,
-		FinalText: "增量",
+		FinalText: "Increment",
 		Status:    model.TaskStatusSucceeded,
-		Stage:     "已完成",
+		Stage:     "Completed",
 		Progress:  100,
 	}
 	streamTaskTextEvents(context, nil, "user-1", "task-1", 7, replay)
@@ -135,7 +135,7 @@ func textReplayRouter(t *testing.T) (*gin.Engine, *app.Service, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Task{ID: "replay-1", UserID: owner.ID, Type: "canvas_text", Status: model.TaskStatusTextReplay, Stage: "文本持久化（前端自管）"}).Error; err != nil {
+	if err := db.Create(&model.Task{ID: "replay-1", UserID: owner.ID, Type: "canvas_text", Status: model.TaskStatusTextReplay, Stage: "Text persistence (front-end self-managed)"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	router := gin.New()

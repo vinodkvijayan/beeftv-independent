@@ -20,10 +20,10 @@ var allowedConfigKeys = []string{
 func (s *Service) constrainTask(userID string, repo *repository.Repository, req *TaskRequest) error {
 	config, _ := req.Input["config"].(map[string]any)
 	if req.LogicalModelID == "" && strings.TrimSpace(stringValue(config["channelId"])) == "" {
-		return kernel.BadAuthRequest("智能创作目前仅支持后端受管模型，请在原入口使用其他渠道")
+		return kernel.BadAuthRequest("Smart creation currently only supports back-end managed models, please use other channels at the original entrance.")
 	}
 	if s.deps.Kinds != nil && s.deps.Kinds.UsesTextReplay(req.Input) {
-		return kernel.BadAuthRequest("智能创作不支持本机或文本回放任务")
+		return kernel.BadAuthRequest("Smart Authoring does not support native or text playback tasks")
 	}
 	safeConfig := map[string]any{}
 	for _, key := range allowedConfigKeys {
@@ -39,20 +39,20 @@ func (s *Service) constrainTask(userID string, repo *repository.Repository, req 
 		return err
 	}
 	if req.Type != "canvas_text" && req.Type != "text" && req.Type != "canvas_image" && req.Type != "canvas_video" {
-		return kernel.BadAuthRequest("智能创作任务类型不受支持")
+		return kernel.BadAuthRequest("Smart authoring task type is not supported")
 	}
 	expectedMode := map[string]string{"text": "text", "canvas_text": "text", "canvas_image": "image", "canvas_video": "video"}[req.Type]
 	if stringValue(req.Input["mode"]) != expectedMode || strings.TrimSpace(stringValue(req.Input["prompt"])) != strings.TrimSpace(req.Prompt) {
-		return kernel.BadAuthRequest("任务类型、模式和实际提示词必须一致")
+		return kernel.BadAuthRequest("Task type, mode and actual prompt word must be consistent")
 	}
 	if expectedMode != "text" && req.Input["agentRequests"] != nil {
-		return kernel.BadAuthRequest("媒体任务不允许携带独立模型协议请求")
+		return kernel.BadAuthRequest("Media tasks are not allowed to carry independent model protocol requests")
 	}
 	if count := stringValue(safeConfig["count"]); count != "" && count != "1" {
-		return kernel.BadAuthRequest("每个获批执行项只能生成一个产物")
+		return kernel.BadAuthRequest("Each approved execution item can only produce one product")
 	}
 	if req.Input["mask"] != nil {
-		return kernel.BadAuthRequest("本期智能创作暂不支持蒙版任务")
+		return kernel.BadAuthRequest("This issue of Intelligent Creation does not currently support mask tasks.")
 	}
 	if expectedMode != "text" {
 		if err := validateLiveImageReferences(userID, repo, req); err != nil {
@@ -84,7 +84,7 @@ func validateLiveImageReferences(userID string, repo *repository.Repository, req
 		node := nodes[stringValue(ref["id"])]
 		meta, _ := node["metadata"].(map[string]any)
 		if node == nil || node["type"] != "image" || meta["status"] != "success" || stringValue(ref["storageKey"]) != stringValue(meta["storageKey"]) {
-			return Conflict("参考素材已变化或尚未就绪")
+			return Conflict("The reference material has changed or is not ready yet")
 		}
 	}
 	return nil
@@ -99,18 +99,18 @@ func hydrateResourceStats(userID string, repo *repository.Repository, input map[
 		for _, raw := range list {
 			media, ok := raw.(map[string]any)
 			if !ok {
-				return kernel.BadAuthRequest("素材引用格式无效")
+				return kernel.BadAuthRequest("Invalid material reference format")
 			}
 			key := stringValue(media["storageKey"])
 			if !strings.HasPrefix(key, "resource:") {
-				return kernel.BadAuthRequest("请先将参考素材保存到当前账号资源库")
+				return kernel.BadAuthRequest("Please save the reference materials to the current account resource library first")
 			}
 			resource, err := repo.ResourceForUser(userID, strings.TrimPrefix(key, "resource:"))
 			if err != nil {
 				return MapError(err)
 			}
 			if resource.Status != model.ResourceStatusReady {
-				return kernel.BadAuthRequest("参考素材尚未就绪")
+				return kernel.BadAuthRequest("Reference material is not ready yet")
 			}
 			delete(media, "url")
 			delete(media, "dataUrl")
@@ -125,7 +125,7 @@ func matchResolvedSpec(requested, resolved map[string]any) error {
 	for _, key := range []string{"size", "videoSeconds", "vquality", "quality"} {
 		want := stringValue(requested[key])
 		if want != "" && !strings.EqualFold(want, stringValue(resolved[key])) {
-			return Conflict("模型解析后的生成规格与请求不同，请调整方案后重新确认")
+			return Conflict("The generated specifications after model analysis are different from the request. Please adjust the plan and reconfirm.")
 		}
 	}
 	return nil
@@ -142,7 +142,7 @@ func assertTextReferenceCapacity(repo *repository.Repository, task *model.Task, 
 	}
 	profile, err := modelcatalog.DecodeModelCapabilityConfig(cm.CapabilityConfigJSON)
 	if err != nil || profile == nil || profile.Text == nil || profile.Text.References.MaxImages < imageCount {
-		return kernel.BadAuthRequest("当前文本模型未配置足够的图片理解能力")
+		return kernel.BadAuthRequest("The current text model is not configured with sufficient image understanding capabilities")
 	}
 	return nil
 }
@@ -170,7 +170,7 @@ func checkConfigSignature(repo *repository.Repository, task *model.Task, want st
 		return err
 	}
 	if got != want {
-		return Conflict("模型执行配置已更新，请重新确认")
+		return Conflict("The model execution configuration has been updated, please reconfirm")
 	}
 	return nil
 }

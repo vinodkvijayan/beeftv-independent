@@ -52,16 +52,16 @@ export function distributionNotices({ root = repo, version, platform = "web", he
     files.set("sources.json", Buffer.from(JSON.stringify(index, null, 2) + "\n"));
     const links = components.map((component) => {
         const sourceURL = component.source?.url || component.sourceRelease;
-        const packet = sourceURL ? ` · <a href="${sourceURL}" target="_blank" rel="noopener noreferrer">本版本对应源码与构建说明</a>` : "";
-        return `<li>${escapeHTML(component.id)} ${escapeHTML(component.version)} — ${escapeHTML(component.license)}<br><a href="${component.upstream}" target="_blank" rel="noopener noreferrer">上游项目与构建信息</a>${packet}</li>`;
+        const packet = sourceURL ? ` · <a href="${sourceURL}" target="_blank" rel="noopener noreferrer">This version corresponds to source code and construction instructions</a>` : "";
+        return `<li>${escapeHTML(component.id)} ${escapeHTML(component.version)} — ${escapeHTML(component.license)}<br><a href="${component.upstream}" target="_blank" rel="noopener noreferrer">Upstream project and build information</a>${packet}</li>`;
     }).join("\n");
     files.set("index.html", Buffer.from(`<!doctype html>
-<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BeefTV 第三方许可与源码</title>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BeefTV third-party license and source code</title>
 <style>:root{color-scheme:light dark}body{font:15px/1.7 system-ui,sans-serif;max-width:760px;margin:24px auto;padding:0 20px;color:CanvasText;background:Canvas;overflow-wrap:anywhere}h1{font-size:22px}ul{padding-left:24px}li{margin:16px 0}a{color:LinkText}a:focus-visible{outline:2px solid Highlight;outline-offset:3px}pre{white-space:pre-wrap}</style>
-<h1>第三方许可与源码</h1><p>BeefTV ${escapeHTML(version)} 使用以下媒体组件。各组件继续适用自己的许可证；BeefTV 的商业使用限制不替代这些许可证。</p>
-<ul>${links}</ul><p>各组件的使用、修改与再分发权利以其许可证为准。上游项目链接与本版本的对应源码包分别列出。</p>
+<h1>Third-party licenses and source code</h1><p>BeefTV${escapeHTML(version)} Use the following media components. Each component continues to be covered by its own license; BeefTV's commercial use restrictions do not supersede these licenses. </p>
+<ul>${links}</ul><p>The rights to use, modify and redistribute each component are subject to its license. The upstream project links and the corresponding source code packages of this version are listed separately. </p>
 <p><a href="GPL-2.0.txt">GPL 2.0</a> · <a href="GPL-3.0.txt">GPL 3.0</a> · <a href="LGPL-2.1.txt">LGPL 2.1</a></p>
-<p><a href="LICENSE">BeefTV 许可</a> · <a href="NOTICE">版权声明</a> · <a href="THIRD_PARTY_NOTICES.md">第三方清单</a> · <a href="sources.json">版本与校验信息</a></p>
+<p><a href="LICENSE">BeefTV License</a> · <a href="NOTICE">Copyright Notice</a> · <a href="THIRD_PARTY_NOTICES.md">Third Party List</a> · <a href="sources.json">Version and Verification Information</a></p>
 <script>
 document.addEventListener("click", (event) => {
     const link = event.target.closest?.('a[href^="https://"]');
@@ -77,7 +77,8 @@ document.addEventListener("click", (event) => {
         runtime.BrowserOpenURL(link.href);
     }
 });
-</script></html>\n`));
+</script></html>
+`));
     return files;
 }
 

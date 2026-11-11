@@ -25,15 +25,15 @@ function expectSubset(expected: unknown, actual: unknown, path: string) {
     expect({ path, value: actual }).toEqual({ path, value: expected });
 }
 
-describe("视频能力默认值和后端共用同一份夹具", () => {
+describe("Video capability defaults share the same fixture as the backend", () => {
     for (const item of cases) {
-        test(`${item.protocol || "默认协议"} / ${item.model || "默认模型"}`, () => {
+        test(`${item.protocol || "Default protocol"} / ${item.model || "Default model"}`, () => {
             expectSubset(item.config, defaultVideoCapabilityConfig(item.protocol as ModelProtocol, item.model), item.model || item.protocol);
         });
     }
 });
 
-describe("工作流视频能力投影和后端共用同一份夹具", () => {
+describe("Workflow video capability projection and backend share the same fixture", () => {
     for (const item of workflowCases) {
         test(item.name, () => {
             const video = defaultVideoCapabilityConfig(item.workflow.providerId as ModelProtocol, item.workflow.id);

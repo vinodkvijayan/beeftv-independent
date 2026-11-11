@@ -123,11 +123,11 @@ describe("canvas toolbar mode switch", () => {
                 items={[{
                     kind: "switch",
                     id: CANVAS_MODE_TOOL_ID,
-                    label: "抓手 / 框选",
+                    label: "Grabber/frame selection",
                     value: "box-select",
                     options: [
-                        { id: "box-select", label: "区域选择", icon: <MousePointer2 />, value: "box-select" },
-                        { id: "move", label: "抓手工具", icon: <Hand />, value: "move" },
+                        { id: "box-select", label: "Region selection", icon: <MousePointer2 />, value: "box-select" },
+                        { id: "move", label: "Gripper tool", icon: <Hand />, value: "move" },
                     ],
                     onChange: () => {},
                 }]}
@@ -137,8 +137,8 @@ describe("canvas toolbar mode switch", () => {
         expect(html).toContain('role="radiogroup"');
         expect(html).toContain("aceternity-dock-switch-track");
         expect(html).toContain("aceternity-dock-switch-thumb");
-        expect(html).toContain('aria-label="区域选择"');
-        expect(html).toContain('aria-label="抓手工具"');
+        expect(html).toContain('aria-label="Area selection"');
+        expect(html).toContain('aria-label="Grapple tool"');
         expect(html).toContain('aria-checked="true"');
         expect(html).toContain('aria-checked="false"');
     });

@@ -34,42 +34,42 @@ func readSpeechAudioEvents(ctx context.Context, data []byte) ([]byte, string, er
 			Error    json.RawMessage `json:"error"`
 		}
 		if err := json.Unmarshal([]byte(raw), &event); err != nil {
-			return nil, "", fmt.Errorf("音频事件无法解析：%w", err)
+			return nil, "", fmt.Errorf("Audio event cannot be parsed: %w", err)
 		}
 		if len(event.Error) > 0 && string(event.Error) != "null" {
-			return nil, "", errors.New("音乐生成失败，请查看任务详情")
+			return nil, "", errors.New("Music generation failed, please check task details")
 		}
 		switch event.Type {
 		case "speech.audio.delta":
 			if done {
-				return nil, "", errors.New("音频完成后收到额外内容")
+				return nil, "", errors.New("Receive additional content after audio completion")
 			}
 			chunk, err := base64.StdEncoding.DecodeString(event.Audio)
 			if err != nil {
-				return nil, "", errors.New("音频事件编码无效")
+				return nil, "", errors.New("Invalid audio event encoding")
 			}
 			audio.Write(chunk)
 		case "speech.audio.done":
 			if done {
-				return nil, "", errors.New("收到重复的音频完成事件")
+				return nil, "", errors.New("Duplicate audio completion events received")
 			}
 			done = true
 			resultURL = event.AudioURL
 		case "error":
-			return nil, "", errors.New("音乐生成失败，请查看任务详情")
+			return nil, "", errors.New("Music generation failed, please check task details")
 		}
 	}
 	if !done {
-		return nil, "", errors.New("音乐生成连接中断，未收到完成结果；请先检查原任务，避免重复付费")
+		return nil, "", errors.New("The music generation connection was interrupted and the completion result was not received; please check the original task first to avoid repeated payments.")
 	}
 	if resultURL != "" {
 		if audio.Len() > 0 || !IsPublicMediaURL(resultURL) {
-			return nil, "", errors.New("音乐生成结果地址无效")
+			return nil, "", errors.New("The music generation result address is invalid")
 		}
 		return GetExternalBinary(WithRequestKind(ctx, "download"), resultURL)
 	}
 	if audio.Len() == 0 {
-		return nil, "", errors.New("音乐生成结果为空")
+		return nil, "", errors.New("Music generation result is empty")
 	}
 	return audio.Bytes(), "audio/mpeg", nil
 }

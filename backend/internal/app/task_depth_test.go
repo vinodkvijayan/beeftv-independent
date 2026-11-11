@@ -55,8 +55,8 @@ func TestDepthFailurePersistsLocalDiagnosticsAndRequestIdentity(t *testing.T) {
 	if err := db.Create(task).Error; err != nil {
 		t.Fatal(err)
 	}
-	message := strings.Repeat("\r 0 0 0 0 Time Time Current", 150) + "\ncurl: (28) Connection timed out\n模型补下载失败"
-	if err := (depthTasks{w: svc.taskWorker()}).Fail(task, "深度处理失败", message); err != nil {
+	message := strings.Repeat("\r 0 0 0 0 Time Time Current", 150) + "curl: (28) Connection timed out\nModel download failed"
+	if err := (depthTasks{w: svc.taskWorker()}).Fail(task, "Depth processing failed", message); err != nil {
 		t.Fatal(err)
 	}
 	var stored model.Task

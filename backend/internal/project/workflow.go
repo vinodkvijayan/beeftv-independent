@@ -25,12 +25,12 @@ type workflowStepDefinition struct {
 }
 
 var builtinShortDramaSteps = []workflowStepDefinition{
-	{Key: "story", Name: "剧情与章节"},
-	{Key: "assets", Name: "资产拆分"},
-	{Key: "storyboard", Name: "分镜脚本"},
-	{Key: "previz", Name: "黑白动作预演"},
-	{Key: "video", Name: "视频生成"},
-	{Key: "delivery", Name: "交付与打包"},
+	{Key: "story", Name: "Plot and chapters"},
+	{Key: "assets", Name: "Asset split"},
+	{Key: "storyboard", Name: "Storyboard"},
+	{Key: "previz", Name: "Black and white action preview"},
+	{Key: "video", Name: "video generation"},
+	{Key: "delivery", Name: "Delivery and packaging"},
 }
 
 func (s *Service) EnsureBuiltinTemplate() error {
@@ -43,7 +43,7 @@ func (s *Service) EnsureBuiltinTemplate() error {
 	if err != nil {
 		return err
 	}
-	template := model.WorkflowTemplateVersion{ID: kernel.NewID(), TemplateKey: builtinShortDramaWorkflowKey, Name: "短剧分镜工作流", Version: builtinShortDramaWorkflowVersion, DefinitionJSON: string(definition), CreatedAt: time.Now()}
+	template := model.WorkflowTemplateVersion{ID: kernel.NewID(), TemplateKey: builtinShortDramaWorkflowKey, Name: "Short drama storyboard workflow", Version: builtinShortDramaWorkflowVersion, DefinitionJSON: string(definition), CreatedAt: time.Now()}
 	return s.repo.CreateWorkflowTemplateVersion(&template)
 }
 
@@ -128,10 +128,10 @@ func (s *Service) UpdateWorkflowStep(userID string, projectID string, stepID str
 	}
 	status := model.WorkflowStepStatus(strings.TrimSpace(req.Status))
 	if !validWorkflowStepStatus(status) {
-		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("不支持的工作流步骤状态")
+		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("Unsupported workflow step status")
 	}
 	if !canTransitionWorkflowStep(step.Status, status) {
-		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("当前工作流步骤不能直接切换到目标状态")
+		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The current workflow step cannot be directly switched to the target state")
 	}
 	if status == model.WorkflowStepStatusCompleted {
 		instance, instanceErr := s.repo.WorkflowInstance(step.WorkflowInstanceID)
@@ -154,10 +154,10 @@ func (s *Service) UpdateWorkflowStep(userID string, projectID string, stepID str
 func planWorkflowStepUpdate(now time.Time, req UpdateWorkflowStepRequest, current repository.WorkflowProgressCurrent) (repository.WorkflowProgressPlan, error) {
 	status := model.WorkflowStepStatus(strings.TrimSpace(req.Status))
 	if !validWorkflowStepStatus(status) {
-		return repository.WorkflowProgressPlan{}, kernel.BadAuthRequest("不支持的工作流步骤状态")
+		return repository.WorkflowProgressPlan{}, kernel.BadAuthRequest("Unsupported workflow step status")
 	}
 	if !canTransitionWorkflowStep(current.Step.Status, status) {
-		return repository.WorkflowProgressPlan{}, kernel.BadAuthRequest("当前工作流步骤不能直接切换到目标状态")
+		return repository.WorkflowProgressPlan{}, kernel.BadAuthRequest("The current workflow step cannot be directly switched to the target state")
 	}
 	step := current.Step
 	step.Status = status
@@ -214,28 +214,28 @@ func (s *Service) RegisterTaskOutput(userID string, projectID string, stepID str
 	if task.ProjectID != projectID {
 		canvas, canvasErr := s.repo.CanvasProjectForUser(userID, task.ProjectID)
 		if canvasErr != nil || canvas.ProjectID != projectID {
-			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("任务不属于当前项目")
+			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The task does not belong to the current project")
 		}
 		if canvasID != "" && canvasID != canvas.ID {
-			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("任务画布与产物画布不一致")
+			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The task canvas is inconsistent with the product canvas")
 		}
 		canvasID = canvas.ID
 	}
 	if canvasID != "" {
 		canvas, canvasErr := s.repo.CanvasProjectForUser(userID, canvasID)
 		if canvasErr != nil || canvas.ProjectID != projectID {
-			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("画布不属于当前项目")
+			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The canvas does not belong to the current project")
 		}
 	}
 	if task.Status != model.TaskStatusSucceeded {
-		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("只有成功任务才能登记产物")
+		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("Only successful tasks can register products")
 	}
 	step, err := s.repo.WorkflowStepForProject(projectID, stepID)
 	if err != nil {
 		return model.WorkflowStepInstance{}, err
 	}
 	if step.Status == model.WorkflowStepStatusFailed {
-		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("失败步骤不能登记成功产物")
+		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The failed step cannot register the successful product")
 	}
 	unitID := strings.TrimSpace(req.UnitID)
 	shotID := strings.TrimSpace(req.ShotID)
@@ -248,7 +248,7 @@ func (s *Service) RegisterTaskOutput(userID string, projectID string, stepID str
 		if unitID == "" {
 			unitID = shot.UnitID
 		} else if unitID != shot.UnitID {
-			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("镜头不属于指定章节")
+			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The shot does not belong to the specified chapter")
 		}
 	} else if unitID != "" {
 		if _, err := s.repo.ProjectUnit(projectID, unitID); err != nil {
@@ -263,7 +263,7 @@ func (s *Service) RegisterTaskOutput(userID string, projectID string, stepID str
 			return model.WorkflowStepInstance{}, revisionErr
 		}
 	} else if shotRevisionID != "" {
-		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("镜头版本缺少所属镜头")
+		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("The lens version is missing the corresponding lens")
 	}
 	if versionID := strings.TrimSpace(req.AssetVersionID); versionID != "" {
 		if _, err := s.repo.AssetVersionForProject(projectID, versionID); err != nil {
@@ -280,7 +280,7 @@ func (s *Service) RegisterTaskOutput(userID string, projectID string, stepID str
 		metadata = "{}"
 	}
 	if !json.Valid([]byte(metadata)) {
-		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("产物元数据必须是有效 JSON")
+		return model.WorkflowStepInstance{}, kernel.BadAuthRequest("Product metadata must be valid JSON")
 	}
 	now := time.Now()
 	outputJSON := strings.TrimSpace(req.OutputJSON)
@@ -297,7 +297,7 @@ func (s *Service) RegisterTaskOutput(userID string, projectID string, stepID str
 			role = "output"
 		}
 		if !validShotAssetRole(role) {
-			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("不支持的产物用途")
+			return model.WorkflowStepInstance{}, kernel.BadAuthRequest("Unsupported product usage")
 		}
 		representation = &model.AssetRepresentation{ID: kernel.NewID(), TaskID: task.ID, AssetVersionID: strings.TrimSpace(req.AssetVersionID), ResourceID: strings.TrimSpace(req.ResourceID), MediaType: strings.TrimSpace(req.MediaType), Role: role, MetadataJSON: metadata, CreatedAt: now}
 	}
@@ -324,7 +324,7 @@ func planRegisteredTaskOutput(now time.Time, taskID, outputJSON, metadata, resou
 		return repository.WorkflowOutputPlan{}, nil
 	}
 	if current.Step.Status == model.WorkflowStepStatusFailed {
-		return repository.WorkflowOutputPlan{}, kernel.BadAuthRequest("失败步骤不能登记成功产物")
+		return repository.WorkflowOutputPlan{}, kernel.BadAuthRequest("The failed step cannot register the successful product")
 	}
 	plan := repository.WorkflowOutputPlan{}
 	if current.Shot != nil && resourceID != "" && artifactType != "" {
@@ -373,7 +373,7 @@ func planRegisteredTaskOutput(now time.Time, taskID, outputJSON, metadata, resou
 		return plan, nil
 	}
 	if step.Status == model.WorkflowStepStatusFailed || step.Status == model.WorkflowStepStatusSkipped {
-		return repository.WorkflowOutputPlan{}, kernel.BadAuthRequest("当前工作流步骤不能登记成功产物")
+		return repository.WorkflowOutputPlan{}, kernel.BadAuthRequest("The current workflow step cannot register successful products")
 	}
 	step.Status = model.WorkflowStepStatusCompleted
 	step.OutputJSON = outputJSON
@@ -438,17 +438,17 @@ func completionGateAllows(instance *model.WorkflowInstance, step *model.Workflow
 		return nil
 	}
 	if unit == nil {
-		return kernel.BadAuthRequest("章节不存在，不能完成本阶段")
+		return kernel.BadAuthRequest("The chapter does not exist and this stage cannot be completed.")
 	}
 	switch step.StepKey {
 	case "story":
 		if strings.TrimSpace(unit.SourceText) == "" {
-			return kernel.BadAuthRequest("章节正文为空，不能完成剧情阶段")
+			return kernel.BadAuthRequest("The chapter text is empty and the plot stage cannot be completed.")
 		}
 	case "assets":
 		for _, candidate := range candidates {
 			if candidate.UnitID == instance.UnitID && candidate.Status == "pending_confirmation" {
-				return kernel.BadAuthRequest("仍有待确认资产，不能完成资产拆分阶段")
+				return kernel.BadAuthRequest("Assets still need to be confirmed and the asset split stage cannot be completed.")
 			}
 		}
 	case "storyboard", "previz", "video", "delivery":
@@ -459,12 +459,12 @@ func completionGateAllows(instance *model.WorkflowInstance, step *model.Workflow
 			}
 		}
 		if len(unitShots) == 0 {
-			return kernel.BadAuthRequest("当前章节还没有分镜，不能完成本阶段")
+			return kernel.BadAuthRequest("There is no storyboard for the current chapter, so this stage cannot be completed.")
 		}
 		if step.StepKey == "storyboard" {
 			for _, shot := range unitShots {
 				if strings.TrimSpace(shot.CurrentRevisionID) == "" {
-					return kernel.BadAuthRequest("存在没有分镜版本的镜头，不能完成分镜阶段")
+					return kernel.BadAuthRequest("There are shots without storyboard versions and the storyboard stage cannot be completed.")
 				}
 			}
 			return nil
@@ -489,9 +489,9 @@ func completionGateAllows(instance *model.WorkflowInstance, step *model.Workflow
 		}
 		if len(readyShots) != len(unitShots) {
 			if artifactType == "action_board" {
-				return kernel.BadAuthRequest("仍有镜头缺少已通过的动作预演，不能完成本阶段")
+				return kernel.BadAuthRequest("There are still shots that lack the approved action preview and this stage cannot be completed.")
 			}
-			return kernel.BadAuthRequest("仍有镜头缺少可交付视频，不能完成本阶段")
+			return kernel.BadAuthRequest("There are still shots missing deliverable video and this stage cannot be completed")
 		}
 	}
 	return nil
@@ -530,7 +530,7 @@ func (s *Service) EnsureGeneratedProjectAsset(userID, projectID, taskID, shotID,
 		return "", err
 	}
 	if resource.Status != model.ResourceStatusReady {
-		return "", kernel.BadAuthRequest("生成资源尚未就绪，无法登记项目素材")
+		return "", kernel.BadAuthRequest("The generated resources are not ready yet and the project materials cannot be registered.")
 	}
 	shot, err := s.repo.ShotForProject(projectID, shotID)
 	if err != nil {
@@ -539,13 +539,13 @@ func (s *Service) EnsureGeneratedProjectAsset(userID, projectID, taskID, shotID,
 	now := time.Now()
 	assetID := GeneratedEntityID("asset", taskID)
 	versionID := GeneratedEntityID("version", taskID)
-	label := "图片"
+	label := "pictures"
 	if mediaType == "video" {
-		label = "视频"
+		label = "video"
 	}
 	title := strings.TrimSpace(shot.Title)
 	if title == "" {
-		title = "镜头产物"
+		title = "Lens products"
 	}
 	title += " · " + label
 	width := resource.Width
@@ -579,7 +579,7 @@ func (s *Service) EnsureGeneratedProjectAsset(userID, projectID, taskID, shotID,
 		"data": data, "metadata": map[string]any{"source": "short-drama-workflow", "taskId": taskID, "shotId": shot.ID, "projectIds": []string{projectID}},
 	})
 	asset := &model.Asset{ID: assetID, UserID: userID, Kind: mediaType, Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: title, PayloadJSON: string(payload), CreatedAt: now, UpdatedAt: now}
-	version := &model.AssetVersion{ID: versionID, AssetID: assetID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: "{}", Prompt: prompt, Note: "工作流生成产物", CreatedAt: now, UpdatedAt: now}
+	version := &model.AssetVersion{ID: versionID, AssetID: assetID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: "{}", Prompt: prompt, Note: "Workflow generated products", CreatedAt: now, UpdatedAt: now}
 	folderID, err := s.resolveAssetFolderID(projectID, nil)
 	if err != nil {
 		return "", err

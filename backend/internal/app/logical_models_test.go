@@ -238,7 +238,7 @@ func TestChannelModelCapabilitySpecRequiresExplicitImageCapability(t *testing.T)
 	channelModel := model.ChannelModel{Capability: "image", CapabilityConfigJSON: ""}
 
 	_, err := channelModelCapabilitySpec(channelModel)
-	if err == nil || !strings.Contains(err.Error(), "渠道图片模型尚未配置能力参数") {
+	if err == nil || !strings.Contains(err.Error(), "The channel image model has not been configured with capability parameters.") {
 		t.Fatalf("channelModelCapabilitySpec() error = %v", err)
 	}
 }

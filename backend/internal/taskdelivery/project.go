@@ -59,8 +59,8 @@ func ProjectWithFacts(task model.Task, stored []localtask.CanonicalOutput, loadE
 	// Ready outputs are authoritative even when an older delivery left a stale stage.
 	if task.Status == model.TaskStatusSucceeded && state == localtask.ResultStateReady && len(merged) > 0 {
 		switch stage {
-		case "正在取回结果", "delivery_paused", "delivery_timed_out":
-			stage = "生成完成"
+		case "Retrieving results", "delivery_paused", "delivery_timed_out":
+			stage = "Generation completed"
 		}
 	}
 	return Projection{

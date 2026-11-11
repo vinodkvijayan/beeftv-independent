@@ -35,7 +35,7 @@ describe("LibTV visual fixtures", () => {
         expect(audio.metadata?.fixture).toBe("libtv-audio");
         expect(audio.metadata?.status).toBe("success");
         expect(audio.metadata?.content).toMatch(/^data:audio\/wav;base64,/);
-        expect(audio.metadata?.audioVoice).toBe("中文");
+        expect(audio.metadata?.audioVoice).toBe("Chinese");
         expect(audio.metadata?.audioFormat).toBe("wav");
     });
 
@@ -44,7 +44,7 @@ describe("LibTV visual fixtures", () => {
         expect(text.type).toBe(CanvasNodeType.Text);
         expect(text.metadata?.fixture).toBe("libtv-text");
         expect(text.metadata?.status).toBe("success");
-        expect(text.metadata?.content).toContain("冷色自然光");
+        expect(text.metadata?.content).toContain("cool natural light");
         expect(text.width).toBe(420);
         expect(text.height).toBe(240);
     });
@@ -54,7 +54,7 @@ describe("LibTV visual fixtures", () => {
         expect(text.type).toBe(CanvasNodeType.Text);
         expect(text.metadata?.fixture).toBe("libtv-text-empty");
         expect(text.metadata?.content).toBe("");
-        expect(text.title).toBe("文本节点1");
+        expect(text.title).toBe("text node 1");
         expect(text.width).toBe(350);
         expect(text.height).toBe(350);
     });
@@ -68,6 +68,6 @@ describe("LibTV visual fixtures", () => {
         expect(image.metadata?.taskId).toBe("libtv-fixture-task-42");
         expect(image.metadata?.taskCreatedAt).toBe(new Date(0).toISOString());
         expect(image.metadata?.taskProgress).toBe(42);
-        expect(image.metadata?.taskStage).toBe("正在生成画面");
+        expect(image.metadata?.taskStage).toBe("Generating screen");
     });
 });

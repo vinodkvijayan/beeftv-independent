@@ -9,7 +9,7 @@ import { createDirectorActor } from "../src/lib/canvas/director/director-scene";
 import type { DirectorHumanoidBone, DirectorObject, DirectorPose } from "../src/types/director";
 import { DIRECTOR_QUATERNIUS_FEMALE_URL, DIRECTOR_QUATERNIUS_MALE_URL } from "../src/lib/canvas/director/director-actor-assets";
 
-test("Quaternius 的下划线骨骼名称能映射到导演台四肢控制", () => {
+test("Quaternius' underlined bone names can be mapped to director's desk limb controls", () => {
     const root = new Group();
     for (const name of [
         "root", "pelvis", "spine_01", "spine_02", "neck_01", "Head",
@@ -32,7 +32,7 @@ test("Quaternius 的下划线骨骼名称能映射到导演台四肢控制", () 
     expect(rig.boneMap.rightFoot).toBe("foot_r");
 });
 
-test("旧场景无 URL 人体演员显示内置模型，几何模型和显式 URL 保持原样", () => {
+test("Old scene without URL Human actor shows built-in model, geometry model and explicit URL remain as is", () => {
     const oldMale = { ...createDirectorActor(), url: undefined };
     expect(resolveDirectorActorVisualUrl(oldMale)).toBe(DIRECTOR_QUATERNIUS_MALE_URL);
     expect(resolveDirectorActorVisualUrl({ ...oldMale, actorPreset: "standard_female" })).toBe(DIRECTOR_QUATERNIUS_FEMALE_URL);
@@ -41,7 +41,7 @@ test("旧场景无 URL 人体演员显示内置模型，几何模型和显式 UR
     expect(resolveDirectorActorVisualUrl({ ...oldMale, url: "/my-own-actor.glb" })).toBe("/my-own-actor.glb");
 });
 
-test("Quaternius 的站立姿势镜像左上臂局部旋转，旧演员保持原逻辑", () => {
+test("Quaternius' standing posture mirrors the partial rotation of the left upper arm, and the old actor maintains the original logic", () => {
     const original = { ...createDirectorActor(), url: "/my-own-actor.glb" };
     const model = { ...original, url: "/canvas/models/quaternius-standard-male.glb" };
     const standard = resolveDirectorActorPoseDeltas(original);
@@ -51,7 +51,7 @@ test("Quaternius 的站立姿势镜像左上臂局部旋转，旧演员保持原
     expect(adapted.leftUpperArm).not.toEqual(standard.leftUpperArm);
 });
 
-for (const body of ["male", "female"] as const) test(`实际 Quaternius ${body} 网格的站立姿势使两只手都低于肩`, async () => {
+for (const body of ["male", "female"] as const) test(`Actual Quaternius${body} Grid standing position keeps both hands below shoulders`, async () => {
     const source = readFileSync(new URL(`../public/canvas/models/quaternius-standard-${body}.glb`, import.meta.url));
     const parsed = await new Promise<{ scene: Group }>((resolve, reject) => {
         new GLTFLoader().parse(source.buffer.slice(source.byteOffset, source.byteOffset + source.byteLength), "", resolve, reject);
@@ -94,7 +94,7 @@ async function loadPoseActor(body: "male" | "female") {
 
 const repairedPoses: DirectorPose[] = ["run", "squat", "kneel_single", "kneel_double", "bow", "think", "fight", "kick", "reach", "arms_crossed", "phone"];
 for (const body of ["male", "female"] as const) {
-    test(`实际 ${body} 蹲跪姿势沿角色竖直方向降低骨盆，膝盖和支撑脚接地`, async () => {
+    test(`actual${body} In the squatting and kneeling position, lower the pelvis vertically along the character, with the knees and supporting feet touching the ground.`, async () => {
         const { point, apply } = await loadPoseActor(body);
         apply("stand");
         const standingHip = point("hips");
@@ -119,7 +119,7 @@ for (const body of ["male", "female"] as const) {
         expect(Math.abs(point("rightFoot").y - ankleHeight)).toBeLessThan(0.03);
     });
 
-    test(`实际 ${body} 的接触手势、抬脚和跑步相位在正确侧生效`, async () => {
+    test(`actual${body} of contact gestures, foot lift, and running phase take effect on the correct side`, async () => {
         const { point, apply, bone, rotations } = await loadPoseActor(body);
         apply("phone");
         expect(point("leftHand").x).toBeGreaterThan(point("rightHand").x);
@@ -154,7 +154,7 @@ for (const body of ["male", "female"] as const) {
         expect(point("leftFoot").distanceTo(start)).toBeLessThan(1e-5);
     });
 
-    test(`实际 ${body} 的 11 个预设保持骨长，反复切换和整体变换不漂移`, async () => {
+    test(`actual${body} The 11 presets maintain bone length, repeated switching and overall transformation without drifting`, async () => {
         const { point, apply, space } = await loadPoseActor(body);
         const chains = [["leftUpperArm", "leftLowerArm", "leftHand"], ["rightUpperArm", "rightLowerArm", "rightHand"], ["leftUpperLeg", "leftLowerLeg", "leftFoot"], ["rightUpperLeg", "rightLowerLeg", "rightFoot"]] as const;
         const lengths = chains.map(([a, b, c]) => [point(a).distanceTo(point(b)), point(b).distanceTo(point(c))]);
@@ -179,7 +179,7 @@ for (const body of ["male", "female"] as const) {
         expect(point("hips").distanceTo(standingHip)).toBeLessThan(1e-5);
     });
 
-    test(`实际 ${body} 的手动骨骼和关键帧始终覆盖预设求解结果`, async () => {
+    test(`actual${body} Manual bones and keyframes always override preset solve results`, async () => {
         const { point, apply, bone } = await loadPoseActor(body);
         apply("phone");
         const wrist = point("rightHand");
@@ -193,7 +193,7 @@ for (const body of ["male", "female"] as const) {
     });
 }
 
-test("切入只驱动一条手臂的动画前，跪姿的骨盆和未被动画覆盖的骨骼恢复静置", async () => {
+test("Before cutting into the animation that only drives one arm, the kneeling pelvis and the bones not covered by the animation return to rest.", async () => {
     const { model, rig, apply, bone, rotations, positions } = await loadPoseActor("male");
     apply("kneel_double");
     restoreDirectorPoseRigRest(model);

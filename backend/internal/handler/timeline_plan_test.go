@@ -31,7 +31,7 @@ func TestTimelineRenderPlanIsAuthenticatedAndSideEffectFree(t *testing.T) {
 	if err := database.MigrateLocalSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Workspace{ID: "local", Name: "本地工作区"}).Error; err != nil {
+	if err := db.Create(&model.Workspace{ID: "local", Name: "local workspace"}).Error; err != nil {
 		t.Fatal(err)
 	}
 	svc := app.NewLocal(repository.New(db), t.TempDir())

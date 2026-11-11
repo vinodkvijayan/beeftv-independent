@@ -33,7 +33,7 @@ export async function confirmProposals(state, proposalId = null, confirmOptions 
     : [...state.proposals.values()].filter((p) => !p.confirmed && p.taskIds.length === 0);
 
   if (proposalId && targets.length === 0) {
-    throw notFound('proposal_not_found', `生成提议不存在: ${proposalId}`);
+    throw notFound('proposal_not_found', `Generate proposal does not exist:${proposalId}`);
   }
 
   const createdTasks = [];
@@ -41,7 +41,7 @@ export async function confirmProposals(state, proposalId = null, confirmOptions 
     if (proposal.turnId) {
       const turnRec = state.turns.get(proposal.turnId);
       if (turnRec?.undone) {
-        throw conflict('turn_undone', '这一轮已撤销，不会生成。');
+        throw conflict('turn_undone', 'This round has been undone and will not be generated.');
       }
     }
     // 已经确认或已经建过任务的提案直接跳过：确认接口必须幂等，不能多买一批付费任务。
@@ -50,7 +50,7 @@ export async function confirmProposals(state, proposalId = null, confirmOptions 
     // 经 owner 批准后也走 SubmitExternalGeneration，节点已有未失败任务时不能再生成。
     // 内置宿主的提案是用户在面板上主动确认，保持原行为。
     if (proposal.callerKind === 'caller' && nodeHasLiveTask(state, ensureCanvas(state, proposal.canvasId), proposal.nodeIds)) {
-      throw preconditionFailed('generation_task_exists', '节点已关联生成任务，请先查询原任务；需要另做一份时请新建节点');
+      throw preconditionFailed('generation_task_exists', 'The node has been associated to generate a task. Please query the original task first; please create a new node when you need to make another one.');
     }
     proposal.confirmed = true;
     state.counts.userConfirmations += 1;
@@ -89,16 +89,16 @@ export const GENERATION_OPS = {
     const kind = String(rawParams.kind || '').trim();
     const nodeIds = Array.isArray(rawParams.nodeIds) ? rawParams.nodeIds : [];
     const note = String(rawParams.note || '').trim();
-    if (!canvasId) throw invalidArg('invalid_params', 'canvasId 必填');
-    if (kind !== 'image' && kind !== 'video') throw invalidArg('invalid_kind', 'kind 只能是 image 或 video');
-    if (nodeIds.length === 0 || nodeIds.length > 8) throw invalidArg('invalid_batch', 'nodeIds 必须是 1..8 项的数组');
+    if (!canvasId) throw invalidArg('invalid_params', 'canvasId required');
+    if (kind !== 'image' && kind !== 'video') throw invalidArg('invalid_kind', 'kind can only be image or video');
+    if (nodeIds.length === 0 || nodeIds.length > 8) throw invalidArg('invalid_batch', 'nodeIds must be an array of 1..8 items');
     const doc = ensureCanvas(state, canvasId);
     const deduped = [];
     const seen = new Set();
     for (const id of nodeIds) {
       const node = (doc.nodes || []).find((n) => n.id === id);
-      if (!node) throw invalidArg('node_not_in_canvas', `节点不属于当前画布: ${id}`);
-      if (node.type !== kind) throw invalidArg('generation_kind_mismatch', `这个节点不能用来生成${kind === 'video' ? '视频' : '图片'}`);
+      if (!node) throw invalidArg('node_not_in_canvas', `The node does not belong to the current canvas:${id}`);
+      if (node.type !== kind) throw invalidArg('generation_kind_mismatch', `This node cannot be used to generate${kind === 'video' ? 'video' : 'pictures'}`);
       if (!seen.has(id)) {
         seen.add(id);
         deduped.push(id);
@@ -177,15 +177,15 @@ export const GENERATION_OPS = {
     const taskId = String(rawParams.taskId || '').trim();
     const nodeId = String(rawParams.nodeId || '').trim();
     const outputIndex = Number(rawParams.outputIndex ?? 0);
-    if (!canvasId || !taskId || !nodeId) throw invalidArg('invalid_params', 'canvasId、taskId、nodeId 必填');
+    if (!canvasId || !taskId || !nodeId) throw invalidArg('invalid_params', 'canvasId, taskId, nodeId required');
     const task = state.tasks.get(taskId);
-    if (!task) throw notFound('task_not_found', '任务不存在');
-    if (task.status !== 'succeeded') throw preconditionFailed('task_not_ready', '任务尚未完成交付');
+    if (!task) throw notFound('task_not_found', 'Task does not exist');
+    if (task.status !== 'succeeded') throw preconditionFailed('task_not_ready', 'The task has not yet been completed and delivered');
     const output = (task.outputs || [])[outputIndex] || task.outputs?.[0];
-    if (!output) throw notFound('task_output_not_found', '任务产物不存在');
+    if (!output) throw notFound('task_output_not_found', 'Task product does not exist');
     const doc = clone(ensureCanvas(state, canvasId));
     const node = (doc.nodes || []).find((n) => n.id === nodeId);
-    if (!node) throw notFound('node_not_in_canvas', '节点不属于当前画布');
+    if (!node) throw notFound('node_not_in_canvas', 'The node does not belong to the current canvas');
     node.metadata ||= {};
     const alreadyBound = node.metadata.taskId === taskId && node.metadata.resourceId === output.resourceId;
     Object.assign(node.metadata, {
@@ -230,39 +230,39 @@ export const GENERATION_OPS = {
       ? null
       : Number(rawParams.expectedModelConfigRevision);
     const proposalId = String(rawParams.proposalId || rawParams.orderId || '').trim();
-    if (!canvasId) throw invalidArg('invalid_params', 'canvasId 必填');
-    if (!opKey) throw invalidArg('generation_snapshot_required', '请提供稳定的 operationId，重试时复用同一个值');
-    if (nodeIds.length === 0 || nodeIds.length > 8) throw invalidArg('invalid_batch', 'nodeIds 必须是 1..8 项的数组');
+    if (!canvasId) throw invalidArg('invalid_params', 'canvasId required');
+    if (!opKey) throw invalidArg('generation_snapshot_required', 'Please provide a stable operationId and reuse the same value when retrying.');
+    if (nodeIds.length === 0 || nodeIds.length > 8) throw invalidArg('invalid_batch', 'nodeIds must be an array of 1..8 items');
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1 || !Number.isSafeInteger(expectedConfigRevision) || expectedConfigRevision < 0) {
-      throw invalidArg('generation_snapshot_required', '请提交画布版本和模型配置版本');
+      throw invalidArg('generation_snapshot_required', 'Please submit canvas version and model configuration version');
     }
     const doc = ensureCanvas(state, canvasId);
     if (doc.revision !== expectedRevision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取并确认生成内容', { currentRevision: doc.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please re-read and confirm the generated content', { currentRevision: doc.revision });
     }
     if (expectedConfigRevision !== 1) {
-      throw conflict('generation_config_changed', '模型配置已变化，请重新读取生成提议', { currentModelConfigRevision: 1 });
+      throw conflict('generation_config_changed', 'The model configuration has changed, please re-read the generation proposal', { currentModelConfigRevision: 1 });
     }
     let proposal = null;
     if (proposalId) {
       proposal = state.proposals.get(proposalId);
       if (!proposal || proposal.canvasId !== canvasId) {
-        throw notFound('generation_order_not_found', '生成单不存在');
+        throw notFound('generation_order_not_found', 'The generation order does not exist');
       }
       const missing = nodeIds.filter((id) => !proposal.nodeIds.includes(id));
       if (missing.length > 0) {
-        throw conflict('generation_targets_changed', '画布上的生成参数已变化，请重新读取生成提议', { missingNodeIds: missing });
+        throw conflict('generation_targets_changed', 'The build parameters on the canvas have changed, please re-read the build proposal', { missingNodeIds: missing });
       }
     }
     if (hostCall) {
       // 内置宿主不能绕过面板确认：没有提案或提案未确认时，和真实后端一样拒绝付费生成。
       if (!proposal) {
-        throw permissionDenied('generation_confirmation_required', '付费生成必须经过用户确认，请先提交生成提议');
+        throw permissionDenied('generation_confirmation_required', 'Paid generation must be confirmed by the user, please submit a generation proposal first');
       }
       if (!proposal.confirmed) {
         state.counts.unconfirmedTasks += 1;
-        throw permissionDenied('generation_confirmation_required', '付费生成必须经过用户确认');
+        throw permissionDenied('generation_confirmation_required', 'Paid generation must be confirmed by the user');
       }
       if (proposal.taskIds.length > 0) {
         // 确认时已经建过任务：再提交只回读原任务，不重复计费。
@@ -282,22 +282,22 @@ export const GENERATION_OPS = {
       // 真实后端在外部提交前先检查素材节点上的任务回执：未失败的任务直接拒绝，
       // 既不回读旧任务，也不再新建。不同 operationId 会算出不同任务键，必须靠这一步拦住。
       if (nodeHasLiveTask(state, doc, nodeIds)) {
-        throw preconditionFailed('generation_task_exists', '节点已关联生成任务，请先查询原任务；需要另做一份时请新建节点');
+        throw preconditionFailed('generation_task_exists', 'The node has been associated to generate a task. Please query the original task first; please create a new node when you need to make another one.');
       }
     }
     // 先整批校验，避免后面的节点失败时前面已经建出永远 running 的任务。
     const targets = nodeIds.map((nodeId) => {
       const node = (doc.nodes || []).find((n) => n.id === nodeId);
-      if (!node) throw invalidArg('node_not_in_canvas', `节点不属于当前画布: ${nodeId}`);
+      if (!node) throw invalidArg('node_not_in_canvas', `The node does not belong to the current canvas:${nodeId}`);
       const nodeKind = String(node.type || '');
       if (!['image', 'video', 'audio'].includes(nodeKind)) {
-        throw invalidArg('generation_kind_mismatch', `这个节点不能用来生成素材: ${nodeId}`);
+        throw invalidArg('generation_kind_mismatch', `This node cannot be used to generate materials:${nodeId}`);
       }
       if (kind && nodeKind !== kind) {
-        throw invalidArg('generation_kind_mismatch', '请按素材类型分批生成');
+        throw invalidArg('generation_kind_mismatch', 'Please generate in batches according to material type');
       }
       const choice = resolveGenerationModel(state, nodeKind, String(node.metadata?.model || ''));
-      if (!choice.modelKey) throw invalidArg('invalid_parameter', '请选择明确的生成模型');
+      if (!choice.modelKey) throw invalidArg('invalid_parameter', 'Please select an explicit generation model');
       return { nodeId, nodeKind, modelKey: choice.modelKey };
     });
     const created = [];

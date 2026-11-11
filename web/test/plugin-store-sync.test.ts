@@ -33,7 +33,7 @@ describe("syncBackendPlugins", () => {
         const store = usePluginStore.getState();
         store.syncBackendPlugins([{ manifest: manifest("kept"), enabled: true }], {});
         store.updateConfig("kept", { theme: "dark" });
-        store.setError("kept", "加载失败");
+        store.setError("kept", "Loading failed");
 
         store.syncBackendPlugins([{ manifest: manifest("kept", "2.0.0"), enabled: false }], {});
 
@@ -64,9 +64,9 @@ describe("shared plugin activation", () => {
 
     test("failed activation never pretends the plugin was enabled locally", async () => {
         usePluginStore.getState().syncBackendPlugins([{ manifest: manifest("builtin-tool"), enabled: false }], {});
-        const request = spyOn(http, "put").mockRejectedValue(new Error("不允许启用"));
+        const request = spyOn(http, "put").mockRejectedValue(new Error("Not allowed to enable"));
         try {
-            await expect(setPluginActivation("builtin-tool", true, "user")).rejects.toThrow("不允许启用");
+            await expect(setPluginActivation("builtin-tool", true, "user")).rejects.toThrow("Not allowed to enable");
             expect(usePluginStore.getState().installations[0].enabled).toBe(false);
             expect(usePluginStore.getState().pluginStates).toEqual({});
         } finally { request.mockRestore(); }

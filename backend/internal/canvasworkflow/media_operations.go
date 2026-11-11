@@ -9,13 +9,13 @@ import (
 
 // Media operations have a closed, typed parameter surface: never raw ffmpeg arguments.
 func MediaOperations() []Operation {
-	crop := []Field{{Key: "x", Label: "左侧比例", Type: "number"}, {Key: "y", Label: "顶部比例", Type: "number"}, {Key: "width", Label: "宽度比例", Type: "number"}, {Key: "height", Label: "高度比例", Type: "number"}}
+	crop := []Field{{Key: "x", Label: "left scale", Type: "number"}, {Key: "y", Label: "top proportion", Type: "number"}, {Key: "width", Label: "width ratio", Type: "number"}, {Key: "height", Label: "height ratio", Type: "number"}}
 	return []Operation{
-		{ID: "image.crop", Version: 1, Name: "裁切", OutputType: "image", Inputs: []InputPort{{"image", "图片", "image", true, false}}, Fields: crop},
-		{ID: "image.resize", Version: 1, Name: "调整尺寸", OutputType: "image", Inputs: []InputPort{{"image", "图片", "image", true, false}}, Fields: []Field{{Key: "longEdge", Label: "长边像素", Type: "number"}, {Key: "algorithm", Label: "插值算法", Type: "select", Options: []FieldOption{{Label: "高质量", Value: "high"}, {Label: "双线性", Value: "bilinear"}, {Label: "最近邻", Value: "nearest"}}}}},
-		{ID: "video.crop", Version: 1, Name: "画面裁切", OutputType: "video", Inputs: []InputPort{{"video", "视频", "video", true, false}}, Fields: crop},
-		{ID: "video.frame", Version: 1, Name: "关键帧截取", OutputType: "image", Inputs: []InputPort{{"video", "视频", "video", true, false}}, Fields: []Field{{Key: "seconds", Label: "截帧秒数", Type: "number"}}},
-		{ID: "video.audio", Version: 1, Name: "音视频分离", OutputType: "audio", Inputs: []InputPort{{"video", "视频", "video", true, false}}, Fields: []Field{}},
+		{ID: "image.crop", Version: 1, Name: "Cut", OutputType: "image", Inputs: []InputPort{{"image", "pictures", "image", true, false}}, Fields: crop},
+		{ID: "image.resize", Version: 1, Name: "resize", OutputType: "image", Inputs: []InputPort{{"image", "pictures", "image", true, false}}, Fields: []Field{{Key: "longEdge", Label: "long side pixels", Type: "number"}, {Key: "algorithm", Label: "interpolation algorithm", Type: "select", Options: []FieldOption{{Label: "high quality", Value: "high"}, {Label: "Bilinear", Value: "bilinear"}, {Label: "nearest neighbor", Value: "nearest"}}}}},
+		{ID: "video.crop", Version: 1, Name: "Screen cropping", OutputType: "video", Inputs: []InputPort{{"video", "video", "video", true, false}}, Fields: crop},
+		{ID: "video.frame", Version: 1, Name: "Key frame interception", OutputType: "image", Inputs: []InputPort{{"video", "video", "video", true, false}}, Fields: []Field{{Key: "seconds", Label: "Frame capture seconds", Type: "number"}}},
+		{ID: "video.audio", Version: 1, Name: "Audio and video separation", OutputType: "audio", Inputs: []InputPort{{"video", "video", "video", true, false}}, Fields: []Field{}},
 	}
 }
 
@@ -33,20 +33,20 @@ func ValidateMediaConfig(n Node) error {
 	case "image.crop", "video.crop":
 		x, y, w, h := operationNumber(n.Config["x"]), operationNumber(n.Config["y"]), operationNumber(n.Config["width"]), operationNumber(n.Config["height"])
 		if x < 0 || y < 0 || w <= 0 || h <= 0 || x+w > 1.000001 || y+h > 1.000001 {
-			return fmt.Errorf("裁切区域必须在 0 到 1 的画面比例内")
+			return fmt.Errorf("Crop area must be within aspect ratio 0 to 1")
 		}
 	case "image.resize":
 		value := operationNumber(n.Config["longEdge"])
 		if value < 16 || value > 4096 || math.Trunc(value) != value {
-			return fmt.Errorf("图片长边需为 16 到 4096 的整数")
+			return fmt.Errorf("The long side of the image needs to be an integer from 16 to 4096")
 		}
 		if value, ok := n.Config["algorithm"]; ok && value != "high" && value != "bilinear" && value != "nearest" {
-			return fmt.Errorf("不支持的图片插值算法")
+			return fmt.Errorf("Unsupported image interpolation algorithm")
 		}
 	case "video.frame":
 		value := operationNumber(n.Config["seconds"])
 		if value < 0 || value > 43200 {
-			return fmt.Errorf("截帧时间无效")
+			return fmt.Errorf("The frame time is invalid")
 		}
 	}
 	return nil
@@ -54,7 +54,7 @@ func ValidateMediaConfig(n Node) error {
 
 func MediaCommand(n Node, width, height int) (args []string, extension, mime string, err error) {
 	if !IsMediaOperation(n.OperationID) {
-		return nil, "", "", fmt.Errorf("不支持的媒体处理")
+		return nil, "", "", fmt.Errorf("Unsupported media handling")
 	}
 	if err = ValidateOperation(n); err != nil {
 		return
@@ -63,7 +63,7 @@ func MediaCommand(n Node, width, height int) (args []string, extension, mime str
 	switch n.OperationID {
 	case "image.crop", "video.crop":
 		if width <= 0 || height <= 0 {
-			err = fmt.Errorf("素材缺少有效尺寸")
+			err = fmt.Errorf("The material is missing a valid size")
 			return
 		}
 		x, y := int(operationNumber(n.Config["x"])*float64(width)), int(operationNumber(n.Config["y"])*float64(height))
@@ -80,13 +80,13 @@ func MediaCommand(n Node, width, height int) (args []string, extension, mime str
 			extension, mime = ".mp4", "video/mp4"
 		}
 		if w < 1 || h < 1 {
-			err = fmt.Errorf("裁切区域过小")
+			err = fmt.Errorf("Cropping area is too small")
 			return
 		}
 		args = []string{"-vf", fmt.Sprintf("crop=%d:%d:%d:%d", w, h, x, y)}
 	case "image.resize":
 		if width <= 0 || height <= 0 {
-			err = fmt.Errorf("素材缺少有效尺寸")
+			err = fmt.Errorf("The material is missing a valid size")
 			return
 		}
 		edge := int(operationNumber(n.Config["longEdge"]))

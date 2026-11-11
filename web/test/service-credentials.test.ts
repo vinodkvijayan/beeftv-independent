@@ -12,12 +12,12 @@ function channel(overrides: Partial<ModelChannel>): ModelChannel {
 
 test("Ark native and Agent Plan keys are named apart and cannot share one connection", () => {
     const native = channel({ models: ["doubao-seedance-2.5"], modelProfiles: [{ model: "doubao-seedance-2.5", capability: "video", protocol: "volcengine-ark-video" }] });
-    expect(serviceCredentialGuide(native)).toMatchObject({ kind: "ark-native", apiKeyLabel: "方舟 API Key" });
-    expect(serviceCredentialGuide(native).apiKeyHelp).toContain("Agent Plan 专属 Key 不要填在这里");
+    expect(serviceCredentialGuide(native)).toMatchObject({ kind: "ark-native", apiKeyLabel: "Ark API Key" });
+    expect(serviceCredentialGuide(native).apiKeyHelp).toContain("Agent Plan Exclusive Key Do not fill in here");
 
     const plan = channel({ baseUrl: "https://ark.cn-beijing.volces.com/api/plan/v3", models: ["doubao-seedance-2.5"], modelProfiles: [{ model: "doubao-seedance-2.5", capability: "video", protocol: "volcengine-ark-agent-plan-video" }] });
-    expect(serviceCredentialGuide(plan)).toMatchObject({ kind: "ark-agent-plan", apiKeyLabel: "Agent Plan 专属 Key" });
-    expect(serviceCredentialGuide(plan).apiKeyHelp).toContain("多扣费");
+    expect(serviceCredentialGuide(plan)).toMatchObject({ kind: "ark-agent-plan", apiKeyLabel: "Agent Plan Exclusive Key" });
+    expect(serviceCredentialGuide(plan).apiKeyHelp).toContain("Excessive deductions");
 
     const mixed = channel({
         models: ["doubao-seedance-2.5", "doubao-seedance-2.0"],
@@ -28,18 +28,18 @@ test("Ark native and Agent Plan keys are named apart and cannot share one connec
     });
     const guide = serviceCredentialGuide(mixed);
     expect(guide.kind).toBe("mixed");
-    expect(guide.conflict).toContain("请拆成两个连接");
+    expect(guide.conflict).toContain("Please split into two connections");
     expect(serviceConnectionError(mixed)).toBe(guide.conflict!);
 });
 
 test("a generic text model follows the Ark path it is pointed at, so the two keys cannot hide behind it", () => {
     // 文本协议本身不说明是哪一类 Key：地址在 /api/v3 就是普通方舟 Key。
     const nativeText = channel({ models: ["doubao-seed"], modelProfiles: [{ model: "doubao-seed", capability: "text", protocol: "chat-completion" }] });
-    expect(serviceCredentialGuide(nativeText)).toMatchObject({ kind: "ark-native", apiKeyLabel: "方舟 API Key" });
+    expect(serviceCredentialGuide(nativeText)).toMatchObject({ kind: "ark-native", apiKeyLabel: "Ark API Key" });
 
     // 同一个文本协议指向 /api/plan/v3 时是 Agent Plan Key。
     const planText = channel({ baseUrl: "https://ark.cn-beijing.volces.com/api/plan/v3", models: ["doubao-seed"], modelProfiles: [{ model: "doubao-seed", capability: "text", protocol: "chat-completion" }] });
-    expect(serviceCredentialGuide(planText)).toMatchObject({ kind: "ark-agent-plan", apiKeyLabel: "Agent Plan 专属 Key" });
+    expect(serviceCredentialGuide(planText)).toMatchObject({ kind: "ark-agent-plan", apiKeyLabel: "Agent Plan Exclusive Key" });
 
     // 普通文本 + Agent Plan 视频，放在同一台主机上就是真混用。
     const mixed = channel({
@@ -90,16 +90,16 @@ test("Jimeng protocols ask for Access Key plus Secret Key and refuse a half cred
     expect(guide.apiKeyHelp).toContain("AK/SK");
     // 协议目录没有加载时，靠固定的协议 ID 仍要认出「两个密钥」。
     expect(serviceCredentialGuide(jimeng).kind).toBe("signature");
-    expect(serviceConnectionError(jimeng, { protocols })).toContain("请填写 Secret Key（SK）");
+    expect(serviceConnectionError(jimeng, { protocols })).toContain("Please fill in the Secret Key (SK)");
     expect(serviceConnectionError({ ...jimeng, secretKey: "synthetic-secret" }, { protocols })).toBe("");
     // 外部工作区回读配置时密钥是空串（backend/internal/handler/business_config.go 的
     // redactExternalConfig），能不能留空只认后端回的 hasSecretKey，不靠「连接已经存在」推断。
     const redacted = { ...jimeng, apiKey: "refilled-ak", secretKey: "", hasApiKey: true, hasSecretKey: undefined };
     // 已保存的普通 API Key 连接改成即梦协议：后端只有 apiKey，没有 SK 可沿用，必须让用户填。
-    expect(serviceConnectionError(redacted, { protocols })).toContain("请填写 Secret Key（SK）");
+    expect(serviceConnectionError(redacted, { protocols })).toContain("Please fill in the Secret Key (SK)");
     // 后端确实存过 SK 时（hasSecretKey）才允许留空。
     expect(serviceConnectionError({ ...redacted, hasSecretKey: true }, { protocols })).toBe("");
-    expect(signatureCredentialHint("volcengine-v4")).toContain("「高级设置」");
+    expect(signatureCredentialHint("volcengine-v4")).toContain("\"Advanced Settings\"");
     expect(signatureCredentialHint("bearer")).toBeUndefined();
 });
 
@@ -119,7 +119,7 @@ test("credentials are judged on the profiles that will actually be saved", () =>
     const profiles = legacy.models.map((id) => serviceModelProfile(legacy, { id }, protocols));
     expect(profiles.find((profile) => profile.model === "doubao-seed")?.protocol).toBe("chat-completion");
     const submitted = { ...legacy, modelProfiles: profiles };
-    expect(serviceConnectionError(submitted, { protocols })).toContain("请拆成两个连接");
+    expect(serviceConnectionError(submitted, { protocols })).toContain("Please split into two connections");
 });
 
 test("the runtime protocol catalog decides the auth type, not the cached value", () => {
@@ -137,14 +137,14 @@ test("the runtime protocol catalog decides the auth type, not the cached value",
 });
 
 test("an Ark connection without a chosen protocol explains both key kinds", () => {
-    expect(serviceCredentialGuide(channel({ models: [] })).apiKeyHelp).toContain("普通方舟 Key 配 /api/v3");
+    expect(serviceCredentialGuide(channel({ models: [] })).apiKeyHelp).toContain("Ordinary Ark Key with /api/v3");
     expect(serviceCredentialGuide(channel({ baseUrl: "https://api.example.com/v1", models: [] })).apiKeyHelp).not.toContain("Agent Plan");
     // 即梦只看域名就要说清是 Access Key + Secret Key，不等用户挑协议。
     const jimengHost = serviceCredentialGuide(channel({ baseUrl: "https://visual.volcengineapi.com", models: [] }));
     expect(jimengHost).toMatchObject({ kind: "signature", apiKeyLabel: "Access Key（AK）", secretKeyRequired: true });
     // 选了普通方舟协议以后只留这一种的说明，不再重复两类 Key 的对比。
     const ark = serviceCredentialGuide(channel({ models: ["seedance-2.5"], modelProfiles: [{ model: "seedance-2.5", capability: "video", protocol: "volcengine-ark-video" }] }));
-    expect(ark.apiKeyHelp).toContain("Agent Plan 专属 Key 不要填在这里");
+    expect(ark.apiKeyHelp).toContain("Agent Plan Exclusive Key Do not fill in here");
 });
 
 test("credential kinds follow the protocol, not the vendor name on the model", () => {
@@ -165,7 +165,7 @@ test("credential kinds follow the protocol, not the vendor name on the model", (
     const conflict = serviceCredentialGuide(mixedSignature).conflict || "";
     expect(conflict).toContain("Access Key（AK）");
     expect(conflict).toContain("SecretId");
-    expect(conflict).toContain("请拆成两个连接");
+    expect(conflict).toContain("Please split into two connections");
 });
 
 
@@ -180,6 +180,6 @@ test("AK/SK cannot share one connection with bearer credentials", () => {
             ],
         });
         expect(serviceCredentialGuide(mixed).kind).toBe("mixed");
-        expect(serviceConnectionError(mixed)).toContain("请拆成两个连接");
+        expect(serviceConnectionError(mixed)).toContain("Please split into two connections");
     }
 });

@@ -121,9 +121,9 @@ func analyze(c *collection) []Finding {
 			if diagnostic.TransportPhase != "" && diagnostic.TransportPhase != "unknown" {
 				stage += "/" + diagnostic.TransportPhase
 			}
-			add("confirmed", stage, "local_network_failed", "记录确认本机访问外部服务时发生网络故障；已有上游任务应继续查询原任务，不能据此认定模型生成失败。", []string{ref}, nil)
+			add("confirmed", stage, "local_network_failed", "The record confirms that a network failure occurred when the machine accessed external services; if there is an upstream task, the original task should continue to be queried, and the model generation failure cannot be determined based on this.", []string{ref}, nil)
 		case diagnostic != nil && diagnostic.Source == "upstream_response" && diagnostic.HTTPStatus < 400:
-			add("confirmed", diagnostic.Stage, "upstream_business_failed", "上游已返回业务失败；HTTP 成功不代表生成成功，素材读取失败也不等于用户电脑下载失败。", []string{ref}, nil)
+			add("confirmed", diagnostic.Stage, "upstream_business_failed", "The upstream has returned a business failure; HTTP success does not mean successful generation, and failure to read material does not mean failure to download to the user's computer.", []string{ref}, nil)
 		case diagnostic != nil && diagnostic.Source == "reference_upload":
 			stage := "reference_upload"
 			if diagnostic.FailedOperation != "" && diagnostic.FailedOperation != "unknown" {
@@ -142,18 +142,18 @@ func analyze(c *collection) []Finding {
 					}
 				}
 			}
-			add("confirmed", stage, "reference_preparation_failed", "记录确认参考素材准备失败，尚未进入后续生成提交；连接阶段说明失败位置，不能单凭这一点判定是哪一方网络故障。", []string{ref}, nil)
+			add("confirmed", stage, "reference_preparation_failed", "The record confirms that the reference material preparation failed and has not yet entered subsequent generation and submission; the connection stage indicates the location of the failure, and this alone cannot be used to determine which party's network failure is the cause.", []string{ref}, nil)
 		case diagnostic != nil && diagnostic.Source == "local_result" && diagnostic.ExecutionResult == "completed":
-			add("confirmed", "result_delivery", "local_result_failed", "模型已完成，任务记录确认本地结果处理失败；应继续取回原任务，避免重复生成。", []string{ref}, nil)
+			add("confirmed", "result_delivery", "local_result_failed", "The model has been completed, and the task record confirms that local result processing failed; the original task should continue to be retrieved to avoid repeated generation.", []string{ref}, nil)
 		case diagnostic != nil && diagnostic.HTTPStatus >= 400 && (diagnostic.Source == "upstream_http" || diagnostic.Source == "upstream_response"):
-			add("confirmed", "upstream", "upstream_request_failed", "任务记录确认上游请求失败；是否扣费仍需对应账单证据。", []string{ref}, nil)
+			add("confirmed", "upstream", "upstream_request_failed", "The task record confirms that the upstream request failed; whether to deduct fees still requires corresponding billing evidence.", []string{ref}, nil)
 		default:
-			add("inconclusive", "generation", "failed_task_cause_unknown", "任务已失败，但当前证据不能确定具体原因。", []string{ref}, []string{"structured_failure_reason"})
+			add("inconclusive", "generation", "failed_task_cause_unknown", "The mission has failed, but current evidence cannot determine the cause.", []string{ref}, []string{"structured_failure_reason"})
 		}
 	}
 	for _, event := range c.ClientEvents {
 		if event.Code == "turn_interrupted" && event.AssistantTurnID != "" {
-			add("confirmed", "assistant", "assistant_interrupted", "客户端记录确认助手轮次曾中断；仍需后续恢复记录判断是否恢复。", []string{recordRef("client/events.jsonl", event.ID)}, nil)
+			add("confirmed", "assistant", "assistant_interrupted", "The client record confirms that the assistant's round has been interrupted; it still needs to be restored later to determine whether it can be restored.", []string{recordRef("client/events.jsonl", event.ID)}, nil)
 		}
 		if event.Code == "generation_bind_refused" && event.Reason != "" {
 			confirmed := false
@@ -164,11 +164,11 @@ func analyze(c *collection) []Finding {
 				}
 			}
 			if !confirmed {
-				add("confirmed", "canvas_binding", event.Reason, "结果绑定曾被拒绝，包内未记录同一节点随后绑定成功；该记录只能确认绑定阶段的问题。", []string{recordRef("client/events.jsonl", event.ID)}, []string{"subsequent_binding_receipt"})
+				add("confirmed", "canvas_binding", event.Reason, "As a result, the binding was rejected, and the subsequent successful binding of the same node was not recorded in the package; this record can only confirm the problem during the binding phase.", []string{recordRef("client/events.jsonl", event.ID)}, []string{"subsequent_binding_receipt"})
 			}
 		}
 		if event.Media != nil && event.Media.ErrorCode != nil && *event.Media.ErrorCode > 0 {
-			add("confirmed", "playback", "media_element_error", "播放器记录了媒体错误；不能据此断定上游生成失败。", []string{recordRef("client/events.jsonl", event.ID)}, nil)
+			add("confirmed", "playback", "media_element_error", "The player logged a media error; this cannot be used to conclude that the upstream build failed.", []string{recordRef("client/events.jsonl", event.ID)}, nil)
 		}
 	}
 	for _, event := range c.BackendEvents {
@@ -181,14 +181,14 @@ func analyze(c *collection) []Finding {
 				}
 			}
 			if !ended {
-				add("inconclusive", event.Name, "operation_end_not_recorded", "已记录步骤开始，未记录结束；可能仍在运行、进程退出或结束记录缺失，不能仅凭这一点确认故障。", []string{recordRef("backend/events.jsonl", event.ID)}, []string{"operation_end_or_recovery_event"})
+				add("inconclusive", event.Name, "operation_end_not_recorded", "The start of the step has been recorded, but the end has not been recorded; it may still be running, the process exits, or the end record is missing, and the fault cannot be confirmed based on this alone.", []string{recordRef("backend/events.jsonl", event.ID)}, []string{"operation_end_or_recovery_event"})
 			}
 		}
 		if event.Phase != "end" || event.Status != "error" || event.Reason == "" {
 			continue
 		}
 		if event.Name == "generation.download" && event.Reason == "download_not_started" {
-			add("inconclusive", "result_download", "download_not_started", "本次取回在开始前停止，不能据此判断下载失败，也不能把先前失败标为已恢复。", []string{recordRef("backend/events.jsonl", event.ID)}, nil)
+			add("inconclusive", "result_download", "download_not_started", "This retrieval was stopped before it started. This cannot be used to determine that the download failed, nor can the previous failure be marked as recovered.", []string{recordRef("backend/events.jsonl", event.ID)}, nil)
 			continue
 		}
 		stage := ""
@@ -210,12 +210,12 @@ func analyze(c *collection) []Finding {
 			}
 		}
 		if !recovered {
-			add("confirmed", stage, event.Reason, "持久记录确认该步骤曾失败，包内未记录同一操作随后成功；不能据此推断未记录的后续行为。", []string{recordRef("backend/events.jsonl", event.ID)}, nil)
+			add("confirmed", stage, event.Reason, "Persistent logging confirms that the step failed and that subsequent successes of the same operation are not documented in the package; subsequent undocumented behavior cannot be inferred from this.", []string{recordRef("backend/events.jsonl", event.ID)}, nil)
 		}
 	}
 	for _, resource := range c.Resources {
 		if resource.Storage == "local" && resource.Status == "ready" && (resource.FileStatus == "missing" || (resource.FileSize != nil && *resource.FileSize == 0)) {
-			add("confirmed", "local_resource", "ready_resource_file_missing", "资源被标记为可用，但导出时本地文件不存在或为空。", []string{recordRef("backend/resources.jsonl", resource.ID)}, nil)
+			add("confirmed", "local_resource", "ready_resource_file_missing", "The resource is marked as available, but the local file does not exist or is empty when exported.", []string{recordRef("backend/resources.jsonl", resource.ID)}, nil)
 		}
 	}
 	ownedSessions := map[string]bool{}
@@ -230,16 +230,16 @@ func analyze(c *collection) []Finding {
 			switch {
 			case evidence.Kind == "tool" && evidence.Status == "failed":
 				stage, reason, missingReason = "assistant_tool", "assistant_tool_failed", "tool_failure_reason"
-				explanation = "所属助手会话的工具记录确认这次操作失败；不能把其他操作随后成功当作这次操作已恢复，也不能据此认定完整故障原因。"
+				explanation = "The tool log of the associated assistant session confirms that this operation failed; subsequent successes of other operations cannot be considered as recovery of this operation, nor can the complete cause of the failure be determined based on this."
 			case evidence.Kind == "model_call" && evidence.Name == "model.response" && evidence.Status == "error":
 				stage, reason, missingReason = "assistant_model", "model_attempt_failed", "model_failure_reason"
-				explanation = "所属助手会话的模型响应记录确认这次尝试失败；这不证明进程崩溃或重开后无法操作。"
+				explanation = "The model response record of the associated assistant session confirms that the attempt failed; this does not prove that the process crashed or became inoperable after being restarted."
 			}
 			if stage != "" {
 				missing := []string{}
 				if evidence.TurnID == "" {
 					missing = append(missing, "assistant_turn_link")
-					explanation += "历史记录缺少确切轮次关联。"
+					explanation += "History lacks exact turn correlation."
 				}
 				if code := sanitizeAssistantFailureReason(evidence.FailureReason); code != "" {
 					reason = code
@@ -250,15 +250,15 @@ func analyze(c *collection) []Finding {
 			}
 		}
 		if ownedSessions[evidence.SessionID+"|"+evidence.CanvasID] && evidence.Kind == "model_call" && evidence.Name == "model.response" && (evidence.Status == "aborted" || evidence.Status == "interrupted") {
-			add("confirmed", "assistant_model", "model_attempt_interrupted", "所属助手会话的模型响应记录确认这次模型尝试已中断；不能据此确定进程崩溃、未关联的业务轮次或重开后的操作状态。", []string{recordRef("backend/assistant-runtime.jsonl", evidence.ID)}, nil)
+			add("confirmed", "assistant_model", "model_attempt_interrupted", "The model response record of the associated assistant session confirms that the model attempt was interrupted; this cannot be used to determine process crashes, unassociated business rounds, or the operational status after restarting.", []string{recordRef("backend/assistant-runtime.jsonl", evidence.ID)}, nil)
 		}
 		if evidence.TurnID != "" && evidence.Kind == "recovery" && (evidence.Status == "interrupted" || evidence.Status == "aborted" || evidence.Reason == "process_interrupted") {
-			add("confirmed", "assistant", "assistant_interrupted", "助手记录确认执行曾中断；这不证明重开后无法操作，也不代表工具操作已回滚。", []string{recordRef("backend/assistant-runtime.jsonl", evidence.ID)}, nil)
+			add("confirmed", "assistant", "assistant_interrupted", "The assistant record confirms that the execution was interrupted; this does not prove that the operation cannot be performed after restarting, nor does it mean that the tool operation has been rolled back.", []string{recordRef("backend/assistant-runtime.jsonl", evidence.ID)}, nil)
 		}
 	}
 	for _, turn := range c.AssistantTurns {
 		if turn.State == "open" {
-			add("inconclusive", "assistant", "assistant_turn_unsettled", "助手轮次尚未结算；缺少中断或恢复证据时不能判断是运行中、退出还是故障。", []string{recordRef("backend/assistant-turns.jsonl", turn.ID)}, []string{"assistant_execution_or_recovery_event"})
+			add("inconclusive", "assistant", "assistant_turn_unsettled", "The assistant round has not yet settled; it cannot be determined whether it is running, exiting, or crashing without evidence of interruption or recovery.", []string{recordRef("backend/assistant-turns.jsonl", turn.ID)}, []string{"assistant_execution_or_recovery_event"})
 		}
 	}
 	missing := []string{}
@@ -269,10 +269,10 @@ func analyze(c *collection) []Finding {
 	}
 	sort.Strings(missing)
 	if len(missing) > 0 {
-		add("inconclusive", "collection", "evidence_incomplete", "部分记录未采集、已过期或被截断；没有记录不代表没有发生。", []string{"manifest.json#/collectors"}, missing)
+		add("inconclusive", "collection", "evidence_incomplete", "Some records have not been collected, have expired, or have been truncated; the absence of records does not mean that it did not occur.", []string{"manifest.json#/collectors"}, missing)
 	}
 	if len(findings) == 0 {
-		add("inconclusive", "unknown", "no_confirmed_failure", "包内没有足以确认故障原因的记录；需要故障时的执行和显示证据。", []string{"manifest.json"}, []string{"failure_time_evidence"})
+		add("inconclusive", "unknown", "no_confirmed_failure", "There are no records in the package that are sufficient to confirm the cause of the failure; evidence of execution and display of the failure is required.", []string{"manifest.json"}, []string{"failure_time_evidence"})
 	}
 	return findings
 }

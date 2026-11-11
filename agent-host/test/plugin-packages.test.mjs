@@ -814,7 +814,7 @@ test('loads bundled beeftv-plugin-character-replacement extension tools and skil
   const canvasNodes = [
     {
       id: 'node-full-video',
-      title: '全片视频',
+      title: 'Full video',
       prompt: 'some text containing "revision": 999 to test structuredContent priority',
       metadata: { durationMs: 12000 },
     },
@@ -832,8 +832,8 @@ test('loads bundled beeftv-plugin-character-replacement extension tools and skil
               timeline: {
                 version: 2,
                 durationMs: 12000,
-                tracks: [{ id: 'track-sub', kind: 'subtitle', label: '字幕轨', order: 2, visible: true, muted: false }],
-                clips: [{ id: 'sub-1', kind: 'subtitle', trackId: 'track-sub', nodeId: 'node-full-video', startMs: 500, durationMs: 2000, text: '字幕保留测试' }],
+                tracks: [{ id: 'track-sub', kind: 'subtitle', label: 'subtitle track', order: 2, visible: true, muted: false }],
+                clips: [{ id: 'sub-1', kind: 'subtitle', trackId: 'track-sub', nodeId: 'node-full-video', startMs: 500, durationMs: 2000, text: 'Subtitle retention test' }],
               },
             },
           },
@@ -847,8 +847,8 @@ test('loads bundled beeftv-plugin-character-replacement extension tools and skil
                 timeline: {
                   version: 2,
                   durationMs: 12000,
-                  tracks: [{ id: 'track-sub', kind: 'subtitle', label: '字幕轨', order: 2, visible: true, muted: false }],
-                  clips: [{ id: 'sub-1', kind: 'subtitle', trackId: 'track-sub', nodeId: 'node-full-video', startMs: 500, durationMs: 2000, text: '字幕保留测试' }],
+                  tracks: [{ id: 'track-sub', kind: 'subtitle', label: 'subtitle track', order: 2, visible: true, muted: false }],
+                  clips: [{ id: 'sub-1', kind: 'subtitle', trackId: 'track-sub', nodeId: 'node-full-video', startMs: 500, durationMs: 2000, text: 'Subtitle retention test' }],
                 },
               },
             },
@@ -888,9 +888,9 @@ test('loads bundled beeftv-plugin-character-replacement extension tools and skil
 
   const arrangeRes = await arrangeTool.execute(
     {
-      shotTitle: '镜头 3',
-      sourceDescription: '右边的蓝衣女侠',
-      targetDescription: '红衣女刺客林婉',
+      shotTitle: 'Shot 3',
+      sourceDescription: 'The woman in blue on the right',
+      targetDescription: 'Lin Wan, the female assassin in red',
       position: 'right',
       genderHint: 'female',
       replacementScope: 'full-person',
@@ -906,7 +906,7 @@ test('loads bundled beeftv-plugin-character-replacement extension tools and skil
   assert.equal(arrangeRes.details.controlNodeId, 'created-1');
   assert.equal(arrangeRes.details.keyframeNodeId, 'created-2');
   assert.equal(arrangeRes.details.videoNodeId, 'created-3');
-  assert(arrangeRes.details.keyframePrompt.includes('图3为人物定位图'));
+  assert(arrangeRes.details.keyframePrompt.includes('Figure 3 shows the character positioning diagram'));
   const videoCfg = executedOps.find(
     (c) => c.toolName === 'canvas_node_configure' && c.params.nodeId === 'created-3',
   );
@@ -915,15 +915,15 @@ test('loads bundled beeftv-plugin-character-replacement extension tools and skil
   // Re-running arrange for the same shotTitle deduplicates node titles with #2
   const arrangeRes2 = await arrangeTool.execute(
     {
-      shotTitle: '镜头 3',
-      sourceDescription: '右边的蓝衣女侠',
-      targetDescription: '红衣女刺客林婉',
+      shotTitle: 'Shot 3',
+      sourceDescription: 'The woman in blue on the right',
+      targetDescription: 'Lin Wan, the female assassin in red',
     },
     mockCtx,
     {},
   );
   const secondCreateCall = executedOps.filter((c) => c.toolName === 'canvas_nodes_create')[1];
-  assert.equal(secondCreateCall.params.nodes[0].title, '镜头 3 · 角色替换配置 #2');
+  assert.equal(secondCreateCall.params.nodes[0].title, 'Shot 3 · Character Replacement Setup #2');
   assert.equal(arrangeRes2.details.missingReferences.length, 3);
 
   const spliceRes = await spliceTool.execute(

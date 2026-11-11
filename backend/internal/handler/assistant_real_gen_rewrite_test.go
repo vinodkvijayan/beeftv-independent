@@ -20,22 +20,22 @@ func TestE2EGenerationUpstreamResponseURLRewrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	if value["url"] != "http://127.0.0.1:1234/v1/videos/t1/content?signature=browser" {
-		t.Fatalf("url 未改写: %v", value["url"])
+		t.Fatalf("url has not been rewritten: %v", value["url"])
 	}
 	if value["video_url"] != "http://127.0.0.1:1234/v1/videos/t1/content" {
-		t.Fatalf("video_url 未改写: %v", value["video_url"])
+		t.Fatalf("video_url has not been rewritten: %v", value["video_url"])
 	}
 	metadata := value["metadata"].(map[string]any)
 	if metadata["url"] != "http://127.0.0.1:1234/v1/videos/t1/content" {
-		t.Fatalf("metadata.url 未改写: %v", metadata["url"])
+		t.Fatalf("metadata.url has not been rewritten: %v", metadata["url"])
 	}
 	if value["cdn"] != "https://cdn.example/v1/videos/t1/content" {
-		t.Fatalf("其他域名被误改: %v", value["cdn"])
+		t.Fatalf("Other domain names were changed by mistake: %v", value["cdn"])
 	}
 	if value["relative"] != "/v1/videos/t1/content" {
-		t.Fatalf("相对地址被误改: %v", value["relative"])
+		t.Fatalf("The relative address was changed by mistake: %v", value["relative"])
 	}
 	if string(rewriteUpstreamResponseURLs(body, "", "http://127.0.0.1:1234")) != string(body) {
-		t.Fatal("没有上游基址时不应改写")
+		t.Fatal("Should not be overwritten when there is no upstream base address")
 	}
 }

@@ -92,7 +92,7 @@ beforeAll(async () => {
             if (path === "/api/harness/ensure" && request.method === "POST") {
                 ensureHits += 1;
                 if (gateEnsure && ensureGate) await ensureGate.promise;
-                if (failEnsure) return Response.json({ error: "网络中断" });
+                if (failEnsure) return Response.json({ error: "Network outage" });
                 return Response.json({
                     assetId: "asset-1",
                     confirmed: !unconfirmed,
@@ -148,9 +148,9 @@ test("unconfirmed save keeps a recoverable draft and does not claim saved", asyn
     await page.getByTestId("node-asset").filter({ hasText: "asset-1" }).waitFor({ timeout: 8_000 });
     const harness = await harnessState();
     expect((harness?.writes ?? []).filter((item) => item === "invalidate")).toEqual([]);
-    expect((harness?.toasts ?? []).join("\n")).toContain("文件目前只在这台设备上");
-    expect((harness?.toasts ?? []).join("\n")).not.toContain("已加入项目资产");
-    expect((harness?.toasts ?? []).join("\n")).not.toContain("已加入我的素材");
+    expect((harness?.toasts ?? []).join("\n")).toContain("The file is currently only on this device");
+    expect((harness?.toasts ?? []).join("\n")).not.toContain("Project assets have been added");
+    expect((harness?.toasts ?? []).join("\n")).not.toContain("Added my material");
 }, 15_000);
 
 test("owned category update writes assetId and keeps current valid copy", async () => {
@@ -158,7 +158,7 @@ test("owned category update writes assetId and keeps current valid copy", async 
     await page.getByTestId("node-asset").filter({ hasText: "asset-1" }).waitFor({ timeout: 8_000 });
     const harness = await harnessState();
     expect(await page.getByTestId("node-category").textContent()).toBe("character");
-    expect((harness?.toasts ?? []).join("\n")).toContain("资产分类已更新");
+    expect((harness?.toasts ?? []).join("\n")).toContain("Asset Classification Updated");
     expect(harness?.ensureCalls[0]).toMatchObject({
         source: "canvas-manual",
         category: "character",
@@ -167,17 +167,17 @@ test("owned category update writes assetId and keeps current valid copy", async 
     expect((harness?.writes ?? []).filter((item) => item === "invalidate")).toEqual(["invalidate"]);
 }, 15_000);
 
-test("owned save success toasts 已加入项目资产", async () => {
+test("owned save success toasts added to project assets", async () => {
     await page.getByRole("button", { name: "save-asset" }).click();
     await page.getByTestId("node-asset").filter({ hasText: "asset-1" }).waitFor({ timeout: 8_000 });
-    expect((await harnessState())?.toasts.join("\n") ?? "").toContain("已加入项目资产");
+    expect((await harnessState())?.toasts.join("\n") ?? "").toContain("Project assets have been added");
 }, 15_000);
 
-test("owned personal save success toasts 已加入我的素材", async () => {
+test("owned personal save success toasts have been added to my content", async () => {
     personalOnly = true;
     await page.getByRole("button", { name: "save-asset" }).click();
     await page.getByTestId("node-asset").filter({ hasText: "asset-1" }).waitFor({ timeout: 8_000 });
-    expect((await harnessState())?.toasts.join("\n") ?? "").toContain("已加入我的素材");
+    expect((await harnessState())?.toasts.join("\n") ?? "").toContain("Added my material");
 }, 15_000);
 
 test("owned ordinary save error still toasts the current canvas", async () => {
@@ -186,7 +186,7 @@ test("owned ordinary save error still toasts the current canvas", async () => {
     await page.waitForTimeout(800);
     const harness = await harnessState();
     expect(await page.getByTestId("node-asset").textContent()).toBe("none");
-    expect((harness?.toasts ?? []).join("\n")).toContain("网络中断");
+    expect((harness?.toasts ?? []).join("\n")).toContain("Network outage");
 }, 15_000);
 
 test("delayed save success after canvas switch does not overlay the live canvas", async () => {
@@ -199,6 +199,6 @@ test("delayed save success after canvas switch does not overlay the live canvas"
     await page.waitForTimeout(800);
     const harness = await harnessState();
     expect(await page.getByTestId("node-asset").textContent()).toBe("none");
-    expect((harness?.toasts ?? []).join("\n")).not.toContain("已加入项目资产");
+    expect((harness?.toasts ?? []).join("\n")).not.toContain("Project assets have been added");
     expect((harness?.writes ?? []).filter((item) => item === "invalidate")).toEqual([]);
 }, 15_000);

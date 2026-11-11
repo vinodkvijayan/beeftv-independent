@@ -369,7 +369,7 @@ func ProtocolRequestBody(ctx context.Context, config Config, spec protocol.Reque
 			}
 			if err != nil {
 				_ = writer.Close()
-				return nil, "", fmt.Errorf("读取 multipart 文件 %s 失败：%w", file.Name, err)
+				return nil, "", fmt.Errorf("Reading multipart file %s failed: %w", file.Name, err)
 			}
 			filename := SafeProtocolFilename(file.Filename)
 			mimeType := strings.TrimSpace(file.MIMEType)
@@ -407,10 +407,10 @@ func ProtocolRequestBody(ctx context.Context, config Config, spec protocol.Reque
 			}
 			return strings.NewReader(value), contentType, nil
 		default:
-			return nil, "", fmt.Errorf("二进制协议请求体必须是字节或字符串")
+			return nil, "", fmt.Errorf("Binary protocol request body must be bytes or string")
 		}
 	default:
-		return nil, "", fmt.Errorf("声明式协议暂不支持 %s 请求体", spec.ContentType)
+		return nil, "", fmt.Errorf("The declarative protocol does not currently support the %s request body.", spec.ContentType)
 	}
 }
 

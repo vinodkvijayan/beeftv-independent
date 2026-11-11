@@ -19,7 +19,7 @@ import (
 
 func TestChapterApplyReceiptSamePayloadReplayDoesNotOverwriteLaterEdits(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	revision := ownedRevision(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
@@ -31,7 +31,7 @@ func TestChapterApplyReceiptSamePayloadReplayDoesNotOverwriteLaterEdits(t *testi
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: revision,
-		Shots:            storyboardReplaceShots("SC.01", "生成画面"),
+		Shots:            storyboardReplaceShots("SC.01", "Generate screen"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -39,7 +39,7 @@ func TestChapterApplyReceiptSamePayloadReplayDoesNotOverwriteLaterEdits(t *testi
 	if len(created) != 1 {
 		t.Fatalf("created = %d, want 1", len(created))
 	}
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "用户后来改的画面", DurationMs: 3200}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "The screen that the user later changed", DurationMs: 3200}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -47,7 +47,7 @@ func TestChapterApplyReceiptSamePayloadReplayDoesNotOverwriteLaterEdits(t *testi
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{created[0].ID},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            storyboardReplaceShots("SC.01", "生成画面"),
+		Shots:            storyboardReplaceShots("SC.01", "Generate screen"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -59,15 +59,15 @@ func TestChapterApplyReceiptSamePayloadReplayDoesNotOverwriteLaterEdits(t *testi
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "用户后来改的画面" {
-		t.Fatalf("description = %q, want 用户后来改的画面", stored.Description)
+	if stored.Description != "The screen that the user later changed" {
+		t.Fatalf("description = %q, want the screen that the user later changed", stored.Description)
 	}
 	assertSingleChapterApplyReceipt(t, db, "user-1", "task-storyboard-1")
 }
 
 func TestChapterApplyDifferentPayloadSameIdentityConflicts(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	revision := ownedRevision(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
@@ -78,7 +78,7 @@ func TestChapterApplyDifferentPayloadSameIdentityConflicts(t *testing.T) {
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: revision,
-		Shots:            storyboardReplaceShots("SC.01", "第一份画面"),
+		Shots:            storyboardReplaceShots("SC.01", "first screen"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func TestChapterApplyDifferentPayloadSameIdentityConflicts(t *testing.T) {
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{created[0].ID},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            storyboardReplaceShots("SC.99", "另一份画面"),
+		Shots:            storyboardReplaceShots("SC.99", "another screen"),
 	})
 	if err == nil {
 		t.Fatal("different payload reused identity")
@@ -96,27 +96,27 @@ func TestChapterApplyDifferentPayloadSameIdentityConflicts(t *testing.T) {
 	if !errors.As(err, &appErr) || appErr.Status != kernel.CodeConflict || appErr.Reason != kernel.ErrorReason("operation_id_reused_with_different_payload") {
 		t.Fatalf("conflict = %#v", err)
 	}
-	if appErr.Message != "这份结果已经按另一份内容写入，不能再覆盖" {
+	if appErr.Message != "This result has been written according to the content of another copy and cannot be overwritten." {
 		t.Fatalf("message = %q", appErr.Message)
 	}
 	var stored model.Shot
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "第一份画面" {
-		t.Fatalf("description = %q, want 第一份画面", stored.Description)
+	if stored.Description != "first screen" {
+		t.Fatalf("description = %q, want the first screen", stored.Description)
 	}
 }
 
 func TestChapterApplyFailedFirstWriteLeavesNoReceiptThenReviewSnapshotSucceeds(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "chapter-apply-interrupt.db")
 	svc, db := openFileProjectService(t, path)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	original, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            storyboardReplaceShots("SC.01", "批准时的画面"),
+		Shots:            storyboardReplaceShots("SC.01", "Approval screen"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -127,7 +127,7 @@ func TestChapterApplyFailedFirstWriteLeavesNoReceiptThenReviewSnapshotSucceeds(t
 		ID: "task-storyboard-1", UserID: "user-1", ProjectID: project.ID, ChapterID: unit.ID,
 		Kind: chapterApplyStoryboard, ApprovedRevision: approvedRevision, ApprovedShotIDs: approvedShotIDs,
 	})
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, original[0].ID, ShotRevisionInput{PlotDescription: "生成期间改过的画面", DurationMs: 3000}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, original[0].ID, ShotRevisionInput{PlotDescription: "Screens modified during generation", DurationMs: 3000}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -135,7 +135,7 @@ func TestChapterApplyFailedFirstWriteLeavesNoReceiptThenReviewSnapshotSucceeds(t
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  approvedShotIDs,
 		ExpectedRevision: approvedRevision,
-		Shots:            storyboardReplaceShots("SC.02", "新生成画面"),
+		Shots:            storyboardReplaceShots("SC.02", "Newly generated screen"),
 	})
 	if err == nil {
 		t.Fatal("stale original snapshot overwrote later edits")
@@ -157,12 +157,12 @@ func TestChapterApplyFailedFirstWriteLeavesNoReceiptThenReviewSnapshotSucceeds(t
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{original[0].ID},
 		ExpectedRevision: reviewedRevision,
-		Shots:            storyboardReplaceShots("SC.02", "新生成画面"),
+		Shots:            storyboardReplaceShots("SC.02", "Newly generated screen"),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(reviewed) != 1 || reviewed[0].Description != "新生成画面" {
+	if len(reviewed) != 1 || reviewed[0].Description != "Newly generated screen" {
 		t.Fatalf("reviewed shots = %#v", reviewed)
 	}
 	assertSingleChapterApplyReceipt(t, db, "user-1", "task-storyboard-1")
@@ -171,7 +171,7 @@ func TestChapterApplyFailedFirstWriteLeavesNoReceiptThenReviewSnapshotSucceeds(t
 func TestChapterApplyReceiptSurvivesSQLiteRestart(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "chapter-apply.db")
 	svc, db := openFileProjectService(t, path)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	revision := ownedRevision(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
@@ -182,7 +182,7 @@ func TestChapterApplyReceiptSurvivesSQLiteRestart(t *testing.T) {
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: revision,
-		Shots:            storyboardReplaceShots("SC.01", "持久画面"),
+		Shots:            storyboardReplaceShots("SC.01", "lasting picture"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -190,14 +190,14 @@ func TestChapterApplyReceiptSurvivesSQLiteRestart(t *testing.T) {
 	closeDB(t, db)
 
 	svc, db = openFileProjectService(t, path)
-	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "重启后用户又改了", DurationMs: 3000}); err != nil {
+	if _, _, err := svc.CreateShotRevision("user-1", project.ID, created[0].ID, ShotRevisionInput{PlotDescription: "After restarting, the user changed again.", DurationMs: 3000}); err != nil {
 		t.Fatal(err)
 	}
 	replayed, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{created[0].ID},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            storyboardReplaceShots("SC.01", "持久画面"),
+		Shots:            storyboardReplaceShots("SC.01", "lasting picture"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -209,8 +209,8 @@ func TestChapterApplyReceiptSurvivesSQLiteRestart(t *testing.T) {
 	if err := db.First(&stored, "id = ?", created[0].ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Description != "重启后用户又改了" {
-		t.Fatalf("description = %q, want 重启后用户又改了", stored.Description)
+	if stored.Description != "After restarting, the user changed again." {
+		t.Fatalf("description = %q, want The user changed it again after restarting", stored.Description)
 	}
 	receipts, err := svc.ChapterApplyReceipts("user-1", project.ID, []string{"task-storyboard-1"})
 	if err != nil {
@@ -223,8 +223,8 @@ func TestChapterApplyReceiptSurvivesSQLiteRestart(t *testing.T) {
 
 func TestChapterApplySourceTaskIsNotAForgeableCredential(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	other := seedProject(t, db, model.Project{ID: "project-2", UserID: "user-1", Name: "另一项目"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	other := seedProject(t, db, model.Project{ID: "project-2", UserID: "user-1", Name: "another project"})
 	unit := seedChapter(t, svc, project.ID)
 	otherUnit := seedChapter(t, svc, other.ID)
 	revision := ownedRevision(t, svc, project.ID)
@@ -248,10 +248,10 @@ func TestChapterApplySourceTaskIsNotAForgeableCredential(t *testing.T) {
 	req := ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: revision,
-		Shots:            storyboardReplaceShots("SC.01", "画面"),
+		Shots:            storyboardReplaceShots("SC.01", "Picture"),
 	}
 	req.SourceTaskID = "task-other-user"
-	if _, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, req); !IsNotFound(err) && err.Error() != "找不到对应的生成任务" {
+	if _, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, req); !IsNotFound(err) && err.Error() != "The corresponding build task cannot be found" {
 		t.Fatalf("foreign owner = %v", err)
 	}
 	req.SourceTaskID = "task-other-project"
@@ -259,7 +259,7 @@ func TestChapterApplySourceTaskIsNotAForgeableCredential(t *testing.T) {
 		t.Fatal("foreign project task applied")
 	}
 	req.SourceTaskID = "task-running"
-	if _, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, req); err == nil || err.Error() != "生成尚未完成，不能写入结果" {
+	if _, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, req); err == nil || err.Error() != "The generation is not yet complete and the results cannot be written" {
 		t.Fatalf("running task = %v", err)
 	}
 	req.SourceTaskID = "task-characters"
@@ -272,7 +272,7 @@ func TestChapterApplySourceTaskIsNotAForgeableCredential(t *testing.T) {
 func TestChapterApplyConcurrentCASKeepsOneReceipt(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "chapter-apply-cas.db")
 	svc, db := openFileProjectService(t, path)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	revision := ownedRevision(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
@@ -340,7 +340,7 @@ func TestChapterApplyConcurrentCASKeepsOneReceipt(t *testing.T) {
 func TestChapterApplySameIdentityConcurrentReplay(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "chapter-apply-replay.db")
 	svc, db := openFileProjectService(t, path)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	revision := ownedRevision(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
@@ -364,7 +364,7 @@ func TestChapterApplySameIdentityConcurrentReplay(t *testing.T) {
 				SourceTaskID:     "task-storyboard-1",
 				ExpectedShotIDs:  []string{},
 				ExpectedRevision: revision,
-				Shots:            storyboardReplaceShots("SC.01", "同一份画面"),
+				Shots:            storyboardReplaceShots("SC.01", "same picture"),
 			})
 			results <- applyErr
 		}()
@@ -391,7 +391,7 @@ func TestChapterApplySameIdentityConcurrentReplay(t *testing.T) {
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            storyboardReplaceShots("SC.01", "同一份画面"),
+		Shots:            storyboardReplaceShots("SC.01", "same picture"),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -411,7 +411,7 @@ func TestChapterApplySameIdentityConcurrentReplay(t *testing.T) {
 
 func TestChapterCharacterApplyUsesReceiptNotTimestamp(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
 		ID: "task-characters-1", UserID: "user-1", ProjectID: project.ID, ChapterID: unit.ID,
@@ -421,7 +421,7 @@ func TestChapterCharacterApplyUsesReceiptNotTimestamp(t *testing.T) {
 	created, err := svc.CreateProjectAssetCandidates("user-1", project.ID, CreateAssetCandidatesRequest{
 		Source:       AssetCandidateSourceChapterCharacter,
 		SourceTaskID: "task-characters-1",
-		Candidates:   []AssetCandidateInput{{UnitID: unit.ID, Name: "小红帽", Category: string(model.AssetCategoryCharacter), Details: details}},
+		Candidates:   []AssetCandidateInput{{UnitID: unit.ID, Name: "little red riding hood", Category: string(model.AssetCategoryCharacter), Details: details}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -435,7 +435,7 @@ func TestChapterCharacterApplyUsesReceiptNotTimestamp(t *testing.T) {
 	replayed, err := svc.CreateProjectAssetCandidates("user-1", project.ID, CreateAssetCandidatesRequest{
 		Source:       AssetCandidateSourceChapterCharacter,
 		SourceTaskID: "task-characters-1",
-		Candidates:   []AssetCandidateInput{{UnitID: unit.ID, Name: "小红帽", Category: string(model.AssetCategoryCharacter), Details: details}},
+		Candidates:   []AssetCandidateInput{{UnitID: unit.ID, Name: "little red riding hood", Category: string(model.AssetCategoryCharacter), Details: details}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -453,7 +453,7 @@ func TestChapterCharacterApplyUsesReceiptNotTimestamp(t *testing.T) {
 	_, err = svc.CreateProjectAssetCandidates("user-1", project.ID, CreateAssetCandidatesRequest{
 		Source:       AssetCandidateSourceChapterCharacter,
 		SourceTaskID: "task-characters-1",
-		Candidates:   []AssetCandidateInput{{UnitID: unit.ID, Name: "猎人", Category: string(model.AssetCategoryCharacter), Details: details}},
+		Candidates:   []AssetCandidateInput{{UnitID: unit.ID, Name: "hunter", Category: string(model.AssetCategoryCharacter), Details: details}},
 	})
 	if err == nil {
 		t.Fatal("different payload reused character identity")
@@ -466,7 +466,7 @@ func TestChapterApplyShotsChangedReturnsStableReason(t *testing.T) {
 	if !errors.As(err, &appErr) || appErr.Status != kernel.CodeConflict || appErr.Reason != kernel.ReasonProjectUnitShotsChanged {
 		t.Fatalf("mapped = %#v", err)
 	}
-	if appErr.Message != "本章分镜已发生变化，请刷新后重新确认" {
+	if appErr.Message != "The storyboard of this chapter has changed, please refresh and confirm again." {
 		t.Fatalf("message = %q", appErr.Message)
 	}
 	if !IsConflict(err) {
@@ -480,14 +480,14 @@ func TestChapterApplyRevisionConflictReturnsStableReason(t *testing.T) {
 	if !errors.As(err, &appErr) || appErr.Status != kernel.CodeConflict || appErr.Reason != kernel.ReasonProjectRevisionConflict {
 		t.Fatalf("mapped = %#v", err)
 	}
-	if appErr.Message != "项目已被其他操作更新，请重新加载后再保存" {
+	if appErr.Message != "The project has been updated by other operations, please reload before saving." {
 		t.Fatalf("message = %q", appErr.Message)
 	}
 }
 
 func TestChapterCharacterEmptyExtractWritesReceipt(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
 		ID: "task-characters-1", UserID: "user-1", ProjectID: project.ID, ChapterID: unit.ID,
@@ -516,8 +516,8 @@ func TestChapterCharacterEmptyExtractWritesReceipt(t *testing.T) {
 
 func TestChapterApplyReceiptsStayOnOwningProject(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
-	other := seedProject(t, db, model.Project{ID: "project-2", UserID: "user-1", Name: "另一项目"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
+	other := seedProject(t, db, model.Project{ID: "project-2", UserID: "user-1", Name: "another project"})
 	unit := seedChapter(t, svc, project.ID)
 	revision := ownedRevision(t, svc, project.ID)
 	seedSucceededChapterTask(t, db, chapterTaskSeed{
@@ -528,7 +528,7 @@ func TestChapterApplyReceiptsStayOnOwningProject(t *testing.T) {
 		SourceTaskID:     "task-storyboard-1",
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: revision,
-		Shots:            storyboardReplaceShots("SC.01", "画面"),
+		Shots:            storyboardReplaceShots("SC.01", "Picture"),
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -545,7 +545,7 @@ func TestChapterApplyReceiptRejectsCorruptIdentity(t *testing.T) {
 	for _, raw := range []string{"", "{", `{}`, `{"taskId":"other","projectId":"project-1","unitId":"unit-1","kind":"storyboard"}`} {
 		t.Run(raw, func(t *testing.T) {
 			svc, db := newTestService(t, nil)
-			seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+			seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 			record := model.AgentOpRecord{UserID: "user-1", OpID: chapterApplyOpID("task-1"), Op: ChapterApplyOpStoryboard, Status: "succeeded", ResultJSON: raw}
 			if err := db.Create(&record).Error; err != nil {
 				t.Fatal(err)
@@ -559,12 +559,12 @@ func TestChapterApplyReceiptRejectsCorruptIdentity(t *testing.T) {
 
 func TestReplaceWithoutSourceTaskDoesNotWriteReceipt(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "短剧"})
+	project := seedProject(t, db, model.Project{ID: "project-1", UserID: "user-1", Name: "skit"})
 	unit := seedChapter(t, svc, project.ID)
 	if _, err := svc.ReplaceProjectUnitShots("user-1", project.ID, unit.ID, ReplaceProjectUnitShotsRequest{
 		ExpectedShotIDs:  []string{},
 		ExpectedRevision: ownedRevision(t, svc, project.ID),
-		Shots:            storyboardReplaceShots("SC.01", "手工写入"),
+		Shots:            storyboardReplaceShots("SC.01", "Manual writing"),
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -638,8 +638,8 @@ func storyboardReplaceShots(title, description string) []ReplaceProjectUnitShotI
 
 func validChapterCharacterDetails() map[string]any {
 	return map[string]any{
-		"role": "主角", "appearance": "红色斗篷", "clothing": "红色兜帽与斗篷", "physique": "儿童体型",
-		"personality": "勇敢", "voiceLanguage": "普通话", "voiceAge": "儿童", "voiceTimbre": "清亮",
+		"role": "Protagonist", "appearance": "red cloak", "clothing": "Red hood and cloak", "physique": "Child size",
+		"personality": "brave", "voiceLanguage": "mandarin", "voiceAge": "children", "voiceTimbre": "clear",
 	}
 }
 

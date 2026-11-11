@@ -123,7 +123,7 @@ func defaultDataDir() (string, error) {
 		arg := os.Args[i]
 		if arg == "--data-dir" {
 			if i+1 == len(os.Args) {
-				return "", fmt.Errorf("--data-dir 需要明确的绝对目录")
+				return "", fmt.Errorf("--data-dir requires an explicit absolute directory")
 			}
 			return explicitDesktopDataDir(os.Args[i+1])
 		}
@@ -136,7 +136,7 @@ func defaultDataDir() (string, error) {
 	}
 	root, err := desktopstorage.DefaultRoot()
 	if err != nil {
-		return "", fmt.Errorf("定位用户应用数据目录: %w", err)
+		return "", fmt.Errorf("Locate user application data directory: %w", err)
 	}
 	return desktopstorage.Resolve(root)
 }
@@ -145,7 +145,7 @@ func explicitDesktopDataDir(dir string) (string, error) {
 	dir = strings.TrimSpace(dir)
 	clean := filepath.Clean(dir)
 	if !filepath.IsAbs(dir) || filepath.Dir(clean) == clean {
-		return "", fmt.Errorf("--data-dir 需要明确的绝对目录")
+		return "", fmt.Errorf("--data-dir requires an explicit absolute directory")
 	}
 	return clean, nil
 }

@@ -20,14 +20,14 @@ func TestAssistantSteerScopeAndNoNewTurn(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 				t.Error(err)
 			}
-			if body["canvasId"] != env.canvasID || body["sessionId"] != "s1" || body["message"] != "只改结尾" || len(body) != 3 {
+			if body["canvasId"] != env.canvasID || body["sessionId"] != "s1" || body["message"] != "Only change the ending" || len(body) != 3 {
 				t.Errorf("bad scope %#v", body)
 			}
 			w.WriteHeader(http.StatusAccepted)
 			_, _ = w.Write([]byte(`{"accepted":true}`))
 		})
 	})
-	body := `{"canvasId":"` + env.canvasID + `","sessionId":"s1","message":"只改结尾"}`
+	body := `{"canvasId":"` + env.canvasID + `","sessionId":"s1","message":"Only change the ending"}`
 	rejected := env.callWithHeaders(t, http.MethodPost, "/assistant/steer", body, map[string]string{"X-Beeftv-Ui-Session": "expired"})
 	if rejected.Code != http.StatusForbidden || hits != 0 {
 		t.Fatalf("unauthorized forwarded: %d hits=%d", rejected.Code, hits)

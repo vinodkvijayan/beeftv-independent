@@ -10,7 +10,7 @@ import (
 
 // ErrLeaseLost 表示当前执行者已失去槽位或任务租约。运行时不得把这次执行写成成功，
 // 也不得把未知的上游接单当成可重新提交的失败。
-var ErrLeaseLost = errors.New("任务租约已失效")
+var ErrLeaseLost = errors.New("Task lease has expired")
 
 // Kind 是一次已领取任务的显式结局。运行时只按这些结局决定是否允许再次领取执行。
 type Kind string

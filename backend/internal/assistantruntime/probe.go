@@ -78,11 +78,11 @@ func (h *Host) Probe(ctx context.Context) HostHealth {
 
 func (h *Host) NewChildRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
 	if h == nil {
-		return nil, invalidArg("host_unreachable", "内置创作助手宿主未运行")
+		return nil, invalidArg("host_unreachable", "The built-in authoring assistant host is not running")
 	}
 	base, nonce := h.proc.identity()
 	if strings.TrimSpace(base) == "" || nonce == "" {
-		return nil, invalidArg("host_unreachable", "内置创作助手宿主未运行")
+		return nil, invalidArg("host_unreachable", "The built-in authoring assistant host is not running")
 	}
 	if ctx == nil {
 		ctx = context.Background()

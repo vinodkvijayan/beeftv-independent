@@ -4,7 +4,7 @@ package outbound
 // Error must not expose the hostname, DNS server, or a caller's signed URL.
 type DNSResolutionError struct{ Cause error }
 
-func (e *DNSResolutionError) Error() string { return "外部服务域名解析失败" }
+func (e *DNSResolutionError) Error() string { return "External service domain name resolution failed" }
 func (e *DNSResolutionError) Unwrap() error { return e.Cause }
 
 // BadRequestError 是出站校验失败（URL/Header 等）的稳定错误类型。

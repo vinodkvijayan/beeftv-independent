@@ -72,7 +72,7 @@ func newLibraryFixture(t *testing.T) (*Library, *gorm.DB) {
 
 func testLibraryAssetPayload(kind string, extra map[string]any) map[string]any {
 	payload := map[string]any{
-		"id": "asset-1", "kind": kind, "title": "测试资产", "coverUrl": "", "tags": []string{},
+		"id": "asset-1", "kind": kind, "title": "Test assets", "coverUrl": "", "tags": []string{},
 	}
 	switch kind {
 	case "image":
@@ -84,7 +84,7 @@ func testLibraryAssetPayload(kind string, extra map[string]any) map[string]any {
 	case "model":
 		payload["data"] = map[string]any{"url": "https://example.com/a.glb", "bytes": 1, "mimeType": "model/gltf-binary", "fileName": "a.glb"}
 	case "text":
-		payload["data"] = map[string]any{"content": "正文"}
+		payload["data"] = map[string]any{"content": "Text"}
 	default:
 		payload["data"] = map[string]any{"definition": map[string]any{}}
 	}
@@ -110,7 +110,7 @@ func TestLibraryDoesNotDependOnAppOrCanvas(t *testing.T) {
 
 func TestAssetFromJSONAcceptsDeterministicGenerationID(t *testing.T) {
 	id := "generation_" + strings.Repeat("a", 64)
-	raw, err := json.Marshal(testLibraryAssetPayload("image", map[string]any{"id": id, "title": "生成图片", "source": "生成任务"}))
+	raw, err := json.Marshal(testLibraryAssetPayload("image", map[string]any{"id": id, "title": "Generate pictures", "source": "Generate tasks"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestMalformedPayloadReadUnchanged(t *testing.T) {
 	now := time.Now().UTC()
 	corrupt := `{not-json`
 	item := model.Asset{
-		ID: "asset-corrupt", UserID: "owner", Kind: "image", Title: "损坏",
+		ID: "asset-corrupt", UserID: "owner", Kind: "image", Title: "damaged",
 		PayloadJSON: corrupt, CreatedAt: now, UpdatedAt: now,
 	}
 	if err := db.Create(&item).Error; err != nil {
@@ -203,7 +203,7 @@ func TestLibraryRejectsForeignAndAcceptsOwnedResource(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = lib.UpsertUserAsset("owner", foreignRaw)
-	if err == nil || !strings.Contains(err.Error(), "不存在或不属于当前用户") {
+	if err == nil || !strings.Contains(err.Error(), "Does not exist or does not belong to the current user") {
 		t.Fatalf("foreign resource error = %v", err)
 	}
 	if _, err := lib.repo.AssetForUser("owner", "asset-foreign"); !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -279,7 +279,7 @@ func TestMutationsFailClosedWithoutHost(t *testing.T) {
 	if err := lib.DeleteUserAsset("owner", "asset-1"); err == nil {
 		t.Fatal("delete without host reported success")
 	}
-	if _, err := lib.WithHost(nil).CreateAssetFolder("owner", CreateAssetFolderRequest{Name: "灵感"}); err == nil {
+	if _, err := lib.WithHost(nil).CreateAssetFolder("owner", CreateAssetFolderRequest{Name: "inspiration"}); err == nil {
 		t.Fatal("folder create without host succeeded")
 	}
 	if _, err := lib.UserAssets("owner"); err != nil {
@@ -306,7 +306,7 @@ func TestPrepareAssetWritesRejectsDuplicateIDs(t *testing.T) {
 func TestPrepareAssetWritesRejectsBatchOverCountLimit(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
-	if err := db.Create(&model.Asset{ID: "existing", UserID: "owner", Kind: "image", Title: "已有", PayloadJSON: `{"id":"existing"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.Asset{ID: "existing", UserID: "owner", Kind: "image", Title: "Already have", PayloadJSON: `{"id":"existing"}`, CreatedAt: now, UpdatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
 	lib = lib.WithHost(&testHost{
@@ -316,7 +316,7 @@ func TestPrepareAssetWritesRejectsBatchOverCountLimit(t *testing.T) {
 				return err
 			}
 			if count+int64(createdCount) > 2 {
-				return kernel.QuotaExceeded("账号素材数量已达到 2 个上限")
+				return kernel.QuotaExceeded("The number of account materials has reached the upper limit of 2")
 			}
 			return nil
 		},
@@ -369,7 +369,7 @@ func TestPersistPreparedAssetsRejectsResourceSwapAfterCanvasReference(t *testing
 		t.Fatalf("prepare before canvas = %v", err)
 	}
 	canvas := model.CanvasProject{
-		ID: "canvas-1", UserID: "owner", Title: "画布", Revision: 1,
+		ID: "canvas-1", UserID: "owner", Title: "canvas", Revision: 1,
 		PayloadJSON: `{"nodes":[{"id":"node","type":"image","metadata":{"assetId":"shared-asset","storageKey":"resource:res-old"}}]}`,
 		CreatedAt:   now, UpdatedAt: now,
 	}
@@ -380,7 +380,7 @@ func TestPersistPreparedAssetsRejectsResourceSwapAfterCanvasReference(t *testing
 		_, persistErr := lib.WithRepository(tx).PersistPreparedAssets("owner", []model.Asset{newItem})
 		return persistErr
 	})
-	if err == nil || !strings.Contains(err.Error(), "不能替换为其他资源") {
+	if err == nil || !strings.Contains(err.Error(), "Cannot be replaced with other resources") {
 		t.Fatalf("persist error = %v", err)
 	}
 	stored, err := lib.repo.AssetForUser("owner", "shared-asset")
@@ -421,9 +421,9 @@ func TestUserAssetsPageAppliesFavoriteFilterAndSidebarCounts(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
 	for _, asset := range []model.Asset{
-		{ID: "fav-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "收藏", PayloadJSON: `{"id":"fav-1","kind":"image","title":"收藏","coverUrl":"","tags":[],"metadata":{"favorite":true},"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
-		{ID: "plain-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "普通", PayloadJSON: `{"id":"plain-1","kind":"image","title":"普通","coverUrl":"","tags":[],"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now},
-		{ID: "named-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"named-1","kind":"image","title":"海边","coverUrl":"","tags":[],"metadata":{"projectName":"海边剧"},"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "fav-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Collection", PayloadJSON: `{"id":"fav-1","kind":"image","title":"Collection","coverUrl":"","tags":[],"metadata":{"favorite":true},"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
+		{ID: "plain-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Ordinary", PayloadJSON: `{"id":"plain-1","kind":"image","title":"plain","coverUrl":"","tags":[],"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "named-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"named-1","kind":"image","title":"海边","coverUrl":"","tags":[],"metadata":{"projectName":"海边剧"},"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now},
 	} {
 		if err := db.Create(&asset).Error; err != nil {
 			t.Fatal(err)
@@ -436,7 +436,7 @@ func TestUserAssetsPageAppliesFavoriteFilterAndSidebarCounts(t *testing.T) {
 	if page.Total != 1 || len(page.Assets) != 1 || page.FavoriteTotal != 1 || page.RecentTotal != 3 || page.HasMore {
 		t.Fatalf("favorite page = %#v", page)
 	}
-	if page.ProjectCounts["海边剧"] != 1 || page.ProjectCounts["未关联项目"] != 2 {
+	if page.ProjectCounts["seaside drama"] != 1 || page.ProjectCounts["No associated projects"] != 2 {
 		t.Fatalf("project counts = %#v", page.ProjectCounts)
 	}
 }
@@ -445,9 +445,9 @@ func TestUserAssetsPageAppliesGeneratedFilterAndSidebarCounts(t *testing.T) {
 	lib, db := newLibraryFixture(t)
 	now := time.Now().UTC()
 	for _, asset := range []model.Asset{
-		{ID: "gen-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "生成图", PayloadJSON: `{"id":"gen-1","kind":"image","title":"生成图","coverUrl":"","tags":[],"source":"生成任务","data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
-		{ID: "gen-2", UserID: "owner", Kind: "audio", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "生成音", PayloadJSON: `{"id":"gen-2","kind":"audio","title":"生成音","coverUrl":"","tags":[],"metadata":{"generationEffectKey":"voice"},"data":{"url":"https://example.com/a.mp3","bytes":1,"mimeType":"audio/mpeg"}}`, CreatedAt: now, UpdatedAt: now},
-		{ID: "plain-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "普通", PayloadJSON: `{"id":"plain-1","kind":"image","title":"普通","coverUrl":"","tags":[],"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "gen-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Generate graph", PayloadJSON: `{"id":"gen-1","kind":"image","title":"Generate image","coverUrl":"","tags":[],"source":"Generate task","data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
+		{ID: "gen-2", UserID: "owner", Kind: "audio", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "generated sound", PayloadJSON: `{"id":"gen-2","kind":"audio","title":"Generated Sound","coverUrl":"","tags":[],"metadata":{"generationEffectKey":"voice"},"data":{"url":"https://example.com/a.mp3","bytes":1,"mimeType":"audio/mpeg"}}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "plain-1", UserID: "owner", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Ordinary", PayloadJSON: `{"id":"plain-1","kind":"image","title":"plain","coverUrl":"","tags":[],"data":{"dataUrl":"https://example.com/a.png","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`, CreatedAt: now, UpdatedAt: now},
 	} {
 		if err := db.Create(&asset).Error; err != nil {
 			t.Fatal(err)

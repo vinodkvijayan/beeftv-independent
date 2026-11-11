@@ -264,17 +264,17 @@ func TestSeedreamSizeFollowsGenerationSceneBeforeSending(t *testing.T) {
 		wantSize                string
 		reject                  bool
 	}{
-		{name: "国内 Pro 普通生图 auto", model: "doubao-seedream-5-0-pro-260628", size: "auto", wantSize: "2K"},
-		{name: "国内 Flash 普通生图 auto", model: "doubao-seedream-5-0-flash-260915", size: "auto", wantSize: "2K"},
-		{name: "国际 Pro 普通生图 auto", model: "dola-seedream-5-0-pro-260628", size: "auto", wantSize: "2K"},
-		{name: "4.5 普通生图 auto", model: "seedream-4-5-251128", size: "auto", wantSize: "2K"},
-		{name: "普通生图宽x高", model: "doubao-seedream-5-0-pro-260628", size: "2048x2048", wantSize: "2048x2048"},
-		{name: "图层拆分跟随原图", model: "doubao-seedream-5-0-pro-260628", size: "auto", mode: "layers", refs: 1, wantSize: "auto"},
-		{name: "图层拆分档位", model: "doubao-seedream-5-0-pro-260628", size: "1.5K", mode: "layers", refs: 1, wantSize: "1.5K"},
-		{name: "国内 Pro 图层拆分像素", model: "doubao-seedream-5-0-pro-260628", size: "2048x2048", mode: "layers", refs: 1, reject: true},
-		{name: "国际 Pro 图层拆分像素", model: "dola-seedream-5-0-pro-260628", size: "2048x2048", mode: "layers", refs: 1, reject: true},
-		{name: "国内 Flash 图层拆分像素", model: "doubao-seedream-5-0-flash-260915", size: "2048x2048", mode: "layers", refs: 1, reject: true},
-		{name: "图层拆分像素过小", model: "doubao-seedream-5-0-pro-260628", size: "1280x720", mode: "layers", refs: 1, reject: true},
+		{name: "Domestic Pro ordinary raw pictures auto", model: "doubao-seedream-5-0-pro-260628", size: "auto", wantSize: "2K"},
+		{name: "Domestic Flash ordinary pictures auto", model: "doubao-seedream-5-0-flash-260915", size: "auto", wantSize: "2K"},
+		{name: "International Pro Ordinary raw pictures auto", model: "dola-seedream-5-0-pro-260628", size: "auto", wantSize: "2K"},
+		{name: "4.5 Normal drawing auto", model: "seedream-4-5-251128", size: "auto", wantSize: "2K"},
+		{name: "Ordinary raw image width x height", model: "doubao-seedream-5-0-pro-260628", size: "2048x2048", wantSize: "2048x2048"},
+		{name: "Layer splitting follows the original image", model: "doubao-seedream-5-0-pro-260628", size: "auto", mode: "layers", refs: 1, wantSize: "auto"},
+		{name: "Layer split gear", model: "doubao-seedream-5-0-pro-260628", size: "1.5K", mode: "layers", refs: 1, wantSize: "1.5K"},
+		{name: "Domestic Pro layer split pixel", model: "doubao-seedream-5-0-pro-260628", size: "2048x2048", mode: "layers", refs: 1, reject: true},
+		{name: "International Pro layer split pixels", model: "dola-seedream-5-0-pro-260628", size: "2048x2048", mode: "layers", refs: 1, reject: true},
+		{name: "Domestic Flash layer split pixel", model: "doubao-seedream-5-0-flash-260915", size: "2048x2048", mode: "layers", refs: 1, reject: true},
+		{name: "Layer split pixels too small", model: "doubao-seedream-5-0-pro-260628", size: "1280x720", mode: "layers", refs: 1, reject: true},
 	} {
 		port := &captureImagePort{}
 		input := Input{Mode: "image", Prompt: "x", Config: Config{Model: item.model, BaseURL: "https://beeftv.app", APIKey: "synthetic", InterfaceType: "openai-image", Size: item.size, SeedreamMode: item.mode}}

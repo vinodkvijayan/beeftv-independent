@@ -16,7 +16,7 @@ export function requiresGenerationApproval(name, args, businessTools = []) {
 }
 
 const proposeToolName = /^mcp__beeftv__canvas_generation_propose(?:_[a-f0-9]{12})?$/
-const generationUnits = { image: ['张', '图片'], video: ['段', '视频'], audio: ['段', '音频'] }
+const generationUnits = { image: ['images', 'pictures'], video: ['clips', 'video'], audio: ['clips', 'Audio'] }
 
 // Keeps BeefTV's own quote for each proposal, so the approval card can say what the user pays for.
 export function rememberQuote(quotes, name, result) {
@@ -41,35 +41,35 @@ export function approvalReason(name, args, businessTools = [], quotes = new Map(
   if (!/^mcp__beeftv__canvas_generation_submit(?:_[a-f0-9]{12})?$/.test(name)) {
     const business = businessTools.find(tool => tool.id === args?.tool)
     return business
-      ? `BeefTV 请求执行 ${business.method} ${business.path}${business.submitsGeneration ? '，将提交可能计费的生成任务' : '，将修改工作区'}。请核对本次操作。`
-      : 'BeefTV 将提交生成或未识别的业务操作，可能修改工作区或产生费用，请核对本次操作。'
+      ? `BeefTV request execution${business.method} ${business.path}${business.submitsGeneration ? ', will submit build tasks that may be billed' : ', will modify the workspace'}. Please check this operation.`
+      : 'BeefTV will submit a generated or unidentified business operation, which may modify the workspace or incur charges. Please check this operation.'
   }
   const quote = quotes.get(args?.proposalId)
   const submitted = Array.isArray(args?.nodeIds) ? args.nodeIds : []
   const quoted = Array.isArray(quote?.targets) ? quote.targets : []
   const targets = quoted.filter(target => submitted.includes(target?.nodeId))
   if (!quote || !submitted.length || targets.length !== new Set(submitted).size) {
-    return 'BeefTV 将提交付费生成，但这次提交和已有报价对不上，无法显示费用。可以先拒绝，让 Agent 重新报价后再提交。'
+    return 'BeefTV will submit a paid generation, but this submission does not match the existing quote and the cost cannot be displayed. You can reject it first and let the Agent re-quote before submitting.'
   }
   const kinds = [...new Set(targets.map(target => target.kind))]
-  const [unit, label] = kinds.length === 1 ? generationUnits[kinds[0]] || ['项', '生成'] : ['项', '生成']
+  const [unit, label] = kinds.length === 1 ? generationUnits[kinds[0]] || ['items', 'generate'] : ['items', 'generate']
   const amount = targets.reduce((sum, target) => sum + (target.kind === 'image' ? Number(target.parameters?.count) || 1 : 1), 0)
   const models = [...new Set(targets.map(target => target.model).filter(model => typeof model === 'string' && model))]
   const priced = targets.filter(target => Number.isFinite(target.estimate?.amount))
   const cost = targets.length === quoted.length && typeof quote.estimate?.text === 'string' && quote.estimate.text
     ? quote.estimate.text.replace(/[。.]+$/, '')
     : priced.length === targets.length
-      ? `预计费用：¥${Number(priced.reduce((sum, target) => sum + target.estimate.amount, 0).toFixed(4))}`
-      : priced.length ? '部分费用按所选渠道实际计费' : '费用按所选渠道实际计费'
-  return `BeefTV 将生成 ${amount} ${unit}${label}${models.length ? `（${models.join('、')}）` : ''}。${cost}。`
+      ? `Estimated cost: ¥${Number(priced.reduce((sum, target) => sum + target.estimate.amount, 0).toFixed(4))}`
+      : priced.length ? 'Some fees are actually billed based on the selected channel' : 'Fees are actually billed according to the selected channel'
+  return `BeefTV will generate${amount} ${unit}${label}${models.length ? `（${models.join('、')}）` : ''}。${cost}。`
 }
 
 export function runtimeRecord(value) {
   for (const key of ['bridgeURL', 'baseURL']) {
     const url = new URL(value?.[key])
-    if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || !url.port) throw new Error('工作区地址必须为本机回环地址')
+    if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || !url.port) throw new Error('The workspace address must be the local loopback address')
   }
-  if (typeof value.bridgeToken !== 'string' || !value.bridgeToken) throw new Error('工作区未返回桥接凭据')
+  if (typeof value.bridgeToken !== 'string' || !value.bridgeToken) throw new Error('Workspace did not return bridge credentials')
   return value
 }
 
@@ -101,7 +101,7 @@ function embeddedChromeBridge() {
 }
 
 export function publicContext(value) {
-  if (!value || typeof value.route !== 'string' || !value.route.startsWith('/') || value.route.startsWith('//') || value.route.length > 2048) throw new Error('无效的工作区上下文')
+  if (!value || typeof value.route !== 'string' || !value.route.startsWith('/') || value.route.startsWith('//') || value.route.length > 2048) throw new Error('Invalid workspace context')
   const context = { route: value.route }
   for (const key of ['canvasId', 'canvasTitle']) {
     if (typeof value[key] === 'string') context[key] = value[key].slice(0, 256)
@@ -160,15 +160,15 @@ export async function localAppStatus() {
   try {
     await Promise.all([access(localApp.executable, constants.X_OK), access(localApp.cli, constants.X_OK)])
   } catch {
-    return { compatible: false, version: null, message: `未找到本机 BeefTV。请安装 ${minimumLocalAppVersion} 或更高版本后重新连接。` }
+    return { compatible: false, version: null, message: `Native BeefTV not found. Please install${minimumLocalAppVersion}or later and reconnect.` }
   }
   const version = await bundleVersion(localApp.info)
   if (supportsHarness(version)) return { compatible: true, version, message: null }
   return {
     compatible: false, version,
     message: version
-      ? `本机 BeefTV 版本为 ${version}，需要 ${minimumLocalAppVersion} 或更高版本。请升级后重新连接。`
-      : `无法读取本机 BeefTV 的版本。请重新安装 ${minimumLocalAppVersion} 或更高版本后重新连接。`,
+      ? `The native BeefTV version is${version}, need${minimumLocalAppVersion} or higher. Please reconnect after upgrading.`
+      : `Unable to read version of native BeefTV. Please reinstall${minimumLocalAppVersion}or later and reconnect.`,
   }
 }
 
@@ -183,7 +183,7 @@ async function bundledPaths() {
   try {
     await Promise.all(Object.values(paths).map(path => access(path, constants.X_OK)))
   } catch (error) {
-    throw new Error('插件缺少内置的 BeefTV 运行时，请重新安装插件', { cause: error })
+    throw new Error('The plugin is missing the built-in BeefTV runtime, please reinstall the plugin', { cause: error })
   }
   return paths
 }
@@ -198,7 +198,7 @@ export async function startLocalRuntime() {
       })
     })
   } catch (error) {
-    throw new Error('无法打开本机 BeefTV，请确认 /Applications/BeefTV.app 已完整安装', { cause: error })
+    throw new Error('Unable to open local BeefTV, please confirm /Applications/BeefTV.app is fully installed', { cause: error })
   }
   const deadline = Date.now() + 30_000
   let lastFailure
@@ -210,7 +210,7 @@ export async function startLocalRuntime() {
     }
     await delay(250)
   }
-  throw new Error('本机 BeefTV 尚未就绪，请检查桌面应用的启动提示后重新连接', { cause: lastFailure })
+  throw new Error('The local BeefTV is not ready yet. Please check the startup prompt of the desktop application and reconnect.', { cause: lastFailure })
 }
 
 // Reconnects to a running desktop App without opening it again.
@@ -236,12 +236,12 @@ async function launchRuntime(paths, { dataDir, attachOnly = false }) {
   const record = await new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       child.kill('SIGTERM')
-      reject(new Error('启动 BeefTV 超过 30 秒，请检查安装与工作区状态'))
+      reject(new Error('It takes more than 30 seconds to start BeefTV, please check the installation and workspace status'))
     }, attachOnly ? 3_000 : 30_000)
     const fail = () => {
       if (ready) return
       clearTimeout(timer)
-      reject(new Error('BeefTV 运行时启动失败，请确认安装完整且工作区未被旧版本占用'))
+      reject(new Error('BeefTV runtime failed to start. Please confirm that the installation is complete and the workspace is not occupied by an old version.'))
     }
     child.once('error', fail)
     child.once('exit', fail)
@@ -290,7 +290,7 @@ export async function workspaceJSON(runtime, path, options = {}) {
     headers: { 'content-type': 'application/json', 'X-Beeftv-Harness-Token': runtime.bridgeToken, ...options.headers },
   })
   const value = await response.json()
-  if (!response.ok || value.code !== 0) throw new Error(value.msg || `BeefTV 请求失败 (${response.status})`)
+  if (!response.ok || value.code !== 0) throw new Error(value.msg || `BeefTV request failed (${response.status})`)
   return value.data
 }
 
@@ -300,10 +300,10 @@ export async function inspectWorkspace(runtime) {
     workspaceJSON(runtime, '/api/workspace/bootstrap'),
   ])
   if (!health.ready || !health.schema?.ready || !health.build?.version || !bootstrap.workspace?.id) {
-    throw new Error('BeefTV 工作区尚未就绪，请在本机应用中完成启动后重试')
+    throw new Error('BeefTV workspace is not ready yet, please try again after completing startup in the native app')
   }
   if (String(runtime.version).replace(/^v/, '') !== health.build.version.replace(/^v/, '')) {
-    throw new Error('BeefTV 连接版本已变化，请重新连接')
+    throw new Error('BeefTV connection version has changed, please reconnect.')
   }
   return {
     build: health.build,

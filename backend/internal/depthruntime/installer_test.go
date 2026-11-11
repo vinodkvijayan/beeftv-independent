@@ -139,7 +139,7 @@ func TestEnsureInstallsSignedWindowsCPURuntime(t *testing.T) {
 	}, Model: Artifact{URLs: []string{baseURL + "/model"}, Size: int64(len(model)), SHA256: hex.EncodeToString(modelHash[:])}}
 	var public []byte
 	envelope, public = signedTestManifest(t, manifest)
-	root := filepath.Join(t.TempDir(), "中文 path")
+	root := filepath.Join(t.TempDir(), "Chinese path")
 	installed, err := Ensure(context.Background(), EnsureOptions{ManifestURL: baseURL + "/manifest.json", DataDir: root, Platform: "windows-amd64", Variant: "cpu", TrustedPublicKey: public})
 	if err != nil {
 		t.Fatal(err)
@@ -302,7 +302,7 @@ func TestEnsureUsesTrustedFallbackManifestWhenRemoteIsUnavailable(t *testing.T) 
 		FallbackManifest: &fallback,
 		DataDir:          t.TempDir(),
 	})
-	if err == nil || err.Error() != "不支持的深度组件清单版本 99" {
+	if err == nil || err.Error() != "Unsupported deep component manifest version 99" {
 		t.Fatalf("expected fallback manifest to be used, got %v", err)
 	}
 }

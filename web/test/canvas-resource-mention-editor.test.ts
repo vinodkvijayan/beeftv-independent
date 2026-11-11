@@ -58,7 +58,7 @@ describe("canvas resource mention editor", () => {
         expect(component).toContain('chip.classList.toggle("is-replace-target"');
         expect(component).toContain("onReferenceFilesDrop(reference, files)");
         expect(css).toContain(".canvas-resource-inline-mention.is-replace-target");
-        expect(css).toContain('content: "替换"');
+        expect(css).toContain('content: "replacement"');
     });
 
     test("resolves storage-backed previews and renders a visible loading spinner", () => {

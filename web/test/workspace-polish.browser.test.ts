@@ -35,14 +35,14 @@ test("focused search survives pointer movement and closes on blur in both themes
         await page.goto(server.url.toString());
         for (let i = 0; i < 2; i++) {
             await page.getByRole("button", { name: /搜索项目/ }).click();
-            const input = page.getByRole("textbox", { name: "搜索项目" });
+            const input = page.getByRole("textbox", { name: "Search items" });
             await input.fill("coffee");
             await page.mouse.move(385, 650);
             await input.press("End");
             await input.press("s");
             expect(await input.inputValue()).toBe("coffees");
             expect(await input.evaluate((element) => document.activeElement === element)).toBe(true);
-            await page.getByRole("button", { name: "切换主题" }).click();
+            await page.getByRole("button", { name: "switch theme" }).click();
             await input.waitFor({ state: "hidden" });
             expect(await page.locator("output").textContent()).toBe("coffees");
             expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -55,11 +55,11 @@ test("installed version displays release notes instead of a publication placehol
     const page = await browser.newPage();
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "更新日志", exact: true }).click();
+        await page.getByRole("button", { name: "Change log", exact: true }).click();
         const dialog = page.getByRole("dialog");
         await dialog.waitFor();
         expect(await dialog.innerText()).toContain(version);
         expect(await dialog.locator("details[open] li").count()).toBeGreaterThan(0);
-        expect(await dialog.innerText()).not.toContain("当前版本的更新内容将在发布后提供");
+        expect(await dialog.innerText()).not.toContain("Updates to the current version will be available upon release");
     } finally { await page.close(); }
 }, 30000);

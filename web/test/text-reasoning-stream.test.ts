@@ -36,42 +36,42 @@ async function requestWithReasoning(config: AiConfig, events: unknown[]) {
     globalThis.fetch = (async () => streamResponse(events)) as typeof fetch;
     let content = "";
     let reasoning = "";
-    const result = await requestImageQuestion(config, [{ role: "user", content: "请回答" }], (value) => { content = value; }, { onReasoning: (value) => { reasoning = value; } });
+    const result = await requestImageQuestion(config, [{ role: "user", content: "please answer" }], (value) => { content = value; }, { onReasoning: (value) => { reasoning = value; } });
     return { result, content, reasoning };
 }
 
 describe("text reasoning streams", () => {
     test("separates Responses reasoning summaries from answer text", async () => {
         const output = await requestWithReasoning(reasoningConfig("openai-response"), [
-            { type: "response.reasoning_summary_text.delta", delta: "先分析" },
-            { type: "response.output_text.delta", delta: "最终答案" },
+            { type: "response.reasoning_summary_text.delta", delta: "Analyze first" },
+            { type: "response.output_text.delta", delta: "final answer" },
         ]);
 
-        expect(output).toEqual({ result: "最终答案", content: "最终答案", reasoning: "先分析" });
+        expect(output).toEqual({ result: "final answer", content: "final answer", reasoning: "Analyze first" });
     });
 
     test("separates Chat Completions reasoning_content from answer text", async () => {
         const output = await requestWithReasoning(reasoningConfig("chat-completion"), [
-            { choices: [{ delta: { reasoning_content: "推理过程" } }] },
-            { choices: [{ delta: { content: "回答内容" } }] },
+            { choices: [{ delta: { reasoning_content: "reasoning process" } }] },
+            { choices: [{ delta: { content: "Answer content" } }] },
         ]);
 
-        expect(output).toEqual({ result: "回答内容", content: "回答内容", reasoning: "推理过程" });
+        expect(output).toEqual({ result: "Answer content", content: "Answer content", reasoning: "reasoning process" });
     });
 
     test("does not duplicate Gemini thought parts into visible content", async () => {
         const output = await requestWithReasoning(reasoningConfig(undefined, "gemini"), [
-            { candidates: [{ content: { parts: [{ text: "内部思考", thought: true }, { text: "可见回答" }] } }] },
+            { candidates: [{ content: { parts: [{ text: "internal thinking", thought: true }, { text: "Visible answer" }] } }] },
         ]);
 
-        expect(output).toEqual({ result: "可见回答", content: "可见回答", reasoning: "内部思考" });
+        expect(output).toEqual({ result: "Visible answer", content: "Visible answer", reasoning: "internal thinking" });
     });
 
     test("keeps completed results open until the user collapses them", () => {
-        const single = renderToStaticMarkup(React.createElement(GenerationToolCard, { status: "completed", heading: "图像生成" }, React.createElement("span", null, "单图结果")));
-        const bulk = renderToStaticMarkup(React.createElement(GenerationToolCard, { status: "completed", heading: "图像生成" }, React.createElement("span", null, "批量结果")));
+        const single = renderToStaticMarkup(React.createElement(GenerationToolCard, { status: "completed", heading: "image generation" }, React.createElement("span", null, "Single image results")));
+        const bulk = renderToStaticMarkup(React.createElement(GenerationToolCard, { status: "completed", heading: "image generation" }, React.createElement("span", null, "Batch results")));
 
-        expect(single).toContain("单图结果");
-        expect(bulk).toContain("批量结果");
+        expect(single).toContain("Single image results");
+        expect(bulk).toContain("Batch results");
     });
 });

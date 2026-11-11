@@ -1,16 +1,16 @@
-# 本地模型配置持久化
+# Local model configuration persistence
 
-本地桌面模式的模型渠道不再只依赖浏览器 `localStorage`。前端启动时通过 `/api/workspace/model-config` 读取本机快照，渠道发生变化后自动保存；后端将快照原子写入 BeefTV 应用数据目录的 `local-model-config.json`。
+The local desktop mode model channel no longer relies solely on the browser `localStorage`. When the front end starts, it reads the local snapshot through `/api/workspace/model-config`, and automatically saves it after the channel changes; the back end writes the snapshot atomically to `local-model-config.json` in the BeefTV application data directory.
 
-- 配置文件位于应用数据目录，不进入 Git，也不随前端静态资源更新覆盖。
-- 写入采用临时文件 + `rename`，文件权限为 `0600`，目录权限为 `0700`。
-- 同一工作区路径上的多个配置句柄共用一把进程内锁；revision CAS 与脱敏密钥保留跨句柄串行。损坏、`null` 或非对象的现有主文件不会被新写入替换。
-- 带 `id` 的渠道只按相同字符串 ID 保留密钥；对不上的脱敏占位会拒绝写入，不会把 A 的密钥写进 B，也不会把占位符存成密钥。
-- 工作区路径只把「尚未创建的后缀」当成可恢复；符号链接环或权限/非目录错误会失败，不会为同一目录生成两把锁。
-- BeefTV 官方算力渠道由本机连接流程管理，授权密钥单独加密保存在工作区，不经过模型配置接口、导出或页面。
-- 其他手动渠道的 API Key 仍保存在本机配置文件中，不应提交到仓库或日志。
-- BeefTV 官方算力可用模型以连接后拉取的目录为准，不在仓库中写死。
+- The configuration file is located in the application data directory, does not enter Git, and is not overwritten with front-end static resource updates.
+- The temporary file + `rename` is used for writing, the file permission is `0600`, and the directory permission is `0700`.
+- Multiple configuration handles on the same workspace path share an in-process lock; revision CAS and desensitization keys remain serialized across handles. Existing master files that are corrupt, `null`, or non-objects are not replaced by new writes.
+- The channel with `id` only retains the key according to the same string ID; unmatched desensitized placeholders will refuse to write, the key of A will not be written to B, and the placeholder will not be saved as a key.
+- Workspace paths only treat "not yet created suffixes" as recoverable; symbolic link loops or permission/non-directory errors will fail and two locks will not be generated for the same directory.
+- BeefTV official computing power channel is managed by the local connection process, and the authorization key is individually encrypted and stored in the workspace without going through the model configuration interface, export or page.
+- API Keys for other manual channels are still saved in the local configuration file and should not be submitted to the warehouse or logs.
+- BeefTV's official computing power available model is based on the directory pulled after connection, and is not hard-coded in the warehouse.
 
-首次使用新桌面构建时，如果旧版本仍有浏览器渠道配置，前端会自动迁移到本地快照；后续重装前端资源不会清除模型配置。
+When building with a new desktop for the first time, if the old version still has browser channel configuration, the front end will be automatically migrated to the local snapshot; subsequent reinstallation of the front end resources will not clear the model configuration.
 
-画布助手也从这份快照读取模型和渠道凭据。手动渠道只有 `models` 列表、没有对应 `modelProfiles` 时，助手可跟随已选定的默认文本模型，使用渠道指定的对话协议；OpenAI 格式默认使用 Chat Completions。已声明的能力和协议优先，禁用渠道、非文本模型、不支持的协议或缺少密钥仍不可用。内置托管渠道继续使用其明确的模型目录。
+The Canvas Assistant also reads model and channel credentials from this snapshot. When the manual channel only has a list of `models` and no corresponding `modelProfiles`, the assistant can follow the selected default text model and use the conversation protocol specified by the channel; the OpenAI format uses Chat Completions by default. Declared capabilities and protocols take precedence, disabled channels, non-text models, unsupported protocols, or missing keys remain unavailable. The built-in hosting channel continues to use its explicit model catalog.

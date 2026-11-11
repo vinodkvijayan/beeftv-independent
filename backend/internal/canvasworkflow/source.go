@@ -35,19 +35,19 @@ func SourceInput(host CompileHost, task *model.Task) (map[string]any, error) {
 		var err error
 		raw, err = host.DecryptSetting(task.WorkflowSourceCipher)
 		if err != nil {
-			return nil, BadRequest("无法解密原工作流配方，请先恢复工作区密钥或重新手动运行节点")
+			return nil, BadRequest("Unable to decrypt the original workflow recipe, please restore the workspace key first or manually run the node again")
 		}
 	}
 	plain, err := host.DecryptTaskInput(raw)
 	if err != nil {
-		return nil, BadRequest("无法读取原任务配方，请重新手动运行该节点")
+		return nil, BadRequest("Unable to read the original task recipe, please run the node manually again")
 	}
 	var input map[string]any
 	if json.Unmarshal([]byte(plain), &input) != nil || input == nil {
-		return nil, BadRequest("原任务配方格式无效")
+		return nil, BadRequest("The original task recipe format is invalid")
 	}
 	if _, ok := input["config"].(map[string]any); !ok {
-		return nil, BadRequest("此历史任务的完整配方已清理，请先手动重新运行该生成节点，再将成功流程保存为工作流")
+		return nil, BadRequest("The complete recipe of this historical task has been cleaned. Please manually rerun the build node before saving the successful process as a workflow.")
 	}
 	return input, nil
 }

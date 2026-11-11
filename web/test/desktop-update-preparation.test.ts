@@ -28,7 +28,7 @@ test("ongoing writes always block, while failed saves require an explicit overri
             expect(() => check()).toThrow(DesktopUpdateSaveInProgressError);
             expect(() => check(true)).toThrow(DesktopUpdateSaveInProgressError);
         } else if (phase === "error" || phase === "conflict") {
-            expect(() => check()).toThrow("保存失败或存在内容冲突");
+            expect(() => check()).toThrow("Saving failed or there is content conflict");
             expect(() => check(true)).not.toThrow();
         } else expect(() => check()).not.toThrow();
     }

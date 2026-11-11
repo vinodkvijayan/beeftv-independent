@@ -57,14 +57,14 @@ func TestOverlayCatalogVideoCapabilitiesClearsInvalidPayloads(t *testing.T) {
 func TestMergeCatalogExtrasEnrichesAndAppends(t *testing.T) {
 	catalog := []ChannelModelCatalogItem{{ID: "qwen-plus"}, {ID: "happyhorse-1.1-t2v"}}
 	merged := MergeCatalogExtras(catalog, []ChannelModelCatalogItem{
-		{ID: "happyhorse-1.1-t2v", DisplayName: "HappyHorse 1.1 文生视频", ModelType: "video", SupportedEndpointTypes: []string{"video"}},
-		{ID: "wan2.7-t2v-2026-06-12", DisplayName: "万相 2.7 文生视频", ModelType: "video"},
+		{ID: "happyhorse-1.1-t2v", DisplayName: "HappyHorse 1.1 Vincent Video", ModelType: "video", SupportedEndpointTypes: []string{"video"}},
+		{ID: "wan2.7-t2v-2026-06-12", DisplayName: "Wanxiang 2.7 Vincent Video", ModelType: "video"},
 		{ID: "  "},
 	})
 	if len(merged) != 3 || merged[0].ID != "happyhorse-1.1-t2v" || merged[1].ID != "qwen-plus" || merged[2].ID != "wan2.7-t2v-2026-06-12" {
 		t.Fatalf("merged ids = %#v", merged)
 	}
-	if merged[0].DisplayName != "HappyHorse 1.1 文生视频" || merged[0].ModelType != "video" {
+	if merged[0].DisplayName != "HappyHorse 1.1 Vincent Video" || merged[0].ModelType != "video" {
 		t.Fatalf("existing extra was not enriched: %#v", merged[0])
 	}
 }
@@ -103,7 +103,7 @@ func TestLoadChannelModelCatalogCustomGeminiAndBeefTV(t *testing.T) {
 		if !strings.Contains(baseURL, "dashscope.aliyuncs.com") || apiFormat != "openai" {
 			t.Fatalf("extras args = %q %q", baseURL, apiFormat)
 		}
-		return []ChannelModelCatalogItem{{ID: "happyhorse-1.1-t2v", DisplayName: "HappyHorse 1.1 文生视频", ModelType: "video"}}
+		return []ChannelModelCatalogItem{{ID: "happyhorse-1.1-t2v", DisplayName: "HappyHorse 1.1 Vincent Video", ModelType: "video"}}
 	})
 	if err != nil || !extrasCalled || len(custom) != 2 || custom[0].ID != "happyhorse-1.1-t2v" || custom[1].ID != "qwen-plus" {
 		t.Fatalf("custom catalog = %#v %v extras=%v", custom, err, extrasCalled)

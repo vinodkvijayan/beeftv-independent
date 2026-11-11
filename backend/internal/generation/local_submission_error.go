@@ -7,11 +7,11 @@ type ImageRecoveryError struct{ Cause error }
 type ImagePreparationError struct{ Cause error }
 
 func (e ImagePreparationError) Error() string {
-	return "图片请求在本地准备时失败，尚未提交到模型服务"
+	return "The image request failed while preparing locally and has not yet been submitted to the model service"
 }
 func (e ImagePreparationError) Unwrap() error { return e.Cause }
 
 func (e ImageRecoveryError) Error() string {
-	return "图片结果尚未确认，已停止自动重发；请保留任务记录并联系支持查询结果"
+	return "The image result has not been confirmed and automatic resending has been stopped; please keep the task record and contact support to query the result."
 }
 func (e ImageRecoveryError) Unwrap() error { return e.Cause }

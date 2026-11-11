@@ -14,25 +14,25 @@ import (
 
 func TestCanvasProductionExistingTaskBindsOnceAndRevisionChangeInvalidatesConfirmations(t *testing.T) {
 	svc, db := newTestService(t, nil)
-	project, err := svc.CreateProject("user-1", CreateProjectRequest{Name: "两镜头制作"})
+	project, err := svc.CreateProject("user-1", CreateProjectRequest{Name: "Two shot production"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	unit := seedChapter(t, svc, project.ID)
-	otherUnit, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "独立章节", SourceText: "其他内容"})
+	otherUnit, err := svc.CreateProjectUnit("user-1", project.ID, CreateProjectUnitRequest{Title: "independent chapter", SourceText: "Other content"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	otherWorkflow := seedUnitWorkflow(t, svc, project.ID, otherUnit.ID)
-	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "镜头A", Description: "原画面", DurationMs: 3000})
+	shot, err := svc.CreateProjectShot("user-1", project.ID, CreateProjectShotRequest{UnitID: unit.ID, Title: "Lens A", Description: "original screen", DurationMs: 3000})
 	if err != nil {
 		t.Fatal(err)
 	}
 	now := time.Now()
 	task := model.Task{ID: "existing-canvas-task", UserID: "user-1", ProjectID: "ordinary-canvas", Type: "canvas_video", Status: model.TaskStatusSucceeded, ProviderRequestID: "upstream-original", ResultJSON: `{"video":{"storageKey":"resource:ordinary-output"}}`, CreatedAt: now, UpdatedAt: now}
 	resource := model.Resource{ID: "ordinary-output", UserID: "user-1", Kind: "video", Status: model.ResourceStatusReady, MimeType: "video/mp4", Size: 512, CreatedAt: now, UpdatedAt: now}
-	payload, _ := json.Marshal(map[string]any{"id": task.ProjectID, "revision": 1, "title": "普通画布", "nodes": []any{map[string]any{"id": "node-video", "type": "video", "title": "原视频节点", "metadata": map[string]any{"taskId": task.ID}}}, "connections": []any{}})
-	canvasRow := model.CanvasProject{ID: task.ProjectID, UserID: "user-1", Title: "普通画布", Revision: 1, PayloadJSON: string(payload), CreatedAt: now, UpdatedAt: now}
+	payload, _ := json.Marshal(map[string]any{"id": task.ProjectID, "revision": 1, "title": "Ordinary canvas", "nodes": []any{map[string]any{"id": "node-video", "type": "video", "title": "Original video node", "metadata": map[string]any{"taskId": task.ID}}}, "connections": []any{}})
+	canvasRow := model.CanvasProject{ID: task.ProjectID, UserID: "user-1", Title: "Ordinary canvas", Revision: 1, PayloadJSON: string(payload), CreatedAt: now, UpdatedAt: now}
 	for _, row := range []any{&task, &resource, &canvasRow} {
 		if err := db.Create(row).Error; err != nil {
 			t.Fatal(err)
@@ -75,7 +75,7 @@ func TestCanvasProductionExistingTaskBindsOnceAndRevisionChangeInvalidatesConfir
 	if err := db.Model(&model.WorkflowStepInstance{}).Where("workflow_instance_id IN (?)", db.Model(&model.WorkflowInstance{}).Select("id").Where("project_id = ?", project.ID)).Updates(map[string]any{"status": model.WorkflowStepStatusCompleted, "completed_at": now}).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err = svc.CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "改为镜头B", DurationMs: 3500}); err != nil {
+	if _, _, err = svc.CreateShotRevision("user-1", project.ID, shot.ID, ShotRevisionInput{PlotDescription: "Change to lens B", DurationMs: 3500}); err != nil {
 		t.Fatal(err)
 	}
 	workflows, err := svc.ProjectWorkflows("user-1", project.ID)
@@ -134,7 +134,7 @@ func TestCanvasProductionRejectsPendingForeignAndStaleBeforeAssociation(t *testi
 	svc, db := newTestService(t, nil)
 	project, unit, _, shot := seedWorkflowOutputFixture(t, svc, db)
 	now := time.Now()
-	row := model.CanvasProject{ID: "canvas", UserID: "user-1", Title: "普通画布", Revision: 1, PayloadJSON: `{"id":"canvas","nodes":[],"connections":[]}`, CreatedAt: now, UpdatedAt: now}
+	row := model.CanvasProject{ID: "canvas", UserID: "user-1", Title: "Ordinary canvas", Revision: 1, PayloadJSON: `{"id":"canvas","nodes":[],"connections":[]}`, CreatedAt: now, UpdatedAt: now}
 	resource := model.Resource{ID: "pending-output", UserID: "user-1", Kind: "video", Status: model.ResourceStatusPending, CreatedAt: now, UpdatedAt: now}
 	task := model.Task{ID: "pending-file-task", UserID: "user-1", ProjectID: row.ID, Type: "canvas_video", Status: model.TaskStatusSucceeded, ResultJSON: `{"video":{"storageKey":"resource:pending-output"}}`, CreatedAt: now, UpdatedAt: now}
 	for _, item := range []any{&row, &resource, &task} {
@@ -164,7 +164,7 @@ func TestCanvasProductionFailureRollsBackAssociationAndGeneratedAsset(t *testing
 	svc, db := newTestService(t, nil)
 	project, unit, _, shot := seedWorkflowOutputFixture(t, svc, db)
 	now := time.Now()
-	row := model.CanvasProject{ID: "rollback-canvas", UserID: "user-1", Title: "普通画布", Revision: 1, PayloadJSON: `{"id":"rollback-canvas","nodes":[],"connections":[]}`, CreatedAt: now, UpdatedAt: now}
+	row := model.CanvasProject{ID: "rollback-canvas", UserID: "user-1", Title: "Ordinary canvas", Revision: 1, PayloadJSON: `{"id":"rollback-canvas","nodes":[],"connections":[]}`, CreatedAt: now, UpdatedAt: now}
 	resource := model.Resource{ID: "rollback-output", UserID: "user-1", Kind: "video", Status: model.ResourceStatusReady, MimeType: "video/mp4", CreatedAt: now, UpdatedAt: now}
 	task := model.Task{ID: "rollback-task", UserID: "user-1", ProjectID: row.ID, Type: "canvas_video", Status: model.TaskStatusSucceeded, ResultJSON: `{"video":{"storageKey":"resource:rollback-output"}}`, CreatedAt: now, UpdatedAt: now}
 	for _, item := range []any{&row, &resource, &task} {
@@ -196,7 +196,7 @@ func TestCanvasProductionMultiOutputRequiresExactSelectionAndCannotChangeReceipt
 	svc, db := newTestService(t, nil)
 	project, unit, _, shot := seedWorkflowOutputFixture(t, svc, db)
 	now := time.Now()
-	row := model.CanvasProject{ID: "multi-canvas", UserID: "user-1", Title: "多张图片", Revision: 1, PayloadJSON: `{"id":"multi-canvas","nodes":[],"connections":[]}`, CreatedAt: now, UpdatedAt: now}
+	row := model.CanvasProject{ID: "multi-canvas", UserID: "user-1", Title: "multiple pictures", Revision: 1, PayloadJSON: `{"id":"multi-canvas","nodes":[],"connections":[]}`, CreatedAt: now, UpdatedAt: now}
 	one := model.Resource{ID: "image-one", UserID: "user-1", Kind: "image", Status: model.ResourceStatusReady, MimeType: "image/png", CreatedAt: now, UpdatedAt: now}
 	two := one
 	two.ID = "image-two"

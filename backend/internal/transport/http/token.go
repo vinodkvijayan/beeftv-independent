@@ -42,7 +42,7 @@ func RequireLaunchToken(token string) func(http.Handler) http.Handler {
 				_ = json.NewEncoder(w).Encode(map[string]any{
 					"code":   http.StatusForbidden,
 					"data":   nil,
-					"msg":    "桌面运行时授权无效",
+					"msg":    "Desktop runtime authorization is invalid",
 					"reason": "desktop_token_required",
 				})
 				return

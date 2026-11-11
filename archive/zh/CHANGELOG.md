@@ -6,29 +6,29 @@ All notable public changes to BeefTV are documented in this file.
 
 ## v2.2.1
 
-- 新增「银盛云枢壹算」内置渠道插件：在插件或模型服务里填入 API Key，即可一键添加 32 款文本、图片和视频模型，本地参考图、参考视频与音频会自动上传；按官方文档补齐各模型的画面比例、分辨率、时长、生成数量和结果读取规则。
-- 插件页面与账户设置改版：统一「插件」页面与技能、资产页的卡片布局，精选推荐优先使用本地缓存秒开并在后台刷新；左侧栏底部整合「登录 BeefTV」账户入口与「联系我们」，在账户设置里集中管理账号与余额、通用设置、模型和内置插件（在线充值目前仅展示预览，标明「暂未开放」）。
-- 画布与技能交互优化：点击画布文件夹可打开全屏网格预览层，支持点空白处收回和一键解散；「自动运行技能脚本」开关移至技能页顶栏；模型服务新增带 `/v1beta/openai` 路径的 Gemini 兼容接口，直接显示实际请求地址（已写版本前缀时不再重复补 `/v1`），文本模型可按接口格式逐个测试连通性；DeepSeek Harness 插件在完全权限下可直接执行付费生成，其他权限模式的确认卡会写明模型、数量和预计费用。
-- 生成报错与重试体验修复：请求在提交阶段就被模型服务拒绝（如参数不支持、参考图不符合要求、余额不足）时直接判为失败，修改提示词、参数或素材后可立即在原节点重新生成，不再误判为「继续取回」或锁住发送按钮；直接展示服务端返回的中文具体原因（含具体第几张参考素材），点击「查看诊断」也能看到失败记录；修复分镜批量排队偶发卡住、顶栏冲突提示被遮挡、外部 Agent 生成失败未写回节点、工作区恢复后项目素材与视频能力丢失，以及固定带声音的视频模型误传静音参数的问题。
+- Added "Yinsheng Yunshu One Calculation" built-in channel plug-in: fill in the API Key in the plug-in or model service, and you can add 32 text, picture and video models with one click. Local reference pictures, reference videos and audios will be automatically uploaded; complete the screen ratio, resolution, duration, generation quantity and result reading rules of each model according to the official documents.
+- Revision of the plug-in page and account settings: Unify the card layout of the "plug-in" page and the skill and asset pages. Selected recommendations will be opened instantly using local cache and refreshed in the background; the "Login to BeefTV" account entrance and "Contact Us" are integrated at the bottom of the left column, and the account and balance, general settings, models and built-in plug-ins can be centrally managed in the account settings (online recharge currently only displays previews and is marked as "not yet open").
+- Canvas and skill interaction optimization: Click the canvas folder to open the full-screen grid preview layer, which supports retracting the blank space and dismissing it with one click; the "Automatically run skill script" switch is moved to the top bar of the skill page; the model service adds a Gemini-compatible interface with the `/v1beta/openai` path, which directly displays the actual request address (`/v1` is no longer repeated when the version prefix has been written), and text models can test connectivity one by one according to the interface format; DeepSeek Harness The plug-in can directly perform paid generation under full permissions. The confirmation card for other permission modes will indicate the model, quantity and estimated cost.
+- Generation error report and retry experience repair: When the request is rejected by the model service during the submission stage (such as parameters not supported, reference images do not meet the requirements, and the balance is insufficient), it will be directly judged as a failure. After modifying the prompt words, parameters or materials, it can be regenerated immediately on the original node, and there will no longer be misjudgments. "Continue retrieval" or lock the send button; directly display the specific Chinese reasons returned by the server (including the specific reference material), click "View Diagnosis" to also see the failure record; fix the storyboard batch queue to occasionally get stuck, the top column conflict prompt is blocked, and the external Agent generation failed and was not written back to the node, project materials and video capabilities were lost after the workspace was restored, and the problem of misrepresenting the mute parameters of the video model with sound was fixed.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.2.0
 
-- 升级须知：升级后官方算力需要重新连接一次。重连后旧的官方服务会自动去掉，老画布不用重新选模型。
-- 升级须知：不再自动读取其他工具装在 `~/.agents/skills` 的技能。之前自动出现在「我的技能」里的这些技能会被移除，需要的话用「导入文件」重新添加，电脑上的原文件不会删除。
-- 创作助手：改善连续对话的缓存复用，支持缓存的模型有机会回复更快、费用更低；只做你要求的事，守住你定的数量；分镜草稿可以按技能命名；改完画布后会列出连带改动的节点和字段。
-- 视频生成：关闭声音、画面比例真正生效，竖屏不会再变成横屏；助手可以设置分辨率。
-- 外部 Agent 一键接入：在设置里一键把 Claude Code 或 Codex 接入 BeefTV，并装好画布使用技能，随时可以断开。
-- 模型服务：「更多服务商」新增 18 项连接预设，包括 DeepSeek、Kimi、智谱、硅基流动、OpenRouter 等服务商，以及 LiteLLM、vLLM 等本机服务，选好后自动填入名称和地址；「请求协议」改叫「接口格式」，选好后折成一行；插件中心只放插件；修复智谱图片和视频的请求地址。
-- 文本生成只按选好的接口格式请求一次，报错说的是真实原因；已停用的接口不再出现在选择里。
-- 技能：市场投稿规则和本机一致，支持带脚本的技能，可以从 GitHub 安装、免审核发布；助手经你确认后运行技能脚本，也可以设为自动运行，时限默认 5 分钟、最长 30 分钟。
-- 画布与配音：音频节点支持 Seed-Audio 1.0 调节音高和音量，新增 Uranus 预设音色；音频全能参考可以不选音色；多选节点后可一键收进文件夹；改善画布缩小时的节点标题显示；拖动和缩放画布更流畅。
-- 完善 gpt-image-2.6、gpt-image-2.6-flare、gpt-image-2.6-sunburst 的图片质量选项；助手可以新建画布。
-- 稳定性修复：修复连接部分模型服务时，创作助手无法正常对话的问题；图片任务提交后遇到临时网络错误会继续查询原任务，不会误报失败，连续失败时显示真实原因；参考素材无法读取时提示具体原因；粘贴时不再贴错内容，点过画布上的按钮后也能直接粘贴；丢失的图片恢复显示错误提示，单张图片读不到时素材库不会整个变空；时间线预览在视频准备中时如实显示；重试生成不再覆盖别处的修改；Windows 启动时窗口不会超出屏幕；修复工作流编辑弹窗高度塌缩，以及部分自带 Key 的服务被错误交给官方算力处理的问题。
-- 加强助手和外部工具连接凭据的文件保护：在支持文件权限的磁盘上，其他普通用户不能读取；Windows 上不再继承数据目录的权限。
+- Upgrade instructions: After the upgrade, the official computing power needs to be reconnected. After reconnecting, the old official service will be automatically removed, and there is no need to re-select the model for the old canvas.
+- Upgrade Notes: Skills installed in `~/.agents/skills` by other tools will no longer be automatically read. These skills that previously appeared automatically in "My Skills" will be removed. If necessary, use "Import File" to add them again. The original files on the computer will not be deleted.
+- Creation Assistant: Improve the cache reuse of continuous conversations. Models that support caching have the opportunity to respond faster and at lower costs; only do what you ask for and keep the quantity you set; storyboard drafts can be named according to skills; after the canvas is modified, the nodes and fields that have been changed will be listed.
+- Video generation: Turn off the sound, the screen ratio will take effect, and the vertical screen will no longer become a horizontal screen; the assistant can set the resolution.
+- One-click access to external agents: Connect Claude Code or Codex to BeefTV with one click in the settings, and install the canvas usage skills, which can be disconnected at any time.
+- Model service: "More Service Providers" adds 18 new connection defaults, including service providers such as DeepSeek, Kimi, Wisdom Spectrum, Silicon Mobile, OpenRouter, etc., as well as local services such as LiteLLM and vLLM. The name and address are automatically filled in after selection; "Request Protocol" is renamed "Interface Format" and folded into a line after selection; the plug-in center only places plug-ins; the request addresses of Wisdom Spectrum pictures and videos are fixed.
+- Text generation is only requested once according to the selected interface format, and the error reported tells the real reason; deactivated interfaces no longer appear in the selection.
+- Skills: The market submission rules are the same as those of this machine. Skills with scripts are supported. They can be installed from GitHub and released without review. The assistant will run the skill script after your confirmation, or it can be set to run automatically. The default time limit is 5 minutes and the maximum is 30 minutes.
+- Canvas and dubbing: Audio nodes support Seed-Audio 1.0 to adjust pitch and volume, and add Uranus preset timbres; the all-in-one audio reference allows you to unselect timbres; multi-select nodes can be stored in folders with one click; the node title display is improved when the canvas is reduced; dragging and zooming the canvas is smoother.
+- Improve the image quality options of gpt-image-2.6, gpt-image-2.6-flare, and gpt-image-2.6-sunburst; the assistant can create a new canvas.
+- Stability repair: Fixed the problem that the creative assistant could not talk normally when connecting to some model services; after submitting the image task, a temporary network error will continue to query the original task, and the failure will not be falsely reported, and the real reason will be displayed for consecutive failures; the specific reason will be prompted when the reference material cannot be read; the wrong content will no longer be pasted when pasting, and you can paste directly after clicking the button on the canvas; the lost picture will restore the error prompt, and the material library will not become empty when a single picture cannot be read; the timeline preview will be displayed truthfully when the video is being prepared; retry generation will no longer overwrite modifications elsewhere; Windows The window will not exceed the screen when starting; the workflow editing pop-up window is highly collapsed and some services with built-in Keys are incorrectly handed over to the official computing power for processing.
+- Enhanced file protection for assistant and external tool connection credentials: on disks that support file permissions, other ordinary users cannot read; permissions for data directories are no longer inherited on Windows.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.6
 
@@ -40,345 +40,345 @@ All notable public changes to BeefTV are documented in this file.
 - 资产库与导出：画布生成的中间结果归入生成历史，不再混进个人资产库；资产库支持上传 MP3 等音频，详情页可复制生成提示词；时间线导出减少重复编码，修复分镜视频合并后尾帧定格。
 - 稳定性修复：修复画布容量检查可能卡死、长任务租约续期和 Windows 更新回滚问题，以及失败卡片按钮、提示词清空后面板消失、重试误报冲突等问题。
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.5
 
-- 侧边栏「插件」入口与命令面板直达：主界面左侧导航栏（技能下方）及 `⌘K` 命令面板新增「插件」入口，点击即可打开插件中心管理已装插件或浏览插件市场；官方与示例插件包已同步发布至 npm 官方源与国内镜像。
-- 模型服务新增 `LL2 (DMC)` 快捷连接：在「连接你的模型服务」弹窗左侧服务商列表中选择 `LL2 (DMC)`，自动填入连接名称、服务地址并预选 9 款常用文本、视频生成与视频超分模型及对应协议，粘贴 API Key 后可「一键保存并启用」，也可进入第二步按需勾选模型。
+- The "Plug-in" entrance in the sidebar is directly connected to the command panel: a new "Plug-in" entrance is added to the left navigation bar of the main interface (below the skills) and the `⌘K` command panel. Click to open the plug-in center to manage installed plug-ins or browse the plug-in market; official and sample plug-in packages have been simultaneously released to npm official sources and domestic mirrors.
+- New `LL2 (DMC)` shortcut connection for model service: Select `LL2 (DMC)` from the service provider list on the left side of the "Connect your model service" pop-up window, automatically fill in the connection name, service address and pre-select 9 commonly used text, video generation and video super-resolution models and corresponding protocols. After pasting the API Key, you can "save and activate with one click", or enter the second step to select the model as needed.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.4
 
-- 插件市场随包上线与角色替换插件：桌面安装包内置插件市场与 LL2 自定义渠道视频协议插件，支持国内镜像加速浏览、查看说明与一键在线安装；插件市场精选新增「角色替换（Character Replacement）」插件，支持两阶段视频角色替换工作台与时间线拼接。
-- 视频节点参考模式与缩略图角色交互：连接参考图或视频时，提示词栏顶部提供「首尾帧 / 全能参考」分段切换；首尾帧模式下参考图缩略图直接展示「首帧 / 尾帧」角标与双图一键互换按钮，全能参考模式下缩略图提供「首帧」提示词快捷按钮；断开参考图连线时自动清理残留帧设置。
-- BeefTV 官方算力预计费用显示：刷新模型目录时自动同步公开价格表，内置助手确认卡、普通生成提案与分镜批量生成确认框统一显示逐项预计费用与合计（支持按张、按秒、按 Token 折算及先扣后结说明，自带 Key 渠道按实际渠道计费）；修复部分图片模型未出现在助手模型列表的问题。
-- 生成稳定性、报错脱敏与界面优化：修复媒体上传探测偶发中断未重试、报错中的网页链接被误截断，以及旧版系统 WebView 下报错信息残留密钥的问题；技能市场滚动时固定顶部分类栏并在单页时隐藏翻页按钮。
+- The plug-in market is launched with the package and the character replacement plug-in: the desktop installation package has a built-in plug-in market and LL2 custom channel video protocol plug-in, which supports accelerated browsing of domestic mirrors, viewing instructions and one-click online installation; the plug-in market selects a newly added "Character Replacement" plug-in, which supports two-stage video character replacement workbench and timeline splicing.
+- Video node reference mode interacts with the thumbnail role: when connecting a reference picture or video, the top of the prompt word bar provides "First and Last Frame / Universal Reference" segment switching; in the first and last frame mode, the reference picture thumbnail directly displays the "First Frame / Last Frame" corner mark and a two-picture one-click swap button. In the Universal Reference Mode, the thumbnail provides a "First Frame" prompt word shortcut button; when disconnecting the reference picture, the residual frame settings are automatically cleared.
+- BeefTV official computing power estimated cost display: the public price list is automatically synchronized when the model catalog is refreshed, and the built-in assistant confirmation card, ordinary generation proposal and storyboard batch generation confirmation box uniformly display the itemized estimated costs and totals (supports per picture, per second, per Token conversion and first deduction and then settlement instructions, and the built-in Key channel is billed according to the actual channel); fixes the problem that some picture models do not appear in the assistant model list.
+- Generation stability, error desensitization and interface optimization: Fixed the problem of media upload detection being occasionally interrupted without retry, the web link in the error report being mistakenly truncated, and the problem of residual keys in the error message under the old version of the system WebView; fixing the top category bar when scrolling in the skills market and hiding the page turning button when scrolling on a single page.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.3
 
-- 插件市场与扩展生态首版上线：内置官方插件市场（支持精选推荐浏览与 npm 插件搜索），支持从市场一键安装、从本地目录或压缩包导入插件；开放画布自定义节点、添加节点菜单、独立页面与内置助手工具扩展，启用或停用插件即时生效无需重启。
-- 大画布容量上限与保存性能：设置页支持自定义单画布容量上限（最高可调至 512 MB），本地项目封面改存浏览器 IndexedDB 以减轻单画布体积；数据库启用参数化查询，解决百兆级大画布保存时慢日志转义耗时过长与轮询误报版本冲突的问题。
-- 生成体验与错误提示优化：Seedream 图片生成默认关闭水印；生成失败卡片直接展示脱敏后的上游具体报错原因，不再只显示笼统的生成失败；清理视频参考模式切换后的残留首尾帧角色，收敛 Seedance 2.0 fast/mini 实际支持的分辨率选项；修复桌面端自动更新期间画布保存锁死问题。
-- 网络兼容与历史体积优化：恢复本地部署与 TUN/Fake-IP 代理兼容策略，默认放开媒体 URL 的 IP 网段限制并跳过非视频任务的参考素材预上传；优化媒体概览预览图体积并自动裁剪已消费的历史工具图片，降低长会话请求开销。
+- The first version of the plug-in market and extension ecology is online: built-in official plug-in market (supports recommended browsing and npm plug-in search), supports one-click installation from the market, and importing plug-ins from local directories or compressed packages; open canvas custom nodes, add node menus, independent pages, and built-in assistant tool extensions. Enabling or disabling plug-ins takes effect immediately without restarting.
+- Large canvas capacity limit and saving performance: The settings page supports customizing the single canvas capacity limit (adjustable up to 512 MB), and the local project cover can be saved in the browser IndexedDB to reduce the size of a single canvas; the database enables parameterized queries to solve the problem of slow log escaping taking too long and polling false positive version conflicts when saving a 100-megabyte large canvas.
+- Generation experience and error prompt optimization: Seedream image generation turns off watermarks by default; the generation failure card directly displays the specific error reason of the upstream after desensitization, and no longer only displays the general generation failure; cleans up the residual first and last frame characters after the video reference mode is switched, and converges the resolution options actually supported by Seedance 2.0 fast/mini; fixes the canvas save lock issue during automatic updates on the desktop.
+- Network compatibility and history volume optimization: restore the local deployment and TUN/Fake-IP proxy compatibility strategy, release the IP network segment restrictions of media URLs by default and skip the pre-upload of reference materials for non-video tasks; optimize the size of the media overview preview image and automatically crop the consumed historical tool images to reduce the overhead of long session requests.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.2
 
-- 画布视频预览、取帧与参考素材上传：浏览器解码失败的视频在播放与自动首帧生成时均支持按需转码 H.264（yuv420p）兼容副本，修复提取首尾帧黑屏与视频节点一直无预览图的问题；延长本地文件上传确认等待并忽略已取消请求，消除大视频入库与切换画布时的误报；本地媒体文件缺失时返回明确 404 且不写入缓存头。
-- 项目与画布备份导出：项目列表卡片、文件夹菜单、画布顶栏菜单与保存状态弹窗新增「导出项目」「导出当前画布」「导出文件夹」入口；支持自动跳过已丢失或损坏的历史素材与画板并在备份清单中记录，确保有效画布与素材完整打包并可导入恢复。
-- Seedance 2.5 与生成任务体验：补齐 Seedance 2.5 样片转高清成片、输出尾帧开关、视频二创模型选择与图片反推提示词入口；识别渠道分组排除等权限错误码并保留上游非 2xx 响应详情，避免误报为通用网络错误；修复生成完成绑定后节点残留运行态与配置脱敏恢复问题。
-- 内置助手与分镜工作流：统一镜头提示词草稿、分镜表联动同步与仅建分镜模式；支持生成单三档审批模式与后台一次建单，生成完成后自动唤醒助手审片；进一步精简助手系统提示词与工具定义，免除重复重读画布；默认挂载漫剧创作三技能。
-- 跨端协同与画布性能：顶栏显示外部改动来源与摘要，支持定位改动节点与一键撤销；修复本地过期画布缓存覆盖新版本的问题；降低视频提示词面板与缩放手势期间的渲染开销；支持 BytePlus 亚太控制面及音视频参考素材上传。
+- Canvas video preview, frame capture and reference material upload: Videos that fail to be decoded by the browser support on-demand transcoding H.264 (yuv420p) compatible copies during playback and automatic first frame generation, fixing the problem of black screen when extracting the first and last frames and no preview of video nodes; extending the local file upload confirmation wait and ignoring canceled requests, eliminating false positives when large videos are stored and switching canvases; when local media files are missing, a clear 404 is returned and the cache header is not written.
+- Project and canvas backup and export: Added "Export Project", "Export Current Canvas" and "Export Folder" entries to the project list card, folder menu, canvas top bar menu and save status pop-up window; supports automatically skipping lost or damaged historical materials and artboards and recording them in the backup list, ensuring that valid canvases and materials are completely packaged and can be imported and restored.
+- Seedance 2.5 and generation task experience: complete the conversion of Seedance 2.5 sample to high-definition, output last frame switch, video secondary model selection and picture reverse push prompt word entry; identify permission error codes such as channel grouping exclusion and retain upstream non-2xx response details to avoid false positives as general network errors; fix the node residual running state and configuration desensitization recovery problem after the generation is completed and bound.
+- Built-in assistant and storyboard workflow: Unify the shot prompt word draft, storyboard linkage synchronization and storyboard-only mode; support the generation of single and three-level approval mode and one-time order creation in the background, and automatically wake up the assistant to review the film after the generation is completed; further streamline the assistant system prompt words and tool definitions, eliminating repeated re-reading of the canvas; the three comic creation skills are mounted by default.
+- Cross-end collaboration and canvas performance: The top bar displays the source and summary of external changes, supports locating changed nodes and one-click undo; fixes the problem of local expired canvas cache covering new versions; reduces the rendering overhead during the video prompt panel and zoom gesture; supports BytePlus Asia-Pacific control surface and audio and video reference material upload.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.1
 
-- 视频与图片生成新能力：Seedance 2.5 支持先生成 480P 样片预览构图与动作，满意后一键从样片转高清成片；画布新增视频延长、视频局部重绘、反推提示词、输出尾帧，以及图片连续组图生成。
-- 内置助手更快更省额度：重构系统指令与技能目录前缀，将画布动态摘要与计划移至请求末尾，多轮对话与工具调用的提示词缓存命中率大幅提升；内置「lucky加一」漫剧创作三技能（剧本拆解、角色设定、分镜提示词），并修复跨通道流式响应的稳定性。
-- 打开画布与后台同步更稳：打开画布时已有成品的图片和视频节点保持原有尺寸与位置，不再被默认最小尺寸放大挪位；未匹配节点的后台任务在画布未改动前不再每 5 秒重复尝试绑定，删除画布后自动跳过并在恢复画布后续接，显著降低后台耗电与日志刷新。
-- 外部 Agent（MCP）体验升级：默认只暴露常用业务操作，底层操作收敛为查询列表与执行调用两个统一入口，大幅减少外部工具上下文占用；看图工具直接返回图片内容供外部 Agent 审片。
-- 渠道与协议兼容性：识别视频云端转存等待状态并自动跟随对象存储重定向；Seedream 4.5 支持选择输出图片格式；移除 Agnes 2.5、MiniMax H3 与客户端提示词长度硬编码拦截，修复自定义渠道能力判断与可灵（Kling）官方接口鉴权。
+- New capabilities for video and picture generation: Seedance 2.5 supports first generating 480P samples to preview the composition and movements, and converting from the samples to high-definition with one click when satisfied; the canvas adds video extension, video partial redrawing, reverse push prompt words, output last frame, and generation of continuous picture groups.
+- The built-in assistant is faster and saves credit: the system command and skill directory prefixes are restructured, the canvas dynamic summary and plan are moved to the end of the request, the cache hit rate of prompt words for multiple rounds of dialogue and tool calls is greatly improved; the three "lucky plus one" comic creation skills are built-in (script disassembly, character setting, storyboard prompt words), and the stability of cross-channel streaming response is fixed.
+- The synchronization between opening the canvas and the background is more stable: when the canvas is opened, the finished pictures and video nodes maintain their original size and position, and are no longer enlarged and moved by the default minimum size; the background tasks of unmatched nodes no longer repeatedly try to bind every 5 seconds before the canvas is changed, and are automatically skipped after deleting the canvas and continued after restoring the canvas, significantly reducing background power consumption and log refresh.
+- External Agent (MCP) experience upgrade: only common business operations are exposed by default, and the underlying operations are converged into two unified entrances: query list and execution call, which greatly reduces the context occupied by external tools; the picture viewing tool directly returns the picture content for external Agent review.
+- Channel and protocol compatibility: identify the video cloud transfer waiting state and automatically follow the object storage redirection; Seedream 4.5 supports selecting the output image format; remove Agnes 2.5, MiniMax H3 and client prompt word length hard-coded interception, repair custom channel capability judgment and Kling official interface authentication.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.1.0
 
-- 桌面自动更新更快更稳：支持增量更新包（`.delta.zip`）与二进制差分补丁，未变动的运行时与插件直接本机校验复用，常规升级下载体积大幅缩小；增量不可用或校验不符时自动回退完整包。
-- 国内更新下载优先连接国内源（CNB），并与 Cloudflare R2 双源互备：遇到连接超时或低速时自动切换另一源并从已下载字节继续续传，最终统一校验文件哈希与 Ed25519 签名。
-- 生成参数与参考素材统一由服务端校验：使用自定义渠道（BYOK）或服务端未下发能力声明的模型时，不再在客户端提前拦下请求、隐藏参数控件、置灰模型或自动删减已挂载的参考素材。
-- 修复画布节点发送按钮偶发卡在加载状态点不动的问题：待取回或报错节点不再误判为生成中，底部直接显示「继续取回」「重新检查状态」等恢复入口；因本地节点状态无法直接重发时，在输入框上方持久提示具体原因。
-- 技能与设置界面：导入技能优先展示中文标题并规范截断超长名称与简介；修复设置页密码输入框出现双层边框、高度不一致的问题。
+- Desktop automatic updates are faster and more stable: incremental update packages (`.delta.zip`) and binary differential patches are supported. The unchanged runtime and plug-ins are directly verified and reused on the machine. The regular upgrade download size is greatly reduced; the complete package is automatically rolled back when the increment is unavailable or the verification does not match.
+- Domestic update downloads preferentially connect to domestic sources (CNB), and are dual-sourced with Cloudflare R2: when encountering a connection timeout or low speed, it automatically switches to another source and continues downloading from the downloaded bytes, and finally uniformly verifies the file hash and Ed25519 signature.
+- The generated parameters and reference materials are uniformly verified by the server: when using a custom channel (BYOK) or a model that has not issued a capability statement from the server, the client will no longer block requests in advance, hide parameter controls, gray out models, or automatically delete mounted reference materials.
+- Fixed the issue where the canvas node send button occasionally stuck in the loading state: nodes to be retrieved or error reported are no longer misjudged as being generated, and recovery entries such as "Continue Retrieval" and "Recheck Status" are directly displayed at the bottom; when the local node status cannot be resent directly, a persistent prompt for the specific reason is displayed above the input box.
+- Skills and settings interface: Prioritize the display of Chinese titles for imported skills and standardize the truncation of long names and introductions; fix the problem of double borders and inconsistent heights in the password input box on the settings page.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.0.6
 
-- 生成结果取回更稳：用 BeefTV 账号生成的图片、视频，结果先保存在云端再直接下载，大尺寸 Seedream 图片和视频不再因下载中断取不回；参考图直接上传到云端，不再经过接口转发。
-- 生成中途退出、刷新或断网后，重新打开画布会接着原任务取回结果，不重新提交，也不重复扣费；视频和 AI 超分也能在后台继续取回已经生成的结果。
-- 失败节点按服务端给出的结论显示：原任务确定失败时可以直接重新生成，不再一直停在「继续取回」；用 BeefTV 账号提交后若查不到原记录，点击「继续取回」会用原编号补交一次（不重复扣费），原任务还在执行时会自动放回画布，超过保留期仍无法确认则解锁节点。
-- 视频模型的时长、分辨率等选项跟随线上模型目录，新模型上线后刷新模型列表即可使用。
-- 参考图片支持 TIFF、AVIF、HEIC；扩展名是 .png、实际是 AVIF 或 HEIC 的图片会自动转成 PNG；格式不支持时提示是第几张参考图。
-- 自定义模型：开启「减少动态效果」时也能正常选择模型类型；已添加的模型可以在列表里直接改类型；保存时缺少请求协议，会自动打开这个模型的协议设置；同一渠道新加的同类视频模型沿用已选的协议。
-- 局部重绘在浅色主题下文字和按钮清楚可读。
-- 剪辑时间线：把第一段拖过下一段的中间会交换顺序，只拖一点仍由后面的片段让位。
-- 深度动作捕捉的结果视频补到 30 帧，Windows 上也生效。
-- 在线更新解压更快，Windows 上文件很多时不再超时。
-- 自带 Key 的 Seedream、Gemini、即梦、OpenAI Images 和 Grok 图片渠道改由官方协议插件执行；插件停用时会在生成前提示。
+- Retrieval of generated results is more stable: for images and videos generated with a BeefTV account, the results are first saved in the cloud and then downloaded directly. Large-size Seedream images and videos are no longer unretrievable due to download interruptions; reference images are directly uploaded to the cloud and no longer forwarded through the interface.
+- After exiting, refreshing or disconnecting from the network during the generation, reopening the canvas will resume the original task to retrieve the results without resubmission or repeated deductions; video and AI super scores can also continue to retrieve the generated results in the background.
+- Failed nodes are displayed according to the conclusion given by the server: when the original task is determined to have failed, it can be regenerated directly, and it will no longer stop at "Continue Retrieval"; if the original record cannot be found after submitting with a BeefTV account, click "Continue Retrieval" to resubmit it once with the original number (no repeated deductions). The original task will be automatically put back on the canvas while it is still being executed. If the node cannot be confirmed after the retention period, the node will be unlocked.
+- The duration, resolution and other options of the video model follow the online model directory. After the new model is online, refresh the model list and you can use it.
+- Reference pictures support TIFF, AVIF, and HEIC; pictures with a .png extension that are actually AVIF or HEIC will be automatically converted to PNG; if the format is not supported, it will prompt which reference picture it is.
+- Custom models: When "Reduce Dynamic Effects" is turned on, the model type can be selected normally; the type of the added model can be changed directly in the list; if the request protocol is missing when saving, the protocol settings of this model will be automatically opened; similar video models newly added in the same channel will inherit the selected protocol.
+- Partially redrawn to make text and buttons clearly readable in light theme.
+- Editing timeline: Dragging the first segment through the middle of the next segment will swap the order. Dragging only a little will still give way to the subsequent segments.
+- The result video of deep motion capture is supplemented to 30 frames, which also takes effect on Windows.
+- Online update decompression is faster and no longer times out when there are many files on Windows.
+- Seedream, Gemini, Jimeng, OpenAI Images and Grok image channels that come with Keys are now executed by official protocol plug-ins; when the plug-ins are deactivated, a prompt will be displayed before generation.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material.
 
 ## v2.0.5
 
-- 内置助手支持查看模型返回的可读思考，默认折叠，与工具进度和回复正文分开；复制回复仍只复制正文。正文继续随模型返回逐段显示。
-- 新用户首次连接后，内置助手默认使用 DeepSeek V4.1 Flash；已经选过模型的用户保持原选择，刷新目录、重新授权和换账号都不会自动改掉。
-- 改善 Mac 画布平移与缩放的流畅度，减少手势期间的模糊效果、连线装饰、整页重绘和节点反复挂载；修复恢复保存视角后平移时部分节点漏画的问题。
-- 剪辑时间线的首个片段可以拖动并让同轨片段让位；单个素材载入失败时点名提示，其他片段继续预览。
-- Seedream 图片尺寸按具体型号校验，修正国内 Pro、Flash 型号识别；不支持的尺寸会在生成前给出可操作的提示。
-- 部分失败图片任务可在后台继续取回已有结果并保存回画布。本次改动限于图片恢复，不包含完整的视频、超分自动恢复流程。
-- 手动添加模型时，需要明确选择图片、视频或文本等类型，不再默认选中文本；添加下一个模型时重新选择，避免沿用错误类型。
-- Topaz 超分说明改为本次先扣费用上限、账单核对完成后按实际用量结算，不再把预扣总额显示成单价。
-- 模型服务设置按协议写清所需凭证，混用不同凭证时提示拆成独立连接；读不到模型列表时，可以手填模型 ID 继续配置。
-- 修正即梦官方视频的成功判断与请求参数，以及 Runway、Luma、Grok 视频结果的取回；参考素材按所选模型的能力检查。
-- 有待取回视频时，也能正常安装兼容的协议修复；Luma 和 Runway 的旧任务继续使用原任务编号取回结果，无需重新生成。
-- 更新已停止提供视频服务的官方连接预设；仍被现有连接或未完成任务使用的协议定义会保留。
+- The built-in assistant supports viewing the readable thoughts returned by the model, which are folded by default and separated from the tool progress and the reply text; copying the reply still only copies the main text. The text continues to be displayed paragraph by paragraph as the model returns.
+- After a new user connects for the first time, the built-in assistant uses DeepSeek V4.1 Flash by default; users who have already selected a model will keep their original selection, and refreshing the directory, reauthorizing, and changing accounts will not automatically change it.
+- Improved the smoothness of Mac canvas panning and zooming, reducing blurring effects during gestures, line decoration, full page redrawing, and repeated mounting of nodes; fixed the issue of missing some nodes when panning after restoring the saved perspective.
+- The first clip in the editing timeline can be dragged to make way for clips on the same track; when a single clip fails to load, a name prompt will appear, and other clips will continue to be previewed.
+- Seedream image size is verified according to the specific model, and the recognition of domestic Pro and Flash models is corrected; unsupported sizes will be given an operable prompt before generation.
+- Some failed image tasks can continue to retrieve existing results in the background and save them back to the canvas. This change is limited to image recovery and does not include the complete video and super-resolution automatic recovery process.
+- When adding a model manually, you need to explicitly select the type such as image, video, or text. Text is no longer selected by default. Select again when adding the next model to avoid using the wrong type.
+- Topaz's over-score description is changed to deduct the upper limit of the fee first, and settle according to the actual usage after the bill verification is completed. The total withholding amount is no longer displayed as the unit price.
+- For model service settings, write down the required credentials according to the protocol. When using different credentials, you will be prompted to split them into independent connections. If you cannot read the model list, you can manually fill in the model ID to continue configuration.
+- Corrected the success judgment and request parameters of Jimeng official video, as well as the retrieval of Runway, Luma, and Grok video results; the reference material is checked according to the capabilities of the selected model.
+- When the video is to be retrieved, compatible protocol fixes can be installed normally; old tasks of Luma and Runway continue to use the original task numbers to retrieve results without regeneration.
+- Updated official connection presets for discontinued video services; protocol definitions still used by existing connections or unfinished tasks will be retained.
 
-注意：部分影音理解、字幕和助手成片排版仍需结合原素材人工核对。模型没有返回可读思考时，不会凭空显示思考内容；流式显示速度仍取决于模型返回速度。
+Note: Some audio and video understanding, subtitles and assistant film layout still need to be manually checked against the original material. When the model does not return readable thoughts, the thoughts will not be displayed out of thin air; the streaming display speed still depends on the model return speed.
 
 ## v2.0.4
 
-- 大画布（几十到几百个节点）缩放和平移改为远景缩略图渲染：远景下所有节点仍然可见，放大后自动回到完整卡片，明显减少卡顿和闪烁。
-- 拖动节点只更新相关连线，减少整页重绘；助手发起操作前先等画布保存完成，遇到版本冲突会暂停这一批写入并重新读取，避免重放过期操作。
-- 生成结果已经保存、画布却还停在加载或报错状态时，改为显示已保存的结果；生成前检查失败的原因持续显示在生成面板，下次准备时再清除。
-- 参考素材上限改为按类型分别限制：图片、视频、音频各自按模型能力配置限量，不再用一个合计数字挡住后面的添加；超限提示直接显示在参考内容面板，并写清是哪一类、当前数量和上限。
-- 参考音频与输出时长按官方文档核对：Seedance 参考音频单段最短 2 秒、输出时长最短 4 秒；被拦下时会写清哪一项、现在多少、要改成多少。
-- 第三方图片渠道的响应格式（response_format）可以选择 b64_json 或 url，前端直连、后端内置请求和官方 OpenAI Images 插件三条路径都会按配置发送。
-- 画布外观新增「滚轮操作」，可固定为缩放或平移，不再只靠设备步长猜测（默认仍是自动）；提示词里手写的角色名和素材标题保留原文，「一键引用」与 @ 只把素材引用追加在后面。
-- 生成不再替换节点已有的名称：从文本节点发起生成时，你自己起的名字保持不变，只有节点还是默认名时才按提示词命名。
-- 新建节点按记住的参数选择同名模型组里的兼容型号，图片和视频节点的上次参数继续记忆；修复新建个人素材分类后的显示与选中，以及 COS/OSS 端点重复拼接存储桶的问题。
-- 创作助手可以读取只保存了资源地址的图片节点；静态图片按原始像素发送，长图和小字不再被压缩丢失，并可按原始像素查看局部细节。
-- 修复上游已明确拒绝图片输入时画布显示「提交结果不确定」并挡住修改后重试的问题；桌面端恢复本地超时策略；外部 MCP/CLI 的生成提交不再要求内置助手的确认回合。
-- 创作助手的付费提交必须持有确认卡片写入的有限授权，后续模型调用不能把未确认的方案提升为授权；确认卡片显示视频镜头与费用估算，未报价的图片和配音明确另行计费。
-- Windows 下调用 FFmpeg/ffprobe 不再弹出控制台窗口。
+- Zooming and panning of large canvases (tens to hundreds of nodes) are changed to distant view thumbnail rendering: all nodes are still visible in the distant view, and automatically return to the complete card after zooming in, significantly reducing lag and flickering.
+- Dragging nodes only updates relevant connections, reducing redrawing of the entire page; the assistant waits for the canvas to be saved before initiating operations. If it encounters a version conflict, it will suspend the batch of writing and re-read to avoid replaying expired operations.
+- When the generation result has been saved but the canvas is still in the loading or error state, the saved result will be displayed instead; the reason for the failure of the pre-generation check will continue to be displayed in the generation panel and will be cleared the next time it is prepared.
+- The upper limit of reference materials is changed to be limited by type: pictures, videos, and audios are each configured with a limit according to the model's capabilities, and a total number is no longer used to block subsequent additions; the over-limit prompt is directly displayed in the reference content panel, and the type, current quantity, and upper limit are clearly stated.
+- Reference audio and output duration are checked according to official documents: the minimum length of a single segment of Seedance reference audio is 2 seconds, and the minimum length of output is 4 seconds; when stopped, it will be written clearly which item, what it is now, and how much it needs to be changed to.
+- The response format (response_format) of the third-party image channel can be selected as b64_json or url. The three paths of front-end direct connection, back-end built-in request and official OpenAI Images plug-in will be sent according to the configuration.
+- A new "wheel operation" has been added to the canvas appearance, which can be fixed to zoom or pan, and no longer relies solely on the device step size to guess (the default is still automatic); the handwritten character name and material title in the prompt word remain the original text, and "one-click quotation" and @ only append the material reference at the end.
+- Generation no longer replaces the existing name of the node: when initiating generation from a text node, the name you give remains unchanged, and the node is named according to the prompt word only when it is still the default name.
+- When creating a new node, select the compatible model in the model group with the same name according to the remembered parameters. The last parameters of the image and video nodes will continue to be memorized; the display and selection of newly created personal materials after classification have been fixed, as well as the problem of COS/OSS endpoints repeatedly splicing buckets.
+- The creation assistant can read image nodes that only save resource addresses; static images are sent according to original pixels, long images and small words are no longer compressed and lost, and local details can be viewed according to original pixels.
+- Fixed the issue where the canvas displays "Uncertain submission result" when the upstream has explicitly rejected image input and blocks retry after modification; the desktop side restores the local timeout policy; the generated submission of external MCP/CLI no longer requires the confirmation round of the built-in assistant.
+- The paid submission of the creative assistant must hold the limited authorization written in the confirmation card. Subsequent model calls cannot upgrade the unconfirmed plan to authorization; the confirmation card displays video footage and cost estimates, and unquoted pictures and dubbing are clearly billed separately.
+- Calling FFmpeg/ffprobe under Windows no longer pops up the console window.
 
-注意：影音模型仍可能漏报剪点或写错同音词，字幕与画面需结合原片核对；助手成片的角标排版和局部文字修改仍需人工检查。「上游已生成、画布拉不到成片」的自动取回改动仍在复查，不在本版。
+Note: The audio and video model may still miss the cut point or write the wrong homonym. The subtitles and images need to be checked against the original film; the subtitle typesetting and partial text modification of the assistant's finished film still need to be manually checked. The automatic retrieval changes of "The upstream has been generated and the canvas cannot be pulled into the film" are still under review and are not in this version.
 
 ## v2.0.3
 
-- 视频提示词改为按所选模型与接口校验长度，移除通用 8000 字符默认拦截，不自动截断提示词。
-- 新插入的参考素材引用跟随具体素材，调整连线后仍对应原图；改善 Seedance 全能参考中的人物与素材对应关系。
-- 修复素材栏引用按钮点击无效的问题；素材表与实际引用矛盾时，在生成前提示。
-- 失败视频重试使用原任务保存的提示词、素材和参数；如需使用后来修改的内容，请从节点的生成入口新建请求。进行中或已完成的任务继续取回已有结果。
-- 延长超分报价、创建和恢复请求的等待时间，改善网络超时和源文件不可用时的提示。
+- The length of the video prompt words is changed to be verified according to the selected model and interface, the universal default interception of 8000 characters is removed, and the prompt words are not automatically truncated.
+- The newly inserted reference material reference follows the specific material, and still corresponds to the original image after adjusting the connection; improve the correspondence between characters and materials in the Seedance all-round reference.
+- Fixed the issue where clicking the reference button in the material column was invalid; when the material table conflicts with the actual reference, a prompt will be issued before generation.
+- Failed videos will be retried using the prompt words, materials and parameters saved in the original task; if you need to use later modified content, please create a new request from the node's generation entrance. Tasks in progress or completed continue to retrieve existing results.
+- Extend the waiting time for super quotation, creation and recovery requests, and improve the prompts when the network times out and the source file is unavailable.
 
-注意：旧提示词中的手写编号保持原顺序；已有自定义字数上限仍然生效，可在模型设置中恢复默认限制。人物服装、发型等生成细节仍可能不稳定。
+Note: The handwritten numbers in the old prompt words remain in the original order; the existing custom word limit is still in effect, and the default limit can be restored in the model settings. Generated details such as character clothing and hairstyles may still be unstable.
 
 ## v2.0.2
 
-- 支持已配置 Seedream 渠道的图层拆分和关联组图，生成结果分别保存到画布。
-- 修复助手生成多图后无法检查结果的问题；整片制作暂不支持图层拆分或组图，会在生成前提示。
-- 改善创作助手的任务恢复、停止与进度显示，修复读取当前画布和选择审片素材的问题。
-- 参考图上传遇到临时故障时有限重试，中断后继续原上传记录。
-- 修复部分外接视频渠道的多图请求，以及临时 DNS 错误导致的任务查询中断。
-- 助手宽表格可在侧栏内横向滚动。
-- 修复 Windows 已运行 BeefTV 时再次打开技能安装链接失败的问题；链接仍只打开指定版本的安装确认页。
+- Supports layer splitting and associated group pictures of configured Seedream channels, and the generated results are saved to the canvas respectively.
+- Fixed the issue where the assistant cannot check the results after generating multiple images; the entire image production does not currently support layer splitting or grouping images, and will prompt before generation.
+- Improved task resumption, stop and progress display of the Creation Assistant, and fixed issues with reading the current canvas and selecting review materials.
+- Limited retry when uploading reference images encounters a temporary failure, and the original upload record will be continued after interruption.
+- Fixed multi-image requests for some external video channels and task query interruption caused by temporary DNS errors.
+- Assistant wide tables can be scrolled horizontally within the sidebar.
+- Fixed an issue where the skill installation link failed to open again when Windows was already running BeefTV; the link still only opened the installation confirmation page of the specified version.
 
-已知限制：影音模型仍可能漏报剪点或写错同音词，字幕与画面需结合原片核对；助手成片的角标排版和局部文字修改仍需人工检查。
+Known limitations: The audio-visual model may still miss the cut point or write the wrong homophone, and the subtitles and images need to be checked against the original film; the subtitle typesetting and partial text modification of the assistant's finished film still require manual inspection.
 
 ## v2.0.1
 
-- 新增可复用的画布工作流，可编辑模板、绑定输入、选择多图结果并执行媒体处理；内置账号支持 Topaz 图片和视频超分。
-- 修复任务恢复时的画布更新丢失、多图生成数量匹配和工作流取消后的任务核对，保留已生成结果与后续编辑。
-- 诊断包补充跨启动记录、助手执行和素材检查，支持通过 CLI 离线分析；修复助手退出时的授权错误及跨域请求问题。
-- 技能市场支持固定版本安装、文件查看、启停、回退和私人改写；作者可在客户端继续草稿，分别确认私有上传和公开送审。
-- 技能链接打开指定版本的安装确认页，并显示审核摘要；文字技能无需配置多模态模型。
-- 新版安装包和自动更新改用 Cloudflare R2 下载源，旧客户端保留更新入口，继续校验签名和完整文件。
+- Added a reusable canvas workflow that allows you to edit templates, bind inputs, select multi-image results and perform media processing; the built-in account supports Topaz image and video super-resolution.
+- Fixed canvas update loss when task recovery, multi-image generation quantity matching and task verification after workflow cancellation, retaining generated results and subsequent edits.
+- The diagnostic package supplements cross-boot recording, assistant execution and material inspection, supports offline analysis through CLI; fixes authorization errors and cross-domain request issues when the assistant exits.
+- The skills market supports fixed version installation, file viewing, start and stop, rollback and private rewriting; the author can continue drafting on the client and confirm private uploading and public submission for review respectively.
+- The skill link opens the installation confirmation page of the specified version and displays the review summary; text skills do not require the configuration of a multi-modal model.
+- The new version of the installation package and automatic updates use the Cloudflare R2 download source. The old client retains the update entry and continues to verify signatures and complete files.
 
-已知限制：影音模型仍可能漏报剪点或写错同音词，字幕与画面需结合原片核对；助手成片的角标排版和仅修改片尾文字仍需人工检查。
+Known limitations: The audio and video model may still miss the cut point or write the wrong homonym, and the subtitles and images need to be checked against the original film; the subtitle typesetting and only the modification of the ending text of the assistant's finished film still require manual inspection.
 
 ## v2.0.0
 
-- 内置助手可准备分镜、整理参考素材和生成方案，在确认后继续检查结果、剪辑和导出成片及可编辑工程。
-- 新增默认多模态模型选择，用于影音审查；未配置时仍可使用其他创作工具，并明确提示无法完成的媒体检查。
-- 增加参考素材读取、独立影音检查与局部修改工具，保存检查记录，便于核对结果和继续编辑。
-- 技能市场支持浏览和安装固定版本；可通过网页、CLI 或外部助手准备投稿，上传和公开送审分别确认。
-- 大参考素材支持分片上传和中断后继续，上传、下载、校验和保存分别显示进度。
-- 修复生成结果回到画布、旧节点占用和重复下载问题；大画布导出使用原生保存入口。
-- 改善剪辑预览、低帧率视频回放和竖版字幕，更新项目许可入口与第三方许可、源码说明。
+- The built-in assistant can prepare storyboards, organize reference materials and generate plans. After confirmation, continue to check the results, edit and export into films and editable projects.
+- Added default multi-modal model selection for audio and video review; other creative tools can still be used when not configured, and clear prompts for media checks that cannot be completed.
+- Added reference material reading, independent audio and video inspection and local modification tools, and saved inspection records to facilitate verification of results and continued editing.
+- The skills market supports browsing and installing fixed versions; submissions can be prepared through the web page, CLI or external assistant, and uploaded and publicly submitted for review for confirmation respectively.
+- Large reference materials support multi-part uploading and continuation after interruption, and the progress of uploading, downloading, verification and saving are displayed respectively.
+- Fixed the problem of returning the generated results to the canvas, old node occupation and repeated downloading; large canvas export uses the native save entrance.
+- Improved clip preview, low frame rate video playback and vertical subtitles, updated project license portal, third-party license, and source code description.
 
-已知限制：影音模型仍可能漏报剪点或写错同音词，字幕与画面需结合原片核对；助手成片的角标排版和仅修改片尾文字仍在继续验证。
+Known limitations: The audio-visual model may still miss the cut point or write the wrong homonym, and the subtitles and images need to be checked against the original film; the assistant's subtitle typesetting and only modification of the ending text of the finished film are still being verified.
 
 ## v1.7.27
 
-- Music 3.0 默认生成 44.1 kHz、256 kbps 的 MP3；设置仅展示实际支持的格式，已有 FLAC 设置自动调整为 MP3。
-- 企业音乐生成期间持续保持连接，收到完整音频后再保存；连接中断或错误内容不会被当作生成成功，也不会自动重复生成。
-- 桌面更新清单和安装包使用广州 COS 下载源，安装前继续校验签名、文件大小和哈希。
+- Music 3.0 generates MP3 at 44.1 kHz and 256 kbps by default; the settings only display the actually supported formats, and existing FLAC settings are automatically adjusted to MP3.
+- Keep connected during the generation of corporate music, and save the complete audio after receiving it; connection interruption or error content will not be regarded as successful generation, nor will it be automatically regenerated.
+- The desktop update list and installation package use the Guangzhou COS download source, and continue to verify the signature, file size and hash before installation.
 
 ## v1.7.26
 
-- 修复开启“减少动态效果”时，删除模型渠道的确认框无法显示的问题。
-- 参考图片上传失败时，准确说明本次尚未开始生成，允许稍后主动重试。
-- 提交结果仍未知的任务继续保留原记录，避免把查询或取回变成重复生成。
-- 深度捕捉组件下载前显示大小并等待确认，优先使用国内下载源，停顿时切换备用源；重启后由用户决定是否继续任务。
-- 存储设置集中管理深度组件与参考素材对象存储，支持测试上传、读取和清理；自定义渠道可选择参考素材的传输方式。
-- Midjourney 每次生成固定四张图片，四张结果分别保存，重新打开画布仍可查看。
+- Fixed the issue where the confirmation box for deleting model channels cannot be displayed when "Reduce Dynamic Effects" is turned on.
+- When the reference image upload fails, it accurately indicates that the generation has not started yet, and you are allowed to actively retry later.
+- Tasks whose submission results are still unknown will continue to retain the original records to avoid turning queries or retrievals into repeated generation.
+- Display the size of the Deep Capture component before downloading and wait for confirmation. Domestic download sources are used first, and backup sources are switched when there is a pause; after restarting, the user decides whether to continue the task.
+- Storage settings centrally manage the storage of depth components and reference material objects, supporting test uploading, reading and cleaning; custom channels can select the transmission method of reference materials.
+- Midjourney generates a fixed four pictures each time, and the four results are saved separately and can still be viewed when the canvas is reopened.
 
 ## v1.7.25
 
-- 生成前保存完整参数和参考素材；提交结果不确定时先查询原任务，避免重复生成。已完成结果可继续取回，并限制同时下载数量。
-- 优化画布对象命名、参考素材选择和视频设置；参考视频缩略图按需加载，减少大量素材时的等待与内存占用。
-- 修复模型菜单定位、明暗主题对比和提示词字号设置；环境自检补充浏览器存储与运行环境检查，诊断内容按账号隔离。
-- GPT Image 2.5 开放完整质量与尺寸选项，默认使用低质量档位；成功图片可恢复原图下载，避免未完成回执覆盖结果。
-- 支持连接本机及局域网模型服务，并在未设置代理环境变量时继续使用系统代理设置。
-- 修复国内视频参数与水印设置，更新对象存储依赖；桌面包补齐媒体探测工具，macOS 安装镜像改进挂载兼容性。
+- Save complete parameters and reference materials before generation; when the submission result is uncertain, query the original task first to avoid repeated generation. Completed results can continue to be retrieved, and the number of simultaneous downloads is limited.
+- Optimize canvas object naming, reference material selection and video settings; reference video thumbnails are loaded on demand to reduce waiting and memory usage when a large number of materials are used.
+- Fixed model menu positioning, light and dark theme contrast, and prompt word size settings; environmental self-checks supplement browser storage and running environment checks, and diagnostic content is isolated by account.
+- GPT Image 2.5 opens up full quality and size options, and uses the low-quality level by default; successful image downloads can restore the original image to avoid overwriting the results with unfinished receipts.
+- Supports connecting to local and LAN model services, and continues to use system proxy settings when proxy environment variables are not set.
+- Fixed domestic video parameters and watermark settings, updated object storage dependencies; the desktop package completed the media detection tool, and the macOS installation image improved mounting compatibility.
 
 ## v1.7.24
 
-- 修复视频未预载时长时「截取尾帧」退化为首帧的问题，解码失败自动回退拉取 H.264 播放副本并弹出截取完成提示；Windows 桌面端启用原生暗色标题栏与深色启动底色。
-- 侧栏新增「更新失败排查」，支持打开日志文件夹并在诊断包中导出脱敏的 `update.log` 摘要；准备安装超时区分校验、解压和准备安装阶段。
-- 历史媒体入库期间保留用户对画布节点和时间线的并发增删改；修复旧版桌面 WebView 打开画布时因数组方法兼容问题崩溃。
-- 外接视频模型需显式选择协议，Sora 协议在提交前提示不支持的多素材限制，新增可复用的 JSON 视频协议；支持 BytePlus 渠道自动识别火山方舟协议与 Dreamina 视频编辑、续写和自动时长。
-- H3 首尾帧、角色多视图与 Styles 模式明确比例限制提示；收起 H3 Max 中间帧入口并保留历史残留参数的清理按钮。
-- 区分本机凭据错误与磁盘空间不足报错，区分请求尚未发出与提交结果未确认（409），断点续传仅在强校验匹配时复用缓存字节。
+- Fixed the problem of "capturing the last frame" degenerating into the first frame when the video is not preloaded. If the decoding fails, it will automatically fall back to pull the H.264 playback copy and pop up the capture completion prompt; enable the native dark title bar and dark startup background color on the Windows desktop.
+- Added "Update Failure Troubleshooting" to the sidebar, which supports opening the log folder and exporting the desensitized `update.log` summary in the diagnostic package; the preparation for installation timeout distinguishes the verification, decompression and preparation for installation phases.
+- Preserve users' concurrent additions, deletions, and modifications to canvas nodes and timelines during the storage of historical media; fix the crash due to array method compatibility issues when the old desktop WebView opens the canvas.
+- External video models need to explicitly select the protocol. The Sora protocol prompts unsupported multi-material restrictions before submission, and a new reusable JSON video protocol is added; the BytePlus channel is supported to automatically identify the Volcano Ark protocol and Dreamina video editing, continuation and automatic duration.
+- H3 first and last frames, character multi-view and Styles mode have clear proportion limit prompts; close the H3 Max intermediate frame entrance and retain the clean button of historical residual parameters.
+- Distinguish between local credential error and insufficient disk space error, distinguish between request not yet sent and submission result not confirmed (409), breakpoint resumption only reuses cache bytes when strong verification matches.
 
 ## v1.7.23
 
-- 修复画布内旧版未入库媒体节点拦截新生成结果回写，以及点击「继续取回」闪一下又退回报错的问题；生成完成或继续取回时自动补齐画布素材绑定。
-- Windows 安装向导简化为一键安装，默认创建桌面快捷方式并在完成后打开软件；直写目标目录消除杀毒软件扫描临时目录导致的“错误 32”，支持直接选盘符根目录、自动关闭运行中的旧版进程，并修复安装界面中文乱码。
+- Fixed the problem of old unstored media nodes in the canvas intercepting the write-back of newly generated results, and clicking "Continue Retrieval" to flash and return an error; the canvas material binding is automatically completed when the generation is completed or continues to be retrieved.
+- The Windows installation wizard is simplified to one-click installation, which creates a desktop shortcut by default and opens the software after completion; direct writing to the target directory eliminates "error 32" caused by anti-virus software scanning temporary directories, supports direct selection of the drive letter root directory, automatically closes running old processes, and fixes Chinese garbled characters on the installation interface.
 
 ## v1.7.22
 
-- 所有视频渠道统一优先取回上游结果；下载中断或链接失效时刷新原任务链接，BeefTV 官方算力还可切换备用文件，无需重新生成。
-- 修复工作流多个结果在链接更新后取错素材的问题，并按实际文件识别视频、图片和音频。
-- H3 Max、Max Turbo 的时长输入支持小数秒，H3 Max 支持中间帧与参考顺序设置；修复高级设置菜单被弹层遮挡的问题。
+- All video channels give priority to retrieving upstream results; when the download is interrupted or the link fails, the original task link is refreshed. BeefTV's official computing power can also switch to backup files without regeneration.
+- Fixed the issue where multiple workflow results retrieved the wrong material after the link was updated, and identified videos, pictures, and audio according to actual files.
+- The duration input of H3 Max and Max Turbo supports decimal seconds, and H3 Max supports intermediate frame and reference sequence settings; fixes the problem that the advanced settings menu is blocked by the elastic layer.
 
 ## v1.7.21
 
-- 视频生成完成后优先下载上游结果，减少取回等待；下载失败时自动取回同一视频的备用文件，不重新生成。
-- 下载中断或长时间没有进展时及时切换备用地址；取消取回会停止当前下载。
+- After the video generation is completed, the upstream results will be downloaded first to reduce the wait for retrieval; when the download fails, the backup file of the same video will be automatically retrieved without regeneration.
+- Switch to the backup address in time when the download is interrupted or there is no progress for a long time; canceling the retrieval will stop the current download.
 
 ## v1.7.20
 
-- 新增 MiniMax H3 和 H3 Max，与 H3 Max Turbo 一起提供人民币报价。
-- H3 支持 2K/4K、首尾帧和多图、视频、音频参考；前 5 张参考图免费，超过后显示按张费用。
-- 修正 H3 视频请求的画面比例，关键帧视频沿用图片比例。
-- 深度动作捕捉等待时间与后端保持一致，重启后恢复原任务；已生成的视频可以继续取回。
+- Added MiniMax H3 and H3 Max, providing RMB quotation together with H3 Max Turbo.
+- H3 supports 2K/4K, first and last frames, and multi-image, video, and audio reference; the first 5 reference images are free, after which a per-image fee will be displayed.
+- Corrected the screen ratio of H3 video request, key frame video follows the picture ratio.
+- The waiting time for deep motion capture is consistent with the backend, and the original task will be restored after restarting; the generated videos can continue to be retrieved.
 
 ## v1.7.19
 
-- 下载更新后只解压一次，并显示校验、保存、解压和准备安装的进度。失败时能看到原因，可以重试。
-- 更新前不再把以前导入失败留下的记录当成还没保存。保存失败时可以返回处理、再试一次，或确认后继续更新；继续更新可能丢掉还没保存的修改。
-- Windows 安装时如果目录被占用，会自动重试，并显示中文说明和错误码。安装失败时会尽量恢复原来的程序。
-- 开启「减少动态效果」后，默认模型菜单会留在屏幕内，可以正常打开和选择。
+- Only decompress once after downloading the update, and display the progress of verification, saving, decompression and preparation for installation. When it fails, you can see the reason and try again.
+- Records left by previous import failures will no longer be treated as unsaved before updating. If saving fails, you can return to processing, try again, or continue updating after confirmation; continuing to update may lose unsaved modifications.
+- If the directory is occupied during Windows installation, it will automatically retry and display Chinese instructions and error codes. When the installation fails, we will try to restore the original program.
+- After turning on "Reduce Dynamic Effects", the default model menu will remain on the screen and can be opened and selected normally.
 
 ## v1.7.18
 
-- 新增 MiniMax H3 Max Turbo 视频模型，支持 480p、768p、1080p，显示当前人民币秒价。
-- 支持首尾帧、仅尾帧和指定配音；生成结果沿用画布保存与原任务恢复。
+- Added MiniMax H3 Max Turbo video model, supporting 480p, 768p, 1080p, displaying the current RMB price per second.
+- Supports first and last frames, only last frames and specified dubbing; the generated results are saved using the canvas and restored from the original task.
 
 ## v1.7.17
 
-- 修复 macOS 视频播放器点击全屏无反应的问题。
-- 生成结果取回时显示进度、大小和速度，视频生成完成后的下载也会显示；下载中断会自动重试，「继续取回」不会重新生成或再次扣费。
-- 结果下载完成后才放回画布，并且只更新相关节点，不会覆盖其他编辑。
-- 结果长时间无法写入画布时会结束等待并提示继续取回，不再一直转圈；已生成结果的后台下载支持停止与继续。
-- 批量出图时，排队等待不再消耗自动重试次数，只有真正发出的请求才计数。
-- 修复 BeefTV 官方算力视频模型被当作文本模型调用而报错的问题；模型很多时设置页和下拉不再卡顿。
-- 修复部分 BeefTV 官方算力图片模型因旧协议配置从出图列表消失的问题。
-- 诊断包补齐漏掉的任务记录，并附带脱敏的模型配置摘要，便于排查默认模型和渠道删除问题。
-- 画布列表、编辑器和文件夹中的删除操作都会先确认。
-- 首页新增新手引导，创作入口增加「3D 导演台」和「Beef Agent」。
-- 改进字幕与时间线编辑、素材分类与批量操作、模型目录刷新，以及桌面更新失败后的恢复。
-- Windows 安装包可以选择安装位置；临时文件被占用时不再阻止存储迁移。
-- 内置助手的旧会话保留为只读记录，继续发送消息会自动开启新会话并接上之前的内容。
-- 旧会话接续后即使首轮失败、断线或重启，也会复用同一条接续会话并保留上下文。
+- Fixed the issue of macOS video player not responding when clicking full screen.
+- The progress, size and speed are displayed when the generation results are retrieved. The download after the video generation is completed will also be displayed. If the download is interrupted, it will be automatically retried. "Continue retrieval" will not regenerate or charge again.
+- The result is put back into the canvas only after the download is completed, and only the relevant nodes are updated and other edits will not be overwritten.
+- When the results cannot be written to the canvas for a long time, the wait will end and prompts to continue retrieval, instead of spinning in circles; the background download of generated results supports stopping and continuing.
+- When publishing pictures in batches, waiting in line no longer consumes the number of automatic retries. Only requests that are actually sent are counted.
+- Fixed the issue where the BeefTV official computing power video model was called as a text model and reported an error; the settings page and drop-down will no longer freeze when there are many models.
+- Fixed an issue where some BeefTV official computing power picture models disappeared from the picture list due to old protocol configuration.
+- The diagnostic package completes the missing task records and comes with a desensitized model configuration summary to facilitate troubleshooting of default model and channel deletion issues.
+- Deletion operations in canvas lists, editors and folders will be confirmed first.
+- Newbie guidance has been added to the homepage, and "3D Director's Desk" and "Beef Agent" have been added to the creation portal.
+- Improved subtitle and timeline editing, material classification and batch operations, model directory refresh, and recovery after desktop update failure.
+- Windows installation packages can choose the installation location; storage migration is no longer blocked when temporary files are occupied.
+- The old conversations of the built-in assistant are kept as read-only records, and continuing to send messages will automatically open a new conversation and continue the previous content.
+- Even if the first round fails, is disconnected, or restarts after the old session is connected, the same connected session will be reused and the context will be retained.
 
 ## v1.7.16
 
-- 音频和视频节点的字幕窗口支持云端自动转写，可读取已连接 BeefTV 账号的转写模型。
-- 支持 hy-asr-3.0-preview，识别结果可编辑、保存到画布并导出 SRT；保留本地 whisper.cpp 转写。
-- 转写模型与配音、音乐生成模型分开显示，避免使用不匹配的接口。
-- 云端转写中断且结果不确定时不自动重复提交，避免重复计费。
+- The subtitle window of the audio and video nodes supports automatic cloud transcription and can read the transcription model of the connected BeefTV account.
+- Support hy-asr-3.0-preview, recognition results can be edited, saved to canvas and exported to SRT; local whisper.cpp transcription is retained.
+- Transcription models are displayed separately from dubbing and music generation models to avoid using mismatched interfaces.
+- When the cloud transcription is interrupted and the result is uncertain, the submission will not be automatically repeated to avoid repeated billing.
 
 ## v1.7.15
 
-- 调整工作区侧栏、画布工具与素材面板，保留主题、更新和帮助入口。
-- 删除生成中节点时增加确认；切换画布或账号后，旧确认不会误删其他画布内容。
-- 版本记录保留本机草稿，可预览和下载；恢复历史版本前先保留当前草稿。
-- 修复素材引用菜单意外关闭、点击穿透与键盘导航问题。
-- 历史视频仅在悬停或聚焦时加载预览，离开后取消下载。
-- Windows 随包提供视频转码工具；无法直接播放的视频按需准备兼容预览，保留原件。
-- 改善国内网络下的视频结果取回；正常线路失败后读取同一任务的备用接口，无需重新生成。
-- 修复 Windows 连接、画布媒体和滚轮交互问题。
-- 新增 Ubuntu 24.04 x64 桌面包，支持随包 CLI 和 MCP。
+- Adjust the workspace sidebar, canvas tools and material panel, retaining the theme, update and help entrances.
+- Added confirmation when deleting a node being generated; after switching canvases or accounts, the old confirmation will not delete other canvas contents by mistake.
+- The version record retains the local draft, which can be previewed and downloaded; the current draft is retained before restoring the historical version.
+- Fixed unexpected closing of material reference menu, click penetration and keyboard navigation issues.
+- Historical videos only load preview when hovered or focused, and download is canceled after leaving.
+- Windows provides video transcoding tools in the package; videos that cannot be played directly can be previewed on demand and the originals can be retained.
+- Improve the retrieval of video results under domestic networks; read the backup interface for the same task after a normal line failure, without regeneration.
+- Fixed Windows connection, canvas media and scroll wheel interaction issues.
+- Added Ubuntu 24.04 x64 desktop package, supporting packaged CLI and MCP.
 
 ## v1.7.14
 
-- 兼容通道的助手回复长时间没有新内容时自动尝试恢复，保留已完成操作，仍可随时停止。
-- 视频节点自动显示首帧时不再改动画布，避免已准备的生成方案因此过期。
-- 修复画布上按 Backspace 意外离开，以及离开或切换画布时删除内容未及时保存的问题。
-- 生成方案显示未能开始的具体原因与等待状态；长任务显示已等待时间。
-- 同轮多次局部编辑按各画布接续版本，恢复时保留原操作身份；外部删除与本地编辑冲突时保留本地内容并提示处理。
-- 修复大画布读取被截断的问题，助手可分页读取完整节点、连线和时间线。
-- 修复切换助手模型后仍使用旧模型的问题；恢复未完成轮次时继续使用原模型。
-- 修复完全访问模式下工作区画布搜索错误过滤，导致找不到其他画布的问题。
-- 旁白剪辑可检测实际停顿，并再次听取裁剪后的音频核对尾字与保留内容。
-- 修复素材读取补齐资源后已成功，助手仍显示先前失败提示的问题。
-- 删除素材记录时保留画布和历史仍在使用的资源，避免影响已有作品。
-- 模型配置支持搜索选择，保留自定义服务和暂不可用的模型设置。
-- 改进 BeefTV MCP 的连接状态和管理入口、侧栏收起与社交入口，并提供应用内中文更新说明。
+- Assistants on compatible channels will automatically try to resume when there is no new content for a long time, retain completed operations, and can still stop at any time.
+- The video node will automatically display the first frame without modifying the canvas to prevent the prepared generation plan from expiration.
+- Fixed the problem of accidentally leaving by pressing Backspace on the canvas, and the issue of deleted content not being saved in time when leaving or switching canvases.
+- The generated plan displays the specific reasons and waiting status for failure to start; long tasks display the waiting time.
+- Multiple partial edits in the same round are continued according to the version on each canvas, and the original operating identity is retained when restoring; when external deletion conflicts with local editing, local content is retained and prompts for processing.
+- Fixed the problem of truncated reading of large canvases. The assistant can read complete nodes, connections and timelines in pages.
+- Fixed the problem of still using the old model after switching assistant models; continuing to use the original model when restoring unfinished rounds.
+- Fixed an issue where the workspace canvas search was incorrectly filtered in full access mode, causing other canvases to not be found.
+- Narration editing can detect actual pauses and listen to the trimmed audio again to check the last words and retained content.
+- Fixed an issue where the assistant still displays the previous failure prompt after the material is successfully read and the supplementary resources are successfully loaded.
+- When deleting material records, the canvas and historically used resources are retained to avoid affecting existing works.
+- Model configuration supports search selection, retaining custom services and temporarily unavailable model settings.
+- Improved BeefTV MCP's connection status and management portal, sidebar collapse and social portal, and provided in-app Chinese update instructions.
 
 ## v1.7.13
 
-- 连接入口改为「连接 BeefTV」，新登录授权和钱包控制台使用 beeftv.app；保留已连接企业账号。
-- 创作助手支持图片、视频和音频参考、运行中补充内容与固定版本技能，并使用持久会话恢复中断工作。
-- 助手可将已上传素材绑定到画布参考节点；技能选择器支持直接安装 ZIP 和 Markdown 技能。
-- 内置助手可选择只读、当前画布或完全访问；跨画布编辑可整轮撤销。
-- 切换助手权限后仍可读取已授权的会话素材；修复多图再次生成时新结果被旧画布覆盖的问题。
-- 助手可裁剪、排列素材，添加旁白和字幕，并在本地渲染视频预览。
-- 助手对话直接显示成片版本，可播放、下载，并在重开对话后恢复。
-- 模型回复失败时保留已完成操作，提供继续处理入口。
-- 外部 Agent 通过 MCP／CLI 使用完整业务工具，无需在 BeefTV 重复选择执行权限。
-- 补齐节点移动、删除、移除连线和模型目录；修复失败更新留下安装缓存的问题。
+- The connection entrance is changed to "Connect BeefTV", and the new login authorization and wallet console use beeftv.app; the connected enterprise account is retained.
+- Authoring Assistant supports image, video and audio references, on-the-fly supplementary content and fixed-version skills, and resumes interrupted work using persistent sessions.
+- The assistant can bind uploaded materials to canvas reference nodes; the skill selector supports direct installation of ZIP and Markdown skills.
+- Built-in assistants with options for read-only, current canvas, or full access; cross-canvas edits can be undone in the round.
+- Authorized session materials can still be read after switching assistant permissions; fixed the issue where new results are overwritten by the old canvas when multiple images are generated again.
+- Assistant can crop and arrange footage, add narration and subtitles, and render video previews locally.
+- Assistant conversations directly display the finished version, which can be played, downloaded, and restored after reopening the conversation.
+- When the model reply fails, completed operations are retained and an entry point is provided for continued processing.
+- External Agents can use complete business tools through MCP/CLI without repeatedly selecting execution permissions in BeefTV.
+- Completed node movement, deletion, removal of connections and model directories; fixed the issue of installation cache left behind by failed updates.
 
 ## v1.7.12
 
-- Seedance 2.0、2.5 统一名称，模型列表不再重复展示真人素材型号。
-- 模型选择和助手生成确认显示当前报价。
-- 保留旧项目的模型设置，仍可继续使用。
+- Seedance 2.0 and 2.5 have unified names, and the model list no longer displays real-life material models repeatedly.
+- Model selection and assistant generation confirmation display of current quotes.
+- Model settings from old projects are retained and can still be used.
 
 ## v1.7.11
 
-- 图片生成前先保存画布节点，保存冲突时停止提交，避免生成完成后找不到结果节点。
-- 图片已生成但画布更新失败时保留原任务，可重新加载资源，无需再次生成。
-- 修复桌面端“重新加载资源”不可用，以及恢复任务后一直显示生成中的问题。
+- Save the canvas node before generating the image, and stop submitting when saving conflicts to avoid finding the result node after the generation is completed.
+- When the image has been generated but the canvas update fails, the original task is retained and the resource can be reloaded without generating it again.
+- Fixed the problem of "Reload Resources" being unavailable on the desktop, and the problem of being generated being displayed after resuming the task.
 
 ## v1.7.10
 
-- 真人视频模型统一显示为 Seedance 2.0-真人、Seedance 2.5-真人，模型选择、设置和名称搜索保持一致。
-- API 模型 ID、价格与渠道路由保持不变。
+- Real-person video models are uniformly displayed as Seedance 2.0-real person, Seedance 2.5-real person, and model selection, settings and name search remain consistent.
+- API model IDs, pricing and channel routing remain unchanged.
 
 ## v1.7.9
 
-- 新增 Seedance 2.0、2.5 真人素材版，选择模型时显示价格，标准版保留原价。
-- 修复模型目录刷新、分镜工作台恢复设置时可能自动切换到不同收费档位的问题。
-- 生成与重试前检查真人素材版的可用状态和报价，助手确认卡片同步显示单价。
+- Added Seedance 2.0 and 2.5 real-life material versions, the price is displayed when selecting a model, and the standard version retains the original price.
+- Fixed an issue where the model directory may be refreshed and the storyboard workbench may automatically switch to different charging levels when restoring settings.
+- Check the availability status and quotation of the real-life material version before generating and retrying, and the assistant confirms that the card displays the unit price simultaneously.
 
 ## v1.7.8
 
-- 修复部分视频点击预览后页面崩溃、无法播放的问题。
-- 修复恢复设置时已关闭的视频声音开关被重新开启的问题。
-- 修复 Windows 下载更新包后无法完成校验的问题。
+- Fixed an issue where the page crashed and could not be played after clicking to preview some videos.
+-Fixed the issue where the turned off video sound switch was turned back on when restoring settings.
+- Fixed an issue where Windows could not complete the verification after downloading the update package.
 
 ## v1.7.7
 
-- 生成前检查渠道能否读取参考素材，需要在线链接时可直接填写并继续生成，或切换渠道。
-- 处理参考素材时显示准备阶段，完成后再提交生成任务。
-- 修复部分视频渠道的音频、水印等开关参数导致任务无法解析的问题。
+- Before generating, check whether the channel can read the reference material. If an online link is required, you can fill it in directly and continue generating, or switch channels.
+- Display the preparation stage when processing reference material, and then submit the generation task after completion.
+- Fixed an issue that caused the task to be unable to be parsed due to the audio, watermark and other switch parameters of some video channels.
 
 ## v1.7.6
 
-- 统一素材库、生成历史与画布素材选择的布局，改进窄窗口显示和应用加载画面。
-- 上传素材后切换页面仍会完成上传，返回页面不会重复创建素材。
-- 永久删除生成历史前增加确认，批量删除失败的项目可单独重试。
-- 提供旧回收站素材恢复入口，保留此前归档的素材。
-- 改进素材详情中的图片缩放与视频播放控件。
+- Unify the layout of the material library, generation history and canvas material selection, and improve the narrow window display and application loading screen.
+- After uploading materials, switching pages will still complete the upload, and returning to the page will not create materials again.
+- Add confirmation before permanently deleting the generated history. Projects that fail to be deleted in batches can be retried individually.
+- Provides an entrance to restore old recycle bin materials and retains previously archived materials.
+- Improved image scaling and video playback controls in material details.
 
 ## v1.7.5
 
-- 桌面更新支持断点续传与自动重试，显示下载进度、速度和剩余时间，并提供更明确的网络错误提示。
-- 修复桌面端资产详情中的音视频无法播放：通过本地资源鉴权后读取媒体，重启后仍可播放已保存的作品。
-- 修复视频生成完成后，相对下载地址被误判为无效地址的问题。
-- 新增可由用户配置地址的全参视频协议，支持图片、视频与音频参考素材。
-- 改进自定义模型目录的能力识别与加载超时。
-- 修复 macOS 保存媒体时改名丢失扩展名的问题。
+- The desktop update supports resumed downloads and automatic retries, displays download progress, speed and remaining time, and provides clearer network error prompts.
+- Fixed the problem that the audio and video in the asset details on the desktop cannot be played: after reading the media through local resource authentication, the saved works can still be played after restarting.
+- Fixed the issue where the relative download address was misjudged as an invalid address after the video generation was completed.
+- Added a fully parameterized video protocol with a user-configurable address, supporting picture, video and audio reference materials.
+- Improved ability recognition and loading timeout of custom model directories.
+- Fixed the problem of losing extension when renaming media when saving in macOS.
 
-Windows v1.6.20–v1.6.22 的旧更新器无法识别新版目录结构，请关闭应用后手工解压新版完整安装包；保留原用户数据目录。v1.6.23 及后续版本可使用应用内更新。
+The old updater of Windows v1.6.20–v1.6.22 cannot recognize the directory structure of the new version. Please close the application and manually extract the complete installation package of the new version; keep the original user data directory. In-app updates are available for v1.6.23 and later.
 
 ## v1.7.3
 
@@ -456,7 +456,7 @@ Windows v1.6.20–v1.6.22 的旧更新器无法识别新版目录结构，请关
 ## v1.6.16
 
 - Recover transient video download disconnects using the original provider task, with bounded background recovery for supported video protocols.
-- Add “取回结果” to failed video task details on the canvas and in desktop task history; query and download the original result without creating another paid generation.
+- Add “Retrieve results” to failed video task details on the canvas and in desktop task history; query and download the original result without creating another paid generation.
 - Treat lost submission receipts as unconfirmed instead of silently resubmitting; keep explicit rate limits and pre-dispatch rejections retryable.
 - Show readable, sanitized task log summaries and prevent late task detail responses from reopening or replacing a different task.
 

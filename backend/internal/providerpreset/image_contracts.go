@@ -69,12 +69,12 @@ func (c ImageContract) PixelSize(size string) (string, error) {
 	}
 	parts := strings.Split(size, "x")
 	if len(parts) != 2 {
-		return "", fmt.Errorf("当前图片模型不支持尺寸 %s", size)
+		return "", fmt.Errorf("The current image model does not support size %s", size)
 	}
 	w, errW := strconv.Atoi(parts[0])
 	h, errH := strconv.Atoi(parts[1])
 	if errW != nil || errH != nil || w < c.MinSide || h < c.MinSide || w > c.MaxSide || h > c.MaxSide || int64(w)*int64(h) > int64(c.MaxPixels) {
-		return "", fmt.Errorf("当前图片模型宽高须在 %d～%d 之间，总像素不能超过 %d", c.MinSide, c.MaxSide, c.MaxPixels)
+		return "", fmt.Errorf("The width and height of the current image model must be between %d~%d, and the total pixels cannot exceed %d", c.MinSide, c.MaxSide, c.MaxPixels)
 	}
 	return fmt.Sprintf("%dx%d", w, h), nil
 }

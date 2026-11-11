@@ -16,11 +16,11 @@ import (
 
 func decodeRegistryJSON(data []byte) ([]RegistryRecord, error) {
 	if len(data) > protocol.PluginManifestMaxBytes*64 {
-		return nil, fmt.Errorf("插件 registry 超过大小限制")
+		return nil, fmt.Errorf("Plugin registry exceeds size limit")
 	}
 	var records []RegistryRecord
 	if err := json.Unmarshal(data, &records); err != nil {
-		return nil, fmt.Errorf("读取插件 registry 失败：%w", err)
+		return nil, fmt.Errorf("Failed to read plug-in registry: %w", err)
 	}
 	return records, nil
 }
@@ -55,11 +55,11 @@ func (c *Runtime) importLegacyRegistry() ([]RegistryRecord, error) {
 		return []RegistryRecord{}, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("读取遗留插件 registry 失败：%w", err)
+		return nil, fmt.Errorf("Failed to read legacy plug-in registry: %w", err)
 	}
 	records, err := decodeRegistryJSON(data)
 	if err != nil {
-		return nil, fmt.Errorf("读取遗留插件 registry 失败：%w", err)
+		return nil, fmt.Errorf("Failed to read legacy plug-in registry: %w", err)
 	}
 	return records, nil
 }
@@ -68,7 +68,7 @@ func (c *Runtime) loadAuthority() ([]RegistryRecord, bool, error) {
 	if c.store != nil {
 		records, found, err := c.store.LoadPluginRegistry()
 		if err != nil {
-			return nil, false, fmt.Errorf("读取插件 registry：%w", err)
+			return nil, false, fmt.Errorf("Read plug-in registry: %w", err)
 		}
 		if found {
 			return records, true, nil
@@ -91,10 +91,10 @@ func (c *Runtime) currentRecords() ([]RegistryRecord, error) {
 	if c.store != nil {
 		records, found, err := c.store.LoadPluginRegistry()
 		if err != nil {
-			return nil, fmt.Errorf("读取插件 registry：%w", err)
+			return nil, fmt.Errorf("Read plug-in registry: %w", err)
 		}
 		if !found {
-			return nil, fmt.Errorf("插件 registry 未初始化")
+			return nil, fmt.Errorf("Plugin registry not initialized")
 		}
 		return cloneRegistryRecords(records), nil
 	}
@@ -109,7 +109,7 @@ func (c *Runtime) persistRecords(records []RegistryRecord, extras persistExtras)
 		}
 	}
 	if err := validateAuthorityRecords(records); err != nil {
-		return fmt.Errorf("插件 registry 候选无效：%w", err)
+		return fmt.Errorf("Invalid plug-in registry candidate: %w", err)
 	}
 	if c.store != nil {
 		return c.store.CommitPluginRegistry(RegistryCommit{
@@ -119,7 +119,7 @@ func (c *Runtime) persistRecords(records []RegistryRecord, extras persistExtras)
 		})
 	}
 	if extras.platform != nil || extras.deleteID != "" {
-		return fmt.Errorf("插件状态存储未初始化")
+		return fmt.Errorf("Plugin state storage is not initialized")
 	}
 	return c.writeRegistry(records)
 }
@@ -221,7 +221,7 @@ func materializeRecords(stored []RegistryRecord) (map[string]Record, *protocol.R
 			return nil, nil, fmt.Errorf("plugin %s has no metadata id", storedRecord.ID)
 		}
 		if strings.TrimSpace(storedRecord.ID) != strings.TrimSpace(metadata.ID) {
-			return nil, nil, fmt.Errorf("插件 %s 清单 ID 与记录 ID 不一致", storedRecord.ID)
+			return nil, nil, fmt.Errorf("Plug-in %s manifest ID is inconsistent with record ID", storedRecord.ID)
 		}
 		if _, exists := plugins[metadata.ID]; exists {
 			return nil, nil, fmt.Errorf("duplicate installed protocol %q", metadata.ID)
@@ -332,12 +332,12 @@ func writePluginFile(path string, data []byte) error {
 func ensurePluginBlob(path string, data []byte) (bool, error) {
 	hash := pluginHash(data)
 	if filepath.Base(path) != blobFileName(hash) {
-		return false, fmt.Errorf("插件包路径与内容哈希不一致")
+		return false, fmt.Errorf("Plugin package path is inconsistent with content hash")
 	}
 	existing, err := os.ReadFile(path)
 	if err == nil {
 		if pluginHash(existing) != hash {
-			return false, fmt.Errorf("插件包 %s 已存在但内容与哈希不一致", filepath.Base(path))
+			return false, fmt.Errorf("Plug-in package %s exists but the content is inconsistent with the hash", filepath.Base(path))
 		}
 		return false, nil
 	}
@@ -355,10 +355,10 @@ func validateAuthorityRecords(records []RegistryRecord) error {
 	for _, record := range records {
 		id := strings.TrimSpace(record.ID)
 		if id == "" {
-			return fmt.Errorf("插件 registry 记录缺少 ID")
+			return fmt.Errorf("Plugin registry record missing ID")
 		}
 		if _, exists := seen[id]; exists {
-			return fmt.Errorf("插件 registry 记录 ID %q 重复", id)
+			return fmt.Errorf("Plug-in registry record ID %q is duplicated", id)
 		}
 		seen[id] = struct{}{}
 		if err := validateAuthorityRecord(record); err != nil {
@@ -371,10 +371,10 @@ func validateAuthorityRecords(records []RegistryRecord) error {
 func validateAuthorityRecord(record RegistryRecord) error {
 	id := strings.TrimSpace(record.ID)
 	if len(record.Raw) == 0 {
-		return fmt.Errorf("插件 %s 缺少清单", id)
+		return fmt.Errorf("Plugin %s missing manifest", id)
 	}
 	if !json.Valid(record.Raw) {
-		return fmt.Errorf("插件 %s 清单不是合法 JSON", id)
+		return fmt.Errorf("Plugin %s manifest is not valid JSON", id)
 	}
 	var manifest protocol.Manifest
 	if err := json.Unmarshal(record.Raw, &manifest); err != nil {
@@ -385,13 +385,13 @@ func validateAuthorityRecord(record RegistryRecord) error {
 		return fmt.Errorf("plugin %s has no metadata id", id)
 	}
 	if metadataID != id {
-		return fmt.Errorf("插件 %s 清单 ID 与记录 ID 不一致", id)
+		return fmt.Errorf("Plug-in %s manifest ID is inconsistent with record ID", id)
 	}
 	if err := validateRecordSource(record.Source); err != nil {
-		return fmt.Errorf("插件 %s：%w", id, err)
+		return fmt.Errorf("Plug-in %s: %w", id, err)
 	}
 	if err := validateRecordPackageIdentity(record); err != nil {
-		return fmt.Errorf("插件 %s：%w", id, err)
+		return fmt.Errorf("Plug-in %s: %w", id, err)
 	}
 	return nil
 }
@@ -401,9 +401,9 @@ func validateRecordSource(source string) error {
 	case OriginOfficial, OriginSystem, OriginUploaded, OriginPackage, "bundled":
 		return nil
 	case "":
-		return fmt.Errorf("缺少来源")
+		return fmt.Errorf("missing source")
 	default:
-		return fmt.Errorf("未知来源 %q", strings.TrimSpace(source))
+		return fmt.Errorf("Unknown source %q", strings.TrimSpace(source))
 	}
 }
 
@@ -412,7 +412,7 @@ func validateRecordPackageIdentity(record RegistryRecord) error {
 	hash := strings.TrimSpace(record.PackageSHA256)
 	if name := strings.TrimSpace(record.FileName); name != "" {
 		if err := validateRecordBaseName(name); err != nil {
-			return fmt.Errorf("文件名无效")
+			return fmt.Errorf("Invalid file name")
 		}
 	}
 	if path != "" {
@@ -424,17 +424,17 @@ func validateRecordPackageIdentity(record RegistryRecord) error {
 		return nil
 	}
 	if !validPackageSHA256(hash) {
-		return fmt.Errorf("包哈希无效")
+		return fmt.Errorf("Invalid packet hash")
 	}
 	if blobFileName(hash) != path {
-		return fmt.Errorf("包路径与哈希不一致")
+		return fmt.Errorf("Package path is inconsistent with hash")
 	}
 	return nil
 }
 
 func validateRecordBaseName(name string) error {
 	if name == "" || name == "." || name == ".." || strings.ContainsAny(name, `/\`) || filepath.Base(name) != name {
-		return fmt.Errorf("路径无效")
+		return fmt.Errorf("Invalid path")
 	}
 	return nil
 }

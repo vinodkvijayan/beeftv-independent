@@ -16,20 +16,20 @@ describe("useCreationPreferencesStore (#091)", () => {
         const store = useCreationPreferencesStore.getState();
 
         const created = store.saveCustomPreset({
-            name: "电影特写光影",
-            prompt: "柔和侧逆光，电影级浅景深，人物眼神特写",
+            name: "movie close-up light and shadow",
+            prompt: "Soft side backlighting, movie-level shallow depth of field, close-ups of people’s eyes",
             mode: "image",
         });
         expect(created).not.toBeNull();
-        expect(created?.name).toBe("电影特写光影");
+        expect(created?.name).toBe("movie close-up light and shadow");
         expect(created?.modes).toEqual(["image"]);
         expect(useCreationPreferencesStore.getState().preferences.customPresets).toHaveLength(1);
 
         const autoNamed = useCreationPreferencesStore.getState().saveCustomPreset({
-            prompt: "跟随镜头缓慢推进，穿过霓虹雨夜街道",
+            prompt: "Follow the camera slowly forward through the neon rainy night streets",
             mode: "video",
         });
-        expect(autoNamed?.name).toBe("跟随镜头缓慢推进，穿过霓虹雨夜街道");
+        expect(autoNamed?.name).toBe("Follow the camera slowly forward through the neon rainy night streets");
         expect(useCreationPreferencesStore.getState().preferences.customPresets).toHaveLength(2);
 
         const normalized = normalizeCreationComposerPreferences({
@@ -73,12 +73,12 @@ describe("useCreationPreferencesStore (#091)", () => {
         const html = renderToStaticMarkup(
             React.createElement(CanvasPresetPicker, {
                 mode: "image",
-                currentPrompt: "测试提示词",
+                currentPrompt: "test prompt word",
                 appearance: "quiet",
                 dense: true,
                 onSelect: () => {},
             }),
         );
-        expect(html).toContain("预设");
+        expect(html).toContain("Default");
     });
 });

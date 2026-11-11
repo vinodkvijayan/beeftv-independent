@@ -51,10 +51,10 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 		return UserDataSummary{}, result, err
 	}
 	if (input.Script == nil && len(input.RowIDs) < 1) || len(input.RowIDs) > 8 || len(input.ReferenceNodeIDs) > 4 || (input.Script == nil && len(input.Image) == 0 && len(input.Video) == 0) {
-		return fail("请选择 1..8 个分镜及图片或视频参数，参考图片最多 4 张")
+		return fail("Please select 1..8 storyboards and picture or video parameters, with a maximum of 4 reference pictures.")
 	}
 	if len(input.Image) == 0 && len(input.ReferenceNodeIDs) > 0 {
-		return fail("角色或风格参考用于首帧图片；视频沿用各分镜自己的首帧")
+		return fail("Character or style reference is used for the first frame of the image; the video uses its own first frame for each storyboard")
 	}
 	var doc, storyboard map[string]any
 	var rows []any
@@ -63,7 +63,7 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 		doc, storyboard, rows, err = s.loadStoryboardRows(userID, canvasID, nodeID)
 	} else {
 		if nodeID != "" || len(input.RowIDs) > 0 || len(input.Script.Rows) > 8 {
-			return fail("新分镜与已有分镜请选择一种")
+			return fail("Please choose one between new storyboard and existing storyboard.")
 		}
 		if err := requireStoryboardRows(input.Script.Rows); err != nil {
 			return UserDataSummary{}, result, err
@@ -95,11 +95,11 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 	seenReferences := map[string]bool{}
 	for _, id := range input.ReferenceNodeIDs {
 		if seenReferences[id] {
-			return fail("参考图片重复: " + id)
+			return fail("Reference image duplication:" + id)
 		}
 		seenReferences[id] = true
 		if node := findCanvasNode(doc, id); node == nil || canvasNodeType(node) != "image" {
-			return fail("参考图片不在当前画布: " + id)
+			return fail("The reference picture is not in the current canvas:" + id)
 		}
 	}
 	seen := map[string]bool{}
@@ -107,7 +107,7 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 	for _, id := range input.RowIDs {
 		row := findStoryboardRow(rows, id)
 		if row == nil || seen[id] {
-			return fail("分镜不存在或重复: " + id)
+			return fail("The storyboard does not exist or is duplicated:" + id)
 		}
 		seen[id] = true
 		refs, refErr := storyboardPreparationReferences(doc, storyboard, row, nodeID, input.ReferenceNodeIDs)
@@ -118,7 +118,7 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 		if len(input.Video) > 0 {
 			seconds, ok := row["durationSeconds"].(float64)
 			if !ok || math.IsNaN(seconds) || math.IsInf(seconds, 0) || seconds < StoryboardMinShotSeconds || seconds > StoryboardMaxShotSeconds {
-				return fail("请先填写有效的分镜时长")
+				return fail("Please fill in the valid storyboard duration first")
 			}
 		}
 		for _, kind := range []string{"image", "video"} {
@@ -132,7 +132,7 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 				continue
 			}
 			if bound, _ := row[kind+"NodeId"].(string); bound != "" {
-				return fail("分镜已有" + kind + "节点，请修改原节点而不是重复创建")
+				return fail("Storyboard already available" + kind + "Node, please modify the original node instead of re-creating it")
 			}
 			if kind == "image" {
 				if prompt, _ := row[promptField].(string); strings.TrimSpace(prompt) == "" {
@@ -142,16 +142,16 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 				}
 			}
 			if prompt, _ := row[promptField].(string); strings.TrimSpace(prompt) == "" {
-				return fail("分镜缺少" + promptField)
+				return fail("Storyboard missing" + promptField)
 			}
 		}
 		if len(input.Video) > 0 && len(input.Image) == 0 {
 			if id, _ := row["imageNodeId"].(string); id != "" {
 				if node := findCanvasNode(doc, id); node == nil || canvasNodeType(node) != "image" {
-					return fail("分镜首帧节点已不存在，请先修正绑定")
+					return fail("The first frame node of the storyboard no longer exists. Please correct the binding first.")
 				}
 			} else if len(refs) > 0 {
-				return fail("此分镜已有角色或素材参考，请先准备首帧图片再制作视频")
+				return fail("This storyboard already has character or material references. Please prepare the first frame before making the video.")
 			}
 		}
 	}
@@ -211,10 +211,10 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 		shot.ImageNodeID, _ = row["imageNodeId"].(string)
 		for _, kind := range []string{"image", "video"} {
 			patch := input.Image
-			promptField, label := "imageGenerationPrompt", "首帧"
+			promptField, label := "imageGenerationPrompt", "first frame"
 			if kind == "video" {
 				patch = input.Video
-				promptField, label = "videoMotionPrompt", "视频"
+				promptField, label = "videoMotionPrompt", "video"
 			}
 			if len(patch) == 0 {
 				continue
@@ -239,10 +239,10 @@ func (s *Service) PrepareUserCanvasStoryboard(userID, canvasID, nodeID string, i
 				"position": map[string]any{"x": left, "y": 160 + float64(index)*rowStride}, "width": width, "height": height}
 			for name, value := range patch {
 				if name == "title" || name == "content" || name == "prompt" {
-					return fail("生成参数不能覆盖分镜提示词或名称")
+					return fail("Generation parameters cannot override storyboard prompt words or names")
 				}
 				if _, exists := descriptor.PatchFields[name]; !exists {
-					return fail("不支持的生成参数: " + name)
+					return fail("Unsupported build parameters:" + name)
 				}
 				if err := descriptor.ApplyPatch(node, map[string]any{name: value}); err != nil {
 					return fail(err.Error())
@@ -343,7 +343,7 @@ func storyboardPreparationReferences(doc, storyboard, row map[string]any, script
 	}
 	for _, id := range refs {
 		if node := findCanvasNode(doc, id); node == nil || canvasNodeType(node) != "image" {
-			return nil, fmt.Errorf("分镜参考 %s 不可用；批量准备只支持当前画布的图片参考", id)
+			return nil, fmt.Errorf("Storyboard reference %s is not available; batch preparation only supports picture reference of the current canvas", id)
 		}
 	}
 	return refs, nil
@@ -381,7 +381,7 @@ func storyboardDraftSize(patch map[string]any) (float64, float64) {
 // storyboardDraftTitle 是分镜草稿标题的唯一出口：有模板按镜号替换 {n}，否则用默认标题。
 func storyboardDraftTitle(template string, row map[string]any, label string) string {
 	if template == "" {
-		return fmt.Sprintf("镜头 %d · %s", rowShotNumber(row), label)
+		return fmt.Sprintf("Lens %d · %s", rowShotNumber(row), label)
 	}
 	return strings.ReplaceAll(template, "{n}", strconv.Itoa(rowShotNumber(row)))
 }
@@ -404,7 +404,7 @@ func checkStoryboardTemplateTitles(doc map[string]any, rows []any, input Storybo
 		for _, draft := range []struct {
 			template, label string
 			patch           map[string]any
-		}{{input.ImageTitle, "首帧", input.Image}, {input.VideoTitle, "视频", input.Video}} {
+		}{{input.ImageTitle, "first frame", input.Image}, {input.VideoTitle, "video", input.Video}} {
 			if len(draft.patch) == 0 {
 				continue
 			}
@@ -426,10 +426,10 @@ func checkStoryboardTemplateTitles(doc map[string]any, rows []any, input Storybo
 			continue
 		}
 		if counts[item.title] > 1 {
-			return kernel.NewAppError(http.StatusBadRequest, "同一批次内标题重复: "+item.title)
+			return kernel.NewAppError(http.StatusBadRequest, "Duplicate titles within the same batch:"+item.title)
 		}
 		if existing[item.title] {
-			return kernel.NewAppError(http.StatusConflict, "标题已存在: "+item.title)
+			return kernel.NewAppError(http.StatusConflict, "Title already exists:"+item.title)
 		}
 	}
 	return nil

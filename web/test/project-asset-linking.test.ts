@@ -17,7 +17,7 @@ describe("project asset batch linking", () => {
 
     test("keeps successful links and reports partial failures", async () => {
         const result = await linkSelectedProjectAssets(["asset-1", "asset-2"], async (id) => {
-            if (id === "asset-2") throw new Error("不可用");
+            if (id === "asset-2") throw new Error("Not available");
             return id;
         });
 
@@ -26,7 +26,7 @@ describe("project asset batch linking", () => {
 
     test("surfaces the failure when no asset can be linked", async () => {
         await expect(linkSelectedProjectAssets(["asset-1"], async () => {
-            throw new Error("素材已失效");
-        })).rejects.toThrow("素材已失效");
+            throw new Error("The material has expired");
+        })).rejects.toThrow("The material has expired");
     });
 });

@@ -45,7 +45,7 @@ function Harness() {
                                 />
                             ) : (
                                 <>
-                                    <Button onClick={() => setCollapsed((value) => !value)}>切换侧栏收起</Button>
+                                    <Button onClick={() => setCollapsed((value) => !value)}>Toggle sidebarCollapse</Button>
                                     <div style={{ width: collapsed ? 56 : 240 }}>
                                         <WorkspaceSidebarSocialLinks collapsed={collapsed} onExpand={() => setCollapsed(false)} />
                                         <WorkspaceSidebarAccount collapsed={collapsed} />

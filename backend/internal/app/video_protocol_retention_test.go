@@ -150,7 +150,7 @@ func TestVideoProtocolRollbackReplaysOldRequests(t *testing.T) {
 				t.Fatal("rollback did not install the old manifest")
 			}
 			_, err = svc.QueryFailedVideoTask(context.Background(), "local", task.ID)
-			if err == nil || !strings.Contains(err.Error(), "声明式协议已完成但没有返回") {
+			if err == nil || !strings.Contains(err.Error(), "Declarative protocol completed but did not return") {
 				t.Fatalf("old parser unexpectedly recovered official receipt: %v", err)
 			}
 			if posts.Load() != 0 || polls.Load() != 1 || downloads.Load() != 0 {

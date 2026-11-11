@@ -10,48 +10,48 @@ function storyboardTask(resultJson: string): GenerationTask {
 // 后端 canvas_text 任务统一落 {mode, reasoning, text} 包装，模型输出正文嵌在 text 里；
 // 分镜解析必须穿透包装取内层 {title, rows}，同时兼容模板路径直接落顶层的结构。
 describe("storyboardRowsFromTask", () => {
-    test("从 {mode, reasoning, text} 包装的 text 内层解析分镜行", () => {
-        const payload = { title: "桃源三结义", rows: [
-            { shotNumber: 1, durationSeconds: 8, plotDescription: "朝堂开篇", dialogue: "", characters: ["刘备"], mustHave: ["列队"], optionalDetails: [] },
-            { shotNumber: 2, durationSeconds: 10, plotDescription: "告示墙前叹气", dialogue: "唉……", characters: ["刘备", "关羽"] },
+    test("Parsing storyboard lines from the inner layer of text wrapped by {mode, reasoning, text}", () => {
+        const payload = { title: "Three sworn brothers in Taoyuan", rows: [
+            { shotNumber: 1, durationSeconds: 8, plotDescription: "The beginning of the court", dialogue: "", characters: ["Liu Bei"], mustHave: ["line up"], optionalDetails: [] },
+            { shotNumber: 2, durationSeconds: 10, plotDescription: "Sigh in front of the notice wall", dialogue: "Alas...", characters: ["Liu Bei", "Guan Yu"] },
         ] };
-        const task = storyboardTask(JSON.stringify({ mode: "text", reasoning: "思考过程", text: JSON.stringify(payload) }));
+        const task = storyboardTask(JSON.stringify({ mode: "text", reasoning: "thought process", text: JSON.stringify(payload) }));
         const result = storyboardRowsFromTask(task);
-        expect(result.title).toBe("桃源三结义");
+        expect(result.title).toBe("Three sworn brothers in Taoyuan");
         expect(result.rows).toHaveLength(2);
         expect(result.rows[0].shotNumber).toBe(1);
         expect(result.rows[0].status).toBe("idle");
-        expect(result.rows[0].characters).toEqual(["刘备"]);
-        expect(result.rows[1].characters).toEqual(["刘备", "关羽"]);
+        expect(result.rows[0].characters).toEqual(["Liu Bei"]);
+        expect(result.rows[1].characters).toEqual(["Liu Bei", "Guan Yu"]);
     });
 
-    test("text 内层被 ```json 代码块包裹时仍可解析", () => {
-        const payload = { title: "章节", rows: [{ shotNumber: 1, plotDescription: "单镜头" }] };
+    test("The text inner layer can still be parsed when it is wrapped by ```json code block", () => {
+        const payload = { title: "Chapter", rows: [{ shotNumber: 1, plotDescription: "single lens" }] };
         const wrappedText = "```json\n" + JSON.stringify(payload) + "\n```";
         const task = storyboardTask(JSON.stringify({ mode: "text", text: wrappedText }));
         expect(storyboardRowsFromTask(task).rows).toHaveLength(1);
     });
 
-    test("text 内层混入解释文字时按首尾大括号截取解析", () => {
-        const payload = { title: "章节", rows: [{ shotNumber: 1, plotDescription: "单镜头" }] };
-        const noisyText = "以下是分镜表：\n" + JSON.stringify(payload) + "\n如需调整请告知。";
+    test("When text is mixed with explanation text in the inner layer, it is intercepted and parsed according to the first and last curly brackets.", () => {
+        const payload = { title: "Chapter", rows: [{ shotNumber: 1, plotDescription: "single lens" }] };
+        const noisyText = "The following is the storyboard:" + JSON.stringify(payload) + "Please let us know if adjustments are needed.";
         const task = storyboardTask(JSON.stringify({ mode: "text", text: noisyText }));
         expect(storyboardRowsFromTask(task).rows).toHaveLength(1);
     });
 
-    test("兼容顶层直接落 {title, rows} 的结构", () => {
-        const task = storyboardTask(JSON.stringify({ title: "章节", rows: [{ shotNumber: 1, plotDescription: "单镜头" }] }));
+    test("Compatible with the structure where the top layer directly falls into {title, rows}", () => {
+        const task = storyboardTask(JSON.stringify({ title: "Chapter", rows: [{ shotNumber: 1, plotDescription: "single lens" }] }));
         expect(storyboardRowsFromTask(task).rows).toHaveLength(1);
     });
 
-    test("text 内层不是 JSON 时抛出缺行错误", () => {
+    test("A missing line error is thrown when the inner layer of text is not JSON", () => {
         // 无契约时期模型返回 Markdown 表格的真实场景。
-        const task = storyboardTask(JSON.stringify({ mode: "text", text: "| 7-41 | 全景/拉远 | 桃园结义 |" }));
-        expect(() => storyboardRowsFromTask(task)).toThrow("分镜任务没有返回镜头行");
+        const task = storyboardTask(JSON.stringify({ mode: "text", text: "| 7-41 | Panorama/Zoom | Taoyuan Brothers |" }));
+        expect(() => storyboardRowsFromTask(task)).toThrow("Storyboard task does not return shot rows");
     });
 
-    test("rows 为空数组时抛出缺行错误", () => {
-        const task = storyboardTask(JSON.stringify({ mode: "text", text: JSON.stringify({ title: "空", rows: [] }) }));
-        expect(() => storyboardRowsFromTask(task)).toThrow("分镜任务没有返回镜头行");
+    test("Throws a missing row error when rows is an empty array", () => {
+        const task = storyboardTask(JSON.stringify({ mode: "text", text: JSON.stringify({ title: "empty", rows: [] }) }));
+        expect(() => storyboardRowsFromTask(task)).toThrow("Storyboard task does not return shot rows");
     });
 });

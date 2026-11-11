@@ -12,7 +12,7 @@ import (
 
 func SanitizeChannelModel(cm *model.ChannelModel) (PublicChannelModel, error) {
 	if cm == nil {
-		return PublicChannelModel{}, fmt.Errorf("渠道模型为空")
+		return PublicChannelModel{}, fmt.Errorf("Channel model is empty")
 	}
 	var capabilityConfig map[string]any
 	normalized, err := normalizedChannelModelCapability(cm)
@@ -22,7 +22,7 @@ func SanitizeChannelModel(cm *model.ChannelModel) (PublicChannelModel, error) {
 	if normalized != nil {
 		capabilityConfig, err = ModelCapabilityConfigToMap(normalized)
 		if err != nil {
-			return PublicChannelModel{}, fmt.Errorf("投影渠道模型能力配置失败：%w", err)
+			return PublicChannelModel{}, fmt.Errorf("Projection channel model capability configuration failed: %w", err)
 		}
 	}
 	return PublicChannelModel{

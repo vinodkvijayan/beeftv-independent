@@ -27,7 +27,7 @@ func TestUpdateUserCanvasNodeFieldsFollowsDescriptorPaths(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "img", map[string]any{"content": "夜景：雨夜巷口对峙"}, created.Revision); err != nil {
+	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "img", map[string]any{"content": "Night scene: Confrontation at the alley on a rainy night"}, created.Revision); err != nil {
 		t.Fatal(err)
 	}
 	raw, err := svc.UserCanvasProject(actor, canvasID)
@@ -44,23 +44,23 @@ func TestUpdateUserCanvasNodeFieldsFollowsDescriptorPaths(t *testing.T) {
 		t.Fatal(err)
 	}
 	image := doc.Nodes[0]
-	if image.Metadata["composerContent"] != "夜景：雨夜巷口对峙" {
-		t.Fatalf("生成节点 content 补丁应落到 composerContent，实际 %#v", image.Metadata)
+	if image.Metadata["composerContent"] != "Night scene: Confrontation at the alley on a rainy night" {
+		t.Fatalf("Generate node content patch should fall to composerContent, actual %#v", image.Metadata)
 	}
 	if image.Metadata["promptTemplateOperation"] != nil || image.Metadata["promptTemplateVariables"] != nil {
-		t.Fatalf("修改草稿提示词时应清理旧模板变量，实际 %#v", image.Metadata)
+		t.Fatalf("When modifying the draft prompt word, the old template variables should be cleared, actual %#v", image.Metadata)
 	}
-	if image.Metadata["prompt"] != "已提交提示词" {
-		t.Fatalf("content 补丁不得改写已提交提示词，实际 %#v", image.Metadata["prompt"])
+	if image.Metadata["prompt"] != "Prompt word submitted" {
+		t.Fatalf("The content patch must not rewrite the submitted prompt word, actual %#v", image.Metadata["prompt"])
 	}
 	if image.Metadata["content"] != "" {
-		t.Fatalf("content 补丁不得覆盖媒体结果槽位，实际 %#v", image.Metadata["content"])
+		t.Fatalf("The content patch must not cover the media result slot, actual %#v", image.Metadata["content"])
 	}
 
-	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "txt", map[string]any{"content": "新的正文"}, created.Revision+1); err != nil {
+	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "txt", map[string]any{"content": "new text"}, created.Revision+1); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "img", map[string]any{"prompt": "下一版提示词草稿"}, created.Revision+2); err != nil {
+	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "img", map[string]any{"prompt": "Draft prompt for next edition"}, created.Revision+2); err != nil {
 		t.Fatal(err)
 	}
 	raw, err = svc.UserCanvasProject(actor, canvasID)
@@ -70,17 +70,17 @@ func TestUpdateUserCanvasNodeFieldsFollowsDescriptorPaths(t *testing.T) {
 	if err := json.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc.Nodes[1].Metadata["content"] != "新的正文" {
-		t.Fatalf("文本节点 content 补丁应落到 content，实际 %#v", doc.Nodes[1].Metadata)
+	if doc.Nodes[1].Metadata["content"] != "new text" {
+		t.Fatalf("Text node content patch should fall to content, actual %#v", doc.Nodes[1].Metadata)
 	}
-	if doc.Nodes[0].Metadata["composerContent"] != "下一版提示词草稿" {
-		t.Fatalf("prompt 补丁应写入 metadata.composerContent，实际 %#v", doc.Nodes[0].Metadata["composerContent"])
+	if doc.Nodes[0].Metadata["composerContent"] != "Draft prompt for next edition" {
+		t.Fatalf("prompt patch should be written to metadata.composerContent, actual %#v", doc.Nodes[0].Metadata["composerContent"])
 	}
-	if doc.Nodes[0].Metadata["prompt"] != "已提交提示词" {
-		t.Fatalf("prompt 补丁不得覆盖历史已提交提示词，实际 %#v", doc.Nodes[0].Metadata["prompt"])
+	if doc.Nodes[0].Metadata["prompt"] != "Prompt word submitted" {
+		t.Fatalf("The prompt patch must not cover the historical submitted prompt words. The actual prompt is %#v.", doc.Nodes[0].Metadata["prompt"])
 	}
-	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "img", map[string]any{"prompt": "草稿A", "content": "草稿B"}, created.Revision+3); err == nil {
-		t.Fatal("同时提交不同内容的 prompt 与 content 应被拒绝")
+	if _, err := svc.UpdateUserCanvasNodeFields(actor, canvasID, "img", map[string]any{"prompt": "Draft A", "content": "Draft B"}, created.Revision+3); err == nil {
+		t.Fatal("Simultaneous submission of prompt and content with different content should be rejected")
 	}
 }
 
@@ -89,17 +89,17 @@ func TestUpdateUserCanvasNodeFieldsFollowsDescriptorPaths(t *testing.T) {
 func TestUpdateUserCanvasNodeFieldsKeepsTitleEditableForStructureNodes(t *testing.T) {
 	svc := newCanvasHistoryTestService(t)
 	created, err := svc.UpsertUserCanvasProject("owner", json.RawMessage(`{
-		"id":"canvas-structure","revision":0,"title":"结构节点",
+		"id":"canvas-structure","revision":0,"title":"structure node",
 		"nodes":[
-			{"id":"scr","type":"script","title":"旧脚本名","metadata":{"storyboard":{"rows":[]}}},
-			{"id":"frm","type":"frame","title":"旧背板名","metadata":{"frame":{"collapsed":false}}}
+			{"id":"scr","type":"script","title":"Old script name","metadata":{"storyboard":{"rows":[]}}},
+			{"id":"frm","type":"frame","title":"Old backplane name","metadata":{"frame":{"collapsed":false}}}
 		],"connections":[]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for index, nodeID := range []string{"scr", "frm"} {
-		if _, err := svc.UpdateUserCanvasNodeFields("owner", "canvas-structure", nodeID, map[string]any{"title": "新名字"}, created.Revision+int64(index)); err != nil {
-			t.Fatalf("%s 改名应成功，实际 %v", nodeID, err)
+		if _, err := svc.UpdateUserCanvasNodeFields("owner", "canvas-structure", nodeID, map[string]any{"title": "new name"}, created.Revision+int64(index)); err != nil {
+			t.Fatalf("%s rename should be successful, but actually %v", nodeID, err)
 		}
 	}
 	raw, _ := svc.UserCanvasProject("owner", "canvas-structure")
@@ -112,8 +112,8 @@ func TestUpdateUserCanvasNodeFieldsKeepsTitleEditableForStructureNodes(t *testin
 	if err := json.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc.Nodes[0].Title != "新名字" || doc.Nodes[1].Title != "新名字" {
-		t.Fatalf("结构节点改名未生效: %#v", doc.Nodes)
+	if doc.Nodes[0].Title != "new name" || doc.Nodes[1].Title != "new name" {
+		t.Fatalf("The rename of the structure node does not take effect: %#v", doc.Nodes)
 	}
 }
 
@@ -121,25 +121,25 @@ func TestUpdateUserCanvasNodeFieldsKeepsTitleEditableForStructureNodes(t *testin
 func TestUpdateUserCanvasNodeFieldsRejectsUnsupportedFieldWithoutWriting(t *testing.T) {
 	svc := newCanvasHistoryTestService(t)
 	created, err := svc.UpsertUserCanvasProject("owner", json.RawMessage(`{
-		"id":"canvas-unsupported","revision":0,"title":"未支持字段",
-		"nodes":[{"id":"scr","type":"script","title":"脚本","metadata":{"storyboard":{"rows":[]}}}],
+		"id":"canvas-unsupported","revision":0,"title":"Unsupported field",
+		"nodes":[{"id":"scr","type":"script","title":"script","metadata":{"storyboard":{"rows":[]}}}],
 		"connections":[]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = svc.UpdateUserCanvasNodeFields("owner", "canvas-unsupported", "scr", map[string]any{"content": "不该写入"}, created.Revision)
+	_, err = svc.UpdateUserCanvasNodeFields("owner", "canvas-unsupported", "scr", map[string]any{"content": "should not write"}, created.Revision)
 	var appError *kernel.AppError
 	if !errors.As(err, &appError) || appError.Status != http.StatusBadRequest {
-		t.Fatalf("script 的 content 应被明确拒绝，实际 %v", err)
+		t.Fatalf("content of script should be explicitly rejected, actually %v", err)
 	}
 	if appError.Reason != kernel.ReasonUnsupportedField {
-		t.Fatalf("reason 应为 unsupported_field，实际 %q", appError.Reason)
+		t.Fatalf("reason should be unsupported_field, actual %q", appError.Reason)
 	}
 
 	// 混入合法 title 也必须整批不写：不能出现「一半生效」。
-	if _, err = svc.UpdateUserCanvasNodeFields("owner", "canvas-unsupported", "scr", map[string]any{"title": "新名", "content": "不该写入"}, created.Revision); err == nil {
-		t.Fatal("含未支持字段的整批更新应被拒绝")
+	if _, err = svc.UpdateUserCanvasNodeFields("owner", "canvas-unsupported", "scr", map[string]any{"title": "new name", "content": "should not write"}, created.Revision); err == nil {
+		t.Fatal("Entire batch of updates with unsupported fields should be rejected")
 	}
 	after, err := svc.UserCanvasProject("owner", "canvas-unsupported")
 	if err != nil {
@@ -156,10 +156,10 @@ func TestUpdateUserCanvasNodeFieldsRejectsUnsupportedFieldWithoutWriting(t *test
 		t.Fatal(err)
 	}
 	if doc.Revision != created.Revision {
-		t.Fatalf("被拒绝的更新不应推进 revision：%d -> %d", created.Revision, doc.Revision)
+		t.Fatalf("Rejected updates should not be pushed forward revision: %d -> %d", created.Revision, doc.Revision)
 	}
-	if doc.Nodes[0].Title != "脚本" {
-		t.Fatalf("被拒绝的更新不应写入 title，实际 %q", doc.Nodes[0].Title)
+	if doc.Nodes[0].Title != "script" {
+		t.Fatalf("Rejected updates should not write title, actual %q", doc.Nodes[0].Title)
 	}
 }
 
@@ -172,10 +172,10 @@ func TestUpdateUserCanvasNodeFieldsPreservesPatchOnNodeWithoutMetadata(t *testin
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.UpdateUserCanvasNodeFields("owner", "canvas-no-metadata", "txt", map[string]any{"content": "第一次写入"}, created.Revision); err != nil {
+	if _, err := svc.UpdateUserCanvasNodeFields("owner", "canvas-no-metadata", "txt", map[string]any{"content": "first write"}, created.Revision); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.UpdateUserCanvasNodeFields("owner", "canvas-no-metadata", "txt", map[string]any{"content": "第二次写入"}, created.Revision+1); err != nil {
+	if _, err := svc.UpdateUserCanvasNodeFields("owner", "canvas-no-metadata", "txt", map[string]any{"content": "second write"}, created.Revision+1); err != nil {
 		t.Fatal(err)
 	}
 	raw, err := svc.UserCanvasProject("owner", "canvas-no-metadata")
@@ -190,7 +190,7 @@ func TestUpdateUserCanvasNodeFieldsPreservesPatchOnNodeWithoutMetadata(t *testin
 	if err := json.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc.Nodes[0].Metadata["content"] != "第二次写入" {
-		t.Fatalf("无 metadata 节点的内容更新被丢弃: %#v", doc.Nodes[0].Metadata)
+	if doc.Nodes[0].Metadata["content"] != "second write" {
+		t.Fatalf("Content updates for nodes without metadata are discarded: %#v", doc.Nodes[0].Metadata)
 	}
 }

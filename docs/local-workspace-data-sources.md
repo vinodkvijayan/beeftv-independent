@@ -1,28 +1,28 @@
-# BeefTV 本地工作区数据源边界
+# BeefTV local workspace data source boundary
 
-桌面 profile 的目标不是把所有内容都塞进同一个存储，而是让每类数据只有一个明确的事实来源；浏览器缓存只承担展示加速或兼容降级，不承担云端同步语义。
+The goal of the desktop profile is not to stuff all content into the same storage, but to have only one clear source of truth for each type of data; the browser cache is only responsible for display acceleration or compatibility downgrade, not cloud synchronization semantics.
 
-| 数据域 | 本地事实来源 | 浏览器侧职责 | 云端同步 |
+| Data Domain | Local Source of Truth | Browser Side Responsibilities | Cloud Sync |
 | --- | --- | --- | --- |
-| 画布、项目、文件夹 | 桌面：Go SQLite；浏览器纯本地：scoped IndexedDB/localForage | 首屏展示缓存、未提交草稿与操作记录；后端读取失败要显示错误并保留草稿 | 关闭 |
-| 素材元数据 | 桌面/hosted：Go SQLite `asset.Library`（`GET /assets?page=`、`POST /assets/batch`）；浏览器纯本地：scoped IndexedDB | 展示缓存与未提交草稿；查询失败不得显示成空库 | 关闭 |
-| 图片、视频、音频、模型二进制 | Go 资源服务的本地文件目录 | Blob/Object URL 缓存 | 关闭 |
-| 模型渠道与 API Key | Go 工作区数据目录中的 `local-model-config.json` | Zustand 镜像与表单状态 | 关闭 |
-| 生成任务、状态、日志 | Go 本地 SQLite | 查询缓存与实时展示 | 关闭 |
-| Agent 记忆、插件状态 | scoped IndexedDB/localForage | 编辑与缓存 | 关闭 |
+| Canvas, project, folder | Desktop: Go SQLite; Browser purely local: scoped IndexedDB/localForage | The first screen displays cache, uncommitted drafts and operation records; if the back-end read fails, an error will be displayed and the draft will be retained | Close |
+| Material metadata | Desktop/hosted: Go SQLite `asset.Library` (`GET /assets?page=`, `POST /assets/batch`); browser purely local: scoped IndexedDB | Display cache and uncommitted drafts; query failure must not be displayed as an empty database | Close |
+| Images, videos, audios, model binaries | Local file directory for Go resource service | Blob/Object URL cache | Close |
+| Model channels and API Keys | `local-model-config.json` in the Go workspace data directory | Zustand image and form status | Close |
+| Generate tasks, status, logs | Go local SQLite | Query caching and real-time display | Close |
+| Agent memory, plug-in status | scoped IndexedDB/localForage | Editing and caching | Close |
 
-外部素材插件（例如 Eagle）不属于本地素材事实来源。本地 profile 不会在素材选择器中枚举、读取或写入这些来源；如需使用，必须显式运行 Hosted profile。
+External footage plugins (such as Eagle) are not native footage sources of truth. The local profile does not enumerate, read, or write these sources in the material selector; to use them, the Hosted profile must be run explicitly.
 
-## 运行规则
+## Run rules
 
-- 桌面启动使用合成的 `local` 工作区身份，不读取登录态。身份规则在 `workspace.Service`：本地工作区投影为 `username=local`、管理员、已启用；HTTP JSON 仍由 `AuthUser` 输出。
-- 本地上传优先调用本机 Go 资源接口；资源服务暂不可用时才退回 IndexedDB，且不设置 `pendingRemoteUpload`。
-- `resource:<id>` 只表示本机 Go 资源，不代表 SaaS 或对象存储。
-- 用户可在“存储设置”中选择其他磁盘并迁移完整数据目录，详见 [存储设置](storage-settings.md)。
-- 参考素材对象存储由用户显式启用。只在渠道拒绝本地参考素材且要求公网 URL 时上传本次参考资源；这不是工作区云同步。
-- 服务器 profile 仍保留原有远端同步实现，和桌面 profile 通过 `storageMode` 隔离。
-- 后续新增功能必须先声明所属数据域及其事实来源，禁止在本地模式新增隐式云端回退。
+- Desktop startup uses the synthetic `local` workspace identity and does not read the login status. Identity rules in `workspace.Service`: Local workspace projection is `username=local`, Administrator, enabled; HTTP JSON is still output by `AuthUser`.
+- Local upload calls the local Go resource interface first; only returns to IndexedDB when the resource service is temporarily unavailable, and `pendingRemoteUpload` is not set.
+- `resource:<id>` only represents native Go resources, not SaaS or object storage.
+- Users can select other disks and migrate the complete data directory in "Storage Settings", see [Storage Settings](storage-settings.md) for details.
+- Reference material object storage is explicitly enabled by the user. This reference resource is only uploaded when the channel rejects local reference material and requires a public URL; this is not workspace cloud synchronization.
+- The server profile still retains the original remote synchronization implementation, and is isolated from the desktop profile through `storageMode`.
+- Subsequently added functions must first declare the data domain and their source of fact, and it is prohibited to add implicit cloud fallback in local mode.
 
-## 本地任务事件
+## Local task events
 
-本地模式下任务状态默认通过现有 `/api/tasks/:id/text-events` SSE 接口接收进度和终态；接口带有游标和断线重连逻辑，不再额外引入 WebSocket 服务。服务器 profile 仍可使用原有轮询路径。
+In local mode, task status receives progress and final status through the existing `/api/tasks/:id/text-events` SSE interface by default; the interface has cursor and disconnection reconnection logic, and no additional WebSocket service is introduced. Server profiles can still use the original polling path.

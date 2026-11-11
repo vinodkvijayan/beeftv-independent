@@ -74,7 +74,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 	guard := func(c *gin.Context, requireWrite bool) bool {
 		// 与 /agent-ops 完全相同的来源校验：Host/RemoteAddr/Origin 都必须是本机且同源。
 		if !isLoopbackRequest(c.Request) {
-			c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "reason": "forbidden", "msg": "内置助手入口只接受本机同源请求"})
+			c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "reason": "forbidden", "msg": "The built-in assistant entrance only accepts requests from the same source of the local machine."})
 			return false
 		}
 		user, err := currentUser(c, svc)
@@ -92,7 +92,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		c.Set("agentIdentity", identity)
 		if requireWrite && readOnly {
 			// 已登记的只读客户端（或声明只读的调用）不能借代理拿到宿主写权限。
-			c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "reason": "read_only_client", "msg": "只读客户端不能通过内置助手发起写操作"})
+			c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "reason": "read_only_client", "msg": "Read-only clients cannot initiate write operations through the built-in helper"})
 			return false
 		}
 		return true
@@ -180,7 +180,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		provider, reason := host.ResolveProvider()
 		if reason != "" {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": reason,
-				"msg": "助手模型或凭据还没准备好"})
+				"msg": "The helper model or credentials are not ready yet"})
 			return
 		}
 		if err := host.Restart(provider, hostOpsURL(c), launchToken(c)); err != nil {
@@ -194,7 +194,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 	hostJSON := func(c *gin.Context, method, path string, body []byte) {
 		if host == nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-				"msg": "内置创作助手宿主未运行"})
+				"msg": "The built-in authoring assistant host is not running"})
 			return
 		}
 		var reader io.Reader
@@ -204,21 +204,21 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		upstream, err := host.NewChildRequest(c.Request.Context(), method, path, reader)
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-				"msg": "内置创作助手宿主未运行"})
+				"msg": "The built-in authoring assistant host is not running"})
 			return
 		}
 		upstream.Header.Set("Content-Type", "application/json")
 		resp, err := agentHostClient(30 * time.Second).Do(upstream)
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-				"msg": "内置创作助手宿主未运行"})
+				"msg": "The built-in authoring assistant host is not running"})
 			return
 		}
 		defer resp.Body.Close()
 		payload, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 		var decoded any
 		if err := json.Unmarshal(payload, &decoded); err != nil {
-			fail(c, http.StatusBadGateway, app.BadAuthRequest("宿主返回的不是合法 JSON"))
+			fail(c, http.StatusBadGateway, app.BadAuthRequest("What the host returns is not valid JSON"))
 			return
 		}
 		if resp.StatusCode/100 != 2 {
@@ -228,7 +228,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 					reason = value
 				}
 			}
-			c.JSON(resp.StatusCode, gin.H{"code": resp.StatusCode, "reason": reason, "msg": "内置创作助手宿主拒绝了该请求"})
+			c.JSON(resp.StatusCode, gin.H{"code": resp.StatusCode, "reason": reason, "msg": "The built-in authoring assistant host rejected the request"})
 			return
 		}
 		if strings.HasPrefix(path, "/history?") {
@@ -285,12 +285,12 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 	// requireOwnedCanvas 先验证 scope：只能操作当前用户确实拥有的画布，再转发给宿主。
 	requireOwnedCanvas := func(c *gin.Context, canvasID string) (json.RawMessage, bool) {
 		if strings.TrimSpace(canvasID) == "" {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("canvasId 必填"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("canvasId required"))
 			return nil, false
 		}
 		raw, err := svc.CanvasService().UserCanvasProject(c.GetString("agentUserId"), canvasID)
 		if err != nil {
-			fail(c, http.StatusNotFound, app.BadAuthRequest("画布不存在或不属于当前工作区"))
+			fail(c, http.StatusNotFound, app.BadAuthRequest("The canvas does not exist or does not belong to the current workspace"))
 			return nil, false
 		}
 		return raw, true
@@ -365,7 +365,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			canvasID = strings.TrimSpace(payload.CanvasID)
 		}
 		if !assistantSessionIDPattern.MatchString(sessionID) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("sessionId 无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("sessionId is invalid"))
 			return
 		}
 		if _, allowed := requireOwnedCanvas(c, canvasID); !allowed {
@@ -439,7 +439,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			return
 		}
 		if !assistantProposalIDPattern.MatchString(c.Param("proposalId")) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("生成建议标识无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Generating suggestion ID is invalid"))
 			return
 		}
 		if _, allowed := requireOwnedCanvas(c, payload.CanvasID); !allowed {
@@ -466,7 +466,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":   http.StatusForbidden,
 				"reason": "agent_token_cannot_approve",
-				"msg":    "Agent 自身的凭据不能批准生成单，请使用工作区 owner 凭据或在 BeefTV 界面确认",
+				"msg":    "The Agent's own credentials cannot approve the generated order. Please use the workspace owner's credentials or confirm on the BeefTV interface.",
 			})
 			return
 		}
@@ -481,7 +481,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			return
 		}
 		if !assistantProposalIDPattern.MatchString(c.Param("proposalId")) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("生成建议标识无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Generating suggestion ID is invalid"))
 			return
 		}
 		payload.ProposalID = c.Param("proposalId")
@@ -516,7 +516,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":   http.StatusForbidden,
 				"reason": "agent_token_cannot_approve",
-				"msg":    "Agent 自身的凭据不能批准生成单，请使用工作区 owner 凭据或在 BeefTV 界面确认",
+				"msg":    "The Agent's own credentials cannot approve the generated order. Please use the workspace owner's credentials or confirm on the BeefTV interface.",
 			})
 			return
 		}
@@ -524,7 +524,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			return
 		}
 		if !assistantProposalIDPattern.MatchString(c.Param("proposalId")) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("生成单标识无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Invalid generation order ID"))
 			return
 		}
 		result, err := svc.ApproveGenerationOrder(c.GetString("agentUserId"), c.Param("proposalId"), "ui")
@@ -543,16 +543,16 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		}
 		if host == nil || host.Endpoint() == "" {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-				"msg": "内置创作助手宿主未运行"})
+				"msg": "The built-in authoring assistant host is not running"})
 			return
 		}
 		body, err := io.ReadAll(io.LimitReader(c.Request.Body, agentProxyMaxBody+1))
 		if err != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体读取失败"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Failed to read request body"))
 			return
 		}
 		if int64(len(body)) > agentProxyMaxBody {
-			fail(c, http.StatusRequestEntityTooLarge, app.BadAuthRequest("请求体超过限制"))
+			fail(c, http.StatusRequestEntityTooLarge, app.BadAuthRequest("Request body exceeds limit"))
 			return
 		}
 		var payload struct {
@@ -567,12 +567,12 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			Skills          []skills.Pin              `json:"skills"`
 		}
 		if err := json.Unmarshal(body, &payload); err != nil || strings.TrimSpace(payload.CanvasID) == "" || (strings.TrimSpace(payload.Message) == "" && len(payload.Attachments) == 0) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("canvasId 与 message 必填"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("canvasId and message are required"))
 			return
 		}
 		// requestId 只是这次发送的停止与重发键，由宿主按会话去重；回合身份与授权仍由下面生成的 turnId 决定。
 		if payload.RequestID != nil && !assistantRequestIDPattern.MatchString(*payload.RequestID) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("requestId 无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("requestId is invalid"))
 			return
 		}
 		canvasRaw, allowed := requireOwnedCanvas(c, payload.CanvasID)
@@ -585,7 +585,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			return
 		}
 		if !assistantturns.ValidMode(payload.PermissionMode) {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("助手权限无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Assistant permission is invalid"))
 			return
 		}
 		if err := svc.ValidateAssistantAttachments(c.GetString("agentUserId"), payload.CanvasID, payload.Attachments); err != nil {
@@ -612,7 +612,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 				} `json:"nodes"`
 			}
 			if err := json.Unmarshal(canvasRaw, &canvasDoc); err != nil {
-				fail(c, http.StatusInternalServerError, app.BadAuthRequest("画布内容无法解析"))
+				fail(c, http.StatusInternalServerError, app.BadAuthRequest("Canvas content cannot be parsed"))
 				return
 			}
 			owned := make(map[string]bool, len(canvasDoc.Nodes))
@@ -621,7 +621,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			}
 			for _, id := range payload.SelectedNodeIDs {
 				if !owned[id] {
-					fail(c, http.StatusBadRequest, app.BadAuthRequest("选中的对象不属于当前画布: "+id))
+					fail(c, http.StatusBadRequest, app.BadAuthRequest("The selected object does not belong to the current canvas:"+id))
 					return
 				}
 			}
@@ -668,7 +668,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		}
 		if err != nil {
 			settle = true
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体不是合法 JSON"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is not valid JSON"))
 			return
 		}
 		// 上游请求与浏览器连接解耦：用户中途关页面/点停止不能让已经落地的写入丢掉回合归属。
@@ -677,14 +677,14 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		if err != nil {
 			settle = true
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-				"msg": "内置创作助手宿主未运行"})
+				"msg": "The built-in authoring assistant host is not running"})
 			return
 		}
 		upstream.Header.Set("Content-Type", "application/json")
 		resp, err := client.Do(upstream)
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-				"msg": "内置创作助手宿主未运行"})
+				"msg": "The built-in authoring assistant host is not running"})
 			return
 		}
 		defer resp.Body.Close()
@@ -705,7 +705,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			if reason == "" {
 				reason = "host_unreachable"
 			}
-			c.JSON(resp.StatusCode, gin.H{"code": resp.StatusCode, "reason": reason, "msg": "内置创作助手宿主拒绝了这次对话"})
+			c.JSON(resp.StatusCode, gin.H{"code": resp.StatusCode, "reason": reason, "msg": "The built-in authoring assistant host rejected this conversation"})
 			return
 		}
 		c.Status(resp.StatusCode)
@@ -760,7 +760,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		if payload.SessionID != nil || payload.RequestID != nil {
 			if payload.SessionID == nil || payload.RequestID == nil ||
 				!assistantSessionIDPattern.MatchString(*payload.SessionID) || !assistantRequestIDPattern.MatchString(*payload.RequestID) {
-				fail(c, http.StatusBadRequest, app.BadAuthRequest("sessionId 与 requestId 无效"))
+				fail(c, http.StatusBadRequest, app.BadAuthRequest("sessionId and requestId are invalid"))
 				return
 			}
 			target["sessionId"] = *payload.SessionID
@@ -773,7 +773,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		}
 		body, err := json.Marshal(target)
 		if err != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体不是合法 JSON"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is not valid JSON"))
 			return
 		}
 		hostJSON(c, http.MethodPost, "/cancel", body)
@@ -801,12 +801,12 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 		}
 		for key := range fields {
 			if key != "canvasId" && key != "sessionId" && key != "message" && key != "attachments" && key != "references" && key != "requestId" && key != "skills" {
-				fail(c, http.StatusBadRequest, app.BadAuthRequest("补充消息包含不支持的信息"))
+				fail(c, http.StatusBadRequest, app.BadAuthRequest("Supplementary message contains unsupported information"))
 				return
 			}
 		}
 		if strings.TrimSpace(payload.SessionID) == "" || (strings.TrimSpace(payload.Message) == "" && len(payload.Attachments) == 0) || len(payload.Message) > 20000 {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("sessionId 与 message 必填，补充消息不能超过 20000 字节"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("sessionId and message are required, and the supplementary message cannot exceed 20,000 bytes."))
 			return
 		}
 		if _, allowed := requireOwnedCanvas(c, payload.CanvasID); !allowed {
@@ -838,12 +838,12 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			query := url.Values{"canvasId": {payload.CanvasID}, "sessionId": {payload.SessionID}}
 			request, err := host.NewChildRequest(c.Request.Context(), http.MethodGet, "/active?"+query.Encode(), nil)
 			if err != nil {
-				fail(c, http.StatusServiceUnavailable, app.BadAuthRequest("助手尚未就绪"))
+				fail(c, http.StatusServiceUnavailable, app.BadAuthRequest("Assistant is not ready yet"))
 				return
 			}
 			response, err := agentHostClient(30 * time.Second).Do(request)
 			if err != nil {
-				fail(c, http.StatusServiceUnavailable, app.BadAuthRequest("无法确认正在执行的任务"))
+				fail(c, http.StatusServiceUnavailable, app.BadAuthRequest("Unable to confirm task in progress"))
 				return
 			}
 			var active struct {
@@ -854,7 +854,7 @@ func RegisterAgentProxyRoutes(r gin.IRouter, svc *app.Service, clients *agentops
 			decodeErr := json.NewDecoder(io.LimitReader(response.Body, 8192)).Decode(&active)
 			response.Body.Close()
 			if response.StatusCode != 200 || decodeErr != nil || active.SessionID != payload.SessionID || !active.Busy || active.TurnID == "" {
-				fail(c, http.StatusConflict, app.BadAuthRequest("这一轮已经结束，请发送新消息"))
+				fail(c, http.StatusConflict, app.BadAuthRequest("This round has ended, please send a new message"))
 				return
 			}
 			input := assistantTurnInput(nil, refs)
@@ -888,18 +888,18 @@ func assistantTerminalLine(line []byte, turnID string) bool {
 func readAssistantBody[T any](c *gin.Context, shape T) ([]byte, T, bool) {
 	body, err := io.ReadAll(io.LimitReader(c.Request.Body, agentProxyMaxBody+1))
 	if err != nil {
-		fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体读取失败"))
+		fail(c, http.StatusBadRequest, app.BadAuthRequest("Failed to read request body"))
 		return nil, shape, false
 	}
 	if int64(len(body)) > agentProxyMaxBody {
-		fail(c, http.StatusRequestEntityTooLarge, app.BadAuthRequest("请求体超过限制"))
+		fail(c, http.StatusRequestEntityTooLarge, app.BadAuthRequest("Request body exceeds limit"))
 		return nil, shape, false
 	}
 	if len(strings.TrimSpace(string(body))) == 0 {
 		body = []byte("{}")
 	}
 	if err := json.Unmarshal(body, &shape); err != nil {
-		fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体不是合法 JSON"))
+		fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is not valid JSON"))
 		return nil, shape, false
 	}
 	return body, shape, true

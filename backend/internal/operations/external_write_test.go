@@ -22,7 +22,7 @@ func TestExternalWritePersistenceSurgicalUndoAndDesktopExclusion(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n1",
 		"expectedRevision": rev0,
-		"patch":            map[string]any{"title": "Codex 新标题"},
+		"patch":            map[string]any{"title": "Codex new title"},
 	})
 	if err != nil {
 		t.Fatalf("external update failed: %v", err)
@@ -54,12 +54,12 @@ func TestExternalWritePersistenceSurgicalUndoAndDesktopExclusion(t *testing.T) {
 	// and should not block surgical undo of ext-op-1 on node n1.
 	desktopCaller := operations.ManualCaller(false)
 	desktopCaller.ClientID = "desktop-ui"
-	desktopCaller.ClientLabel = "桌面端"
+	desktopCaller.ClientLabel = "Desktop"
 	if _, err := h.execute(t, desktopCaller, "canvas.node.update", "desktop-op-2", map[string]any{
 		"canvasId":         h.canvasID,
 		"nodeId":           "n2",
 		"expectedRevision": res.Revision,
-		"patch":            map[string]any{"title": "桌面改镜头2"},
+		"patch":            map[string]any{"title": "Desktop lens modification 2"},
 	}); err != nil {
 		t.Fatalf("desktop update failed: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestExternalWritePersistenceSurgicalUndoAndDesktopExclusion(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n2",
 		"expectedRevision": h.revisionNow(t),
-		"patch":            map[string]any{"title": "桌面改镜头2"},
+		"patch":            map[string]any{"title": "Desktop lens modification 2"},
 	}); err != nil {
 		t.Fatalf("internal manual update failed: %v", err)
 	}
@@ -109,11 +109,11 @@ func TestExternalWritePersistenceSurgicalUndoAndDesktopExclusion(t *testing.T) {
 		m := raw.(map[string]any)
 		nodeTitles[m["id"].(string)], _ = m["title"].(string)
 	}
-	if nodeTitles["n1"] != "镜头1" {
-		t.Fatalf("expected n1 title restored to 镜头1, got %q", nodeTitles["n1"])
+	if nodeTitles["n1"] != "Shot 1" {
+		t.Fatalf("expected n1 title restored to lens 1, got %q", nodeTitles["n1"])
 	}
-	if nodeTitles["n2"] != "桌面改镜头2" {
-		t.Fatalf("expected unrelated node n2 edit preserved as 桌面改镜头2, got %q", nodeTitles["n2"])
+	if nodeTitles["n2"] != "Desktop lens modification 2" {
+		t.Fatalf("expected unrelated node n2 edit preserved as desktop change lens 2, got %q", nodeTitles["n2"])
 	}
 
 	writesAfterUndo, err := store.ListExternalCanvasWrites(h.userID, h.canvasID)
@@ -137,7 +137,7 @@ func TestExternalWriteUndoRejectsWhenTouchedNodeModifiedLater(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n1",
 		"expectedRevision": h.revisionNow(t),
-		"patch":            map[string]any{"title": "第一次外部修改"},
+		"patch":            map[string]any{"title": "first external modification"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -146,7 +146,7 @@ func TestExternalWriteUndoRejectsWhenTouchedNodeModifiedLater(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n1",
 		"expectedRevision": first.Revision,
-		"patch":            map[string]any{"title": "后续覆盖修改"},
+		"patch":            map[string]any{"title": "Subsequent coverage modifications"},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestStaleRevisionConflictDetailsIncludeModifiedNodes(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n1",
 		"expectedRevision": staleRev,
-		"patch":            map[string]any{"title": "MCP 修改后"},
+		"patch":            map[string]any{"title": "After MCP modification"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -179,7 +179,7 @@ func TestStaleRevisionConflictDetailsIncludeModifiedNodes(t *testing.T) {
 		"canvasId":         h.canvasID,
 		"nodeId":           "n2",
 		"expectedRevision": staleRev,
-		"patch":            map[string]any{"title": "过期写入"},
+		"patch":            map[string]any{"title": "Expired write"},
 	})
 	got := opErr(t, err)
 	if got.Code != operations.CodeConflict || got.Reason != "stale_revision" {

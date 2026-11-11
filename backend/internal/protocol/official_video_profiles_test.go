@@ -111,7 +111,7 @@ func TestOfficialRunwayVideoKeepsFirstFrameForFirstOnlyModels(t *testing.T) {
 		Images: []MediaReference{{URL: "https://cdn.example/first.png", Role: "first_frame", Order: 1}},
 	}})
 	if err != nil {
-		t.Fatalf("gen4.5 的首帧必须照常发送: %v", err)
+		t.Fatalf("The first frame of gen4.5 must be sent as usual: %v", err)
 	}
 	frames, _ := manifestTestBody(t, firstOnly)["promptImage"].([]any)
 	if len(frames) != 1 {
@@ -138,7 +138,7 @@ func TestOfficialRunwayVideoKeepsLastFrameForModelsThatSupportIt(t *testing.T) {
 				},
 			}})
 			if err != nil {
-				t.Fatalf("%s 的双帧请求被本地校验挡住: %v", model, err)
+				t.Fatalf("The double frame request of %s is blocked by local verification: %v", model, err)
 			}
 			frames, _ := manifestTestBody(t, spec)["promptImage"].([]any)
 			if len(frames) != 2 {
@@ -169,7 +169,7 @@ func TestOfficialRunwayVideoRejectsLastFrameForFirstOnlyModels(t *testing.T) {
 				},
 			}})
 			if err == nil || !strings.Contains(err.Error(), "尾帧") {
-				t.Fatalf("%s 带尾帧必须在校验阶段报错，实际 error = %v", model, err)
+				t.Fatalf("%s frame with tail must report an error in the verification phase, actual error = %v", model, err)
 			}
 		})
 	}

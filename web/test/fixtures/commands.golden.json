@@ -1,18 +1,18 @@
 {
-  "$comment": "编辑器命令黄金文件：命令序列 → 期望状态快照。修改命令语义必须同步更新此夹具，防止注册表、AI 契约与 reducer 漂移。",
+  "$comment": "Editor Command Golden File: Command Sequence → Desired State Snapshot. Modifying command semantics must update this fixture synchronously to prevent the registry, AI contract and reducer from drifting.",
   "base": {
     "version": 2,
     "tracks": [
-      { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-      { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-      { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-      { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+      { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+      { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+      { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+      { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
     ],
     "clips": [
       { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
       { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
       { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-      { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+      { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
     ],
     "durationMs": 8000
   },
@@ -25,16 +25,16 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" },
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" },
           { "id": "clip-d", "kind": "video", "nodeId": "node-d", "trackId": "video-1", "startMs": 8000, "durationMs": 2000, "sourceStartMs": 0, "sourceDurationMs": 2000 }
         ],
         "durationMs": 10000
@@ -48,16 +48,16 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 2000, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 8000
       }
@@ -70,16 +70,16 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-2", "startMs": 3000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 6000
       }
@@ -92,16 +92,16 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 2000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 7000
       }
@@ -114,16 +114,16 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5500, "durationMs": 2000, "sourceStartMs": 3000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 7500
       }
@@ -136,17 +136,17 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 3000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-a:split:3000", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 3000, "durationMs": 2000, "sourceStartMs": 3000, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 8000
       }
@@ -159,15 +159,15 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 8000
       }
@@ -180,16 +180,16 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 0.5, "fadeInMs": 200, "fadeOutMs": 400 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" }
         ],
         "durationMs": 8000
       }
@@ -197,22 +197,22 @@
     {
       "name": "add-subtitle-clip",
       "commands": [
-        { "op": "addSubtitle", "payload": { "clip": { "id": "sub-2", "kind": "subtitle", "nodeId": "node-b", "trackId": "subtitle-1", "startMs": 5200, "durationMs": 1800, "subtitleEntryIndex": 1, "text": "副标题字幕" } } }
+        { "op": "addSubtitle", "payload": { "clip": { "id": "sub-2", "kind": "subtitle", "nodeId": "node-b", "trackId": "subtitle-1", "startMs": 5200, "durationMs": 1800, "subtitleEntryIndex": 1, "text": "subtitle subtitles" } } }
       ],
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
           { "id": "clip-b", "kind": "video", "nodeId": "node-b", "trackId": "video-1", "startMs": 5000, "durationMs": 3000, "sourceStartMs": 2000, "sourceDurationMs": 8000 },
           { "id": "clip-c", "kind": "audio", "nodeId": "node-audio", "trackId": "audio-1", "startMs": 1000, "durationMs": 4000, "sourceStartMs": 0, "sourceDurationMs": 4000, "volume": 0.8 },
-          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "你好，BeefTV" },
-          { "id": "sub-2", "kind": "subtitle", "nodeId": "node-b", "trackId": "subtitle-1", "startMs": 5200, "durationMs": 1800, "subtitleEntryIndex": 1, "text": "副标题字幕" }
+          { "id": "sub-1", "kind": "subtitle", "nodeId": "node-a", "trackId": "subtitle-1", "startMs": 500, "durationMs": 2000, "subtitleEntryIndex": 0, "text": "Hello BeefTV" },
+          { "id": "sub-2", "kind": "subtitle", "nodeId": "node-b", "trackId": "subtitle-1", "startMs": 5200, "durationMs": 1800, "subtitleEntryIndex": 1, "text": "subtitle subtitles" }
         ],
         "durationMs": 8000
       }
@@ -225,10 +225,10 @@
       "expected": {
         "version": 2,
         "tracks": [
-          { "id": "video-1", "kind": "video", "label": "视频 1", "order": 0 },
-          { "id": "audio-1", "kind": "audio", "label": "音频 1", "order": 1 },
-          { "id": "subtitle-1", "kind": "subtitle", "label": "字幕 1", "order": 2 },
-          { "id": "video-2", "kind": "video", "label": "视频 2", "order": 3 }
+          { "id": "video-1", "kind": "video", "label": "Video 1", "order": 0 },
+          { "id": "audio-1", "kind": "audio", "label": "Audio 1", "order": 1 },
+          { "id": "subtitle-1", "kind": "subtitle", "label": "subtitles 1", "order": 2 },
+          { "id": "video-2", "kind": "video", "label": "Video 2", "order": 3 }
         ],
         "clips": [
           { "id": "clip-a", "kind": "video", "nodeId": "node-a", "trackId": "video-1", "startMs": 0, "durationMs": 5000, "sourceStartMs": 0, "sourceDurationMs": 10000, "volume": 1, "fadeInMs": 0, "fadeOutMs": 0 },
@@ -241,22 +241,22 @@
     {
       "name": "rebuild-subtitle-clips-replaces-stale-snapshots",
       "commands": [
-        { "op": "rebuildSubtitleClips", "payload": { "nodeId": "node-a", "entries": [ { "index": 0, "startMs": 500, "endMs": 2500, "text": "你好，BeefTV" }, { "index": 1, "startMs": 3000, "endMs": 4200, "text": "第二句字幕" } ] } }
+        { "op": "rebuildSubtitleClips", "payload": { "nodeId": "node-a", "entries": [ { "index": 0, "startMs": 500, "endMs": 2500, "text": "Hello BeefTV" }, { "index": 1, "startMs": 3000, "endMs": 4200, "text": "Second sentence subtitles" } ] } }
       ],
       "expected": {
         "version": 2,
         "tracks": [
-          {"id": "video-1","kind": "video","label": "视频 1","order": 0},
-          {"id": "audio-1","kind": "audio","label": "音频 1","order": 1},
-          {"id": "subtitle-1","kind": "subtitle","label": "字幕 1","order": 2},
-          {"id": "video-2","kind": "video","label": "视频 2","order": 3}
+          {"id": "video-1","kind": "video","label": "Video 1","order": 0},
+          {"id": "audio-1","kind": "audio","label": "Audio 1","order": 1},
+          {"id": "subtitle-1","kind": "subtitle","label": "subtitles 1","order": 2},
+          {"id": "video-2","kind": "video","label": "Video 2","order": 3}
         ],
         "clips": [
           {"id": "clip-a","kind": "video","nodeId": "node-a","trackId": "video-1","startMs": 0,"durationMs": 5000,"sourceStartMs": 0,"sourceDurationMs": 10000,"volume": 1,"fadeInMs": 0,"fadeOutMs": 0},
           {"id": "clip-b","kind": "video","nodeId": "node-b","trackId": "video-1","startMs": 5000,"durationMs": 3000,"sourceStartMs": 2000,"sourceDurationMs": 8000},
           {"id": "clip-c","kind": "audio","nodeId": "node-audio","trackId": "audio-1","startMs": 1000,"durationMs": 4000,"sourceStartMs": 0,"sourceDurationMs": 4000,"volume": 0.8},
-          {"id": "node-a:subtitle:0","kind": "subtitle","nodeId": "node-a","trackId": "subtitle-1","startMs": 500,"durationMs": 2000,"subtitleEntryIndex": 0,"text": "你好，BeefTV"},
-          {"id": "node-a:subtitle:1","kind": "subtitle","nodeId": "node-a","trackId": "subtitle-1","startMs": 3000,"durationMs": 1200,"subtitleEntryIndex": 1,"text": "第二句字幕"}
+          {"id": "node-a:subtitle:0","kind": "subtitle","nodeId": "node-a","trackId": "subtitle-1","startMs": 500,"durationMs": 2000,"subtitleEntryIndex": 0,"text": "Hello BeefTV"},
+          {"id": "node-a:subtitle:1","kind": "subtitle","nodeId": "node-a","trackId": "subtitle-1","startMs": 3000,"durationMs": 1200,"subtitleEntryIndex": 1,"text": "Second sentence subtitles"}
         ],
         "durationMs": 8000
       }

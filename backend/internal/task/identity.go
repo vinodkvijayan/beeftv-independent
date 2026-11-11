@@ -54,7 +54,7 @@ func ClientOperationID(input map[string]any) (string, error) {
 	}
 	value, ok := raw.(string)
 	if !ok {
-		return "", kernel.BadAuthRequest("clientOperationId 必须是字符串")
+		return "", kernel.BadAuthRequest("clientOperationId must be a string")
 	}
 	value = strings.TrimSpace(value)
 	if value == "" {
@@ -63,7 +63,7 @@ func ClientOperationID(input map[string]any) (string, error) {
 	if len(value) < 8 || len(value) > 128 || strings.ContainsFunc(value, func(r rune) bool {
 		return !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == ':' || r == '_' || r == '-')
 	}) {
-		return "", kernel.BadAuthRequest("clientOperationId 格式无效")
+		return "", kernel.BadAuthRequest("clientOperationId format is invalid")
 	}
 	return value, nil
 }
@@ -74,7 +74,7 @@ func ClientOperationHash(req CreateRequest) (string, error) {
 	req.ProjectID = strings.TrimSpace(req.ProjectID)
 	encoded, err := json.Marshal(req)
 	if err != nil {
-		return "", kernel.BadAuthRequest("任务输入格式无效")
+		return "", kernel.BadAuthRequest("Invalid task input format")
 	}
 	return fmt.Sprintf("%x", sha256.Sum256(encoded)), nil
 }
@@ -85,11 +85,11 @@ func NormalizeInput(input map[string]any) (map[string]any, error) {
 	}
 	encoded, err := json.Marshal(input)
 	if err != nil {
-		return nil, kernel.BadAuthRequest("任务输入格式无效")
+		return nil, kernel.BadAuthRequest("Invalid task input format")
 	}
 	var normalized map[string]any
 	if err := json.Unmarshal(encoded, &normalized); err != nil {
-		return nil, kernel.BadAuthRequest("任务输入格式无效")
+		return nil, kernel.BadAuthRequest("Invalid task input format")
 	}
 	if snapshot, ok := normalized["canvasSnapshot"]; ok {
 		normalized["canvasSnapshot"] = compactPersistedValue(snapshot)
@@ -108,7 +108,7 @@ func ValidateType(taskType string) error {
 	if taskType == "" {
 		return errors.New("task type is required")
 	}
-	return fmt.Errorf("不支持的任务类型：%s", taskType)
+	return fmt.Errorf("Unsupported task type: %s", taskType)
 }
 
 func ValidateLocalExecutorType(taskType string) error {
@@ -153,21 +153,21 @@ func (s *Service) validateRetryType(userID, taskType string, input map[string]an
 	}
 	value, ok := raw.(string)
 	if !ok {
-		return kernel.BadAuthRequest("retryOf 必须是字符串")
+		return kernel.BadAuthRequest("retryOf must be a string")
 	}
 	retryOf := strings.TrimSpace(value)
 	if retryOf == "" {
 		return nil
 	}
 	if s.store == nil {
-		return kernel.BadAuthRequest("找不到原始重试任务")
+		return kernel.BadAuthRequest("Original retry task not found")
 	}
 	parent, err := s.store.TaskForUser(userID, retryOf)
 	if err != nil {
-		return kernel.BadAuthRequest("找不到原始重试任务")
+		return kernel.BadAuthRequest("Original retry task not found")
 	}
 	if parent.Type != taskType {
-		return kernel.BadAuthRequest(fmt.Sprintf("重试任务类型不一致：原任务为 %s，新任务为 %s", parent.Type, taskType))
+		return kernel.BadAuthRequest(fmt.Sprintf("The retry task type is inconsistent: the original task is %s and the new task is %s", parent.Type, taskType))
 	}
 	if s.deps.Images == nil {
 		return unavailable()

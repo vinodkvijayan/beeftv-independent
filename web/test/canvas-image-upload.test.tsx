@@ -13,9 +13,9 @@ const file = { name: "photo.png", size: 1234, type: "image/png" };
 const placeholder = () => createImageUploadPlaceholder("upload", file, { x: 100, y: 200 }, { width: 1920, height: 1080 });
 const read = (path: string) => readFileSync(resolve(import.meta.dir, "../src", path), "utf8");
 
-describe("图片上传占位", () => {
+describe("Image upload placeholder", () => {
     for (const [width, height] of [[1920, 1080], [900, 1600], [800, 800], [4000, 500]]) {
-        test(`按真实尺寸保持比例并围绕落点居中 ${width}x${height}`, () => {
+        test(`Maintain proportions to true size and center around drop point${width}x${height}`, () => {
             const node = createImageUploadPlaceholder("upload", file, { x: 100, y: 200 }, { width, height });
             expect(node.width / node.height).toBeCloseTo(width / height);
             expect(node.position.x + node.width / 2).toBe(100);
@@ -29,11 +29,11 @@ describe("图片上传占位", () => {
         });
     }
 
-    test("重新打开画布将中断上传转为可重试错误，不修改其他节点", () => {
+    test("Reopening the canvas will convert interrupted uploads into retryable errors without modifying other nodes.", () => {
         const node = placeholder();
         const interrupted = interruptFileUpload(node);
         expect(interrupted.metadata?.fileUpload).toBe("error");
-        expect(interrupted.metadata?.errorDetails).toContain("中断");
+        expect(interrupted.metadata?.errorDetails).toContain("interrupt");
         expect(interrupted.position).toEqual(node.position);
         expect(node.metadata?.fileUpload).toBe("uploading");
         expect(interruptFileUpload(interrupted)).toBe(interrupted);
@@ -41,7 +41,7 @@ describe("图片上传占位", () => {
         expect(interruptFileUpload(ready)).toBe(ready);
     });
 
-    test("图片解码成功和失败均释放临时 URL，不伪造尺寸", async () => {
+    test("The temporary URL is released when the image is decoded successfully or failed, and the size is not forged.", async () => {
         const originalImage = globalThis.Image;
         const create = URL.createObjectURL;
         const revoke = URL.revokeObjectURL;
@@ -69,20 +69,20 @@ describe("图片上传占位", () => {
     });
 
     for (const mode of ["light", "dark"] as const) {
-        test(`${mode}主题包含可访问的上传状态、减弱动效和失败重试`, () => {
+        test(`${mode}Theme includes accessible upload status, fade animations, and failure retries`, () => {
             const html = renderToStaticMarkup(<CanvasFileUploadContent node={placeholder()} theme={canvasThemes[mode]} reduceMotion />);
-            expect(html).toContain("正在上传图片");
+            expect(html).toContain("Uploading pictures");
             expect(html).toContain('aria-busy="true"');
             expect(html).toContain('data-static="true"');
             expect(html).toContain(canvasThemes[mode].node.fill);
             const error = renderToStaticMarkup(<CanvasNodeActionContext.Provider value={{ upload: () => {} }}><CanvasFileUploadContent node={interruptFileUpload(placeholder())} theme={canvasThemes[mode]} /></CanvasNodeActionContext.Provider>);
-            expect(error).toContain("重新选择文件");
+            expect(error).toContain("Reselect file");
             expect(error).toContain('aria-busy="false"');
             expect(error).toContain('data-static="true"');
         });
     }
 
-    test("上传先占位再传输，完成替换同一节点，弹窗不等待传输完成", () => {
+    test("Uploading first occupies the space before transmitting, and the same node is replaced after completion. The pop-up window does not wait for the transmission to complete.", () => {
         const hook = read("pages/canvas/use-canvas-upload.ts");
         const create = hook.slice(hook.indexOf("const createFileNode"), hook.indexOf("const createImageAssetNode"));
         expect(create.indexOf("createFileUploadPlaceholder")).toBeLessThan(create.indexOf("await uploadImage(file,"));
@@ -96,7 +96,7 @@ describe("图片上传占位", () => {
     });
 });
 
-test("真实进度与遮罩浓度反向关联，不生成未知进度", () => {
+test("The real progress is inversely related to the mask concentration, and unknown progress is not generated.", () => {
     expect(uploadPercent(20, 100)).toBe(20);
     expect(uploadPercent(150, 100)).toBe(100);
     expect(uploadPercent(0, 0)).toBeUndefined();
@@ -106,7 +106,7 @@ test("真实进度与遮罩浓度反向关联，不生成未知进度", () => {
     expect(uploadVeilOpacity(100)).toBeCloseTo(0.1);
 });
 
-test("统一识别图片、视频、音频、纯文本文件，不误收 PDF 或 Word", () => {
+test("Unified recognition of images, videos, audios, and plain text files without accidentally receiving PDF or Word files", () => {
     for (const [name, type, expected] of [
         ["image.png", "image/png", CanvasNodeType.Image], ["video.mp4", "video/mp4", CanvasNodeType.Video],
         ["sound.ogg", "audio/ogg", CanvasNodeType.Audio], ["sound.wav", "", CanvasNodeType.Audio],
@@ -115,7 +115,7 @@ test("统一识别图片、视频、音频、纯文本文件，不误收 PDF 或
     ] as const) expect(uploadNodeType({ name, type })).toBe(expected);
 });
 
-test("音频与文本在传输前就有独立占位，可重试且不带模型生成状态", async () => {
+test("Audio and text have independent places before transmission, can be retried and do not have model generation status.", async () => {
     for (const [name, type, expected] of [["voice.mp3", "audio/mpeg", CanvasNodeType.Audio], ["note.md", "text/markdown", CanvasNodeType.Text]] as const) {
         const node = await createFileUploadPlaceholder("file", new File(["content"], name, { type }), { x: 0, y: 0 });
         expect(node.type).toBe(expected);
@@ -126,7 +126,7 @@ test("音频与文本在传输前就有独立占位，可重试且不带模型�
     }
 });
 
-test("H.265 视频不需要浏览器解码即可创建上传节点，空 MIME 的 MOV 也可导入", async () => {
+test("H.265 videos do not require browser decoding to create upload nodes, and empty MIME MOVs can also be imported.", async () => {
     for (const [name, type] of [["hevc.mp4", "video/mp4"], ["hevc.mov", ""], ["hevc.mkv", "application/octet-stream"]]) {
         const node = await createFileUploadPlaceholder("hevc", new File(["undecodable video"], name, { type }), { x: 100, y: 200 });
         expect(node.type).toBe(CanvasNodeType.Video);
@@ -137,15 +137,15 @@ test("H.265 视频不需要浏览器解码即可创建上传节点，空 MIME �
     }
 });
 
-test("所有资源渲染真实百分比，100% 仍等待保存，磨砂渐淡但文案不淡出", () => {
+test("All resources are rendered at a true percentage, 100% is still waiting to be saved, the matte color fades but the copy does not fade out.", () => {
     for (const type of [CanvasNodeType.Image, CanvasNodeType.Video, CanvasNodeType.Audio, CanvasNodeType.Text]) {
         const node = { ...placeholder(), type, metadata: { fileUpload: "uploading" as const, fileUploadProgress: 50 } };
         const html = renderToStaticMarkup(<CanvasFileUploadContent node={node} theme={canvasThemes.light} />);
-        expect(html).toContain("已上传 50%");
+        expect(html).toContain("50% uploaded");
         expect(html).toContain('opacity:0.55');
         expect(html).toContain('aria-valuenow="50"');
         const complete = renderToStaticMarkup(<CanvasFileUploadContent node={{ ...node, metadata: { ...node.metadata, fileUploadProgress: 100 } }} theme={canvasThemes.dark} />);
-        expect(complete).toContain("文件已传输，正在保存与处理");
+        expect(complete).toContain("The file has been transferred and is being saved and processed");
         expect(complete).toContain('aria-busy="true"');
     }
 });

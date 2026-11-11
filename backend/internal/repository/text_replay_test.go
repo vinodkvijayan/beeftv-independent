@@ -20,8 +20,8 @@ func TestTextReplayLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	task := model.Task{
-		ID: "replay-1", UserID: "user-1", Type: "text", Prompt: "写一段剧本",
-		Status: model.TaskStatusTextReplay, Stage: "文本持久化（前端自管）",
+		ID: "replay-1", UserID: "user-1", Type: "text", Prompt: "write a script",
+		Status: model.TaskStatusTextReplay, Stage: "Text persistence (front-end self-managed)",
 	}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatal(err)
@@ -32,11 +32,11 @@ func TestTextReplayLifecycle(t *testing.T) {
 	limits := TextReplayLimits{MaxTaskBytes: 1 << 20, MaxUserBytes: 1 << 20, MaxTaskEvents: 100}
 
 	// text_replay 状态应允许写入增量（未结束）
-	if _, err := repo.AppendTaskTextDelta("user-1", "replay-1", "第一段内容", now.Add(time.Hour), limits); err != nil {
-		t.Fatalf("text_replay 任务写入增量失败: %v", err)
+	if _, err := repo.AppendTaskTextDelta("user-1", "replay-1", "First paragraph content", now.Add(time.Hour), limits); err != nil {
+		t.Fatalf("text_replay task failed to write increment: %v", err)
 	}
-	if _, err := repo.AppendTaskTextDelta("user-1", "replay-1", "第二段内容", now.Add(time.Hour), limits); err != nil {
-		t.Fatalf("text_replay 任务写入增量失败: %v", err)
+	if _, err := repo.AppendTaskTextDelta("user-1", "replay-1", "Second paragraph content", now.Add(time.Hour), limits); err != nil {
+		t.Fatalf("text_replay task failed to write increment: %v", err)
 	}
 
 	// 完成：写入最终正文并置为 succeeded
@@ -63,7 +63,7 @@ func TestTextReplayLifecycle(t *testing.T) {
 	}
 
 	// 已完成的 text_replay 任务不能再写入增量（进入 closed）
-	if _, err := repo.AppendTaskTextDelta("user-1", "replay-1", "追加", now.Add(time.Hour), limits); err == nil {
+	if _, err := repo.AppendTaskTextDelta("user-1", "replay-1", "Append", now.Add(time.Hour), limits); err == nil {
 		t.Fatal("expected ErrTextReplayClosed after completion")
 	}
 

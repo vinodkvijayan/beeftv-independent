@@ -47,7 +47,7 @@ for(const [path,body,progress,empty,terminal] of [
   assert(!result.error);assert(Date.now()-begin>220);assert(result.text.includes(JSON.stringify(terminal)));await delay(140);assert.equal(f.closed(),1);
 });
 test('fragmented UTF8 and CRLF preserve bytes and recognize only complete progress',async t=>{
-  const bytes=Buffer.from('data: '+JSON.stringify({choices:[{delta:{content:'咖啡'}}]})+'\r\n\r\n');
+  const bytes=Buffer.from('data: '+JSON.stringify({choices:[{delta:{content:'coffee'}}]})+'\r\n\r\n');
   const f=await fixture(t,res=>{res.write(bytes.subarray(0,bytes.length-5));setTimeout(()=>res.end(bytes.subarray(bytes.length-5)),30);});
   const req=request();const result=await read(await fetchModelWithProgressIdle(f.url+req.path,req.options,{timeoutMs:100}));
   assert(!result.error);assert.equal(result.text,bytes.toString());

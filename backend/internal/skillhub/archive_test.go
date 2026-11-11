@@ -56,7 +56,7 @@ func TestVerifyArchiveRejectsUnlistedPathsAndDigestChanges(t *testing.T) {
 }
 
 func TestVerifyArchiveAcceptsScriptsLargeFilesAndExecutablesWhileRejectingSecretsAndUnsafeEntries(t *testing.T) {
-	desc := strings.Repeat("述", MaxDescriptionRunes)
+	desc := strings.Repeat("describe", MaxDescriptionRunes)
 	largeFile := bytes.Repeat([]byte("a"), 3<<20)
 	files := map[string][]byte{
 		"SKILL.md":          []byte("---\nname: example\ndescription: " + desc + "\n---\nRun the attached file.\n"),
@@ -128,17 +128,17 @@ func TestVerifyArchiveAcceptsScriptsLargeFilesAndExecutablesWhileRejectingSecret
 		t.Fatal("oversized total accepted")
 	}
 
-	tooLongDesc := strings.Repeat("述", MaxDescriptionRunes+1)
+	tooLongDesc := strings.Repeat("describe", MaxDescriptionRunes+1)
 	if _, err := SkillName([]byte("---\nname: example\ndescription: " + tooLongDesc + "\n---\nBody\n")); err == nil {
 		t.Fatal("description over 1024 runes accepted")
 	}
-	if got, err := SkillName([]byte("---\nname: " + strings.Repeat("名", MaxNameRunes) + "\ndescription: 中文技能\n---\n正文\n")); err != nil || len([]rune(got)) != MaxNameRunes {
+	if got, err := SkillName([]byte("---\nname: " + strings.Repeat("name", MaxNameRunes) + "description: Chinese skills\n---\nText")); err != nil || len([]rune(got)) != MaxNameRunes {
 		t.Fatalf("80-rune Chinese name rejected: %q %v", got, err)
 	}
-	if _, err := SkillName([]byte("---\nname: " + strings.Repeat("名", MaxNameRunes+1) + "\ndescription: 中文技能\n---\n正文\n")); err == nil {
+	if _, err := SkillName([]byte("---\nname: " + strings.Repeat("name", MaxNameRunes+1) + "description: Chinese skills\n---\nText")); err == nil {
 		t.Fatal("name over 80 runes accepted")
 	}
-	if got, err := SkillName([]byte("# 小说转分镜\n\n把小说段落拆成可拍摄的镜头。\n")); err != nil || got != "小说转分镜" {
+	if got, err := SkillName([]byte("# Novel to Storyboard\n\nBreak down novel passages into filmable shots.")); err != nil || got != "Novel to storyboard" {
 		t.Fatalf("title/paragraph fallback failed: %q %v", got, err)
 	}
 	foldedMD := []byte("---\nname: folded-skill\ndescription: >\n  First line of description\n  second line of description.\n---\n# Folded Skill\n")
@@ -152,8 +152,8 @@ func TestVerifyArchiveAcceptsScriptsLargeFilesAndExecutablesWhileRejectingSecret
 	if meta := ParseSkillMarkdown(literalMD); meta.Description != "Line one\nLine two" {
 		t.Fatalf("literal YAML description = %q", meta.Description)
 	}
-	longBodyMD := []byte("# 长段落技能\n\n" + strings.Repeat("段", MaxDescriptionRunes+50) + "\n")
-	if got, err := SkillName(longBodyMD); err != nil || got != "长段落技能" {
+	longBodyMD := []byte("# Long paragraph skills" + strings.Repeat("clips", MaxDescriptionRunes+50) + "\n")
+	if got, err := SkillName(longBodyMD); err != nil || got != "long paragraph skills" {
 		t.Fatalf("expected long body paragraph fallback to be truncated and accepted by SkillName: %q %v", got, err)
 	}
 }

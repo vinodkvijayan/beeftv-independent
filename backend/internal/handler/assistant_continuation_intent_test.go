@@ -143,7 +143,7 @@ func TestAssistantNewIntentStopsRunningContinuationBeforeAdmission(t *testing.T)
 					}
 				}
 				message := <-messages
-				if action == "chat" && (message["message"] != "请改成新的结尾" || message["requestId"] != "new-user-request" || message["turnId"] == row.TurnID) {
+				if action == "chat" && (message["message"] != "Please change to a new ending" || message["requestId"] != "new-user-request" || message["turnId"] == row.TurnID) {
 					t.Fatalf("lost or replaced user input: %+v", message)
 				}
 				var stored model.AssistantContinuation

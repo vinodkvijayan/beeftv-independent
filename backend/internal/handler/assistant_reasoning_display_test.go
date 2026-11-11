@@ -38,40 +38,40 @@ func TestAssistantChatForwardsReasoningSnapshotsAndTerminalReasoning(t *testing.
 				_, _ = w.Write([]byte(`{"type":"reasoning_snapshot","segments":` + segments + "}\n"))
 			}
 			_, _ = w.Write([]byte(`{"type":"text_snapshot","text":"已经确认顺序。"}` + "\n"))
-			line, _ := json.Marshal(map[string]any{"type": "turn_end", "turnId": captured.TurnID, "reply": "已经确认顺序。",
+			line, _ := json.Marshal(map[string]any{"type": "turn_end", "turnId": captured.TurnID, "reply": "The order has been confirmed.",
 				"toolCalls": []any{}, "proposals": []any{}, "change": nil,
-				"reasoning": []any{map[string]any{"id": "reasoning:0", "text": "先看画布，再确认顺序。", "status": "done"}}})
+				"reasoning": []any{map[string]any{"id": "reasoning:0", "text": "Look at the canvas first and then confirm the order.", "status": "done"}}})
 			_, _ = w.Write(append(line, '\n'))
 		})
 	})
 	useEnvProvider(t, "chat-completion")
 
 	recorder := env.call(t, http.MethodPost, "/assistant/chat",
-		`{"canvasId":"`+env.canvasID+`","message":"先想再答","selectedNodeIds":[]}`)
+		`{"canvasId":"`+env.canvasID+`","message":"Think first before answering","selectedNodeIds":[]}`)
 	if recorder.Code != http.StatusOK {
-		t.Fatalf("对话应成功: %d %s", recorder.Code, recorder.Body.String())
+		t.Fatalf("The conversation should succeed: %d %s", recorder.Code, recorder.Body.String())
 	}
 	body := recorder.Body.String()
 	// 每个思考增量逐行到达，客户端据此边到边显示。
 	if strings.Count(body, `"type":"reasoning_snapshot"`) != 2 {
-		t.Fatalf("思考快照必须逐行原样转发: %s", body)
+		t.Fatalf("Thinking snapshots must be forwarded line by line as is: %s", body)
 	}
-	if !strings.Contains(body, `"text":"先看画布，再确认顺序。"`) {
-		t.Fatalf("思考增量内容不能丢: %s", body)
+	if !strings.Contains(body, `"text":"Look at the canvas first, and then confirm the order."`) {
+		t.Fatalf("Think about incremental content and don’t lose it: %s", body)
 	}
 	// turn_end 由后端重新编码（它要校验回合归属），新字段必须活下来。
 	lines := strings.Split(strings.TrimSpace(body), "\n")
 	var end map[string]any
 	if err := json.Unmarshal([]byte(lines[len(lines)-1]), &end); err != nil {
-		t.Fatalf("终态行不是合法 JSON: %v %s", err, lines[len(lines)-1])
+		t.Fatalf("The final state line is not a valid JSON: %v %s", err, lines[len(lines)-1])
 	}
 	reasoning, _ := end["reasoning"].([]any)
 	if len(reasoning) != 1 {
-		t.Fatalf("终态必须带上这一轮的思考: %v", end)
+		t.Fatalf("The final state must bring this round of thinking: %v", end)
 	}
 	segment, _ := reasoning[0].(map[string]any)
-	if segment["text"] != "先看画布，再确认顺序。" || segment["status"] != "done" {
-		t.Fatalf("终态思考片段形状不对: %v", segment)
+	if segment["text"] != "Look at the canvas first and then confirm the order." || segment["status"] != "done" {
+		t.Fatalf("The final state thinking fragment has the wrong shape: %v", segment)
 	}
 }
 
@@ -89,11 +89,11 @@ func TestAssistantHistoryKeepsReasoningWhileRewritingHostOwnedFields(t *testing.
 			}
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"sessionId": "durable:00000000-0000-0000-0000-000000000001",
-				"turns": []any{map[string]any{"turnId": "settled-turn", "reply": "已经确认顺序。",
+				"turns": []any{map[string]any{"turnId": "settled-turn", "reply": "The order has been confirmed.",
 					"outputs":   []any{map[string]any{"taskId": "host-forged-task"}},
-					"reasoning": []any{map[string]any{"id": "reasoning:0", "text": "先看画布，再确认顺序。", "status": "done"}}}},
-				"active": map[string]any{"turnId": "running-turn", "status": "running", "streamed": "第一段正文。",
-					"reasoning": []any{map[string]any{"id": "live-1:0", "text": "还在想。", "status": "streaming"}}},
+					"reasoning": []any{map[string]any{"id": "reasoning:0", "text": "Look at the canvas first and then confirm the order.", "status": "done"}}}},
+				"active": map[string]any{"turnId": "running-turn", "status": "running", "streamed": "The first text paragraph.",
+					"reasoning": []any{map[string]any{"id": "live-1:0", "text": "Still thinking.", "status": "streaming"}}},
 			})
 		})
 	})
@@ -102,12 +102,12 @@ func TestAssistantHistoryKeepsReasoningWhileRewritingHostOwnedFields(t *testing.
 	payload := decodeEnvelope(t, env.call(t, http.MethodGet, "/assistant/history?canvasId="+env.canvasID, ""))
 	turns, _ := payload["turns"].([]any)
 	if len(turns) != 1 {
-		t.Fatalf("应返回一条历史回合: %v", payload)
+		t.Fatalf("A historical round should be returned: %v", payload)
 	}
 	turn, _ := turns[0].(map[string]any)
 	reasoning, _ := turn["reasoning"].([]any)
 	if len(reasoning) != 1 {
-		t.Fatalf("历史回合必须保留思考: %v", turn)
+		t.Fatalf("Historical rounds must be kept in mind: %v", turn)
 	}
 	// 后端仍然覆盖它自己负责的字段：宿主伪造的回执不能被页面当成真实产物。
 	encoded, err := json.Marshal(payload)
@@ -115,14 +115,14 @@ func TestAssistantHistoryKeepsReasoningWhileRewritingHostOwnedFields(t *testing.
 		t.Fatal(err)
 	}
 	if strings.Contains(string(encoded), "host-forged-task") {
-		t.Fatalf("宿主伪造的 outputs 必须被后端覆盖: %s", encoded)
+		t.Fatalf("Host forged outputs must be overridden by the backend: %s", encoded)
 	}
 	active, _ := payload["active"].(map[string]any)
-	if active["streamed"] != "第一段正文。" {
-		t.Fatalf("活动回合的正文进度必须保留: %v", active)
+	if active["streamed"] != "The first text paragraph." {
+		t.Fatalf("The text progress of the event round must be retained: %v", active)
 	}
 	activeReasoning, _ := active["reasoning"].([]any)
 	if len(activeReasoning) != 1 {
-		t.Fatalf("活动回合必须保留正在生成的思考: %v", active)
+		t.Fatalf("The active round must retain the thinking being generated: %v", active)
 	}
 }

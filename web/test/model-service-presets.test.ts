@@ -37,13 +37,13 @@ test("persisted boolean video options are normalized without turning false back 
 
 test("catalog endpoint metadata classifies opaque video names and selects only installed provider contracts", () => {
     const channel = createModelChannel({ baseUrl: "https://video.example.com/v1" });
-    const item = { id: "原生不卡人脸-全参2.5", supportedEndpointTypes: ["full-video"] };
+    const item = { id: "Native face recognition without blocking - full reference 2.5", supportedEndpointTypes: ["full-video"] };
     expect(serviceModelProfile(channel, item, protocols).protocol).toBeUndefined();
     const installed = [...protocols, { value: "full-video", capability: "video", enabled: true } as ModelProtocolDefinition];
     const profile = serviceModelProfile(channel, item, installed);
     expect(profile.capability).toBe("video");
     expect(profile.protocol).toBe("full-video");
-    for (const id of ["sd-native-full-2.0", "sd-native-full-2.5", "原生不卡人脸-全参2.0", "原生不卡人脸-全参2.5"]) {
+    for (const id of ["sd-native-full-2.0", "sd-native-full-2.5", "Native face recognition-Full Reference 2.0", "Native face recognition without blocking - full reference 2.5"]) {
         expect(serviceModelProfile(channel, { id }, installed)).toMatchObject({ capability: "video", protocol: undefined });
     }
     expect(serviceModelProfile({ ...channel, baseUrl: "https://other.example" }, { id: "sd-native-full-2.5" }, installed).protocol).not.toBe("full-video");
@@ -120,8 +120,8 @@ test("a plugin service becomes one provider choice whose listed models use the p
     expect(channel).toMatchObject({ id: "comfy", name: "ComfyUI", baseUrl: "http://127.0.0.1:8188", interfaceType: "comfyui-app" });
     // 本机 ComfyUI 不要密钥：还没选模型时也能直接读取模型。
     expect(serviceConnectionError(channel, { protocols: [comfy] })).toBe("");
-    expect(serviceCredentialGuide(channel, [comfy]).apiKeyHelp).toBe("这个服务不用密钥，可以留空。");
-    expect(serviceConnectionError(createPluginServiceChannel({ ...comfy, authType: "bearer" }, "keyed"), { protocols: [{ ...comfy, authType: "bearer" }] })).toBe("请填写 API Key");
+    expect(serviceCredentialGuide(channel, [comfy]).apiKeyHelp).toBe("This service does not require a key and can be left blank.");
+    expect(serviceConnectionError(createPluginServiceChannel({ ...comfy, authType: "bearer" }, "keyed"), { protocols: [{ ...comfy, authType: "bearer" }] })).toBe("Please fill in API Key");
 
     expect(serviceModelProfile(channel, { id: "portrait.app.json", modelType: "image" }, [...protocols, comfy])).toMatchObject({ capability: "image", protocol: "comfyui-app" });
 });
@@ -161,11 +161,11 @@ test("API key is optional only when every selected protocol auth is none", () =>
     expect(serviceConnectionError(channel, { protocols: [ollama] })).toBe("");
     expect(serviceConnectionError(channel, { protocols: [bearer] })).not.toBe("");
     expect(serviceConnectionError({ ...channel, apiKey: "" }, { requireCredential: false })).toBe("");
-    expect(serviceConnectionError(createModelChannel({ baseUrl: "https://api.example.com/v1", apiKey: "" }))).toBe("请填写 API Key");
+    expect(serviceConnectionError(createModelChannel({ baseUrl: "https://api.example.com/v1", apiKey: "" }))).toBe("Please fill in API Key");
     expect(serviceConnectionError(createModelChannel({ baseUrl: "https://api.example.com/v1", apiKey: "" }), { requireCredential: false })).toBe("");
     const mixed = createModelChannel({ baseUrl: "http://127.0.0.1:11434", apiKey: "", models: ["llama3", "gpt"], modelProfiles: [{ model: "llama3", capability: "text", protocol: "ollama-chat", authType: "none" }, { model: "gpt", capability: "text", protocol: "chat-completion" }] });
-    expect(serviceConnectionError(mixed, { protocols: [ollama, ...protocols] })).toBe("请填写 API Key");
-    expect(modelConfigChannelStatusLabel(channel, { status: "saved", revision: 1, dirty: false, error: "" })).toBe("已保存 · 尚未测试");
+    expect(serviceConnectionError(mixed, { protocols: [ollama, ...protocols] })).toBe("Please fill in API Key");
+    expect(modelConfigChannelStatusLabel(channel, { status: "saved", revision: 1, dirty: false, error: "" })).toBe("Saved · Not tested yet");
 });
 
 test("explicit asset origin survives channel creation and generation request assembly", () => {
@@ -177,7 +177,7 @@ test("explicit asset origin survives channel creation and generation request ass
 
 test("saved credentials do not imply tested generation and browser cache omits all credential copies", () => {
     const channel = createModelChannel({ id: "manual", apiKey: "synthetic-key", secretKey: "synthetic-secret", headers: [{ name: "X-Key", value: "synthetic-header" }] });
-    expect(modelConfigChannelStatusLabel(channel, { status: "saved", revision: 1, dirty: false, error: "" })).toBe("已保存 · 尚未测试");
+    expect(modelConfigChannelStatusLabel(channel, { status: "saved", revision: 1, dirty: false, error: "" })).toBe("Saved · Not tested yet");
     const config = { ...defaultConfig, apiKey: "synthetic-root", channels: [channel] };
     expect(JSON.stringify(configWithoutCachedSecrets(config))).not.toContain("synthetic-");
     expect(config.channels[0].apiKey).toBe("synthetic-key");
@@ -201,8 +201,8 @@ test("generation test uses production config including headers and waits for a f
     await Promise.resolve();
     expect(done).toBe(false);
     resolve({ video: { storageKey: "resource:generated", dataUrl: "" } });
-    expect(await testResult).toContain("已完成视频生成");
-    expect(() => modelConnectionResultDetail({}, "video")).toThrow("没有返回可用结果");
+    expect(await testResult).toContain("Video generation completed");
+    expect(() => modelConnectionResultDetail({}, "video")).toThrow("No usable results returned");
     expect(() => modelConnectionResultDetail({ text: " " }, "text")).toThrow();
 });
 
@@ -222,13 +222,13 @@ test("official OpenAI and Gemini presets stop advertising discontinued video API
     const presets = new Map(MODEL_SERVICE_PRESETS.map((preset) => [preset.id, preset.subtitle]));
     for (const id of ["openai", "gemini"]) {
         const subtitle = presets.get(id as "openai" | "gemini") || "";
-        expect(subtitle).toContain("已停用");
+        expect(subtitle).toContain("Deactivated");
         expect(subtitle).not.toMatch(/·\s*(Veo\s*)?视频\s*$/);
     }
-    expect(presets.get("compatible")).toContain("中转");
-    expect(presets.get("ll2")).toContain("视频");
-    expect(presets.get("ysdui")).toContain("视频");
-    expect(presets.get("ark")).toContain("Seedance 视频");
+    expect(presets.get("compatible")).toContain("transit");
+    expect(presets.get("ll2")).toContain("video");
+    expect(presets.get("ysdui")).toContain("video");
+    expect(presets.get("ark")).toContain("Seedance Video");
 });
 
 test("Ysdui service preset resolves all 4 Ysdui protocols when plugin is enabled and fails closed when disabled", () => {
@@ -244,7 +244,7 @@ test("Ysdui service preset resolves all 4 Ysdui protocols when plugin is enabled
     const channel = createServicePresetChannel("ysdui", "ysdui-test", ysduiProtocols);
     const catalog = presetCatalogFor("ysdui");
     expect(servicePresetFor(channel)).toBe("ysdui");
-    expect(channel.name).toBe("银盛云枢壹算");
+    expect(channel.name).toBe("Yinsheng Yunshu One Calculation");
     expect(channel.baseUrl).toBe("https://tokenhub.ysdui.cn");
     expect(channel.models).toHaveLength(32);
     expect(catalog).toHaveLength(32);
@@ -487,11 +487,11 @@ test("legacy LL2 auto-hd profile upgrades expired testVideoUrl and removes unsup
 });
 
 test("a retired interface is not offered again but still names a saved choice", () => {
-    const item = { id: "old-video", version: "1.0.0", name: "旧视频接口", vendor: "Test", categories: ["video"], scopes: ["user.custom-channel"], enabled: true, retired: true, create: "POST /v1/old" };
+    const item = { id: "old-video", version: "1.0.0", name: "old video interface", vendor: "Test", categories: ["video"], scopes: ["user.custom-channel"], enabled: true, retired: true, create: "POST /v1/old" };
     const [definition] = toProviderDefinitions(item);
     expect(definition.enabled).toBe(false);
     expect(defaultProtocolForCapability("video", [definition])).not.toBe("old-video");
-    expect(modelProtocolDefinition("old-video", [definition])?.label).toBe("旧视频接口");
+    expect(modelProtocolDefinition("old-video", [definition])?.label).toBe("old video interface");
 });
 
 test("upgradeYsduiModelProfile preserves server-versioned capabilities and keeps user defaultResolution valid", async () => {

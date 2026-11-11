@@ -53,11 +53,11 @@ func RegisterCustomRelayRoutes(r *gin.RouterGroup, relays customRelays) {
 		ttl := time.Duration(policy.Request.CustomRelayTimeoutMinutes+1) * time.Minute
 		release, acquired, err := relays.AcquireCustomRelaySlot(c.Request.Context(), user.ID, policy.Request.CustomRelayConcurrency, ttl)
 		if err != nil {
-			fail(c, http.StatusServiceUnavailable, errors.New("自定义渠道并发协调服务不可用"))
+			fail(c, http.StatusServiceUnavailable, errors.New("Custom channel concurrency coordination service is unavailable"))
 			return
 		}
 		if !acquired {
-			fail(c, http.StatusTooManyRequests, errors.New("自定义渠道并发请求过多，请等待已有请求完成"))
+			fail(c, http.StatusTooManyRequests, errors.New("There are too many concurrent requests for custom channels, please wait for existing requests to be completed."))
 			return
 		}
 		defer release()
@@ -105,7 +105,7 @@ func proxyCustomRelayRequestWithService(c *gin.Context, policy app.RuntimeReques
 		}
 	}
 	if apiKey == "" {
-		fail(c, http.StatusUnauthorized, errors.New("自定义渠道 API Key 无效"))
+		fail(c, http.StatusUnauthorized, errors.New("Custom channel API Key is invalid"))
 		return
 	}
 	headers, err := app.DecodeRelayOutboundHeaders(c.GetHeader(app.CustomRelayHeadersHeader))
@@ -115,7 +115,7 @@ func proxyCustomRelayRequestWithService(c *gin.Context, policy app.RuntimeReques
 	}
 	requestLimit := policy.CustomRelayRequestMB << 20
 	if c.Request.ContentLength > requestLimit {
-		fail(c, http.StatusRequestEntityTooLarge, errors.New("自定义渠道请求超过配置上限"))
+		fail(c, http.StatusRequestEntityTooLarge, errors.New("Custom channel requests exceed configuration limit"))
 		return
 	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, requestLimit)
@@ -123,19 +123,19 @@ func proxyCustomRelayRequestWithService(c *gin.Context, policy app.RuntimeReques
 	if err != nil {
 		var maxBytesError *http.MaxBytesError
 		if errors.As(err, &maxBytesError) {
-			fail(c, http.StatusRequestEntityTooLarge, errors.New("自定义渠道请求超过配置上限"))
+			fail(c, http.StatusRequestEntityTooLarge, errors.New("Custom channel requests exceed configuration limit"))
 			return
 		}
-		fail(c, http.StatusBadRequest, errors.New("读取自定义渠道请求失败"))
+		fail(c, http.StatusBadRequest, errors.New("Read custom channel request failed"))
 		return
 	}
 	if c.Request.Method == http.MethodGet && len(body) != 0 {
-		fail(c, http.StatusBadRequest, errors.New("模型列表请求不允许携带请求体"))
+		fail(c, http.StatusBadRequest, errors.New("Model list requests are not allowed to carry request bodies"))
 		return
 	}
 	upstreamReq, err := http.NewRequestWithContext(c.Request.Context(), c.Request.Method, target.String(), bytes.NewReader(body))
 	if err != nil {
-		fail(c, http.StatusBadRequest, errors.New("构造自定义渠道请求失败"))
+		fail(c, http.StatusBadRequest, errors.New("Failed to construct custom channel request"))
 		return
 	}
 	if contentType := c.GetHeader("Content-Type"); contentType != "" {
@@ -159,7 +159,7 @@ func proxyCustomRelayRequestWithService(c *gin.Context, policy app.RuntimeReques
 
 	resp, err := customRelayClient(time.Duration(policy.CustomRelayTimeoutMinutes) * time.Minute).Do(upstreamReq)
 	if err != nil {
-		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("自定义渠道上游连接失败"))))
+		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("Custom channel upstream connection failed"))))
 		return
 	}
 	defer resp.Body.Close()
@@ -186,20 +186,20 @@ func writeCustomRelayResponse(c *gin.Context, relays customRelays, resp *http.Re
 	if allowBinary && (strings.HasPrefix(mediaType, "video/") || strings.HasPrefix(mediaType, "audio/") || mediaType == "application/octet-stream") {
 		body, err := readLimitedRelayBody(resp.Body, responseLimit)
 		if err != nil {
-			fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("自定义渠道上游返回了过大的媒体文件"))))
+			fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("Custom channel upstream returned media files that were too large"))))
 			return
 		}
 		c.Data(resp.StatusCode, mediaType, body)
 		return
 	}
 	if mediaType != "application/json" && !strings.HasSuffix(mediaType, "+json") {
-		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("自定义渠道上游返回了不支持的内容类型"))))
+		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("Custom channel upstream returned unsupported content type"))))
 		return
 	}
 	limit := responseLimit
 	body, err := readLimitedRelayBody(resp.Body, limit)
 	if err != nil || !json.Valid(body) {
-		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("自定义渠道上游返回无效或过大的 JSON"))))
+		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("Custom channel upstream returns invalid or too large JSON"))))
 		return
 	}
 	body = redactRelaySecret(body, apiKey)
@@ -209,7 +209,7 @@ func writeCustomRelayResponse(c *gin.Context, relays customRelays, resp *http.Re
 func writeCustomRelayError(c *gin.Context, relays customRelays, resp *http.Response, apiKey string, mediaType string) {
 	body, err := readLimitedRelayBody(resp.Body, maxCustomRelayErrorResponseBytes)
 	if err != nil {
-		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("自定义渠道上游请求失败"))))
+		fail(c, http.StatusBadGateway, errors.New(userFacingRelayError(relays, errors.New("Custom channel upstream request failed"))))
 		return
 	}
 	body = redactRelaySecret(body, apiKey)
@@ -287,7 +287,7 @@ func customRelayAPIKey(value string) (string, error) {
 	scheme, apiKey, found := strings.Cut(strings.TrimSpace(value), " ")
 	apiKey = strings.TrimSpace(apiKey)
 	if !found || !strings.EqualFold(scheme, "Bearer") || apiKey == "" || len(apiKey) > 512 || strings.ContainsAny(apiKey, "\r\n") {
-		return "", errors.New("自定义渠道 API Key 无效")
+		return "", errors.New("Custom channel API Key is invalid")
 	}
 	return apiKey, nil
 }

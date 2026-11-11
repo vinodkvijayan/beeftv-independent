@@ -4,10 +4,10 @@ import "testing"
 
 func TestReferenceTransportErrorsRemainActionable(t *testing.T) {
 	for _, raw := range []string{
-		"当前模型协议要求公网素材地址，本地工作区请改用支持内嵌素材的模型",
-		"当前 JSON 视频协议的参考素材不能使用内嵌数据，请先上传到本地资源目录",
-		"当前模型暂不支持参考视频，请移除此素材或选择支持该素材的模型",
-		"当前模型最多支持 1 个参考图片，请移除多余素材后重新生成",
+		"The current model protocol requires public network material addresses. Please use a model that supports embedded materials in the local workspace instead.",
+		"The reference material of the current JSON video protocol cannot use embedded data. Please upload it to the local resource directory first.",
+		"The current model does not support reference videos. Please remove this material or select a model that supports this material.",
+		"The current model supports up to 1 reference image. Please remove redundant materials and regenerate.",
 	} {
 		got := ClassifyText(raw)
 		if got.Category != CategoryInvalidParams || got.Action == "" {

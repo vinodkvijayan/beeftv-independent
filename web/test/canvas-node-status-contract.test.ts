@@ -10,9 +10,9 @@ test("canvas nodes expose a stable generation status for visual audits", () => {
     expect(nodeSource).toContain("data-task-id={data.metadata?.taskId || undefined}");
     expect(nodeSource).toContain("data-task-cancellable=");
     expect(contentSource).toContain("<CanvasNodeGenerationProgress");
-    expect(progressSource).toContain("生成中");
+    expect(progressSource).toContain("Generating");
     expect(nodeSource).toContain('aria-label={resultPending ? "结果待放入画布" : "生成失败"}');
-    expect(nodeSource).toContain('aria-label="生成完成"');
+    expect(nodeSource).toContain('aria-label="Generation completed"');
 });
 
 test("loading and error states keep user recovery actions available", () => {
@@ -20,5 +20,5 @@ test("loading and error states keep user recovery actions available", () => {
     expect(contentSource).toContain("onCancelTask={props.onCancelTask}");
     expect(progressSource).toContain("onOpenTaskDetails?.(node)");
     expect(progressSource).toContain("onCancelTask(node)");
-    expect(contentSource).toContain("重新生成");
+    expect(contentSource).toContain("Regenerate");
 });

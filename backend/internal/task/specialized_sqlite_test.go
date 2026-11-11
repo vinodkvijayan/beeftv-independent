@@ -209,13 +209,13 @@ func TestSQLiteClientOperationMismatchRejectsWithoutInsert(t *testing.T) {
 func TestSQLiteInactiveAndForeignProjectWriteZeroRows(t *testing.T) {
 	svc, db, _ := specializedSQLite(t, nil)
 	seedSQLiteUser(t, db, "owner", "prj-active", "res-1", "video/mp4")
-	if err := db.Create(&model.Project{ID: "prj-archived", UserID: "owner", Name: "旧项目", Status: model.ProjectStatusArchived}).Error; err != nil {
+	if err := db.Create(&model.Project{ID: "prj-archived", UserID: "owner", Name: "old project", Status: model.ProjectStatusArchived}).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.Project{ID: "prj-foreign", UserID: "other", Name: "别人的项目", Status: model.ProjectStatusActive}).Error; err != nil {
+	if err := db.Create(&model.Project{ID: "prj-foreign", UserID: "other", Name: "other people's projects", Status: model.ProjectStatusActive}).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.CanvasProject{ID: "canvas-foreign", UserID: "other", Title: "别人的画布", Revision: 1}).Error; err != nil {
+	if err := db.Create(&model.CanvasProject{ID: "canvas-foreign", UserID: "other", Title: "someone else's canvas", Revision: 1}).Error; err != nil {
 		t.Fatal(err)
 	}
 

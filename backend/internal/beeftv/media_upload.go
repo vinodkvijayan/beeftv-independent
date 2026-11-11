@@ -24,8 +24,8 @@ import (
 	"time"
 )
 
-var ErrUploadIncomplete = errors.New("参考素材未能确认，请重新提交")
-var ErrUploadRedirect = errors.New("参考素材上传不允许重定向")
+var ErrUploadIncomplete = errors.New("The reference material could not be confirmed, please resubmit.")
+var ErrUploadRedirect = errors.New("Reference material upload does not allow redirection")
 var uploadControlTimeout = 30 * time.Second
 var uploadCompleteTimeout = 90 * time.Second
 
@@ -160,21 +160,21 @@ func (c *MediaClient) validateUpload(ctx context.Context, s UploadSession, size 
 		return err
 	}
 	if s.Ticket == "" {
-		return errors.New("素材上传编号无效")
+		return errors.New("The material upload number is invalid")
 	}
 	if s.Multipart == nil {
 		if s.UploadMethod != "" && !strings.EqualFold(s.UploadMethod, http.MethodPut) {
-			return errors.New("素材上传方式无效")
+			return errors.New("Invalid material upload method")
 		}
 		return c.validURLContext(ctx, s.UploadURL)
 	}
 	if s.Multipart.PartBytes <= 0 || len(s.Multipart.Parts) == 0 {
-		return errors.New("素材上传分片无效")
+		return errors.New("Material upload segment is invalid")
 	}
 	var total int64
 	for index, part := range s.Multipart.Parts {
 		if part.Number != index+1 || part.Bytes <= 0 || part.Bytes > s.Multipart.PartBytes || (index < len(s.Multipart.Parts)-1 && part.Bytes != s.Multipart.PartBytes) {
-			return errors.New("素材上传分片无效")
+			return errors.New("Material upload segment is invalid")
 		}
 		if !part.Received {
 			if err := c.validURLContext(ctx, part.UploadURL); err != nil {
@@ -182,12 +182,12 @@ func (c *MediaClient) validateUpload(ctx context.Context, s UploadSession, size 
 			}
 		}
 		if part.Bytes > size-total {
-			return errors.New("素材上传分片大小不一致")
+			return errors.New("The size of the uploaded material fragments is inconsistent")
 		}
 		total += part.Bytes
 	}
 	if total != size {
-		return errors.New("素材上传分片大小不一致")
+		return errors.New("The size of the uploaded material fragments is inconsistent")
 	}
 	return nil
 }
@@ -204,7 +204,7 @@ func (c *MediaClient) ValidateUploadURL(ctx context.Context, raw string) error {
 	return c.validURLContext(ctx, raw)
 }
 func (c *MediaClient) PutUploadBytes(ctx context.Context, session UploadSession, data []byte) error {
-	return c.putStorage(ctx, session.UploadURL, session.RequiredHeaders, bytes.NewReader(data), int64(len(data)), 0, int64(len(data)), "参考素材")
+	return c.putStorage(ctx, session.UploadURL, session.RequiredHeaders, bytes.NewReader(data), int64(len(data)), 0, int64(len(data)), "Reference material")
 }
 func skipStorageHeader(key string) bool {
 	switch strings.ToLower(strings.TrimSpace(key)) {
@@ -305,7 +305,7 @@ func (c *MediaClient) putStorage(ctx context.Context, link string, headers map[s
 		if failure.Code == "" {
 			failure.Code = "storage_put_failed"
 		}
-		return &MediaHTTPError{StatusCode: resp.StatusCode, TaskError: MediaTaskError{Code: failure.Code, Message: fmt.Sprintf("素材直传未完成（HTTP %d）", resp.StatusCode)}, RequestID: failure.RequestID}
+		return &MediaHTTPError{StatusCode: resp.StatusCode, TaskError: MediaTaskError{Code: failure.Code, Message: fmt.Sprintf("Material direct transfer not completed (HTTP %d)", resp.StatusCode)}, RequestID: failure.RequestID}
 	}
 	if readErr != nil {
 		return readErr
@@ -451,7 +451,7 @@ func (c *MediaClient) CompleteUploadSource(ctx context.Context, session UploadSe
 				return result, err
 			}
 			if resumed.Ticket != session.Ticket || resumed.Multipart == nil || resumed.Multipart.PartBytes != session.Multipart.PartBytes {
-				return result, errors.New("恢复上传的素材编号或分片发生变化")
+				return result, errors.New("Restore the uploaded material number or fragments that have changed")
 			}
 			if err := c.validateUpload(ctx, resumed, size); err != nil {
 				return result, err
@@ -491,7 +491,7 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 		// require this desktop's DNS/network route to fetch the same URL.
 		parsed, err := url.Parse(ref.URL)
 		if err != nil || parsed.Hostname() == "" || parsed.User != nil || parsed.Fragment != "" || (parsed.Scheme != "https" && parsed.Scheme != "http") {
-			return "", errors.New("参考素材需要可访问的 HTTPS 链接")
+			return "", errors.New("Reference materials require accessible HTTPS links")
 		}
 		if ref.Kind == "image" && ref.Role != "source" {
 			return ref.URL, nil
@@ -517,7 +517,7 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 	if strings.HasPrefix(inline, "data:") {
 		parts := strings.SplitN(inline, ",", 2)
 		if len(parts) != 2 || !strings.HasSuffix(parts[0], ";base64") {
-			return "", errors.New("参考素材编码无效")
+			return "", errors.New("Invalid reference material encoding")
 		}
 		data, err := base64.StdEncoding.DecodeString(parts[1])
 		if err != nil {
@@ -527,7 +527,7 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 		mime = strings.TrimSuffix(strings.TrimPrefix(parts[0], "data:"), ";base64")
 	} else {
 		if c.Open == nil || ref.StorageKey == "" {
-			return "", errors.New("参考素材无法读取")
+			return "", errors.New("Reference material cannot be read")
 		}
 		body, contentType, knownBytes, err := c.Open(ctx, ref.StorageKey)
 		if err != nil {
@@ -535,7 +535,7 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 		}
 		defer body.Close()
 		if ref.MaxBytes > 0 && knownBytes > ref.MaxBytes {
-			return "", errors.New("参考素材超过当前模型文件大小限制")
+			return "", errors.New("The reference material exceeds the current model file size limit")
 		}
 		if mime == "" {
 			mime = contentType
@@ -560,7 +560,7 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 				return "", err
 			}
 			if ref.MaxBytes > 0 && size > ref.MaxBytes {
-				return "", errors.New("参考素材超过当前模型文件大小限制")
+				return "", errors.New("The reference material exceeds the current model file size limit")
 			}
 			source = file
 		}
@@ -578,10 +578,10 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 		return "", err
 	}
 	if size == 0 {
-		return "", errors.New("参考素材为空")
+		return "", errors.New("Reference material is empty")
 	}
 	if ref.MaxBytes > 0 && size > ref.MaxBytes {
-		return "", errors.New("参考素材超过当前模型文件大小限制")
+		return "", errors.New("The reference material exceeds the current model file size limit")
 	}
 	header := make([]byte, min(size, 512))
 	if _, err := source.ReadAt(header, 0); err != nil && err != io.EOF {
@@ -597,21 +597,21 @@ func (c *MediaClient) UploadReference(ctx context.Context, ref LocalMediaReferen
 		if transcodeErr != nil || len(pngData) == 0 {
 			label := strings.TrimSpace(ref.Role)
 			if label == "" {
-				label = "参考图片"
+				label = "Reference pictures"
 			}
-			return "", fmt.Errorf("%s为 AVIF/HEIC 等暂不支持的格式，请转换为 PNG、JPEG 或 WebP 后重试", label)
+			return "", fmt.Errorf("%s is an unsupported format such as AVIF/HEIC. Please convert to PNG, JPEG or WebP and try again.", label)
 		}
 		source = bytes.NewReader(pngData)
 		size = int64(len(pngData))
 		if ref.MaxBytes > 0 && size > ref.MaxBytes {
-			return "", errors.New("参考素材超过当前模型文件大小限制")
+			return "", errors.New("The reference material exceeds the current model file size limit")
 		}
 		digest.Reset()
 		_, _ = digest.Write(pngData)
 		mime = "image/png"
 	}
 	if !strings.HasPrefix(mime, ref.Kind+"/") {
-		return "", errors.New("参考素材格式与类型不一致")
+		return "", errors.New("Reference material format and type are inconsistent")
 	}
 	if c.InspectReference != nil {
 		if err := c.InspectReference(ctx, ref, source, size, mime); err != nil {
@@ -646,7 +646,7 @@ func (f mediaReferenceFile) Close() error {
 
 func (c *MediaClient) openRemoteReference(ctx context.Context, raw string, maxBytes int64) (mediaReferenceFile, string, int64, error) {
 	if maxBytes <= 0 {
-		return mediaReferenceFile{}, "", 0, errors.New("参考素材缺少下载大小限制")
+		return mediaReferenceFile{}, "", 0, errors.New("Reference material lacks download size limit")
 	}
 	ctx = c.networkContext(ctx)
 	if err := c.validURLContext(ctx, raw); err != nil {
@@ -656,13 +656,13 @@ func (c *MediaClient) openRemoteReference(ctx context.Context, raw string, maxBy
 	if err != nil {
 		return mediaReferenceFile{}, "", 0, err
 	}
-	response, err := c.storageClient("参考素材重定向次数过多").Do(req)
+	response, err := c.storageClient("Too many reference material redirects").Do(req)
 	if err != nil {
 		return mediaReferenceFile{}, "", 0, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK || response.ContentLength > maxBytes {
-		return mediaReferenceFile{}, "", 0, errors.New("参考素材无法下载或超过文件大小限制")
+		return mediaReferenceFile{}, "", 0, errors.New("The reference material cannot be downloaded or exceeds the file size limit")
 	}
 	file, err := os.CreateTemp("", "beeftv-reference-*")
 	if err != nil {
@@ -671,10 +671,10 @@ func (c *MediaClient) openRemoteReference(ctx context.Context, raw string, maxBy
 	result := mediaReferenceFile{file}
 	size, err := io.Copy(file, io.LimitReader(mediaContextReader{ctx, response.Body}, maxBytes+1))
 	if err == nil && size > maxBytes {
-		err = errors.New("参考素材超过文件大小限制")
+		err = errors.New("Reference material exceeds file size limit")
 	}
 	if err == nil && size == 0 {
-		err = errors.New("参考素材为空")
+		err = errors.New("Reference material is empty")
 	}
 	if err != nil {
 		_ = result.Close()

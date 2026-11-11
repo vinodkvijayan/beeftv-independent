@@ -53,7 +53,7 @@ function imageNode(assetId?: string): CanvasNodeData {
     return {
         id: "node-1",
         type: CanvasNodeType.Image,
-        title: "节点",
+        title: "node",
         position: { x: 0, y: 0 },
         width: 8,
         height: 8,
@@ -92,7 +92,7 @@ function Harness() {
 
     const editor = useCanvasNodeEditor({ pageUi,
         canvasId,
-        canvasTitle: "画布",
+        canvasTitle: "canvas",
         domainProjectId: "project-a",
         nodesRef,
         setNodes,

@@ -11,7 +11,7 @@ func TestVideoTestDefaultsFollowCapabilityProfile(t *testing.T) {
 	}{
 		{name: "nil profile falls back", profile: nil, wantRatio: "16:9", wantResolution: "720"},
 		{name: "declared defaults win", profile: &VideoCapabilityConfig{Ratios: []string{"9:16", "16:9"}, DefaultRatio: "16:9", Resolutions: []string{"480p", "720p"}, DefaultResolution: "720p"}, wantRatio: "16:9", wantResolution: "720p"},
-		{name: "first enum when no default", profile: &VideoCapabilityConfig{Ratios: []string{"1:1"}, Resolutions: []string{"768p横"}}, wantRatio: "1:1", wantResolution: "768p横"},
+		{name: "first enum when no default", profile: &VideoCapabilityConfig{Ratios: []string{"1:1"}, Resolutions: []string{"768p horizontal"}}, wantRatio: "1:1", wantResolution: "768p horizontal"},
 		{name: "empty profile falls back", profile: &VideoCapabilityConfig{}, wantRatio: "16:9", wantResolution: "720"},
 	}
 	for _, tt := range tests {

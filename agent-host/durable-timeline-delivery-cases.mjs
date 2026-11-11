@@ -18,9 +18,9 @@ for (const scenario of ['delivery', 'refresh', 'lines', 'large-bind', 'foreign-e
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'beeftv-delivery-'));
     let revision = 5;
     const requestTimeline = scenario === 'lines' ? { ...timeline, clips: [...timeline.clips,
-      { id: 'caption', kind: 'subtitle', trackId: 'captions', startMs: 0, durationMs: 12000, text: '旧字幕', lines: ['第一行', '第二行'] }] } : timeline;
+      { id: 'caption', kind: 'subtitle', trackId: 'captions', startMs: 0, durationMs: 12000, text: 'old subtitles', lines: ['first line', 'second line'] }] } : timeline;
     const expectedTimeline = scenario === 'lines' ? { ...timeline, clips: [...timeline.clips,
-      { id: 'caption', kind: 'subtitle', trackId: 'captions', startMs: 0, durationMs: 12000, text: '第一行\n第二行' }] } : timeline;
+      { id: 'caption', kind: 'subtitle', trackId: 'captions', startMs: 0, durationMs: 12000, text: 'first line\nsecond line' }] } : timeline;
     const posts = [], effects = new Map();
     const names = new Set(['canvas.get', 'canvas.timeline.update', 'canvas.timeline.render', 'canvas.nodes.create', 'canvas.task.bind', 'canvas.project.export', 'task.get']);
     const server = createServer(async (req, res) => {
@@ -32,7 +32,7 @@ for (const scenario of ['delivery', 'refresh', 'lines', 'large-bind', 'foreign-e
       posts.push({ op, ...body });
       assert.equal(p.canvasId ?? 'canvas', 'canvas');
       if (op === 'canvas.get') return wrap({ result: { canvasId: 'canvas', canvas: { revision, nodes: scenario === 'refresh'
-        ? [...Array.from({ length: 51 }, (_, index) => ({ id: `node-${index}`, title: `素材 ${index}` })), { title: '新成片' }, { title: '新成片 · 2' }] : [] } } });
+        ? [...Array.from({ length: 51 }, (_, index) => ({ id: `node-${index}`, title: `Material${index}` })), { title: 'new film' }, { title: 'New films · 2' }] : [] } } });
       if (op === 'task.get') {
         assert.equal(p.taskId, 'original-render');
         if (scenario === 'foreign-edit') revision++;
@@ -54,13 +54,13 @@ for (const scenario of ['delivery', 'refresh', 'lines', 'large-bind', 'foreign-e
       } else if (op === 'canvas.timeline.render') {
         result = { canvasId: 'canvas', sourceRevision: revision, taskId: 'original-render', status: 'queued', charged: false };
       } else if (op === 'canvas.nodes.create') {
-        assert.deepEqual(p.nodes, [{ type: 'video', title: scenario === 'refresh' ? '新成片 · 3' : '新成片' }]);
-        result = { canvasId: 'canvas', revision: ++revision, created: [{ id: 'result-node', type: 'video', title: '新成片' }] };
+        assert.deepEqual(p.nodes, [{ type: 'video', title: scenario === 'refresh' ? 'New Films · 3' : 'new film' }]);
+        result = { canvasId: 'canvas', revision: ++revision, created: [{ id: 'result-node', type: 'video', title: 'new film' }] };
       } else if (op === 'canvas.task.bind') {
         assert.deepEqual(p, { canvasId: 'canvas', taskId: 'original-render', nodeId: 'result-node', outputIndex: 0 });
         assert.equal(body.opId, 'attach-node:original-render:result-node:0');
         result = { canvasId: 'canvas', nodeId: 'result-node', revision: ++revision, bindingStatus: 'bound' };
-        if (scenario === 'large-bind') result.canvas = { nodes: [{ id: 'source', metadata: { prompt: '镜'.repeat(40000) } }] };
+        if (scenario === 'large-bind') result.canvas = { nodes: [{ id: 'source', metadata: { prompt: 'mirror'.repeat(40000) } }] };
       } else {
         assert.equal(op, 'canvas.project.export');
         result = { canvasId: 'canvas', sourceRevision: revision, resourceId: 'project-zip', editable: true, bytes: 123 };
@@ -80,15 +80,15 @@ for (const scenario of ['delivery', 'refresh', 'lines', 'large-bind', 'foreign-e
         if (++responses === 1) {
           assert.ok(body.tools.some(tool => tool.function.name === 'canvas_timeline_deliver'));
           return { toolCalls: [{ id: 'deliver', name: 'canvas_timeline_deliver', args: { expectedRevision: 5,
-            ...(scenario === 'refresh' ? { refreshNodeIds: ['source'] } : { timeline: requestTimeline }), title: '新成片' } }] };
+            ...(scenario === 'refresh' ? { refreshNodeIds: ['source'] } : { timeline: requestTimeline }), title: 'new film' } }] };
         }
         if (scenario === 'export-recovery' && responses === 2) {
           return { toolCalls: [{ id: 'resume-export', name: 'canvas_project_export', args: { expectedRevision: 8 } }] };
         }
-        return { reply: '交付回执已读取。' };
+        return { reply: 'Delivery receipt read.' };
       }, { buildTools: bridge.buildTools });
       const entry = await fixture.store.createSession('canvas');
-      const input = { turnId: 'delivery-turn', requestId: 'delivery-request', revisionBefore: 5, content: '渲染已准备的时间线并交付工程。' };
+      const input = { turnId: 'delivery-turn', requestId: 'delivery-request', revisionBefore: 5, content: 'Render the prepared timeline and deliver the project.' };
       const submission = await fixture.store.submit(entry, input);
       const result = await fixture.store.wait(entry, submission);
       assert.equal(result.error, null);
@@ -127,7 +127,7 @@ for (const scenario of ['delivery', 'refresh', 'lines', 'large-bind', 'foreign-e
       await fixture.store.wait(entry, submission);
       assert.equal(posts.length, before, 'repeat observation must not rerun nested effects');
       assert.equal(fixture.requests.length, responseCount);
-      if (scenario === 'lines') assert.deepEqual(requestTimeline.clips.at(-1).lines, ['第一行', '第二行'], 'composition must not mutate journaled arguments');
+      if (scenario === 'lines') assert.deepEqual(requestTimeline.clips.at(-1).lines, ['first line', 'second line'], 'composition must not mutate journaled arguments');
     } finally {
       await fixture?.close();
       server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

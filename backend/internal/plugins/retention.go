@@ -102,7 +102,7 @@ func (c *Runtime) retentionDecisions(missing []RegistryRecord, snapshot referenc
 			decisions[record.ID] = &RetentionView{
 				Retired: true,
 				Unknown: true,
-				Reasons: []string{"插件引用盘点失败，已按保守策略保留该协议"},
+				Reasons: []string{"Plug-in reference inventory failed, the protocol has been retained according to conservative policy"},
 			}
 		}
 		return decisions
@@ -142,7 +142,7 @@ func deferralFor(stored, next RegistryRecord, snapshot referenceSnapshot) *Reten
 	for id := range resolvableProviderIDs(stored.Raw) {
 		if _, ok := kept[id]; !ok {
 			if snapshot.unavailable {
-				return &RetentionView{Reasons: []string{"插件引用盘点失败，无法确认新版本移除的协议是否仍被使用，升级已推迟"}}
+				return &RetentionView{Reasons: []string{"Plug-in reference inventory failed. It cannot be confirmed whether the protocol removed by the new version is still in use. The upgrade has been postponed."}}
 			}
 			configured += snapshot.usage[id].Configured
 			pending += snapshot.usage[id].PendingTasks
@@ -150,10 +150,10 @@ func deferralFor(stored, next RegistryRecord, snapshot referenceSnapshot) *Reten
 	}
 	var reasons []string
 	if configured > 0 {
-		reasons = append(reasons, fmt.Sprintf("新版本删除或改名了 %d 个已保存的连接或模型配置仍在使用的协议，升级已推迟", configured))
+		reasons = append(reasons, fmt.Sprintf("The new version has deleted or renamed %d saved connections or model configurations that are still using protocols, and the upgrade has been postponed", configured))
 	}
 	if pending > 0 {
-		reasons = append(reasons, fmt.Sprintf("新版本删除或改名了 %d 个未完成或待取回结果的任务仍在使用的协议，升级已推迟", pending))
+		reasons = append(reasons, fmt.Sprintf("The new version has deleted or renamed protocols that are still being used by %d tasks that have not been completed or whose results are yet to be retrieved. The upgrade has been postponed.", pending))
 	}
 	if len(reasons) == 0 {
 		return nil
@@ -185,10 +185,10 @@ func retentionFor(record RegistryRecord, snapshot referenceSnapshot) *RetentionV
 	}
 	note := &RetentionView{Retired: true}
 	if configured > 0 {
-		note.Reasons = append(note.Reasons, fmt.Sprintf("%d 个已保存的连接或模型配置仍在使用该协议", configured))
+		note.Reasons = append(note.Reasons, fmt.Sprintf("%d saved connections or model configurations are still using this protocol", configured))
 	}
 	if pending > 0 {
-		note.Reasons = append(note.Reasons, fmt.Sprintf("%d 个未完成或待取回结果的任务仍在使用该协议", pending))
+		note.Reasons = append(note.Reasons, fmt.Sprintf("%d unfinished or pending results are still using this protocol", pending))
 	}
 	return note
 }

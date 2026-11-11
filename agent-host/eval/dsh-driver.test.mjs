@@ -19,8 +19,8 @@ import { normalizeAgentUsage, costOfTokens } from './usage.mjs';
 
 const ndjson = (...events) => events.map((event) => JSON.stringify(event)).join('\n') + '\n';
 
-describe('dsh headless 事件流解析', () => {
-  test('取最终回复、reason、工具调用数与分步用量', () => {
+describe('dsh headless event stream analysis', () => {
+  test('Get the final reply, reason, number of tool calls and step-by-step usage', () => {
     const parsed = parseDshEvents(ndjson(
       { type: 'session', sessionId: 'session-1', cwd: '/w' },
       { type: 'status', phase: 'step_start', turn: 1, step: 1 },
@@ -28,16 +28,16 @@ describe('dsh headless 事件流解析', () => {
       { type: 'status', phase: 'step_end', turn: 1, step: 1, usage: { inputTokens: 100, cacheReadTokens: 900, outputTokens: 10 } },
       { type: 'status', phase: 'step_end', turn: 1, step: 2, usage: { inputTokens: 20, cacheReadTokens: 80, outputTokens: 5 } },
       { type: 'status', phase: 'turn_end', turn: 1, reason: { kind: 'completed' } },
-      { type: 'final', sessionId: 'session-1', reason: { kind: 'completed' }, text: '完成' },
+      { type: 'final', sessionId: 'session-1', reason: { kind: 'completed' }, text: 'Done' },
     ));
     expect(parsed).toMatchObject({
-      sessionId: 'session-1', reply: '完成', reasonKind: 'completed', toolCalls: 1, numTurns: 2,
+      sessionId: 'session-1', reply: 'Done', reasonKind: 'completed', toolCalls: 1, numTurns: 2,
       usage: { uncachedInput: 120, cacheRead: 980, output: 15, cacheKnown: true },
       usageIncomplete: false,
     });
   });
 
-  test('缺 usage 的重试步骤优先用会话日志补，补不到就标用量不完整', () => {
+  test('If the usage is missing, the retry step will first use the session log to fill it in. If it cannot be filled in, the usage will be marked as incomplete.', () => {
     const stdout = ndjson(
       { type: 'session', sessionId: 's2' },
       { type: 'status', phase: 'step_end', turn: 1, step: 1 },
@@ -61,7 +61,7 @@ describe('dsh headless 事件流解析', () => {
     expect(missing.usage).toMatchObject({ uncachedInput: 5, cacheRead: 0, output: 1 });
   });
 
-  test('step_end 只给部分 undefined 字段时也用会话日志补全', () => {
+  test('When step_end only provides some undefined fields, session log completion is also used.', () => {
     const stdout = ndjson(
       { type: 'session', sessionId: 's2b' },
       { type: 'status', phase: 'step_end', turn: 1, step: 1, usage: { inputTokens: undefined, cacheReadTokens: undefined } },
@@ -76,7 +76,7 @@ describe('dsh headless 事件流解析', () => {
     expect(filled.usage).toMatchObject({ uncachedInput: 15, cacheRead: 40, output: 3 });
   });
 
-  test('step_end 只带 cacheReadTokens 或只带 outputTokens 时也用会话日志补全', () => {
+  test('When step_end only takes cacheReadTokens or only outputTokens, the session log is also used for completion.', () => {
     const stdout = ndjson(
       { type: 'session', sessionId: 's2d' },
       { type: 'status', phase: 'step_end', turn: 1, step: 1, usage: { cacheReadTokens: 100 } },
@@ -95,7 +95,7 @@ describe('dsh headless 事件流解析', () => {
     expect(filled.usage).toMatchObject({ uncachedInput: 15, cacheRead: 40, output: 5 });
   });
 
-  test('只有缓存读或只有输出且会话日志补不到时标用量不完整', () => {
+  test('There are only cached reads or only output and the session log cannot be filled in and the time stamp usage is incomplete.', () => {
     const parsed = parseDshEvents(ndjson(
       { type: 'session', sessionId: 's2e' },
       { type: 'status', phase: 'step_end', turn: 1, step: 1, usage: { cacheReadTokens: 100 } },
@@ -107,7 +107,7 @@ describe('dsh headless 事件流解析', () => {
     expect(parsed.usage).toMatchObject({ uncachedInput: 0, cacheRead: 0, output: 0 });
   });
 
-  test('没有 final 的 error/超时回合也标用量不完整，并保留会话 id 供补全', () => {
+  test('Error/timeout rounds without final are also marked as incomplete, and the session id is retained for completion.', () => {
     const errored = parseDshEvents(ndjson(
       { type: 'session', sessionId: 's2f' },
       { type: 'error', message: 'turn_timeout' },
@@ -121,7 +121,7 @@ describe('dsh headless 事件流解析', () => {
     expect(interrupted).toMatchObject({ final: null, usageIncomplete: false, usage: { uncachedInput: 9, output: 2 } });
   });
 
-  test('正常结束但没有任何 step_end 时标用量不完整，不能按 0 通过预算', () => {
+  test('Ended normally but without any step_end time scale usage is incomplete and cannot pass budget by 0', () => {
     const parsed = parseDshEvents(ndjson(
       { type: 'session', sessionId: 's2c' },
       { type: 'final', sessionId: 's2c', reason: { kind: 'completed' }, text: 'ok' },
@@ -129,7 +129,7 @@ describe('dsh headless 事件流解析', () => {
     expect(parsed).toMatchObject({ usageIncomplete: true, usage: { uncachedInput: 0, cacheRead: 0, output: 0 } });
   });
 
-  test('失败原因来自 error 事件或 final.reason，而不是只看退出码', () => {
+  test('The failure reason comes from the error event or final.reason, instead of just looking at the exit code', () => {
     expect(parseDshEvents(ndjson({ type: 'error', message: 'unknown option' })))
       .toMatchObject({ errorEvent: 'unknown option', final: null, reply: '' });
     expect(parseDshEvents(ndjson({ type: 'session', sessionId: 's3' }, { type: 'status', phase: 'turn_end', turn: 1, reason: { kind: 'aborted' } },
@@ -137,7 +137,7 @@ describe('dsh headless 事件流解析', () => {
       .toMatchObject({ reasonKind: 'aborted', reply: 'stop' });
   });
 
-  test('解析结果可以直接折算费用，不会被二次归零', () => {
+  test('The analysis results can be directly converted into expenses and will not be reset to zero twice.', () => {
     const parsed = parseDshEvents(ndjson(
       { type: 'session', sessionId: 's1' },
       { type: 'status', phase: 'step_end', turn: 1, step: 1, usage: { inputTokens: 8435, cacheReadTokens: 55936, outputTokens: 2546 } },
@@ -147,16 +147,16 @@ describe('dsh headless 事件流解析', () => {
     expect(costOfTokens(parsed.usage, { input: 0.2, cache: 0.004, output: 0.8 })).toBeCloseTo(0.003948, 6);
   });
 
-  test('从 beeftv mcp serve 的 stderr 读回真实工具数', () => {
-    expect(dshToolCount('beeftv mcp serve: 40 个工具，base=http://127.0.0.1:1（BEEFTV_BASE_URL）\n')).toBe(40);
+  test('Read back the real number of tools from stderr of beeftv mcp serve', () => {
+    expect(dshToolCount('beeftv mcp serve: 40 tools, base=http://127.0.0.1:1（BEEFTV_BASE_URL）')).toBe(40);
     expect(dshToolCount('')).toBe(0);
   });
 });
 
-describe('dsh 会话日志用量', () => {
+describe('dsh session log usage', () => {
   const line = (event) => JSON.stringify(event);
 
-  test('重试步骤把 assistant/message 与所有 assistant/attempt 的用量相加；成功 message 在时缺用量的 attempt 按 0 计', () => {
+  test('The retry step adds the usage of assistant/message and all assistant/attempts; a successful message is counted as 0 when the usage is missing.', () => {
     const usages = parseSessionUsageLog([
       line({ type: 'assistant/message', data: { turn: 1, step: 1, usage: { inputTokens: 10, cacheReadTokens: 90, outputTokens: 4 } } }),
       line({ type: 'assistant/message', data: { turn: 1, step: 2, stream: [] } }),
@@ -182,7 +182,7 @@ describe('dsh 会话日志用量', () => {
     expect(usages.has('1:7')).toBe(false);
   });
 
-  test('没有会话日志或没有 zstd 时返回 ok:false，不猜 0', () => {
+  test('Returns ok:false when there is no session log or no zstd, no guess 0', () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-usage-test-'));
     try {
       expect(readSessionUsageLog(home, 'session-x')).toMatchObject({ ok: false, reason: 'no_sessions_dir' });
@@ -194,8 +194,8 @@ describe('dsh 会话日志用量', () => {
   });
 });
 
-describe('dsh 隔离配置', () => {
-  test('overlay 挂 BeefTV MCP、关掉多余工具、工具超时 120 秒', () => {
+describe('dsh isolation configuration', () => {
+  test('Overlay hangs BeefTV MCP, turns off redundant tools, and tool times out for 120 seconds.', () => {
     const yaml = buildOverlayPatch({
       cli: '/tmp/beeftv', baseUrl: 'http://127.0.0.1:1234/api', ownerToken: 'tok',
       sourceModel: { provider: 'provider-a', model: 'm1', reasoningEffort: 'high' },
@@ -208,7 +208,7 @@ describe('dsh 隔离配置', () => {
     expect(yaml).not.toContain('- id: tool-skill\n  disabled: true');
   });
 
-  test('指定模型时覆盖默认模型；缺 provider 时明确报错', () => {
+  test('Override the default model when specifying a model; explicitly report an error when the provider is missing', () => {
     const yaml = buildOverlayPatch({
       cli: 'beeftv', baseUrl: 'http://x', ownerToken: 't',
       modelOverride: { provider: 'provider-b', model: 'model-b' },
@@ -219,7 +219,7 @@ describe('dsh 隔离配置', () => {
     expect(() => buildOverlayPatch({ cli: 'beeftv', baseUrl: 'u', ownerToken: 't', modelOverride: { provider: '', model: 'm' } })).toThrow('provider/model');
   });
 
-  test('从源 profile 读默认模型、密钥环境变量名和模型覆盖格式', () => {
+  test('Read the default model, key environment variable name and model override format from the source profile', () => {
     const patch = [
       '- id: llm-pi-ai',
       '  config:',
@@ -239,7 +239,7 @@ describe('dsh 隔离配置', () => {
     expect(parseModelOverride('')).toBeNull();
   });
 
-  test('凭据优先用环境变量；缺变量时复制 0600 临时副本，不软链源文件', () => {
+  test('Environment variables are used first for credentials; when variables are missing, a 0600 temporary copy is copied, and the source file is not soft-linked.', () => {
     const sourceHome = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-cred-source-'));
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-cred-home-'));
     const patch = 'providers:\n  provider-a:\n    apiKeyEnv: PROVIDER_A_API_KEY\n';
@@ -270,7 +270,7 @@ describe('dsh 隔离配置', () => {
     }
   });
 
-  test('DSH 准备阶段失败时删掉临时 home，不留 token 和凭据副本', () => {
+  test('When the DSH preparation phase fails, the temporary home is deleted without leaving a copy of the token and credentials.', () => {
     const before = new Set(fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith('beeftv-eval-dsh-')));
     expect(() => prepareDshAgent({
       workDir: os.tmpdir(),

@@ -49,7 +49,7 @@ type DiscoveryRelease struct {
 
 func (c *Client) Discover(ctx context.Context, skillID, releaseID, target string, capabilities []string) (*DiscoveryRelease, error) {
 	if !ResourceID.MatchString(skillID) || !ResourceID.MatchString(releaseID) {
-		return nil, fmt.Errorf("必须指定有效的技能和发布版本")
+		return nil, fmt.Errorf("A valid skill and release version must be specified")
 	}
 	params := url.Values{}
 	if target != "" {
@@ -63,7 +63,7 @@ func (c *Client) Discover(ctx context.Context, skillID, releaseID, target string
 		return nil, err
 	}
 	if result.Release.SkillID != skillID || result.Release.ReleaseID != releaseID {
-		return nil, fmt.Errorf("技能市场返回了其他发布版本")
+		return nil, fmt.Errorf("Skills Market returns with additional releases")
 	}
 	if err := VerifyRelease(&result.Release); err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ type FileChunk struct {
 
 func (c *Client) File(ctx context.Context, skillID, releaseID, name string, offset, limit int) (*FileChunk, error) {
 	if !SafeFilePath(name) || offset < 0 || limit < 0 || limit > 64<<10 || (limit > 0 && limit < 4) {
-		return nil, &Error{Status: 400, Reason: "invalid_file_range", Message: "文件路径或读取范围无效"}
+		return nil, &Error{Status: 400, Reason: "invalid_file_range", Message: "Invalid file path or read range"}
 	}
 	if limit == 0 {
 		limit = 32 << 10
@@ -106,14 +106,14 @@ func (c *Client) File(ctx context.Context, skillID, releaseID, name string, offs
 		}
 	}
 	if file == nil {
-		return nil, &Error{Status: 404, Reason: "not_found", Message: "文件不在此发布版本清单中"}
+		return nil, &Error{Status: 404, Reason: "not_found", Message: "File is not in this release manifest"}
 	}
 	if file.Size < 0 || file.Size > MaxPackageBytes {
-		return nil, &Error{Status: 502, Reason: "file_integrity", Message: "文件大小无效"}
+		return nil, &Error{Status: 502, Reason: "file_integrity", Message: "Invalid file size"}
 	}
 	response, err := c.Request(ctx, "GET", "skills/"+skillID+"/releases/"+releaseID+"/file?path="+url.QueryEscape(name), "", "", "", nil)
 	if err != nil {
-		return nil, &Error{Status: 503, Reason: "market_unavailable", Message: "技能市场暂时无法连接"}
+		return nil, &Error{Status: 503, Reason: "market_unavailable", Message: "The skill market is temporarily unavailable"}
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 200 {
@@ -121,11 +121,11 @@ func (c *Client) File(ctx context.Context, skillID, releaseID, name string, offs
 	}
 	data, err := io.ReadAll(io.LimitReader(response.Body, file.Size+1))
 	if err != nil || int64(len(data)) != file.Size || Digest(data) != file.SHA256 {
-		return nil, &Error{Status: 502, Reason: "file_integrity", Message: "文件内容与发布版本不符"}
+		return nil, &Error{Status: 502, Reason: "file_integrity", Message: "The file content does not match the published version"}
 	}
 	text := utf8.Valid(data)
 	if offset > len(data) || (text && offset < len(data) && !utf8.RuneStart(data[offset])) {
-		return nil, &Error{Status: 400, Reason: "invalid_file_range", Message: "文件读取起点无效"}
+		return nil, &Error{Status: 400, Reason: "invalid_file_range", Message: "The file reading starting point is invalid"}
 	}
 	end := min(offset+limit, len(data))
 	if text {
@@ -156,14 +156,14 @@ func (c *Client) Search(ctx context.Context, query, target string, capabilities 
 
 func (c *Client) Release(ctx context.Context, skillID, releaseID string) (*Release, error) {
 	if !ResourceID.MatchString(skillID) || !ResourceID.MatchString(releaseID) {
-		return nil, fmt.Errorf("必须指定有效的技能 ID 和发布版本 ID")
+		return nil, fmt.Errorf("A valid skill ID and release ID must be specified")
 	}
 	var result Release
 	if err := c.JSON(ctx, "GET", "skills/"+skillID+"/releases/"+releaseID, "", "", nil, &result); err != nil {
 		return nil, err
 	}
 	if result.SkillID != skillID || result.ReleaseID != releaseID {
-		return nil, fmt.Errorf("技能市场返回了其他发布版本")
+		return nil, fmt.Errorf("Skills Market returns with additional releases")
 	}
 	if err := VerifyRelease(&result); err != nil {
 		return nil, err

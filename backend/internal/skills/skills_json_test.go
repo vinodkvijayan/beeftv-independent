@@ -10,9 +10,9 @@ import (
 func TestSkillItemJSONUsesCamelCaseAndRFC3339(t *testing.T) {
 	checked := time.Date(2026, 9, 9, 3, 26, 0, 0, time.UTC)
 	item := SkillItem{
-		SkillID: "skill-1", SkillName: "镜头拆解", VersionID: "v1", ContentHash: "hash",
+		SkillID: "skill-1", SkillName: "Lens teardown", VersionID: "v1", ContentHash: "hash",
 		CreatedAt: time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC), UpdatedAt: time.Date(2026, 1, 3, 4, 5, 6, 0, time.UTC),
-		LastCheckedAt: &checked, EffectiveUser: SkillEffectiveUser{Name: "用户", AvatarURL: "https://example.com/a.png", UID: "u1"},
+		LastCheckedAt: &checked, EffectiveUser: SkillEffectiveUser{Name: "User", AvatarURL: "https://example.com/a.png", UID: "u1"},
 		ShowcaseMedia: []SkillShowcaseMedia{{Type: "image", ShowcaseURI: "uri", ShowcaseURL: "https://example.com/m.png"}},
 	}
 	body, err := json.Marshal(item)

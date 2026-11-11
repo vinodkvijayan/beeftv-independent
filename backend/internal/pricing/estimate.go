@@ -50,12 +50,12 @@ func Unknown(reason string) Estimate {
 // not determine is returned as unknown instead of a guessed number.
 func Quote(table *Table, target Target) Estimate {
 	if table == nil {
-		return Unknown("暂无价格")
+		return Unknown("No price yet")
 	}
 	count := max(target.Count, 1)
 	if table.Invoice != nil {
 		reserve := round(table.Invoice.Reservation * float64(count))
-		return reserved(reserve, fmt.Sprintf("先扣 %s，账单核对后按实际结算", total(reserve)))
+		return reserved(reserve, fmt.Sprintf("%s will be deducted first, and the actual settlement will be made after the bill is verified.", total(reserve)))
 	}
 	switch target.Kind {
 	case "image":
@@ -65,7 +65,7 @@ func Quote(table *Table, target Target) Estimate {
 	case "audio":
 		return quoteAudio(table, target, count)
 	}
-	return Unknown("暂无价格")
+	return Unknown("No price yet")
 }
 
 func Summarize(items []Estimate) Summary {
@@ -82,15 +82,15 @@ func Summarize(items []Estimate) Summary {
 	summary.Amount = round(summary.Amount)
 	label := ""
 	if summary.Approx {
-		label = "约 "
+		label = "approx."
 	}
 	switch {
 	case summary.Priced == 0:
-		summary.Text = "预计费用：暂无价格，按所选渠道实际计费"
+		summary.Text = "Estimated cost: No price yet, actual billing will be based on the selected channel"
 	case summary.Unknown == 0:
-		summary.Text = "预计费用：" + label + total(summary.Amount)
+		summary.Text = "Estimated cost:" + label + total(summary.Amount)
 	default:
-		summary.Text = fmt.Sprintf("预计费用：已知部分%s%s，另有 %d 项暂无价格", label, total(summary.Amount), summary.Unknown)
+		summary.Text = fmt.Sprintf("Estimated cost: Part %s%s is known, and %d items have no price yet.", label, total(summary.Amount), summary.Unknown)
 	}
 	return summary
 }
@@ -103,14 +103,14 @@ func quoteImage(table *Table, target Target, count int) Estimate {
 		tier := imageTier(image, target.Size, seedream)
 		if target.Layers {
 			if price, ok := image.Output["layers"][tier]; ok {
-				return Unknown(fmt.Sprintf("图层拆分按实际拆出的图层数计费，每层 %s", yuan(price)))
+				return Unknown(fmt.Sprintf("Layer splitting is charged based on the actual number of layers split, each layer is %s", yuan(price)))
 			}
-			return Unknown("图层拆分暂无价格")
+			return Unknown("Layer splitting has no price yet")
 		}
 		quality := imageQuality(image, target.Quality)
 		price, ok := image.Output[quality][tier]
 		if !ok {
-			return Unknown(strings.TrimSpace(tier+" "+qualityLabel(quality)) + " 暂无价格")
+			return Unknown(strings.TrimSpace(tier+" "+qualityLabel(quality)) + " No price yet")
 		}
 		refs := target.ReferenceImages
 		if seedream {
@@ -121,77 +121,77 @@ func quoteImage(table *Table, target Target, count int) Estimate {
 		if image.Reference != nil {
 			refPrice = *image.Reference
 		}
-		basis := fmt.Sprintf("%s %s/张 × %d 张", strings.TrimSpace(tier+" "+qualityLabel(quality)), yuan(price), count)
+		basis := fmt.Sprintf("%s %s/sheet × %d sheets", strings.TrimSpace(tier+" "+qualityLabel(quality)), yuan(price), count)
 		if refs > 0 && refPrice > 0 {
-			basis += fmt.Sprintf(" + 参考图 %d 张 × %s", refs, yuan(refPrice))
+			basis += fmt.Sprintf(" + Reference picture %d × %s", refs, yuan(refPrice))
 		}
 		return known(price*float64(count)+refPrice*float64(refs), false, basis)
 	}
 	if table.PerRequest != nil && *table.PerRequest > 0 {
-		return known(*table.PerRequest*float64(count), false, fmt.Sprintf("%s/张 × %d 张", yuan(*table.PerRequest), count))
+		return known(*table.PerRequest*float64(count), false, fmt.Sprintf("%s/sheet × %d sheet", yuan(*table.PerRequest), count))
 	}
-	return Unknown("暂无价格")
+	return Unknown("No price yet")
 }
 
 func quoteVideo(table *Table, target Target, count int) Estimate {
 	resolution := videoResolution(target.Resolution)
 	if resolution == "" {
-		return Unknown("分辨率未定，暂无价格")
+		return Unknown("Resolution undecided, no price yet")
 	}
 	if !(target.Seconds > 0) {
-		return Unknown("时长由模型决定，按实际时长结算")
+		return Unknown("The duration is determined by the model and will be settled based on the actual duration.")
 	}
 	seconds := target.Seconds
 	if rate, ok := table.PerSecond[resolution]; ok {
 		if target.ReferenceVideos > 0 {
 			if input, declared := table.VideoInputPerSecond[resolution]; !declared || input > 0 {
-				return Unknown(fmt.Sprintf("含参考视频，按生成和参考视频的实际秒数结算（%s %s/秒）", resolution, yuan(rate)))
+				return Unknown(fmt.Sprintf("Including reference video, settlement is based on the actual seconds of generated and reference videos (%s %s/second)", resolution, yuan(rate)))
 			}
 		}
 		if invoice := table.ReferenceInvoice; invoice != nil && target.ReferenceImages > 0 {
 			reserve := round(invoice.ReserveUSD * invoice.USDCNY * 1.5 * float64(count))
-			return reserved(reserve, fmt.Sprintf("参考生成先扣 %s，出账后按实际美元账单 × %s × 1.5 结算", total(reserve), number(invoice.USDCNY)))
+			return reserved(reserve, fmt.Sprintf("When the reference is generated, %s will be deducted first, and after the payment is made, the actual US dollar bill × %s × 1.5 will be settled.", total(reserve), number(invoice.USDCNY)))
 		}
 		paid, refPrice := 0, 0.0
 		if table.ReferenceImage != nil && *table.ReferenceImage > 0 {
 			paid, refPrice = max(target.ReferenceImages-table.FreeReferenceImages, 0), *table.ReferenceImage
 		}
-		basis := fmt.Sprintf("%s %s/秒 × %s 秒", resolution, yuan(rate), number(seconds))
+		basis := fmt.Sprintf("%s %s/second × %s seconds", resolution, yuan(rate), number(seconds))
 		if paid > 0 {
-			basis += fmt.Sprintf(" + 参考图 %d 张 × %s", paid, yuan(refPrice))
+			basis += fmt.Sprintf(" + Reference picture %d × %s", paid, yuan(refPrice))
 		}
 		return known((rate*seconds+refPrice*float64(paid))*float64(count), false, withCount(basis, count))
 	}
 	tokens := tokenRate(table, resolution)
 	if target.ReferenceVideos > 0 {
 		if tokens != nil {
-			return Unknown(fmt.Sprintf("含参考视频，按实际视频 Token 结算（%s %s/百万 Token）", resolution, yuan(tokens.Input)))
+			return Unknown(fmt.Sprintf("Including reference videos, settlement will be based on actual video Token (%s %s/million Tokens)", resolution, yuan(tokens.Input)))
 		}
-		return Unknown("含参考视频，按实际视频 Token 结算")
+		return Unknown("Including reference videos, settlement will be based on actual video Token")
 	}
 	if rate := secondRate(table, resolution); rate != nil {
-		basis := withCount(fmt.Sprintf("%s %s/秒 × %s 秒", resolution, yuan(rate.Output), number(seconds)), count) + "，按 Token 折算"
+		basis := withCount(fmt.Sprintf("%s %s/second × %s seconds", resolution, yuan(rate.Output), number(seconds)), count) + ", converted by Token"
 		return known(rate.Output*seconds*float64(count), true, basis)
 	}
 	if tokens != nil {
-		return Unknown(fmt.Sprintf("%s 按实际视频 Token 结算（%s/百万 Token）", resolution, yuan(tokens.Output)))
+		return Unknown(fmt.Sprintf("%s is settled according to the actual video Token (%s/million Tokens)", resolution, yuan(tokens.Output)))
 	}
-	return Unknown(resolution + " 暂无价格")
+	return Unknown(resolution + " No price yet")
 }
 
 func quoteAudio(table *Table, target Target, count int) Estimate {
 	if table.Mode == "tokens" && table.InputPerMillion != nil && *table.InputPerMillion > 0 {
 		if target.Characters <= 0 {
-			return Unknown("台词为空，暂无价格")
+			return Unknown("The line is empty and there is no price yet.")
 		}
 		per := *table.InputPerMillion
-		basis := withCount(fmt.Sprintf("%d 字 × %s/百万字", target.Characters, yuan(per)), count)
+		basis := withCount(fmt.Sprintf("%d words × %s/million words", target.Characters, yuan(per)), count)
 		return known(per/1e6*float64(target.Characters)*float64(count), true, basis)
 	}
 	if table.PerRequest != nil && *table.PerRequest > 0 {
-		return known(*table.PerRequest*float64(count), false, fmt.Sprintf("%s/次 × %d 次", yuan(*table.PerRequest), count))
+		return known(*table.PerRequest*float64(count), false, fmt.Sprintf("%s/times × %d times", yuan(*table.PerRequest), count))
 	}
-	return Unknown("暂无价格")
+	return Unknown("No price yet")
 }
 
 func imageQuality(image *ImageTable, quality string) string {
@@ -259,15 +259,15 @@ func imagePixels(size string) (int, int, bool) {
 func qualityLabel(quality string) string {
 	switch quality {
 	case "low":
-		return "低质量"
+		return "low quality"
 	case "medium":
-		return "中质量"
+		return "medium quality"
 	case "high":
-		return "高质量"
+		return "high quality"
 	case "xhigh":
-		return "超高质量"
+		return "super high quality"
 	case "max":
-		return "最高质量"
+		return "highest quality"
 	case "standard", "":
 		return ""
 	}
@@ -294,9 +294,9 @@ func tokenRate(table *Table, resolution string) *VideoTokenRate {
 
 func known(amount float64, approx bool, basis string) Estimate {
 	amount = round(amount)
-	label := "预计 "
+	label := "expected"
 	if approx {
-		label = "约 "
+		label = "approx."
 	}
 	return Estimate{Amount: &amount, Approx: approx, Basis: basis, Text: fmt.Sprintf("%s%s（%s）", label, total(amount), basis)}
 }
@@ -309,7 +309,7 @@ func withCount(basis string, count int) string {
 	if count <= 1 {
 		return basis
 	}
-	return fmt.Sprintf("每个 %s，共 %d 个", basis, count)
+	return fmt.Sprintf("%s each, %d in total", basis, count)
 }
 
 func round(value float64) float64 {

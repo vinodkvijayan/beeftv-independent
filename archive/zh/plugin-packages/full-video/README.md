@@ -1,3 +1,3 @@
-# 全参视频
+# Full participation video
 
-兼容全参 2.0 / 2.5 的 JSON 视频接口，支持分片上传参考素材与原片下载。服务地址和 API Key 由用户填写。
+Compatible with the JSON video interface of Full Parameter 2.0 / 2.5, it supports uploading reference materials in parts and downloading the original film. The service address and API Key are filled in by the user.

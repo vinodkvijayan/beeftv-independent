@@ -178,7 +178,7 @@ func TestManagedAudioUsesSpeechEndpointUntilAPIListsAudio(t *testing.T) {
 	path, dir := filepath.Join(t.TempDir(), "workspace.db"), t.TempDir()
 	svc, db := newManagedImageDirectService(t, path, dir)
 	defer closeDB(t, db)
-	input := generation.Input{Mode: "audio", Prompt: "秋夜鱼灯映古巷", Config: generation.Config{CredentialRef: beeftv.CredentialRef, MediaProtocolVersion: beeftv.MediaProtocolVersion, APIKey: "fixture", BaseURL: server.URL, Model: "minimax-speech-2.8-turbo", AudioVoice: "speaker", AudioFormat: "mp3"}}
+	input := generation.Input{Mode: "audio", Prompt: "Fish lanterns reflect the ancient alley on an autumn night", Config: generation.Config{CredentialRef: beeftv.CredentialRef, MediaProtocolVersion: beeftv.MediaProtocolVersion, APIKey: "fixture", BaseURL: server.URL, Model: "minimax-speech-2.8-turbo", AudioVoice: "speaker", AudioFormat: "mp3"}}
 	raw, _ := json.Marshal(input)
 	expires := time.Now().Add(time.Hour)
 	task := model.Task{ID: "audio-speech", UserID: "user-1", Type: "canvas_audio", Status: model.TaskStatusRunning, InputJSON: string(raw), LeaseOwner: "worker", LeaseExpiresAt: &expires}
@@ -256,7 +256,7 @@ func TestManagedAudioSupportsOmniReferencesAndOptionalVoice(t *testing.T) {
 			if _, hasVoice := request.Options["voice"]; hasVoice {
 				t.Errorf("expected auto voice to be omitted, got options=%#v", request.Options)
 			}
-			if request.Options["instructions"] != "温柔甜美少女音" || request.Options["pitch"] != float64(2) || request.Options["volume"] != 1.3 {
+			if request.Options["instructions"] != "Gentle and sweet girly voice" || request.Options["pitch"] != float64(2) || request.Options["volume"] != 1.3 {
 				t.Errorf("unexpected options=%#v", request.Options)
 			}
 			if len(request.Input.References) != 1 || (request.Input.References[0].Kind != "image" && request.Input.References[0].Kind != "audio") {
@@ -291,11 +291,11 @@ func TestManagedAudioSupportsOmniReferencesAndOptionalVoice(t *testing.T) {
 		{id: "audio-omni-audio", audios: []generation.Media{{URL: server.URL + "/ref.mp3"}}},
 	} {
 		input := generation.Input{
-			Mode: "audio", Prompt: "@图片1 你好世界", ReferenceImages: tc.images, ReferenceAudios: tc.audios,
+			Mode: "audio", Prompt: "@Picture1 Hello world", ReferenceImages: tc.images, ReferenceAudios: tc.audios,
 			Config: generation.Config{
 				CredentialRef: beeftv.CredentialRef, MediaProtocolVersion: beeftv.MediaProtocolVersion,
 				APIKey: "fixture", BaseURL: server.URL, Model: "seed-audio-1.0",
-				AudioVoice: "auto", AudioSpeed: "1", AudioPitch: "2", AudioVolume: "1.3", AudioFormat: "mp3", AudioInstructions: "温柔甜美少女音",
+				AudioVoice: "auto", AudioSpeed: "1", AudioPitch: "2", AudioVolume: "1.3", AudioFormat: "mp3", AudioInstructions: "Gentle and sweet girly voice",
 			},
 		}
 		raw, _ := json.Marshal(input)

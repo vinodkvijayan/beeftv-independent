@@ -8,7 +8,7 @@ import (
 
 func TestRecoveryDiagnosticsPreserveHTTPFailureWithoutChangingRetryPolicy(t *testing.T) {
 	err := ImageRecoveryError{Cause: HTTPError{StatusCode: 503, Body: "no available server"}}
-	task := &model.Task{Stage: "正在连接上游"}
+	task := &model.Task{Stage: "Connecting to upstream"}
 	CaptureTaskFailureDiagnostics(task, err, "unknown")
 	d := task.FailureDiagnostics
 	if d.Source != "upstream_http" || d.HTTPStatus != 503 || d.Summary != ClassifyHTTP(503, "", "no available server").UserMessage() {

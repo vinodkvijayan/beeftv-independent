@@ -99,7 +99,7 @@ func (s *Service) Store(userID string, kind string, fileName string, mimeType st
 	resource.UpdatedAt = time.Now()
 	if err != nil {
 		if saveErr := s.persistFailedResource(&resource, err); saveErr != nil {
-			return &resource, true, errors.Join(err, fmt.Errorf("记录资源失败状态失败：%w", saveErr))
+			return &resource, true, errors.Join(err, fmt.Errorf("Failed to record resource failure status: %w", saveErr))
 		}
 		return &resource, true, err
 	}
@@ -122,18 +122,18 @@ func (s *Service) finalizeReady(resource *model.Resource) error {
 	resource.Error = ""
 	if err := s.repo.SaveResource(resource); err != nil {
 		resource.Status = model.ResourceStatusPending
-		resource.Error = fmt.Sprintf("保存资源就绪状态失败：%v", err)
+		resource.Error = fmt.Sprintf("Failed to save resource ready status: %v", err)
 		if statusErr := s.repo.SaveResource(resource); statusErr != nil {
-			return errors.Join(err, fmt.Errorf("记录资源失败状态失败：%w", statusErr))
+			return errors.Join(err, fmt.Errorf("Failed to record resource failure status: %w", statusErr))
 		}
-		return fmt.Errorf("保存资源就绪状态失败：%w", err)
+		return fmt.Errorf("Failed to save resource ready status: %w", err)
 	}
 	return nil
 }
 
 func (s *Service) WriteObject(resource *model.Resource, fileName string, body io.Reader) (string, error) {
 	if resource == nil {
-		return "", errors.New("资源不存在")
+		return "", errors.New("Resource does not exist")
 	}
 	if s == nil || s.blobs == nil {
 		return "", errors.New("local resource store is not initialized")
@@ -228,7 +228,7 @@ func (s *Service) RetryOwned(userID string, resourceID string, kind string, mime
 	if err != nil {
 		if released {
 			if saveErr := s.persistFailedResource(resource, err); saveErr != nil {
-				return nil, errors.Join(err, fmt.Errorf("恢复资源重试失败状态失败：%w", saveErr))
+				return nil, errors.Join(err, fmt.Errorf("Recovery resource retry failed with status failure: %w", saveErr))
 			}
 		}
 		return nil, err
@@ -237,7 +237,7 @@ func (s *Service) RetryOwned(userID string, resourceID string, kind string, mime
 	resource.UpdatedAt = time.Now()
 	if err != nil {
 		if saveErr := s.persistFailedResource(resource, err); saveErr != nil {
-			return nil, errors.Join(err, fmt.Errorf("记录资源重试失败状态失败：%w", saveErr))
+			return nil, errors.Join(err, fmt.Errorf("Failed to record resource retry failure status: %w", saveErr))
 		}
 		if heldRetry {
 			s.releaseRetry(userID, day, size, identity)

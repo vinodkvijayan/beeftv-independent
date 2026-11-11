@@ -138,9 +138,9 @@ func TestSpecializedRoutesBindLocalExecutorRequests(t *testing.T) {
 		t.Fatalf("depth bound = %+v", capture.depth)
 	}
 
-	genBody, _ := json.Marshal(localtask.CreateRequest{Type: model.TaskTypeTimelineRender, Prompt: "时间线渲染"})
+	genBody, _ := json.Marshal(localtask.CreateRequest{Type: model.TaskTypeTimelineRender, Prompt: "Timeline rendering"})
 	postJSON(t, router, "/api/tasks", genBody)
-	if capture.gen.Type != model.TaskTypeTimelineRender || capture.gen.Prompt != "时间线渲染" {
+	if capture.gen.Type != model.TaskTypeTimelineRender || capture.gen.Prompt != "Timeline rendering" {
 		t.Fatalf("generation bound = %+v", capture.gen)
 	}
 	if capture.render.Timeline.Clips[0].DirectMedia == nil {

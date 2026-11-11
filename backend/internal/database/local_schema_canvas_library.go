@@ -10,7 +10,7 @@ import (
 
 func migrateCanvasLibrarySchema(tx *gorm.DB) error {
 	if err := tx.AutoMigrate(&model.CanvasLibraryFolder{}, &model.CanvasDrawing{}); err != nil {
-		return fmt.Errorf("迁移画布文件夹与画板: %w", err)
+		return fmt.Errorf("Migrate canvas folder and artboard: %w", err)
 	}
 	if err := ensureSQLiteColumn(tx, "canvas_projects", "library_folder_id", "TEXT"); err != nil {
 		return err
@@ -38,10 +38,10 @@ func migrateCanvasLibrarySchema(tx *gorm.DB) error {
 
 func requireCanvasLibrarySchema(db *gorm.DB) error {
 	if !db.Migrator().HasTable(&model.CanvasLibraryFolder{}) {
-		return fmt.Errorf("本地画布文件夹表缺失，请启用自动迁移")
+		return fmt.Errorf("Local canvas folder table is missing, please enable automatic migration")
 	}
 	if !db.Migrator().HasTable(&model.CanvasDrawing{}) {
-		return fmt.Errorf("本地画板表缺失，请启用自动迁移")
+		return fmt.Errorf("The local artboard table is missing, please enable automatic migration")
 	}
 	for _, column := range []string{"id", "user_id", "name", "cover_resource_id", "deleted_at", "created_at", "updated_at"} {
 		has, err := sqliteHasColumn(db, "canvas_library_folders", column)
@@ -49,7 +49,7 @@ func requireCanvasLibrarySchema(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("本地画布文件夹表缺失列 %s", column)
+			return fmt.Errorf("Local canvas folder table missing column %s", column)
 		}
 	}
 	for _, column := range []string{
@@ -63,7 +63,7 @@ func requireCanvasLibrarySchema(db *gorm.DB) error {
 			return err
 		}
 		if !has {
-			return fmt.Errorf("本地画板表缺失列 %s", column)
+			return fmt.Errorf("Local artboard table missing column %s", column)
 		}
 	}
 	hasFolder, err := sqliteHasColumn(db, "canvas_projects", "library_folder_id")
@@ -71,7 +71,7 @@ func requireCanvasLibrarySchema(db *gorm.DB) error {
 		return err
 	}
 	if !hasFolder {
-		return fmt.Errorf("本地画布表缺失列 library_folder_id")
+		return fmt.Errorf("Local canvas table missing column library_folder_id")
 	}
 	if err := requireSQLitePrimaryKey(db, "canvas_library_folders", []string{"id"}); err != nil {
 		return err
@@ -89,7 +89,7 @@ func requireCanvasLibrarySchema(db *gorm.DB) error {
 			return err
 		}
 		if !valid {
-			return fmt.Errorf("本地数据库索引 %s 定义不完整", index.name)
+			return fmt.Errorf("Local database index %s definition is incomplete", index.name)
 		}
 	}
 	return nil

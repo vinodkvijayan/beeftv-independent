@@ -39,12 +39,12 @@ func RunSeedanceVideosTask(ctx context.Context, input Input, pollPolicy VideoPol
 		}
 		extracted, err := firstJSONString(created, "id", "task_id")
 		if err != nil {
-			return nil, SubmissionUnknownError{Cause: fmt.Errorf("视频接口任务 ID 无效：%w", err)}
+			return nil, SubmissionUnknownError{Cause: fmt.Errorf("Invalid video interface task ID: %w", err)}
 		}
 		id = extracted
 	}
 	if id == "" {
-		return nil, SubmissionUnknownError{Cause: errors.New("视频接口没有返回任务 ID")}
+		return nil, SubmissionUnknownError{Cause: errors.New("Video interface does not return task ID")}
 	}
 	return RunVideoPollLoop(ctx, id, pollPolicy, func(ctx context.Context) (VideoPollOutcome, error) {
 		var state map[string]interface{}
@@ -62,7 +62,7 @@ func RunSeedanceVideosTask(ctx context.Context, input Input, pollPolicy VideoPol
 			if videoURL != "" {
 				data, mimeType, err := RunVideoDownload(ctx, id, pollPolicy, videoResultDownloader(input.Config, videoURL, id, newAPIVideoURLResolver(input.Config, id)))
 				if err != nil {
-					return VideoPollOutcome{}, fmt.Errorf("视频结果下载失败：%w", err)
+					return VideoPollOutcome{}, fmt.Errorf("Video result download failed: %w", err)
 				}
 				mimeType = NormalizedMediaMIMEType(mimeType, data)
 				videoMap := map[string]interface{}{"dataUrl": DataURL(mimeType, data), "mimeType": mimeType}
@@ -71,7 +71,7 @@ func RunSeedanceVideosTask(ctx context.Context, input Input, pollPolicy VideoPol
 			}
 			data, mimeType, err := RunVideoDownload(ctx, id, pollPolicy, videoResultDownloader(input.Config, APIURL(input.Config.BaseURL, "/videos/"+id+"/content"), id, newAPIVideoURLResolver(input.Config, id)))
 			if err != nil {
-				return VideoPollOutcome{}, fmt.Errorf("视频任务成功但未返回视频 URL，备用内容下载失败：%w", err)
+				return VideoPollOutcome{}, fmt.Errorf("The video task was successful but the video URL was not returned, and the backup content download failed: %w", err)
 			}
 			mimeType = NormalizedMediaMIMEType(mimeType, data)
 			videoMap := map[string]interface{}{"dataUrl": DataURL(mimeType, data), "mimeType": mimeType}
@@ -81,7 +81,7 @@ func RunSeedanceVideosTask(ctx context.Context, input Input, pollPolicy VideoPol
 		if status == "failed" || status == "cancelled" || status == "expired" {
 			message := SeedanceErrorMessage(state)
 			if message == "" {
-				payload, _ := json.Marshal(map[string]interface{}{"error": map[string]string{"code": "task_failed", "message": "视频生成失败", "task_id": id}})
+				payload, _ := json.Marshal(map[string]interface{}{"error": map[string]string{"code": "task_failed", "message": "Video generation failed", "task_id": id}})
 				message = string(payload)
 			}
 			return VideoPollOutcome{}, errors.New(message)
@@ -173,7 +173,7 @@ func BeefTVVideoRequestBody(input Input) (map[string]interface{}, error) {
 func RunSeedanceAgentPlanVideoTask(ctx context.Context, input Input, pollPolicy VideoPollPolicy) (map[string]interface{}, error) {
 	providerName := "Seedance"
 	if model.IsVolcengineArkVideoProtocol(model.ChannelInterfaceType(input.Config.InterfaceType)) {
-		providerName = "火山方舟"
+		providerName = "Volcano Ark"
 	}
 	// Agent Plan 与 Videos API 使用相同的恢复合同：已有任务只查询，不重复创建。
 	// 外部签名地址仍统一经过 doBinary 的 SSRF、状态码和响应大小检查。
@@ -237,12 +237,12 @@ func RunSeedanceAgentPlanVideoTask(ctx context.Context, input Input, pollPolicy 
 		}
 		extracted, err := firstJSONString(created, "id")
 		if err != nil {
-			return nil, fmt.Errorf("%s接口任务 ID 无效：%w", providerName, err)
+			return nil, fmt.Errorf("%s interface task ID is invalid: %w", providerName, err)
 		}
 		id = extracted
 	}
 	if id == "" {
-		return nil, fmt.Errorf("%s接口没有返回任务 ID", providerName)
+		return nil, fmt.Errorf("%s interface does not return task ID", providerName)
 	}
 	return RunVideoPollLoop(ctx, id, pollPolicy, func(ctx context.Context) (VideoPollOutcome, error) {
 		var state map[string]interface{}
@@ -259,7 +259,7 @@ func RunSeedanceAgentPlanVideoTask(ctx context.Context, input Input, pollPolicy 
 			content, _ := state["content"].(map[string]interface{})
 			videoURL := stringField(content, "video_url")
 			if videoURL == "" {
-				return VideoPollOutcome{}, fmt.Errorf("%s任务成功但没有返回视频 URL", providerName)
+				return VideoPollOutcome{}, fmt.Errorf("%s task was successful but no video URL was returned", providerName)
 			}
 			renew := videoTaskURLResolver(input.Config, id, "/contents/generations/tasks/"+id, func(state map[string]interface{}) (string, string) {
 				content, _ := state["content"].(map[string]interface{})
@@ -267,7 +267,7 @@ func RunSeedanceAgentPlanVideoTask(ctx context.Context, input Input, pollPolicy 
 			})
 			data, mimeType, err := RunVideoDownload(ctx, id, pollPolicy, videoResultDownloader(input.Config, videoURL, id, renew))
 			if err != nil {
-				return VideoPollOutcome{}, fmt.Errorf("视频结果下载失败：%w", err)
+				return VideoPollOutcome{}, fmt.Errorf("Video result download failed: %w", err)
 			}
 			mimeType = NormalizedMediaMIMEType(mimeType, data)
 			videoMap := map[string]interface{}{"dataUrl": DataURL(mimeType, data), "mimeType": mimeType}
@@ -275,7 +275,7 @@ func RunSeedanceAgentPlanVideoTask(ctx context.Context, input Input, pollPolicy 
 			return VideoPollOutcome{Done: true, Result: map[string]interface{}{"mode": "video", "video": videoMap}}, nil
 		}
 		if status == "failed" || status == "cancelled" || status == "expired" {
-			return VideoPollOutcome{}, fmt.Errorf("%s视频生成失败", providerName)
+			return VideoPollOutcome{}, fmt.Errorf("%s video generation failed", providerName)
 		}
 		return VideoPollOutcome{}, nil
 	})
@@ -316,7 +316,7 @@ func SeedanceContent(input Input) ([]map[string]interface{}, error) {
 		content = append(content, map[string]interface{}{"type": "audio_url", "audio_url": map[string]interface{}{"url": url}, "role": "reference_audio"})
 	}
 	if len(content) == 0 {
-		return nil, errors.New("请输入视频提示词或连接参考素材")
+		return nil, errors.New("Please enter the video prompt word or connect the reference material")
 	}
 	return content, nil
 }
@@ -330,7 +330,7 @@ func SeedanceVideosRequestBody(input Input) (SeedanceVideosRequest, error) {
 		}, nil
 	}
 	if len(input.ReferenceImages) == 0 && len(input.ReferenceVideos) == 0 && len(input.ReferenceAudios) > 0 && !videoCapabilityAllowsAudioOnly(input.VideoCapability) {
-		return SeedanceVideosRequest{}, errors.New("当前视频模型不支持只用音频生成视频，请同时添加参考图片或参考视频")
+		return SeedanceVideosRequest{}, errors.New("The current video model does not support generating video using audio only. Please also add reference pictures or reference videos.")
 	}
 	body := SeedanceVideosRequest{
 		Model:       input.Config.Model,
@@ -497,12 +497,12 @@ func VideoFrameImageURLs(input Input, imageURLs []string) ([]string, error) {
 			used[index] = true
 			return nil
 		}
-		return fmt.Errorf("已配置的%s参考图未包含在视频请求中", label)
+		return fmt.Errorf("The configured %s reference image was not included in the video request", label)
 	}
-	if err := appendFrame(startFrameID, "首帧"); err != nil {
+	if err := appendFrame(startFrameID, "first frame"); err != nil {
 		return nil, err
 	}
-	if err := appendFrame(endFrameID, "尾帧"); err != nil {
+	if err := appendFrame(endFrameID, "last frame"); err != nil {
 		return nil, err
 	}
 	for index, imageURL := range imageURLs {
@@ -522,7 +522,7 @@ func MediaReferenceURL(media Media) (string, error) {
 	if value != "" {
 		return value, nil
 	}
-	return "", errors.New("参考素材需要公网 URL、asset:// 素材 ID 或 data URL")
+	return "", errors.New("Reference materials require public URL, asset:// material ID or data URL")
 }
 
 func SeedanceVideosMediaURL(media Media) (string, error) {
@@ -534,7 +534,7 @@ func SeedanceVideosMediaURL(media Media) (string, error) {
 	if strings.HasPrefix(value, "data:") || strings.HasPrefix(value, "asset://") || IsPublicMediaURL(value) {
 		return value, nil
 	}
-	return "", errors.New("Seedance /videos 参考素材需要公网 URL、asset:// 素材 ID 或 data URL")
+	return "", errors.New("Seedance /videos reference material requires public URL, asset:// material ID or data URL")
 }
 
 func BeefTVAudioURL(media Media) (string, error) {
@@ -549,7 +549,7 @@ func BeefTVAudioURL(media Media) (string, error) {
 	if strings.HasPrefix(strings.ToLower(data), "data:") {
 		return data, nil
 	}
-	return "", errors.New("参考音频需要公网 URL、asset:// 素材 ID 或 data URL")
+	return "", errors.New("Reference audio requires public network URL, asset:// material ID or data URL")
 }
 
 func SeedanceErrorMessage(state map[string]interface{}) string {

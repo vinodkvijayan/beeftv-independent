@@ -7,14 +7,14 @@ import (
 
 func testDescriptor() Descriptor {
 	return Descriptor{
-		Type: "  custom  ", Version: "1", Label: "自定义", DefaultWidth: 100, DefaultHeight: 80,
+		Type: "  custom  ", Version: "1", Label: "Customize", DefaultWidth: 100, DefaultHeight: 80,
 		InputKind: " TEXT ", GenerationMode: " IMAGE ",
 		Connection: ConnectionPolicy{CanSource: true, CanTarget: true, CanReference: true, AcceptedInputKinds: []string{"image", " TEXT "}, RejectedInputKinds: []string{"audio"}, MaxInputCount: 2},
 		CanUpdate:  true, SummaryFields: []string{" prompt ", "prompt", "content"}, DetailFields: []string{"content"},
 		PatchFields: map[string]PatchField{
-			"title":   {Path: " title ", Kind: " STRING ", Label: " 节点名称 ", Order: 10, Description: " 节点标题 ", MaxRunes: 20},
-			"enabled": {Path: "metadata.enabled", Kind: "boolean", Label: "启用状态", Order: 20},
-			"weight":  {Path: "metadata.weight", Kind: "number", Label: "权重", Order: 30},
+			"title":   {Path: " title ", Kind: " STRING ", Label: " Node name", Order: 10, Description: " Node title", MaxRunes: 20},
+			"enabled": {Path: "metadata.enabled", Kind: "boolean", Label: "Enabled status", Order: 20},
+			"weight":  {Path: "metadata.weight", Kind: "number", Label: "weight", Order: 30},
 		},
 	}
 }
@@ -58,7 +58,7 @@ func TestRegistryNormalizesAndProtectsDescriptors(t *testing.T) {
 	if descriptor.Connection.AcceptedInputKinds[0] != "image" {
 		t.Fatalf("registry retained caller mutation: %#v", descriptor.Connection.AcceptedInputKinds)
 	}
-	if descriptor.PatchFields["title"].Path != "title" || descriptor.PatchFields["title"].Kind != "string" || descriptor.PatchFields["title"].Label != "节点名称" || descriptor.PatchFields["title"].Description != "节点标题" {
+	if descriptor.PatchFields["title"].Path != "title" || descriptor.PatchFields["title"].Kind != "string" || descriptor.PatchFields["title"].Label != "Node name" || descriptor.PatchFields["title"].Description != "Node title" {
 		t.Fatalf("registry retained caller mutation: %#v", descriptor.PatchFields)
 	}
 
@@ -131,7 +131,7 @@ func TestRegistryHashIsStableAndTracksDeclarativeContract(t *testing.T) {
 
 	described := second
 	field := described.PatchFields["title"]
-	field.Description = "不同的字段语义"
+	field.Description = "Different field semantics"
 	described.PatchFields["title"] = field
 	withDescription, err := NewRegistry([]Descriptor{described})
 	if err != nil {
@@ -213,7 +213,7 @@ func TestDescriptorConnectionAndPatchContract(t *testing.T) {
 		"string type":  {"title": true},
 		"number type":  {"weight": "1"},
 		"boolean type": {"enabled": 1.0},
-		"rune limit":   {"title": strings.Repeat("界", 21)},
+		"rune limit":   {"title": strings.Repeat("boundary", 21)},
 	} {
 		t.Run(name, func(t *testing.T) {
 			if err := descriptor.ValidatePatch(patch); err == nil {
@@ -222,12 +222,12 @@ func TestDescriptorConnectionAndPatchContract(t *testing.T) {
 		})
 	}
 	node := map[string]any{"metadata": map[string]any{"untouched": true}}
-	patch := map[string]any{"title": "标题", "enabled": true, "weight": 1.5}
+	patch := map[string]any{"title": "Title", "enabled": true, "weight": 1.5}
 	if err := descriptor.ApplyPatch(node, patch); err != nil {
 		t.Fatal(err)
 	}
 	metadata := node["metadata"].(map[string]any)
-	if node["title"] != "标题" || metadata["enabled"] != true || metadata["weight"] != 1.5 || metadata["untouched"] != true {
+	if node["title"] != "Title" || metadata["enabled"] != true || metadata["weight"] != 1.5 || metadata["untouched"] != true {
 		t.Fatalf("patch was not applied by declared paths: %#v", node)
 	}
 }
@@ -266,27 +266,27 @@ func TestBuiltinMediaCapabilitiesUpdateDraftWithoutOverwritingGeneratedAssets(t 
 			}
 
 			node := map[string]any{
-				"title": "旧标题",
+				"title": "old title",
 				"metadata": map[string]any{
 					"content":         "resource:generated-result",
-					"prompt":          "已提交提示词",
-					"composerContent": "旧草稿",
+					"prompt":          "Prompt word submitted",
+					"composerContent": "old draft",
 					"status":          "success",
 				},
 			}
-			if err := descriptor.ApplyPatch(node, map[string]any{"title": "新标题", "content": "下一版提示词"}); err != nil {
+			if err := descriptor.ApplyPatch(node, map[string]any{"title": "new title", "content": "Prompt word for next edition"}); err != nil {
 				t.Fatal(err)
 			}
 			metadata := node["metadata"].(map[string]any)
-			if node["title"] != "新标题" || metadata["composerContent"] != "下一版提示词" {
+			if node["title"] != "new title" || metadata["composerContent"] != "Prompt word for next edition" {
 				t.Fatalf("media draft was not updated: %#v", node)
 			}
-			if metadata["content"] != "resource:generated-result" || metadata["prompt"] != "已提交提示词" || metadata["status"] != "success" {
+			if metadata["content"] != "resource:generated-result" || metadata["prompt"] != "Prompt word submitted" || metadata["status"] != "success" {
 				t.Fatalf("media result or submission snapshot was overwritten: %#v", metadata)
 			}
 
-			created := descriptor.Metadata("初始草稿")
-			if created["content"] != "" || created["prompt"] != "初始草稿" || created["composerContent"] != "初始草稿" || created["status"] != "idle" {
+			created := descriptor.Metadata("initial draft")
+			if created["content"] != "" || created["prompt"] != "initial draft" || created["composerContent"] != "initial draft" || created["status"] != "idle" {
 				t.Fatalf("media draft metadata is incomplete: %#v", created)
 			}
 		})
@@ -313,7 +313,7 @@ func TestRegistryDynamicPluginDescriptors(t *testing.T) {
 	err := registry.SetPluginDescriptors("storyboard-grid", []Descriptor{
 		{
 			Type:          "storyboard-grid",
-			Label:         "分镜九宫格",
+			Label:         "Storyboard Nine Palaces",
 			DefaultWidth:  520,
 			DefaultHeight: 420,
 		},
@@ -322,10 +322,10 @@ func TestRegistryDynamicPluginDescriptors(t *testing.T) {
 		t.Fatalf("SetPluginDescriptors failed: %v", err)
 	}
 	resolved, ok := registry.Resolve("storyboard-grid")
-	if !ok || resolved.Label != "分镜九宫格" || resolved.DefaultWidth != 520 || resolved.DefaultHeight != 420 {
+	if !ok || resolved.Label != "Storyboard Nine Palaces" || resolved.DefaultWidth != 520 || resolved.DefaultHeight != 420 {
 		t.Fatalf("resolved plugin descriptor = %#v, ok=%v", resolved, ok)
 	}
-	if err := registry.SetPluginDescriptors("other-plugin", []Descriptor{{Type: "text", Label: "冲突"}}); err == nil {
+	if err := registry.SetPluginDescriptors("other-plugin", []Descriptor{{Type: "text", Label: "conflict"}}); err == nil {
 		t.Fatal("expected collision with built-in type to fail")
 	}
 	registry.RemovePluginDescriptors("storyboard-grid")

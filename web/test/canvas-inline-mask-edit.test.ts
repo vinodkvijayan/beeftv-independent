@@ -27,10 +27,10 @@ describe("inline canvas mask editing", () => {
 
     test("keeps prompt, settings and icon-only submit controls accessible", () => {
         const editor = read("../src/components/canvas/canvas-node-mask-edit-dialog.tsx");
-        expect(editor).toContain('<input aria-label="局部重绘要求"');
-        expect(editor).not.toContain('<textarea aria-label="局部重绘要求"');
+        expect(editor).toContain('<input aria-label="Partial redraw request"');
+        expect(editor).not.toContain('<textarea aria-label="Partial redraw requirement"');
         expect(editor).toContain("items-center gap-1.5");
-        expect(editor).toContain('aria-label="局部重绘设置"');
+        expect(editor).toContain('aria-label="Partial redraw settings"');
         expect(editor).toContain('aria-label={isSubmitting ? "正在修改" : "AI 修改"}');
         expect(editor).toContain("theme.toolbar.panel");
         expect(editor).toContain("theme.spatial.elevated");

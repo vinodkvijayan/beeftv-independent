@@ -47,12 +47,12 @@ func (r pluginReferences) ReferencedProviders() (map[string]plugins.ReferenceUsa
 	mergeReferenceCounts(usage, configured, false)
 	channelModels, err := r.store.ChannelModelProtocolReferences()
 	if err != nil {
-		return nil, fmt.Errorf("盘点系统渠道模型协议失败：%w", err)
+		return nil, fmt.Errorf("Inventory system channel model agreement failed: %w", err)
 	}
 	mergeReferenceCounts(usage, channelModels, false)
 	pendingTasks, err := r.store.TaskProviderReferences()
 	if err != nil {
-		return nil, fmt.Errorf("盘点未取回结果的任务失败：%w", err)
+		return nil, fmt.Errorf("The task of counting the results without retrieval failed: %w", err)
 	}
 	mergeReferenceCounts(usage, pendingTasks, true)
 	return usage, nil
@@ -61,11 +61,11 @@ func (r pluginReferences) ReferencedProviders() (map[string]plugins.ReferenceUsa
 func (r pluginReferences) configuredProtocols() (map[string]int64, error) {
 	store, err := workspace.NewProviderConfig(r.dataDir)
 	if err != nil {
-		return nil, fmt.Errorf("读取本地模型配置失败：%w", err)
+		return nil, fmt.Errorf("Failed to read local model configuration: %w", err)
 	}
 	counts, err := store.SavedProtocolReferences()
 	if err != nil {
-		return nil, fmt.Errorf("盘点本地模型配置协议失败：%w", err)
+		return nil, fmt.Errorf("Inventory of local model configuration protocol failed: %w", err)
 	}
 	return counts, nil
 }

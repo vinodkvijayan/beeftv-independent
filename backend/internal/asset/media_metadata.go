@@ -31,7 +31,7 @@ func (s *Service) EnsureMediaMetadata(ctx context.Context, userID, id string) (*
 		return nil, err
 	}
 	if resource.Status != model.ResourceStatusReady {
-		return nil, fmt.Errorf("参考素材尚未保存完成")
+		return nil, fmt.Errorf("The reference material has not been saved yet")
 	}
 	if !missingMediaMetadata(resource) {
 		return resource, nil
@@ -44,7 +44,7 @@ func (s *Service) EnsureMediaMetadata(ctx context.Context, userID, id string) (*
 	}
 	resource.UpdatedAt = time.Now()
 	if err := s.repo.UpdateResourceMediaMetadata(ctx, resource); err != nil {
-		return nil, fmt.Errorf("保存媒体检查结果失败：%w", err)
+		return nil, fmt.Errorf("Failed to save media check result: %w", err)
 	}
 	return resource, nil
 }
@@ -54,11 +54,11 @@ func (s *Service) probeMediaMetadata(ctx context.Context, resource *model.Resour
 		return nil
 	}
 	if strings.TrimSpace(resource.Provider) != "local" || s.blobs == nil {
-		return fmt.Errorf("参考素材不是可读取的本地文件，请重新导入")
+		return fmt.Errorf("The reference material is not a readable local file, please re-import it.")
 	}
 	file, err := s.blobs.Open(resource.ObjectKey)
 	if err != nil {
-		return fmt.Errorf("参考素材文件无法读取，请重新导入")
+		return fmt.Errorf("The reference material file cannot be read, please import it again.")
 	}
 	defer file.Close()
 	facts, err := mediatools.ProbeLocal(ctx, file.Name())
@@ -67,7 +67,7 @@ func (s *Service) probeMediaMetadata(ctx context.Context, resource *model.Resour
 	}
 	if facts.DurationMs <= 0 || (resource.Kind == "audio" && !facts.HasAudio) ||
 		(resource.Kind == "video" && (!facts.HasVideo || facts.Width <= 0 || facts.Height <= 0)) {
-		return fmt.Errorf("无法读取参考素材的时长或画面尺寸，请重新导入完整素材")
+		return fmt.Errorf("Unable to read the duration or screen size of the reference material, please re-import the complete material.")
 	}
 	if resource.DurationMs <= 0 {
 		resource.DurationMs = facts.DurationMs

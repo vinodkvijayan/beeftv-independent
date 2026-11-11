@@ -140,7 +140,7 @@ func TestCanvasRenderAtomicAdmissionReplayAndNativeOutput(t *testing.T) {
 	if count != 1 {
 		t.Fatal("orphan task survived rollback")
 	}
-	createPayload, _ := json.Marshal(map[string]any{"canvasId": "canvas", "expectedRevision": summary.Revision, "nodes": []any{map[string]any{"title": "成片预览", "type": "video"}}})
+	createPayload, _ := json.Marshal(map[string]any{"canvasId": "canvas", "expectedRevision": summary.Revision, "nodes": []any{map[string]any{"title": "Finished film preview", "type": "video"}}})
 	created, err := registry.Execute(operations.Request{UserID: "owner", Caller: operations.AssistantCaller(trustedScope, false), TurnID: turnID, Op: "canvas.nodes.create", OpID: "preview-node", Params: createPayload})
 	if err != nil {
 		t.Fatal(err)

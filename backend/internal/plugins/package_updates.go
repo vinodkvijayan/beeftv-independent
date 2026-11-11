@@ -108,10 +108,10 @@ func (s *Service) RunOfficialUpdates(ctx context.Context) {
 				continue
 			}
 			if _, err := s.UpdatePackage(notice.ID, ""); err != nil {
-				log.Printf("自动更新插件 %s 到 %s 失败：%v", notice.ID, notice.Latest, err)
+				log.Printf("Automatic update of plugin %s to %s failed: %v", notice.ID, notice.Latest, err)
 				continue
 			}
-			log.Printf("插件 %s 已自动更新到 %s", notice.ID, notice.Latest)
+			log.Printf("Plug-in %s has been automatically updated to %s", notice.ID, notice.Latest)
 		}
 		timer.Reset(officialUpdateInterval)
 	}

@@ -10,29 +10,29 @@ const edge = (id: string, fromNodeId: string, toNodeId: string): CanvasConnectio
 
 test("rewires the existing reference edge and rewrites the prompt mention", () => {
     const nodes = [
-        node("old", CanvasNodeType.Image, { title: "旧图" }),
-        node("next", CanvasNodeType.Image, { title: "新图" }),
-        node("shot", CanvasNodeType.Image, { metadata: { prompt: "用 @图片1 做背景" } }),
+        node("old", CanvasNodeType.Image, { title: "old picture" }),
+        node("next", CanvasNodeType.Image, { title: "new picture" }),
+        node("shot", CanvasNodeType.Image, { metadata: { prompt: "Use @Picture1 as background" } }),
     ];
     const connections = [edge("e1", "old", "shot")];
-    const result = replaceCanvasNodeReference(nodes, connections, "shot", { id: "ref", nodeId: "old", label: "图片1" }, "next", () => "e2");
+    const result = replaceCanvasNodeReference(nodes, connections, "shot", { id: "ref", nodeId: "old", label: "Picture 1" }, "next", () => "e2");
     expect(result.connections).toEqual([edge("e1", "next", "shot")]);
     const shot = result.nodes.find((item) => item.id === "shot");
-    expect(shot?.metadata?.prompt ?? shot?.metadata?.composerContent).toContain("@图片1");
-    expect(shot?.metadata?.prompt ?? shot?.metadata?.composerContent).not.toContain("旧图");
-    expect(result.notice).toBe("已将参考图「图片1」替换为「新图」，提示词已同步更新");
+    expect(shot?.metadata?.prompt ?? shot?.metadata?.composerContent).toContain("@Picture1");
+    expect(shot?.metadata?.prompt ?? shot?.metadata?.composerContent).not.toContain("old picture");
+    expect(result.notice).toBe("The reference picture \"Picture 1\" has been replaced with \"New Picture\", and the prompt words have been updated simultaneously.");
     expect(connections[0]?.fromNodeId).toBe("old");
 });
 
 test("adds a new edge when the old reference was not connected, and routes it through a config node", () => {
     const nodes = [
         node("old", CanvasNodeType.Image),
-        node("next", CanvasNodeType.Image, { title: "替补" }),
+        node("next", CanvasNodeType.Image, { title: "Substitute" }),
         node("shot", CanvasNodeType.Image),
         node("config", CanvasNodeType.Config),
     ];
     const connections = [edge("main", "shot", "config")];
-    const result = replaceCanvasNodeReference(nodes, connections, "shot", { id: "ref", nodeId: "missing", label: "图片2" }, "next", () => "added");
+    const result = replaceCanvasNodeReference(nodes, connections, "shot", { id: "ref", nodeId: "missing", label: "Picture 2" }, "next", () => "added");
     expect(result.connections.map((item) => item.id)).toEqual(["main", "added"]);
     expect(result.connections[1]).toEqual(edge("added", "next", "config"));
 });

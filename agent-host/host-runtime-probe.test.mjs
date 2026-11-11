@@ -18,7 +18,7 @@ beforeAll(() => {
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }, 170000);
 
-describe('真实 Node 与 pi SDK 的隔离执行链（模型和操作端点均为本地替身）', () => {
+describe('Isolated execution chain between real Node and pi SDK (both model and operation endpoints are local avatars)', () => {
   for (const name of [
     'budget-exhaustion-is-an-explicit-failed-turn',
     'new-turn-after-budget-exhaustion-still-works',

@@ -15,31 +15,31 @@ describe("emotion edit provider plan", () => {
         expect(plan).toEqual({
             mode: "local-composite",
             includeMask: false,
-            notice: "当前渠道不支持蒙版，使用脸部裁切与本地羽化融合",
+            notice: "The current channel does not support masks, use face cropping and local feathering fusion",
         });
         expect(emotionProviderMask(plan, { dataUrl: "data:image/png;base64,bWFzaw==" })).toBeUndefined();
     });
 
     test("does not promise a provider mask in the shared emotion prompt", () => {
         const prompt = buildEmotionPrompt(
-            { presetId: "emotion-0-0", intimacy: 0, arousal: 0, characterName: "角色1", faceBox },
+            { presetId: "emotion-0-0", intimacy: 0, arousal: 0, characterName: "role 1", faceBox },
             editRegion,
         );
 
-        expect(prompt).not.toContain("透明蒙版");
-        expect(prompt).not.toContain("白色蒙版");
-        expect(prompt).toContain("目标人脸框");
+        expect(prompt).not.toContain("transparency mask");
+        expect(prompt).not.toContain("white mask");
+        expect(prompt).toContain("target face frame");
     });
 
     test("removes legacy mask promises before retrying an existing emotion node", () => {
         const legacyPrompt = [
-            "只允许修改目标框及其透明蒙版对应的这一张脸。",
-            "输入图已裁切到目标人物头部区域；透明蒙版内允许编辑，白色蒙版区域必须保持不变，蒙版外绝对不要生成或修改任何内容。",
+            "Only the face corresponding to the target frame and its transparent mask is allowed to be modified.",
+            "The input image has been cropped to the head area of the target character; editing is allowed within the transparent mask, the white mask area must remain unchanged, and absolutely no content should be generated or modified outside the mask.",
         ].join("\n");
 
         const prompt = normalizeEmotionPromptForProvider(legacyPrompt);
-        expect(prompt).not.toContain("透明蒙版");
-        expect(prompt).not.toContain("白色蒙版");
-        expect(prompt).toContain("目标人脸框及其邻近表情区域");
+        expect(prompt).not.toContain("transparency mask");
+        expect(prompt).not.toContain("white mask");
+        expect(prompt).toContain("Target face frame and its adjacent expression area");
     });
 });

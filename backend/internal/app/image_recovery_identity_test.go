@@ -75,7 +75,7 @@ func TestImageSubmissionFreezesOriginalAttemptChannel(t *testing.T) {
 	}
 	wire, err := s.imageSubmissionWire(row)
 	if err != nil || wire.ChannelID != attempt.ChannelID || wire.Header.Get("Authorization") != "Bearer original-upstream-token" || string(wire.Body) != string(body) {
-		t.Fatal("冻结请求未绑定原 attempt 渠道与实际传输凭据")
+		t.Fatal("The frozen request is not bound to the original attempt channel and the actual transmission credentials.")
 	}
 }
 
@@ -165,10 +165,10 @@ func TestAutomaticImageRecoveryPinsOriginalChannelAndCredentialIdentity(t *testi
 					t.Fatal(readErr)
 				}
 				if req.URL.String() != originalURL || req.Header.Get("Authorization") != originalAuth || req.Header.Get("Idempotency-Key") != originalKey || string(body) != string(originalBody) {
-					t.Fatal("原渠道、凭据、键或字节改变")
+					t.Fatal("Original channel, credential, key or byte changes")
 				}
 				if canonicalCallMeta(req.Context()).ChannelID != originalChannel.ID {
-					t.Fatal("传输运行时被当前任务的新渠道覆盖")
+					t.Fatal("Transport runtime is overwritten by new channel for current task")
 				}
 				return []byte(`{"data":[{"url":"https://example.invalid/original.png"}]}`), "application/json", nil
 			})
@@ -180,11 +180,11 @@ func TestAutomaticImageRecoveryPinsOriginalChannelAndCredentialIdentity(t *testi
 				return
 			}
 			if sends != 0 || len(result) != 0 {
-				t.Fatal("原渠道不可用时仍然重发或改走备用渠道")
+				t.Fatal("When the original channel is unavailable, it will still be resent or switched to an alternate channel.")
 			}
 			if mode == "channel-read-failure" {
 				if err == nil || conclusion != "" {
-					t.Fatal("数据库读取错误被当成永久拿不回")
+					t.Fatal("Database read errors are treated as permanent and cannot be recovered")
 				}
 			} else if err != nil || conclusion != localtask.RecoveryUnrecoverable {
 				t.Fatalf("conclusion=%s err=%v", conclusion, err)
@@ -201,24 +201,24 @@ func TestAutomaticImageRecoveryPinsOriginalChannelAndCredentialIdentity(t *testi
 			}
 			if mode == "channel-read-failure" {
 				if recoveryErr == nil || stored.RecoveryOutcome != nil {
-					t.Fatal("临时数据库故障写入永久结论")
+					t.Fatal("Temporary database failure writes permanent conclusion")
 				}
 			} else {
 				got, loadErr := s.Task(task.UserID, task.ID)
 				if recoveryErr != nil || loadErr != nil || got.Outcome.Phase != "failed" || got.Outcome.Regenerate != "confirm" || stored.RecoveryOutcome == nil || *stored.RecoveryOutcome != localtask.RecoveryUnrecoverable {
-					t.Fatalf("未保持拿不回/需确认: task=%+v err=%v %v", got, recoveryErr, loadErr)
+					t.Fatalf("Cannot be retrieved if not kept/confirmation required: task=%+v err=%v %v", got, recoveryErr, loadErr)
 				}
 			}
 			storedSubmission, err := s.repo.ImageSubmission(row.AttemptID, task.ID, task.UserID)
 			if err != nil || storedSubmission.SendCount != 0 {
-				t.Fatal("原身份不可用时占用了发送次数")
+				t.Fatal("The number of sending times is occupied when the original identity is unavailable.")
 			}
 			var attempts int64
 			if err := db.Model(&model.RouteAttempt{}).Where("task_id = ?", task.ID).Count(&attempts).Error; err != nil {
 				t.Fatal(err)
 			}
 			if attempts != 1 || stored.RouteRun != task.RouteRun {
-				t.Fatal("偷偷创建了新路由或轮次")
+				t.Fatal("Secretly created a new route or round")
 			}
 		})
 	}
@@ -282,7 +282,7 @@ func TestAutomaticImageRecoveryStopsOnOriginalCredentialRejection(t *testing.T) 
 				}
 				sends++
 				if req.Header.Get("Authorization") != "Bearer private-test-key" {
-					t.Fatal("替换了原凭据")
+					t.Fatal("Replaced original credentials")
 				}
 				return nil, "", providerHTTPError{StatusCode: status, Body: `{"error":{"code":"token_revoked"}}`}
 			})

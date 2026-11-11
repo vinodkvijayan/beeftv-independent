@@ -295,7 +295,7 @@ func CorrectPersistedVODParameterFailure(task model.Task) model.Task {
 	}
 	raw, _ := json.Marshal(map[string]any{"error": map[string]string{"code": r.ProviderCode}})
 	failure := generation.ClassifyError(generation.HTTPError{StatusCode: 400, Body: string(raw)})
-	task.Stage = "生成失败"
+	task.Stage = "Build failed"
 	task.Error = failure.UserMessage()
 	task.FailureDiagnostics = generation.SanitizeTaskDiagnostics(d)
 	task.FailureDiagnostics.Summary = failure.UserMessage()
@@ -584,7 +584,7 @@ func (p *TextStreamPublisher) flushLocked() {
 	if err != nil {
 		p.disabled = true
 		if p.LogWarn != nil {
-			p.LogWarn(p.UserID, p.TaskID, "文本流持久化已降级", err.Error())
+			p.LogWarn(p.UserID, p.TaskID, "Text stream persistence has been degraded", err.Error())
 		}
 	}
 }

@@ -39,17 +39,17 @@ func CanonicalOrigin(explicit string) (string, error) {
 func parseSafeTestOrigin(raw string) (string, error) {
 	parsed, err := url.Parse(raw)
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return "", fmt.Errorf("测试企业源地址无效")
+		return "", fmt.Errorf("The test enterprise source address is invalid")
 	}
 	if parsed.User != nil || parsed.Opaque != "" || strings.Trim(parsed.Path, "/") != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return "", fmt.Errorf("测试企业源地址只能是企业预览源")
+		return "", fmt.Errorf("The test enterprise source address can only be the enterprise preview source")
 	}
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return "", fmt.Errorf("测试企业源地址只支持 HTTP 或 HTTPS")
+		return "", fmt.Errorf("Test enterprise source address only supports HTTP or HTTPS")
 	}
 	host := parsed.Hostname()
 	if !isSafeTestHost(host) {
-		return "", fmt.Errorf("测试企业源地址只允许 enterprise.localhost 或 loopback")
+		return "", fmt.Errorf("Test enterprise source address only allows enterprise.localhost or loopback")
 	}
 	return parsed.Scheme + "://" + parsed.Host, nil
 }
@@ -86,7 +86,7 @@ func WalletURL(origin string) string {
 func ValidateReturnedBaseURL(origin, baseURL string) error {
 	normalized := strings.TrimRight(strings.TrimSpace(baseURL), "/")
 	if normalized != TokenBaseURL(origin) {
-		return fmt.Errorf("企业接口返回的服务地址无效")
+		return fmt.Errorf("The service address returned by the enterprise interface is invalid")
 	}
 	return nil
 }
@@ -94,17 +94,17 @@ func ValidateReturnedBaseURL(origin, baseURL string) error {
 func ValidateVerificationURL(origin, raw string) (*url.URL, error) {
 	parsed, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return nil, fmt.Errorf("授权地址无效")
+		return nil, fmt.Errorf("Authorization address is invalid")
 	}
 	if parsed.User != nil {
-		return nil, fmt.Errorf("授权地址无效")
+		return nil, fmt.Errorf("Authorization address is invalid")
 	}
 	if !strings.EqualFold(parsed.Scheme+"://"+parsed.Host, origin) {
-		return nil, fmt.Errorf("授权地址不属于当前企业源")
+		return nil, fmt.Errorf("The authorized address does not belong to the current enterprise source")
 	}
 	path := parsed.EscapedPath()
 	if path != "/desktop-auth" && !strings.HasPrefix(path, "/desktop-auth/") {
-		return nil, fmt.Errorf("授权地址不在允许的确认页")
+		return nil, fmt.Errorf("The authorized address is not on the allowed confirmation page")
 	}
 	return parsed, nil
 }
@@ -112,16 +112,16 @@ func ValidateVerificationURL(origin, raw string) (*url.URL, error) {
 func ValidateWalletURL(origin, raw string) (*url.URL, error) {
 	parsed, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return nil, fmt.Errorf("钱包地址无效")
+		return nil, fmt.Errorf("Wallet address is invalid")
 	}
 	if parsed.User != nil {
-		return nil, fmt.Errorf("钱包地址无效")
+		return nil, fmt.Errorf("Wallet address is invalid")
 	}
 	if !strings.EqualFold(parsed.Scheme+"://"+parsed.Host, origin) {
-		return nil, fmt.Errorf("钱包地址不属于当前企业源")
+		return nil, fmt.Errorf("The wallet address does not belong to the current enterprise source")
 	}
 	if parsed.EscapedPath() != WalletPath || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return nil, fmt.Errorf("钱包地址不在允许的充值页")
+		return nil, fmt.Errorf("The wallet address is not on the allowed deposit page")
 	}
 	return parsed, nil
 }

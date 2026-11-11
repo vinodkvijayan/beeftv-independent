@@ -31,7 +31,7 @@ func matchesSQLiteIndex(db *gorm.DB, expected sqliteIndexContract) (bool, error)
 		Partial int
 	}
 	if err := db.Raw("PRAGMA index_list(" + expected.table + ")").Scan(&indexes).Error; err != nil {
-		return false, fmt.Errorf("读取本地索引: %w", err)
+		return false, fmt.Errorf("Read local index: %w", err)
 	}
 	for _, index := range indexes {
 		if index.Name != expected.name {
@@ -103,7 +103,7 @@ func repairProductAgentContracts(tx *gorm.DB) error {
 			}
 		}
 		if err := tx.Migrator().CreateIndex(value, index.name); err != nil {
-			return fmt.Errorf("修复索引 %s: %w", index.name, err)
+			return fmt.Errorf("Repair index %s: %w", index.name, err)
 		}
 	}
 	// Validate inside the migration transaction, before advancing the ledger.
@@ -124,12 +124,12 @@ func requireSQLitePrimaryKey(db *gorm.DB, table string, expected []string) error
 			continue
 		}
 		if column.PK > len(actual) {
-			return fmt.Errorf("本地数据库表 %s 主键定义不完整，拒绝自动修复", table)
+			return fmt.Errorf("The primary key definition of local database table %s is incomplete and automatic repair is refused.", table)
 		}
 		actual[column.PK-1] = column.Name
 	}
 	if !slices.Equal(actual, expected) {
-		return fmt.Errorf("本地数据库表 %s 主键定义不完整，拒绝自动修复", table)
+		return fmt.Errorf("The primary key definition of local database table %s is incomplete and automatic repair is refused.", table)
 	}
 	return nil
 }

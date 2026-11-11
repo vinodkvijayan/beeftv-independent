@@ -12,7 +12,7 @@ export function parseSimCapabilities(raw) {
   const list = String(raw || '').split(',').map((item) => item.trim()).filter(Boolean);
   for (const item of list) {
     if (!SIM_CAPABILITIES.includes(item)) {
-      throw new Error(`未知的模拟能力: ${item}（可选: ${SIM_CAPABILITIES.join(', ')}）`);
+      throw new Error(`Unknown simulation capabilities:${item}(optional:${SIM_CAPABILITIES.join(', ')}）`);
     }
   }
   return [...new Set(list)];

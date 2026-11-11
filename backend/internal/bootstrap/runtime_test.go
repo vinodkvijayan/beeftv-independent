@@ -359,7 +359,7 @@ func TestDesktopLocalResourceAndProjectSurviveRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	_ = projectsResponse.Body.Close()
-	if len(projectsEnvelope.Data.Projects) != 1 || projectsEnvelope.Data.Projects[0].Project.Name != "本地验收项目" {
+	if len(projectsEnvelope.Data.Projects) != 1 || projectsEnvelope.Data.Projects[0].Project.Name != "Local acceptance project" {
 		t.Fatalf("projects after restart = %#v", projectsEnvelope.Data)
 	}
 }

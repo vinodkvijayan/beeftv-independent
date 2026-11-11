@@ -37,6 +37,6 @@ func TestE2EGenerationOrdersEndpointListsPendingProposals(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(payload.Orders) != 1 || payload.Orders[0].ProposalID != "gp-orders-test" {
-		t.Fatalf("待确认方案没有暴露给驱动: %+v", payload.Orders)
+		t.Fatalf("The solution to be confirmed is not exposed to the driver: %+v", payload.Orders)
 	}
 }

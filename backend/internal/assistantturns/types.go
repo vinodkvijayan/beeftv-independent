@@ -47,15 +47,15 @@ func (e *Error) Error() string {
 }
 
 func errNotFound() *Error {
-	return &Error{Reason: ReasonNotFound, Message: "轮次不存在"}
+	return &Error{Reason: ReasonNotFound, Message: "Round does not exist"}
 }
 
 func errInvalidID() *Error {
-	return &Error{Reason: ReasonNotFound, Message: "轮次标识无效"}
+	return &Error{Reason: ReasonNotFound, Message: "Invalid round identifier"}
 }
 
 func errCorruptStored() *Error {
-	return &Error{Reason: ReasonCorruptFile, Message: "轮次记录损坏，已保留现场"}
+	return &Error{Reason: ReasonCorruptFile, Message: "The round record is damaged and the scene has been reserved."}
 }
 
 // Change is the canvas effect of one business round, reconstructed from

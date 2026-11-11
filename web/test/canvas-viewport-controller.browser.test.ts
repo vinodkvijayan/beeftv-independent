@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { chromium } from "playwright";
 import { existsSync } from "node:fs";
 
-test("视口裁剪持续更新，倍率仅在手势结束提交且保持准确几何", async () => {
+test("Viewport cropping is continuously updated, magnification is only submitted at the end of the gesture and maintains accurate geometry", async () => {
     const build = await Bun.build({
         entrypoints: [import.meta.dir + "/fixtures/canvas-viewport-controller-harness.tsx"], target: "browser",
         define: { "process.env.NODE_ENV": '"production"', "import.meta.env": '{"DEV":false,"PROD":true,"MODE":"production"}' },

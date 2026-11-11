@@ -102,7 +102,7 @@ func TestPrepareChannelModelSaveCreate(t *testing.T) {
 }
 
 func TestDuplicateSystemChannelModels(t *testing.T) {
-	source := model.ModelChannel{ID: "src", Name: "系统", APIKey: "k"}
+	source := model.ModelChannel{ID: "src", Name: "system", APIKey: "k"}
 	models := []model.ChannelModel{{
 		ID: "m1", ChannelID: "src", ModelKey: "gpt", Enabled: true,
 		Variants: []model.ChannelModelVariant{{ID: "v1", ProviderModelKey: "gpt"}},
@@ -116,7 +116,7 @@ func TestDuplicateSystemChannelModels(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if channel.ID != "CHANNEL-1" || channel.UserID != "admin" || channel.Name != "系统 - 副本" {
+	if channel.ID != "CHANNEL-1" || channel.UserID != "admin" || channel.Name != "System - Replica" {
 		t.Fatalf("channel = %#v", channel)
 	}
 	if len(copies) != 1 || copies[0].ID == "m1" || copies[0].ChannelID != "CHANNEL-1" {

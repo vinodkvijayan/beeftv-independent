@@ -16,7 +16,7 @@ import { createModelChannel, defaultConfig, normalizeConfigSnapshot, useConfigSt
 const config = normalizeConfigSnapshot({
     config: {
         ...defaultConfig,
-        channels: [createModelChannel({ id: "studio", name: "工作室渠道", baseUrl: "https://api.example.com", apiKey: "synthetic-key", models: ["chat-x", "chat-z", "image-y", "image-z", "video-y", "video-z", "audio-y", "audio-z", "wand-vega-vl-1.0-flash"], modelProfiles: [
+        channels: [createModelChannel({ id: "studio", name: "studio channels", baseUrl: "https://api.example.com", apiKey: "synthetic-key", models: ["chat-x", "chat-z", "image-y", "image-z", "video-y", "video-z", "audio-y", "audio-z", "wand-vega-vl-1.0-flash"], modelProfiles: [
             { model: "wand-vega-vl-1.0-flash", capability: "text", protocol: "chat-completion" },
             { model: "chat-x", capability: "text", protocol: "chat-completion" },
             { model: "chat-z", capability: "text", protocol: "chat-completion" },
@@ -55,17 +55,17 @@ function Harness() {
             <ModelDefaultGrid config={selected} onChange={(key, model) => setSelected((current) => ({ ...current, [key]: model }))} />
             <output hidden data-testid="selected-models">{JSON.stringify(selected)}</output>
             <output hidden data-testid="overlay-motion-state" data-drawer-settled={drawerSettled} data-modal-settled={modalSettled} />
-            <Button onClick={() => setCapabilitiesOpen(true)}>查看模型能力标签</Button>
+            <Button onClick={() => setCapabilitiesOpen(true)}>View model capability labels</Button>
             {capabilitiesOpen && <section data-testid="model-capabilities"><ChannelModelSettings draft channel={config.channels[0]!} onChange={() => {}} /></section>}
-            <Button onClick={() => setDrawerOpen(true)}>打开验证侧栏</Button>
-            <Button onClick={() => setModalOpen(true)}>打开验证弹窗</Button>
-            <AppDrawer title="验证侧栏" open={drawerOpen} onClose={() => setDrawerOpen(false)} afterOpenChange={setDrawerSettled}>
+            <Button onClick={() => setDrawerOpen(true)}>Open verification sidebar</Button>
+            <Button onClick={() => setModalOpen(true)}>Open verification pop-up window</Button>
+            <AppDrawer title="Verify sidebar" open={drawerOpen} onClose={() => setDrawerOpen(false)} afterOpenChange={setDrawerSettled}>
                 <ModelDefaultGrid config={selected} onChange={(key, model) => setSelected((current) => ({ ...current, [key]: model }))} />
-                <Button onClick={() => setDrawerOpen(false)}>关闭验证侧栏</Button>
+                <Button onClick={() => setDrawerOpen(false)}>Close verification sidebar</Button>
             </AppDrawer>
-            <AppModal title="验证弹窗" open={modalOpen} onCancel={() => setModalOpen(false)} afterOpenChange={setModalSettled} footer={null}>
+            <AppModal title="Verification pop-up window" open={modalOpen} onCancel={() => setModalOpen(false)} afterOpenChange={setModalSettled} footer={null}>
                 <ModelDefaultGrid config={selected} onChange={(key, model) => setSelected((current) => ({ ...current, [key]: model }))} />
-                <Button onClick={() => setModalOpen(false)}>关闭验证弹窗</Button>
+                <Button onClick={() => setModalOpen(false)}>Close verification pop-up window</Button>
             </AppModal>
         </main>
     </BeefTVConnectionProvider></App></ConfigProvider>;

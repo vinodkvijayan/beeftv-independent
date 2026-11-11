@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { chromium } from "playwright";
 import { existsSync } from "node:fs";
 
-test("重复节点共用按屏幕尺寸生成的透明预览，放大切档且原件字节和动画不变", async () => {
+test("Duplicate nodes share a transparent preview generated according to the screen size, zoom in and cut, and the original bytes and animation remain unchanged.", async () => {
     const build = await Bun.build({ entrypoints: [import.meta.dir + "/fixtures/canvas-image-preview-harness.ts"], target: "browser",
         define: { "process.env.NODE_ENV": '"production"', "import.meta.env": '{"VITE_CANVAS_LOCAL_MODE":"false","VITE_CANVAS_BACKEND_URL":"/api"}' },
         plugins: [{ name: "alias", setup(builder) {

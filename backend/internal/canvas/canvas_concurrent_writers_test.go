@@ -20,7 +20,7 @@ type concurrentCanvasFixture struct {
 func newConcurrentCanvasFixture(t *testing.T, id string) concurrentCanvasFixture {
 	t.Helper()
 	svc := newCanvasHistoryTestService(t)
-	raw := fmt.Sprintf(`{"id":%q,"revision":0,"title":"并发画布","nodes":[{"id":"gen","type":"text","title":"生成中","metadata":{"taskId":"task-1","status":"loading"}}],"connections":[]}`, id)
+	raw := fmt.Sprintf(`{"id":%q,"revision":0,"title":"Concurrent Canvas","nodes":[{"id":"gen","type":"text","title":"Generating","metadata":{"taskId":"task-1","status":"loading"}}],"connections":[]}`, id)
 	if _, err := svc.UpsertUserCanvasProject("owner", json.RawMessage(raw)); err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func (f concurrentCanvasFixture) read(t *testing.T) (map[string]any, int64) {
 func (f concurrentCanvasFixture) userEdit(t *testing.T, nodeID string, staleRevision int64) {
 	t.Helper()
 	overlayFor := func(doc map[string]any) json.RawMessage {
-		nodes := append(canvasDocNodes(doc), map[string]any{"id": nodeID, "type": "text", "title": "手动"})
+		nodes := append(canvasDocNodes(doc), map[string]any{"id": nodeID, "type": "text", "title": "Manual"})
 		overlay, _ := json.Marshal(map[string]any{"nodes": nodes})
 		return overlay
 	}
@@ -67,7 +67,7 @@ func (f concurrentCanvasFixture) userEdit(t *testing.T, nodeID string, staleRevi
 
 func (f concurrentCanvasFixture) assistantWrite(t *testing.T, staleRevision int64) {
 	t.Helper()
-	draft := []NodeDraft{{Type: "text", Title: "助手节点", Prompt: "助手写入"}}
+	draft := []NodeDraft{{Type: "text", Title: "Helper node", Prompt: "Assistant writes"}}
 	if staleRevision > 0 {
 		if _, _, err := f.svc.CreateUserCanvasNodes("owner", f.id, draft, staleRevision); !isCanvasRevisionConflict(err) {
 			t.Errorf("stale assistant write err = %v, want revision conflict", err)
@@ -92,7 +92,7 @@ func (f concurrentCanvasFixture) bind(t *testing.T) {
 	// 内部自带有限次重试；同时只有另外两个写者，最多冲突两次。
 	if _, err := f.svc.BindTaskOutputToExistingNode("owner", TaskOutputBind{
 		CanvasID: f.id, NodeID: "gen", TaskID: "task-1", EffectKey: "bind:task-1:gen:0",
-		MediaType: "text", Content: "生成结果",
+		MediaType: "text", Content: "Generate results",
 	}); err != nil {
 		t.Errorf("bind: %v", err)
 	}
@@ -104,7 +104,7 @@ func (f concurrentCanvasFixture) assertAllLanded(t *testing.T, startRevision int
 	if rev != startRevision+3 {
 		t.Fatalf("revision = %d, want %d (each write advances exactly once)", rev, startRevision+3)
 	}
-	if got := nodeString(nodeMetadata(findCanvasNode(doc, "gen")), "content"); got != "生成结果" {
+	if got := nodeString(nodeMetadata(findCanvasNode(doc, "gen")), "content"); got != "Generate results" {
 		t.Fatalf("generation result lost, content = %q", got)
 	}
 	if findCanvasNode(doc, "user-1") == nil {
@@ -112,7 +112,7 @@ func (f concurrentCanvasFixture) assertAllLanded(t *testing.T, startRevision int
 	}
 	assistant := 0
 	for _, raw := range canvasDocNodes(doc) {
-		if n, _ := raw.(map[string]any); n != nil && n["title"] == "助手节点" {
+		if n, _ := raw.(map[string]any); n != nil && n["title"] == "Helper node" {
 			assistant++
 		}
 	}

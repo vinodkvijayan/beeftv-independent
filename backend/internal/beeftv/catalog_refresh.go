@@ -37,7 +37,7 @@ func (s *Service) RefreshCatalog(ctx context.Context) ([]CatalogModel, error) {
 		if errors.Is(err, errRevoked) {
 			return nil, errRevoked
 		}
-		return nil, errors.New("读取模型列表失败，请重试")
+		return nil, errors.New("Failed to read model list, please try again")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (s *Service) RefreshCatalog(ctx context.Context) ([]CatalogModel, error) {
 	for _, model := range models {
 		if len(model.ImageCapabilities) > 0 && string(model.ImageCapabilities) != "null" {
 			if _, valid := NormalizeCatalogImageCapability(model.ImageCapabilities); !valid || model.ImageCapabilitiesVersion == "" {
-				return nil, errors.New("读取模型能力失败，请重试")
+				return nil, errors.New("Failed to read model capability, please try again")
 			}
 		}
 	}
@@ -54,7 +54,7 @@ func (s *Service) RefreshCatalog(ctx context.Context) ([]CatalogModel, error) {
 	// A disconnect or account change during the fetch invalidates its result.
 	if s.closed || s.state.EncryptedAPIKey != state.EncryptedAPIKey || s.state.TokenID != state.TokenID ||
 		s.state.ProviderBaseURL != state.ProviderBaseURL || s.state.Status != state.Status {
-		return nil, errors.New("企业连接已改变，请重新读取模型")
+		return nil, errors.New("Enterprise connection has changed, please re-read the model")
 	}
 	accountID := ""
 	if state.Account != nil {
@@ -65,7 +65,7 @@ func (s *Service) RefreshCatalog(ctx context.Context) ([]CatalogModel, error) {
 		currentAccountID = s.state.Account.ID.String()
 	}
 	if currentAccountID != accountID {
-		return nil, errors.New("企业连接已改变，请重新读取模型")
+		return nil, errors.New("Enterprise connection has changed, please re-read the model")
 	}
 	if err := applyCatalog(s.provider, models, accountID, accountID, ""); err != nil {
 		return nil, errStore

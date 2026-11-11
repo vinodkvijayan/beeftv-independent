@@ -32,7 +32,7 @@ func (s *spyRecoveryPort) ResumeDelivery(_ context.Context, _, taskID string) (*
 		return nil, errors.New("not found")
 	}
 	cp := *task
-	cp.Stage = "全部生成结果已入库"
+	cp.Stage = "All generated results have been stored in the database"
 	return &cp, nil
 }
 
@@ -44,7 +44,7 @@ func (s *spyRecoveryPort) RecoverImage(_ context.Context, _, taskID string) (*mo
 	}
 	cp := *task
 	cp.Status = model.TaskStatusSucceeded
-	cp.Stage = "图片已从上游完成回执恢复"
+	cp.Stage = "The image has been restored from the upstream completion receipt"
 	return &cp, nil
 }
 
@@ -56,7 +56,7 @@ func (s *spyRecoveryPort) RecoverVideoOrUpscale(_ context.Context, _, taskID str
 	}
 	cp := *task
 	cp.Status = model.TaskStatusSucceeded
-	cp.Stage = "视频生成完成"
+	cp.Stage = "Video generation completed"
 	return &cp, nil
 }
 

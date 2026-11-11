@@ -68,10 +68,10 @@ func (s *Service) AgentRequirements(userID string, pin Pin) ([]string, error) {
 
 func ValidatePin(pin Pin) error {
 	if !agentSkillIDPattern.MatchString(pin.SkillID) || !agentSkillIDPattern.MatchString(pin.VersionID) || len(pin.ContentHash) != 64 {
-		return kernel.BadAuthRequest("技能选择必须包含技能、版本和内容摘要")
+		return kernel.BadAuthRequest("Skill selection must include skill, version, and content summary")
 	}
 	if _, err := hex.DecodeString(pin.ContentHash); err != nil || strings.ToLower(pin.ContentHash) != pin.ContentHash {
-		return kernel.BadAuthRequest("技能内容摘要无效")
+		return kernel.BadAuthRequest("Skill content summary is invalid")
 	}
 	return nil
 }
@@ -81,7 +81,7 @@ func (s *Service) agentPackage(userID string, pin Pin) (*model.Skill, *model.Ski
 		return nil, nil, nil, err
 	}
 	if s == nil || s.repo == nil || strings.TrimSpace(userID) == "" {
-		return nil, nil, nil, kernel.Forbidden("无法读取当前用户技能")
+		return nil, nil, nil, kernel.Forbidden("Unable to read current user skills")
 	}
 	skill, err := s.visibleSkill(userID, pin.SkillID)
 	if err != nil {
@@ -92,17 +92,17 @@ func (s *Service) agentPackage(userID string, pin Pin) (*model.Skill, *model.Ski
 		return nil, nil, nil, err
 	}
 	if skill.Status != skillStatusEnabled || state == nil || !state.Added {
-		return nil, nil, nil, kernel.Forbidden("技能已停用或未安装，请重新选择可用技能")
+		return nil, nil, nil, kernel.Forbidden("The skill is deactivated or not installed. Please select an available skill again.")
 	}
 	version, err := s.repo.SkillVersion(pin.VersionID)
 	if err != nil || version.SkillID != pin.SkillID {
-		return nil, nil, nil, kernel.WrapAppError(400, "所选技能版本不存在", err)
+		return nil, nil, nil, kernel.WrapAppError(400, "The selected skill version does not exist", err)
 	}
 	if version.ContentHash != pin.ContentHash {
-		return nil, nil, nil, kernel.NewAppError(409, "技能版本内容已变化，请重新选择")
+		return nil, nil, nil, kernel.NewAppError(409, "The skill version content has changed, please choose again.")
 	}
 	if version.PackageKey != path.Join(pin.SkillID, pin.VersionID+".zip") {
-		return nil, nil, nil, kernel.Forbidden("技能包位置无效")
+		return nil, nil, nil, kernel.Forbidden("Skill pack location is invalid")
 	}
 	files, err := s.repo.SkillFiles(version.ID)
 	return skill, version, files, err
@@ -173,42 +173,42 @@ func (s *Service) AgentFile(userID string, pin Pin, filePath string) (*AgentFile
 		return nil, err
 	}
 	if normalized != filePath {
-		return nil, kernel.BadAuthRequest("技能文件路径必须是包内相对路径")
+		return nil, kernel.BadAuthRequest("The skill file path must be a relative path within the package")
 	}
 	for _, file := range files {
 		if file.Path != normalized {
 			continue
 		}
 		if file.Size > 256<<10 && file.Path == version.EntryPath {
-			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "skill_instruction_too_large", Message: "技能正文超过 256 KiB，请将部分内容移到参考文件"}
+			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "skill_instruction_too_large", Message: "The skill text exceeds 256 KiB, please move some content to the reference file"}
 		}
 		if file.Size > 256<<10 || !isPreviewText(file.MimeType, file.Path) {
-			return nil, kernel.BadAuthRequest("辅助文件只支持 256 KiB 以内的文本")
+			return nil, kernel.BadAuthRequest("Auxiliary files only support text up to 256 KiB")
 		}
 		data, err := s.readSkillArchiveEntry(version, normalized)
 		if err != nil {
-			return nil, kernel.WrapAppError(400, "所选技能版本文件不可读取，请重新安装或选择可用版本", err)
+			return nil, kernel.WrapAppError(400, "The selected skill version file cannot be read, please reinstall or select an available version", err)
 		}
 		sum := sha256.Sum256(data)
 		if len(data) > 256<<10 || !utf8.Valid(data) || int64(len(data)) != file.Size || hex.EncodeToString(sum[:]) != file.SHA256 {
-			return nil, kernel.NewAppError(409, "技能文件内容校验失败，请重新选择")
+			return nil, kernel.NewAppError(409, "Skill file content verification failed, please select again")
 		}
 		_, supported := SkillScriptInterpreter(normalized)
 		return &AgentFile{Pin: pin, File: skillFileItem(file), Content: string(data), ExecutionSupported: IsSkillScriptPath(normalized) && supported}, nil
 	}
-	return nil, kernel.BadAuthRequest("这个文件不在所选技能版本中")
+	return nil, kernel.BadAuthRequest("This file is not in the selected skill version")
 }
 
 func (s *Service) ValidateAgentSkills(userID string, pins []Pin) ([]Pin, error) {
 	if len(pins) > 4 {
-		return nil, kernel.BadAuthRequest("每轮最多选择 4 个技能")
+		return nil, kernel.BadAuthRequest("Choose up to 4 skills per round")
 	}
 	seen := map[string]bool{}
 	result := make([]Pin, 0, len(pins))
 	total := 0
 	for _, pin := range pins {
 		if seen[pin.SkillID] {
-			return nil, kernel.BadAuthRequest("同一轮不能选择同一技能的多个版本")
+			return nil, kernel.BadAuthRequest("Multiple versions of the same skill cannot be selected in the same round")
 		}
 		seen[pin.SkillID] = true
 		resource, err := s.AgentVersion(userID, pin)
@@ -217,7 +217,7 @@ func (s *Service) ValidateAgentSkills(userID string, pins []Pin) ([]Pin, error) 
 		}
 		total += len(resource.Instruction)
 		if total > 512<<10 {
-			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "skill_instruction_too_large", Message: fmt.Sprintf("所选技能正文总量超过 %d KiB，请减少所选技能", 512)}
+			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "skill_instruction_too_large", Message: fmt.Sprintf("The total text size of the selected skills exceeds %d KiB, please reduce the selected skills", 512)}
 		}
 		labeled := pin.Identity()
 		labeled.SkillName = resource.Name
@@ -239,7 +239,7 @@ type AgentCatalogItem struct {
 // versions, in a stable order. Pins carry display labels; identity is exact.
 func (s *Service) AgentCatalog(userID string) ([]AgentCatalogItem, error) {
 	if s == nil || s.repo == nil || strings.TrimSpace(userID) == "" {
-		return nil, kernel.Forbidden("无法读取当前用户技能")
+		return nil, kernel.Forbidden("Unable to read current user skills")
 	}
 	items, err := s.AddedSkills(userID)
 	if err != nil {

@@ -51,7 +51,7 @@ func resolvePublicationTarget(localID string, meta *skillhub.Metadata, target *P
 		return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_publication_target", Message: message}
 	}
 	if meta.SkillID != "" {
-		return invalid("metadata.skillId 不能填写本机或市场编号。新技能请选择 publicationTarget=new；已有市场技能的新版本请选择 existing，并将市场编号填写到 marketSkillId。请重新准备投稿。")
+		return invalid("metadata.skillId cannot fill in the local machine or market number. For new skills, please select publicationTarget=new; for new versions of existing market skills, please select existing, and fill in the market number into marketSkillId. Please prepare your submission again.")
 	}
 	if target.Kind == "" {
 		target.Kind = "new"
@@ -59,22 +59,22 @@ func resolvePublicationTarget(localID string, meta *skillhub.Metadata, target *P
 	switch target.Kind {
 	case "new":
 		if target.MarketSkillID != "" {
-			return invalid("新技能不能指定已有市场技能编号；请明确选择投稿目标后重新准备。")
+			return invalid("New skills cannot specify existing market skill numbers; please clearly select the submission target and prepare again.")
 		}
 	case "existing":
 		if target.MarketSkillID == localID || !agentSkillIDPattern.MatchString(target.MarketSkillID) {
-			return invalid("marketSkillId 必须是你在技能市场已发布的技能编号，不能使用本机技能编号；新投稿请选择 new。")
+			return invalid("marketSkillId must be the skill number you have published in the skills market, and the local skill number cannot be used; please select new for new submissions.")
 		}
 		meta.SkillID = target.MarketSkillID
 	default:
-		return invalid("publicationTarget 只接受 new（新技能）或 existing（已有市场技能的新版本）。")
+		return invalid("publicationTarget only accepts new (new skills) or existing (new versions of existing market skills).")
 	}
 	return nil
 }
 
 func (s *Service) planFile(user, id string) (string, error) {
 	if !agentSkillIDPattern.MatchString(id) {
-		return "", kernel.BadAuthRequest("投稿草稿编号无效")
+		return "", kernel.BadAuthRequest("Contribution draft number is invalid")
 	}
 	return filepath.Join(s.marketUserDir(user), "plans", id+".json"), nil
 }
@@ -99,21 +99,21 @@ func (s *Service) PublishReprepare(user, sourcePlanID string, meta skillhub.Meta
 		return nil, err
 	}
 	if source.SubmissionID != "" || source.Status != "awaiting_upload_confirmation" {
-		return nil, kernel.NewAppError(409, "这份稿件已有上传记录，请刷新状态并在官网修改")
+		return nil, kernel.NewAppError(409, "This manuscript has been uploaded, please refresh the status and modify it on the official website")
 	}
 	bundle, err := s.SkillPackageBundle(user, source.SkillID)
 	if err != nil {
 		return nil, err
 	}
 	if bundle.VersionID != source.VersionID || bundle.ContentHash != source.ContentHash {
-		return nil, kernel.NewAppError(409, "本机技能已更新，原稿仍保留；请检查当前文件后重新准备投稿")
+		return nil, kernel.NewAppError(409, "This machine's skills have been updated, and the original manuscript is still retained; please check the current file and prepare again for submission.")
 	}
 	return s.preparePublicationBundle(user, source.SkillID, source.CanvasID, meta, target, bundle)
 }
 
 func (s *Service) preparePublicationBundle(user, id, canvas string, meta skillhub.Metadata, target PublicationTarget, bundle *SkillPackageBundle) (*PublishPlan, error) {
 	if bundle.MarketRelease != nil && target.Kind == "" {
-		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_publication_target", Message: "这份技能来自市场，请明确选择发布新技能，或为你本人已发布的市场技能更新版本。"}
+		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_publication_target", Message: "This skill comes from the market, please explicitly choose to publish a new skill, or an updated version of your own published market skill."}
 	}
 	if e := resolvePublicationTarget(id, &meta, &target); e != nil {
 		return nil, e
@@ -126,7 +126,7 @@ func (s *Service) preparePublicationBundle(user, id, canvas string, meta skillhu
 			return nil, e
 		}
 		if !skillhub.DataFilePath(f.Path) || skillhub.ContainsPrivateData(b) {
-			return nil, kernel.BadAuthRequest("请移除私有配置或密钥后再投稿")
+			return nil, kernel.BadAuthRequest("Please remove the private configuration or key before submitting")
 		}
 		files[f.Path] = b
 		h := sha256.Sum256(b)
@@ -137,7 +137,7 @@ func (s *Service) preparePublicationBundle(user, id, canvas string, meta skillhu
 		return nil, e
 	}
 	if len(data) > skillhub.MaxArchiveBytes {
-		return nil, kernel.BadAuthRequest("投稿包超过100MiB")
+		return nil, kernel.BadAuthRequest("Submission package exceeds 100MiB")
 	}
 	if meta.Name == "" {
 		meta.Name = bundle.Name
@@ -169,7 +169,7 @@ func (s *Service) preparePublicationBundle(user, id, canvas string, meta skillhu
 		}
 	}
 	if strings.TrimSpace(meta.License) == "" {
-		return nil, kernel.BadAuthRequest("请为投稿选择许可证")
+		return nil, kernel.BadAuthRequest("Please select a license for your contribution")
 	}
 	if meta.Requirements == nil {
 		meta.Requirements = []string{}
@@ -198,7 +198,7 @@ func (s *Service) preparePublicationBundle(user, id, canvas string, meta skillhu
 
 func validatePublicationRequirements(requirements []string) error {
 	if checkMarketRequirements(requirements) != nil {
-		return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_skill_requirements", Message: "requirements 只接受 beeftv.canvas、model.image、model.video、model.audio。纯文字技能请使用空数组 []，其他条件写入 requirementNotes；修正后重新准备投稿。"}
+		return &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_skill_requirements", Message: "requirements only accept beeftv.canvas, model.image, model.video, model.audio. Please use an empty array [] for pure text skills, and write other conditions into requirementNotes; prepare again for submission after correction."}
 	}
 	return nil
 }
@@ -227,7 +227,7 @@ func (s *Service) PublishPlan(user, id string) (*PublishPlan, error) {
 	}
 	var p PublishPlan
 	if e = readMarketJSON(file, &p); e != nil {
-		return nil, kernel.BadAuthRequest("投稿草稿不存在")
+		return nil, kernel.BadAuthRequest("Contribution draft does not exist")
 	}
 	return &p, nil
 }
@@ -241,7 +241,7 @@ func (s *Service) PublishUpload(ctx context.Context, user, id, expectedHash stri
 		return nil, e
 	}
 	if p.ArchiveSHA256 != expectedHash {
-		return nil, kernel.NewAppError(409, "待上传文件已变化，请重新确认")
+		return nil, kernel.NewAppError(409, "The file to be uploaded has changed, please reconfirm")
 	}
 	if p.Status == "submitted" {
 		return p, nil
@@ -288,7 +288,7 @@ func (s *Service) PublishUpload(ctx context.Context, user, id, expectedHash stri
 	// The service canonicalizes ZIP headers. Compare file identity here; refresh
 	// separately verifies the downloaded canonical ZIP against its server digest.
 	if draft.ContentHash != "" && (draft.ContentHash != p.ContentHash || !samePublicationFiles(draft.Files, p.Files)) {
-		return nil, kernel.NewAppError(409, "服务器草稿与确认上传的文件不同，请检查并刷新公开预览")
+		return nil, kernel.NewAppError(409, "The server draft is different from the file confirmed for upload, please check and refresh the public preview")
 	}
 	if p.Preview != nil || p.Status == "needs_preview" || (len(draft.Files) > 0 && draft.ContentHash != "") {
 		return s.refreshPublication(ctx, user, c, token, p)
@@ -304,7 +304,7 @@ func (s *Service) PublishUpload(ctx context.Context, user, id, expectedHash stri
 	}
 	sum := sha256.Sum256(data)
 	if hex.EncodeToString(sum[:]) != expectedHash {
-		return nil, kernel.NewAppError(409, "待上传文件校验失败")
+		return nil, kernel.NewAppError(409, "Verification of the file to be uploaded failed")
 	}
 	var body bytes.Buffer
 	form := multipart.NewWriter(&body)
@@ -357,7 +357,7 @@ func (s *Service) PublishSubmit(ctx context.Context, user, id string, revision i
 		return nil, e
 	}
 	if p.Preview == nil || p.Preview.Revision != revision || p.Preview.PreviewDigest != digest {
-		return nil, kernel.NewAppError(409, "预览已变化，请重新确认公开内容")
+		return nil, kernel.NewAppError(409, "The preview has changed, please reconfirm the public content")
 	}
 	c, e := marketClient()
 	if e != nil {
@@ -373,7 +373,7 @@ func (s *Service) PublishSubmit(ctx context.Context, user, id string, revision i
 		return nil, e
 	}
 	if current.Revision != revision || current.PreviewDigest != digest {
-		return nil, kernel.NewAppError(409, "服务器预览已变化，请重新确认公开内容")
+		return nil, kernel.NewAppError(409, "The server preview has changed, please reconfirm the public content.")
 	}
 	e = c.JSON(ctx, "POST", "submissions/"+p.SubmissionID+"/submit", token, p.ID+"-submit-"+digest, map[string]any{"revision": revision, "previewDigest": digest}, &d)
 	if e != nil {

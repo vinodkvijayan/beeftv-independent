@@ -57,7 +57,7 @@ func ArkPrivateAssetAutomaticSyncEnabled(setting ArkPrivateAssetSettingValue) (b
 		return false, nil
 	}
 	if setting.AccessKeyID == "" || setting.AccessKeySecret == "" {
-		return false, errors.New("方舟可信素材库尚未配置，请由管理员在方舟素材库设置中填写启用的 IAM AK/SK")
+		return false, errors.New("The Ark trusted material library has not been configured yet. Please let the administrator fill in the enabled IAM AK/SK in the Ark material library settings.")
 	}
 	return true, nil
 }
@@ -111,7 +111,7 @@ func ShouldRetryArkPrivateAssetBinding(binding *model.ArkPrivateAssetBinding) bo
 	if binding.AssetGroupID == "" {
 		return true
 	}
-	return strings.Contains(binding.Error, "上传方舟可信素材失败") || strings.Contains(binding.Error, "方舟素材库没有返回素材 ID")
+	return strings.Contains(binding.Error, "Failed to upload Ark's trusted material") || strings.Contains(binding.Error, "Ark material library does not return material ID")
 }
 
 func ShouldResumeArkPrivateAssetPolling(binding *model.ArkPrivateAssetBinding) bool {
@@ -166,7 +166,7 @@ func CallArkPrivateAssetAPI(ctx context.Context, setting ArkPrivateAssetSettingV
 			var body map[string]interface{}
 			if json.Unmarshal([]byte(httpErr.Body), &body) == nil {
 				if detail := ArkPrivateAssetUpstreamDetail(body); detail != "" {
-					return nil, fmt.Errorf("方舟素材库请求失败（HTTP %d）：%s", httpErr.StatusCode, detail)
+					return nil, fmt.Errorf("Ark material library request failed (HTTP %d): %s", httpErr.StatusCode, detail)
 				}
 			}
 		}
@@ -193,7 +193,7 @@ func ArkPrivateAssetUpstreamDetail(response map[string]interface{}) string {
 	message := stringField(upstream, "Message")
 	detail := strings.TrimSpace(strings.Trim(strings.Join([]string{code, message}, " "), " "))
 	if detail == "" {
-		return "方舟素材库请求失败"
+		return "Ark material library request failed"
 	}
 	return detail
 }
@@ -209,11 +209,11 @@ func ArkPrivateAssetControlPlaneURL(ctx context.Context, region string) (string,
 		region = "ap-southeast-1"
 	}
 	if region == "" {
-		return "", errors.New("方舟素材库未配置 Region")
+		return "", errors.New("Region is not configured in the Ark material library")
 	}
 	for _, char := range region {
 		if !(char >= 'a' && char <= 'z') && !(char >= '0' && char <= '9') && char != '-' {
-			return "", errors.New("方舟素材库 Region 格式无效")
+			return "", errors.New("Ark material library Region format is invalid")
 		}
 	}
 	if strings.HasPrefix(region, "ap-") {

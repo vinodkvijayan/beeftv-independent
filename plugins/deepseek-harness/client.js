@@ -6,9 +6,9 @@ window.__ModuleLoader__.load({
     const panelId = 'beeftv'
     const conversationSlot = 'beeftv.conversation'
     const modes = [
-      { id: 'creation', label: '创作', detail: '画布、分镜与视频创作' },
-      { id: 'assets', label: '素材', detail: '整理与复用创作素材' },
-      { id: 'ecosystem', label: '生态', detail: '技能、插件与工作流' },
+      { id: 'creation', label: 'Create', detail: 'Canvas, storyboards and video creation' },
+      { id: 'assets', label: 'Material', detail: 'Organize and reuse creative materials' },
+      { id: 'ecosystem', label: 'ecology', detail: 'Skills, plugins and workflows' },
     ]
 
     const css = `
@@ -79,14 +79,14 @@ window.__ModuleLoader__.load({
         signal,
       })
       const result = await response.json()
-      if (!response.ok) throw Object.assign(new Error(result.error || 'BeefTV 请求失败 (' + response.status + ')'), { status: response.status })
+      if (!response.ok) throw Object.assign(new Error(result.error || 'BeefTV request failed (' + response.status + ')'), { status: response.status })
       return result
     }
 
     function frameURL(appURL) {
       if (!appURL) return undefined
       const url = new URL(appURL, window.location.href)
-      if (!['http:', 'https:'].includes(url.protocol)) throw new Error('BeefTV 工作区地址无效')
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error('BeefTV workspace address is invalid')
       return url.href
     }
 
@@ -134,7 +134,7 @@ window.__ModuleLoader__.load({
 
       if (sessionId === undefined) {
         return h('div', { className: 'beeftv-harness-onboarding' },
-          h('p', null, '点击“新建会话”开始与 BeefTV Agent 协作。'))
+          h('p', null, 'Click "New Session" to start working with BeefTV Agent.'))
       }
 
       return renderFactorySlot('conversation.content', {
@@ -147,15 +147,15 @@ window.__ModuleLoader__.load({
     function Onboarding({ busy, connect, loading, localApp }) {
       return h('div', { className: 'beeftv-harness-onboarding' },
         h('div', { className: 'beeftv-harness-onboarding-content' },
-          h('h1', null, '在 DSH 中打开 BeefTV'),
-          h('p', null, loading ? '正在读取本机连接状态…' : '选择工作区，BeefTV Agent 会持续协助当前创作。'),
+          h('h1', null, 'Open BeefTV in DSH'),
+          h('p', null, loading ? 'Reading local connection status...' : 'Select a workspace and BeefTV Agent will continue to assist the current creation.'),
           h('div', { className: 'beeftv-harness-options' },
             h('button', { type: 'button', className: 'beeftv-harness-option', disabled: busy || loading, onClick: () => connect('local') },
-              h('strong', null, busy === 'local' ? '正在连接…' : '连接本机 BeefTV'),
-              h('span', null, localApp?.message || '与本机 /Applications/BeefTV.app 彻底互通，共享同一套画布、素材、配置与版本更新。')),
+              h('strong', null, busy === 'local' ? 'Connecting…' : 'Connect this unit to BeefTV'),
+              h('span', null, localApp?.message || 'Completely interoperable with the local /Applications/BeefTV.app, sharing the same set of canvas, materials, configurations and version updates.')),
             h('button', { type: 'button', className: 'beeftv-harness-option', disabled: busy || loading, onClick: () => connect('standalone') },
-              h('strong', null, busy === 'standalone' ? '正在创建连接…' : '使用独立工作区'),
-              h('span', null, '为 DSH 使用独立的 BeefTV 本地工作区。')))))
+              h('strong', null, busy === 'standalone' ? 'Creating connection...' : 'Use a separate workspace'),
+              h('span', null, 'Use a separate BeefTV local workspace for DSH.')))))
     }
 
     function Workbench({ renderSlot, returnToConversation, createCreativeSession }) {
@@ -254,7 +254,7 @@ window.__ModuleLoader__.load({
             setStatusError('')
           } catch (failure) {
             if (!mounted || controller.signal.aborted) return
-            setStatusError(timeout.signal.aborted ? '读取工作区连接超时，请重试' : failure.message)
+            setStatusError(timeout.signal.aborted ? 'Reading workspace connection timed out, please try again' : failure.message)
             setStatus(current => current || { connected: false })
           } finally {
             window.clearTimeout(timer)
@@ -348,25 +348,25 @@ window.__ModuleLoader__.load({
 
       const visibleError = error || status?.error || statusError
 
-      return h('section', { className: 'beeftv-harness', 'aria-label': 'BeefTV 工作台', 'data-resizing': resizing },
+      return h('section', { className: 'beeftv-harness', 'aria-label': 'BeefTV workbench', 'data-resizing': resizing },
         h('span', { ref: clearanceProbe, className: 'beeftv-harness-clearance', 'aria-hidden': true }),
         visibleError && h('div', { className: 'beeftv-harness-error', role: 'alert' }, visibleError),
         h('div', { ref: body, className: 'beeftv-harness-body', style: { '--beeftv-agent-width': `${agentWidth}px` } },
           h('div', { className: 'beeftv-harness-workspace' }, source
-            ? h('iframe', { key: source, ref: frame, src: source, onLoad: publishFrameClearance, title: 'BeefTV 创作工作区', className: 'beeftv-harness-frame', referrerPolicy: 'no-referrer', allow: 'clipboard-read; clipboard-write' })
+            ? h('iframe', { key: source, ref: frame, src: source, onLoad: publishFrameClearance, title: 'BeefTV Creative Workspace', className: 'beeftv-harness-frame', referrerPolicy: 'no-referrer', allow: 'clipboard-read; clipboard-write' })
             : h(Onboarding, { busy, connect, loading: status === undefined, localApp: status?.localApp })),
-          h('div', { className: 'beeftv-harness-divider', role: 'separator', tabIndex: 0, 'aria-label': '调整 BeefTV Agent 宽度', 'aria-orientation': 'vertical', 'aria-valuemin': 320, 'aria-valuemax': Math.max(320, availableWidth - 286), 'aria-valuenow': agentWidth, 'aria-controls': 'beeftv-agent-panel', onPointerDown: startResize, onPointerMove: moveResize, onPointerUp: endResize, onPointerCancel: endResize, onLostPointerCapture: endResize, onKeyDown: resizeWithKeyboard }),
+          h('div', { className: 'beeftv-harness-divider', role: 'separator', tabIndex: 0, 'aria-label': 'Adjust BeefTV Agent width', 'aria-orientation': 'vertical', 'aria-valuemin': 320, 'aria-valuemax': Math.max(320, availableWidth - 286), 'aria-valuenow': agentWidth, 'aria-controls': 'beeftv-agent-panel', onPointerDown: startResize, onPointerMove: moveResize, onPointerUp: endResize, onPointerCancel: endResize, onLostPointerCapture: endResize, onKeyDown: resizeWithKeyboard }),
           h('aside', { id: 'beeftv-agent-panel', className: 'beeftv-harness-agent', 'aria-label': 'BeefTV Agent' },
             h('div', { className: 'beeftv-harness-agent-header' },
               h('div', { className: 'beeftv-harness-agent-title-row' },
                 h('h2', { className: 'beeftv-harness-agent-heading' }, 'BeefTV Agent'),
                 h('div', { className: 'beeftv-harness-actions', onBlur: event => { if (!event.currentTarget.contains(event.relatedTarget)) setActionsOpen(false) }, onKeyDown: event => { if (event.key === 'Escape') setActionsOpen(false) } },
-                  h('button', { type: 'button', 'aria-label': '工作台操作', 'aria-expanded': actionsOpen, onClick: () => setActionsOpen(open => !open) }, '⋯'),
+                  h('button', { type: 'button', 'aria-label': 'Workbench operation', 'aria-expanded': actionsOpen, onClick: () => setActionsOpen(open => !open) }, '⋯'),
                   actionsOpen && h('div', { className: 'beeftv-harness-action-menu' },
-                    h('button', { type: 'button', disabled: creatingSession, onClick: startCreativeSession }, creatingSession ? '正在创建…' : '新建会话'),
-                    status?.connected && !choosingWorkspace && h('button', { type: 'button', disabled: !!busy, onClick: () => { setActionsOpen(false); setChoosingWorkspace(true) } }, '切换工作区'),
-                    h('button', { type: 'button', onClick: returnToConversation }, '返回 DSH')))),
-              h('div', { className: 'beeftv-harness-modes', 'aria-label': '协作方向' }, modes.map(mode =>
+                    h('button', { type: 'button', disabled: creatingSession, onClick: startCreativeSession }, creatingSession ? 'Creating…' : 'New session'),
+                    status?.connected && !choosingWorkspace && h('button', { type: 'button', disabled: !!busy, onClick: () => { setActionsOpen(false); setChoosingWorkspace(true) } }, 'Switch workspace'),
+                    h('button', { type: 'button', onClick: returnToConversation }, 'Return to DSH')))),
+              h('div', { className: 'beeftv-harness-modes', 'aria-label': 'Collaboration direction' }, modes.map(mode =>
                 h('button', { key: mode.id, type: 'button', title: mode.detail, 'aria-pressed': agentMode === mode.id, onClick: () => setAgentMode(mode.id) }, mode.label))),
               workspaceContext?.canvasTitle && h('div', { className: 'beeftv-harness-context', title: workspaceContext.canvasTitle }, workspaceContext.canvasTitle)),
             h('div', { className: 'beeftv-harness-conversation' }, renderSlot(conversationSlot, { connectionId, workspaceContext, agentMode, onError: reportError, onStaleConnection: requestStatusRefresh, onAgentActivity: requestStatusRefresh })))))

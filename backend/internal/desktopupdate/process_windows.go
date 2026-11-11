@@ -20,7 +20,7 @@ const (
 
 func waitForPID(pid int, timeout time.Duration) error {
 	if pid <= 0 {
-		return fmt.Errorf("更新请求缺少进程信息")
+		return fmt.Errorf("Update request missing process information")
 	}
 	handle, err := syscall.OpenProcess(synchronizeAccess, false, uint32(pid))
 	if err != nil {
@@ -41,7 +41,7 @@ func waitForPID(pid int, timeout time.Duration) error {
 	if status == waitObject0 {
 		return nil
 	}
-	return fmt.Errorf("等待应用退出超时")
+	return fmt.Errorf("Timeout waiting for application to exit")
 }
 
 func isCrossDevice(err error) bool {

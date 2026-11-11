@@ -8,7 +8,7 @@ function fingerprint(overrides: Partial<Parameters<typeof canvasGenerationReques
     return canvasGenerationRequestFingerprint({
         nodeId: "node-1",
         mode: "video",
-        prompt: "夜晚的城市",
+        prompt: "night city",
         model: "video-model",
         options: { size: "16:9", videoSeconds: 10, vquality: "768p" },
         context: {
@@ -58,14 +58,14 @@ describe("canvas generation submission", () => {
         expect(locks.size).toBe(0);
     });
 
-    test("持久化时分离编辑器槽位提示词和模型提示词", () => {
-        expect(canvasGenerationPromptMetadata("自我介绍 @图片1", "电影感：自我介绍 @图片1")).toEqual({
-            composerContent: "自我介绍 @图片1",
-            prompt: "电影感：自我介绍 @图片1",
+    test("Separate editor slot prompt words and model prompt words when persisting", () => {
+        expect(canvasGenerationPromptMetadata("Self-introduction @Picture 1", "Cinematic Sense: Self-Introduction @Picture 1")).toEqual({
+            composerContent: "Self-introduction @Picture 1",
+            prompt: "Cinematic Sense: Self-Introduction @Picture 1",
         });
     });
 
-    test("同一节点的并发提交只执行一次", async () => {
+    test("Concurrent commits on the same node are only executed once", async () => {
         const locks = new Map<string, Promise<unknown>>();
         let executions = 0;
         let duplicates = 0;
@@ -98,9 +98,9 @@ describe("canvas generation submission", () => {
         expect(executions).toBe(2);
     });
 
-    test("相同输入生成稳定指纹，关键内容变化会改变指纹", () => {
+    test("The same input generates stable fingerprints, and changes in key content will change the fingerprints.", () => {
         expect(fingerprint({ options: { vquality: "768p", videoSeconds: 10, size: "16:9" } })).toBe(fingerprint());
-        expect(fingerprint({ prompt: "白天的城市" })).not.toBe(fingerprint());
+        expect(fingerprint({ prompt: "city during daytime" })).not.toBe(fingerprint());
         expect(fingerprint({ model: "another-model" })).not.toBe(fingerprint());
         expect(fingerprint({ options: { size: "9:16", videoSeconds: 10, vquality: "768p" } })).not.toBe(fingerprint());
         expect(

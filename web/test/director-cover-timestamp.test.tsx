@@ -10,9 +10,9 @@ import { createCanvasPageUiStore } from "../src/stores/canvas/use-canvas-page-ui
 const pageUi = createCanvasPageUiStore();
 
 test("cover write preserves the old node until the canvas setter stamps its revision", async () => {
-    const scene = createDirectorScene("镜头");
+    const scene = createDirectorScene("lens");
     const before = "2026-01-01T00:00:00.000Z", after = "2026-01-02T00:00:00.000Z";
-    const node: CanvasNodeData = { id: "node-1", type: CanvasNodeType.Video, title: "镜头", position: { x: 0, y: 0 }, width: 384, height: 360, createdAt: before, updatedAt: before, metadata: { workflowKind: "shot", directorSceneId: scene.id, directorShotId: scene.shots[0].id } };
+    const node: CanvasNodeData = { id: "node-1", type: CanvasNodeType.Video, title: "lens", position: { x: 0, y: 0 }, width: 384, height: 360, createdAt: before, updatedAt: before, metadata: { workflowKind: "shot", directorSceneId: scene.id, directorShotId: scene.shots[0].id } };
     const nodesRef = { current: [node] };
     const projectId = useCanvasStore.getState().createProject("cover regression");
     useCanvasStore.getState().updateProject(projectId, { directorScenes: [scene], nodes: [node] });

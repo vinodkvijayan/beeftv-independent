@@ -8,16 +8,16 @@ function node(title: string, type: CanvasNodeData["type"] = CanvasNodeType.Text)
 }
 
 describe("canvas generation node title", () => {
-    test("keeps a title the user gave the node (飞书 #66)", () => {
-        expect(promptNodeTitle(node("分镜 1 - 清晨街角"), "一只猫在草地上打滚，阳光很好")).toBe("分镜 1 - 清晨街角");
+    test("keeps a title the user gave the node (Feishu #66)", () => {
+        expect(promptNodeTitle(node("Storyboard 1 - Early morning street corner"), "A cat is rolling on the grass and the sun is shining")).toBe("Storyboard 1 - Early morning street corner");
     });
 
     test("names an unnamed node after the prompt", () => {
-        expect(promptNodeTitle(node("文本节点"), "一只猫在草地上打滚")).toBe("一只猫在草地上打滚");
-        expect(promptNodeTitle(node("  "), "一只猫在草地上打滚")).toBe("一只猫在草地上打滚");
+        expect(promptNodeTitle(node("text node"), "A cat rolling on the grass")).toBe("A cat rolling on the grass");
+        expect(promptNodeTitle(node("  "), "A cat rolling on the grass")).toBe("A cat rolling on the grass");
     });
 
     test("keeps generation result nodes named after the prompt", () => {
-        expect(buildImageGenerationNodeTitle("一只猫", undefined)).toBe("一只猫");
+        expect(buildImageGenerationNodeTitle("a cat", undefined)).toBe("a cat");
     });
 });

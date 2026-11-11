@@ -203,7 +203,7 @@ test("catalog refresh keeps pending manual provider edits across delayed read an
                 models: ["enterprise-image"],
                 modelProfiles: [{ model: "enterprise-image", capability: "image", protocol: "openai-image" }],
             }),
-            createModelChannel({ id: "manual", name: "磁盘上的旧渠道", apiKey: "disk-key", models: ["old-image"] }),
+            createModelChannel({ id: "manual", name: "old channels on disk", apiKey: "disk-key", models: ["old-image"] }),
         ],
     };
     const repository = createModelConfigRepository({
@@ -220,7 +220,7 @@ test("catalog refresh keeps pending manual provider edits across delayed read an
         imageModel: "manual::draft-image",
         channels: [
             createModelChannel({ id: "beeftv", pinned: true, models: ["stale-image"] }),
-            createModelChannel({ id: "manual", name: "第一次改名", apiKey: "manual-key", models: ["draft-image"] }),
+            createModelChannel({ id: "manual", name: "first name change", apiKey: "manual-key", models: ["draft-image"] }),
         ],
     };
     const first = repository.commit(current);
@@ -231,7 +231,7 @@ test("catalog refresh keeps pending manual provider edits across delayed read an
     current = {
         ...current,
         channels: current.channels.map((channel) => (
-            channel.id === "manual" ? { ...channel, name: "连接过程中的改名", models: ["draft-image", "extra-image"] } : channel
+            channel.id === "manual" ? { ...channel, name: "Name change during connection process", models: ["draft-image", "extra-image"] } : channel
         )),
     };
     repository.commit(current);
@@ -241,14 +241,14 @@ test("catalog refresh keeps pending manual provider edits across delayed read an
     releaseFirstWrite?.();
     await Promise.all([first, second]);
 
-    expect(merged.channels.find((channel) => channel.id === "manual")?.name).toBe("连接过程中的改名");
+    expect(merged.channels.find((channel) => channel.id === "manual")?.name).toBe("Name change during connection process");
     expect(merged.channels.find((channel) => channel.id === "manual")?.models).toEqual(["draft-image", "extra-image"]);
     expect(merged.channels.find((channel) => channel.id === "beeftv")?.models).toEqual(["enterprise-image"]);
     const lastWrite = writes[writes.length - 1];
-    expect(lastWrite?.channels.find((channel) => channel.id === "manual")?.name).toBe("连接过程中的改名");
+    expect(lastWrite?.channels.find((channel) => channel.id === "manual")?.name).toBe("Name change during connection process");
     expect(lastWrite?.channels.find((channel) => channel.id === "manual")?.models).toEqual(["draft-image", "extra-image"]);
     expect(lastWrite?.channels.find((channel) => channel.id === "beeftv")?.models).toEqual(["enterprise-image"]);
-    expect(writes.some((config) => config.channels.find((channel) => channel.id === "manual")?.name === "第一次改名")).toBe(true);
+    expect(writes.some((config) => config.channels.find((channel) => channel.id === "manual")?.name === "first name change")).toBe(true);
     expect(repository.getState()).toMatchObject({ dirty: false });
 });
 

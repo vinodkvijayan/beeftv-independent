@@ -43,7 +43,7 @@ func skillScriptRunParams() json.RawMessage {
 }
 
 func registerSkillOps(r *Registry) {
-	r.Register(Op{AssistantCanvas: true, ID: "skill.catalog", Summary: "列出已安装技能", ReadOnly: true, Scope: ScopeWorkspaceRead,
+	r.Register(Op{AssistantCanvas: true, ID: "skill.catalog", Summary: "List installed skills", ReadOnly: true, Scope: ScopeWorkspaceRead,
 		Params: json.RawMessage(`{"type":"object","properties":{"id":{"type":"string"},"q":{"type":"string"},"offset":{"type":"integer"},"limit":{"type":"integer"}}}`),
 		Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 			var args struct {
@@ -56,14 +56,14 @@ func registerSkillOps(r *Registry) {
 				return nil, err
 			}
 			if args.Offset < 0 || args.Limit < 0 || args.Limit > SkillCatalogLimit || len(args.ID) > 80 || len(args.Query) > 300 {
-				return nil, InvalidArg("invalid_skill_catalog_query", "技能查询参数无效")
+				return nil, InvalidArg("invalid_skill_catalog_query", "Invalid skill query parameter")
 			}
 			if args.Limit == 0 {
 				args.Limit = SkillCatalogLimit
 			}
 			port, ok := ctx.Domain.(SkillCatalog)
 			if !ok {
-				return nil, Unsupported("skill_unavailable", "当前工作区无法读取技能")
+				return nil, Unsupported("skill_unavailable", "The skill cannot be read in the current workspace")
 			}
 			items, err := port.AgentSkillCatalog(ctx.UserID)
 			if err != nil {
@@ -97,7 +97,7 @@ func registerSkillOps(r *Registry) {
 		}})
 	for _, id := range []string{"skill.get", "skill.file"} {
 		operation := id
-		r.Register(Op{AssistantCanvas: true, ID: operation, Summary: "读取选定技能固定版本的正文或包内文件", ReadOnly: true, Scope: ScopeCanvas,
+		r.Register(Op{AssistantCanvas: true, ID: operation, Summary: "Read the text or package files of the fixed version of the selected skill", ReadOnly: true, Scope: ScopeCanvas,
 			Params: json.RawMessage(`{"type":"object","properties":{"skillId":{"type":"string"},"versionId":{"type":"string"},"contentHash":{"type":"string"},"path":{"type":"string"}},"required":["skillId","versionId","contentHash"]}`),
 			Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 				var args struct {
@@ -109,17 +109,17 @@ func registerSkillOps(r *Registry) {
 				}
 				port, ok := ctx.Domain.(SkillResources)
 				if !ok {
-					return nil, Unsupported("skill_unavailable", "当前工作区无法读取技能")
+					return nil, Unsupported("skill_unavailable", "The skill cannot be read in the current workspace")
 				}
 				if operation == "skill.get" {
 					if args.Path != "" {
-						return nil, InvalidArg("unexpected_path", "正文读取不接收文件路径")
+						return nil, InvalidArg("unexpected_path", "Text read does not accept file path")
 					}
 					result, err := port.AgentSkillVersion(ctx.UserID, args.Pin)
 					return result, mapDomainError(err)
 				}
 				if args.Path == "" {
-					return nil, InvalidArg("skill_path_required", "辅助文件读取需要包内路径")
+					return nil, InvalidArg("skill_path_required", "Auxiliary file reading requires the path within the package")
 				}
 				result, err := port.AgentSkillFile(ctx.UserID, args.Pin, args.Path)
 				return result, mapDomainError(err)
@@ -130,7 +130,7 @@ func registerSkillOps(r *Registry) {
 		AssistantCanvas:   true,
 		AssistantProposal: true,
 		ID:                "skill.script.run",
-		Summary:           "运行已选用技能的脚本（用户确认后执行）",
+		Summary:           "Run the script with the selected skill (executed after user confirmation)",
 		Scope:             ScopeCanvas,
 		Params:            skillScriptRunParams(),
 		Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
@@ -150,17 +150,17 @@ func registerSkillOps(r *Registry) {
 				return nil, err
 			}
 			if ctx.Caller.Kind != CallerAssistant || strings.TrimSpace(ctx.TurnID) == "" {
-				return nil, PermissionDenied("scope_denied", "技能脚本只能在内置助手对话轮次中发起运行")
+				return nil, PermissionDenied("scope_denied", "Skill scripts can only be initiated during built-in assistant dialogue rounds")
 			}
 			if strings.TrimSpace(args.CanvasID) == "" {
-				return nil, InvalidArg("invalid_params", "canvasId 必填")
+				return nil, InvalidArg("invalid_params", "canvasId required")
 			}
 			if _, err := ctx.Domain.UserCanvasProject(ctx.UserID, args.CanvasID); err != nil {
 				return nil, mapDomainError(err)
 			}
 			port, ok := ctx.Domain.(SkillScriptExecutor)
 			if !ok {
-				return nil, Unsupported("skill_unavailable", "当前工作区无法运行技能脚本")
+				return nil, Unsupported("skill_unavailable", "The skill script cannot be run in the current workspace")
 			}
 			return port.ProposeOrRunSkillScript(ctx.Context, ctx.UserID, ctx.TurnID, skills.ScriptRunRequest{
 				CanvasID:              args.CanvasID,

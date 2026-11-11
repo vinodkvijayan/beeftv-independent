@@ -16,10 +16,10 @@ func marketReleaseMetadata(raw string) (*skillhub.Release, error) {
 	}
 	var release skillhub.Release
 	if err := json.Unmarshal([]byte(raw), &release); err != nil {
-		return nil, fmt.Errorf("读取技能市场版本资料失败: %w", err)
+		return nil, fmt.Errorf("Failed to read skill market version data: %w", err)
 	}
 	if release.SkillID == "" || release.ReleaseID == "" {
-		return nil, fmt.Errorf("技能市场版本资料缺少发布身份")
+		return nil, fmt.Errorf("Skill market version information lacks publishing identity")
 	}
 	return &release, nil
 }

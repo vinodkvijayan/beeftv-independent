@@ -23,18 +23,18 @@ async function anthropicThinkingReply(res) {
   const send = async (type, data) => { res.write(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`); await delay(120); };
   await send('message_start', { type: 'message_start', message: { id: 'msg_synthetic', type: 'message', role: 'assistant', model: 'synthetic', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } } });
   await send('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '', signature: '' } });
-  await send('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: '先看画布上的两个节点' } });
-  await send('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: '，再确认时间线顺序。' } });
+  await send('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: 'First look at the two nodes on the canvas' } });
+  await send('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: ', and then confirm the timeline sequence.' } });
   await send('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: THINKING_SIGNATURE } });
   await send('content_block_stop', { type: 'content_block_stop', index: 0 });
   await send('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'thinking', thinking: '', signature: '' } });
-  await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'thinking_delta', thinking: '现在把结论写下来。' } });
+  await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'thinking_delta', thinking: 'Now write down the conclusion.' } });
   await send('content_block_stop', { type: 'content_block_stop', index: 1 });
   await send('content_block_start', { type: 'content_block_start', index: 2, content_block: { type: 'text', text: '' } });
-  await send('content_block_delta', { type: 'content_block_delta', index: 2, delta: { type: 'text_delta', text: '第一段正文。' } });
+  await send('content_block_delta', { type: 'content_block_delta', index: 2, delta: { type: 'text_delta', text: 'The first text paragraph.' } });
   await send('content_block_stop', { type: 'content_block_stop', index: 2 });
   await send('content_block_start', { type: 'content_block_start', index: 3, content_block: { type: 'text', text: '' } });
-  await send('content_block_delta', { type: 'content_block_delta', index: 3, delta: { type: 'text_delta', text: '第二段正文。' } });
+  await send('content_block_delta', { type: 'content_block_delta', index: 3, delta: { type: 'text_delta', text: 'Second paragraph of text.' } });
   await send('content_block_stop', { type: 'content_block_stop', index: 3 });
   await send('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 20 } });
   await send('message_stop', { type: 'message_stop' });
@@ -63,7 +63,7 @@ async function anthropicToolThenAnswer(call, res) {
   };
   if (call === 1) {
     await begin('msg_synthetic_tool');
-    await thinkingBlock(0, '先读画布上的两个节点。');
+    await thinkingBlock(0, 'First read the two nodes on the canvas.');
     await send('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'tool_use', id: 'toolu_synthetic_1', name: 'canvas_get', input: {} } });
     await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify({ canvasId: 'reasoning-tool-canvas' }) } });
     await send('content_block_stop', { type: 'content_block_stop', index: 1 });
@@ -71,9 +71,9 @@ async function anthropicToolThenAnswer(call, res) {
     return;
   }
   await begin('msg_synthetic_answer');
-  await thinkingBlock(0, '再确认时间线顺序，然后给出结论。');
+  await thinkingBlock(0, 'Confirm the timeline sequence again, and then give a conclusion.');
   await send('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } });
-  await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: '两段都看过了。' } });
+  await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'I’ve seen both episodes.' } });
   await send('content_block_stop', { type: 'content_block_stop', index: 1 });
   await end('end_turn');
 }
@@ -231,7 +231,7 @@ async function withHost(run, envExtra = {}, options = {}) {
   }
 }
 
-test('真实宿主：空新会话跨进程重启和模型切换仍可激活，零模型请求', async () => {
+test('Real Host: Empty new session cross-process restart and model switching can still be activated, zero model requests', async () => {
   await withHost(async ({ api, restart, getModelCalls }) => {
     const old = await api('/sessions', { canvasId: 'empty-restart' });
     const fresh = await api('/sessions', { canvasId: 'empty-restart' });
@@ -253,7 +253,7 @@ test('真实宿主：空新会话跨进程重启和模型切换仍可激活，�
   });
 }, 35000);
 
-test('真实宿主：新建会话替换会释放上一条，忙碌时拒绝替换', async () => {
+test('Real host: New session replacement will release the previous one, and replacement will be refused when busy.', async () => {
   await withHost(async ({ api, waitFor, getModelCalls }) => {
     const created = await api('/sessions', { canvasId: 'life-canvas' });
     expect(created.status).toBe(200);
@@ -276,7 +276,7 @@ test('真实宿主：新建会话替换会释放上一条，忙碌时拒绝替�
   }, {}, { canvasId: 'life-canvas' });
 }, 35000);
 
-test('真实宿主：并发新建会话最终只有一条当前会话', async () => {
+test('Real host: Concurrently creating new sessions ends up with only one current session', async () => {
   await withHost(async ({ api }) => {
     const [a, b] = await Promise.all([
       api('/sessions', { canvasId: 'parallel-canvas' }),
@@ -294,7 +294,7 @@ test('真实宿主：并发新建会话最终只有一条当前会话', async ()
   });
 }, 35000);
 
-test('真实宿主：指针写成目录后替换失败，当前会话仍是旧的', async () => {
+test('Real host: replacement failed after the pointer was written to the directory, and the current session is still old', async () => {
   await withHost(async ({ api, directory }) => {
     const created = await api('/sessions', { canvasId: 'pointer-canvas' });
     expect(created.status).toBe(200);
@@ -311,7 +311,7 @@ test('真实宿主：指针写成目录后替换失败，当前会话仍是旧�
   });
 }, 35000);
 
-test('真实宿主：chat 与 replace 并发时不是 500，忙碌则拒绝替换', async () => {
+test('Real host: When chat and replace are concurrent, it is not 500, and replacement is refused when busy.', async () => {
   await withHost(async ({ api }) => {
     const created = await api('/sessions', { canvasId: 'mix-canvas' });
     expect(created.status).toBe(200);
@@ -331,7 +331,7 @@ test('真实宿主：chat 与 replace 并发时不是 500，忙碌则拒绝替�
   }, {}, { canvasId: 'mix-canvas' });
 }, 35000);
 
-test('真实宿主：SIGTERM 释放活动会话后退出', async () => {
+test('Real host: SIGTERM exits after releasing active session', async () => {
   await withHost(async ({ api, child, getLog }) => {
     const created = await api('/sessions', { canvasId: 'shutdown-canvas' });
     expect(created.status).toBe(200);
@@ -339,11 +339,11 @@ test('真实宿主：SIGTERM 释放活动会话后退出', async () => {
     child.kill('SIGTERM');
     const code = await Promise.race([exited, delay(3000).then(() => 'timeout')]);
     expect(code).not.toBe('timeout');
-    expect(getLog()).toContain('关闭，释放');
+    expect(getLog()).toContain('close, release');
   });
 }, 35000);
 
-test('真实宿主：旧会话交接前停止经强杀重启仍生效，下一条请求正常执行', async () => {
+test('Real host: Stopping the old session before handover will still take effect after being killed and restarted, and the next request will be executed normally.', async () => {
   await withHost(async ({ api, directory, restart, getModelCalls, getOpsRequests }) => {
     const canvasId = 'canvas', sessionId = 'legacy-early-stop', requestId = 'legacy-stopped-request';
     const canvasDir = path.join(directory, 'sessions', canvasKey(canvasId));
@@ -357,18 +357,18 @@ test('真实宿主：旧会话交接前停止经强杀重启仍生效，下一�
     expect(JSON.parse(readFileSync(path.join(canvasDir, 'current.json'), 'utf8')).sessionId).toBe(sessionId);
     expect(getModelCalls()).toBe(0);
     await restart(undefined, 'SIGKILL');
-    const chat = await api('/chat', { canvasId, sessionId, requestId, turnId: 'legacy-stopped-turn', message: '已停止的旧请求' });
+    const chat = await api('/chat', { canvasId, sessionId, requestId, turnId: 'legacy-stopped-turn', message: 'Old requests that have been stopped' });
     const end = chat.text.trim().split('\n').map(JSON.parse).find(event => event.type === 'turn_end');
     expect(end?.cancelled).toBe(true);
     expect(getModelCalls()).toBe(0);
     expect(getOpsRequests().filter(request => request.includes('/ops/'))).toHaveLength(0);
-    const next = await api('/chat', { canvasId, sessionId, requestId: 'legacy-new-request', turnId: 'legacy-next-turn', message: '新的要求' });
+    const next = await api('/chat', { canvasId, sessionId, requestId: 'legacy-new-request', turnId: 'legacy-next-turn', message: 'new requirements' });
     expect(next.text).toContain('"reply":"ok"');
     expect(getModelCalls()).toBe(1);
   }, {}, { slowFirstModel: false });
 }, 35000);
 
-for (const failFirstModel of [false, true]) test(`真实宿主：旧 JSONL 交接首轮${failFirstModel ? '失败' : '成功'}后重启仍复用会话和上下文`, async () => {
+for (const failFirstModel of [false, true]) test(`Real Host: Old JSONL Handover First Round${failFirstModel ? 'failed' : 'success'}Reuse session and context after restart`, async () => {
   await withHost(async ({ api, directory, getModelPayloads, restart }) => {
     const canvasId = 'legacy-handoff';
     const canvasDir = path.join(directory, 'sessions', canvasKey(canvasId));
@@ -377,10 +377,10 @@ for (const failFirstModel of [false, true]) test(`真实宿主：旧 JSONL 交�
     const timestamp = '2026-10-07T12:00:00.000Z';
     const rows = [
       { type: 'session', version: 3, id: sessionId, timestamp, cwd: path.join(directory, 'workspace', canvasKey(canvasId)) },
-      { type: 'message', id: 'user-old', parentId: null, timestamp, message: { role: 'user', content: [{ type: 'text', text: '旧会话里的原始需求' }], timestamp: 1791374400000 } },
-      { type: 'message', id: 'assistant-old', parentId: 'user-old', timestamp, message: { role: 'assistant', content: [{ type: 'text', text: '旧会话里的历史回执' }], timestamp: 1791374401000 } },
+      { type: 'message', id: 'user-old', parentId: null, timestamp, message: { role: 'user', content: [{ type: 'text', text: 'Original requirement from old session' }], timestamp: 1791374400000 } },
+      { type: 'message', id: 'assistant-old', parentId: 'user-old', timestamp, message: { role: 'assistant', content: [{ type: 'text', text: 'Historical receipts from old conversations' }], timestamp: 1791374401000 } },
       { type: 'custom', id: 'turn-old', parentId: 'assistant-old', timestamp, customType: 'beeftv.canvas.turn',
-        data: { turnId: 'legacy-turn', userText: '旧会话里的原始需求', reply: '旧会话里的历史回执', toolCalls: [], proposals: [], error: null, cancelled: false, createdAt: timestamp } },
+        data: { turnId: 'legacy-turn', userText: 'Original requirement from old session', reply: 'Historical receipts from old conversations', toolCalls: [], proposals: [], error: null, cancelled: false, createdAt: timestamp } },
     ];
     writeFileSync(path.join(canvasDir, `2026-10-07T12-00-00-000Z_${sessionId}.jsonl`), rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
     writeFileSync(path.join(canvasDir, 'current.json'), JSON.stringify({ sessionId }));
@@ -390,10 +390,10 @@ for (const failFirstModel of [false, true]) test(`真实宿主：旧 JSONL 交�
     expect(history.status).toBe(200);
     expect(history.payload.sessionId).toBe(sessionId);
     expect(history.payload.turns).toHaveLength(1);
-    expect(history.payload.turns[0].userText).toBe('旧会话里的原始需求');
+    expect(history.payload.turns[0].userText).toBe('Original requirement from old session');
 
     // 在旧会话里发消息：新建 Durable 会话，模型请求带上交接说明。
-    const chat = await api('/chat', { canvasId, message: '继续改一下', turnId: 'handoff-turn-1', revisionBefore: 1, sessionId });
+    const chat = await api('/chat', { canvasId, message: 'Keep changing it', turnId: 'handoff-turn-1', revisionBefore: 1, sessionId });
     expect(chat.status).toBe(200);
     const end = chat.text.trim().split('\n').map((line) => JSON.parse(line)).find((line) => line.type === 'turn_end');
     expect(end.sessionId).toMatch(/^durable:/);
@@ -401,17 +401,17 @@ for (const failFirstModel of [false, true]) test(`真实宿主：旧 JSONL 交�
     expect(Boolean(end.error)).toBe(failFirstModel);
     expect(JSON.parse(chat.text.trim().split('\n')[0])).toMatchObject({ type: 'session', sessionId: end.sessionId });
     const payload = JSON.stringify(getModelPayloads().at(-1));
-    expect(payload).toContain('旧会话里的原始需求');
-    expect(payload).toContain('旧会话里的历史回执');
+    expect(payload).toContain('Original requirement from old session');
+    expect(payload).toContain('Historical receipts from old conversations');
 
     // 客户端可能没收到终态；宿主重启后，仍拿旧 ID 重试不能再次创建会话。
     await restart();
-    const next = await api('/chat', { canvasId, message: '再改一处', turnId: 'handoff-turn-2', revisionBefore: 1, sessionId });
+    const next = await api('/chat', { canvasId, message: 'Change one more thing', turnId: 'handoff-turn-2', revisionBefore: 1, sessionId });
     expect(next.status).toBe(200);
     const nextEnd = next.text.trim().split('\n').map((line) => JSON.parse(line)).find((line) => line.type === 'turn_end');
     expect(nextEnd.sessionId).toBe(end.sessionId);
     expect(nextEnd.reply).toBe('ok');
-    expect(JSON.stringify(getModelPayloads().at(-1))).toContain('继续改一下');
+    expect(JSON.stringify(getModelPayloads().at(-1))).toContain('Keep changing it');
 
     const listed = await api(`/sessions?canvasId=${canvasId}`);
     expect(listed.payload.currentSessionId).toBe(end.sessionId);
@@ -422,7 +422,7 @@ for (const failFirstModel of [false, true]) test(`真实宿主：旧 JSONL 交�
   }, {}, { canvasId: 'legacy-handoff', slowFirstModel: false, failFirstModel });
 }, 35000);
 
-test('真实宿主：旧会话交接首轮断线，重启后重发原请求复用会话和回执', async () => {
+test('Real host: The old session is disconnected in the first round of handover. After restarting, the original request is resent and the session and receipt are reused.', async () => {
   await withHost(async ({ api, directory, restart, base, hostToken, waitFor, getModelCalls }) => {
     const canvasId = 'canvas';
     const sessionId = 'legacy-disconnected';
@@ -430,7 +430,7 @@ test('真实宿主：旧会话交接首轮断线，重启后重发原请求复�
     mkdirSync(canvasDir, { recursive: true });
     const row = { type: 'session', version: 3, id: sessionId, timestamp: '2026-10-07T12:00:00.000Z', cwd: path.join(directory, 'workspace', canvasKey(canvasId)) };
     writeFileSync(path.join(canvasDir, `2026-10-07T12-00-00-000Z_${sessionId}.jsonl`), JSON.stringify(row) + '\n');
-    const body = { canvasId, sessionId, turnId: 'lost-response', requestId: 'lost-response', message: '保留这条消息' };
+    const body = { canvasId, sessionId, turnId: 'lost-response', requestId: 'lost-response', message: 'keep this message' };
     const controller = new AbortController();
     const response = await fetch(base + '/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Beeftv-Agent-Token': hostToken }, body: JSON.stringify(body), signal: controller.signal });
     const reader = response.body.getReader();
@@ -450,13 +450,13 @@ test('真实宿主：旧会话交接首轮断线，重启后重发原请求复�
     const fresh = await api('/sessions', { canvasId });
     expect(fresh.payload.sessionId).not.toBe(successor);
     await api('/sessions/activate', { canvasId, sessionId });
-    const again = await api('/chat', { ...body, turnId: 'next-turn', requestId: 'next-turn', message: '继续同一接续会话' });
+    const again = await api('/chat', { ...body, turnId: 'next-turn', requestId: 'next-turn', message: 'Continue the same session' });
     expect(again.text).toContain(successor);
     expect(getModelCalls()).toBe(2);
   });
 }, 35000);
 
-test('真实宿主：运行中反复读取历史不重放恢复写入，也不重写当前指针', async () => {
+test('Real host: Read history repeatedly during operation, do not replay and resume writing, and do not rewrite the current pointer.', async () => {
   await withHost(async ({ api, waitFor, directory, getModelCalls, getOpsRequests }) => {
     const canvasId = 'poll-canvas';
     const created = await api('/sessions', { canvasId });
@@ -486,8 +486,8 @@ test('真实宿主：运行中反复读取历史不重放恢复写入，也不�
   }, {}, { canvasId: 'poll-canvas' });
 }, 35000);
 
-test('真实宿主：冷启动首个历史响应恢复已提交文字，不等待回合结束且可停止', async () => {
-  const text = '已整理镜头说明，正在检查制作计划。';
+test('Real host: cold start the first historical response to restore the submitted text, do not wait for the end of the round and can be stopped', async () => {
+  const text = 'Shot descriptions have been compiled and production plans are being reviewed.';
   let releaseReply;
   const heldReply = new Promise(resolve => { releaseReply = resolve; });
   try {
@@ -496,7 +496,7 @@ test('真实宿主：冷启动首个历史响应恢复已提交文字，不等�
       const { payload: { sessionId } } = await api('/sessions', { canvasId });
       const controller = new AbortController();
       const response = await fetch(base + '/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Beeftv-Agent-Token': hostToken },
-        body: JSON.stringify({ canvasId, sessionId, turnId: 'cold-history-turn', requestId: 'cold-history-request', message: '检查制作计划' }), signal: controller.signal });
+        body: JSON.stringify({ canvasId, sessionId, turnId: 'cold-history-turn', requestId: 'cold-history-request', message: 'Check production plan' }), signal: controller.signal });
       // The second provider call can start only after the first assistant entry
       // and its plan_update tool result have committed through official Durable.
       await waitFor(() => getModelCalls() >= 2, 8000);
@@ -516,12 +516,12 @@ test('真实宿主：冷启动首个历史响应恢复已提交文字，不等�
       await waitFor(async () => (await api(`/history?canvasId=${canvasId}`)).payload.active === null, 8000);
     }, {}, { canvasId: 'cold-history-canvas', slowFirstModel: false,
       beforeModelReply: call => call > 1 ? heldReply : undefined,
-      modelReply: call => call === 1 ? { text, tool: { name: 'plan_update', args: { goal: '检查制作计划', items: [{ id: 'review', title: '确认镜头', status: 'needs_user' }] } } } : undefined,
+      modelReply: call => call === 1 ? { text, tool: { name: 'plan_update', args: { goal: 'Check production plan', items: [{ id: 'review', title: 'Confirm shot', status: 'needs_user' }] } } } : undefined,
     });
   } finally { releaseReply(); }
 }, 35000);
 
-test('真实宿主：上游失败直接结束且不自动重发，保留失败历史', async () => {
+test('Real host: Upstream failure ends directly without automatic retransmission, and the failure history is retained.', async () => {
   await withHost(async ({ api, getModelCalls }) => {
     const canvasId = 'retry-canvas';
     const created = await api('/sessions', { canvasId });
@@ -530,18 +530,18 @@ test('真实宿主：上游失败直接结束且不自动重发，保留失败�
     const lines = result.text.trim().split('\n').map((line) => JSON.parse(line));
     expect(lines.filter((line) => line.type === 'lifecycle' && line.phase.startsWith('retry'))).toEqual([]);
     expect(lines.find((line) => line.type === 'turn_end')).toMatchObject({ reply: '',
-      error: '模型没有完成回复。已经完成的操作会保留，请检查结果后再继续。', errorReason: 'model_error', cancelled: false });
+      error: 'The model did not complete the reply. Completed operations will be retained, please check the results before continuing.', errorReason: 'model_error', cancelled: false });
     expect(result.text).not.toContain(UPSTREAM_SECRET);
     expect(getModelCalls()).toBe(1);
     const after = await api(`/history?canvasId=${canvasId}`);
     expect(after.payload.active).toBeNull();
     expect(after.payload.turns[0]).toMatchObject({ reply: '',
-      error: '模型没有完成回复。已经完成的操作会保留，请检查结果后再继续。', errorReason: 'model_error', cancelled: false });
+      error: 'The model did not complete the reply. Completed operations will be retained, please check the results before continuing.', errorReason: 'model_error', cancelled: false });
     expect(after.text).not.toContain(UPSTREAM_SECRET);
   }, {}, { canvasId: 'retry-canvas', slowFirstModel: false, retryFirstModel: true });
 }, 35000);
 
-test('真实宿主：准备阶段（官方提交前）停止的请求不调用模型、不写画布，历史记为已停下；之后的新请求照常执行', async () => {
+test('Real host: Requests stopped during the preparation phase (before official submission) do not call the model or write to the canvas, and are recorded as stopped in history; subsequent new requests are executed as usual.', async () => {
   await withHost(async ({ api, waitFor, getModelCalls, getOpsRequests, heldTurnRead, releaseTurnRead }) => {
     const canvasId = 'prep-stop-canvas';
     const created = await api('/sessions', { canvasId });
@@ -575,7 +575,7 @@ test('真实宿主：准备阶段（官方提交前）停止的请求不调用�
   }, {}, { canvasId: 'prep-stop-canvas', slowFirstModel: false, holdTurnReads: { prepstop1: 1, prepstop2: 2 } });
 }, 35000);
 
-test('真实宿主：停止先于 /chat 到达时只停这一条请求；同一请求重发、重启后都不执行，其他请求照常执行', async () => {
+test('Real host: Stop only this request when it arrives before /chat; the same request will not be executed after resending or restarting, and other requests will be executed as usual', async () => {
   await withHost(async ({ api, restart, getModelCalls, getOpsRequests }) => {
     const canvasId = 'early-stop-canvas';
     const sessionId = (await api('/sessions', { canvasId })).payload.sessionId;
@@ -611,7 +611,7 @@ test('真实宿主：停止先于 /chat 到达时只停这一条请求；同一�
   }, {}, { canvasId: 'early-stop-canvas', slowFirstModel: false });
 }, 45000);
 
-test('真实宿主：旧请求的停止确认延迟，不会误停随后开始的新请求', async () => {
+test('Real host: The stop confirmation of old requests is delayed and new requests started subsequently will not be accidentally stopped.', async () => {
   const latch = () => { let release; const promise = new Promise((resolve) => { release = resolve; }); return { promise, release }; };
   const finishing = latch(), oldDone = latch(), cancelWaiting = latch(), cancelDone = latch(), nextStarted = latch(), nextReply = latch();
   let completions = 0;
@@ -645,7 +645,7 @@ test('真实宿主：旧请求的停止确认延迟，不会误停随后开始�
   });
 }, 35000);
 
-test('真实宿主：运行中按请求停止只停这一条；指向别的请求的停止不影响它', async () => {
+test('Real host: Stop by request during running only stops this one; stopping directed to other requests does not affect it', async () => {
   await withHost(async ({ api, waitFor, getModelCalls }) => {
     const canvasId = 'targeted-stop-canvas';
     const sessionId = (await api('/sessions', { canvasId })).payload.sessionId;
@@ -661,21 +661,21 @@ test('真实宿主：运行中按请求停止只停这一条；指向别的请�
   }, {}, { canvasId: 'targeted-stop-canvas' });
 }, 35000);
 
-test('真实宿主：Anthropic 协议的可读思考进流式快照、终态与历史，签名不外泄', async () => {
+test('Real host: The Anthropic protocol’s readable thinking goes into streaming snapshots, final states, and history, and signatures are not leaked.', async () => {
   await withHost(async ({ api }) => {
     const canvasId = 'reasoning-canvas';
     const sessionId = (await api('/sessions', { canvasId })).payload.sessionId;
-    const chat = await api('/chat', { canvasId, sessionId, turnId: 'reasoning-turn', requestId: 'reasoning-req', revisionBefore: 1, message: '先想一下再回答' });
+    const chat = await api('/chat', { canvasId, sessionId, turnId: 'reasoning-turn', requestId: 'reasoning-req', revisionBefore: 1, message: 'Think for a moment before answering' });
     expect(chat.status).toBe(200);
     const lines = chat.text.trim().split('\n').map((line) => JSON.parse(line));
 
     // 每个思考增量各自成为一次整段替换的快照：只增不减、不重字，也不一次到位。
     const snapshots = lines.filter((line) => line.type === 'reasoning_snapshot');
     expect(snapshots.length).toBeGreaterThanOrEqual(3);
-    expect(snapshots[0].segments).toMatchObject([{ text: '先看画布上的两个节点', status: 'streaming' }]);
+    expect(snapshots[0].segments).toMatchObject([{ text: 'First look at the two nodes on the canvas', status: 'streaming' }]);
     const bodies = snapshots.map((line) => line.segments.map((segment) => segment.text).join('|'));
     expect(bodies.every((body, index) => index === 0 || body === bodies[index - 1] || body.startsWith(bodies[index - 1]))).toBe(true);
-    expect(bodies.at(-1)).toBe('先看画布上的两个节点，再确认时间线顺序。|现在把结论写下来。');
+    expect(bodies.at(-1)).toBe('First look at the two nodes on the canvas, and then confirm the timeline order. |Now write down the conclusion.');
     // 第二段思考在同一个回合里追加，前一段那时已经结束。
     expect(snapshots.some((line) => line.segments.length === 2 && line.segments.at(-1).status === 'streaming')).toBe(true);
     // 正文开始后，思考块不再显示为进行中，界面据此把标题从「正在思考…」换成「思考过程」。
@@ -685,18 +685,18 @@ test('真实宿主：Anthropic 协议的可读思考进流式快照、终态与�
 
     // 正文快照只含正文，思考不混进回复；签名不进任何展示字段。
     const texts = lines.filter((line) => line.type === 'text_snapshot').map((line) => line.text);
-    expect(texts).toContain('第一段正文。');
-    expect(texts.at(-1)).toBe('第一段正文。第二段正文。');
-    expect(texts.every((text) => !text.includes('先看画布'))).toBe(true);
+    expect(texts).toContain('The first text paragraph.');
+    expect(texts.at(-1)).toBe('The first text paragraph. Second paragraph of text.');
+    expect(texts.every((text) => !text.includes('Look at the canvas first'))).toBe(true);
     expect(chat.text).not.toContain(THINKING_SIGNATURE);
 
     // 终态与实时流是同一份投影：片段身份由官方 entry 接管，界面重新打开也能显示。
     const end = lines.find((line) => line.type === 'turn_end');
-    expect(end.reply).toBe('第一段正文。第二段正文。');
+    expect(end.reply).toBe('The first text paragraph. Second paragraph of text.');
     expect(end.reasoning).toEqual(snapshots.at(-1).segments);
     expect(end.reasoning.map((segment) => segment.text)).toEqual([
-      '先看画布上的两个节点，再确认时间线顺序。',
-      '现在把结论写下来。',
+      'First look at the two nodes on the canvas, and then confirm the timeline order.',
+      'Now write down the conclusion.',
     ]);
 
     // 历史回合保留同一份思考；活动回合结束后不再返回 active。
@@ -707,11 +707,11 @@ test('真实宿主：Anthropic 协议的可读思考进流式快照、终态与�
   }, {}, { canvasId: 'reasoning-canvas', slowFirstModel: false, anthropicThinking: true });
 }, 35000);
 
-test('真实宿主：跨工具调用的思考在流式、终态和历史里是同一份', async () => {
+test('Real host: The thinking of cross-tool calls is the same in flow, final state and history.', async () => {
   await withHost(async ({ api, getModelCalls, getOpsRequests }) => {
     const canvasId = 'reasoning-tool-canvas';
     const sessionId = (await api('/sessions', { canvasId })).payload.sessionId;
-    const chat = await api('/chat', { canvasId, sessionId, turnId: 'reasoning-tool-turn', requestId: 'reasoning-tool-req', revisionBefore: 1, message: '先读画布再回答' });
+    const chat = await api('/chat', { canvasId, sessionId, turnId: 'reasoning-tool-turn', requestId: 'reasoning-tool-req', revisionBefore: 1, message: 'Read the canvas first and then answer' });
     expect(chat.status).toBe(200);
     const lines = chat.text.trim().split('\n').map((line) => JSON.parse(line));
     // 第一段思考 → canvas_get 工具调用 → 第二段思考 → 正文：恰好两次本地模型请求。
@@ -721,8 +721,8 @@ test('真实宿主：跨工具调用的思考在流式、终态和历史里是�
     const snapshots = lines.filter((line) => line.type === 'reasoning_snapshot');
     const last = snapshots.at(-1).segments;
     // 工具调用前的那段思考没有丢，思考正文原样送达。
-    expect(last.map((segment) => segment.text)).toEqual(['先读画布上的两个节点。',
-      '再确认时间线顺序，然后给出结论。']);
+    expect(last.map((segment) => segment.text)).toEqual(['First read the two nodes on the canvas.',
+      'Confirm the timeline sequence again, and then give a conclusion.']);
     expect(last.map((segment) => segment.status)).toEqual(['done', 'done']);
     // 两段来自不同的官方 entry：片段身份带 entry 与内容下标。
     expect(new Set(last.map((segment) => segment.id)).size).toBe(2);
@@ -730,7 +730,7 @@ test('真实宿主：跨工具调用的思考在流式、终态和历史里是�
 
     // 终态与实时流是同一份；重新读取历史也一致。
     const end = lines.find((line) => line.type === 'turn_end');
-    expect(end.reply).toBe('两段都看过了。');
+    expect(end.reply).toBe('I’ve seen both episodes.');
     expect(end.reasoning).toEqual(last);
     const history = await api(`/history?canvasId=${canvasId}`);
     expect(history.payload.active).toBeNull();
@@ -743,7 +743,7 @@ test('真实宿主：跨工具调用的思考在流式、终态和历史里是�
  * 之后思考再变化时也要跟着更新——轮询才能撤掉旧内容，而不是一直显示上一次读到的思考。
  * 假模型先回一个不可读的 redacted 思考块和正文，挂住这一轮；测试读到空数组后再放行一段可读思考。
  */
-test('真实宿主：进行中的历史带空思考数组，轮询跟着思考变化', async () => {
+test('Real host: The ongoing history has an empty thinking array, and polling follows the thinking changes.', async () => {
   let releaseModel;
   let releaseThinking;
   const heldModel = new Promise((resolve) => { releaseModel = resolve; });
@@ -756,11 +756,11 @@ test('真实宿主：进行中的历史带空思考数组，轮询跟着思考�
     await send('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'redacted_thinking', data: 'opaque-synthetic-payload' } });
     await send('content_block_stop', { type: 'content_block_stop', index: 0 });
     await send('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } });
-    await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: '已经重新看过画布。' } });
+    await send('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'Have revisited the canvas.' } });
     await send('content_block_stop', { type: 'content_block_stop', index: 1 });
     await nextThinking;
     await send('content_block_start', { type: 'content_block_start', index: 2, content_block: { type: 'thinking', thinking: '', signature: '' } });
-    await send('content_block_delta', { type: 'content_block_delta', index: 2, delta: { type: 'thinking_delta', thinking: '再确认时间线顺序' } });
+    await send('content_block_delta', { type: 'content_block_delta', index: 2, delta: { type: 'thinking_delta', thinking: 'Reconfirm the timeline sequence' } });
     await send('content_block_stop', { type: 'content_block_stop', index: 2 });
     await heldModel;
     try { await send('message_stop', { type: 'message_stop' }); res.end(); } catch { /* 宿主已退出：连接已断开 */ }
@@ -769,10 +769,10 @@ test('真实宿主：进行中的历史带空思考数组，轮询跟着思考�
     await withHost(async ({ api, waitFor, getModelCalls }) => {
       const canvasId = 'reasoning-clear-canvas';
       const sessionId = (await api('/sessions', { canvasId })).payload.sessionId;
-      const chat = api('/chat', { canvasId, sessionId, turnId: 'reasoning-clear-turn', requestId: 'reasoning-clear-request', revisionBefore: 1, message: '先想再回答' });
+      const chat = api('/chat', { canvasId, sessionId, turnId: 'reasoning-clear-turn', requestId: 'reasoning-clear-request', revisionBefore: 1, message: 'Think first before answering' });
       await waitFor(() => getModelCalls() >= 1, 8000);
       // 这一轮仍在进行中：正文已经进面板，可读思考为空。
-      await waitFor(async () => (await api(`/history?canvasId=${canvasId}`)).payload.active?.streamed === '已经重新看过画布。', 8000);
+      await waitFor(async () => (await api(`/history?canvasId=${canvasId}`)).payload.active?.streamed === 'Have revisited the canvas.', 8000);
       const active = (await api(`/history?canvasId=${canvasId}`)).payload.active;
       expect(active).toMatchObject({ turnId: 'reasoning-clear-turn', status: 'running' });
       // 投影已经初始化，空思考必须是空数组而不是缺字段：轮询据此撤掉上一次读到的旧思考。
@@ -784,7 +784,7 @@ test('真实宿主：进行中的历史带空思考数组，轮询跟着思考�
       releaseThinking();
       await waitFor(async () => (await api(`/history?canvasId=${canvasId}`)).payload.active?.reasoning?.length === 1, 8000);
       const grown = (await api(`/history?canvasId=${canvasId}`)).payload.active;
-      expect(grown.reasoning.map((segment) => segment.text)).toEqual(['再确认时间线顺序']);
+      expect(grown.reasoning.map((segment) => segment.text)).toEqual(['Reconfirm the timeline sequence']);
       expect(grown.reasoning.map((segment) => segment.status)).toEqual(['streaming']);
 
       await api('/cancel', { canvasId });

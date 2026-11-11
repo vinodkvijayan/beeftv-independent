@@ -212,7 +212,7 @@ func TestOpenLocalFileServesJailedOriginal(t *testing.T) {
 	if resolved != mustEvalSymlinks(t, original) {
 		t.Fatalf("originalPath = %q, want %q", resolved, mustEvalSymlinks(t, original))
 	}
-	file, err := openLocalFile(resolved, "无法读取 Eagle 原始文件，请确认素材库仍处于可用状态")
+	file, err := openLocalFile(resolved, "Unable to read Eagle raw file, please confirm that the library is still available")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,15 +18,15 @@ for (const width of [1280, 390]) for (const dark of [false, true]) test(`links f
     page.on("pageerror", (error) => errors.push(error.message));
     try {
         await page.goto(server.url + (dark ? "?dark" : ""));
-        await page.getByRole("button", { name: "生成", exact: true }).click();
-        const submit = page.getByRole("button", { name: "使用链接并生成" });
+        await page.getByRole("button", { name: "generate", exact: true }).click();
+        const submit = page.getByRole("button", { name: "Use link and generate" });
         await submit.waitFor();
         expect(await page.getByRole("dialog").count()).toBe(1);
         expect(await submit.isDisabled()).toBe(true);
-        await page.getByRole("textbox", { name: "参考图片 1" }).fill("http://cdn.example/a.png");
-        await page.getByRole("textbox", { name: "参考视频 1" }).fill("https://cdn.example/b.mp4");
+        await page.getByRole("textbox", { name: "Reference picture 1" }).fill("http://cdn.example/a.png");
+        await page.getByRole("textbox", { name: "Reference video 1" }).fill("https://cdn.example/b.mp4");
         expect(await submit.isDisabled()).toBe(true);
-        await page.getByRole("textbox", { name: "参考图片 1" }).fill("https://cdn.example/a.png");
+        await page.getByRole("textbox", { name: "Reference picture 1" }).fill("https://cdn.example/a.png");
         expect(await submit.isEnabled()).toBe(true);
         const bounds = await page.getByRole("dialog").boundingBox();
         expect(bounds!.x).toBeGreaterThanOrEqual(0);
@@ -34,7 +34,7 @@ for (const width of [1280, 390]) for (const dark of [false, true]) test(`links f
         await page.screenshot({ path: `/tmp/beeftv-reference-links-${width}-${dark}.png` });
         await submit.click();
         await page.getByText("confirmed", { exact: true }).waitFor();
-        await page.getByRole("button", { name: "生成", exact: true }).click();
+        await page.getByRole("button", { name: "generate", exact: true }).click();
         await page.getByRole("button", { name: /取\s*消/ }).click();
         await page.getByText("cancelled", { exact: true }).waitFor();
         expect(errors).toEqual([]);

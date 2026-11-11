@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { createDirectorScene, toggleDirectorObjectLock } from "../src/lib/canvas/director/director-scene";
 
-describe("导演台场景对象锁定", () => {
-    test("锁定可撤销、可解锁，旧场景缺省未锁且不影响对象的变换数据", () => {
+describe("Director's desk scene object lock", () => {
+    test("The lock can be revoked and unlocked. The old scene is unlocked by default and does not affect the transformation data of the object.", () => {
         const scene = createDirectorScene();
         const object = scene.objects[0];
         expect(object.locked).toBeUndefined();
@@ -13,7 +13,7 @@ describe("导演台场景对象锁定", () => {
         expect(toggleDirectorObjectLock(locked, object.id).objects[0].locked).toBe(false);
     });
 
-    test("不存在的对象不产生场景变更", () => {
+    test("Objects that do not exist do not cause scene changes.", () => {
         const scene = createDirectorScene();
         expect(toggleDirectorObjectLock(scene, "missing")).toBe(scene);
     });

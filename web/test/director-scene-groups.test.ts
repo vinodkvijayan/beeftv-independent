@@ -3,23 +3,23 @@ import * as sceneTools from "@/lib/canvas/director/director-scene";
 import { createDirectorScene } from "@/lib/canvas/director/director-scene";
 import { searchDirectorSceneItems } from "@/lib/canvas/director/director-scene-search";
 
-describe("导演台场景对象分组", () => {
-    test("分组把选中对象放入新分组，原有对象数据不变，列表中呈现父子层级", () => {
+describe("Director's desk scene object grouping", () => {
+    test("Grouping puts the selected objects into a new group, the original object data remains unchanged, and the parent-child hierarchy is displayed in the list.", () => {
         const scene = createDirectorScene();
-        scene.objects.push({ ...structuredClone(scene.objects[0]), id: "second-object", name: "演员 2" });
+        scene.objects.push({ ...structuredClone(scene.objects[0]), id: "second-object", name: "Actor 2" });
         const group = Reflect.get(sceneTools, "groupDirectorObjects") as ((scene: typeof scene, ids: string[]) => typeof scene) | undefined;
         expect(group).toBeFunction();
         const next = group!(scene, [scene.objects[0].id, "second-object"]);
         expect(next.groups).toHaveLength(1);
-        expect(next.groups?.[0].name).toBe("分组1");
+        expect(next.groups?.[0].name).toBe("Group 1");
         expect(next.objects.filter((item) => item.groupId === next.groups?.[0].id).map((item) => item.id)).toEqual([scene.objects[0].id, "second-object"]);
         expect(scene.objects.every((item) => item.groupId === undefined)).toBe(true);
-        expect(searchDirectorSceneItems(next, "").filter((item) => item.kind === "group" || item.kind === "object").map((item) => item.kind === "group" ? item.group.name : item.object.name)).toEqual(["分组1", "演员 1", "演员 2"]);
+        expect(searchDirectorSceneItems(next, "").filter((item) => item.kind === "group" || item.kind === "object").map((item) => item.kind === "group" ? item.group.name : item.object.name)).toEqual(["Group 1", "actor 1", "Actor 2"]);
     });
 
-    test("分组支持折叠与展开，并可解组而不删除对象", () => {
+    test("Grouping supports folding and expansion, and can be ungrouped without deleting objects.", () => {
         const scene = createDirectorScene();
-        scene.objects.push({ ...structuredClone(scene.objects[0]), id: "second-object", name: "演员 2" });
+        scene.objects.push({ ...structuredClone(scene.objects[0]), id: "second-object", name: "Actor 2" });
         const group = Reflect.get(sceneTools, "groupDirectorObjects") as ((scene: typeof scene, ids: string[]) => typeof scene) | undefined;
         const ungroup = Reflect.get(sceneTools, "ungroupDirectorObjects") as ((scene: typeof scene, id: string) => typeof scene) | undefined;
         const toggle = Reflect.get(sceneTools, "toggleDirectorGroupCollapsed") as ((scene: typeof scene, id: string) => typeof scene) | undefined;
@@ -39,9 +39,9 @@ describe("导演台场景对象分组", () => {
         expect(ungrouped.objects).toHaveLength(2);
     });
 
-    test("分组副本创建独立对象与父分组，显示和锁定操作统一作用于成员", () => {
+    test("Group copies create independent objects and parent groups, and display and lock operations are uniformly applied to members.", () => {
         const scene = createDirectorScene();
-        scene.objects.push({ ...structuredClone(scene.objects[0]), id: "second-object", name: "演员 2" });
+        scene.objects.push({ ...structuredClone(scene.objects[0]), id: "second-object", name: "Actor 2" });
         const group = Reflect.get(sceneTools, "groupDirectorObjects") as ((scene: typeof scene, ids: string[]) => typeof scene) | undefined;
         const duplicate = Reflect.get(sceneTools, "duplicateDirectorGroup") as ((scene: typeof scene, id: string) => typeof scene) | undefined;
         const visibility = Reflect.get(sceneTools, "toggleDirectorGroupVisibility") as ((scene: typeof scene, id: string) => typeof scene) | undefined;

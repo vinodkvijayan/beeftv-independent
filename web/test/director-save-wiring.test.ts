@@ -54,27 +54,27 @@ const makeEnvelope = (overrides: Partial<DirectorDraftEnvelope> = {}): DirectorD
 describe("describeDirectorSaveStatus", () => {
     it("should report a quiet idle state only when everything is confirmed", () => {
         const indicator = describeDirectorSaveStatus(makeSnapshot({ status: "saved", revision: 3, confirmedRevision: 3 }));
-        expect(indicator).toEqual({ label: "已保存", tone: "idle", retryable: false, busy: false });
+        expect(indicator).toEqual({ label: "saved", tone: "idle", retryable: false, busy: false });
     });
 
     it("should stay retryable when the status is saved but a revision is unconfirmed", () => {
         const indicator = describeDirectorSaveStatus(makeSnapshot({ status: "saved", revision: 4, confirmedRevision: 3 }));
-        expect(indicator.label).toBe("有未保存修改");
+        expect(indicator.label).toBe("There are unsaved changes");
         expect(indicator.tone).toBe("pending");
         expect(indicator.retryable).toBe(true);
     });
 
     it("should mark saving as busy and not retryable", () => {
         const indicator = describeDirectorSaveStatus(makeSnapshot({ status: "saving", revision: 2, confirmedRevision: 1 }));
-        expect(indicator).toEqual({ label: "正在保存…", tone: "pending", retryable: false, busy: true });
+        expect(indicator).toEqual({ label: "Saving…", tone: "pending", retryable: false, busy: true });
     });
 
     it("should distinguish an error with a safe draft from one without", () => {
         const withDraft = describeDirectorSaveStatus(makeSnapshot({ status: "error", revision: 2, confirmedRevision: 1, draftStored: true }));
         const withoutDraft = describeDirectorSaveStatus(makeSnapshot({ status: "error", revision: 2, confirmedRevision: 1, draftStored: false }));
 
-        expect(withDraft.label).toBe("保存失败 · 本地草稿已保留");
-        expect(withoutDraft.label).toBe("保存失败 · 本地草稿也未写入");
+        expect(withDraft.label).toBe("Save failed · Local draft has been retained");
+        expect(withoutDraft.label).toBe("Saving failed · Local draft was not written either");
         expect(withDraft.tone).toBe("danger");
         expect(withoutDraft.tone).toBe("danger");
         expect(withDraft.retryable).toBe(true);
@@ -83,7 +83,7 @@ describe("describeDirectorSaveStatus", () => {
 
     it("should surface dirty as pending and retryable", () => {
         const indicator = describeDirectorSaveStatus(makeSnapshot({ status: "dirty", revision: 1, confirmedRevision: 0, draftStored: true }));
-        expect(indicator.label).toBe("有未保存修改");
+        expect(indicator.label).toBe("There are unsaved changes");
         expect(indicator.retryable).toBe(true);
         expect(indicator.busy).toBe(false);
     });
@@ -145,15 +145,15 @@ describe("resolveDirectorCloseOutcome", () => {
         const outcome = resolveDirectorCloseOutcome("offer-draft-exit");
         expect(outcome.kind).toBe("confirm-draft-exit");
         if (outcome.kind !== "confirm-draft-exit") return;
-        expect(outcome.message).toContain("远端保存失败");
-        expect(outcome.message).toContain("本地草稿");
+        expect(outcome.message).toContain("Remote save failed");
+        expect(outcome.message).toContain("local draft");
     });
 
     it("should block the exit and explain why on stay", () => {
         const outcome = resolveDirectorCloseOutcome("stay");
         expect(outcome.kind).toBe("blocked");
         if (outcome.kind !== "blocked") return;
-        expect(outcome.message).toContain("重试");
+        expect(outcome.message).toContain("Try again");
     });
 });
 

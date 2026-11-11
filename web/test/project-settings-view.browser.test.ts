@@ -25,7 +25,7 @@ function makeProject(id: string, status: string) {
     return {
         id,
         userId: "owner-a",
-        name: id === "project-a" ? "项目甲" : "项目乙",
+        name: id === "project-a" ? "Project A" : "Project B",
         type: "short-drama",
         aspectRatio: "9:16",
         sourceType: "blank",
@@ -114,7 +114,7 @@ beforeAll(async () => {
                 patchHits += 1;
                 patches.push({ projectId, body });
                 if (gatePatch && patchGate) await patchGate.promise;
-                if (failSave) return json(null, "保存失败：网络中断", 1);
+                if (failSave) return json(null, "Save failed: Network interruption", 1);
                 const current = projects.get(projectId) || makeProject(projectId, "active");
                 const next = { ...current, ...body, id: projectId };
                 projects.set(projectId, next);
@@ -164,16 +164,16 @@ async function toastText() {
 }
 
 test("archive then restore on the same mounted project writes archived then active", async () => {
-    await page.getByRole("button", { name: "归档项目" }).click();
-    await page.getByRole("button", { name: "确认归档" }).click();
-    await page.getByRole("button", { name: "恢复项目" }).waitFor({ timeout: 8_000 });
-    expect(await toastText()).toContain("项目已归档");
+    await page.getByRole("button", { name: "Archive items" }).click();
+    await page.getByRole("button", { name: "Confirm archiving" }).click();
+    await page.getByRole("button", { name: "restore items" }).waitFor({ timeout: 8_000 });
+    expect(await toastText()).toContain("Project archived");
     expect(await page.getByTestId("project-status").textContent()).toBe("archived");
 
-    await page.getByRole("button", { name: "恢复项目" }).click();
-    await page.getByRole("button", { name: "确认恢复" }).click();
-    await page.getByRole("button", { name: "归档项目" }).waitFor({ timeout: 8_000 });
-    expect(await toastText()).toContain("项目已恢复");
+    await page.getByRole("button", { name: "restore items" }).click();
+    await page.getByRole("button", { name: "Confirm recovery" }).click();
+    await page.getByRole("button", { name: "Archive items" }).waitFor({ timeout: 8_000 });
+    expect(await toastText()).toContain("Project has been restored");
     expect(patches.map((entry) => entry.body.status)).toEqual(["archived", "active"]);
     expect(patches.every((entry) => entry.projectId === "project-a")).toBe(true);
 }, 15_000);
@@ -181,21 +181,21 @@ test("archive then restore on the same mounted project writes archived then acti
 test("StrictMode remount still applies a valid settings save", async () => {
     const harness = await harnessState();
     expect(harness?.strictSetups ?? 0).toBeGreaterThanOrEqual(2);
-    await page.getByLabel("项目名称").fill("项目甲已改");
-    await page.getByRole("button", { name: "保存设置" }).click();
+    await page.getByLabel("Project name").fill("Project A has been changed");
+    await page.getByRole("button", { name: "Save settings" }).click();
     await page.waitForFunction(() => {
         const state = (window as Window & { __projectSettingsHarness?: HarnessState }).__projectSettingsHarness;
-        return (state?.toasts ?? []).some((text) => text.includes("项目设置已保存"));
+        return (state?.toasts ?? []).some((text) => text.includes("Project settings saved"));
     }, { timeout: 8_000 });
-    expect(await toastText()).toContain("项目设置已保存");
+    expect(await toastText()).toContain("Project settings saved");
     expect((await harnessState())?.refreshCount ?? 0).toBeGreaterThanOrEqual(1);
-    expect(patches.some((entry) => entry.projectId === "project-a" && entry.body.name === "项目甲已改")).toBe(true);
+    expect(patches.some((entry) => entry.projectId === "project-a" && entry.body.name === "Project A has been changed")).toBe(true);
 }, 15_000);
 
 test("delayed ordinary save success after project ABA does not toast the replacement session", async () => {
     gatePatch = true;
-    await page.getByLabel("项目名称").fill("项目甲已改");
-    await page.getByRole("button", { name: "保存设置" }).click();
+    await page.getByLabel("Project name").fill("Project A has been changed");
+    await page.getByRole("button", { name: "Save settings" }).click();
     await waitForPatchHits(1);
     await page.evaluate(() => {
         const harness = (window as Window & { __projectSettingsHarness?: HarnessState }).__projectSettingsHarness;
@@ -205,15 +205,15 @@ test("delayed ordinary save success after project ABA does not toast the replace
     await page.getByTestId("project-id").filter({ hasText: "project-a" }).waitFor({ timeout: 4_000 });
     await fetch(new URL("/harness/release-patch", server.url), { method: "POST" });
     await page.waitForTimeout(800);
-    expect(await toastText()).not.toContain("项目设置已保存");
+    expect(await toastText()).not.toContain("Project settings saved");
     expect((await harnessState())?.refreshCount ?? 0).toBe(0);
 }, 15_000);
 
 test("delayed ordinary save error after project ABA does not toast the replacement session", async () => {
     failSave = true;
     gatePatch = true;
-    await page.getByLabel("项目名称").fill("项目甲已改");
-    await page.getByRole("button", { name: "保存设置" }).click();
+    await page.getByLabel("Project name").fill("Project A has been changed");
+    await page.getByRole("button", { name: "Save settings" }).click();
     await waitForPatchHits(1);
     await page.evaluate(() => {
         const harness = (window as Window & { __projectSettingsHarness?: HarnessState }).__projectSettingsHarness;
@@ -222,7 +222,7 @@ test("delayed ordinary save error after project ABA does not toast the replaceme
     });
     await fetch(new URL("/harness/release-patch", server.url), { method: "POST" });
     await page.waitForTimeout(800);
-    expect(await toastText()).not.toContain("保存失败");
-    expect(await toastText()).not.toContain("网络中断");
+    expect(await toastText()).not.toContain("Save failed");
+    expect(await toastText()).not.toContain("Network outage");
     expect((await harnessState())?.refreshCount ?? 0).toBe(0);
 }, 15_000);

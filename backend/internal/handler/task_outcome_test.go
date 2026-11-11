@@ -31,7 +31,7 @@ func TestTaskOutcomeReadEndpointsOnlyAddPublicProjection(t *testing.T) {
 				t.Fatalf("%d %s", resp.Code, resp.Body.String())
 			}
 			if strings.Contains(resp.Body.String(), "never-expose") || strings.Contains(resp.Body.String(), "recovery_outcome") {
-				t.Fatal("泄露私有事实或凭据")
+				t.Fatal("Reveal private facts or credentials")
 			}
 			var env struct {
 				Data json.RawMessage `json:"data"`
@@ -50,13 +50,13 @@ func TestTaskOutcomeReadEndpointsOnlyAddPublicProjection(t *testing.T) {
 				t.Fatal(err)
 			}
 			if got.ID != task.ID || got.Status != model.TaskStatusFailed || got.Outcome == nil || got.Outcome.Phase != "failed" || got.Outcome.Regenerate != "confirm" || got.Outcome.Reason != "result_unrecoverable" {
-				t.Fatalf("投影=%+v", got)
+				t.Fatalf("Projection=%+v", got)
 			}
 		})
 	}
 	stored, err := h.svc.Task(owner.ID, task.ID)
 	if err != nil || stored.Status != task.Status {
-		t.Fatal("读接口改了任务")
+		t.Fatal("The task of reading interface has been changed")
 	}
 }
 

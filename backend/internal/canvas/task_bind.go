@@ -72,7 +72,7 @@ func (s *Service) BindTaskOutputToExistingNode(userID string, patch TaskOutputBi
 
 func (s *Service) bindTaskOutputOnce(userID string, patch TaskOutputBind) (TaskOutputBindResult, error) {
 	if strings.TrimSpace(patch.CanvasID) == "" || strings.TrimSpace(patch.NodeID) == "" || strings.TrimSpace(patch.TaskID) == "" {
-		return TaskOutputBindResult{}, kernel.NewAppError(http.StatusBadRequest, "绑定缺少画布、节点或任务身份")
+		return TaskOutputBindResult{}, kernel.NewAppError(http.StatusBadRequest, "Binding is missing canvas, node or task identity")
 	}
 	doc, err := s.loadCanvasDoc(userID, patch.CanvasID)
 	if err != nil {
@@ -85,13 +85,13 @@ func (s *Service) bindTaskOutputOnce(userID string, patch TaskOutputBind) (TaskO
 	if node == nil {
 		return TaskOutputBindResult{}, &kernel.AppError{
 			Status: http.StatusNotFound, Reason: kernel.ErrorReason("node_deleted"),
-			Message: "原任务节点已删除，未重新创建节点", Details: refusal,
+			Message: "The original task node has been deleted and the node has not been re-created.", Details: refusal,
 		}
 	}
 	if got := nodeString(nodeMetadata(node), "taskId"); got != strings.TrimSpace(patch.TaskID) && !canBindEmptyRenderNode(node, patch) && !canBindPendingVideoNode(node, patch) {
-		message := "节点已绑定到其他任务，未覆盖该节点"
+		message := "The node is bound to other tasks and the node is not covered"
 		if got == "" {
-			message = "节点尚未关联这次任务，生成结果已保留"
+			message = "The node has not been associated with this task, and the generated results have been retained."
 		}
 		return TaskOutputBindResult{}, &kernel.AppError{
 			Status: http.StatusConflict, Reason: kernel.ErrorReason("node_task_mismatch"),

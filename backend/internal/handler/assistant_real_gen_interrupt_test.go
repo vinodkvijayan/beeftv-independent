@@ -64,7 +64,7 @@ func TestE2EGenerationDriverSettlesOnInterrupt(t *testing.T) {
 			break
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("等待视频任务进入运行态超时\n%s", redactSecret(log.String(), harness.upstreamKey))
+			t.Fatalf("Timeout waiting for the video task to enter the running state\n%s", redactSecret(log.String(), harness.upstreamKey))
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -77,7 +77,7 @@ func TestE2EGenerationDriverSettlesOnInterrupt(t *testing.T) {
 	case <-done:
 	case <-time.After(25 * time.Second):
 		_ = command.Process.Kill()
-		t.Fatalf("SIGINT 后驱动未在 25 秒内退出\n%s", redactSecret(log.String(), harness.upstreamKey))
+		t.Fatalf("Driver did not exit within 25 seconds after SIGINT\n%s", redactSecret(log.String(), harness.upstreamKey))
 	}
 
 	raw, err := os.ReadFile(filepath.Join(outDir, "report.json"))
@@ -89,10 +89,10 @@ func TestE2EGenerationDriverSettlesOnInterrupt(t *testing.T) {
 		t.Fatal(err)
 	}
 	if report.Interrupted != "SIGINT" {
-		t.Fatalf("报告没有记录中断信号: %q", report.Interrupted)
+		t.Fatalf("Report that no interrupt signal was logged: %q", report.Interrupted)
 	}
 	if len(report.CancelAttempts) == 0 {
-		t.Fatal("报告没有取消尝试")
+		t.Fatal("Report no cancellation attempt")
 	}
 	failedCancel := false
 	for _, attempt := range report.CancelAttempts {
@@ -101,9 +101,9 @@ func TestE2EGenerationDriverSettlesOnInterrupt(t *testing.T) {
 		}
 	}
 	if !failedCancel {
-		t.Fatalf("模拟取消失败没有记录: %+v", report.CancelAttempts)
+		t.Fatalf("Simulation cancellation failure is not recorded: %+v", report.CancelAttempts)
 	}
 	if len(report.PendingTasks) == 0 {
-		t.Fatal("报告没有列出仍可能运行的任务")
+		t.Fatal("The report does not list tasks that may still be run")
 	}
 }

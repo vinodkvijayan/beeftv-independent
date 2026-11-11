@@ -33,17 +33,17 @@ func Resolve(root string) (string, error) {
 		return root, nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("读取存储目录设置失败: %w", err)
+		return "", fmt.Errorf("Failed to read storage directory settings: %w", err)
 	}
 	var location Location
 	if err := json.Unmarshal(body, &location); err != nil {
-		return "", fmt.Errorf("存储目录设置损坏: %w", err)
+		return "", fmt.Errorf("The storage directory setting is damaged: %w", err)
 	}
 	if !filepath.IsAbs(location.DataDir) {
-		return "", errors.New("存储目录设置无效")
+		return "", errors.New("The storage directory setting is invalid")
 	}
 	if info, err := os.Stat(location.DataDir); err != nil || !info.IsDir() {
-		return "", fmt.Errorf("存储目录无法访问，请连接对应磁盘后重试：%s", location.DataDir)
+		return "", fmt.Errorf("The storage directory cannot be accessed, please connect the corresponding disk and try again: %s", location.DataDir)
 	}
 	return location.DataDir, nil
 }
@@ -92,7 +92,7 @@ func saveLocation(root string, location Location) error {
 func canonical(path string) (string, error) {
 	path = strings.TrimSpace(path)
 	if !filepath.IsAbs(path) || filepath.Dir(filepath.Clean(path)) == filepath.Clean(path) {
-		return "", errors.New("请选择磁盘中的文件夹，例如 D:\\BeefTV")
+		return "", errors.New("Please select a folder on your disk, for example D:\\BeefTV")
 	}
 	path = filepath.Clean(path)
 	missing := []string{}

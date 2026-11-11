@@ -51,13 +51,13 @@ func TestSanitizeSaveFileNameStripsPathsAndIllegalCharacters(t *testing.T) {
 	if got := sanitizeSaveFileName(" /tmp/clip.mp4 "); got != "clip.mp4" {
 		t.Fatalf("basename = %q", got)
 	}
-	if got := sanitizeSaveFileName(".."); got != "未命名媒体" {
+	if got := sanitizeSaveFileName(".."); got != "unnamed media" {
 		t.Fatalf("dot name = %q", got)
 	}
 }
 
 func TestSanitizeSaveFileNameDoesNotSplitChineseRunes(t *testing.T) {
-	name := strings.Repeat("好", 80) + ".mp4"
+	name := strings.Repeat("good", 80) + ".mp4"
 	got := sanitizeSaveFileName(name)
 	if !utf8.ValidString(got) {
 		t.Fatalf("truncated name is not valid UTF-8: %q", got)

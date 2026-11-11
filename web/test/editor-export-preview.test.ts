@@ -11,8 +11,8 @@ test("cancelled and rate-limited plan preview errors stay off the editor", () =>
     const aborted = new AbortController();
     aborted.abort();
     expect(isIgnorablePlanPreviewError(new Error("too many requests"), aborted.signal)).toBe(true);
-    expect(isIgnorablePlanPreviewError(new DOMException("请求已取消", "AbortError"))).toBe(true);
-    expect(isIgnorablePlanPreviewError(Object.assign(new Error("请求已取消"), { name: "AbortError" }))).toBe(true);
-    expect(isIgnorablePlanPreviewError(new ApiError("请求过于频繁", { status: 429 }))).toBe(true);
-    expect(isIgnorablePlanPreviewError(new Error("时间线没有可渲染的媒体片段"))).toBe(false);
+    expect(isIgnorablePlanPreviewError(new DOMException("Request canceled", "AbortError"))).toBe(true);
+    expect(isIgnorablePlanPreviewError(Object.assign(new Error("Request canceled"), { name: "AbortError" }))).toBe(true);
+    expect(isIgnorablePlanPreviewError(new ApiError("Requests are too frequent", { status: 429 }))).toBe(true);
+    expect(isIgnorablePlanPreviewError(new Error("The timeline has no renderable media clips"))).toBe(false);
 });

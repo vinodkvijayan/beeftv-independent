@@ -2,7 +2,7 @@ import {expect,test} from "bun:test";
 import {shouldReloadForContinuation} from "@/pages/canvas/use-canvas-assistant-continuation";
 import type {AssistantContinuation} from "@/services/api/assistant-continuation";
 
-const row:AssistantContinuation={id:"receipt",canvasId:"canvas",sessionId:"session",proposalId:"gp-one",sourceTurnId:"source",requestId:"generation-fixed",turnId:"fixed",message:"【自动继续】检查已生成结果",permissionMode:"canvas",state:"claimed",taskIds:["task"],nodeIds:["actual"]};
+const row:AssistantContinuation={id:"receipt",canvasId:"canvas",sessionId:"session",proposalId:"gp-one",sourceTurnId:"source",requestId:"generation-fixed",turnId:"fixed",message:"[Auto-continue] Check generated results",permissionMode:"canvas",state:"claimed",taskIds:["task"],nodeIds:["actual"]};
 const controller=()=>({canvasId:"canvas",sessionId:"session",historyLoaded:true,streaming:false,sessionBusy:false,reloadHistory:async()=>true});
 
 test("a backend-claimed receipt makes an idle page re-read history to show the worker's turn",()=>{

@@ -229,12 +229,12 @@ test("an unrelated asset finishing during confirmation does not invalidate the p
 
 test("a referenced asset changing during confirmation still blocks generation", async () => {
     const live = fixture();
-    live.nodes[0].metadata!.prompt = "使用 @[asset:script]";
-    live.assets.push({ id: "script", kind: "text", title: "剧本", coverUrl: "", tags: [], createdAt: "", updatedAt: "", data: { content: "原剧情" } });
+    live.nodes[0].metadata!.prompt = "Use @[asset:script]";
+    live.assets.push({ id: "script", kind: "text", title: "script", coverUrl: "", tags: [], createdAt: "", updatedAt: "", data: { content: "Original plot" } });
     const saved = structuredClone(live);
     expect(await blockedReason(prepareAssistantProposalSnapshot(proposal, () => live, async () => {
         const asset = live.assets[0];
-        if (asset.kind === "text") asset.data.content = "已改剧情";
+        if (asset.kind === "text") asset.data.content = "The plot has been changed";
         return saved;
     }))).toBe("content_mismatch");
 });

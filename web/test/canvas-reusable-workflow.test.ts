@@ -52,11 +52,11 @@ describe("canvas reusable workflow extraction", () => {
         expect(compiled.definition.nodes.find(n => n.id === "depth")?.role).toBe("depth");
     });
     test("text generator/result pairs collapse without requiring a media resource", () => {
-        const prompt = node("write", CanvasNodeType.Text, { nodeRole: "generator", prompt: "写一句话" });
-        const answer = node("answer", CanvasNodeType.Text, { generatedFromNodeId: "write", taskId: "text-task", taskStatus: "succeeded", content: "你好" });
+        const prompt = node("write", CanvasNodeType.Text, { nodeRole: "generator", prompt: "write a sentence" });
+        const answer = node("answer", CanvasNodeType.Text, { generatedFromNodeId: "write", taskId: "text-task", taskStatus: "succeeded", content: "hello" });
         const compiled = compileCanvasWorkflow([prompt, answer], [edge("write", "answer")], new Set(["write", "answer"]));
         expect(compiled.definition.nodes).toHaveLength(1);
-        expect(compiled.definition.nodes[0]).toMatchObject({ id: "write", role: "generation", sourceTaskId: "text-task", text: "你好" });
+        expect(compiled.definition.nodes[0]).toMatchObject({ id: "write", role: "generation", sourceTaskId: "text-task", text: "hello" });
     });
     test("a source image used for regeneration remains a replaceable input", () => {
         const source = { ...image, metadata: { ...image.metadata, generatedFromNodeId: image.id } };
@@ -72,13 +72,13 @@ describe("canvas reusable workflow extraction", () => {
         expect(compileCanvasWorkflow([inPlace], [], new Set([inPlace.id])).definition.nodes).toHaveLength(1);
     });
     test("rejects unfinished, ambiguous and unsupported recipes", () => {
-        expect(() => compileCanvasWorkflow([generator], [], new Set(["generate"]))).toThrow("手动");
-        expect(() => compileCanvasWorkflow([node("director", CanvasNodeType.Director)], [], new Set(["director"]))).toThrow("暂不支持");
-        expect(() => compileCanvasWorkflow([generator, result, { ...result, id: "result2" }], [], new Set(["generate"]))).toThrow("多个");
+        expect(() => compileCanvasWorkflow([generator], [], new Set(["generate"]))).toThrow("Manual");
+        expect(() => compileCanvasWorkflow([node("director", CanvasNodeType.Director)], [], new Set(["director"]))).toThrow("Not supported yet");
+        expect(() => compileCanvasWorkflow([generator, result, { ...result, id: "result2" }], [], new Set(["generate"]))).toThrow("multiple");
     });
     test("rejects cyclic execution dependencies", () => {
         const other = node("other", CanvasNodeType.Video, { storageKey: "resource:other", taskId: "task-other", taskStatus: "succeeded" });
-        expect(() => compileCanvasWorkflow([generator, result, other], [edge("generate", "other"), edge("other", "generate")], new Set(["generate", "result", "other"]))).toThrow("循环");
+        expect(() => compileCanvasWorkflow([generator, result, other], [edge("generate", "other"), edge("other", "generate")], new Set(["generate", "result", "other"]))).toThrow("loop");
     });
     test("freezing an intermediate step removes its upstream branch", () => {
         const compiled = compileCanvasWorkflow([image, generator, result], [edge("person", "generate")], new Set(["person", "generate", "result"])).definition;

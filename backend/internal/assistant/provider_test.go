@@ -14,11 +14,11 @@ func TestProviderFingerprintTracksEveryField(t *testing.T) {
 	}
 	for _, variant := range variants {
 		if variant.Fingerprint() == base.Fingerprint() {
-			t.Fatalf("指纹未随字段变化: %#v", variant)
+			t.Fatalf("The fingerprint does not change with the field: %#v", variant)
 		}
 	}
 	if base.Fingerprint() != (Provider{ChannelID: "beeftv", Model: "MiniMax-M3",
 		BaseURL: "https://beeftv.app/v1", Protocol: "chat-completion", APIKey: "one"}).Fingerprint() {
-		t.Fatal("相同配置应得到相同指纹")
+		t.Fatal("The same configuration should get the same fingerprint")
 	}
 }

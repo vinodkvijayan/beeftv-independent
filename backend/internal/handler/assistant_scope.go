@@ -53,7 +53,7 @@ func normalizeAssistantReferences(svc assistantReferenceService, userID string, 
 		return nil, nil
 	}
 	if len(items) > assistantMaxReferences {
-		return nil, fmt.Errorf("一次对话最多引用 %d 个资源", assistantMaxReferences)
+		return nil, fmt.Errorf("A conversation can reference up to %d resources", assistantMaxReferences)
 	}
 	seen := map[string]bool{}
 	out := make([]assistantReference, 0, len(items))
@@ -61,7 +61,7 @@ func normalizeAssistantReferences(svc assistantReferenceService, userID string, 
 		kind := strings.TrimSpace(item.Kind)
 		id := strings.TrimSpace(item.ID)
 		if id == "" {
-			return nil, errors.New("引用缺少资源 id")
+			return nil, errors.New("Reference is missing resource id")
 		}
 		key := kind + "\x00" + id
 		if seen[key] {
@@ -70,14 +70,14 @@ func normalizeAssistantReferences(svc assistantReferenceService, userID string, 
 		switch kind {
 		case "asset":
 			if _, err := svc.CanvasService().UserAsset(userID, id); err != nil {
-				return nil, errors.New("引用的素材不存在或不属于当前工作区")
+				return nil, errors.New("The referenced material does not exist or does not belong to the current workspace")
 			}
 		case "canvas":
 			if _, err := svc.CanvasService().UserCanvasProject(userID, id); err != nil {
-				return nil, errors.New("引用的画布不存在或不属于当前工作区")
+				return nil, errors.New("The referenced canvas does not exist or does not belong to the current workspace")
 			}
 		default:
-			return nil, errors.New("不支持的引用类型: " + kind)
+			return nil, errors.New("Unsupported reference types:" + kind)
 		}
 		seen[key] = true
 		out = append(out, assistantReference{Kind: kind, ID: id})
@@ -104,7 +104,7 @@ func assistantTurnInput(selected []string, references []assistantReference) app.
 func assistantScopeForRequest(c *gin.Context, svc assistantScopeService, userID string, hostCall bool) (*agentops.AssistantScope, string, error) {
 	if !hostCall {
 		if strings.TrimSpace(c.GetHeader(assistantTurnHeader)) != "" {
-			return nil, "", errors.New("回合归属只能由内置助手宿主出示")
+			return nil, "", errors.New("Turn ownership can only be provided by the built-in assistant host")
 		}
 		return nil, "", nil
 	}
@@ -114,14 +114,14 @@ func assistantScopeForRequest(c *gin.Context, svc assistantScopeService, userID 
 		return &agentops.AssistantScope{PermissionMode: "full-access"}, "", nil
 	}
 	if !app.ValidAssistantTurnID(turnID) {
-		return nil, "", errors.New("回合标识非法")
+		return nil, "", errors.New("Illegal round identifier")
 	}
 	scope, ok, err := svc.AssistantTurns().ScopeForHost(userID, turnID)
 	if err != nil {
 		return nil, "", err
 	}
 	if !ok {
-		return nil, "", errors.New("这一轮对话不存在、不属于当前工作区或已经结束")
+		return nil, "", errors.New("This round of dialogue does not exist, does not belong to the current workspace, or has ended")
 	}
 	return &agentops.AssistantScope{
 		PermissionMode: scope.PermissionMode,

@@ -20,7 +20,7 @@ func TestUserMessageFormatMatchesFrontendSplit(t *testing.T) {
 		generation.CategoryAsyncFailed, generation.CategoryCancelled, generation.CategoryPartialSuccess, generation.CategoryDownloadFailed,
 		generation.CategoryDeliveryFailed, generation.CategoryResultsMissing, generation.CategoryMalformedResponse,
 	}
-	const ids = "排查编号：任务 task_abc123 · 请求 req_abc123"
+	const ids = "Troubleshooting number: task task_abc123 · Request req_abc123"
 	for _, category := range categories {
 		t.Run(string(category), func(t *testing.T) {
 			failure := generation.Failure{Category: category, TaskID: "task_abc123", RequestID: "req_abc123"}
@@ -39,7 +39,7 @@ func TestUserMessageFormatMatchesFrontendSplit(t *testing.T) {
 	}
 
 	// 具体到哪一项素材的文案同样沿用「原因。下一步。」，前端不再另行识别。
-	specialized := generation.ClassifyText("第 2 个参考视频时长为 3.00 秒，需要 5–15 秒")
+	specialized := generation.ClassifyText("Reference video 2 is 3.00 seconds long and takes 5–15 seconds")
 	if specialized.Reason == "" || strings.Contains(specialized.Reason, "。") {
 		t.Fatalf("specialized reason must be a single sentence: %+v", specialized)
 	}

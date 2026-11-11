@@ -83,18 +83,18 @@ func assertCompleteGenerationReport(t *testing.T, raw []byte) {
 		t.Fatal(err)
 	}
 	if gaps := generationReportGaps(report); len(gaps) > 0 {
-		t.Fatalf("真实生成结果不完整：%s", strings.Join(gaps, "；"))
+		t.Fatalf("The actual generated result is incomplete: %s", strings.Join(gaps, "；"))
 	}
 }
 
 func generationReportGapSummary(raw []byte) string {
 	var report e2eGenerationReport
 	if err := json.Unmarshal(raw, &report); err != nil {
-		return "report.json 无法解析: " + err.Error()
+		return "report.json cannot be parsed:" + err.Error()
 	}
 	gaps := generationReportGaps(report)
 	if len(gaps) == 0 {
-		return "报告没有可判定的缺口"
+		return "There are no identifiable gaps in the report"
 	}
 	return strings.Join(gaps, "；")
 }
@@ -104,19 +104,19 @@ func generationReportGapSummary(raw []byte) string {
 func generationReportGaps(report e2eGenerationReport) []string {
 	gaps := []string{}
 	if len(report.Rounds) != 3 {
-		gaps = append(gaps, fmt.Sprintf("回合数需要 3，实际 %d", len(report.Rounds)))
+		gaps = append(gaps, fmt.Sprintf("The number of rounds required is 3, actual %d", len(report.Rounds)))
 	}
 	if !report.MediaReview.OK {
-		gaps = append(gaps, "审片模型未生效："+report.MediaReview.Reason)
+		gaps = append(gaps, "The film review model does not take effect:"+report.MediaReview.Reason)
 	}
 	images, videos, renders := 0, 0, 0
 	for _, round := range report.Rounds {
 		if round.Status != "done" || round.Error != "" {
-			gaps = append(gaps, fmt.Sprintf("第 %d 轮未完成：%s %s", round.Round, round.Status, round.Error))
+			gaps = append(gaps, fmt.Sprintf("Round %d is not completed: %s %s", round.Round, round.Status, round.Error))
 		}
 		for _, task := range round.Tasks {
 			if task.Status != "succeeded" {
-				gaps = append(gaps, fmt.Sprintf("任务 %s（%s）未成功：%s", task.ID, task.Type, task.Status))
+				gaps = append(gaps, fmt.Sprintf("Task %s (%s) failed: %s", task.ID, task.Type, task.Status))
 				continue
 			}
 			saved := false
@@ -126,7 +126,7 @@ func generationReportGaps(report e2eGenerationReport) []string {
 				}
 			}
 			if !saved {
-				gaps = append(gaps, fmt.Sprintf("任务 %s（%s）没有保存成功的资源回执", task.ID, task.Type))
+				gaps = append(gaps, fmt.Sprintf("Task %s (%s) did not save a successful resource receipt", task.ID, task.Type))
 				continue
 			}
 			switch {
@@ -140,20 +140,20 @@ func generationReportGaps(report e2eGenerationReport) []string {
 		}
 	}
 	if images < 2 {
-		gaps = append(gaps, fmt.Sprintf("首帧图任务需要 2 个，实际 %d", images))
+		gaps = append(gaps, fmt.Sprintf("The first frame picture task requires 2, actual %d", images))
 	}
 	if videos < 2 {
-		gaps = append(gaps, fmt.Sprintf("视频任务需要 2 个，实际 %d", videos))
+		gaps = append(gaps, fmt.Sprintf("The video task requires 2, actual %d", videos))
 	}
 	if renders < 1 {
-		gaps = append(gaps, fmt.Sprintf("成片渲染任务需要 1 个，实际 %d", renders))
+		gaps = append(gaps, fmt.Sprintf("The film rendering task requires 1, actual %d", renders))
 	}
 
 	imageFiles, videoFiles, renderFiles := map[string]bool{}, map[string]bool{}, map[string]bool{}
 	for _, round := range report.Rounds {
 		for _, item := range round.Artifacts {
 			if item.Bytes <= 0 {
-				gaps = append(gaps, "产物为空："+item.File)
+				gaps = append(gaps, "The product is empty:"+item.File)
 				continue
 			}
 			key := item.ResourceID
@@ -173,30 +173,30 @@ func generationReportGaps(report e2eGenerationReport) []string {
 		}
 	}
 	if len(imageFiles) < 2 {
-		gaps = append(gaps, fmt.Sprintf("下载的首帧图需要 2 个，实际 %d", len(imageFiles)))
+		gaps = append(gaps, fmt.Sprintf("The downloaded first frame requires 2, the actual one is %d", len(imageFiles)))
 	}
 	if len(videoFiles) < 2 {
-		gaps = append(gaps, fmt.Sprintf("下载的视频需要 2 个，实际 %d", len(videoFiles)))
+		gaps = append(gaps, fmt.Sprintf("The downloaded video requires 2, actual %d", len(videoFiles)))
 	}
 	if len(renderFiles) < 1 {
-		gaps = append(gaps, fmt.Sprintf("下载的成片需要 1 个，实际 %d", len(renderFiles)))
+		gaps = append(gaps, fmt.Sprintf("The downloaded film requires 1, actual %d", len(renderFiles)))
 	}
 	for _, issue := range report.Issues {
 		if strings.TrimSpace(issue) != "" {
-			gaps = append(gaps, "驱动问题："+issue)
+			gaps = append(gaps, "Driver issues:"+issue)
 		}
 	}
 	if len(report.PendingTasks) > 0 {
-		gaps = append(gaps, fmt.Sprintf("收尾时仍有 %d 个任务可能仍在运行", len(report.PendingTasks)))
+		gaps = append(gaps, fmt.Sprintf("%d tasks may still be running at the end", len(report.PendingTasks)))
 	}
 	if strings.TrimSpace(report.Interrupted) != "" {
-		gaps = append(gaps, "运行被中断："+report.Interrupted)
+		gaps = append(gaps, "Operation was interrupted:"+report.Interrupted)
 	}
 	if report.ConfirmationOutcomeUnknown {
-		gaps = append(gaps, "确认结果未知，相关方案："+strings.Join(report.RelatedProposalIDs, ","))
+		gaps = append(gaps, "The confirmation result is unknown, related solutions:"+strings.Join(report.RelatedProposalIDs, ","))
 	}
 	if strings.TrimSpace(report.SettleError) != "" {
-		gaps = append(gaps, "收尾查询任务失败："+report.SettleError)
+		gaps = append(gaps, "The closing query task failed:"+report.SettleError)
 	}
 	return gaps
 }
@@ -228,7 +228,7 @@ func completeE2EReport() e2eGenerationReport {
 
 func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 	if gaps := generationReportGaps(completeE2EReport()); len(gaps) > 0 {
-		t.Fatalf("完整报告不应有缺口: %v", gaps)
+		t.Fatalf("The complete report should have no gaps: %v", gaps)
 	}
 
 	t.Run("missing render", func(t *testing.T) {
@@ -237,7 +237,7 @@ func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 		report.Rounds[2].Tasks = nil
 		gaps := generationReportGaps(report)
 		if !strings.Contains(strings.Join(gaps, "|"), "成片") {
-			t.Fatalf("缺少成片必须判失败: %v", gaps)
+			t.Fatalf("Failure to complete the film must result in failure: %v", gaps)
 		}
 	})
 	t.Run("missing first frame", func(t *testing.T) {
@@ -245,7 +245,7 @@ func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 		report.Rounds[0].Artifacts = report.Rounds[0].Artifacts[:1]
 		gaps := generationReportGaps(report)
 		if !strings.Contains(strings.Join(gaps, "|"), "首帧") {
-			t.Fatalf("缺少首帧必须判失败: %v", gaps)
+			t.Fatalf("Missing first frame must fail: %v", gaps)
 		}
 	})
 	t.Run("failed task", func(t *testing.T) {
@@ -253,7 +253,7 @@ func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 		report.Rounds[1].Tasks[0].Status = "failed"
 		gaps := generationReportGaps(report)
 		if !strings.Contains(strings.Join(gaps, "|"), "未成功") {
-			t.Fatalf("失败任务必须判失败: %v", gaps)
+			t.Fatalf("The failed task must be judged as failed: %v", gaps)
 		}
 	})
 	t.Run("media review missing", func(t *testing.T) {
@@ -262,7 +262,7 @@ func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 		report.MediaReview.Reason = "protocol_unsupported"
 		gaps := generationReportGaps(report)
 		if !strings.Contains(strings.Join(gaps, "|"), "审片模型") {
-			t.Fatalf("审片模型未生效必须判失败: %v", gaps)
+			t.Fatalf("The film review model is not valid and must be judged as failure: %v", gaps)
 		}
 	})
 	t.Run("pending task at exit", func(t *testing.T) {
@@ -276,7 +276,7 @@ func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 		}{ID: "task-late", Status: "running", PossiblyRunning: true})
 		gaps := generationReportGaps(report)
 		if !strings.Contains(strings.Join(gaps, "|"), "可能仍在运行") {
-			t.Fatalf("退出时仍在运行的任务必须判失败: %v", gaps)
+			t.Fatalf("Tasks that are still running when exiting must be judged as failed: %v", gaps)
 		}
 	})
 	t.Run("settle error", func(t *testing.T) {
@@ -284,7 +284,7 @@ func TestE2EGenerationReportRequiresArtifacts(t *testing.T) {
 		report.SettleError = "tasks_unavailable"
 		gaps := generationReportGaps(report)
 		if !strings.Contains(strings.Join(gaps, "|"), "收尾查询") {
-			t.Fatalf("收尾查询失败必须判失败: %v", gaps)
+			t.Fatalf("If the closing query fails, it must be judged as failure: %v", gaps)
 		}
 	})
 }

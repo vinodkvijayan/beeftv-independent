@@ -7,14 +7,14 @@ function distance(left: [number, number, number], right: [number, number, number
     return Math.hypot(left[0] - right[0], left[1] - right[1], left[2] - right[2]);
 }
 
-describe("离线程序角色姿态", () => {
-    test("程序化人偶关键帧覆盖求解姿势与手动值，局部读数和网格使用同一旋转", () => {
+describe("Offline program character posture", () => {
+    test("Procedural puppet keyframe override solve pose with manual values, local readouts and mesh using the same rotation", () => {
         const keyed: [number, number, number, number] = [0, 0, Math.SQRT1_2, Math.SQRT1_2];
         const frame = resolveDirectorProceduralActorPose("phone", { rightHand: [0, 0, 0, 1] }, undefined, 0.5, [{ bone: "rightHand", keyframes: [{ id: "hand-key", time: 0.5, rotation: keyed }] }]);
         frame.rotations.rightHand.forEach((value, index) => expect(value).toBeCloseTo(keyed[index], 6));
     });
 
-    test("接触型预设把程序化人偶的手脚放到共享目标，并让跑步随时间循环", () => {
+    test("The contact preset places the programmed puppet's hands and feet on a shared target and loops the run over time", () => {
         const think = resolveDirectorProceduralActorPose("think").joints.rightHand;
         const phone = resolveDirectorProceduralActorPose("phone").joints;
         const squat = resolveDirectorProceduralActorPose("squat").joints;
@@ -28,7 +28,7 @@ describe("离线程序角色姿态", () => {
         expect(runStart[1]).not.toBeCloseTo(runHalf[1], 3);
     });
 
-    test("20 个姿势数据能驱动人偶关节位置，而不是只改变检查器标签", () => {
+    test("20 pose data can drive puppet joint positions instead of just changing inspector labels", () => {
         const stand = resolveDirectorProceduralActorPose("stand");
         const wave = resolveDirectorProceduralActorPose("wave");
 
@@ -38,7 +38,7 @@ describe("离线程序角色姿态", () => {
         expect(DIRECTOR_PROCEDURAL_ACTOR_BONES).toContain("leftUpperArm");
     });
 
-    test("局部骨骼覆盖沿层级传递到末端关节", () => {
+    test("Local bone coverage is passed down the hierarchy to the end joints", () => {
         const stand = resolveDirectorProceduralActorPose("stand");
         const rotated = resolveDirectorProceduralActorPose("stand", { leftUpperArm: [0, 0, Math.SQRT1_2, Math.SQRT1_2] });
 
@@ -46,7 +46,7 @@ describe("离线程序角色姿态", () => {
         expect(distance(stand.joints.rightHand, rotated.joints.rightHand)).toBeLessThan(0.001);
     });
 
-    test("自制人偶左右外展沿各自的外侧移动，前举进入镜头前方", () => {
+    test("The self-made doll abducts left and right and moves along their respective outsides, and moves forward into the front of the camera.", () => {
         const stand = resolveDirectorProceduralActorPose("stand");
         const zRotation = (angle: number): [number, number, number, number] => [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
         const leftAbducted = resolveDirectorProceduralActorPose("stand", { leftUpperArm: zRotation(-0.35), leftUpperLeg: zRotation(-0.35) });
@@ -62,7 +62,7 @@ describe("离线程序角色姿态", () => {
         expect(rightRaisedForward.joints.rightHand[2]).toBeGreaterThan(stand.joints.rightHand[2]);
     });
 
-    test("选中人偶的骨架拓扑覆盖躯干、双臂和双腿，且每条边都连接有效关节", () => {
+    test("The skeleton topology of the selected puppet covers the torso, arms and legs, and each edge is connected to valid joints.", () => {
         const joints = resolveDirectorProceduralActorPose("stand").joints;
         const edges = DIRECTOR_PROCEDURAL_ACTOR_SKELETON_EDGES;
 
@@ -75,7 +75,7 @@ describe("离线程序角色姿态", () => {
         expect(edges.every(([from, to]) => Boolean(joints[from] && joints[to]))).toBe(true);
     });
 
-    test("不同预设改变骨架实际长度与肩距，脚仍落在地面附近", () => {
+    test("Different presets change the actual length of the frame and shoulder distance, but the feet still land near the ground.", () => {
         const male = resolveDirectorProceduralActorPose("stand", {}, resolveDirectorActorShape("standard_male"));
         const athletic = resolveDirectorProceduralActorPose("stand", {}, resolveDirectorActorShape("athletic"));
         const slim = resolveDirectorProceduralActorPose("stand", {}, resolveDirectorActorShape("slim"));

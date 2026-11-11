@@ -19,11 +19,11 @@ test("connection actions render immediate progress and a retry after network fai
     const noop = () => {};
     const props = { busy: false, onConnect: noop, onCancel: noop, onRetry: noop, onDisconnect: noop, onWallet: noop };
     const connecting = renderToStaticMarkup(<BeefTVConnectionActions {...props} connection={{ state: "connecting", hasCredential: false }} />);
-    expect(connecting).toContain("正在连接");
+    expect(connecting).toContain("Connecting");
     expect(connecting).toContain("disabled");
-    expect(connecting).not.toContain("重新连接");
+    expect(connecting).not.toContain("Reconnect");
     const failed = renderToStaticMarkup(<BeefTVConnectionActions {...props} connection={{ state: "connection_error", hasCredential: false }} />);
-    expect(failed).toContain("重新连接");
+    expect(failed).toContain("Reconnect");
     expect(failed).not.toContain("disabled");
 });
 
@@ -37,15 +37,15 @@ test("pinned BeefTV is visible and cannot be deleted before models are fetched",
         pinned: true,
         presetVersion: 1,
     });
-    expect(modelConfigChannelPresentation(channel)).toEqual({ builtin: true, deletable: false, adapterLabel: "应用内置适配" });
-    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 0, dirty: false, error: "" })).toBe("未连接");
+    expect(modelConfigChannelPresentation(channel)).toEqual({ builtin: true, deletable: false, adapterLabel: "In-app adaptation" });
+    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 0, dirty: false, error: "" })).toBe("Not connected");
 });
 
 test("BeefTV status copy reflects enterprise connection state", () => {
     const channel = createModelChannel({ id: "beeftv", apiKey: "", pinned: true, presetVersion: 1 });
-    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 1, dirty: false, error: "" }, { state: "pending", userCode: "ABCD-EFGH", hasCredential: false })).toBe("请在浏览器中确认 ABCD-EFGH");
-    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 2, dirty: false, error: "" }, { state: "connected", account: { id: "acct-1", display_name: "Ender" }, hasCredential: true })).toBe("已连接 Ender");
-    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 2, dirty: false, error: "" }, { state: "revoked", hasCredential: true })).toBe("连接已失效，请重新连接");
+    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 1, dirty: false, error: "" }, { state: "pending", userCode: "ABCD-EFGH", hasCredential: false })).toBe("Please confirm ABCD-EFGH in your browser");
+    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 2, dirty: false, error: "" }, { state: "connected", account: { id: "acct-1", display_name: "Ender" }, hasCredential: true })).toBe("Connected Ender");
+    expect(modelConfigChannelStatusLabel(channel, { status: "idle", revision: 2, dirty: false, error: "" }, { state: "revoked", hasCredential: true })).toBe("The connection has expired, please reconnect.");
 });
 
 test("BeefTV connected transition refreshes the managed catalog", () => {
@@ -71,7 +71,7 @@ test("BeefTV catalog merge keeps manual providers and user-owned BeefTV fields",
                 models: ["stale-image"],
                 modelProfiles: [{ model: "stale-image", capability: "image" }],
             }),
-            createModelChannel({ id: "manual", name: "工作室渠道", apiKey: "manual-key", models: ["local-image"], modelProfiles: [{ model: "local-image", capability: "image" }] }),
+            createModelChannel({ id: "manual", name: "studio channels", apiKey: "manual-key", models: ["local-image"], modelProfiles: [{ model: "local-image", capability: "image" }] }),
         ],
     };
     const server = {
@@ -86,7 +86,7 @@ test("BeefTV catalog merge keeps manual providers and user-owned BeefTV fields",
                 models: ["enterprise-image"],
                 modelProfiles: [{ model: "enterprise-image", capability: "image", protocol: "openai-image" }],
             }),
-            createModelChannel({ id: "manual", name: "旧名称", apiKey: "old-key", models: ["old-image"] }),
+            createModelChannel({ id: "manual", name: "old name", apiKey: "old-key", models: ["old-image"] }),
         ],
     };
     const merged = mergeManagedBeefTVCatalog(current, server);
@@ -97,7 +97,7 @@ test("BeefTV catalog merge keeps manual providers and user-owned BeefTV fields",
     expect(beef?.credentialRef).toBe("beeftv");
     expect(beef?.enabled).toBe(false);
     expect(beef?.apiKey).toBe("");
-    expect(manual?.name).toBe("工作室渠道");
+    expect(manual?.name).toBe("studio channels");
     expect(manual?.apiKey).toBe("manual-key");
     expect(manual?.models).toEqual(["local-image"]);
     expect(merged.imageModel).toBe("manual::local-image");
@@ -107,18 +107,18 @@ test("BeefTV catalog merge keeps manual providers and user-owned BeefTV fields",
 // 要按现在的官方服务生成，不能落到全局默认（可能是用户自己的服务，会扣别家的费）。
 test("after reconnecting, old canvas nodes generate with the new official service", () => {
     const oldOfficial = createModelChannel({ id: "beefapi", name: "BeefTV", pinned: true, credentialRef: "beefapi-enterprise", models: ["seedream-x"] });
-    const own = createModelChannel({ id: "channel-2", name: "我的服务", apiKey: "k", baseUrl: "https://own.example.com", models: ["own-image"], modelProfiles: [{ model: "own-image", capability: "image", protocol: "openai-image" }] });
+    const own = createModelChannel({ id: "channel-2", name: "my services", apiKey: "k", baseUrl: "https://own.example.com", models: ["own-image"], modelProfiles: [{ model: "own-image", capability: "image", protocol: "openai-image" }] });
     const current = { ...defaultConfig, channels: [oldOfficial, own], imageModel: "channel-2::own-image" };
     const server = {
         ...defaultConfig,
         channels: [
             createModelChannel({ id: "beeftv", name: "BeefTV", pinned: true, legacyIds: ["beefapi"], credentialRef: "beeftv", hasApiKey: true, models: ["seedream-x"], modelProfiles: [{ model: "seedream-x", capability: "image", protocol: "volcengine-ark-image" }] }),
-            createModelChannel({ id: "channel-2", name: "我的服务", baseUrl: "https://own.example.com", models: ["own-image"], modelProfiles: [{ model: "own-image", capability: "image", protocol: "openai-image" }] }),
+            createModelChannel({ id: "channel-2", name: "my services", baseUrl: "https://own.example.com", models: ["own-image"], modelProfiles: [{ model: "own-image", capability: "image", protocol: "openai-image" }] }),
         ],
     };
     const merged = mergeManagedBeefTVCatalog(current, server);
     expect(merged.channels.map((channel) => channel.id)).toEqual(["beeftv", "channel-2"]);
-    const node = { id: "n1", type: "image", title: "首帧", position: { x: 0, y: 0 }, width: 100, height: 100, metadata: { model: "beefapi::seedream-x" } } as unknown as CanvasNodeData;
+    const node = { id: "n1", type: "image", title: "first frame", position: { x: 0, y: 0 }, width: 100, height: 100, metadata: { model: "beefapi::seedream-x" } } as unknown as CanvasNodeData;
     const generation = buildGenerationConfig(merged, node, "image");
     const request = resolveModelRequestConfig(generation, generation.model);
     expect(request.model).toBe("seedream-x");
@@ -146,7 +146,7 @@ test("capabilities of an old official model reference come from the official ser
         capabilityConfig.image!.references.maxImages = maxImages;
         return { model: "shared-image", capability: "image" as const, protocol: "openai-image", capabilityConfig, imageCapabilitiesVersion: "test-1" };
     };
-    const own = createModelChannel({ id: "channel-2", name: "我的服务", apiKey: "k", models: ["shared-image"], modelProfiles: [withMaxImages(0)] });
+    const own = createModelChannel({ id: "channel-2", name: "my services", apiKey: "k", models: ["shared-image"], modelProfiles: [withMaxImages(0)] });
     const official = createModelChannel({ id: "beeftv", name: "BeefTV", pinned: true, legacyIds: ["beefapi"], credentialRef: "beeftv", hasApiKey: true, models: ["shared-image"], modelProfiles: [withMaxImages(8)] });
     const config = { ...defaultConfig, channels: [own, official] };
     expect(modelCapabilityConfigFor(config, "beefapi::shared-image").image?.references.maxImages).toBe(8);

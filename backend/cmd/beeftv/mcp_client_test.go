@@ -22,11 +22,11 @@ import (
 func TestMCPClientLoop(t *testing.T) {
 	bin := os.Getenv("BEEFTV_BIN")
 	if bin == "" {
-		t.Skip("BEEFTV_BIN 未设置，跳过 MCP 客户端验收")
+		t.Skip("BEEFTV_BIN is not set, skip MCP client acceptance")
 	}
 	base := strings.TrimRight(os.Getenv("BEEFTV_BASE_URL"), "/")
 	if base == "" {
-		t.Fatal("BEEFTV_BASE_URL 未设置")
+		t.Fatal("BEEFTV_BASE_URL not set")
 	}
 	caseTag := fmt.Sprintf("%d", time.Now().UnixNano())
 	canvasID := "mcp-canvas-" + caseTag
@@ -41,17 +41,17 @@ func TestMCPClientLoop(t *testing.T) {
 	client := mcp.NewClient(&mcp.Implementation{Name: "beeftv-acceptance-client", Version: "1.0.0"}, nil)
 	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: exec.Command(bin, "mcp", "serve")}, nil)
 	if err != nil {
-		t.Fatalf("MCP 握手失败: %v", err)
+		t.Fatalf("MCP handshake failed: %v", err)
 	}
 	defer session.Close()
 	if session.InitializeResult() == nil {
-		t.Fatal("缺少 initialize 结果")
+		t.Fatal("Missing initialize result")
 	}
-	t.Logf("握手成功: %s %s", session.InitializeResult().ServerInfo.Name, session.InitializeResult().ServerInfo.Version)
+	t.Logf("Handshake successful: %s %s", session.InitializeResult().ServerInfo.Name, session.InitializeResult().ServerInfo.Version)
 
 	tools, err := session.ListTools(ctx, nil)
 	if err != nil {
-		t.Fatalf("tools/list 失败: %v", err)
+		t.Fatalf("tools/list failed: %v", err)
 	}
 	registry := operations.NewRegistry(nil, nil)
 	operations.RegisterDefaultOps(registry)
@@ -125,11 +125,11 @@ func TestMCPClientLoop(t *testing.T) {
 		}
 	}
 	if create == nil || !sawPropose {
-		t.Fatal("缺少 canvas.nodes.create 或 canvas.generation.propose")
+		t.Fatal("Missing canvas.nodes.create or canvas.generation.propose")
 	}
 	schema, _ := json.Marshal(create.InputSchema)
 	if !bytes.Contains(schema, []byte("operationId")) {
-		t.Fatalf("写工具 schema 未暴露稳定 operationId: %s", string(schema))
+		t.Fatalf("The writing tool schema is not exposed. Stable operationId: %s", string(schema))
 	}
 	// 只出现在 properties 里不够：必须标成必填，MCP 客户端才知道非发不可。
 	var declared struct {
@@ -137,10 +137,10 @@ func TestMCPClientLoop(t *testing.T) {
 		Required   []string       `json:"required"`
 	}
 	if err := json.Unmarshal(schema, &declared); err != nil {
-		t.Fatalf("写工具 schema 不是合法 JSON Schema: %v", err)
+		t.Fatalf("The writing tool schema is not a valid JSON Schema: %v", err)
 	}
 	if _, ok := declared.Properties["operationId"]; !ok {
-		t.Fatalf("写工具 schema 的 properties 缺少 operationId: %s", string(schema))
+		t.Fatalf("The properties of the writing tool schema are missing operationId: %s", string(schema))
 	}
 	requiresOperationID := false
 	for _, name := range declared.Required {
@@ -149,7 +149,7 @@ func TestMCPClientLoop(t *testing.T) {
 		}
 	}
 	if !requiresOperationID {
-		t.Fatalf("写工具 schema 未把 operationId 标为必填: %s", string(schema))
+		t.Fatalf("The writing tool schema does not mark the operationId as required: %s", string(schema))
 	}
 
 	// 1) 写工具缺 operationId：必须结构化失败，而不是随机补一个键
@@ -157,10 +157,10 @@ func TestMCPClientLoop(t *testing.T) {
 		Arguments: map[string]any{"canvasId": canvasID, "expectedRevision": 1,
 			"nodes": []any{map[string]any{"title": "A", "type": "image"}}}})
 	if err != nil {
-		t.Fatalf("CallTool 传输层错误: %v", err)
+		t.Fatalf("CallTool transport layer error: %v", err)
 	}
 	if !result.IsError || !toolTextContains(result, "missing_operation_id") {
-		t.Fatalf("缺 operationId 未返回结构化错误: %+v", result)
+		t.Fatalf("Missing operationId No structured error returned: %+v", result)
 	}
 
 	// 2) 同 operationId 同参数：第二次必须回读原结果
@@ -168,14 +168,14 @@ func TestMCPClientLoop(t *testing.T) {
 		"nodes": []any{map[string]any{"title": "A", "type": "image"}}, "operationId": operationID}
 	first, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "canvas.nodes.create", Arguments: args})
 	if err != nil || first.IsError {
-		t.Fatalf("首次写失败: err=%v result=%+v", err, first)
+		t.Fatalf("First write failure: err=%v result=%+v", err, first)
 	}
 	second, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "canvas.nodes.create", Arguments: args})
 	if err != nil || second.IsError {
-		t.Fatalf("重试写失败: err=%v result=%+v", err, second)
+		t.Fatalf("Retry writing failed: err=%v result=%+v", err, second)
 	}
 	if !toolTextContains(second, `"replayed":true`) {
-		t.Fatalf("同 operationId 重试未回读原结果: %s", toolText(second))
+		t.Fatalf("Retry with the same operationId and the original result is not read back: %s", toolText(second))
 	}
 
 	// 3) 同 operationId 不同参数：必须冲突
@@ -183,24 +183,24 @@ func TestMCPClientLoop(t *testing.T) {
 		Arguments: map[string]any{"canvasId": canvasID, "expectedRevision": 1,
 			"nodes": []any{map[string]any{"title": "B", "type": "image"}}, "operationId": operationID}})
 	if err != nil {
-		t.Fatalf("冲突调用传输层错误: %v", err)
+		t.Fatalf("Conflict call transport layer error: %v", err)
 	}
 	if !conflict.IsError || !toolTextContains(conflict, "operation_id_reused") {
-		t.Fatalf("同 id 不同参数未报冲突: %s", toolText(conflict))
+		t.Fatalf("No conflict reported for different parameters with the same id: %s", toolText(conflict))
 	}
 
 	// 4) 只读工具：不需要 operationId
 	read, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "canvas.get", Arguments: map[string]any{"canvasId": canvasID}})
 	if err != nil || read.IsError {
-		t.Fatalf("只读工具失败: err=%v result=%+v", err, read)
+		t.Fatalf("Read-only tool failed: err=%v result=%+v", err, read)
 	}
 	if !toolTextContains(read, canvasID) {
-		t.Fatalf("只读工具未返回画布内容: %s", toolText(read))
+		t.Fatalf("Read-only tool did not return canvas content: %s", toolText(read))
 	}
 	if err := session.Close(); err != nil {
-		t.Fatalf("关闭会话失败: %v", err)
+		t.Fatalf("Failed to close session: %v", err)
 	}
-	t.Log("MCP 客户端验收完成：握手/工具 schema/幂等/冲突/只读/断开")
+	t.Log("MCP client acceptance completed: handshake/tool schema/idempotent/conflict/read-only/disconnect")
 }
 
 func toolText(result *mcp.CallToolResult) string {
@@ -219,7 +219,7 @@ func toolTextContains(result *mcp.CallToolResult, needle string) bool {
 
 func seedCanvas(base, canvasID string) error {
 	body, err := json.Marshal(map[string]any{"project": map[string]any{
-		"id": canvasID, "title": "MCP 验收画布", "revision": 0, "nodes": []any{}, "connections": []any{}}})
+		"id": canvasID, "title": "MCP Acceptance Canvas", "revision": 0, "nodes": []any{}, "connections": []any{}}})
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func seedCanvas(base, canvasID string) error {
 	defer resp.Body.Close()
 	io.Copy(io.Discard, resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("seed 状态码 %d", resp.StatusCode)
+		return fmt.Errorf("seed status code %d", resp.StatusCode)
 	}
 	return nil
 }

@@ -75,8 +75,8 @@ export function parseModelOverride(value) {
 // 评测 overlay：挂 BeefTV MCP、关掉不需要的工具、按需覆盖默认模型。
 export function buildOverlayPatch({ cli, baseUrl, ownerToken, modelOverride, sourceModel = {} }) {
   const lines = [
-    '# BeefTV 外部测评用的 DSH overlay（运行时生成，含临时 token，不写入仓库）。',
-    '# 只留技能读取与 BeefTV MCP；其余内置工具逐个关闭。',
+    '# DSH overlay for BeefTV external evaluation (generated at runtime, including temporary token, not written to the warehouse).',
+    '# Only skill reading and BeefTV MCP are left; other built-in tools are closed one by one.',
   ];
   for (const id of DISABLED_TOOL_IDS) lines.push(`- id: ${id}`, '  disabled: true');
   const selection = modelOverride
@@ -87,7 +87,7 @@ export function buildOverlayPatch({ cli, baseUrl, ownerToken, modelOverride, sou
     }
     : null;
   if (selection) {
-    if (!selection.provider) throw new Error('BEEFTV_EVAL_AGENT_MODEL 需要 provider/model 形式，或在源 headless profile 里配置 agent-default-model.provider');
+    if (!selection.provider) throw new Error('BEEFTV_EVAL_AGENT_MODEL requires provider/model form, or configure agent-default-model.provider in the source headless profile');
     lines.push('- id: agent-default-model', '  config:', `    provider: ${quote(selection.provider)}`,
       `    model: ${quote(selection.model)}`, `    reasoningEffort: ${quote(selection.reasoningEffort)}`);
   }

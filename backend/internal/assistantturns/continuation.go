@@ -29,7 +29,7 @@ type ContinuationView struct {
 	Message         string   `json:"message"`
 }
 
-const ContinuationMessage = "【自动继续】本次生成状态已更新。先看制作现场摘要核对原任务与实际结果（仅在需要完整长文或时间线细节时才调 canvas_get），不把旧媒体当成本次产物。单批生成完成或用户要求生成后复查时，用 media_overview / media_inspect 检查新生成画面质量（如手部畸形、五官崩坏、文字错乱等），发现问题则修改提示词并重新提交生成提议。整片授权内的素材已由任务调度按就绪依赖推进；素材齐后直接完成声音、字幕、剪辑、成片和可编辑工程。成功绑定节点的durationMs是实际时长，顺序剪辑无需逐份审片，集中检查最终成片。失败或结果未知时检查并恢复原任务，不重复购买。新增或修改已确认的付费内容才重新确认。不要改动或发送我的未发送草稿。"
+const ContinuationMessage = "[Automatically continue] This generation status has been updated. First read the summary of the production site to check the original tasks and actual results (only call canvas_get when you need a complete long article or timeline details), and do not regard old media as secondary products. When a single batch generation is completed or the user requests a post-generation review, use media_overview / media_inspect to check the quality of the newly generated images (such as hand deformities, broken facial features, disordered text, etc.). If any problems are found, modify the prompt words and resubmit the generation proposal. The materials within the entire film license have been advanced by task scheduling according to readiness dependencies; after the materials are collected, the sound, subtitles, editing, filming and editable projects will be completed directly. The durationMs of successfully bound nodes is the actual duration. Sequential editing does not require review of the film one by one, and the final film is inspected centrally. Check and restore the original task when it fails or the result is unknown, and no repeated purchases are made. Re-confirm only after adding or modifying confirmed paid content. Do not change or send my unsent drafts."
 
 type ContinuationInput struct {
 	CanvasID     string   `json:"canvasId"`
@@ -41,7 +41,7 @@ type ContinuationInput struct {
 }
 
 func continuationError(reason string) error {
-	return &Error{Reason: "continuation_" + reason, Message: "暂不能自动继续，请查看本次生成或手动继续"}
+	return &Error{Reason: "continuation_" + reason, Message: "It is not possible to continue automatically. Please check this generation or continue manually."}
 }
 func continuationView(row model.AssistantContinuation) ContinuationView {
 	ids := []string{}

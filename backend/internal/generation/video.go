@@ -58,7 +58,7 @@ func RunVideoTaskWithPolicy(ctx context.Context, input Input, pollPolicy VideoPo
 		return RunProtocolAdapterTaskWithPolicy(ctx, input, adapter, pollPolicy)
 	}
 	if label, official := OfficialDeclarativeVideoInterface(input.Config.InterfaceType); official {
-		return nil, fmt.Errorf("%s 视频插件未安装", label)
+		return nil, fmt.Errorf("%s video plug-in not installed", label)
 	}
 	if IsArkPlanVideoConfig(input.Config) {
 		return RunSeedanceAgentPlanVideoTask(ctx, input, pollPolicy)
@@ -67,7 +67,7 @@ func RunVideoTaskWithPolicy(ctx context.Context, input Input, pollPolicy VideoPo
 		return RunSeedanceVideosTask(ctx, input, pollPolicy)
 	}
 	if len(input.ReferenceVideos) > 0 || len(input.ReferenceAudios) > 0 {
-		return nil, errors.New("OpenAI 风格视频接口不支持参考视频或参考音频，请切换到 Seedance / Agent Plan 渠道")
+		return nil, errors.New("The OpenAI style video interface does not support reference video or reference audio, please switch to the Seedance / Agent Plan channel")
 	}
 	id := ResumedProviderRequestID(ctx)
 	var created map[string]interface{}
@@ -109,7 +109,7 @@ func RunVideoTaskWithPolicy(ctx context.Context, input Input, pollPolicy VideoPo
 	if id == "" {
 		extracted, err := firstJSONString(created, "id", "request_id", "task_id")
 		if err != nil {
-			return nil, fmt.Errorf("视频接口任务 ID 无效：%w", err)
+			return nil, fmt.Errorf("Invalid video interface task ID: %w", err)
 		}
 		id = extracted
 	}
@@ -117,13 +117,13 @@ func RunVideoTaskWithPolicy(ctx context.Context, input Input, pollPolicy VideoPo
 		if data, ok := created["data"].(map[string]interface{}); ok {
 			extracted, err := firstJSONString(data, "id", "request_id", "task_id")
 			if err != nil {
-				return nil, fmt.Errorf("视频接口任务 ID 无效：%w", err)
+				return nil, fmt.Errorf("Invalid video interface task ID: %w", err)
 			}
 			id = extracted
 		}
 	}
 	if id == "" {
-		return nil, errors.New("视频接口没有返回任务 ID")
+		return nil, errors.New("Video interface does not return task ID")
 	}
 	return RunVideoPollLoop(ctx, id, pollPolicy, func(ctx context.Context) (VideoPollOutcome, error) {
 		var state map[string]interface{}
@@ -141,7 +141,7 @@ func RunVideoTaskWithPolicy(ctx context.Context, input Input, pollPolicy VideoPo
 			if videoURL := NewAPIVideoResultURL(state); videoURL != "" {
 				data, mimeType, err := RunVideoDownload(ctx, id, pollPolicy, videoResultDownloader(input.Config, videoURL, id, newAPIVideoURLResolver(input.Config, id)))
 				if err != nil {
-					return VideoPollOutcome{}, fmt.Errorf("视频结果下载失败（任务 %s）：%w", id, err)
+					return VideoPollOutcome{}, fmt.Errorf("Video result download failed (task %s): %w", id, err)
 				}
 				mimeType = NormalizedMediaMIMEType(mimeType, data)
 				videoMap := map[string]interface{}{"dataUrl": DataURL(mimeType, data), "mimeType": mimeType}
@@ -157,7 +157,7 @@ func RunVideoTaskWithPolicy(ctx context.Context, input Input, pollPolicy VideoPo
 			return VideoPollOutcome{Done: true, Result: map[string]interface{}{"mode": "video", "video": videoMap}}, nil
 		}
 		if status == "failed" || status == "cancelled" {
-			return VideoPollOutcome{}, errors.New("视频生成失败")
+			return VideoPollOutcome{}, errors.New("Video generation failed")
 		}
 		return VideoPollOutcome{}, nil
 	})

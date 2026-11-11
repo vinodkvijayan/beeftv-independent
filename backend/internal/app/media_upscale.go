@@ -27,7 +27,7 @@ func (s *Service) CreateMediaUpscale(ctx context.Context, user string, request t
 	if err != nil {
 		return nil, err
 	}
-	return s.CreateTask(user, CreateTaskRequest{ProjectID: request.ProjectID, Type: "canvas_" + input.Mode, Operation: "media.upscale.topaz", Prompt: "AI 超分", Model: input.Config.Model, Provider: "beeftv", Input: payload})
+	return s.CreateTask(user, CreateTaskRequest{ProjectID: request.ProjectID, Type: "canvas_" + input.Mode, Operation: "media.upscale.topaz", Prompt: "AI super score", Model: input.Config.Model, Provider: "beeftv", Input: payload})
 }
 
 func (s *Service) RecoverMediaUpscale(ctx context.Context, user, id string) (*model.Task, error) {
@@ -36,10 +36,10 @@ func (s *Service) RecoverMediaUpscale(ctx context.Context, user, id string) (*mo
 		return nil, err
 	}
 	if !task.IsUpscale() {
-		return nil, BadAuthRequest("此任务不是超分任务")
+		return nil, BadAuthRequest("This task is not a super task")
 	}
 	if task.Status == model.TaskStatusCancelled {
-		return nil, BadAuthRequest("原超分任务已取消，请在任务详情核对结果与扣费状态")
+		return nil, BadAuthRequest("The original super score task has been cancelled. Please check the results and deduction status in the task details.")
 	}
 	if task.Status == model.TaskStatusSucceeded {
 		if err := s.DeliverSucceededTask(*task); err != nil {
@@ -57,7 +57,7 @@ func (s *Service) RecoverMediaUpscale(ctx context.Context, user, id string) (*mo
 	}
 	if task.ProviderRequestID == "" && !managed {
 		s.recordMissingVideoReceiptOutcome(task, user)
-		return nil, BadAuthRequest("原超分任务没有可恢复的上游回执，请根据任务结论重新生成")
+		return nil, BadAuthRequest("The original super-score task does not have a recoverable upstream receipt. Please regenerate it based on the task conclusion.")
 	}
 	_ = s.repo.ResetTaskRecoveryBackoff(user, id)
 	result, err := s.QueryFailedVideoTask(ctx, user, id)
@@ -65,7 +65,7 @@ func (s *Service) RecoverMediaUpscale(ctx context.Context, user, id string) (*mo
 		return nil, err
 	}
 	if !result.Recovered {
-		return nil, BadAuthRequest("原超分任务仍在处理中，请稍后取回原结果")
+		return nil, BadAuthRequest("The original super score task is still being processed, please retrieve the original results later.")
 	}
 	return result.Task, nil
 }

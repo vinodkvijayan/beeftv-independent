@@ -13,7 +13,7 @@ import (
 
 func TestStyleProfileCreateAndUpdateOwnsIdentityAndRevision(t *testing.T) {
 	svc := newStyleProfileTestService(t)
-	created, err := svc.CreateStyleProfile("user-1", styleProfileTestRequest(t, "志怪暗彩", 88))
+	created, err := svc.CreateStyleProfile("user-1", styleProfileTestRequest(t, "Strange and dark colors", 88))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,11 +24,11 @@ func TestStyleProfileCreateAndUpdateOwnsIdentityAndRevision(t *testing.T) {
 	if created.Revision != 1 || createdDocument.PresetID != created.ID || createdDocument.SourceProfileID != created.ID || createdDocument.Source != "user" || createdDocument.Revision != 1 {
 		t.Fatalf("created profile identity was not normalized: model=%+v document=%+v", created, createdDocument)
 	}
-	if createdDocument.Selection["medium"] != "工笔暗彩" || len(createdDocument.Assets) != 1 || createdDocument.Assets[0].License == nil || createdDocument.Assets[0].License.Note != "需保留来源记录" {
+	if createdDocument.Selection["medium"] != "Gongbi dark color" || len(createdDocument.Assets) != 1 || createdDocument.Assets[0].License == nil || createdDocument.Assets[0].License.Note != "Source records need to be kept" {
 		t.Fatalf("created profile metadata was not preserved: document=%+v", createdDocument)
 	}
 
-	updated, err := svc.UpdateStyleProfile("user-1", created.ID, styleProfileTestRequest(t, "志怪暗彩二版", 300))
+	updated, err := svc.UpdateStyleProfile("user-1", created.ID, styleProfileTestRequest(t, "Zhiguai dark color version 2", 300))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,18 +36,18 @@ func TestStyleProfileCreateAndUpdateOwnsIdentityAndRevision(t *testing.T) {
 	if err := json.Unmarshal([]byte(updated.ProfileJSON), &updatedDocument); err != nil {
 		t.Fatal(err)
 	}
-	if updated.Revision != 2 || updatedDocument.Revision != 2 || updatedDocument.PresetID != created.ID || updatedDocument.Title != "志怪暗彩二版" {
+	if updated.Revision != 2 || updatedDocument.Revision != 2 || updatedDocument.PresetID != created.ID || updatedDocument.Title != "Zhiguai dark color version 2" {
 		t.Fatalf("updated profile revision was not server controlled: model=%+v document=%+v", updated, updatedDocument)
 	}
 }
 
 func TestStyleProfileMutationsRejectOtherUsers(t *testing.T) {
 	svc := newStyleProfileTestService(t)
-	created, err := svc.CreateStyleProfile("user-1", styleProfileTestRequest(t, "用户一风格", 1))
+	created, err := svc.CreateStyleProfile("user-1", styleProfileTestRequest(t, "user style", 1))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.UpdateStyleProfile("user-2", created.ID, styleProfileTestRequest(t, "越权修改", 1)); err == nil {
+	if _, err := svc.UpdateStyleProfile("user-2", created.ID, styleProfileTestRequest(t, "Ultra vires modification", 1)); err == nil {
 		t.Fatal("expected cross-user update to fail")
 	}
 	if err := svc.SetStyleProfileFavorite("user-2", created.ID, true); err == nil {
@@ -88,12 +88,12 @@ func newStyleProfileTestService(t *testing.T) *Service {
 func styleProfileTestRequest(t *testing.T, title string, revision int) StyleProfileRequest {
 	t.Helper()
 	document := StyleProfileDocument{
-		SchemaVersion: 1, PresetID: "client-controlled-id", Title: title, Description: "可复用风格",
-		Tags: []string{"志怪", "暗彩"}, Prompt: "统一使用工笔线条、暗彩矿物色和克制光影。", NegativePrompt: "禁止媒介漂移和随机文字。",
-		Selection: map[string]string{"world": "东方志怪", "medium": "工笔暗彩"},
+		SchemaVersion: 1, PresetID: "client-controlled-id", Title: title, Description: "Reusable styles",
+		Tags: []string{"Zhiwei", "dark color"}, Prompt: "Uniform use of meticulous lines, dark mineral colors and restrained light and shadow.", NegativePrompt: "Media drift and random text are prohibited.",
+		Selection: map[string]string{"world": "Oriental Legend", "medium": "Gongbi dark color"},
 		Assets: []StyleProfileAsset{{
-			ID: "license-snapshot", Kind: "prompt", Provider: "manual", Title: "材质约束", PromptFragment: "矿物色与宣纸肌理", Status: "validated",
-			License: &StyleProfileAssetLicense{Note: "需保留来源记录", Source: "内部规范"},
+			ID: "license-snapshot", Kind: "prompt", Provider: "manual", Title: "Material constraints", PromptFragment: "Mineral color and rice paper texture", Status: "validated",
+			License: &StyleProfileAssetLicense{Note: "Source records need to be kept", Source: "internal regulations"},
 		}},
 		ExecutionPolicy: "compatible-fallback", Source: "external", Revision: revision,
 	}

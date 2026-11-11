@@ -10,21 +10,21 @@ import { resolveAddNodeMenuCommands, type AddNodeMenuContext } from "@/lib/canva
 import { createRef } from "react";
 
 const commands: CanvasCreateCommand[] = [
-    { id: "script", label: "脚本", icon: null, section: "node", onClick: () => {} },
-    { id: "image", label: "图片", icon: null, section: "node", onClick: () => {} },
-    { id: "video", label: "视频", icon: null, section: "node", onClick: () => {} },
-    { id: "audio", label: "音频", icon: null, section: "node", onClick: () => {} },
+    { id: "script", label: "script", icon: null, section: "node", onClick: () => {} },
+    { id: "image", label: "pictures", icon: null, section: "node", onClick: () => {} },
+    { id: "video", label: "video", icon: null, section: "node", onClick: () => {} },
+    { id: "audio", label: "Audio", icon: null, section: "node", onClick: () => {} },
 ];
 
 describe("BeefTV freeform canvas empty state", () => {
     test("exposes the double-click hint without obsolete quick starts", () => {
         const markup = renderToStaticMarkup(<CanvasFreeformEmptyState commands={commands} />);
-        expect(markup).toContain("双击画布");
-        expect(markup).toContain("自由生成节点");
-        expect(markup).toContain("点击可显示/隐藏画布上的连线");
-        expect(markup).toContain('aria-label="关闭连线提示"');
-        for (const label of ["故事脚本生成", "角色三视图", "全能参考生视频", "音频生视频"]) expect(markup).not.toContain(label);
-        expect(markup).toContain('aria-label="添加第一项"');
+        expect(markup).toContain("Double click on the canvas");
+        expect(markup).toContain("Freely generated nodes");
+        expect(markup).toContain("Click to show/hide the connections on the canvas");
+        expect(markup).toContain('aria-label="Close connection prompt"');
+        for (const label of ["Story script generation", "Three views of the character", "All-around reference student video", "Audio produces video"]) expect(markup).not.toContain(label);
+        expect(markup).toContain('aria-label="Add first item"');
         // 空状态只是视觉引导，不能把中心空白区域标成 no-zoom，否则会吞掉
         // InfiniteCanvas 用来打开 LibTV 添加节点面板的双击事件。
         expect(markup).not.toContain("data-canvas-no-zoom");
@@ -32,15 +32,15 @@ describe("BeefTV freeform canvas empty state", () => {
 
     test("does not reintroduce quick starts when an optional command is unavailable", () => {
         const markup = renderToStaticMarkup(<CanvasFreeformEmptyState commands={commands.filter((command) => command.id !== "audio")} />);
-        expect(markup).not.toContain("故事脚本生成");
-        expect(markup).not.toContain("音频生视频");
+        expect(markup).not.toContain("Story script generation");
+        expect(markup).not.toContain("Audio produces video");
     });
 
     test("renders the minimal empty text node state", () => {
-        const node: CanvasNodeData = { id: "text-1", type: CanvasNodeType.Text, title: "文本节点 1", position: { x: 0, y: 0 }, width: 350, height: 350, metadata: { content: "", status: "idle" } };
+        const node: CanvasNodeData = { id: "text-1", type: CanvasNodeType.Text, title: "text node 1", position: { x: 0, y: 0 }, width: 350, height: 350, metadata: { content: "", status: "idle" } };
         const markup = renderToStaticMarkup(<CanvasNodeContent node={node} theme={canvasThemes.dark} isEditingContent={false} textareaRef={createRef<HTMLTextAreaElement>()} isBatchRoot={false} batchCount={0} batchExpanded={false} batchOpening={false} batchRecovering={false} onContentChange={() => {}} onStopEditing={() => {}} mentionReferences={[]} />);
-        for (const label of ["自己编写内容", "文生视频", "图片反推提示词", "文字生音乐"]) expect(markup).not.toContain(label);
-        for (const label of ["GVLM 3.1", "GVLM3.1", "6 积分", "6积分"]) expect(markup).not.toContain(label);
+        for (const label of ["Write your own content", "Vincent Video", "Picture reverse prompt words", "Words give birth to music"]) expect(markup).not.toContain(label);
+        for (const label of ["GVLM 3.1", "GVLM3.1", "6 points", "6 points"]) expect(markup).not.toContain(label);
         expect(markup).toContain("canvas-node-empty-text-mark");
         expect(markup).toContain("canvas-node-text-footer");
         expect(markup).toContain("pointer-events-none");
@@ -48,10 +48,10 @@ describe("BeefTV freeform canvas empty state", () => {
     });
 
     test("does not invent a model or price when empty text metadata names one", () => {
-        const node: CanvasNodeData = { id: "text-2", type: CanvasNodeType.Text, title: "文本节点 2", position: { x: 0, y: 0 }, width: 350, height: 350, metadata: { content: "", status: "idle", model: "GVLM 3.1" } };
+        const node: CanvasNodeData = { id: "text-2", type: CanvasNodeType.Text, title: "text node 2", position: { x: 0, y: 0 }, width: 350, height: 350, metadata: { content: "", status: "idle", model: "GVLM 3.1" } };
         const markup = renderToStaticMarkup(<CanvasNodeContent node={node} theme={canvasThemes.dark} isEditingContent={false} textareaRef={createRef<HTMLTextAreaElement>()} isBatchRoot={false} batchCount={0} batchExpanded={false} batchOpening={false} batchRecovering={false} onContentChange={() => {}} onStopEditing={() => {}} mentionReferences={[]} />);
         expect(markup).not.toContain("GVLM 3.1");
-        expect(markup).not.toContain("6 积分");
+        expect(markup).not.toContain("6 points");
     });
 
     test("keeps the primary add-node order aligned with the LibTV palette", () => {
@@ -66,12 +66,12 @@ describe("BeefTV freeform canvas empty state", () => {
             },
         };
         const labels = resolveAddNodeMenuCommands(context).filter((command) => command.section === "node").slice(0, 8).map((command) => command.label);
-        expect(labels).toEqual(["文本", "图片", "视频", "AI超分", "音频", "导演台", "智能剪辑", "逐帧拉片"]);
+        expect(labels).toEqual(["text", "pictures", "video", "AI super score", "Audio", "Director's desk", "Smart clipping", "Pull frame by frame"]);
         const commandsByLabel = new Map(resolveAddNodeMenuCommands(context).map((command) => [command.label, command]));
-        for (const label of ["智能剪辑", "逐帧拉片"]) {
-            expect(commandsByLabel.get(label)?.disabledReason).toBe("正在开发");
+        for (const label of ["Smart clipping", "Pull frame by frame"]) {
+            expect(commandsByLabel.get(label)?.disabledReason).toBe("Under development");
         }
-        expect(commandsByLabel.get("脚本")?.disabledReason).toBeUndefined();
+        expect(commandsByLabel.get("script")?.disabledReason).toBeUndefined();
     });
 
     test("opens the existing director templates from the professional add-node menu", () => {

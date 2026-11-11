@@ -135,10 +135,10 @@ func (s *Service) UpdateUserCanvasStoryboardRows(userID, canvasID, nodeID string
 	for _, patch := range patches {
 		row := findStoryboardRow(rows, patch.RowID)
 		if row == nil {
-			return UserDataSummary{}, StoryboardRowUpdate{}, kernel.NewAppError(http.StatusNotFound, "分镜行不存在: "+patch.RowID)
+			return UserDataSummary{}, StoryboardRowUpdate{}, kernel.NewAppError(http.StatusNotFound, "Storyboard line does not exist:"+patch.RowID)
 		}
 		if seen[patch.RowID] {
-			return UserDataSummary{}, StoryboardRowUpdate{}, kernel.NewAppError(http.StatusBadRequest, "同一批次内行重复: "+patch.RowID)
+			return UserDataSummary{}, StoryboardRowUpdate{}, kernel.NewAppError(http.StatusBadRequest, "Repeat within the same batch:"+patch.RowID)
 		}
 		seen[patch.RowID] = true
 		oldImagePrompt, _ := row["imageGenerationPrompt"].(string)
@@ -202,11 +202,11 @@ func bindStoryboardRowOutput(doc map[string]any, scriptID string, row map[string
 		target := findCanvasNode(doc, targetID)
 		if target == nil {
 			return nil, nil, &kernel.AppError{Status: http.StatusNotFound, Reason: kernel.ErrorReason("node_not_in_canvas"),
-				Message: field + " 指向的节点不在这个画布: " + targetID}
+				Message: field + " The pointed node is not in this canvas:" + targetID}
 		}
 		if canvasNodeType(target) != kind {
 			return nil, nil, &kernel.AppError{Status: http.StatusBadRequest, Reason: kernel.ErrorReason("node_kind_mismatch"),
-				Message: field + " 只能绑定 " + kind + " 节点，" + targetID + " 是 " + canvasNodeType(target)}
+				Message: field + " Can only be bound" + kind + " node," + targetID + " Yes" + canvasNodeType(target)}
 		}
 		row[field] = targetID
 	} else {
@@ -351,11 +351,11 @@ func (s *Service) RemoveUserCanvasStoryboardRows(userID, canvasID, nodeID string
 	remove := map[string]bool{}
 	for _, id := range rowIDs {
 		if remove[id] {
-			return UserDataSummary{}, 0, kernel.NewAppError(http.StatusBadRequest, "同一批次内行重复: "+id)
+			return UserDataSummary{}, 0, kernel.NewAppError(http.StatusBadRequest, "Repeat within the same batch:"+id)
 		}
 		remove[id] = true
 		if findStoryboardRow(rows, id) == nil {
-			return UserDataSummary{}, 0, kernel.NewAppError(http.StatusNotFound, "分镜行不存在: "+id)
+			return UserDataSummary{}, 0, kernel.NewAppError(http.StatusNotFound, "Storyboard line does not exist:"+id)
 		}
 	}
 	kept := make([]any, 0, len(rows))
@@ -384,7 +384,7 @@ func (s *Service) RemoveUserCanvasStoryboardRows(userID, canvasID, nodeID string
 // 节点不是 script、storyboard 结构缺失时按空表处理（首次写入会补全结构）。
 func (s *Service) loadStoryboardRows(userID, canvasID, nodeID string) (map[string]any, map[string]any, []any, error) {
 	if strings.TrimSpace(canvasID) == "" || strings.TrimSpace(nodeID) == "" {
-		return nil, nil, nil, kernel.NewAppError(http.StatusBadRequest, "canvasId 与 nodeId 必填")
+		return nil, nil, nil, kernel.NewAppError(http.StatusBadRequest, "canvasId and nodeId are required")
 	}
 	doc, err := s.loadCanvasDoc(userID, canvasID)
 	if err != nil {
@@ -392,11 +392,11 @@ func (s *Service) loadStoryboardRows(userID, canvasID, nodeID string) (map[strin
 	}
 	node := findCanvasNode(doc, nodeID)
 	if node == nil {
-		return nil, nil, nil, kernel.NewAppError(http.StatusNotFound, "目标节点不存在: "+nodeID)
+		return nil, nil, nil, kernel.NewAppError(http.StatusNotFound, "The target node does not exist:"+nodeID)
 	}
 	if canvasNodeType(node) != storyboardNodeType {
 		return nil, nil, nil, kernel.NewAppError(http.StatusBadRequest,
-			"分镜行操作只接受 script 节点，目标节点类型是 "+canvasNodeType(node))
+			"The storyboard operation only accepts script nodes, and the target node type is"+canvasNodeType(node))
 	}
 	metadata, _ := node["metadata"].(map[string]any)
 	if metadata == nil {
@@ -522,7 +522,7 @@ func newStoryboardID(prefix string) string {
 func requireStoryboardRows(drafts []StoryboardRowDraft) error {
 	if len(drafts) == 0 || len(drafts) > maxStoryboardRowsPerCall {
 		return kernel.NewAppError(http.StatusBadRequest,
-			"rows 必须是 1.."+strconv.Itoa(maxStoryboardRowsPerCall)+" 项的数组")
+			"rows must be 1.."+strconv.Itoa(maxStoryboardRowsPerCall)+" array of items")
 	}
 	for _, draft := range drafts {
 		if err := validateStoryboardDraft(draft); err != nil {
@@ -536,7 +536,7 @@ func validateStoryboardDraft(draft StoryboardRowDraft) error {
 	if draft.DurationSeconds != nil {
 		seconds := *draft.DurationSeconds
 		if math.IsNaN(seconds) || math.IsInf(seconds, 0) || seconds < StoryboardMinShotSeconds || seconds > StoryboardMaxShotSeconds {
-			return kernel.NewAppError(http.StatusBadRequest, "镜头时长必须为 1 至 60 秒")
+			return kernel.NewAppError(http.StatusBadRequest, "Shot duration must be 1 to 60 seconds")
 		}
 	}
 	return nil
@@ -545,17 +545,17 @@ func validateStoryboardDraft(draft StoryboardRowDraft) error {
 func requireStoryboardPatches(patches []StoryboardRowPatch) error {
 	if len(patches) == 0 || len(patches) > maxStoryboardRowsPerCall {
 		return kernel.NewAppError(http.StatusBadRequest,
-			"patches 必须是 1.."+strconv.Itoa(maxStoryboardRowsPerCall)+" 项的数组")
+			"patches must be 1.."+strconv.Itoa(maxStoryboardRowsPerCall)+" array of items")
 	}
 	for _, patch := range patches {
 		if err := validateStoryboardDraft(patch.StoryboardRowDraft); err != nil {
 			return err
 		}
 		if strings.TrimSpace(patch.RowID) == "" {
-			return kernel.NewAppError(http.StatusBadRequest, "每个 patch 都需要 rowId")
+			return kernel.NewAppError(http.StatusBadRequest, "Each patch requires rowId")
 		}
 		if patch.IsZero() {
-			return kernel.NewAppError(http.StatusBadRequest, "patch 至少要有一个字段: "+patch.RowID)
+			return kernel.NewAppError(http.StatusBadRequest, "patch must have at least one field:"+patch.RowID)
 		}
 	}
 	return nil
@@ -564,11 +564,11 @@ func requireStoryboardPatches(patches []StoryboardRowPatch) error {
 func requireStoryboardRowIDs(rowIDs []string) error {
 	if len(rowIDs) == 0 || len(rowIDs) > maxStoryboardRowsPerCall {
 		return kernel.NewAppError(http.StatusBadRequest,
-			"rowIds 必须是 1.."+strconv.Itoa(maxStoryboardRowsPerCall)+" 项的数组")
+			"rowIds must be 1.."+strconv.Itoa(maxStoryboardRowsPerCall)+" array of items")
 	}
 	for _, id := range rowIDs {
 		if strings.TrimSpace(id) == "" {
-			return kernel.NewAppError(http.StatusBadRequest, "rowIds 不能包含空 ID")
+			return kernel.NewAppError(http.StatusBadRequest, "rowIds cannot contain empty IDs")
 		}
 	}
 	return nil

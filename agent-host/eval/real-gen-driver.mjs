@@ -352,7 +352,7 @@ async function main(state) {
       waited = await waitTasks(config.canvasId, fresh.map((task) => task.id), timeout);
       if (waited.timedOut) {
         round.status = 'timeout';
-        round.error = `任务等待超时（${Math.round(timeout / 1000)}s）`;
+        round.error = `Task wait timeout (${Math.round(timeout / 1000)}s）`;
         round.stopReason = 'task_timeout';
         state.issues.push(`round ${roundNo}: ${round.error}`);
       }
@@ -395,7 +395,7 @@ async function main(state) {
         const resourceId = nodeResource(node);
         if (!resourceId) continue;
         const kind = node.type === 'image' ? 'image' : node.type === 'video'
-          ? (String(node.title || '').includes('成片') ? 'render' : 'video') : 'media';
+          ? (String(node.title || '').includes('Completed film') ? 'render' : 'video') : 'media';
         const artifact = await downloadArtifact(roundNo, resourceId, kind, node.title || node.id, '', node.id, downloaded);
         if (artifact?.error) state.issues.push(`round ${roundNo}: ${artifact.error}`);
         else if (artifact) round.artifacts.push(artifact);
@@ -432,7 +432,7 @@ function report(state) {
     const requests = turn.requests;
     const inputTokens = requests.reduce((sum, item) => sum + item.promptTokens, 0);
     const cached = requests.reduce((sum, item) => sum + item.cachedTokens, 0);
-    const cachedPercent = requests.some((item) => !item.cacheKnown) ? '未知' : (inputTokens ? +(cached * 100 / inputTokens).toFixed(1) : 0);
+    const cachedPercent = requests.some((item) => !item.cacheKnown) ? 'unknown' : (inputTokens ? +(cached * 100 / inputTokens).toFixed(1) : 0);
     return { round: turn.round, status: turn.status, message: turn.message, requests: requests.length, seconds: +(turn.ms / 1000).toFixed(1),
       inputTokens, cachedPercent, outputTokens: requests.reduce((sum, item) => sum + item.completionTokens, 0),
       usageMissing: requests.filter((item) => item.usageMissing).length,
@@ -465,59 +465,59 @@ function report(state) {
   fs.mkdirSync(outDir, { recursive: true });
   const serialized = redact(JSON.stringify(payload, null, 2));
   fs.writeFileSync(path.join(outDir, 'report.json'), serialized);
-  const lines = ['# 真实生成端到端报告', '',
-    `- 模式：${payload.mode}（模型 ${payload.model}）`,
-    `- 回合：${rows.length}；模型请求：${records.length}`,
-    `- 任务上限：${config.maxTasks}；单镜头视频上限：${config.maxVideoSeconds}s`,
-    `- 审片模型：${payload.mediaReview?.ok ? payload.mediaReview.model + '（已配置）' : '不可用：' + (payload.mediaReview?.reason || '未知')}`];
-  if (payload.stoppedReason) lines.push(`- 已停止：${payload.stoppedReason}`);
-  if (payload.interrupted) lines.push(`- 已中断：${payload.interrupted}`);
+  const lines = ['# Really generate end-to-end reports', '',
+    `- Mode:${payload.mode}(Model${payload.model}）`,
+    `- Round:${rows.length};Model request:${records.length}`,
+    `- Mission limit:${config.maxTasks};Single-lens video upper limit:${config.maxVideoSeconds}s`,
+    `- Film review model:${payload.mediaReview?.ok ? payload.mediaReview.model + '(configured)' : 'Not available:' + (payload.mediaReview?.reason || 'unknown')}`];
+  if (payload.stoppedReason) lines.push(`- Stopped:${payload.stoppedReason}`);
+  if (payload.interrupted) lines.push(`- Interrupted:${payload.interrupted}`);
   if (payload.confirmationOutcomeUnknown) {
-    lines.push(`- 确认结果未知，相关方案：${payload.relatedProposalIds.join('、') || '未知'}`);
+    lines.push(`- The confirmation result is unknown, related solutions:${payload.relatedProposalIds.join('、') || 'unknown'}`);
   }
-  if (payload.shutdownError) lines.push(`- 停止确认失败：${payload.shutdownError}`);
-  lines.push('', '| 回合 | 状态 | 请求数 | 耗时(s) | 输入token | 缓存% | 输出token | 工具序列 |',
+  if (payload.shutdownError) lines.push(`- Stop confirmation failed:${payload.shutdownError}`);
+  lines.push('', '| Round | Status | Number of requests | Time consumption (s) | Input token | Cache % | Output token | Tool sequence |',
     '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows.map((row) => `| ${row.round} | ${row.status} | ${row.requests} | ${row.seconds} | ${row.inputTokens} | ${row.cachedPercent} | ${row.outputTokens} | ${row.tools} |`), '');
   for (const row of rows) {
-    lines.push(`## 第 ${row.round} 轮`, '', row.message, '');
+    lines.push(`## No.${row.round} wheel`, '', row.message, '');
     if (row.orders.length) {
-      lines.push('| 方案 | 类型 | 节点数 | 预估费用 |', '| --- | --- | --- | --- |');
+      lines.push('| Plan | Type | Number of nodes | Estimated cost |', '| --- | --- | --- | --- |');
       for (const order of row.orders) lines.push(`| ${order.proposalId} | ${order.kind} | ${(order.nodeIds || []).length} | ${JSON.stringify(order.estimate || order.pricing || '')} |`);
       lines.push('');
     }
     for (const decision of row.confirmations) {
-      lines.push(`- 确认：${decision.proposalId || '-'} → ${decision.approved ? '已确认' : '未确认（' + (decision.reason || '') + '）'}`);
+      lines.push(`- Confirm:${decision.proposalId || '-'} → ${decision.approved ? 'Confirmed' : 'Not confirmed (' + (decision.reason || '') + '）'}`);
     }
     if (row.tasks.length) {
-      lines.push('', '| 任务 | 类型 | 模型 | 状态 | 耗时(ms) | 上游任务号 | 失败原因 |', '| --- | --- | --- | --- | --- | --- | --- |');
+      lines.push('', '| Task | Type | Model | Status | Time taken (ms) | Upstream task number | Reason for failure |', '| --- | --- | --- | --- | --- | --- | --- |');
       for (const task of row.tasks) lines.push(`| ${task.id} | ${task.type} | ${task.model || '-'} | ${task.status} | ${task.ms ?? '-'} | ${task.providerRequestId || '-'} | ${task.error || ''} |`);
     }
     if (row.artifacts.length) {
-      lines.push('', '产物：');
-      for (const artifact of row.artifacts) lines.push(`- ${artifact.file}（${artifact.mime}，${artifact.bytes} 字节）`);
+      lines.push('', 'Products:');
+      for (const artifact of row.artifacts) lines.push(`- ${artifact.file}（${artifact.mime}，${artifact.bytes} bytes)`);
     }
-    if (row.error) lines.push('', `错误：${row.error}`);
-    if (row.stopReason) lines.push('', `停止原因：${row.stopReason}`);
+    if (row.error) lines.push('', `Error:${row.error}`);
+    if (row.stopReason) lines.push('', `Reason for stopping:${row.stopReason}`);
     lines.push('');
   }
   if (payload.pendingTasks.length) {
-    lines.push('## 未结束任务（可能仍在运行）', '');
+    lines.push('## Unfinished tasks (may still be running)', '');
     for (const task of payload.pendingTasks) {
-      lines.push(`- ${task.id}（${task.type}）状态 ${task.status}，上游任务号 ${task.providerRequestId || '未知'}，可能仍在运行`);
+      lines.push(`- ${task.id}（${task.type}) status${task.status}, upstream task number${task.providerRequestId || 'unknown'}, may still be running`);
     }
     lines.push('');
   }
   if (payload.cancelAttempts.length) {
-    lines.push('## 取消尝试', '');
+    lines.push('## Cancel attempt', '');
     for (const attempt of payload.cancelAttempts) {
-      lines.push(`- ${attempt.taskId}：${attempt.requested ? '已请求取消' : '取消失败 ' + (attempt.error || '')}`);
+      lines.push(`- ${attempt.taskId}：${attempt.requested ? 'Cancellation requested' : 'Cancellation failed' + (attempt.error || '')}`);
     }
     lines.push('');
   }
-  if (payload.settleError) lines.push('## 收尾查询失败', '', payload.settleError, '');
-  if (payload.issues.length) lines.push('## 问题', '', ...payload.issues.map((issue) => `- ${issue}`), '');
-  if (gaps.length) lines.push('## 缺少的产物（判失败）', '', ...gaps.map((gap) => `- ${gap}`), '');
+  if (payload.settleError) lines.push('## Ending query failed', '', payload.settleError, '');
+  if (payload.issues.length) lines.push('## Question', '', ...payload.issues.map((issue) => `- ${issue}`), '');
+  if (gaps.length) lines.push('## Missing product (failed)', '', ...gaps.map((gap) => `- ${gap}`), '');
   fs.writeFileSync(path.join(outDir, 'report.md'), redact(lines.join('\n') + '\n'));
   console.log(lines.join('\n'));
   const ok = !capped && attributed === records.length && rows.every((row) => row.status === 'done' && !row.stopReason) &&
@@ -597,7 +597,7 @@ async function finalize(reason = '', forcedExitCode = null) {
     if (failure) {
       console.error('REAL_GEN_DRIVER_FAILED', failure, '\nhost log tail:\n' + redact(hostLog.slice(-1500)));
     } else if (!ok) {
-      console.error('REAL_GEN_DRIVER_ISSUES 结果不完整或有失败任务；详情见 report.json');
+      console.error('REAL_GEN_DRIVER_ISSUES results are incomplete or have failed tasks; see report.json for details');
     } else if (forcedExitCode === null) {
       console.log('REAL_GEN_DRIVER_OK rounds=' + state.rounds.length + ' requests=' + records.length);
     } else {

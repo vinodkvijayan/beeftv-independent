@@ -22,14 +22,14 @@ import (
 
 func (s *Service) ResolvePackageFile(id string, filePath string) (string, string, error) {
 	if s == nil || s.runtime == nil {
-		return "", "", fmt.Errorf("插件运行时未初始化")
+		return "", "", fmt.Errorf("The plugin is not initialized when running")
 	}
 	return s.runtime.ResolvePackageFile(id, filePath)
 }
 
 func (c *Runtime) ResolvePackageFile(id string, filePath string) (string, string, error) {
 	if c == nil {
-		return "", "", fmt.Errorf("插件运行时未初始化")
+		return "", "", fmt.Errorf("The plugin is not initialized when running")
 	}
 	trimmedID := strings.TrimSpace(id)
 	c.mu.RLock()
@@ -43,24 +43,24 @@ func (c *Runtime) ResolvePackageFile(id string, filePath string) (string, string
 		}
 	}
 	if !ok {
-		return "", "", packageError(http.StatusNotFound, "plugin_not_found", fmt.Sprintf("插件 %q 不存在", id))
+		return "", "", packageError(http.StatusNotFound, "plugin_not_found", fmt.Sprintf("Plug-in %q does not exist", id))
 	}
 	if pkgDir == "" {
-		return "", "", packageError(http.StatusNotFound, "plugin_file_not_found", fmt.Sprintf("插件 %q 不包含静态文件目录", id))
+		return "", "", packageError(http.StatusNotFound, "plugin_file_not_found", fmt.Sprintf("Plug-in %q does not contain static file directory", id))
 	}
 	trimmed := strings.TrimSpace(filePath)
 	trimmed = strings.TrimPrefix(trimmed, "/")
 	trimmed = strings.TrimPrefix(trimmed, "./")
 	if trimmed == "" || strings.ContainsRune(trimmed, '\\') || path.IsAbs(trimmed) {
-		return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("无效的插件文件路径 %q", filePath))
+		return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("Invalid plugin file path %q", filePath))
 	}
 	cleanRel := path.Clean(trimmed)
 	if cleanRel == "." || cleanRel == ".." || strings.HasPrefix(cleanRel, "../") || strings.Contains(cleanRel, "..") {
-		return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("插件文件路径越界 %q", filePath))
+		return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("The plug-in file path is out of bounds %q", filePath))
 	}
 	for _, seg := range strings.Split(cleanRel, "/") {
 		if seg == "node_modules" || seg == ".git" {
-			return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("禁止访问插件目录 %s", seg))
+			return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("Access to plug-in directory %s prohibited", seg))
 		}
 	}
 	ext := strings.ToLower(path.Ext(cleanRel))
@@ -82,7 +82,7 @@ func (c *Runtime) ResolvePackageFile(id string, filePath string) (string, string
 			contentType = "application/octet-stream"
 		}
 	default:
-		return "", "", packageError(http.StatusBadRequest, "plugin_file_type_unsupported", fmt.Sprintf("不支持的插件静态资源类型 %q", ext))
+		return "", "", packageError(http.StatusBadRequest, "plugin_file_type_unsupported", fmt.Sprintf("Unsupported plug-in static resource type %q", ext))
 	}
 	absRoot, err := filepath.Abs(pkgDir)
 	if err != nil {
@@ -91,17 +91,17 @@ func (c *Runtime) ResolvePackageFile(id string, filePath string) (string, string
 	absTarget := filepath.Join(absRoot, filepath.FromSlash(cleanRel))
 	relCheck, err := filepath.Rel(absRoot, absTarget)
 	if err != nil || strings.HasPrefix(relCheck, "..") || filepath.IsAbs(relCheck) {
-		return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("插件文件路径越界 %q", filePath))
+		return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("The plug-in file path is out of bounds %q", filePath))
 	}
 	info, err := os.Stat(absTarget)
 	if err != nil || !info.Mode().IsRegular() {
-		return "", "", packageError(http.StatusNotFound, "plugin_file_not_found", fmt.Sprintf("插件文件 %q 不存在", cleanRel))
+		return "", "", packageError(http.StatusNotFound, "plugin_file_not_found", fmt.Sprintf("Plug-in file %q does not exist", cleanRel))
 	}
 	if realRoot, err := filepath.EvalSymlinks(absRoot); err == nil {
 		if realTarget, err := filepath.EvalSymlinks(absTarget); err == nil {
 			relReal, relErr := filepath.Rel(realRoot, realTarget)
 			if relErr != nil || strings.HasPrefix(relReal, "..") || filepath.IsAbs(relReal) {
-				return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("插件文件软链接越界 %q", filePath))
+				return "", "", packageError(http.StatusBadRequest, "plugin_file_path_invalid", fmt.Sprintf("Plug-in file soft link crosses the boundary %q", filePath))
 			}
 		}
 	}
@@ -204,17 +204,17 @@ var (
 func validateMarketOutboundURL(ctx context.Context, rawURL string) (*url.URL, error) {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Hostname() == "" || parsed.User != nil {
-		return nil, fmt.Errorf("无效的市场资源地址")
+		return nil, fmt.Errorf("Invalid market resource address")
 	}
 	host := strings.ToLower(parsed.Hostname())
 	if allowLoopbackMarketURLsForTest && (host == "127.0.0.1" || host == "localhost") && (parsed.Scheme == "http" || parsed.Scheme == "https") {
 		return parsed, nil
 	}
 	if parsed.Scheme != "https" {
-		return nil, fmt.Errorf("市场远程地址必须使用 HTTPS")
+		return nil, fmt.Errorf("Market remote addresses must use HTTPS")
 	}
 	if !allowedMarketPublicHosts[host] {
-		return nil, fmt.Errorf("不允许访问未授权的市场域名 %q", host)
+		return nil, fmt.Errorf("Access to unauthorized market domain name %q is not allowed", host)
 	}
 	cleanURL := *parsed
 	cleanURL.Fragment = ""
@@ -241,7 +241,7 @@ func doMarketGetRequest(ctx context.Context, targetURL string, timeout time.Dura
 		Timeout: timeout,
 		CheckRedirect: func(redirectReq *http.Request, via []*http.Request) error {
 			if len(via) >= 5 {
-				return fmt.Errorf("重定向次数过多")
+				return fmt.Errorf("Too many redirects")
 			}
 			_, err := validateMarketOutboundURL(redirectReq.Context(), redirectReq.URL.String())
 			return err
@@ -399,7 +399,7 @@ func keywordsContainQuery(keywords []string, q string) bool {
 func (s *Service) FetchMarketReadme(ctx context.Context, pluginID string, registry ...string) (string, error) {
 	trimmed := strings.TrimSpace(pluginID)
 	if trimmed == "" {
-		return "", packageError(http.StatusBadRequest, "plugin_id_required", "插件 ID 不能为空")
+		return "", packageError(http.StatusBadRequest, "plugin_id_required", "Plugin ID cannot be empty")
 	}
 	if s != nil {
 		for _, candidateID := range []string{trimmed, protocol.PackageIDFromName(trimmed)} {
@@ -433,7 +433,7 @@ func (s *Service) FetchMarketReadme(ctx context.Context, pluginID string, regist
 	if text, ok := fetchNpmPackumentReadme(ctx, trimmed, selectedRegistry); ok {
 		return text, nil
 	}
-	return "", packageError(http.StatusNotFound, "plugin_readme_not_found", fmt.Sprintf("未找到插件 %q 的说明文档", trimmed))
+	return "", packageError(http.StatusNotFound, "plugin_readme_not_found", fmt.Sprintf("No documentation found for plug-in %q", trimmed))
 }
 
 func expandReadmeMirrorURLs(readmeURL, repoURL, registry string) []string {

@@ -25,18 +25,18 @@ test("private copies and similarly named skills do not count as installing the m
 
 test("release compatibility reasons combine release compatibility, list compatibility and unverified requirements", () => {
     expect(releaseUnsupportedReasons({ requirements: ["beeftv.canvas"], compatibility: { status: "supported", reasons: [] } })).toEqual([]);
-    expect(releaseUnsupportedReasons({ requirements: ["beeftv.canvas"], compatibility: { status: "unsupported", reasons: ["请先更新 BeefTV，再安装这个技能"] } })).toEqual(["请先更新 BeefTV，再安装这个技能"]);
-    expect(releaseUnsupportedReasons({ requirements: ["beeftv.canvas"] }, { status: "unsupported", reasons: ["需要更新 BeefTV 客户端"] })).toEqual(["需要更新 BeefTV 客户端"]);
-    expect(releaseUnsupportedReasons({ requirements: ["custom.runtime"], compatibility: { status: "unsupported", reasons: ["当前工作区尚未验证技能要求的能力：custom.runtime"] } })).toEqual(["当前工作区尚未验证技能要求的能力：custom.runtime"]);
-    expect(releaseUnsupportedReasons({ requirements: ["custom.runtime"] }, { status: "unsupported", reasons: [] })).toEqual(["未确认的能力：custom.runtime"]);
-    expect(releaseUnsupportedReasons({ requirements: [] }, { status: "unsupported", reasons: [] })).toEqual(["当前环境暂不支持此版本"]);
+    expect(releaseUnsupportedReasons({ requirements: ["beeftv.canvas"], compatibility: { status: "unsupported", reasons: ["Please update BeefTV first before installing this skill"] } })).toEqual(["Please update BeefTV first before installing this skill"]);
+    expect(releaseUnsupportedReasons({ requirements: ["beeftv.canvas"] }, { status: "unsupported", reasons: ["BeefTV client needs to be updated"] })).toEqual(["BeefTV client needs to be updated"]);
+    expect(releaseUnsupportedReasons({ requirements: ["custom.runtime"], compatibility: { status: "unsupported", reasons: ["The current workspace has not yet verified the capabilities required by the skill: custom.runtime"] } })).toEqual(["The current workspace has not yet verified the capabilities required by the skill: custom.runtime"]);
+    expect(releaseUnsupportedReasons({ requirements: ["custom.runtime"] }, { status: "unsupported", reasons: [] })).toEqual(["Unconfirmed capability: custom.runtime"]);
+    expect(releaseUnsupportedReasons({ requirements: [] }, { status: "unsupported", reasons: [] })).toEqual(["The current environment does not support this version yet"]);
 });
 
 test("market install gate blocks while installed state is loading, errored, already installed, or unsupported", () => {
     expect(canInstallMarketRelease({ installedLoading: false, installedError: "", installation: "install", unsupportedReasons: [] })).toBe(true);
     expect(canInstallMarketRelease({ installedLoading: false, installedError: "", installation: "update", unsupportedReasons: [] })).toBe(true);
     expect(canInstallMarketRelease({ installedLoading: true, installedError: "", installation: "install", unsupportedReasons: [] })).toBe(false);
-    expect(canInstallMarketRelease({ installedLoading: false, installedError: "无法读取安装状态", installation: "install", unsupportedReasons: [] })).toBe(false);
+    expect(canInstallMarketRelease({ installedLoading: false, installedError: "Unable to read installation status", installation: "install", unsupportedReasons: [] })).toBe(false);
     expect(canInstallMarketRelease({ installedLoading: false, installedError: "", installation: "installed", unsupportedReasons: [] })).toBe(false);
-    expect(canInstallMarketRelease({ installedLoading: false, installedError: "", installation: "install", unsupportedReasons: ["请先更新 BeefTV，再安装这个技能"] })).toBe(false);
+    expect(canInstallMarketRelease({ installedLoading: false, installedError: "", installation: "install", unsupportedReasons: ["Please update BeefTV first before installing this skill"] })).toBe(false);
 });

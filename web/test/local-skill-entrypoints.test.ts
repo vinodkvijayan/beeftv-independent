@@ -24,7 +24,7 @@ describe("local skill entrypoints", () => {
         for (const field of ["url", "ref", "subdir"]) {
             expect(html).toContain(`id="local-gh_${field}"`);
         }
-        expect(html).toContain('aria-label="自动同步"');
+        expect(html).toContain('aria-label="Automatic synchronization"');
 
         const original = apiClient.request;
         const calls: Array<{ method?: string; url?: string }> = [];

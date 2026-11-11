@@ -103,7 +103,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 			return snapshot, err
 		}
 		for _, ref := range refs {
-			snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "可复用工作流", ID: ref.OwnerID, Title: "工作流模板或运行结果", ResourceID: ref.ResourceID})
+			snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "Reusable workflow", ID: ref.OwnerID, Title: "Workflow template or run results", ResourceID: ref.ResourceID})
 		}
 	}
 
@@ -113,7 +113,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, asset := range assets {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "素材", ID: asset.ID, Title: asset.Title, PrimaryJSON: asset.PayloadJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Material", ID: asset.ID, Title: asset.Title, PrimaryJSON: asset.PayloadJSON})
 	}
 
 	var canvases []model.CanvasProject
@@ -121,7 +121,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, canvas := range canvases {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "画布", ID: canvas.ID, Title: canvas.Title, PrimaryJSON: canvas.PayloadJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "canvas", ID: canvas.ID, Title: canvas.Title, PrimaryJSON: canvas.PayloadJSON})
 	}
 
 	var tasks []model.Task
@@ -131,7 +131,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 	taskStatuses := make(map[string]model.TaskStatus, len(tasks))
 	for _, task := range tasks {
 		taskStatuses[task.ID] = task.Status
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "任务", ID: task.ID, Title: task.Prompt, PrimaryJSON: task.InputJSON, SecondaryJSON: task.ResultJSON, TaskStatus: task.Status})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Task", ID: task.ID, Title: task.Prompt, PrimaryJSON: task.InputJSON, SecondaryJSON: task.ResultJSON, TaskStatus: task.Status})
 	}
 
 	var runs []model.CreationRun
@@ -139,14 +139,14 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, run := range runs {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "创作会话", ID: run.ID, Title: "智能创作", PrimaryJSON: run.StateJSON, SecondaryJSON: run.ApprovedOperationsJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "authoring session", ID: run.ID, Title: "Intelligent creation", PrimaryJSON: run.StateJSON, SecondaryJSON: run.ApprovedOperationsJSON})
 	}
 	var submissions []model.CreationSubmission
 	if err := r.db.Where("user_id = ? AND revoked_at IS NULL", userID).Find(&submissions).Error; err != nil {
 		return snapshot, err
 	}
 	for _, submission := range submissions {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "创作执行项", ID: submission.ID, Title: submission.ItemKey, PrimaryJSON: submission.RequestJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Create execution items", ID: submission.ID, Title: submission.ItemKey, PrimaryJSON: submission.RequestJSON})
 	}
 
 	var taskLogs []model.TaskLog
@@ -154,7 +154,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, taskLog := range taskLogs {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "任务日志", ID: taskLog.ID, Title: taskLog.Message, PrimaryJSON: taskLog.Payload, TaskStatus: taskStatuses[taskLog.TaskID]})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Mission log", ID: taskLog.ID, Title: taskLog.Message, PrimaryJSON: taskLog.Payload, TaskStatus: taskStatuses[taskLog.TaskID]})
 	}
 
 	var results []model.Result
@@ -162,7 +162,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, result := range results {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "任务结果", ID: result.ID, Title: result.Kind, PrimaryJSON: result.URL, SecondaryJSON: result.Payload, TaskStatus: taskStatuses[result.TaskID]})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Task results", ID: result.ID, Title: result.Kind, PrimaryJSON: result.URL, SecondaryJSON: result.Payload, TaskStatus: taskStatuses[result.TaskID]})
 	}
 
 	var projects []model.Project
@@ -170,9 +170,9 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, project := range projects {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "项目", ID: project.ID, Title: project.Name, PrimaryJSON: project.StyleProfileJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Project", ID: project.ID, Title: project.Name, PrimaryJSON: project.StyleProfileJSON})
 		if project.CoverResourceID != "" && slices.Contains(resourceIDs, project.CoverResourceID) {
-			snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "项目主图", ID: project.ID, Title: project.Name, ResourceID: project.CoverResourceID})
+			snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "Project main picture", ID: project.ID, Title: project.Name, ResourceID: project.CoverResourceID})
 		}
 	}
 
@@ -181,7 +181,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, style := range styles {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "风格", ID: style.ID, Title: style.Name, PrimaryJSON: style.CoverURL, SecondaryJSON: style.ProfileJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "style", ID: style.ID, Title: style.Name, PrimaryJSON: style.CoverURL, SecondaryJSON: style.ProfileJSON})
 	}
 
 	type joinedDocument struct {
@@ -199,7 +199,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, version := range versions {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "素材", ID: version.ID, Title: version.Title, PrimaryJSON: version.PrimaryJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Material", ID: version.ID, Title: version.Title, PrimaryJSON: version.PrimaryJSON})
 	}
 
 	var candidates []joinedDocument
@@ -211,7 +211,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, candidate := range candidates {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "项目", ID: candidate.ID, Title: candidate.Title, PrimaryJSON: candidate.PrimaryJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Project", ID: candidate.ID, Title: candidate.Title, PrimaryJSON: candidate.PrimaryJSON})
 	}
 
 	var steps []joinedDocument
@@ -224,7 +224,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, step := range steps {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "工作流", ID: step.ID, Title: step.Title, PrimaryJSON: step.PrimaryJSON, SecondaryJSON: step.SecondaryJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Workflow", ID: step.ID, Title: step.Title, PrimaryJSON: step.PrimaryJSON, SecondaryJSON: step.SecondaryJSON})
 	}
 
 	var shotArtifacts []joinedDocument
@@ -237,7 +237,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, artifact := range shotArtifacts {
-		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "镜头产物", ID: artifact.ID, Title: artifact.Title, PrimaryJSON: artifact.PrimaryJSON})
+		snapshot.Documents = append(snapshot.Documents, ResourceReferenceDocument{Kind: "Lens products", ID: artifact.ID, Title: artifact.Title, PrimaryJSON: artifact.PrimaryJSON})
 	}
 
 	type joinedRepresentation struct {
@@ -255,7 +255,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, representation := range representations {
-		snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "素材", ID: representation.ID, Title: representation.Title, ResourceID: representation.ResourceID})
+		snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "Material", ID: representation.ID, Title: representation.Title, ResourceID: representation.ResourceID})
 	}
 
 	var voices []model.VoiceProfile
@@ -263,7 +263,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, voice := range voices {
-		snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "声音", ID: voice.ID, Title: voice.Name, ResourceID: voice.SampleResourceID})
+		snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "sound", ID: voice.ID, Title: voice.Name, ResourceID: voice.SampleResourceID})
 	}
 
 	type joinedShotArtifact struct {
@@ -281,7 +281,7 @@ func (r *Repository) ResourceReferenceSnapshot(userID string, excludingAssetID s
 		return snapshot, err
 	}
 	for _, artifact := range artifacts {
-		snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "镜头产物", ID: artifact.ID, Title: artifact.Title, ResourceID: artifact.ResourceID})
+		snapshot.Direct = append(snapshot.Direct, ResourceDirectReference{Kind: "Lens products", ID: artifact.ID, Title: artifact.Title, ResourceID: artifact.ResourceID})
 	}
 
 	libraryRefs, err := r.CanvasLibraryResourceReferences(userID, resourceIDs)
@@ -326,7 +326,7 @@ func (r *Repository) AssetBusinessReferences(userID string, assetID string) ([]R
 	}
 	result := make([]ResourceDirectReference, 0, len(projects)+len(shotProjects)+len(candidateProjects))
 	for _, project := range append(append(projects, shotProjects...), candidateProjects...) {
-		result = append(result, ResourceDirectReference{Kind: "项目", ID: project.ID, Title: project.Title})
+		result = append(result, ResourceDirectReference{Kind: "Project", ID: project.ID, Title: project.Title})
 	}
 	return result, nil
 }

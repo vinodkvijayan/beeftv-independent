@@ -47,11 +47,11 @@ func Decrypt(dataDir, value string) (string, error) {
 		return "", nil
 	}
 	if !strings.HasPrefix(value, Prefix) {
-		return "", errors.New("本地密钥密文格式无效")
+		return "", errors.New("The local key ciphertext format is invalid")
 	}
 	payload, err := base64.RawStdEncoding.DecodeString(strings.TrimPrefix(value, Prefix))
 	if err != nil {
-		return "", errors.New("本地密钥密文格式无效")
+		return "", errors.New("The local key ciphertext format is invalid")
 	}
 	// Decryption must never create a replacement key for existing ciphertext.
 	key, err := readKey(filepath.Join(dataDir, ".settings-key"))
@@ -67,11 +67,11 @@ func Decrypt(dataDir, value string) (string, error) {
 		return "", err
 	}
 	if len(payload) < gcm.NonceSize() {
-		return "", errors.New("本地密钥密文长度无效")
+		return "", errors.New("The local key ciphertext length is invalid")
 	}
 	plain, err := gcm.Open(nil, payload[:gcm.NonceSize()], payload[gcm.NonceSize():], nil)
 	if err != nil {
-		return "", errors.New("本地密钥解密失败，请检查工作区密钥")
+		return "", errors.New("Local key decryption failed, please check workspace key")
 	}
 	return string(plain), nil
 }
@@ -82,7 +82,7 @@ func readKey(path string) ([]byte, error) {
 		return nil, err
 	}
 	if len(key) != 32 {
-		return nil, errors.New("工作区密钥长度无效")
+		return nil, errors.New("Invalid workspace key length")
 	}
 	return key, nil
 }

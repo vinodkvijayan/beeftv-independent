@@ -9,7 +9,7 @@ import (
 
 func ValidateOps(ops []CanvasOp) error {
 	if len(ops) == 0 || len(ops) > 100 {
-		return kernel.BadAuthRequest("方案必须包含 1 到 100 项明确画布操作")
+		return kernel.BadAuthRequest("Plan must contain between 1 and 100 explicit canvas actions")
 	}
 	if err := ValidateJSON(ops); err != nil {
 		return err
@@ -20,30 +20,30 @@ func ValidateOps(ops []CanvasOp) error {
 		switch op.Type {
 		case "add_node":
 			if op.ID == "" || ids[op.ID] {
-				return kernel.BadAuthRequest("新增节点必须使用不重复的稳定 ID")
+				return kernel.BadAuthRequest("New nodes must use unique and stable IDs")
 			}
 			ids[op.ID] = true
 			if _, ok := registry.Resolve(op.NodeType); !ok {
-				return kernel.BadAuthRequest("该节点类型不在本期创作范围")
+				return kernel.BadAuthRequest("This node type is not within the scope of this issue’s creation")
 			}
 		case "update_node":
 			if op.ID == "" {
-				return kernel.BadAuthRequest("更新节点缺少 ID")
+				return kernel.BadAuthRequest("Update node missing ID")
 			}
 			for key := range op.Patch {
 				switch key {
 				case "title", "position", "width", "height", "metadata":
 				default:
-					return kernel.BadAuthRequest("方案包含不支持的节点更新字段")
+					return kernel.BadAuthRequest("Schema contains unsupported node update fields")
 				}
 			}
 		case "connect_nodes":
 			if op.ID == "" || op.FromNodeID == "" || op.ToNodeID == "" {
-				return kernel.BadAuthRequest("连线必须有稳定 ID 和两个端点")
+				return kernel.BadAuthRequest("The connection must have a stable ID and two endpoints")
 			}
 		case "select_nodes":
 		default:
-			return kernel.BadAuthRequest("创作方案仅允许新增、连线、更新和选择节点")
+			return kernel.BadAuthRequest("The creative plan only allows adding, connecting, updating and selecting nodes")
 		}
 	}
 	return nil
@@ -65,7 +65,7 @@ func ApprovalBaseline(raw string, ops []CanvasOp) (string, error) {
 		}
 		node := nodes[op.ID]
 		if node == nil {
-			return "", Conflict("待修改节点不存在")
+			return "", Conflict("The node to be modified does not exist")
 		}
 		baseline := map[string]any{"id": op.ID}
 		for key := range op.Patch {

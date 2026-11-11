@@ -11,9 +11,9 @@ const dark = new URLSearchParams(location.search).get("theme") === "dark";
 useCanvasThemeStore.setState({ active: true, theme: dark ? "dark" : "light" });
 const media = ["first", "last", "middle"].map((id) => ({ id, type: "image" as const, url: `https://example.test/${id}.png` }));
 const frameOptions = [
-    { nodeId: "first", label: "图片 1", title: "首帧图片" },
-    { nodeId: "last", label: "图片 2", title: "尾帧图片" },
-    { nodeId: "middle", label: "图片 3", title: "中间图片" },
+    { nodeId: "first", label: "Picture 1", title: "First frame picture" },
+    { nodeId: "last", label: "Picture 2", title: "Last frame picture" },
+    { nodeId: "middle", label: "Picture 3", title: "middle picture" },
 ];
 
 function Harness() {
@@ -24,7 +24,7 @@ function Harness() {
         try {
             const references = includeMiddle ? media : media.slice(0, 2);
             const options = buildVideoGenerationMetadata(
-                { id: "video", type: CanvasNodeType.Video, title: "视频", position: { x: 0, y: 0 }, width: 320, height: 240, metadata },
+                { id: "video", type: CanvasNodeType.Video, title: "video", position: { x: 0, y: 0 }, width: 320, height: 240, metadata },
                 { referenceImages: references.map((item) => ({ ...item, dataUrl: item.url })), referenceVideos: [], referenceAudios: [] },
                 { ...defaultConfig, model: "minimax-h3-max" },
             );
@@ -33,12 +33,12 @@ function Harness() {
     };
     return <main className="mx-auto mt-12 w-full max-w-md p-4 text-foreground">
         <section data-testid="controls" className="rounded-lg border border-border p-4">
-            <h1 className="mb-4 text-base font-semibold">H3 Max 关键帧</h1>
+            <h1 className="mb-4 text-base font-semibold">H3 Max keyframe</h1>
             <CanvasVideoPromptTools metadata={metadata} frameOptions={frameOptions} middleFrameSupported onMetadataChange={(patch) => setMetadata((current) => ({ ...current, ...patch }))} />
         </section>
         <div className="my-4 flex gap-3">
-            <button onClick={buildRequest}>验证请求参数</button>
-            <button onClick={() => setIncludeMiddle(false)}>断开中间图片</button>
+            <button onClick={buildRequest}>Verify request parameters</button>
+            <button onClick={() => setIncludeMiddle(false)}>Disconnect middle picture</button>
         </div>
         <output data-testid="metadata">{JSON.stringify(metadata)}</output>
         <output data-testid="payload">{JSON.stringify(result)}</output>

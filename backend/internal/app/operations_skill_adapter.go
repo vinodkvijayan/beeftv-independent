@@ -50,11 +50,11 @@ func (s *Service) checkAgentSkillRequirements(domain *skills.Service, userID str
 					continue
 				}
 			}
-			message = "这个技能需要影音理解能力。请在模型配置中选择可用的默认多模态模型，再使用此技能。"
+			message = "This skill requires audio and video understanding skills. Please select an available default multimodal model in the model configuration before using this skill."
 		case "model.image":
-			message = "无法确认当前模型的图片输入支持。请暂时选择不要求图片理解的技能。"
+			message = "Unable to confirm image input support for the current model. Please choose skills that do not require picture understanding for now."
 		default:
-			message = "这个技能要求尚未确认的能力：" + capability
+			message = "This skill requires yet-to-be-confirmed abilities:" + capability
 		}
 		return &kernel.AppError{Status: 409, Code: 409, Reason: "skill_capability_unavailable", Message: message}
 	}

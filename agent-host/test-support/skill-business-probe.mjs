@@ -12,7 +12,7 @@ const listen = (server) => new Promise((resolve) => server.listen(0, '127.0.0.1'
 function send(res, model, tool, args = {}) {
   res.writeHead(200, { 'content-type': 'text/event-stream' });
   const frame = (delta, finish_reason = null) => res.write('data: ' + JSON.stringify({ id: 'fixture', object: 'chat.completion.chunk', created: 1, model, choices: [{ index: 0, delta, finish_reason }] }) + '\n\n');
-  frame(tool ? { role: 'assistant', tool_calls: [{ index: 0, id: 'call-' + tool + '-' + modelCalls, type: 'function', function: { name: tool, arguments: JSON.stringify(args) } }] } : { role: 'assistant', content: config.script ? '缺少脚本执行能力，声音审片尚未执行。' : '已根据所选技能辅助文件创建草稿。' });
+  frame(tool ? { role: 'assistant', tool_calls: [{ index: 0, id: 'call-' + tool + '-' + modelCalls, type: 'function', function: { name: tool, arguments: JSON.stringify(args) } }] } : { role: 'assistant', content: config.script ? 'Lack of script execution capabilities, sound review has not yet been performed.' : 'A draft has been created based on the selected skill aid.' });
   frame({}, tool ? 'tool_calls' : 'stop'); res.end('data: [DONE]\n\n');
 }
 const provider = createServer(async (req, res) => {
@@ -43,7 +43,7 @@ const provider = createServer(async (req, res) => {
           ...config.pin,
           scriptPath: config.path,
           args: ['--probe'],
-          note: '运行技能脚本验证输出',
+          note: 'Run the skill script to verify the output',
         });
       }
       assert(JSON.stringify(results).includes('requires_confirmation') || user.includes('<skill_script_result>'));

@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import { build } from "vite";
 
 const enabled = process.env.BEEFTV_BROWSER_WORKER_TEST === "1";
-test.skipIf(!enabled)("所有视频入口按需准备预览，失败可重试，可播放原件不转码", async () => {
+test.skipIf(!enabled)("All video portals are ready for preview on demand. If you fail, you can try again. You can play the original without transcoding.", async () => {
     const dir = mkdtempSync(join(tmpdir(), "beeftv-video-recovery-"));
     const file = join(dir, "preview.mp4");
     const result = spawnSync("ffmpeg", ["-nostdin", "-v", "error", "-f", "lavfi", "-i", "color=c=red:s=64x48:r=5:d=0.4", "-c:v", "libx264", "-pix_fmt", "yuv420p", file]);
@@ -43,7 +43,7 @@ test.skipIf(!enabled)("所有视频入口按需准备预览，失败可重试，
             page.on("pageerror", (error) => { pageErrors.push(error.message); console.error(error.stack); });
             await page.goto(`${server.url}?surface=${surface}`);
             if (mode === "retry") {
-                const name = surface === "attachment" ? "重读预览" : surface === "drawer" ? /重\s*试/ : "重新加载";
+                const name = surface === "attachment" ? "Reread preview" : surface === "drawer" ? /重\s*试/ : "reload";
                 await page.getByRole("button", { name, exact: true }).waitFor({ timeout: 7000 });
                 await page.getByRole("button", { name, exact: true }).click();
             }

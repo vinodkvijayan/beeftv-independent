@@ -1,8 +1,8 @@
 # NewAPI Video Generations
 
-该插件使用 `/v1/video/generations` JSON 异步接口，直接发送图片、视频和音频 URL 数组。它适用于实现这一特定路径和字段集合的 NewAPI 渠道，不等同于 `/v1/videos` 媒体任务协议。
+The plug-in uses the `/v1/video/generations` JSON asynchronous interface to directly send image, video and audio URL arrays. It applies to NewAPI channels that implement this specific set of paths and fields and is not equivalent to the `/v1/videos` media task protocol.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,17 +13,17 @@ Authorization: Bearer <CHANNEL_API_KEY>
 Content-Type: application/json
 ```
 
-## 模型与约束来源
+## Model and constraint sources
 
-可用模型、每种素材上限、时长范围、音频能力、分辨率和计费由该 NewAPI 部署映射的上游决定。插件没有通用白名单。用户示例中的 Seedance 限制只可用于实际连接该服务且管理员验证一致的渠道。
+Available models, per-material caps, duration ranges, audio capabilities, resolutions, and billing are determined upstream of this NewAPI deployment map. There is no universal whitelist for plugins. The Seedance restriction in the user example can only be used for channels that actually connect to the service and are verified consistently by the administrator.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-实际字段为 `model`、`prompt`、`seconds`、`aspect_ratio`、可选 `resolution`、`generate_audio`、`image_urls`、`video_urls`、`audio_urls`。时长默认 6 秒并发送为字符串，比例默认 `16:9`。水印当前不发送。
+Actual fields are `model`, `prompt`, `seconds`, `aspect_ratio`, optional `resolution`, `generate_audio`, `image_urls`, `video_urls`, `audio_urls`. The duration defaults to 6 seconds and is sent as a string, and the ratio defaults to `16:9`. Watermarks are not currently being sent.
 
-## 完整多模态请求
+## Complete multimodal request
 
 ```bash
 curl "{channel_base_url}/v1/video/generations" \
@@ -42,7 +42,7 @@ curl "{channel_base_url}/v1/video/generations" \
   }'
 ```
 
-## 任务状态与结果
+## Task status and results
 
 ```json
 {"task_id":"task_xxx","status":"queued"}
@@ -53,11 +53,11 @@ curl "{channel_base_url}/v1/video/generations/task_xxx" \
   -H "Authorization: Bearer <CHANNEL_API_KEY>"
 ```
 
-状态会归一为等待、处理中、成功或失败。成功结果可来自视频数组或常见顶层 URL；当前没有取消路径。任务失败后的退款、额度释放和结果保留期属于部署方账务合同，宿主不会在没有接口证据时承诺。
+The status will be classified as waiting, processing, successful or failed. Successful results can come from an array of videos or a common top-level URL; there is currently no cancellation path. The refund, credit release, and result retention period after a task fails belong to the deployer's accounting contract, and the host will not commit without interface evidence.
 
-## 官方资料与边界
+## Official information and boundaries
 
-- 以连接的 NewAPI 部署接口文档、版本和渠道配置为准。
-- 素材必须能被网关和最终上游访问；网关可访问不代表最终供应商可访问。
+- Subject to the connected NewAPI deployment interface document, version and channel configuration.
+- The material must be accessible by the gateway and the final upstream; accessibility by the gateway does not mean that it is accessible by the final supplier.
 
 {{CONTRACT}}

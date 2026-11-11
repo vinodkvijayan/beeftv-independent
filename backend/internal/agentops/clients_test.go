@@ -25,26 +25,26 @@ func TestLoadsPreExistingRegistrationsWithoutNewFields(t *testing.T) {
 
 	found, ok := registry.Lookup("client-legacy", "legacy-token")
 	if !ok {
-		t.Fatal("旧登记应继续有效")
+		t.Fatal("The old registration should continue to be valid")
 	}
 	if found.Mode != ClientReadWrite {
-		t.Fatalf("旧登记的能力模式应保留，得到 %q", found.Mode)
+		t.Fatalf("The capability mode of the old registration should be retained, getting %q", found.Mode)
 	}
 	if found.Kind != ClientKindOther {
-		t.Fatalf("缺失的 kind 应补成 other，得到 %q", found.Kind)
+		t.Fatalf("The missing kind should be replaced by other, resulting in %q", found.Kind)
 	}
 	if found.Origin != "" {
-		t.Fatalf("旧登记没有 origin 时应一律视为手动，得到 %q", found.Origin)
+		t.Fatalf("When the old registration does not have origin, it should always be regarded as manual, and it will get %q", found.Origin)
 	}
 	items := registry.List()
 	if len(items) != 1 || items[0].ID != "client-legacy" {
-		t.Fatalf("旧登记应出现在列表里：%+v", items)
+		t.Fatalf("The old registration should appear in the list: %+v", items)
 	}
 	if err := registry.Revoke("client-legacy"); err != nil {
-		t.Fatalf("旧登记应可吊销：%v", err)
+		t.Fatalf("The old registration should be revoked: %v", err)
 	}
 	if _, ok := registry.Lookup("client-legacy", "legacy-token"); ok {
-		t.Fatal("吊销后旧登记仍然有效")
+		t.Fatal("The old registration remains valid after revocation")
 	}
 }
 
@@ -81,40 +81,40 @@ func TestRegisterKindLookupAndRevoke(t *testing.T) {
 		t.Fatal(err)
 	}
 	if registration.Kind != ClientKindCodex {
-		t.Fatalf("kind 应为 codex，得到 %q", registration.Kind)
+		t.Fatalf("kind should be codex, get %q", registration.Kind)
 	}
 	// 没给名字时用来源分类兜底，界面上不会出现空白一行。
 	if registration.Label != "codex" {
-		t.Fatalf("空名称应回落到来源分类，得到 %q", registration.Label)
+		t.Fatalf("Empty names should fall back to the source classification, getting %q", registration.Label)
 	}
 	if registration.LastUsedAt != nil {
-		t.Fatal("刚登记的客户端不该有使用时间")
+		t.Fatal("The newly registered client should not have usage time")
 	}
 
 	if _, ok := registry.Lookup(registration.ID, token); !ok {
-		t.Fatal("刚登记的凭据应可用")
+		t.Fatal("The credentials you just registered should be available")
 	}
 	// 命中后要记下最近使用时间，界面才能显示哪个客户端还在用。
 	items := registry.List()
 	if len(items) != 1 || items[0].LastUsedAt == nil {
-		t.Fatalf("使用过的登记应带 lastUsedAt：%+v", items)
+		t.Fatalf("Used registrations should have lastUsedAt: %+v", items)
 	}
 
 	if _, ok := registry.Lookup(registration.ID, "wrong-token"); ok {
-		t.Fatal("错误 token 不该通过")
+		t.Fatal("Error token should not pass")
 	}
 	if _, ok := registry.Lookup("client-unknown", token); ok {
-		t.Fatal("未登记 ID 不该通过")
+		t.Fatal("Unregistered ID should not be passed")
 	}
 
 	if err := registry.Revoke(registration.ID); err != nil {
 		t.Fatal(err)
 	}
 	if _, ok := registry.Lookup(registration.ID, token); ok {
-		t.Fatal("吊销后凭据仍然有效")
+		t.Fatal("Credentials remain valid after revocation")
 	}
 	if len(registry.List()) != 0 {
-		t.Fatal("已吊销的登记不该出现在列表里")
+		t.Fatal("Revoked registrations should not appear in the list")
 	}
 	// 记录本身要留着：删行会让同一个 ID 有机会被后来的登记复用。
 	raw, err := os.ReadFile(registry.path)
@@ -126,13 +126,13 @@ func TestRegisterKindLookupAndRevoke(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(stored) != 1 || stored[0].RevokedAt == nil {
-		t.Fatalf("吊销应留下带时间的记录：%s", raw)
+		t.Fatalf("Revocation should leave a record with time: %s", raw)
 	}
 	if err := registry.Revoke(registration.ID); err == nil {
-		t.Fatal("重复吊销应报未找到")
+		t.Fatal("Duplicate revocation report not found")
 	}
 	if err := registry.Revoke(""); err == nil {
-		t.Fatal("空 ID 应被拒绝")
+		t.Fatal("Empty IDs should be rejected")
 	}
 }
 
@@ -148,13 +148,13 @@ func TestRegistryNeverStoresRawToken(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(token) == 0 {
-		t.Fatal("应签发出 token")
+		t.Fatal("token should be issued")
 	}
 	if strings.Contains(string(raw), token) {
-		t.Fatal("登记文件里出现了原始 token")
+		t.Fatal("The original token appears in the registration file")
 	}
 	if err := securefile.Verify(registry.path); err != nil {
-		t.Fatalf("登记文件没有收紧到只有当前用户可读：%v", err)
+		t.Fatalf("The registration file is not tightened to be readable only by the current user: %v", err)
 	}
 }
 
@@ -176,7 +176,7 @@ func TestAgentCredentialsAreRestrictedToTheCurrentUser(t *testing.T) {
 	}
 	raw, err := os.ReadFile(HostTokenPath(dir))
 	if err != nil || string(raw) != "legacy-host-token" {
-		t.Fatalf("已有宿主凭据被改写：%q %v", raw, err)
+		t.Fatalf("Existing host credentials have been overwritten: %q %v", raw, err)
 	}
 }
 
@@ -188,19 +188,19 @@ func TestLastUsedWritesAreThrottled(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, ok := registry.Lookup(registration.ID, token); !ok {
-		t.Fatal("首次查询应通过")
+		t.Fatal("The first query should pass")
 	}
 	first := registry.List()[0].LastUsedAt
 	if first == nil {
-		t.Fatal("首次使用应记录时间")
+		t.Fatal("The time of first use should be recorded")
 	}
 	for i := 0; i < 20; i++ {
 		if _, ok := registry.Lookup(registration.ID, token); !ok {
-			t.Fatal("重复查询应通过")
+			t.Fatal("Repeat queries should be passed")
 		}
 	}
 	if got := registry.List()[0].LastUsedAt; !got.Equal(*first) {
-		t.Fatalf("节流窗口内不该反复改写 lastUsedAt：%v -> %v", first, got)
+		t.Fatalf("LastUsedAt should not be rewritten repeatedly within the throttling window: %v -> %v", first, got)
 	}
 
 	// 把时间推到节流窗口之外，下一次使用就应该刷新。
@@ -212,10 +212,10 @@ func TestLastUsedWritesAreThrottled(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, ok := registry.Lookup(registration.ID, token); !ok {
-		t.Fatal("节流窗口外的查询应通过")
+		t.Fatal("Queries outside the throttling window should go through")
 	}
 	if got := registry.List()[0].LastUsedAt; got == nil || !got.After(stale.Add(time.Minute)) {
-		t.Fatalf("节流窗口外应刷新 lastUsedAt，得到 %v", got)
+		t.Fatalf("lastUsedAt should be refreshed outside the throttling window and get %v", got)
 	}
 }
 
@@ -225,7 +225,7 @@ func TestNormalizeClientKind(t *testing.T) {
 		"other": ClientKindOther, "": ClientKindOther, "admin": ClientKindOther,
 	} {
 		if got := NormalizeClientKind(input); got != want {
-			t.Fatalf("NormalizeClientKind(%q) = %q，期望 %q", input, got, want)
+			t.Fatalf("NormalizeClientKind(%q) = %q, expects %q", input, got, want)
 		}
 	}
 }
@@ -237,11 +237,11 @@ func TestNormalizeAndRegisterClientApprovalMode(t *testing.T) {
 		"auto": ClientApprovalAuto, " AUTO ": ClientApprovalAuto,
 	} {
 		if got, err := NormalizeClientApprovalMode(input); err != nil || got != want {
-			t.Fatalf("NormalizeClientApprovalMode(%q) = %q, %v，期望 %q, nil", input, got, err, want)
+			t.Fatalf("NormalizeClientApprovalMode(%q) = %q, %v, expects %q, nil", input, got, err, want)
 		}
 	}
 	if _, err := NormalizeClientApprovalMode("unknown"); err == nil {
-		t.Fatal("NormalizeClientApprovalMode(\"unknown\") 应报错")
+		t.Fatal("NormalizeClientApprovalMode(\"unknown\") should report an error")
 	}
 	registry := NewClientRegistry(t.TempDir())
 	for _, mode := range []ClientApprovalMode{ClientApprovalAsk, ClientApprovalCaller, ClientApprovalAuto} {
@@ -268,9 +268,9 @@ func TestListLiveReportsUnreadableRegistry(t *testing.T) {
 	}
 	registry := NewClientRegistry(dir)
 	if _, err := registry.ListLive(); err == nil {
-		t.Fatal("损坏的登记文件应让 ListLive 报错")
+		t.Fatal("Corrupt registration files should cause ListLive to report an error")
 	}
 	if items := registry.List(); len(items) != 0 {
-		t.Fatalf("List 应保持宽松返回空列表，得到 %d 项", len(items))
+		t.Fatalf("List should be kept loose returning an empty list, getting %d items", len(items))
 	}
 }

@@ -58,7 +58,7 @@ func TestProcessTaskRejectsVideoTaskWithoutProviderConfig(t *testing.T) {
 	if err == nil {
 		t.Fatal("processTask() error = nil, want missing provider configuration error")
 	}
-	if err.Error() != "视频任务缺少可执行的模型配置" {
+	if err.Error() != "Video task is missing executable model configuration" {
 		t.Fatalf("processTask() error = %q, want explicit provider configuration error", err)
 	}
 }
@@ -93,7 +93,7 @@ func TestProcessTaskRejectsUnknownType(t *testing.T) {
 	if err == nil {
 		t.Fatal("processTask() error = nil, want unsupported task type error")
 	}
-	if err.Error() != "不支持的任务类型：workflow_router" {
+	if err.Error() != "Unsupported task type: workflow_router" {
 		t.Fatalf("processTask() error = %q, want unsupported task type error", err)
 	}
 }

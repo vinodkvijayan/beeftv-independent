@@ -5,8 +5,8 @@ import {
   runRequestEfficiencyGate,
 } from './request-efficiency-gate.mjs';
 
-describe('请求效率门禁（Request Efficiency Gate）', () => {
-  test('S1–S11 假模型全量运行：完整覆盖 11 个场景、头部 system 逐字节不变、末尾瞬态上下文有效、相邻前缀 100% 覆盖且体积不超上限', async () => {
+describe('Request Efficiency Gate', () => {
+  test('S1–S11 fake model runs in full: 11 scenes are completely covered, the header system is unchanged byte by byte, the transient context at the end is valid, adjacent prefixes are 100% covered, and the volume does not exceed the upper limit', async () => {
     const report = await runRequestEfficiencyGate({ scenario: 'all' });
     expect(report.passed, report.violations.join('\n')).toBe(true);
     expect(report.sessions.map((s) => s.scenarioCode)).toEqual(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11']);
@@ -20,7 +20,7 @@ describe('请求效率门禁（Request Efficiency Gate）', () => {
     }
   }, 45_000);
 
-  test('当缺少预期场景、缺少末尾瞬态上下文、头部混入动态区块或顺序颠倒、前缀断裂、超出字符上限时应失败', () => {
+  test('Should fail when the expected scene is missing, the end transient context is missing, the header is mixed into a dynamic block or the order is reversed, the prefix is broken, or the character limit is exceeded', () => {
     const baseTools = [{ type: 'function', function: { name: 'canvas_get', parameters: {} } }];
     const badRequests = [
       {
@@ -34,7 +34,7 @@ describe('请求效率门禁（Request Efficiency Gate）', () => {
           messages: [
             {
               role: 'developer',
-              content: '<beeftv_skill_catalog>\ncat\n</beeftv_skill_catalog>\n\n<instructions>\ninstr\n</instructions>\n\n<beeftv_studio>\n画布版本 1\n</beeftv_studio>',
+              content: '<beeftv_skill_catalog>\ncat\n</beeftv_skill_catalog>\n\n<instructions>\ninstr\n</instructions>\n\n<beeftv_studio>\nCanvas version 1\n</beeftv_studio>',
             },
             { role: 'user', content: 'turn 1' },
           ],
@@ -51,7 +51,7 @@ describe('请求效率门禁（Request Efficiency Gate）', () => {
           messages: [
             {
               role: 'developer',
-              content: '<beeftv_skill_catalog>\ncat\n</beeftv_skill_catalog>\n\n<instructions>\ninstr\n</instructions>\n\n<beeftv_studio>\n画布版本 2\n</beeftv_studio>',
+              content: '<beeftv_skill_catalog>\ncat\n</beeftv_skill_catalog>\n\n<instructions>\ninstr\n</instructions>\n\n<beeftv_studio>\nCanvas version 2\n</beeftv_studio>',
             },
             { role: 'user', content: 'turn 1' },
             { role: 'assistant', content: 'ok' },
@@ -72,15 +72,15 @@ describe('请求效率门禁（Request Efficiency Gate）', () => {
     );
     expect(report.passed).toBe(false);
     expect(report.overallPrefixHitRatio).toBe(0);
-    expect(report.violations.some((v) => v.includes('头部 system 仍包含动态区块'))).toBe(true);
-    expect(report.violations.some((v) => v.includes('排在 <instructions>'))).toBe(true);
-    expect(report.violations.some((v) => v.includes('缺少非 system 的 <beeftv_studio>'))).toBe(true);
-    expect(report.violations.some((v) => v.includes('会话内头部 system 文本发生变化'))).toBe(true);
-    expect(report.violations.some((v) => v.includes('缺少预期评测场景请求记录: S1'))).toBe(true);
-    expect(report.violations.some((v) => v.includes('超过上限'))).toBe(true);
+    expect(report.violations.some((v) => v.includes('The head system still contains dynamic blocks'))).toBe(true);
+    expect(report.violations.some((v) => v.includes('Ranked under <instructions>'))).toBe(true);
+    expect(report.violations.some((v) => v.includes('Missing non-system <beeftv_studio>'))).toBe(true);
+    expect(report.violations.some((v) => v.includes('The header system text changes within the session'))).toBe(true);
+    expect(report.violations.some((v) => v.includes('Missing expected evaluation scenario request record: S1'))).toBe(true);
+    expect(report.violations.some((v) => v.includes('Exceed the upper limit'))).toBe(true);
   });
 
-  test('ratchetBudget（--update）只允许收紧字符上限，绝不调高已有上限', () => {
+  test('ratchetBudget (--update) only allows tightening the character limit and never increases the existing limit.', () => {
     const existing = {
       minAdjacentPrefixCoverageRatio: 0.95,
       maxHeaderChars: 7377,

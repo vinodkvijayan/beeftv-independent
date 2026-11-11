@@ -1,8 +1,8 @@
-# Gemini Veo 长任务
+#GeminiVeo long tasks
 
-Veo 插件通过 `predictLongRunning` 创建 Google long-running operation，再查询 operation 直到完成。提示词位于 `instances[0]`，当前最多取第一张参考图并以内联 Base64 发送。
+The Veo plug-in creates a Google long-running operation through `predictLongRunning`, and then queries the operation until it is completed. The prompt word is located at `instances[0]`. Currently, at most the first reference image is taken and sent inline Base64.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -13,19 +13,19 @@ x-goog-api-key: <GEMINI_API_KEY>
 Content-Type: application/json
 ```
 
-API Key 必须通过后端头部中转，不能放入浏览器 URL。Vertex AI Veo 的 OAuth、项目、区域和发布者路径不同，不能直接套用 Gemini Developer API Base URL。
+The API Key must be relayed through the backend header and cannot be placed in the browser URL. The OAuth, project, region, and publisher paths of Vertex AI Veo are different and the Gemini Developer API Base URL cannot be directly applied.
 
-## 模型与能力限制
+## Model and Capability Limitations
 
-模型 ID 原样放入创建路径。允许时长、比例、分辨率、音频、参考图类型、并发、结果保留期和计费以 Google 官方模型页及账户区域为准。插件不维护白名单。当前 adapter 只使用第一张图片；视频/音频参考和水印不发送。
+The model ID is placed unchanged in the creation path. Allowed duration, scale, resolution, audio, reference image type, concurrency, result retention period and billing are subject to Google's official model page and account area. The plugin does not maintain a whitelist. Currently the adapter only uses the first image; video/audio references and watermarks are not sent.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-实际映射为 `aspectRatio`、`durationSeconds`、`resolution`、`generateAudio`，均放入 `parameters`。参考图固定为 `instances[0].image.inlineData`；没有 data URL 时 MIME 和数据会退化为空/通用值，因此远程 URL 应先下载并转为 data URL。
+The actual mapping is `aspectRatio`, `durationSeconds`, `resolution`, `generateAudio`, all put into `parameters`. The reference graph is fixed to `instances[0].image.inlineData`; MIME and data degrade to empty/generic values ​​without a data URL, so the remote URL should be downloaded first and converted to a data URL.
 
-## 创建任务示例
+## Create task example
 
 ```bash
 curl "{channel_base_url}/v1beta/models/YOUR_VEO_MODEL:predictLongRunning" \
@@ -40,15 +40,15 @@ curl "{channel_base_url}/v1beta/models/YOUR_VEO_MODEL:predictLongRunning" \
   }'
 ```
 
-## Operation 轮询与结果
+## Operation polling and results
 
-创建响应返回 operation `name`。宿主会移除开头斜杠，并在缺少 `operations/` 前缀时自动补齐，然后请求 `/v1beta/operations/...`。
+Create response returns operation `name`. The host will remove the leading slash, automatically complete the `operations/` prefix if it is missing, and then request `/v1beta/operations/...`.
 
 ```json
 {"name":"operations/op_xxx","done":false}
 ```
 
-该插件使用独立的 Google LRO parser，不经过通用 `status/state` 兼容分支：`done:false` 视为处理中，顶层 `error` 视为失败，`done:true` 后从 `response.generatedVideos[]` 或 `response.generateVideoResponse.generatedSamples[]` 的 `video.uri` 读取视频。成功但缺少视频地址会作为真实错误返回，不把 operation 完成误报为媒体已保存。
+This plugin uses a standalone Google LRO parser that does not go through the common `status/state` compatible branch: `done:false` is considered processing, top-level `error` is considered failed, `done:true` is followed by `video.uri` which reads the video from `response.generatedVideos[]` or `response.generateVideoResponse.generatedSamples[]`. Successful but missing video address will be returned as a real error, and the operation completion will not be falsely reported as the media has been saved.
 
 ```json
 {
@@ -64,7 +64,7 @@ curl "{channel_base_url}/v1beta/models/YOUR_VEO_MODEL:predictLongRunning" \
 }
 ```
 
-## 官方资料
+## Official information
 
 - [Gemini API video generation with Veo](https://ai.google.dev/gemini-api/docs/video)
 - [Google long-running operations](https://ai.google.dev/api/files#method:-operations.get)

@@ -28,7 +28,7 @@ func changeFromReceipts(record Record, receipts []model.AgentOpRecord) (*Change,
 				continue
 			}
 			if _, ok := record.CanvasSnapshots[p.CanvasID]; !ok {
-				return nil, errors.New("助手回执缺少目标画布快照")
+				return nil, errors.New("Assistant receipt missing target canvas snapshot")
 			}
 			groups[p.CanvasID] = append(groups[p.CanvasID], receipt)
 		}
@@ -65,7 +65,7 @@ func changeFromReceipts(record Record, receipts []model.AgentOpRecord) (*Change,
 		return combined, nil
 	}
 	if strings.TrimSpace(record.TurnID) == "" {
-		return nil, errors.New("助手操作回执不可用，已保留撤销快照")
+		return nil, errors.New("Assistant operation receipt is not available, undo snapshot has been retained")
 	}
 	type step struct {
 		revision int64
@@ -77,10 +77,10 @@ func changeFromReceipts(record Record, receipts []model.AgentOpRecord) (*Change,
 	for _, receipt := range receipts {
 		var payload map[string]any
 		if json.Unmarshal([]byte(receipt.ResultJSON), &payload) != nil {
-			return nil, errors.New("助手操作回执损坏，已保留撤销快照")
+			return nil, errors.New("The assistant operation receipt is damaged and the undo snapshot has been retained.")
 		}
 		if got, _ := payload["canvasId"].(string); got != record.CanvasID {
-			return nil, errors.New("助手操作回执的画布归属不一致，已保留撤销快照")
+			return nil, errors.New("The canvas ownership of the assistant operation receipt is inconsistent and the undo snapshot has been retained.")
 		}
 		if receipt.Op == "canvas.edge.create" && payload["created"] != true {
 			continue

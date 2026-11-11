@@ -37,7 +37,7 @@ func mapSkillMarketError(err error) error {
 }
 
 func registerSkillMarketOps(r *Registry) {
-	r.Register(Op{ID: "skill.market.search", ReadOnly: true, AssistantCanvas: true, Scope: ScopeWorkspaceRead, Summary: "搜索公共技能市场", Params: json.RawMessage(`{"type":"object","properties":{"q":{"type":"string"},"page":{"type":"integer"},"pageSize":{"type":"integer"}}}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
+	r.Register(Op{ID: "skill.market.search", ReadOnly: true, AssistantCanvas: true, Scope: ScopeWorkspaceRead, Summary: "Search the public skills marketplace", Params: json.RawMessage(`{"type":"object","properties":{"q":{"type":"string"},"page":{"type":"integer"},"pageSize":{"type":"integer"}}}`), Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 		var args struct {
 			Query    string `json:"q"`
 			Page     int    `json:"page"`
@@ -47,7 +47,7 @@ func registerSkillMarketOps(r *Registry) {
 			return nil, err
 		}
 		if len(args.Query) > 200 || args.Page < 0 || args.PageSize < 0 || args.PageSize > 20 {
-			return nil, InvalidArg("invalid_market_query", "市场查询参数无效")
+			return nil, InvalidArg("invalid_market_query", "Market query parameter is invalid")
 		}
 		if args.Page == 0 {
 			args.Page = 1
@@ -57,7 +57,7 @@ func registerSkillMarketOps(r *Registry) {
 		}
 		port, ok := ctx.Domain.(SkillMarketDiscovery)
 		if !ok {
-			return nil, Unsupported("market_unavailable", "当前工作区无法查询技能市场")
+			return nil, Unsupported("market_unavailable", "The current workspace cannot query the skills market")
 		}
 		value, err := port.SearchSkillMarket(args.Query, args.Page, args.PageSize)
 		return value, mapSkillMarketError(err)
@@ -65,10 +65,10 @@ func registerSkillMarketOps(r *Registry) {
 	for _, id := range []string{"skill.market.get", "skill.market.file"} {
 		operation := id
 		params := json.RawMessage(`{"type":"object","properties":{"skillId":{"type":"string"},"releaseId":{"type":"string"}},"required":["skillId","releaseId"]}`)
-		summary := "读取公共市场技能版本详情"
+		summary := "Read public market skill version details"
 		if operation == "skill.market.file" {
 			params = json.RawMessage(`{"type":"object","properties":{"skillId":{"type":"string"},"releaseId":{"type":"string"},"path":{"type":"string"},"offset":{"type":"integer"},"limit":{"type":"integer"}},"required":["skillId","releaseId","path"]}`)
-			summary = "读取公共技能指定版本的文件"
+			summary = "Read the file of the specified version of the public skill"
 		}
 		r.Register(Op{ID: operation, ReadOnly: true, AssistantCanvas: true, Scope: ScopeWorkspaceRead, Summary: summary, Params: params, Handler: func(ctx *Context, raw json.RawMessage) (any, error) {
 			var args struct {
@@ -82,11 +82,11 @@ func registerSkillMarketOps(r *Registry) {
 				return nil, err
 			}
 			if !skillhub.ResourceID.MatchString(args.SkillID) || !skillhub.ResourceID.MatchString(args.ReleaseID) {
-				return nil, InvalidArg("release_required", "必须指定有效的技能发布版本")
+				return nil, InvalidArg("release_required", "A valid skill release version must be specified")
 			}
 			port, ok := ctx.Domain.(SkillMarketDiscovery)
 			if !ok {
-				return nil, Unsupported("market_unavailable", "当前工作区无法查询技能市场")
+				return nil, Unsupported("market_unavailable", "The current workspace cannot query the skills market")
 			}
 			if operation == "skill.market.file" {
 				value, err := port.ReadSkillMarketFile(args.SkillID, args.ReleaseID, args.Path, args.Offset, args.Limit)

@@ -46,7 +46,7 @@ func (s *Service) assistantGenerationConfig(target operations.GenerationTarget) 
 		}
 	}
 	if !found {
-		return nil, operations.PreconditionFailed("generation_model_unavailable", "制作模型已不可用", nil)
+		return nil, operations.PreconditionFailed("generation_model_unavailable", "Making models is no longer available", nil)
 	}
 	config["model"] = modelID
 	for _, profile := range modelcatalog.ParseLocalChannelModels(body) {

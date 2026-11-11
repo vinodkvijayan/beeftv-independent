@@ -179,16 +179,16 @@ func (s *Service) validateListedResource(resource *model.Resource) error {
 		return nil
 	}
 	if resource.Provider != "local" {
-		return fmt.Errorf("资源 %s 不属于本地存储", resource.ID)
+		return fmt.Errorf("Resource %s does not belong to local storage", resource.ID)
 	}
 	if resource.Status != model.ResourceStatusReady {
 		return nil
 	}
 	if s.blobs == nil {
-		return fmt.Errorf("资源 %s 的本地文件缺失", resource.ID)
+		return fmt.Errorf("The local file of resource %s is missing", resource.ID)
 	}
 	if err := s.blobs.Exists(resource.ObjectKey); err != nil {
-		return fmt.Errorf("资源 %s 的本地文件缺失", resource.ID)
+		return fmt.Errorf("The local file of resource %s is missing", resource.ID)
 	}
 	return nil
 }

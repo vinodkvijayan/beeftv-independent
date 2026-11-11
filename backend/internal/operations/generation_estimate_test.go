@@ -58,27 +58,27 @@ func TestGenerationEstimatePricesTargetsFromSavedCatalog(t *testing.T) {
 		{ModelKey: "beeftv::gpt-image-2", Kind: "image", Parameters: map[string]string{"size": "1024x1024", "quality": "low", "count": "2"}, ReferenceImages: 1},
 		{ModelKey: "beeftv::seedance-2.0", Kind: "video"},
 		{ModelKey: "beeftv::minimax-h3", Kind: "video", Parameters: map[string]string{"vquality": "768p", "seconds": "6"}},
-		{ModelKey: "beeftv::minimax-speech-2.8-hd", Kind: "audio", Text: "你好，欢迎来到牛肉粉"},
+		{ModelKey: "beeftv::minimax-speech-2.8-hd", Kind: "audio", Text: "Hello, welcome to Beef Noodles"},
 		{ModelKey: "custom::my-video", Kind: "video", Parameters: map[string]string{"vquality": "720p", "seconds": "5"}},
 	})
 	want := []struct {
 		amount float64
 		basis  string
 	}{
-		{0.85, "1K 低质量 ¥0.35/张 × 2 张 + 参考图 1 张 × ¥0.15"},
-		{4.968, "720p ¥0.9936/秒 × 5 秒，按 Token 折算"},
-		{3.662, "768p ¥0.6103/秒 × 6 秒"},
-		{0.0035, "10 字 × ¥350/百万字"},
+		{0.85, "1K low quality ¥0.35/picture × 2 pictures + 1 picture for reference × ¥0.15"},
+		{4.968, "720p ¥0.9936/second × 5 seconds, converted by Token"},
+		{3.662, "768p ¥0.6103/second × 6 seconds"},
+		{0.0035, "10 words × ¥350/million words"},
 	}
 	for i, item := range want {
 		if got.Items[i].Amount == nil || *got.Items[i].Amount != item.amount || got.Items[i].Basis != item.basis {
 			t.Fatalf("item %d: %+v, want %v %q", i, got.Items[i], item.amount, item.basis)
 		}
 	}
-	if byok := got.Items[4]; byok.Amount != nil || byok.Basis != "自带 Key 的渠道暂无价格，按该渠道实际计费" {
+	if byok := got.Items[4]; byok.Amount != nil || byok.Basis != "There is currently no price for channels that come with their own Key, and the actual billing will be based on the channel." {
 		t.Fatalf("a bring-your-own-key channel must stay unpriced: %+v", byok)
 	}
-	if got.Summary.Text != "预计费用：已知部分约 ¥9.48，另有 1 项暂无价格" {
+	if got.Summary.Text != "Estimated cost: The known part is about ¥9.48, and there is another item with no price yet." {
 		t.Fatalf("summary: %+v", got.Summary)
 	}
 }
@@ -94,7 +94,7 @@ func TestOpGenerationProposeCarriesEstimate(t *testing.T) {
 		t.Fatal(err)
 	}
 	payload := result.(map[string]any)
-	if summary, ok := payload["estimate"].(pricing.Summary); !ok || summary.Text != "预计费用：¥4.4" {
+	if summary, ok := payload["estimate"].(pricing.Summary); !ok || summary.Text != "Estimated cost: ¥4.4" {
 		t.Fatalf("proposal summary: %#v", payload["estimate"])
 	}
 	targets := payload["targets"].([]map[string]any)

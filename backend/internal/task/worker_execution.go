@@ -55,7 +55,7 @@ func ProcessCanvasMedia(
 ) error {
 	var input CanvasMediaInput
 	if json.Unmarshal([]byte(task.InputJSON), &input) != nil || !cw.IsMediaOperation(input.Node.OperationID) {
-		return FailTimelineTask(repo, logInfo, task, "处理失败", "媒体处理参数无效")
+		return FailTimelineTask(repo, logInfo, task, "Processing failed", "Invalid media processing parameter")
 	}
 	var clean func()
 	var artifact *os.File
@@ -75,7 +75,7 @@ func ProcessCanvasMedia(
 		defer body.Close()
 		format := CanvasMediaDemuxer(source.MimeType)
 		if format == "" {
-			return localasset.RecoveredArtifact{}, fmt.Errorf("此素材格式暂不支持自动处理")
+			return localasset.RecoveredArtifact{}, fmt.Errorf("This material format does not currently support automatic processing")
 		}
 		params, ext, mime, err := cw.MediaCommand(input.Node, source.Width, source.Height)
 		if err != nil {
@@ -107,13 +107,13 @@ func ProcessCanvasMedia(
 		args := []string{"-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-protocol_whitelist", "file,pipe", "-f", format, "-i", sourcePath}
 		args = append(args, params...)
 		args = append(args, output)
-		if err = UpdateTimelineTaskProgress(repo, task, "本地媒体处理中", 20); err != nil {
+		if err = UpdateTimelineTaskProgress(repo, task, "Local media processing", 20); err != nil {
 			return localasset.RecoveredArtifact{}, err
 		}
 		cmd := exec.CommandContext(ctx, bin, args...)
 		mediatools.HideConsole(cmd)
 		if err = cmd.Run(); err != nil {
-			return localasset.RecoveredArtifact{}, fmt.Errorf("媒体处理失败，请检查源文件、裁切范围或音轨：%w", err)
+			return localasset.RecoveredArtifact{}, fmt.Errorf("Media processing failed, please check source file, crop range or audio track: %w", err)
 		}
 		artifact, err = os.Open(output)
 		if err != nil {
@@ -123,7 +123,7 @@ func ProcessCanvasMedia(
 		if input.Node.MediaType == "image" {
 			config, _, decodeErr := image.DecodeConfig(artifact)
 			if decodeErr != nil {
-				return localasset.RecoveredArtifact{}, fmt.Errorf("输出图片无效")
+				return localasset.RecoveredArtifact{}, fmt.Errorf("The output image is invalid")
 			}
 			facts.Width, facts.Height = config.Width, config.Height
 			if _, err = artifact.Seek(0, io.SeekStart); err != nil {
@@ -135,7 +135,7 @@ func ProcessCanvasMedia(
 				return localasset.RecoveredArtifact{}, err
 			}
 			if input.Node.MediaType == "video" && !facts.HasVideo || input.Node.MediaType == "audio" && !facts.HasAudio {
-				return localasset.RecoveredArtifact{}, fmt.Errorf("处理结果缺少所需媒体轨道")
+				return localasset.RecoveredArtifact{}, fmt.Errorf("Processing result is missing required media track")
 			}
 		}
 		info, err := artifact.Stat()
@@ -145,7 +145,7 @@ func ProcessCanvasMedia(
 		return localasset.RecoveredArtifact{Kind: input.Node.MediaType, FileName: "canvas-process" + ext, MimeType: mime, Size: info.Size(), Width: facts.Width, Height: facts.Height, DurationMs: facts.DurationMs, Body: artifact}, nil
 	})
 	if err != nil {
-		return FailTimelineTask(repo, logInfo, task, "处理失败", err.Error())
+		return FailTimelineTask(repo, logInfo, task, "Processing failed", err.Error())
 	}
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -156,7 +156,7 @@ func ProcessCanvasMedia(
 		return err
 	}
 	task.Status = model.TaskStatusSucceeded
-	task.Stage = "处理完成"
+	task.Stage = "Processing completed"
 	task.Progress = 100
 	task.ResultJSON = string(payload)
 	now := time.Now()
@@ -166,7 +166,7 @@ func ProcessCanvasMedia(
 	}
 	if deliver != nil {
 		if err := deliver(*task); err != nil && logFn != nil {
-			_ = logFn(task.UserID, task.ID, "error", "媒体处理成功但交付待恢复", err.Error())
+			_ = logFn(task.UserID, task.ID, "error", "Media processed successfully but delivery pending recovery", err.Error())
 		}
 	}
 	return nil
@@ -214,12 +214,12 @@ func ProcessGenerationTask(
 	}
 	if strings.HasPrefix(task.Type, "video_") {
 		if !CanRunProviderTask(task) {
-			return nil, nil, errors.New("视频任务缺少可执行的模型配置")
+			return nil, nil, errors.New("Video task is missing executable model configuration")
 		}
 		result, err := processCanvasGen(ctx, task.UserID, task.ProjectID, task.Type, task.Prompt, task.InputJSON)
 		return result, nil, err
 	}
-	return nil, nil, errors.New("任务类型没有可用的执行分支")
+	return nil, nil, errors.New("There is no execution branch available for task type")
 }
 
 type WorkerExecuteDeps struct {
@@ -246,11 +246,11 @@ func ExecuteClaimedTask(deps WorkerExecuteDeps, session taskruntime.Session) tas
 	task := session.Task()
 	ctx := session.Context()
 	if RetiredAgentTask(task) {
-		err := deps.Terminal.Refuse(task, "功能已下线", RetiredAgentBoundaryMessage)
+		err := deps.Terminal.Refuse(task, "Function is offline", RetiredAgentBoundaryMessage)
 		return taskruntime.Outcome{Kind: taskruntime.KindRejected, Err: err, Applied: err == nil}
 	}
 	terminal := deps.Terminal
-	_ = deps.Log(task.UserID, task.ID, "info", "后端任务开始处理", "")
+	_ = deps.Log(task.UserID, task.ID, "info", "Backend tasks start processing", "")
 	if latest, latestErr := deps.Repo.Task(task.ID); latestErr == nil && latest.Status == model.TaskStatusCancelled {
 		err := terminal.HandleAlreadyCancelled(*latest)
 		return taskruntime.Outcome{Kind: taskruntime.KindCancelled, Err: err, Applied: true}
@@ -269,19 +269,19 @@ func ExecuteClaimedTask(deps WorkerExecuteDeps, session taskruntime.Session) tas
 		return SpecialTaskOutcome(session, deps.RunCanvasMedia)
 	}
 
-	task.Stage = "调用生成模型"
+	task.Stage = "Call the generated model"
 	task.Progress = 35
 	if TaskUsesUpstreamReportedProgress(task.Type) {
-		task.Stage = "正在连接上游"
+		task.Stage = "Connecting to upstream"
 		task.Progress = 0
 	}
 	if err := deps.Repo.UpdateTaskProgressForLease(task.ID, task.LeaseOwner, task.Stage, task.Progress); err != nil {
-		return taskruntime.Outcome{Kind: taskruntime.KindFailed, Err: fmt.Errorf("更新任务进度失败，任务暂未调用上游：%w", err)}
+		return taskruntime.Outcome{Kind: taskruntime.KindFailed, Err: fmt.Errorf("Failed to update task progress, the task has not yet called the upstream: %w", err)}
 	}
 	routeAttempt, err := deps.BeginRouteAttempt(task)
 	if err != nil {
 		uncertain := modelcatalog.IsDispatchUncertain(err)
-		termErr := terminal.MarkPreparationFailure(task, "路由准备失败", err, uncertain, "路由准备失败，上游请求未发出")
+		termErr := terminal.MarkPreparationFailure(task, "Route preparation failed", err, uncertain, "Route preparation failed, the upstream request was not sent")
 		kind := taskruntime.KindFailed
 		if uncertain {
 			kind = taskruntime.KindUncertain
@@ -314,7 +314,7 @@ func ExecuteClaimedTask(deps WorkerExecuteDeps, session taskruntime.Session) tas
 			channelSlotFailedBeforeRequest = true
 		}
 		if session.Lost() {
-			_ = deps.Log(task.UserID, task.ID, "warn", "任务租约失效，等待其他 worker 恢复", session.LostErr().Error())
+			_ = deps.Log(task.UserID, task.ID, "warn", "The task lease expires, waiting for other workers to resume", session.LostErr().Error())
 			return LeaseLostOutcome(session, providerAccepted)
 		}
 		decryptedInput, decryptErr := deps.DecryptTaskInput(task.InputJSON)
@@ -323,17 +323,17 @@ func ExecuteClaimedTask(deps WorkerExecuteDeps, session taskruntime.Session) tas
 			return taskruntime.Outcome{Kind: taskruntime.KindSuspended, Err: deferErr, Applied: deferErr == nil, ProviderAccepted: true}
 		}
 		if decryptErr == nil && ShouldDeferVideoProviderTask(*task, decryptedInput, err, deps.ResolveProviderConfig) {
-			stage := "后台仍在生成"
-			message := "前台等待结束，上游视频仍在生成，将继续回查原任务"
+			stage := "Still generating in the background"
+			message := "The waiting at the front desk is over, the upstream video is still being generated, and the original task will continue to be checked."
 			var downloadErr generation.VideoDownloadError
 			if errors.As(err, &downloadErr) {
-				stage = "正在取回生成结果"
-				message = "视频已生成，下载暂时中断，将继续取回原任务结果"
+				stage = "Retrieving generated results"
+				message = "The video has been generated. The download is temporarily interrupted. The original task results will continue to be retrieved."
 			}
 			var pendingErr generation.StatePendingError
 			if errors.As(err, &pendingErr) {
-				stage = "等待上游任务同步"
-				message = "上游任务状态暂未同步，将继续回查原任务"
+				stage = "Wait for upstream task synchronization"
+				message = "The status of the upstream task has not been synchronized yet, and the original task will continue to be checked."
 			}
 			if task.FailureDiagnostics != nil {
 				task.FailureDiagnostics.ExecutionResult = "pending"
@@ -345,7 +345,7 @@ func ExecuteClaimedTask(deps WorkerExecuteDeps, session taskruntime.Session) tas
 			return taskruntime.Outcome{Kind: taskruntime.KindSuspended, Applied: true, ProviderAccepted: true}
 		}
 		if NewAPIChannel2TaskSyncExpired(*task, err, time.Now()) {
-			err = errors.New("上游任务长时间未同步，已停止自动查询，请确认渠道任务状态后重试。")
+			err = errors.New("The upstream task has not been synchronized for a long time and automatic query has stopped. Please confirm the channel task status and try again.")
 		}
 		var imageRecovery generation.ImageRecoveryError
 		if errors.Is(err, context.DeadlineExceeded) && !errors.As(err, &imageRecovery) {
@@ -369,11 +369,11 @@ func ExecuteClaimedTask(deps WorkerExecuteDeps, session taskruntime.Session) tas
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return PersistenceFailureOutcome(terminal, task, fmt.Errorf("序列化任务结果失败：%w", err), providerAccepted)
+		return PersistenceFailureOutcome(terminal, task, fmt.Errorf("Serialization task result failed: %w", err), providerAccepted)
 	}
 	opsJSON, err := json.Marshal(canvasOps)
 	if err != nil {
-		return PersistenceFailureOutcome(terminal, task, fmt.Errorf("序列化画布操作失败：%w", err), providerAccepted)
+		return PersistenceFailureOutcome(terminal, task, fmt.Errorf("Serialize canvas operation failed: %w", err), providerAccepted)
 	}
 	if session.Lost() {
 		return LeaseLostOutcome(session, true)
@@ -414,7 +414,7 @@ func LeaseLostOutcome(session taskruntime.Session, providerAccepted bool) taskru
 	}
 	return taskruntime.Outcome{
 		Kind:             kind,
-		Err:              fmt.Errorf("任务租约失效，停止保存上游结果：%w", err),
+		Err:              fmt.Errorf("The task lease expires and stops saving upstream results: %w", err),
 		ProviderAccepted: providerAccepted,
 	}
 }
@@ -536,10 +536,10 @@ func NewAPIChannel2TaskSyncExpired(task model.Task, err error, now time.Time) bo
 
 func TaskTimeoutMessage(taskType string) string {
 	if strings.HasPrefix(taskType, "canvas_video") || strings.HasPrefix(taskType, "video_") {
-		return "视频生成等待超时，请稍后到任务中心查看或重试。"
+		return "The video generation timeout has expired. Please check the task center later or try again."
 	}
 	if strings.HasPrefix(taskType, "canvas_image") {
-		return "图片生成等待超时，请稍后重试。"
+		return "Image generation timeout, please try again later."
 	}
-	return "任务执行超时，请稍后重试。"
+	return "Task execution timed out, please try again later."
 }

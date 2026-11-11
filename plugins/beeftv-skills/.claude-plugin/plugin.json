@@ -1,7 +1,7 @@
 {
   "name": "beeftv-skills",
   "version": "0.1.0",
-  "description": "配合 BeefTV 桌面版操作画布，查询技能，并协助作者整理投稿。",
+  "description": "Work with the BeefTV desktop version to operate the canvas, query skills, and assist authors in organizing submissions.",
   "author": { "name": "BeefTV", "url": "https://beeftv.app" },
   "homepage": "https://beeftv.app",
   "skills": "./skills/",

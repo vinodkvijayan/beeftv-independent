@@ -76,7 +76,7 @@ func e2eValidateConfirmDelay(fake bool) error {
 		return nil
 	}
 	if strings.TrimSpace(os.Getenv("BEEFTV_REAL_GEN_TEST_CONFIRM_DELAY_MS")) != "" {
-		return fmt.Errorf("BEEFTV_REAL_GEN_TEST_CONFIRM_DELAY_MS 只在假模式生效，真实模式拒绝启动")
+		return fmt.Errorf("BEEFTV_REAL_GEN_TEST_CONFIRM_DELAY_MS only takes effect in fake mode, real mode refuses to start")
 	}
 	return nil
 }
@@ -122,7 +122,7 @@ func buildE2EProtocolPackages(t *testing.T) string {
 func generateFakeGenerationMedia(t *testing.T) ([]byte, []byte) {
 	t.Helper()
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		t.Fatalf("假生成模式需要 ffmpeg 生成合法 PNG/MP4: %v", err)
+		t.Fatalf("Fake generation mode requires ffmpeg to generate legal PNG/MP4: %v", err)
 	}
 	dir := t.TempDir()
 	pngPath := filepath.Join(dir, "frame.png")
@@ -322,7 +322,7 @@ func registerE2EGenerationEndpoints(mux *http.ServeMux, env *assistantTestEnv, u
 	failCanvas := func(w http.ResponseWriter, requested string) bool {
 		if strings.TrimSpace(requested) != canvasID {
 			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte("测试入口只接受注册时的测试画布"))
+			_, _ = w.Write([]byte("The test portal only accepts the test canvas during registration"))
 			return true
 		}
 		return false
@@ -511,7 +511,7 @@ func registerE2EGenerationEndpoints(mux *http.ServeMux, env *assistantTestEnv, u
 		task, err := env.service.Task(userID, body.TaskID)
 		if err != nil || task.ProjectID != canvasID {
 			w.WriteHeader(http.StatusNotFound)
-			_, _ = w.Write([]byte("任务不存在或不属于测试画布"))
+			_, _ = w.Write([]byte("The task does not exist or does not belong to the test canvas"))
 			return
 		}
 		canceled, err := env.service.CancelTask(r.Context(), userID, body.TaskID)
@@ -685,7 +685,7 @@ func (p *e2eGenerationUpstream) serveFake(w http.ResponseWriter, r *http.Request
 	case r.Method == http.MethodPost && r.URL.Path == "/v1/chat/completions":
 		p.writeJSON(w, http.StatusOK, map[string]any{
 			"id": "e2e-review", "object": "chat.completion", "model": "gemini-3.8-flash",
-			"choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "检查完成：画面未见明显问题。"}, "finish_reason": "stop"}},
+			"choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "Inspection completed: No obvious problems found on the screen."}, "finish_reason": "stop"}},
 			"usage":   map[string]any{"prompt_tokens": 120, "completion_tokens": 16},
 		})
 	default:

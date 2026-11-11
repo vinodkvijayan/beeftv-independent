@@ -93,7 +93,7 @@ func TestExecuteRejectsMissingOwnerBeforeHTTP(t *testing.T) {
 	}
 	ctx := WithRuntime(context.Background(), Runtime{Images: passImagePort{}, Receipts: nopReceipts{}, Call: CallMeta{UserID: "user-1"}})
 	_, err = Execute(ctx, input)
-	if err == nil || !strings.Contains(err.Error(), "生成任务缺少用户或任务身份") {
+	if err == nil || !strings.Contains(err.Error(), "Build task is missing user or task identity") {
 		t.Fatalf("Execute() error = %v, want missing identity", err)
 	}
 	if hits.Load() != 0 {

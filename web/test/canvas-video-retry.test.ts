@@ -61,7 +61,7 @@ test("useCanvasGenerationRetry falls back to canvas video generation when stored
         apiKey: "test-key",
         channels: [readyChannel],
     });
-    const storedRetrySpy = spyOn(canvasVideoRetry, "retryStoredCanvasVideo").mockRejectedValue(new Error("原任务不是画布视频任务，无法按原输入重试"));
+    const storedRetrySpy = spyOn(canvasVideoRetry, "retryStoredCanvasVideo").mockRejectedValue(new Error("The original task is not a canvas video task and cannot be retried according to the original input."));
     const consumerCalls: Array<Record<string, unknown>> = [];
     const consumerSpy = spyOn(canvasProjectGeneration, "runCanvasGenerationTaskToConsumer").mockImplementation(async (input) => {
         consumerCalls.push(input as unknown as Record<string, unknown>);
@@ -71,21 +71,21 @@ test("useCanvasGenerationRetry falls back to canvas video generation when stored
     const nodeWithPrompt: CanvasNodeData = {
         id: "video-1",
         type: CanvasNodeType.Video,
-        title: "分镜视频 1",
+        title: "Storyboard video 1",
         position: { x: 0, y: 0 },
         width: 320,
         height: 180,
         metadata: {
             status: "error",
             taskId: "storyboard-task-1",
-            prompt: "雨夜街头镜头推进",
-            errorDetails: "旧错误",
+            prompt: "Advancement of street shots on rainy nights",
+            errorDetails: "old error",
         },
     };
     const nodeWithoutPrompt: CanvasNodeData = {
         id: "video-2",
         type: CanvasNodeType.Video,
-        title: "分镜视频 2",
+        title: "Storyboard video 2",
         position: { x: 0, y: 240 },
         width: 320,
         height: 180,
@@ -93,7 +93,7 @@ test("useCanvasGenerationRetry falls back to canvas video generation when stored
             status: "error",
             taskId: "storyboard-task-2",
             prompt: "   ",
-            errorDetails: "旧错误",
+            errorDetails: "old error",
         },
     };
 
@@ -125,15 +125,15 @@ test("useCanvasGenerationRetry falls back to canvas video generation when stored
         expect(consumerCalls).toHaveLength(1);
         expect(consumerCalls[0]?.nodeId).toBe("video-1");
         expect(consumerCalls[0]?.mode).toBe("video");
-        expect(consumerCalls[0]?.prompt).toBe("雨夜街头镜头推进");
+        expect(consumerCalls[0]?.prompt).toBe("Advancement of street shots on rainy nights");
         expect(consumerCalls[0]?.retryOf).toBeUndefined();
 
         await retry(nodeWithoutPrompt);
         expect(consumerCalls).toHaveLength(1);
         const updatedWithoutPrompt = nodesRef.current.find((item) => item.id === "video-2");
         expect(updatedWithoutPrompt?.metadata?.status).toBe("error");
-        expect(updatedWithoutPrompt?.metadata?.generationErrorSummary).toBe("原任务不是画布视频任务，无法按原输入重试");
-        expect(updatedWithoutPrompt?.metadata?.errorDetails).toBe("原任务不是画布视频任务，无法按原输入重试");
+        expect(updatedWithoutPrompt?.metadata?.generationErrorSummary).toBe("The original task is not a canvas video task and cannot be retried according to the original input.");
+        expect(updatedWithoutPrompt?.metadata?.errorDetails).toBe("The original task is not a canvas video task and cannot be retried according to the original input.");
     } finally {
         buildConfigSpy.mockRestore();
         storedRetrySpy.mockRestore();

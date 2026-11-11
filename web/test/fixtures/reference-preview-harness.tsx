@@ -37,7 +37,7 @@ function Harness() {
     harness.latchMenuReferences = () => setLatchedMenuReferences(resolved);
     return <><pre id="result">{JSON.stringify(resolved.map(({ id, previewUrl }) => ({ id, previewUrl })))}</pre>
         <div id="resolved-previews">{resolved.map(reference => reference.previewUrl && <img key={reference.id} data-reference-id={reference.id} src={reference.previewUrl} />)}</div>
-        {showMenu && <CanvasResourceMentionTextarea value={value} onChange={setValue} references={latchedMenuReferences ?? (passResolvedToMenu ? resolved : references)} onSelectReference={(reference) => reference} aria-label="引用编辑" />}</>;
+        {showMenu && <CanvasResourceMentionTextarea value={value} onChange={setValue} references={latchedMenuReferences ?? (passResolvedToMenu ? resolved : references)} onSelectReference={(reference) => reference} aria-label="QuoteEdit" />}</>;
 }
 
 createRoot(document.getElementById("root")!).render(<Harness />);

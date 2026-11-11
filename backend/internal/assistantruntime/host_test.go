@@ -33,22 +33,22 @@ func TestHostEnvOpsURLKeepsAPIPrefix(t *testing.T) {
 
 	env := New(Options{DataDir: dataDir}).buildEnv(testProvider(), testPin("http://127.0.0.1:18090/api", "desktop-shell-token"))
 	if got := envValue(env, "BEEFTV_OPS_URL"); got != "http://127.0.0.1:18090/api" {
-		t.Fatalf("BEEFTV_OPS_URL 应使用显式地址，得到 %q", got)
+		t.Fatalf("BEEFTV_OPS_URL should use explicit address, get %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_HOST_TOKEN"); got != "host-token" {
 		t.Fatalf("BEEFTV_AGENT_HOST_TOKEN = %q", got)
 	}
 	if got := envValue(env, "BEEFTV_OWNER_TOKEN"); got != "" {
-		t.Fatalf("不得向子进程注入 BEEFTV_OWNER_TOKEN，得到 %q", got)
+		t.Fatalf("BEEFTV_OWNER_TOKEN must not be injected into the child process, resulting in %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_DATA_DIR"); got != dataDir {
 		t.Fatalf("BEEFTV_AGENT_DATA_DIR = %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_API_KEY"); got != "test-key" {
-		t.Fatalf("BEEFTV_AGENT_API_KEY 应由调用方注入，得到 %q", got)
+		t.Fatalf("BEEFTV_AGENT_API_KEY should be injected by the caller, getting %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_DESKTOP_TOKEN"); got != "desktop-shell-token" {
-		t.Fatalf("桌面形态应把启动令牌交给宿主，得到 %q", got)
+		t.Fatalf("Desktop mode should hand over the startup token to the host and get %q", got)
 	}
 }
 
@@ -61,10 +61,10 @@ func TestResolveAssistantProviderPrefersExplicitEnv(t *testing.T) {
 
 	provider, reason := ResolveProvider(nil)
 	if reason != "" {
-		t.Fatalf("显式注入时不应给出不可用原因，得到 %q", reason)
+		t.Fatalf("The unavailability reason should not be given when explicitly injecting, and %q is obtained.", reason)
 	}
 	if provider.APIKey != "env-key" || provider.BaseURL != "https://env.example/v1" || provider.Model != "env-model" || provider.Protocol != "claude-api" {
-		t.Fatalf("显式注入应优先，得到 %#v", provider)
+		t.Fatalf("Explicit injection should take precedence, getting %#v", provider)
 	}
 }
 
@@ -94,10 +94,10 @@ func TestAssistantHostEnvCarriesProtocolAndBaseURLShape(t *testing.T) {
 		env := host.buildEnv(assistant.Provider{Model: "m", BaseURL: item.baseURL, APIKey: "k", Protocol: item.protocol},
 			testPin("http://127.0.0.1:18090/api", ""))
 		if got := envValue(env, "BEEFTV_AGENT_API"); got != item.wantAPI {
-			t.Fatalf("协议 %s 应映射到 %s，得到 %q", item.protocol, item.wantAPI, got)
+			t.Fatalf("Protocol %s should be mapped to %s, resulting in %q", item.protocol, item.wantAPI, got)
 		}
 		if got := envValue(env, "BEEFTV_AGENT_BASE_URL"); got != item.wantBase {
-			t.Fatalf("协议 %s 的接口地址应为 %s，得到 %q", item.protocol, item.wantBase, got)
+			t.Fatalf("The interface address of protocol %s should be %s, getting %q", item.protocol, item.wantBase, got)
 		}
 	}
 }
@@ -106,10 +106,10 @@ func TestAssistantHostEnvCarriesProtocolAndBaseURLShape(t *testing.T) {
 func TestStartIsNoopWithoutConfig(t *testing.T) {
 	host := New(Options{DataDir: t.TempDir()})
 	if err := host.Start("http://127.0.0.1:18090/api", ""); err != nil {
-		t.Fatalf("未配置宿主时应用启动不应失败: %v", err)
+		t.Fatalf("Application startup should not fail when the host is not configured: %v", err)
 	}
 	if host.Running() {
-		t.Fatal("未配置时不应有宿主进程")
+		t.Fatal("There should be no host process when not configured")
 	}
 }
 
@@ -240,13 +240,13 @@ func TestAgentHostReapsExitAndRestartsWithSpacedPath(t *testing.T) {
 // 用环境变量猜端口会把宿主的探测指向错误位置（表现为「助手不可用」）。
 func TestOpsBaseURLPrefersExplicitAddress(t *testing.T) {
 	if got := opsBaseURL("http://127.0.0.1:54321", "127.0.0.1:9999"); got != "http://127.0.0.1:54321/api" {
-		t.Fatalf("显式地址应被采用并补 /api，得到 %q", got)
+		t.Fatalf("The explicit address should be taken and /api complemented, giving %q", got)
 	}
 	if got := opsBaseURL("http://127.0.0.1:54321/api", "127.0.0.1:9999"); got != "http://127.0.0.1:54321/api" {
-		t.Fatalf("已带 /api 不应重复拼接，得到 %q", got)
+		t.Fatalf("Already /api should not be spliced repeatedly to get %q", got)
 	}
 	if got := opsBaseURL("", "127.0.0.1:9999"); got != "http://127.0.0.1:9999/api" {
-		t.Fatalf("无显式地址时应退回环境变量，得到 %q", got)
+		t.Fatalf("When there is no explicit address, the environment variable should be returned and %q is obtained.", got)
 	}
 }
 
@@ -277,43 +277,43 @@ func TestBuildEnvStripsInheritedSecretsAndClearsBlankAuthority(t *testing.T) {
 		OpsURL: "http://127.0.0.1:18090/api", DesktopTok: "desk",
 	})
 	if got := envValue(env, "PATH"); got != "/usr/bin:/opt/homebrew/bin" {
-		t.Fatalf("PATH 必须保留，得到 %q", got)
+		t.Fatalf("PATH must be preserved, getting %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_PORT"); got != "54321" {
-		t.Fatalf("PORT 必须由监督器钉死，得到 %q", got)
+		t.Fatalf("PORT must be nailed by the supervisor, getting %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_HOST_TOKEN"); got != "pinned-host" {
-		t.Fatalf("宿主凭据必须覆盖继承值，得到 %q", got)
+		t.Fatalf("Host credentials must override the inherited value, getting %q", got)
 	}
 	if got := envValue(env, "BEEFTV_OWNER_TOKEN"); got != "" {
-		t.Fatalf("OWNER_TOKEN 不得进入子进程，得到 %q", got)
+		t.Fatalf("OWNER_TOKEN is not allowed to enter the child process and gets %q", got)
 	}
 	if got := envValue(env, "BEEFTV_OPS_URL"); got != "http://127.0.0.1:18090/api" {
-		t.Fatalf("OPS_URL 必须钉死，得到 %q", got)
+		t.Fatalf("OPS_URL must be nailed, getting %q", got)
 	}
 	if got := envValue(env, "BEEFTV_AGENT_API_KEY"); got != "" {
-		t.Fatalf("空白权威密钥必须清掉继承值，得到 %q", got)
+		t.Fatalf("A blank authoritative key must clear the inherited value, resulting in %q", got)
 	}
 	if !envHasKey(env, "BEEFTV_AGENT_API_KEY") {
-		t.Fatal("空白权威密钥必须以空值写出，不能省略")
+		t.Fatal("A blank authoritative key must be written with a null value and cannot be omitted")
 	}
 	if envValue(env, "OPENAI_API_KEY") != "" || envHasKey(env, "OPENAI_API_KEY") {
-		t.Fatal("不得把环境里的 OPENAI_API_KEY 带进 SDK")
+		t.Fatal("OPENAI_API_KEY in the environment must not be brought into the SDK")
 	}
 	if envValue(env, "ANTHROPIC_API_KEY") != "" || envHasKey(env, "ANTHROPIC_API_KEY") {
-		t.Fatal("不得把环境里的 ANTHROPIC_API_KEY 带进 SDK")
+		t.Fatal("ANTHROPIC_API_KEY in the environment must not be brought into the SDK")
 	}
 	if envValue(env, "BEEFTV_AGENT_INSTANCE_NONCE") != "nonce-value" {
-		t.Fatal("实例 nonce 必须钉死")
+		t.Fatal("Instance nonce must be nailed")
 	}
 	if envValue(env, "BEEFTV_AGENT_LIFETIME_STDIN") != "1" {
-		t.Fatal("生命周期管道标记必须钉死")
+		t.Fatal("Lifecycle pipeline tags must be nailed")
 	}
 	if envValue(env, "BEEFTV_AGENT_MAX_TOKENS") != "1234" {
-		t.Fatalf("非权威可调参数应保留，得到 %q", envValue(env, "BEEFTV_AGENT_MAX_TOKENS"))
+		t.Fatalf("Non-authoritative tunables should be retained, resulting in %q", envValue(env, "BEEFTV_AGENT_MAX_TOKENS"))
 	}
 	if envValue(env, "BEEFTV_AGENT_THINKING") != "medium" {
-		t.Fatalf("思考强度应保留，得到 %q", envValue(env, "BEEFTV_AGENT_THINKING"))
+		t.Fatalf("Thinking intensity should be retained, getting %q", envValue(env, "BEEFTV_AGENT_THINKING"))
 	}
 }
 

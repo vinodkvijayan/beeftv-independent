@@ -47,7 +47,7 @@ func TestVideoBindingRecoversAcceptedPendingNodeWithoutTaskID(t *testing.T) {
 				metadata["storageKey"] = "resource:video-result"
 				metadata["assetId"] = localtask.MaterializedAssetID(task.ID, 0)
 			}
-			h.addNode(t, "video-node", "video", "用户改过的标题", metadata)
+			h.addNode(t, "video-node", "video", "Title changed by user", metadata)
 			_, err := h.bindTask(t, task.ID, "video-node", 0)
 			if state != "pending" {
 				want := "node_task_mismatch"

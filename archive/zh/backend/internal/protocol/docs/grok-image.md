@@ -1,8 +1,8 @@
 # xAI Grok Images
 
-Grok Images 插件使用 OpenAI 风格的图片生成路径，但请求字段按 xAI 图片协议构造：`aspect_ratio`、`resolution`，并在有参考图时发送单个 `image`。它不是 OpenAI Images 插件的别名。
+The Grok Images plugin uses OpenAI-style image generation paths, but the request fields are constructed according to the xAI image protocol: `aspect_ratio`, `resolution`, and a single `image` is sent when a reference image is available. It is not an alias for the OpenAI Images plugin.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -12,17 +12,17 @@ Authorization: Bearer <XAI_API_KEY>
 Content-Type: application/json
 ```
 
-## 模型与支持边界
+## Model and support boundaries
 
-模型名由 xAI 账户当前可用模型决定。插件不写死模型、价格、并发或内容限制。当前实现只发送第一张参考图；多参考图、编辑专用路径、mask 和批量生成没有实现，不能因上游可能支持就展示为已支持。
+The model name is determined by the models currently available in the xAI account. Plugins do not hard-code model, pricing, concurrency or content limits. The current implementation only sends the first reference picture; multiple reference pictures, special editing paths, masks and batch generation are not implemented and cannot be shown as supported just because the upstream may support them.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-实际构造为：`aspectRatio -> aspect_ratio`，为空时默认 `1:1`；`quality -> resolution`，为空时默认 `2k`；`images[0] -> image`。`imageCount`、`resolution` 平台字段及其他图片不会发送。
+The actual structure is: `aspectRatio -> aspect_ratio`, when it is empty, it defaults to `1:1`; `quality -> resolution`, when it is empty, it defaults to `2k`; `images[0] -> image`. `imageCount`, `resolution` platform fields and other images will not be sent.
 
-## 文生图请求
+## Vincent picture request
 
 ```bash
 curl "{channel_base_url}/v1/images/generations" \
@@ -36,7 +36,7 @@ curl "{channel_base_url}/v1/images/generations" \
   }'
 ```
 
-## 单图参考请求
+## Single image reference request
 
 ```json
 {
@@ -48,11 +48,11 @@ curl "{channel_base_url}/v1/images/generations" \
 }
 ```
 
-## 响应与错误
+## Responses and Errors
 
-插件按 OpenAI Images 风格解析 `data[]` 中的 `url`、`b64_json` 或 `data`。如果 xAI 的实际响应结构发生变化或只返回异步任务，当前解析会失败而不是伪造结果。素材不可达、比例/分辨率不受模型支持、模型无权限和审核拒绝应原样暴露。
+The plugin parses `url`, `b64_json` or `data` from `data[]` in the OpenAI Images style. If xAI's actual response structure changes or only returns an asynchronous task, the current parsing will fail instead of falsifying the result. Materials that are not reachable, scales/resolutions not supported by the model, models without permissions, and review rejections should be exposed as is.
 
-## 官方资料
+## Official information
 
 - [xAI Image Generation](https://docs.x.ai/docs/guides/image-generation)
 - [xAI API Reference](https://docs.x.ai/docs/api-reference)

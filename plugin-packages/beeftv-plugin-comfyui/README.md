@@ -1,43 +1,43 @@
 # ComfyUI
 
-把你自己电脑或局域网里的 ComfyUI 接进 BeefTV。在 ComfyUI 里保存过的工作流就是 BeefTV 里的模型：在画布上选它，写提示词、连参考图，生成时由你的 ComfyUI 来跑，结果自动回到画布。
+Connect ComfyUI on your own computer or LAN to BeefTV. The workflow saved in ComfyUI is the model in BeefTV: select it on the canvas, write prompt words, and connect reference pictures. When generating, your ComfyUI will run it, and the result will automatically return to the canvas.
 
-## 接上 ComfyUI
+## Connect to ComfyUI
 
-1. 启动 ComfyUI。默认地址是 `http://127.0.0.1:8188`。ComfyUI 在另一台电脑上时，启动时加 `--listen`，地址填那台电脑的局域网 IP。
-2. 在 BeefTV 打开「模型配置」，点「添加模型服务」，在「选择服务商」里选「ComfyUI」。
-3. 「服务地址」填 ComfyUI 的地址。不用填密钥。
-4. 点「读取模型」，勾选要用的工作流，点「保存并使用」。
+1. Start ComfyUI. The default address is `http://127.0.0.1:8188`. When ComfyUI is on another computer, add `--listen` when starting it, and fill in the LAN IP of that computer as the address.
+2. Open "Model Configuration" in BeefTV, click "Add Model Service", and select "ComfyUI" in "Select Service Provider".
+3. Fill in the address of ComfyUI in "Service Address". No need to fill in the key.
+4. Click "Read Model", check the workflow you want to use, and click "Save and Use".
 
-读取模型时，列出的是 ComfyUI「工作流」面板里保存过的所有工作流。工作流最后保存视频的，算视频模型；保存图片的算图片模型；只保存音频的算音频模型。什么都不保存的工作流不会列出来。
+When reading the model, all workflows saved in the ComfyUI "Workflow" panel are listed. The one that saves the video at the end of the workflow is considered a video model; the one that saves pictures is considered a picture model; the one that only saves audio is considered an audio model. Workflows that save nothing will not be listed.
 
-## 工作流怎么接收提示词和素材
+## How to receive prompt words and materials in workflow
 
-**用 App Mode 挑好的输入（推荐）**。在 ComfyUI 里把工作流切到 App Mode，选好要让别人填的输入和要展示的输出，再保存。BeefTV 会：
+**Use App Mode to select the input (recommended)**. Switch the workflow to App Mode in ComfyUI, select the input to be filled in by others and the output to be displayed, and then save. BeefTV will:
 
-- 把提示词填进你选的第一个文本输入；
-- 把画布上连进来的图片、视频、音频，按顺序填进你选的「加载图片 / 视频 / 音频」节点；
-- 只取你选的输出节点的结果。
+- Fill in the prompt word into the first text input you choose;
+- Fill in the images, videos, and audios connected to the canvas into the "Load Image/Video/Audio" node of your choice in order;
+- Only take the results of the output node you selected.
 
-**没设 App Mode 时自动找**：
+**Search automatically when App Mode is not set**:
 
-- 提示词填进连着采样器 `positive` 口的文本节点；反向提示词保持工作流里原来的内容。
-- 参考素材按节点编号顺序，填进所有「加载图片 / 视频 / 音频」节点。
-- 取所有保存或预览图片、视频、音频的节点的结果。
+- The prompt word is filled in the text node connected to the `positive` port of the sampler; the reverse prompt word maintains the original content in the workflow.
+- Reference materials are filled in all "Load Image/Video/Audio" nodes in order of node number.
+- Get the results of all nodes that save or preview images, videos, and audios.
 
-参考素材比工作流能接的少时，多出来的加载节点用工作流里原来选的文件；比能接的多时，这次生成会失败并说明能接几个。
+When there are fewer reference materials than what the workflow can accept, the extra loading nodes use the files originally selected in the workflow; when there are more reference materials than what can be accessed, the generation will fail and indicate how many can be accessed.
 
-每次生成都会换新的随机种子，不然同样的输入 ComfyUI 会直接返回上次的结果。在 ComfyUI 里把种子设成「fixed」的除外。
+A new random seed will be replaced every time it is generated, otherwise ComfyUI will directly return the last result for the same input. Except for setting the seed to "fixed" in ComfyUI.
 
-## 常见问题
+## FAQ
 
-- **说连不上 ComfyUI**：确认 ComfyUI 已经启动，地址和端口填对了。ComfyUI 在别的电脑上时，要用 `--listen` 启动。
-- **说缺少节点**：工作流用到的自定义节点在这台 ComfyUI 上没装。用 ComfyUI Manager 装好后重启 ComfyUI，再生成一次。
-- **改了工作流**：在 ComfyUI 里保存就行，下次生成会用最新保存的版本。改了文件名或新增了工作流，回到「模型配置」里这个服务，再点「读取模型」。
-- **取消生成**：BeefTV 里取消只是不再等结果，ComfyUI 里的任务会继续跑完。要停下 ComfyUI 的任务，请在 ComfyUI 的队列里取消。
+- **It says it cannot connect to ComfyUI**: Confirm that ComfyUI has been started and the address and port are filled in correctly. When ComfyUI is on another computer, use `--listen` to start it.
+- **Says missing node**: The custom node used in the workflow is not installed on this ComfyUI. After installing it with ComfyUI Manager, restart ComfyUI and generate it again.
+- **Changed the workflow**: Just save it in ComfyUI, and the latest saved version will be used for the next generation. After changing the file name or adding a new workflow, return to the service in "Model Configuration" and click "Read Model".
+- **Cancel generation**: Cancellation in BeefTV just stops waiting for the result, and the task in ComfyUI will continue to be completed. To stop the ComfyUI task, please cancel it in the ComfyUI queue.
 
-参考图会上传到 ComfyUI 的 `input/beeftv` 文件夹。
+The reference image will be uploaded to the `input/beeftv` folder of ComfyUI.
 
-## 许可
+## License
 
 Apache-2.0。工作流格式转换改写自 [Node Banana](https://github.com/shrimbly/node-banana)（MIT），见 `THIRD_PARTY_NOTICES.md`。

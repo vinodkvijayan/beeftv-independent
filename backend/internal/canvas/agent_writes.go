@@ -109,7 +109,7 @@ func (s *Service) saveCanvasDocWithRevision(userID, canvasID string, doc map[str
 
 func requireExpectedRevision(expectedRevision int64) error {
 	if expectedRevision <= 0 {
-		return kernel.NewAppError(http.StatusBadRequest, "写操作必须带上读取时的 expectedRevision")
+		return kernel.NewAppError(http.StatusBadRequest, "The write operation must carry the expectedRevision when reading")
 	}
 	return nil
 }
@@ -121,7 +121,7 @@ func (s *Service) CreateUserCanvasNodes(userID, canvasID string, drafts []NodeDr
 		return UserDataSummary{}, nil, err
 	}
 	if len(drafts) == 0 {
-		return UserDataSummary{}, nil, kernel.NewAppError(http.StatusBadRequest, "至少需要一个节点")
+		return UserDataSummary{}, nil, kernel.NewAppError(http.StatusBadRequest, "At least one node is required")
 	}
 	doc, err := s.loadCanvasDoc(userID, canvasID)
 	if err != nil {
@@ -165,18 +165,18 @@ func createCanvasNodes(doc map[string]any, drafts []NodeDraft) ([]CreatedNode, e
 	for _, draft := range drafts {
 		title := normalizeNodeTitle(draft.Title)
 		if title == "" {
-			return nil, kernel.NewAppError(http.StatusBadRequest, "每个节点都需要标题")
+			return nil, kernel.NewAppError(http.StatusBadRequest, "Each node needs a title")
 		}
 		if seen[title] {
-			return nil, kernel.NewAppError(http.StatusBadRequest, "同一批次内标题重复: "+title)
+			return nil, kernel.NewAppError(http.StatusBadRequest, "Duplicate titles within the same batch:"+title)
 		}
 		seen[title] = true
 		if existingTitles[title] {
-			return nil, kernel.NewAppError(http.StatusConflict, "标题已存在: "+title)
+			return nil, kernel.NewAppError(http.StatusConflict, "Title already exists:"+title)
 		}
 		if _, ok := canvasCapabilityRegistry.Resolve(draft.Type); !ok {
 			return nil, kernel.NewAppError(http.StatusBadRequest,
-				"不支持的节点类型: "+draft.Type+"（可用: "+strings.Join(canvasCapabilityRegistry.Types(), "|")+"）")
+				"Unsupported node types:"+draft.Type+"(Available:"+strings.Join(canvasCapabilityRegistry.Types(), "|")+"）")
 		}
 	}
 	// 从既有节点最右边缘开始，再按本批节点的累计宽度推进。
@@ -233,7 +233,7 @@ func (s *Service) UpdateUserCanvasNodeFields(userID, canvasID, nodeID string, pa
 		return UserDataSummary{}, err
 	}
 	if len(patch) == 0 {
-		return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "patch 至少要有一个字段")
+		return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "patch must have at least one field")
 	}
 	doc, err := s.loadCanvasDoc(userID, canvasID)
 	if err != nil {
@@ -241,7 +241,7 @@ func (s *Service) UpdateUserCanvasNodeFields(userID, canvasID, nodeID string, pa
 	}
 	node := findCanvasNode(doc, nodeID)
 	if node == nil {
-		return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "目标节点不存在: "+nodeID)
+		return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "The target node does not exist:"+nodeID)
 	}
 	nodeType := canvasNodeType(node)
 	descriptor, hasDescriptor := canvasCapabilityRegistry.Resolve(nodeType)
@@ -257,13 +257,13 @@ func (s *Service) UpdateUserCanvasNodeFields(userID, canvasID, nodeID string, pa
 	if title, present := patch["title"]; present {
 		text, isString := title.(string)
 		if !isString {
-			return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "title 必须是字符串")
+			return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "title must be a string")
 		}
 		node["title"] = text
 	}
 	if promptVal, hasPrompt := patch["prompt"]; hasPrompt {
 		if contentVal, hasContent := patch["content"]; hasContent && promptVal != contentVal {
-			return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "patch.prompt 与 patch.content 不能同时提交不同内容")
+			return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "patch.prompt and patch.content cannot submit different content at the same time")
 		}
 	}
 
@@ -275,7 +275,7 @@ func (s *Service) UpdateUserCanvasNodeFields(userID, canvasID, nodeID string, pa
 		case "pluginData":
 			dataMap, isObject := value.(map[string]any)
 			if !isObject {
-				return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "pluginData 必须是对象")
+				return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "pluginData must be an object")
 			}
 			existingPluginData, _ := metadata["pluginData"].(map[string]any)
 			merged := make(map[string]any, len(existingPluginData)+len(dataMap))
@@ -298,7 +298,7 @@ func (s *Service) UpdateUserCanvasNodeFields(userID, canvasID, nodeID string, pa
 			// 未知类型没有描述符可用：沿用最小直写行为。
 			text, isString := value.(string)
 			if !isString {
-				return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "content 必须是字符串")
+				return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest, "content must be a string")
 			}
 			metadata["content"] = text
 		default:
@@ -337,7 +337,7 @@ func unsupportedNodeField(label, nodeType, field string) error {
 		Status:  http.StatusBadRequest,
 		Code:    http.StatusBadRequest,
 		Reason:  kernel.ReasonUnsupportedField,
-		Message: fmt.Sprintf("%s 节点不支持更新字段 %s", label, field),
+		Message: fmt.Sprintf("%s node does not support update field %s", label, field),
 	}
 }
 
@@ -352,11 +352,11 @@ func (s *Service) ConnectUserCanvasNodesAtRevision(userID, canvasID, fromNodeID,
 	}
 	fromNode := findCanvasNode(doc, fromNodeID)
 	if fromNode == nil {
-		return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "起点节点不存在: "+fromNodeID)
+		return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "The starting node does not exist:"+fromNodeID)
 	}
 	toNode := findCanvasNode(doc, toNodeID)
 	if toNode == nil {
-		return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "终点节点不存在: "+toNodeID)
+		return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "The end node does not exist:"+toNodeID)
 	}
 	// 方向判定交给共享能力校验：来源可作输入、目标可接收、类型被目标放行。
 	if err := canvasCapabilityRegistry.ValidateReferenceConnection(canvasNodeType(fromNode), canvasNodeType(toNode)); err != nil {
@@ -377,7 +377,7 @@ func (s *Service) ConnectUserCanvasNodesAtRevision(userID, canvasID, fromNodeID,
 			}
 			// 无写入的返回路径也必须满足观察前提，不能将外部推进的版本记成本次新建。
 			if summary.Revision != expectedRevision {
-				return UserDataSummary{}, kernel.NewAppError(http.StatusConflict, "画布已更新，请重新读取后再连接")
+				return UserDataSummary{}, kernel.NewAppError(http.StatusConflict, "The canvas has been updated, please re-read and connect again.")
 			}
 			return summary, nil
 		}
@@ -398,7 +398,7 @@ func (s *Service) ConnectUserCanvasNodesAtRevision(userID, canvasID, fromNodeID,
 		if len(inputs) > maxInputs {
 			label := canvasCapabilityRegistry.LabelFor(canvasNodeType(toNode))
 			return UserDataSummary{}, kernel.NewAppError(http.StatusBadRequest,
-				label+"最多连接 "+strconv.Itoa(maxInputs)+" 个输入")
+				label+"Most connections"+strconv.Itoa(maxInputs)+" input")
 		}
 	}
 	doc["connections"] = append(connections, map[string]any{
@@ -418,5 +418,5 @@ func (s *Service) canvasSummary(userID, canvasID string) (UserDataSummary, error
 			return summary, nil
 		}
 	}
-	return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "画布不存在: "+canvasID)
+	return UserDataSummary{}, kernel.NewAppError(http.StatusNotFound, "Canvas does not exist:"+canvasID)
 }

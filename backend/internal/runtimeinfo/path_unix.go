@@ -10,7 +10,7 @@ import (
 
 func descriptorLocation(dataDir string) (string, string, error) {
 	if strings.TrimSpace(dataDir) == "" {
-		return "", "", errors.New("数据目录不能为空")
+		return "", "", errors.New("The data directory cannot be empty")
 	}
 	return filepath.Join(dataDir, FileName), "", nil
 }

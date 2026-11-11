@@ -68,7 +68,7 @@ func registerAssistantContinuationRoutes(r gin.IRouter, svc assistantContinuatio
 			return
 		}
 		if input.CanvasID == "" || input.SessionID == "" {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("canvasId 与 sessionId 必填"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("canvasId and sessionId are required"))
 			return
 		}
 		if err := svc.AssistantTurns().CancelContinuations(c.GetString("agentUserId"), input.CanvasID, input.SessionID, false); err != nil {
@@ -79,7 +79,7 @@ func registerAssistantContinuationRoutes(r gin.IRouter, svc assistantContinuatio
 	})
 	r.POST("/assistant/runtime/continuations/:id/verify", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) || !agentops.HostTokenMatches(svc.DataDir(), strings.TrimSpace(c.GetHeader(assistantHostTokenHeader))) {
-			c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "reason": "forbidden", "msg": "需要内置助手宿主身份"})
+			c.JSON(http.StatusForbidden, gin.H{"code": http.StatusForbidden, "reason": "forbidden", "msg": "Requires built-in assistant host identity"})
 			return
 		}
 		user, err := currentUser(c, svc)

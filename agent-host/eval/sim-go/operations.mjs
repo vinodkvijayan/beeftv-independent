@@ -13,7 +13,7 @@ import { SKILL_OPS } from './skills.mjs';
 const OP_HANDLERS = new Map();
 for (const table of [CANVAS_OPS, STORYBOARD_OPS, GENERATION_OPS, TASK_OPS, MEDIA_OPS, SKILL_OPS]) {
   for (const [op, handler] of Object.entries(table)) {
-    if (OP_HANDLERS.has(op)) throw new Error(`操作 ${op} 在两个模块里都有处理函数`);
+    if (OP_HANDLERS.has(op)) throw new Error(`Operation${op} There are processing functions in both modules`);
     OP_HANDLERS.set(op, handler);
   }
 }
@@ -30,7 +30,7 @@ export function executeOp(state, opIdName, rawParams = {}, opKey = '', turnId = 
   const hostCall = context.host === true;
   const descriptor = state.descriptorMap.get(opIdName);
   if (!descriptor) {
-    throw notFound('unknown_operation', `未知操作: ${opIdName}`);
+    throw notFound('unknown_operation', `Unknown operation:${opIdName}`);
   }
   state.counts.ops[opIdName] = (state.counts.ops[opIdName] || 0) + 1;
   if (descriptor.readOnly) state.counts.ReadOps += 1;
@@ -43,7 +43,7 @@ export function executeOp(state, opIdName, rawParams = {}, opKey = '', turnId = 
     const prior = state.opReceipts.get(opKey);
     if (prior) {
       if (prior.digest !== payloadDigest) {
-        throw conflict('operation_id_reused_with_different_payload', '工具调用标识对应的操作已经改变');
+        throw conflict('operation_id_reused_with_different_payload', 'The operation corresponding to the tool call identifier has changed');
       }
       state.opLog.push({ op: opIdName, opId: opKey, params: clone(rawParams), turnId, status: 'replayed', replayed: true, at: new Date().toISOString() });
       return { op: opIdName, replayed: true, result: clone(prior.result) };
@@ -51,7 +51,7 @@ export function executeOp(state, opIdName, rawParams = {}, opKey = '', turnId = 
   }
 
   const handler = OP_HANDLERS.get(opIdName);
-  if (!handler) throw invalidArg('unsupported_operation', `模拟器未实现操作: ${opIdName}`);
+  if (!handler) throw invalidArg('unsupported_operation', `The simulator does not implement the operation:${opIdName}`);
   const result = handler(state, rawParams, { opIdName, opKey, turnId, turnRec, hostCall });
 
   if (!descriptor.readOnly && opKey) {
@@ -82,7 +82,7 @@ function logOpFailure(state, opIdName, rawParams, opKey, turnId, error) {
 export async function executeHttpOp(state, opIdName, rawParams, opKey, turnId, context = {}) {
   try {
     if (opIdName === 'task.wait') {
-      if (!state.taskWaitExposed) throw notFound('unknown_operation', '未知操作: task.wait');
+      if (!state.taskWaitExposed) throw notFound('unknown_operation', 'Unknown operation: task.wait');
       return await executeTaskWaitOp(state, rawParams, opKey, turnId);
     }
     return executeOp(state, opIdName, rawParams, opKey, turnId, context);
@@ -94,13 +94,13 @@ export async function executeHttpOp(state, opIdName, rawParams, opKey, turnId, c
 
 // task.wait 需要真正等待，HTTP 层单独走异步路径；其余操作仍由同步 executeOp 处理。
 async function executeTaskWaitOp(state, rawParams, opKey, turnId) {
-  if (!state.taskWaitExposed) throw notFound('unknown_operation', '未知操作: task.wait');
+  if (!state.taskWaitExposed) throw notFound('unknown_operation', 'Unknown operation: task.wait');
   const descriptor = state.descriptorMap.get('task.wait');
   const turnRec = authorizeTurnForOp(state, turnId, descriptor, rawParams);
   state.counts.ops['task.wait'] = (state.counts.ops['task.wait'] || 0) + 1;
   state.counts.ReadOps += 1;
   const ids = taskWaitIds(rawParams);
-  if (ids.length === 0) throw invalidArg('invalid_params', 'taskId 或 taskIds 必填');
+  if (ids.length === 0) throw invalidArg('invalid_params', 'taskId or taskIds required');
   const current = await waitForTaskIds(state, ids, rawParams.timeoutMs);
   const pending = current.some((task) => task.status === 'running');
   const data = {

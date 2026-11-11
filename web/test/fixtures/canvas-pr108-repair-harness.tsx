@@ -33,7 +33,7 @@ function node(taskId: string): CanvasNodeData {
         metadata: { taskId, taskStatus: "running", status: "loading" } };
 }
 function project(nodes: CanvasNodeData[]): CanvasProject {
-    return { id: "canvas-a", title: "画布", nodes, connections: [], createdAt: "2026-10-10", updatedAt: "2026-10-10", revision: 2 };
+    return { id: "canvas-a", title: "canvas", nodes, connections: [], createdAt: "2026-10-10", updatedAt: "2026-10-10", revision: 2 };
 }
 function Editor() {
     const [projectId, setProjectId] = useState("canvas-a");
@@ -55,7 +55,7 @@ function Versions() {
     return <><button onClick={history.show}>open-versions</button><div style={{ height: 500, width: "100%" }}><CanvasVersionHistory history={{ ...history, desktop: true }} /></div></>;
 }
 const tasks = Array.from({ length: 100 }, (_, index): GenerationTask => ({ id: `video-${index}`, projectId: "canvas-a", type: "canvas_video", status: "succeeded",
-    prompt: `视频 ${index}`, previewKind: "video", attempts: 1, createdAt: "2026-10-10", updatedAt: "2026-10-10" }));
+    prompt: `video${index}`, previewKind: "video", attempts: 1, createdAt: "2026-10-10", updatedAt: "2026-10-10" }));
 function Harness() {
     const [mounted, setMounted] = useState(true);
     const [active, setActive] = useState(true);

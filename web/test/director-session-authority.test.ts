@@ -9,25 +9,25 @@ function scene(id: string, title = id): DirectorScene {
     return { ...createDirectorScene(title), id };
 }
 
-describe("会话初始化判定：只认 scene id（A1 回归）", () => {
-    test("首次挂载会初始化", () => {
+describe("Session initialization judgment: only recognize scene id (A1 regression)", () => {
+    test("The first mount will initialize", () => {
         expect(shouldReinitializeDirectorSession({ initializedSceneId: null, nextSceneId: "s1" })).toBe(true);
     });
 
-    test("同 id 的父级镜像回流不重建会话", () => {
+    test("The parent image reflow with the same ID does not rebuild the session.", () => {
         expect(shouldReinitializeDirectorSession({ initializedSceneId: "s1", nextSceneId: "s1" })).toBe(false);
     });
 
-    test("切换到不同 scene id 才重建", () => {
+    test("Switch to a different scene id before rebuilding", () => {
         expect(shouldReinitializeDirectorSession({ initializedSceneId: "s1", nextSceneId: "s2" })).toBe(true);
     });
 
-    test("没有 scene 时不初始化", () => {
+    test("No initialization when there is no scene", () => {
         expect(shouldReinitializeDirectorSession({ initializedSceneId: "s1", nextSceneId: null })).toBe(false);
         expect(shouldReinitializeDirectorSession({ initializedSceneId: null, nextSceneId: null })).toBe(false);
     });
 
-    test("镜像回流序列中只有 id 变化的那一次会重建", () => {
+    test("Only the time when the id changes in the mirror reflow sequence will be rebuilt.", () => {
         let initialized: string | null = null;
         const rebuilds: string[] = [];
         ["s1", "s1", "s1", "s2", "s2"].forEach((nextSceneId) => {
@@ -39,8 +39,8 @@ describe("会话初始化判定：只认 scene id（A1 回归）", () => {
     });
 });
 
-describe("upsertDirectorSceneById：连续保存不丢 scene（A6 回归）", () => {
-    test("连续保存 A/B 后两者都在", () => {
+describe("upsertDirectorSceneById: Continuous saving without losing scene (A6 return)", () => {
+    test("After saving A/B continuously, both are present.", () => {
         const a = scene("a");
         const b = scene("b");
         const afterA = upsertDirectorSceneById([], a);
@@ -48,24 +48,24 @@ describe("upsertDirectorSceneById：连续保存不丢 scene（A6 回归）", ()
         expect(afterB.map((item) => item.id)).toEqual(["a", "b"]);
     });
 
-    test("同 id 是替换而不是追加", () => {
-        const first = scene("a", "旧标题");
-        const second = { ...first, title: "新标题" };
+    test("The same id is replaced rather than appended", () => {
+        const first = scene("a", "old title");
+        const second = { ...first, title: "new title" };
         const next = upsertDirectorSceneById([first], second);
         expect(next).toHaveLength(1);
-        expect(next[0].title).toBe("新标题");
+        expect(next[0].title).toBe("new title");
     });
 
-    test("替换时不影响其他 scene 的顺序与内容", () => {
+    test("Replacement does not affect the order and content of other scenes.", () => {
         const list = [scene("a"), scene("b"), scene("c")];
-        const next = upsertDirectorSceneById(list, { ...list[1], title: "改过的 b" });
+        const next = upsertDirectorSceneById(list, { ...list[1], title: "modified b" });
         expect(next.map((item) => item.id)).toEqual(["a", "b", "c"]);
         expect(next[0]).toBe(list[0]);
         expect(next[2]).toBe(list[2]);
-        expect(next[1].title).toBe("改过的 b");
+        expect(next[1].title).toBe("modified b");
     });
 
-    test("以最新数组为基准的连续保存不会用旧快照覆盖", () => {
+    test("Successive saves based on the latest array are not overwritten with older snapshots", () => {
         // 模拟缺陷：第二次保存若以「第一次之前的数组」为基准，就会丢掉 a。
         const a = scene("a");
         const b = scene("b");
@@ -76,8 +76,8 @@ describe("upsertDirectorSceneById：连续保存不丢 scene（A6 回归）", ()
     });
 });
 
-describe("异步输出只合并预览引用，不覆盖最新场景", () => {
-    test("资源登记完成前后均须确认项目、节点和镜头仍是同一输出目标", () => {
+describe("Asynchronous output only merges preview references and does not cover the latest scene", () => {
+    test("Before and after resource registration is completed, you must confirm that the project, node, and lens are still the same output target.", () => {
         const latest = scene("s1");
         const target = {
             currentProjectId: "project-1",
@@ -97,27 +97,27 @@ describe("异步输出只合并预览引用，不覆盖最新场景", () => {
         expect(isDirectorOutputTargetCurrent({ ...target, latestScene: undefined })).toBe(false);
         expect(isDirectorOutputTargetCurrent({ ...target, shotId: "deleted-shot" })).toBe(false);
     });
-    test("保留上传期间发生的场景与镜头编辑", () => {
-        const latest = scene("s1", "上传期间改过的标题");
+    test("Preserve scene and shot edits that occurred during upload", () => {
+        const latest = scene("s1", "Title changed during upload");
         const shotId = latest.shots[0].id;
-        latest.shots[0] = { ...latest.shots[0], name: "上传期间改过的镜头" };
+        latest.shots[0] = { ...latest.shots[0], name: "Shots modified during upload" };
         const merged = mergeDirectorOutputPreview(latest, { sceneId: latest.id, shotId, previewNodeId: "preview-1" });
-        expect(merged?.title).toBe("上传期间改过的标题");
-        expect(merged?.shots[0].name).toBe("上传期间改过的镜头");
+        expect(merged?.title).toBe("Title changed during upload");
+        expect(merged?.shots[0].name).toBe("Shots modified during upload");
         expect(merged?.shots[0].previewNodeId).toBe("preview-1");
         expect(merged?.shots[0].depthNodeId).toBeUndefined();
         expect(merged?.shots[0].normalNodeId).toBeUndefined();
     });
 
-    test("场景或镜头已经切换/删除时拒绝合并", () => {
+    test("Refuse to merge when scenes or shots have been switched/deleted", () => {
         const latest = scene("s1");
         expect(mergeDirectorOutputPreview(latest, { sceneId: "other", shotId: latest.shots[0].id, previewNodeId: "preview" })).toBeNull();
         expect(mergeDirectorOutputPreview(latest, { sceneId: latest.id, shotId: "missing", previewNodeId: "preview" })).toBeNull();
     });
 });
 
-describe("截图与录制绑定开始时的场景快照", () => {
-    test("同一场景快照引用与同一活动镜头才允许继续", () => {
+describe("Snapshot of the scene at the beginning of the screenshot and recording binding", () => {
+    test("The same scene snapshot reference and the same active lens are allowed to continue.", () => {
         const current = scene("s1");
         const expected = { scene: current, shotId: current.shots[0].id };
         expect(isDirectorOutputSnapshotCurrent(current, expected)).toBe(true);
@@ -125,16 +125,16 @@ describe("截图与录制绑定开始时的场景快照", () => {
         expect(isDirectorOutputSnapshotCurrent(null, expected)).toBe(false);
     });
 
-    test("活动镜头切换时拒绝继续，即使原镜头仍存在", () => {
+    test("Refuses to continue when active camera switches, even if the original camera still exists", () => {
         const current = scene("s1");
         const originalShot = current.shots[0];
-        const otherShot = { ...originalShot, id: "shot-2", name: "镜头 2" };
+        const otherShot = { ...originalShot, id: "shot-2", name: "Shot 2" };
         const withOtherActive = { ...current, shots: [originalShot, otherShot], activeShotId: otherShot.id };
         expect(isDirectorOutputSnapshotCurrent(withOtherActive, { scene: withOtherActive, shotId: originalShot.id })).toBe(false);
     });
 });
 
-describe("预览与持久变更的发布边界（A2/A3/A4 回归）", () => {
+describe("Publish boundaries for previews and persistent changes (A2/A3/A4 regression)", () => {
     /** 最小 session controller：与 workbench 的接线同构，但不依赖 React 挂载。 */
     function harness(initial: DirectorScene) {
         const published: DirectorScene[] = [];
@@ -185,75 +185,75 @@ describe("预览与持久变更的发布边界（A2/A3/A4 回归）", () => {
         };
     }
 
-    test("进行中预览不发布，成功终态只发布一次", () => {
-        const base = scene("s1", "起点");
+    test("The ongoing preview is not published, and the successful final state is only published once.", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
-        session.stage({ ...base, title: "拖动中 1" });
-        session.stage({ ...base, title: "拖动中 2" });
+        session.stage({ ...base, title: "Dragging 1" });
+        session.stage({ ...base, title: "Dragging 2" });
         expect(session.published).toHaveLength(0);
         session.settle();
         expect(session.published).toHaveLength(1);
-        expect(session.published[0].title).toBe("拖动中 2");
+        expect(session.published[0].title).toBe("Dragging 2");
     });
 
-    test("取消的预览值绝不进入已发布 canonical", () => {
-        const base = scene("s1", "起点");
+    test("Canceled preview values never go into published canonical", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
-        session.stage({ ...base, title: "会被取消" });
+        session.stage({ ...base, title: "will be cancelled" });
         session.cancel();
         expect(session.published).toHaveLength(0);
-        expect(session.current().title).toBe("起点");
+        expect(session.current().title).toBe("starting point");
         // 后续关闭发布的是恢复后的值。
         session.close();
-        expect(session.published.map((item) => item.title)).toEqual(["起点"]);
+        expect(session.published.map((item) => item.title)).toEqual(["starting point"]);
     });
 
-    test("关闭前先取消未结束预览，再发布恢复后的 draft", () => {
-        const base = scene("s1", "起点");
+    test("Before closing, cancel the unfinished preview and then publish the restored draft.", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
-        session.stage({ ...base, title: "未结束" });
+        session.stage({ ...base, title: "Not over" });
         session.close();
         expect(session.published).toHaveLength(1);
-        expect(session.published[0].title).toBe("起点");
+        expect(session.published[0].title).toBe("starting point");
     });
 
-    test("普通提交前终结暂存手势，两段变更各自发布且历史不串", () => {
-        const base = scene("s1", "起点");
+    test("Terminate the temporary save gesture before normal submission. The two changes are released separately and the history is not connected.", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
-        session.stage({ ...base, title: "滑杆中" });
-        session.commit({ ...base, title: "另一个动作" });
-        expect(session.published.map((item) => item.title)).toEqual(["滑杆中", "另一个动作"]);
+        session.stage({ ...base, title: "in slider" });
+        session.commit({ ...base, title: "another action" });
+        expect(session.published.map((item) => item.title)).toEqual(["in slider", "another action"]);
         expect(session.history).toHaveLength(2);
     });
 
-    test("离开页面且预览进行中：只发布一次（#6 回归）", () => {
-        const base = scene("s1", "起点");
+    test("Leaving the page while preview is in progress: Publish only once (return of #6)", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
-        session.stage({ ...base, title: "离开前未结算" });
+        session.stage({ ...base, title: "Not settled before departure" });
         session.pagehide();
         // 缺陷版本会 commit publish 一次 + 无条件 publishDraft 再一次。
         expect(session.published).toHaveLength(1);
-        expect(session.published[0].title).toBe("离开前未结算");
+        expect(session.published[0].title).toBe("Not settled before departure");
         // flush 必须发生在发布之后，否则会把旧快照写盘。
         expect(session.flushes).toEqual([1]);
     });
 
-    test("离开页面且无进行中预览：显式发布一次", () => {
-        const base = scene("s1", "起点");
+    test("Leaving the page without an in-progress preview: Explicitly publish once", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
         session.pagehide();
         expect(session.published).toHaveLength(1);
         expect(session.flushes).toEqual([1]);
     });
 
-    test("离开页面后再次 pagehide 不会重复结算同一手势", () => {
-        const base = scene("s1", "起点");
+    test("After leaving the page, pagehide will not repeat the same gesture.", () => {
+        const base = scene("s1", "starting point");
         const session = harness(base);
-        session.stage({ ...base, title: "一次拖动" });
+        session.stage({ ...base, title: "one drag" });
         session.pagehide();
         session.pagehide();
         // 第二次是 idle 分支：显式发布当前 canonical，仍然各自恰好一次。
-        expect(session.published.map((item) => item.title)).toEqual(["一次拖动", "一次拖动"]);
+        expect(session.published.map((item) => item.title)).toEqual(["one drag", "one drag"]);
         expect(session.history).toHaveLength(1);
         expect(session.flushes).toEqual([1, 2]);
     });

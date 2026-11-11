@@ -185,7 +185,7 @@ func (r *Repository) CanvasHistoryResourceReferences(resourceIDs []string) ([]Re
 		return refs, nil
 	}
 	err := r.db.Table("canvas_snapshot_resources AS refs").
-		Select("'画布历史版本' AS kind, snapshots.canvas_id AS id, snapshots.title, refs.resource_id").
+		Select("'Canvas historical version' AS kind, snapshots.canvas_id AS id, snapshots.title, refs.resource_id").
 		Joins("JOIN canvas_snapshots AS snapshots ON snapshots.id = refs.snapshot_id").
 		Where("refs.resource_id IN ?", resourceIDs).Distinct().Scan(&refs).Error
 	return refs, err

@@ -19,7 +19,7 @@ const clips: TimelineClip[] = [
     { id: "video", kind: "video", nodeId: "", trackId: "video", startMs: 0, durationMs: 2400, sourceStartMs: 300, volume: 0.6, directMedia: { id: "movie", kind: "video", title: "movie", url: "/video.mp4" } },
     { id: "voice", kind: "audio", nodeId: "", trackId: "voice", title: "voice", startMs: 200, durationMs: 1600, sourceStartMs: 600, volume: 0.4, fadeInMs: 400, fadeOutMs: 400, directMedia: { id: "voice", kind: "audio", title: "voice", content: "/voice.wav" } },
     { id: "music", kind: "audio", nodeId: "", trackId: "music", title: "music", startMs: 600, durationMs: 1600, sourceStartMs: 400, volume: 0.6, directMedia: { id: "music", kind: "audio", title: "music", dataUrl: "/music.wav" } },
-    { id: "caption", kind: "subtitle", nodeId: "", trackId: "captions", startMs: 600, durationMs: 1600, text: "今夜花香未散，晚安" },
+    { id: "caption", kind: "subtitle", nodeId: "", trackId: "captions", startMs: 600, durationMs: 1600, text: "The fragrance of flowers lingers tonight, good night" },
 ];
 
 function Harness() {

@@ -215,9 +215,9 @@ func TestMediaSaveDialogSuppliesDefaultFileType(t *testing.T) {
 	for _, ext := range []string{"mp4", "png", "jpg", "webp", "mov", "wav", "m4a", "zip", "glb"} {
 		for _, platform := range []string{"windows", "darwin"} {
 			t.Run(platform+"/"+ext, func(t *testing.T) {
-				name := "中文素材_20261001." + ext
+				name := "Chinese material_20261001." + ext
 				options := mediaSaveDialogOptions(name, platform)
-				if options.DefaultFilename != name || options.Title != "保存文件" || len(options.Filters) != 1 || options.Filters[0].Pattern != "*."+ext || options.Filters[0].DisplayName == "" {
+				if options.DefaultFilename != name || options.Title != "save file" || len(options.Filters) != 1 || options.Filters[0].Pattern != "*."+ext || options.Filters[0].DisplayName == "" {
 					t.Fatalf("save dialog must supply the actual format as its default filter: %+v", options)
 				}
 			})
@@ -226,14 +226,14 @@ func TestMediaSaveDialogSuppliesDefaultFileType(t *testing.T) {
 	for _, tc := range []struct{ input, name, pattern string }{
 		{`../clip:name.MP4`, "clip_name.MP4", "*.MP4"},
 		{"a.b.mp4", "a.b.mp4", "*.mp4"},
-		{strings.Repeat("好", 100) + ".mp4", strings.Repeat("好", 58) + ".mp4", "*.mp4"},
+		{strings.Repeat("good", 100) + ".mp4", strings.Repeat("good", 58) + ".mp4", "*.mp4"},
 	} {
 		options := mediaSaveDialogOptions(bootstrap.SanitizeSaveFileName(tc.input), "windows")
 		if options.DefaultFilename != tc.name || len(options.Filters) != 1 || options.Filters[0].Pattern != tc.pattern {
 			t.Fatalf("sanitized %q: %+v", tc.input, options)
 		}
 	}
-	options := mediaSaveDialogOptions("未命名文件", "windows")
+	options := mediaSaveDialogOptions("unnamed file", "windows")
 	if len(options.Filters) != 0 {
 		t.Fatalf("must not invent a format for an extensionless artifact: %+v", options)
 	}
@@ -267,9 +267,9 @@ func TestSaveOwnedMediaCopyFailurePropagates(t *testing.T) {
 	app.wailsCtx = context.Background()
 	dest := filepath.Join(t.TempDir(), "out.mp4")
 	app.chooseSavePath = func(context.Context, string) (string, error) { return dest, nil }
-	app.copyOwnedMedia = func(string, string) error { return errors.New("无法写出文件") }
+	app.copyOwnedMedia = func(string, string) error { return errors.New("Unable to write file") }
 	saved, err := app.SaveOwnedMedia("clip.mp4", "owned-id")
-	if saved || err == nil || err.Error() != "无法写出文件" {
+	if saved || err == nil || err.Error() != "Unable to write file" {
 		t.Fatalf("failure = saved:%v err:%v", saved, err)
 	}
 }
@@ -352,7 +352,7 @@ func TestSaveOwnedMediaKeepsExistingDestWhenCopyFails(t *testing.T) {
 		t.Fatal(err)
 	}
 	app.chooseSavePath = func(context.Context, string) (string, error) { return dest, nil }
-	app.copyOwnedMedia = func(string, string) error { return errors.New("无法写出文件") }
+	app.copyOwnedMedia = func(string, string) error { return errors.New("Unable to write file") }
 	saved, err := app.SaveOwnedMedia("keep.bin", "owned-id")
 	if saved || err == nil {
 		t.Fatalf("save = saved:%v err:%v", saved, err)

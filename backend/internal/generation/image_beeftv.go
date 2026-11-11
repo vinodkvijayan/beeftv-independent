@@ -105,7 +105,7 @@ func ExtractBeefTVImageSettlement(state map[string]interface{}) BeefTVImageSettl
 func QueryBeefTVImageJob(ctx context.Context, config Config, jobID string) (BeefTVImageSettlement, map[string]interface{}, error) {
 	jobID = strings.TrimSpace(jobID)
 	if jobID == "" {
-		return BeefTVImageSettlement{}, nil, fmt.Errorf("图片任务缺少上游 job_id")
+		return BeefTVImageSettlement{}, nil, fmt.Errorf("Image task is missing upstream job_id")
 	}
 	state, err := managedMediaClient(WithRequestKind(ctx, "poll"), config).LegacyImageJob(ctx, jobID)
 	settlement := ExtractBeefTVImageSettlement(state)

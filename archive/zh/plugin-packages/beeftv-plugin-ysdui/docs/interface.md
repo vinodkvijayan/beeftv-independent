@@ -1,13 +1,13 @@
-# 银盛云枢壹算算力与多模态渠道接口说明
+# Yinshengyunshu computing power and multi-modal channel interface description
 
-## 插件身份
+## Plug-in identity
 
-- 插件包名：`beeftv-plugin-ysdui`
-- 默认 Base URL：`https://tokenhub.ysdui.cn`
-- 鉴权方式：`Authorization: Bearer <apiKey>`
-- 官方接口文档：`https://www.ysdui.cn/docs`
+- Plug-in package name: `beeftv-plugin-ysdui`
+-Default Base URL: `https://tokenhub.ysdui.cn`
+- Authentication method: `Authorization: Bearer <apiKey>`
+- Official interface document: `https://www.ysdui.cn/docs`
 
-## 贡献的多模态协议 Provider
+## Contributed multi-modal protocol Provider
 
 | Provider ID | 能力 | 适用模型 | 创建接口 | 轮询接口 |
 | --- | --- | --- | --- | --- |
@@ -15,30 +15,30 @@
 | `ysdui-image-task` | `image` | `wand-vega-image-pro`、`wand-vega-image-1.5-pro`、`wand-vega-image-flash` | `POST /v1/images/tasks` | `GET /v1/images/tasks/{{taskId}}` |
 | `ysdui-video` | `video` | `doubao-seedance-2-0-260128`、`doubao-seedance-2-0-fast-260128`、`doubao-seedance-2-0-mini-260615`、`doubao-seedance-2-5-260628`、`wan3.0-video`、`wan3.0-video-prime`、`minimax-h3`、`wand-vega-video-1.0-lite` | `POST /v1/video/generations` | `GET /v1/video/generations/{{taskId}}` |
 
-## 按模型严格区分的参数映射（对照官方文档）
+## Parameter mapping strictly differentiated by model (see official documentation)
 
-### 1. 同步图像（`POST /v1/images/generations`）
+### 1. Synchronized image (`POST /v1/images/generations`)
 
-- **`doubao-seedream-5-0-260128`（Seedream 5.0 Lite）**：支持文生图、多参考图（最多 14 张）、组图生成（仅在 `output.options.maxImages > 1` 时发送 `sequential_image_generation="auto"` 与 `sequential_image_generation_options.max_images`）、`output_format`（`jpeg`/`png`）、`watermark`；支持 `2K`/`3K`/`4K` 档位与自定义像素尺寸。
-- **`doubao-seedream-5-0-pro-260628`（Seedream 5.0 Pro）**：支持文生图、多参考图（最多 10 张）、透明背景（`background="transparent"` + `output_format="png"`）、图层拆分（`layer_decomposition=true`，尺寸传 `2K` 或 `auto`）、`output_format`、`watermark`；支持 `1K`/`1.5K`/`2K` 档位与自定义像素尺寸；**不发送 `sequential_image_generation` 或 `sequential_image_generation_options`**。
-- **`qwen-image-3.0-pro`**：支持文生图、参考图（最多 3 张）、`n`（1–6）、`negative_prompt`、`prompt_extend`、`watermark`，不发送豆包专属参数。
-- **`hy-image-v3.0`（混元 Image 3.0）**：支持文生图与参考图（最多 3 张），尺寸严格映射到官方支持的 8 组像素规格（`1024x1024`、`1280x720`、`720x1280`、`1024x768`、`768x1024`、`1152x768`、`768x1152`、`1344x576`），不发送 `n`、豆包专属参数或千问专属参数。
+- **`doubao-seedream-5-0-260128` (Seedream 5.0 Lite)**: Supports Vincent pictures, multi-reference pictures (up to 14 pictures), group picture generation (only send `sequential_image_generation="auto"` and `sequential_image_generation_options.max_images` when `output.options.maxImages > 1`), `output_format` (`jpeg`/`png`), `watermark`; supported `2K`/`3K`/`4K` gear and custom pixel size.
+- **`doubao-seedream-5-0-pro-260628` (Seedream 5.0 Pro)**: Supports textual pictures, multiple reference pictures (up to 10 pictures), transparent background (`background="transparent"` + `output_format="png"`), layer splitting (`layer_decomposition=true`, size transfer to `2K` or `auto`), `output_format`, `watermark`; supported `1K`/`1.5K`/`2K` gear and custom pixel size; **Do not send `sequential_image_generation` or `sequential_image_generation_options`**.
+- **`qwen-image-3.0-pro`**: Supports Vincent pictures, reference pictures (up to 3 pictures), `n` (1–6), `negative_prompt`, `prompt_extend`, `watermark`, and does not send beanbag exclusive parameters.
+- **`hy-image-v3.0` (Hunyuan Image 3.0)**: Supports Vincentian pictures and reference pictures (up to 3 pictures), and the size is strictly mapped to the officially supported 8 Group pixel specifications (`1024x1024`, `1280x720`, `720x1280`, `1024x768`, `768x1024`, `1152x768`, `768x1152`, `1344x576`), do not send `n`, Doubao exclusive parameters or Qianwen exclusive parameters.
 
-### 2. 异步图像任务（`POST /v1/images/tasks`）
+### 2. Asynchronous image task (`POST /v1/images/tasks`)
 
-- **`wand-vega-image-pro` / `wand-vega-image-1.5-pro` / `wand-vega-image-flash`**：支持文生图与参考图（`images` 最多 14 张），按 `1k`/`2k`/`4k` 档位与比例映射官方像素规格或透传显式 `WxH`，通过 `GET /v1/images/tasks/{{taskId}}` 轮询直至完成。
+- **`wand-vega-image-pro` / `wand-vega-image-1.5-pro` / `wand-vega-image-flash`**: Supports Vincent pictures and reference pictures (up to 14 pictures for `images`), maps official pixel specifications according to `1k`/`2k`/`4k` gears and ratios or transparently transmits explicit `WxH`, and polls through `GET /v1/images/tasks/{{taskId}}` until completed.
 
-### 3. 统一异步视频（`POST /v1/video/generations`）
+### 3. Unified asynchronous video (`POST /v1/video/generations`)
 
-- **`doubao-seedance-2-0-260128`**：分辨率 `480P` / `720P` / `1080P` / `4K`，时长 `4–15` 秒或 `-1`（自动时长），支持 `reference_mode`、`generate_audio`、`watermark`、`output_format`、`return_last_frame`。
-- **`doubao-seedance-2-0-fast-260128` / `doubao-seedance-2-0-mini-260615`**：分辨率严格限制为 `480P` / `720P`（不含 `1080P` / `4K`），时长 `4–15` 秒或 `-1`。
-- **`doubao-seedance-2-5-260628`**：分辨率 `480P` / `720P` / `1080P`，支持纯音频生视频（`audio_to_video`）与全模态参考。
-- **`wan3.0-video` / `wan3.0-video-prime`**：分辨率 `480P` / `720P` / `1080P`，时长 `2–30` 秒或 `-1`，全模态参考支持最多 10 张图 / 5 段视频 / 5 段音频，支持 `generate_audio`、`watermark`、`prompt_extend`，不发送豆包专属参数。
-- **`minimax-h3`**：分辨率 `768P` / `2K`，时长 `4–15` 秒，不发送 `generate_audio`、`watermark`、豆包专属参数或千问专属参数。
-- **`wand-vega-video-1.0-lite`**：分辨率 `768P` / `1080P`，比例 `16:9` / `9:16` / `4:3` / `3:4` / `1:1` / `21:9`，时长 `4–15` 秒，参考图最多 7 张、参考视频最多 1 段，不发送 `generate_audio`、`watermark`、豆包专属参数或千问专属参数。
+- **`doubao-seedance-2-0-260128`**: Resolution `480P` / `720P` / `1080P` / `4K`, duration `4–15` seconds or `-1` (auto duration), supports `reference_mode`, `generate_audio`, `watermark`, `output_format`, `return_last_frame`.
+- **`doubao-seedance-2-0-fast-260128` / `doubao-seedance-2-0-mini-260615`**: Resolution is strictly limited to `480P` / `720P` (excluding `1080P` / `4K`), duration `4–15` seconds or `-1`.
+- **`doubao-seedance-2-5-260628`**: Resolution `480P` / `720P` / `1080P`, supports pure audio video (`audio_to_video`) and full-modal reference.
+- **`wan3.0-video` / `wan3.0-video-prime`**: resolution `480P` / `720P` / `1080P`, duration `2–30` seconds or `-1`, full-modal reference supports up to 10 pictures / 5 videos / 5 audios, supported `generate_audio`, `watermark`, and `prompt_extend` do not send beanbag exclusive parameters.
+- **`minimax-h3`**: Resolution `768P` / `2K`, duration `4–15` seconds, no `generate_audio`, `watermark`, Doubao exclusive parameters or Qianwen exclusive parameters will be sent.
+- **`wand-vega-video-1.0-lite`**: resolution `768P` / `1080P`, ratio `16:9` / `9:16` / `4:3` / `3:4` / `1:1` / `21:9`, duration `4–15` seconds, up to 7 reference pictures, up to 1 reference video, not sent `generate_audio`, `watermark`, Doubao exclusive parameters or Qianwen exclusive parameters.
 
-## 参考素材预上传（`mediaUpload`）
+## Reference material pre-upload (`mediaUpload`)
 
-- 上传接口：`POST https://ysdui.cn/api/file/v1/upload`（自定义网关或测试服务回退 `POST <baseUrl>/api/file/v1/upload`）
-- 请求格式：`multipart/form-data`，字段名 `file`，单文件最大 20MB（`20971520` 字节）
-- 响应解析：`code=200` 时取 `data` 公网链接，自动替换本地 `resource:*` / `data:*` 参考图、首尾帧及参考音视频后提交生成请求。
+- Upload interface: `POST https://ysdui.cn/api/file/v1/upload` (custom gateway or test service fallback `POST <baseUrl>/api/file/v1/upload`)
+- Request format: `multipart/form-data`, field name `file`, maximum single file size 20MB (`20971520` bytes)
+- Response analysis: When `code=200` is used, the `data` public network link is taken, and the local `resource:*` / `data:*` reference image, first and last frame, and reference audio and video are automatically replaced and the generation request is submitted.

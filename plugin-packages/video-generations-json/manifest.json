@@ -1,10 +1,10 @@
 {
   "apiVersion": "beeftv.plugin/v2",
   "id": "video-generations-json",
-  "name": "视频生成 JSON · ratio / duration",
+  "name": "Video generation JSON · ratio / duration",
   "version": "1.0.0",
   "author": "BeefTV Contributors",
-  "description": "使用 images、ratio、duration 的异步视频 JSON 协议。",
+  "description": "Asynchronous video JSON protocol using images, ratio, duration.",
   "permissions": [
     "generation.run",
     "media.read"
@@ -23,7 +23,7 @@
     "providers": [
       {
         "id": "video-generations-json",
-        "label": "视频生成 JSON · ratio / duration",
+        "label": "Video generation JSON · ratio / duration",
         "capabilities": [
           "video"
         ],
@@ -44,62 +44,62 @@
             "type": "string",
             "required": true,
             "mapping": "model",
-            "description": "服务商提供的准确模型 ID。"
+            "description": "The exact model ID provided by the service provider."
           },
           {
             "name": "prompt",
             "type": "string",
             "required": true,
             "mapping": "prompt",
-            "description": "视频提示词。"
+            "description": "Video prompt words."
           },
           {
             "name": "images",
             "type": "media[]",
             "mapping": "images",
-            "description": "保留顺序与 role 的图片对象数组。"
+            "description": "An array of image objects preserving order and role."
           },
           {
             "name": "videos",
             "type": "media[]",
             "mapping": "videos",
-            "description": "参考视频链接数组。"
+            "description": "Array of reference video links."
           },
           {
             "name": "audios",
             "type": "media[]",
             "mapping": "audios",
-            "description": "参考音频链接数组。"
+            "description": "Reference audio link array."
           },
           {
             "name": "duration",
             "type": "integer",
             "mapping": "duration",
-            "description": "时长，单位为秒。"
+            "description": "Duration, unit is seconds."
           },
           {
             "name": "aspectRatio",
             "type": "string",
             "mapping": "ratio",
-            "description": "画幅比例。"
+            "description": "Aspect ratio."
           },
           {
             "name": "resolution",
             "type": "string",
             "mapping": "resolution",
-            "description": "分辨率。"
+            "description": "resolution."
           },
           {
             "name": "generateAudio",
             "type": "boolean",
             "mapping": "generate_audio",
-            "description": "声音开关。"
+            "description": "Sound switch."
           },
           {
             "name": "watermark",
             "type": "boolean",
             "mapping": "watermark",
-            "description": "水印开关。"
+            "description": "Watermark switch."
           }
         ],
         "create": {

@@ -10,10 +10,10 @@ import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 import { createCanvasPageUiStore } from "../src/stores/canvas/use-canvas-page-ui-store";
 const pageUi = createCanvasPageUiStore();
 
-test("实际回写画布后重新迁移，不把编译输出追加进用户场景描述", async () => {
+test("Actually write back the canvas and then migrate again, without appending the compilation output to the user scenario description.", async () => {
     const scene = createDirectorScene();
-    scene.shots[0].prompt = "夜景中的两个人";
-    const node: CanvasNodeData = { id: "director", type: CanvasNodeType.Director, title: "导演台", position: { x: 0, y: 0 }, width: 640, height: 640, metadata: { directorSceneId: scene.id, directorShotId: scene.shots[0].id } };
+    scene.shots[0].prompt = "two people in night scene";
+    const node: CanvasNodeData = { id: "director", type: CanvasNodeType.Director, title: "Director's desk", position: { x: 0, y: 0 }, width: 640, height: 640, metadata: { directorSceneId: scene.id, directorShotId: scene.shots[0].id } };
     const nodesRef = { current: [node] };
     const projectId = useCanvasStore.getState().createProject("director output migration");
     useCanvasStore.getState().updateProject(projectId, { nodes: [node], directorScenes: [scene] });
@@ -29,14 +29,14 @@ test("实际回写画布后重新迁移，不把编译输出追加进用户场�
     }
     try {
         renderToStaticMarkup(<Harness />);
-        const compiled = "导演台构图：中景、固定机位。夜景中的两个人";
+        const compiled = "Director's desk composition: medium shot, fixed camera position. two people in night scene";
         await director.applyDirectorOutput({ scene, shot: scene.shots[0], prompt: compiled, beauty: new Blob(["image"]) });
         const source = nodesRef.current.find((item) => item.id === node.id)!;
         expect(source.metadata).not.toHaveProperty("composerContent");
         expect(source.metadata).not.toHaveProperty("prompt");
         expect(nodesRef.current.find((item) => item.type === CanvasNodeType.Image)?.metadata?.prompt).toBe(compiled);
         const scenes = useCanvasStore.getState().projects.find((project) => project.id === projectId)!.directorScenes;
-        expect(migrateDirectorCanvas(nodesRef.current, scenes).directorScenes[0].shots[0].prompt).toBe("夜景中的两个人");
+        expect(migrateDirectorCanvas(nodesRef.current, scenes).directorScenes[0].shots[0].prompt).toBe("two people in night scene");
     } finally {
         upload.mockRestore(); asset.mockRestore();
         useCanvasStore.setState((state) => ({ projects: state.projects.filter((project) => project.id !== projectId) }));

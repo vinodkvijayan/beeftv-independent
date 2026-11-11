@@ -148,16 +148,16 @@ func TestNormalizeCustomImageModelWithoutGuessedLimits(t *testing.T) {
 
 func TestDisabledAndUnavailableModelsAreNotPublic(t *testing.T) {
 	channels := []model.ModelChannel{
-		{ID: "sys", Name: "系统", Enabled: true, SortOrder: 1},
-		{ID: "off", Name: "停用", Enabled: false},
+		{ID: "sys", Name: "system", Enabled: true, SortOrder: 1},
+		{ID: "off", Name: "deactivate", Enabled: false},
 	}
 	models := map[string][]model.ChannelModel{
 		"sys": {
-			{ID: "ok", ChannelID: "sys", ModelKey: "ok", DisplayName: "可用", Capability: "audio", Protocol: "openai-audio", Enabled: true},
-			{ID: "disabled", ChannelID: "sys", ModelKey: "disabled", DisplayName: "停用模型", Capability: "audio", Protocol: "openai-audio", Enabled: false},
+			{ID: "ok", ChannelID: "sys", ModelKey: "ok", DisplayName: "Available", Capability: "audio", Protocol: "openai-audio", Enabled: true},
+			{ID: "disabled", ChannelID: "sys", ModelKey: "disabled", DisplayName: "Deactivate model", Capability: "audio", Protocol: "openai-audio", Enabled: false},
 		},
 		"off": {
-			{ID: "hidden", ChannelID: "off", ModelKey: "hidden", DisplayName: "渠道停用", Capability: "audio", Protocol: "openai-audio", Enabled: true},
+			{ID: "hidden", ChannelID: "off", ModelKey: "hidden", DisplayName: "Channel deactivated", Capability: "audio", Protocol: "openai-audio", Enabled: true},
 		},
 	}
 	catalog, err := PublicSystemChannelCatalog(channels, func(channelID string) ([]model.ChannelModel, error) {
@@ -181,7 +181,7 @@ func TestSeedanceDoesNotInventACharacterCeiling(t *testing.T) {
 			t.Fatalf("%s prompt ceiling = %d", protocol, profile.References.PromptMaxChars)
 		}
 		for _, length := range []int{8101, 32001} {
-			if err := ValidateVideoTask(profile, TaskInput{Mode: "video", Prompt: strings.Repeat("镜", length), Config: TaskConfig{InterfaceType: protocol, Model: "seedance-2.0", VideoSeconds: "6", Size: "16:9", VQuality: "720p"}}); err != nil {
+			if err := ValidateVideoTask(profile, TaskInput{Mode: "video", Prompt: strings.Repeat("mirror", length), Config: TaskConfig{InterfaceType: protocol, Model: "seedance-2.0", VideoSeconds: "6", Size: "16:9", VQuality: "720p"}}); err != nil {
 				t.Fatalf("%s rejected %d characters: %v", protocol, length, err)
 			}
 		}
@@ -324,7 +324,7 @@ func TestNormalizeModelCapabilityDraftAndSeedreamValidationTable(t *testing.T) {
 				model:     "doubao-seedream-5-0-260128",
 				size:      "2K",
 				refCount:  15,
-				wantError: "最多支持 14 张参考图",
+				wantError: "Supports up to 14 reference images",
 			},
 			{
 				name:     "seedream 5.0 pro accepts 1.5K tier and caps at 10 reference images",
@@ -336,19 +336,19 @@ func TestNormalizeModelCapabilityDraftAndSeedreamValidationTable(t *testing.T) {
 				name:      "seedream 5.0 pro rejects 4K tier",
 				model:     "doubao-seedream-5-0-pro-260128",
 				size:      "4K",
-				wantError: "没有 4K 档位",
+				wantError: "No 4K gear",
 			},
 			{
 				name:      "seedream 5.0 lite rejects 1K tier",
 				model:     "doubao-seedream-5-0-260128",
 				size:      "1K",
-				wantError: "没有 1K 档位",
+				wantError: "No 1K gear",
 			},
 			{
 				name:      "seedream 5.0 pro rejects undersized custom pixel dimensions",
 				model:     "doubao-seedream-5-0-pro-260128",
 				size:      "800x600",
-				wantError: "至少要 1280x720",
+				wantError: "At least 1280x720",
 			},
 		}
 		for _, tc := range cases {

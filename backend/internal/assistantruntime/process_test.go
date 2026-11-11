@@ -198,24 +198,24 @@ func waitUntil(timeout time.Duration, ok func() bool) bool {
 func TestHostStopReapsOwnChild(t *testing.T) {
 	host := fixtureHost(t, "http")
 	if err := host.Launch(fixtureProvider(), "http://127.0.0.1:18090/api", "desktop-shell-token"); err != nil {
-		t.Fatalf("启动测试宿主失败: %v", err)
+		t.Fatalf("Failed to start test host: %v", err)
 	}
 	if host.PID() == 0 || !host.Running() {
-		t.Fatal("子进程应处于运行状态")
+		t.Fatal("The child process should be running")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := host.StopContext(ctx); err != nil {
-		t.Fatalf("关闭钩子应成功停止本 Host 启动的宿主: %v", err)
+		t.Fatalf("The shutdown hook should successfully stop the host started by this Host: %v", err)
 	}
 	if host.Running() {
-		t.Fatal("停止后不应仍报告运行中")
+		t.Fatal("Running should not still be reported after stopping")
 	}
 	if err := host.StopContext(context.Background()); err != nil {
-		t.Fatalf("无自有宿主时钩子应为 no-op，实际 %v", err)
+		t.Fatalf("When there is no own host, the hook should be no-op, actual %v", err)
 	}
 	if launched, err := host.Ensure(fixtureProvider(), "http://127.0.0.1:18090/api", "desktop-shell-token", true); err == nil || launched || host.Running() {
-		t.Fatalf("应用退出期间的状态查询不得重启宿主：launched=%v err=%v", launched, err)
+		t.Fatalf("Status query during application exit must not restart the host: launched=%v err=%v", launched, err)
 	}
 }
 
@@ -227,17 +227,17 @@ func TestHostRestartReplacesChild(t *testing.T) {
 	}
 	first := host.PID()
 	if first == 0 {
-		t.Fatal("未记录子进程 PID")
+		t.Fatal("Child process PID not logged")
 	}
 	if err := host.Restart(provider, "http://127.0.0.1:18090/api", ""); err != nil {
-		t.Fatalf("重启失败: %v", err)
+		t.Fatalf("Restart failed: %v", err)
 	}
 	if !host.Running() {
-		t.Fatal("重启后应有新的子进程")
+		t.Fatal("There should be new child processes after restarting")
 	}
 	second := host.PID()
 	if second == 0 || second == first {
-		t.Fatalf("重启应换新 PID，first=%d second=%d", first, second)
+		t.Fatalf("Restart and change the PID, first=%d second=%d", first, second)
 	}
 }
 
@@ -246,10 +246,10 @@ func TestHostCrashIsReapedAndCanRelaunch(t *testing.T) {
 	provider := fixtureProvider()
 	for attempt := 0; attempt < 2; attempt++ {
 		if err := host.Launch(provider, "http://127.0.0.1:18090/api", ""); err == nil {
-			t.Fatal("崩溃子进程不得被报告为已就绪")
+			t.Fatal("A crashed child process must not be reported as ready")
 		}
 		if host.Running() || host.Endpoint() != "" {
-			t.Fatal("崩溃子进程应被回收且不得留下可复用端点")
+			t.Fatal("Crash child processes should be recycled and must not leave reusable endpoints")
 		}
 	}
 }
@@ -266,16 +266,16 @@ func TestSeparateHostsDoNotShareProcessOwnership(t *testing.T) {
 	}
 	firstPID, secondPID := first.PID(), second.PID()
 	if firstPID == 0 || secondPID == 0 || firstPID == secondPID {
-		t.Fatalf("两个 Host 应各自持有子进程 first=%d second=%d", firstPID, secondPID)
+		t.Fatalf("The two Hosts should each hold child processes first=%d second=%d", firstPID, secondPID)
 	}
 	if err := first.Stop(); err != nil {
 		t.Fatal(err)
 	}
 	if first.Running() {
-		t.Fatal("停止 first 后其自身不应仍在运行")
+		t.Fatal("Stopping first itself should not still be running")
 	}
 	if !second.Running() || second.PID() != secondPID {
-		t.Fatal("停止 first 不得带走 second 的子进程")
+		t.Fatal("Stopping first must not take away the child processes of second")
 	}
 }
 
@@ -293,14 +293,14 @@ func TestEnsureRestartsWhenFingerprintChangesAndIdle(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !launched {
-		t.Fatal("空闲且指纹变化时应重启")
+		t.Fatal("Should be restarted when idle and fingerprint changes")
 	}
 	if host.PID() == first {
-		t.Fatal("指纹变化重启应换新 PID")
+		t.Fatal("If the fingerprint changes and restarts, the PID should be replaced with a new one.")
 	}
 	launched, err = host.Ensure(updated, "http://127.0.0.1:18090/api", "", true)
 	if err != nil || launched {
-		t.Fatalf("相同指纹且在跑时 Ensure 应为 no-op launched=%v err=%v", launched, err)
+		t.Fatalf("The same fingerprint and when running Ensure should be no-op launched=%v err=%v", launched, err)
 	}
 }
 
@@ -333,13 +333,13 @@ func TestConcurrentLifecycleLeavesSingleOwnedChild(t *testing.T) {
 		t.Fatal(err)
 	}
 	if host.Running() {
-		t.Fatal("并发 Ensure/Restart 结束后 Stop 必须带走本 Host 的子进程")
+		t.Fatal("After the concurrent Ensure/Restart is completed, Stop must take away the host's child process.")
 	}
 	if err := host.Launch(provider, "http://127.0.0.1:18090/api", ""); err != nil {
-		t.Fatalf("单次 Wait 约束在并发后仍应可再次启动: %v", err)
+		t.Fatalf("A single Wait constraint should still be able to start again after concurrency: %v", err)
 	}
 	if !host.Running() {
-		t.Fatal("再次启动应有子进程")
+		t.Fatal("Start the child process again")
 	}
 }
 
@@ -357,10 +357,10 @@ func TestEnsureDoesNotRestartBusyHostOnFingerprintChange(t *testing.T) {
 		t.Fatal(err)
 	}
 	if launched {
-		t.Fatal("非空闲时不得因指纹变化重启")
+		t.Fatal("Do not restart due to fingerprint changes when not idle")
 	}
 	if host.PID() != first {
-		t.Fatal("非空闲时 PID 应保持不变")
+		t.Fatal("PID should remain unchanged when not idle")
 	}
 }
 
@@ -402,17 +402,17 @@ func TestFreshHostDoesNotAdoptForeignHealthyListener(t *testing.T) {
 	t.Setenv("BEEFTV_AGENT_PORT", "18500")
 	host := New(Options{DataDir: t.TempDir()})
 	if host.Endpoint() != "" || host.Running() {
-		t.Fatal("新构造的 Host 不得认领已有监听器")
+		t.Fatal("The newly constructed Host must not claim existing listeners")
 	}
 	health := host.Probe(context.Background())
 	if health.OK {
-		t.Fatal("Probe 不得把外部 /health 当成自有子进程")
+		t.Fatal("Probe must not treat external /health as its own child process")
 	}
 	if err := host.Stop(); err != nil {
 		t.Fatal(err)
 	}
 	if *hits != 0 {
-		t.Fatalf("Stop/Probe 不得打到外部监听器，hits=%d", *hits)
+		t.Fatalf("Stop/Probe must not hit external listeners, hits=%d", *hits)
 	}
 	req, err := http.NewRequest(http.MethodGet, foreign+"/health", nil)
 	if err != nil {
@@ -424,7 +424,7 @@ func TestFreshHostDoesNotAdoptForeignHealthyListener(t *testing.T) {
 	}
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		t.Fatal("外部监听器必须仍在运行")
+		t.Fatal("The external listener must still be running")
 	}
 }
 
@@ -452,19 +452,19 @@ func TestLaunchPinsPortAndDropsSpoofedOwnerOpenAI(t *testing.T) {
 	}
 	childEnv := strings.Split(string(raw), "\n")
 	if port := envValue(childEnv, "BEEFTV_AGENT_PORT"); port == "" || port == "18500" {
-		t.Fatalf("子进程 PORT 必须是监督器钉死的实例端口，得到 %q", port)
+		t.Fatalf("The child process PORT must be the instance port pinned by the supervisor, resulting in %q", port)
 	}
 	if envValue(childEnv, "BEEFTV_OWNER_TOKEN") != "" {
-		t.Fatal("子进程不得看到 OWNER_TOKEN")
+		t.Fatal("Child processes must not see OWNER_TOKEN")
 	}
 	if envValue(childEnv, "BEEFTV_AGENT_HOST_TOKEN") != "pinned-host" {
-		t.Fatalf("子进程宿主凭据应被覆盖，得到 %q", envValue(childEnv, "BEEFTV_AGENT_HOST_TOKEN"))
+		t.Fatalf("The child process host credentials should be overridden, getting %q", envValue(childEnv, "BEEFTV_AGENT_HOST_TOKEN"))
 	}
 	if envHasKey(childEnv, "OPENAI_API_KEY") || envHasKey(childEnv, "ANTHROPIC_API_KEY") {
-		t.Fatal("子进程不得继承 OPENAI/ANTHROPIC 密钥")
+		t.Fatal("Child processes must not inherit OPENAI/ANTHROPIC keys")
 	}
 	if host.Endpoint() == "http://127.0.0.1:18500" {
-		t.Fatal("端点不得落在继承的 18500")
+		t.Fatal("Endpoints must not fall within inherited 18500")
 	}
 }
 
@@ -475,16 +475,16 @@ func TestRestartFailureDoesNotReportSuccessOrKeepEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	if host.Endpoint() == "" {
-		t.Fatal("启动成功后必须暴露自有端点")
+		t.Fatal("After successful startup, your own endpoint must be exposed")
 	}
 	host.opts.Environ = func() []string {
 		return append(os.Environ(), fixtureEnv+"=fail-listen")
 	}
 	if err := host.Restart(provider, "http://127.0.0.1:18090/api", ""); err == nil {
-		t.Fatal("就绪失败的重启不得报告成功")
+		t.Fatal("Restarts that fail to be ready must not report success")
 	}
 	if host.Running() || host.Endpoint() != "" {
-		t.Fatal("重启失败后不得留下可复用端点")
+		t.Fatal("Reusable endpoints must not be left after a failed restart")
 	}
 }
 
@@ -497,18 +497,18 @@ func TestRelaunchDoesNotTalkToOldChild(t *testing.T) {
 	firstPID := host.PID()
 	firstURL := host.Endpoint()
 	if firstPID == 0 || firstURL == "" {
-		t.Fatal("需要已就绪的第一代子进程")
+		t.Fatal("Requires ready first-generation child processes")
 	}
 	if err := host.Restart(provider, "http://127.0.0.1:18090/api", ""); err != nil {
 		t.Fatal(err)
 	}
 	if host.PID() == firstPID || host.Endpoint() == firstURL {
-		t.Fatalf("重启必须换新实例 pid=%d/%d url=%s/%s", firstPID, host.PID(), firstURL, host.Endpoint())
+		t.Fatalf("Restart must be replaced with a new instance pid=%d/%d url=%s/%s", firstPID, host.PID(), firstURL, host.Endpoint())
 	}
 	resp, err := http.Get(firstURL + "/health")
 	if err == nil {
 		resp.Body.Close()
-		t.Fatal("旧子进程不得继续响应")
+		t.Fatal("The old child process must not continue to respond")
 	}
 }
 
@@ -522,13 +522,13 @@ func TestNewHostCannotAdoptPreviousEndpoint(t *testing.T) {
 	second := New(Options{DataDir: t.TempDir()})
 	t.Cleanup(func() { _ = second.Stop() })
 	if second.Endpoint() != "" || second.Probe(context.Background()).OK {
-		t.Fatal("另一个 Host 不得认领前一个实例的端点")
+		t.Fatal("Another Host must not claim the endpoint of the previous instance")
 	}
 	if err := first.Stop(); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := http.Get(owned + "/health"); err == nil {
-		t.Fatal("停止后旧端点不得仍可访问")
+		t.Fatal("Old endpoints must not remain accessible after stopping")
 	}
 }
 
@@ -538,13 +538,13 @@ func TestProbeRejectsHealthyListenerWithoutMatchingInstance(t *testing.T) {
 	host.TestingUseOwnedEndpoint(foreign, "owned-nonce-value", "fp")
 	health := host.Probe(context.Background())
 	if health.OK {
-		t.Fatal("实例证明不匹配时不得把外部 /health 当成自有子进程")
+		t.Fatal("When the instance proves that there is a mismatch, the external /health must not be regarded as its own child process.")
 	}
 	if *hits == 0 {
-		t.Fatal("Probe 应打到注入的测试端点并拒绝证明")
+		t.Fatal("The Probe should hit the injected test endpoint and reject the proof")
 	}
 	if strings.Contains(fmt.Sprintf("%#v", health), "owned-nonce-value") {
-		t.Fatal("Probe 结果不得包含实例 nonce")
+		t.Fatal("Probe results must not contain instance nonce")
 	}
 }
 
@@ -555,7 +555,7 @@ func TestOwnedHealthJSONOmitsNonce(t *testing.T) {
 	}
 	health := host.Probe(context.Background())
 	if !health.OK || health.Instance == "" {
-		t.Fatalf("自有子进程应通过实例证明: %#v", health)
+		t.Fatalf("Own child processes should be proven by examples: %#v", health)
 	}
 	req, err := host.NewChildRequest(context.Background(), http.MethodGet, "/health", nil)
 	if err != nil {
@@ -563,7 +563,7 @@ func TestOwnedHealthJSONOmitsNonce(t *testing.T) {
 	}
 	nonce := req.Header.Get(InstanceHeader)
 	if nonce == "" {
-		t.Fatal("子进程请求必须带实例 nonce 头")
+		t.Fatal("Subprocess requests must carry an instance nonce header")
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -575,9 +575,9 @@ func TestOwnedHealthJSONOmitsNonce(t *testing.T) {
 		t.Fatal(err)
 	}
 	if strings.Contains(string(body), nonce) || strings.Contains(fmt.Sprintf("%#v", health), nonce) {
-		t.Fatalf("health JSON 或探测结果含 nonce: %s", body)
+		t.Fatalf("health JSON or detection result contains nonce: %s", body)
 	}
 	if health.Instance == nonce {
-		t.Fatal("公开 instance 字段必须是证明而不是 nonce")
+		t.Fatal("The public instance field must be a proof and not a nonce")
 	}
 }

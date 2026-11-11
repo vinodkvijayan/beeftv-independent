@@ -18,7 +18,7 @@ import (
 
 func TestExportRecordsKeepFailureEvidenceAndLocalReason(t *testing.T) {
 	row := sanitizeTask(model.Task{ID: "task-disk", FailureDiagnostics: &model.TaskFailureDiagnostics{
-		Source: "local_result", Stage: "本地结果处理", ExecutionResult: "completed", RequestID: "req-12345678", ProviderTaskID: "task_12345678",
+		Source: "local_result", Stage: "local result processing", ExecutionResult: "completed", RequestID: "req-12345678", ProviderTaskID: "task_12345678",
 		Summary: `write C:\Users\private\video: There is not enough space on the disk`,
 	}})
 	body, err := json.Marshal(row)
@@ -34,8 +34,8 @@ func TestExportRecordsKeepFailureEvidenceAndLocalReason(t *testing.T) {
 	if strings.Contains(text, "private") {
 		t.Fatal("private path leaked")
 	}
-	event := sanitizeClientEvent(ClientEvent{Reason: "local_credential_failed", RequestID: "req-credential-test", Message: "工作区密钥文件不存在"})
-	if event.Reason != "local_credential_failed" || event.RequestID != "req-credential-test" || event.Message != "工作区密钥文件不存在" {
+	event := sanitizeClientEvent(ClientEvent{Reason: "local_credential_failed", RequestID: "req-credential-test", Message: "Workspace key file does not exist"})
+	if event.Reason != "local_credential_failed" || event.RequestID != "req-credential-test" || event.Message != "Workspace key file does not exist" {
 		t.Fatalf("lost admission evidence: %#v", event)
 	}
 }
@@ -90,7 +90,7 @@ func TestExportRedactsSensitiveValuesFromFixture(t *testing.T) {
 	}).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Create(&model.TaskLog{ID: "task-log-1", UserID: "user-1", TaskID: "task-1", TraceID: "trace-1", Message: "任务失败", Payload: "apiKey=log-secret", CreatedAt: now}).Error; err != nil {
+	if err := db.Create(&model.TaskLog{ID: "task-log-1", UserID: "user-1", TaskID: "task-1", TraceID: "trace-1", Message: "Task failed", Payload: "apiKey=log-secret", CreatedAt: now}).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Create(&model.ApiCallLog{ID: "api-log-1", UserID: "user-1", TraceID: "trace-1", RequestID: "req-1", TaskID: "task-1", Path: "/v1/generations", RequestBody: "apiKey=body-secret", ResponseBody: "response-secret", UpstreamURL: "https://provider.example/result?signature=secret", Error: "token=api-secret", CreatedAt: now}).Error; err != nil {
@@ -100,7 +100,7 @@ func TestExportRedactsSensitiveValuesFromFixture(t *testing.T) {
 	svc := New(Dependencies{Store: repository.New(db), Brand: staticBrand{name: "BeefTV", slug: "beeftv"}})
 	bundle, err := svc.Export("user-1", ExportRequest{
 		From: now.Add(-2 * time.Minute).Format(time.RFC3339Nano), To: now.Add(time.Minute).Format(time.RFC3339Nano), TaskID: "task-1",
-		Description: "页面报错", ClientEvents: []ClientEvent{{ID: "event-1", Message: "cookie=client-secret", TraceID: "trace-1"}},
+		Description: "Page error", ClientEvents: []ClientEvent{{ID: "event-1", Message: "cookie=client-secret", TraceID: "trace-1"}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -135,7 +135,7 @@ func TestExportRedactsModelConfigSummary(t *testing.T) {
 		"assistantModel": "studio::chat-x",
 		"channels": [
 			{
-				"id": "studio", "name": "工作室渠道", "apiFormat": "openai", "scope": "user", "enabled": true,
+				"id": "studio", "name": "studio channel", "apiFormat": "openai", "scope": "user", "enabled": true,
 				"baseUrl": "https://api.example.com/v1?token=query-secret",
 				"apiKey": "sk-secret-key", "secretKey": "secret-key-value",
 				"headers": [{"name": "X-Key", "value": "header-value"}],
@@ -186,7 +186,7 @@ func TestExportRejectsForeignTaskFixture(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = New(Dependencies{Store: repository.New(db)}).Export("user-1", ExportRequest{TaskID: "foreign-task"})
-	if err == nil || !strings.Contains(err.Error(), "任务不存在或无权访问") {
+	if err == nil || !strings.Contains(err.Error(), "Task does not exist or does not have access rights") {
 		t.Fatalf("foreign task error = %v", err)
 	}
 }

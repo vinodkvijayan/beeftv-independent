@@ -17,7 +17,7 @@ func missingAssistantHost(c *gin.Context, host *assistantruntime.Host) bool {
 		return false
 	}
 	c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_unreachable",
-		"msg": "内置创作助手宿主未运行"})
+		"msg": "The built-in authoring assistant host is not running"})
 	return true
 }
 
@@ -50,11 +50,11 @@ func RegisterAgentHostLifecycleRoutes(r gin.IRouter, svc ownerCredentialDirs, ho
 		}
 		var request assistantruntime.HostConfig
 		if err := c.ShouldBindJSON(&request); err != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is invalid"))
 			return
 		}
 		if err := host.WriteConfig(request); err != nil {
-			fail(c, http.StatusInternalServerError, app.BadAuthRequest("配置写入失败"))
+			fail(c, http.StatusInternalServerError, app.BadAuthRequest("Configuration write failed"))
 			return
 		}
 		ok(c, gin.H{"config": request})
@@ -71,7 +71,7 @@ func RegisterAgentHostLifecycleRoutes(r gin.IRouter, svc ownerCredentialDirs, ho
 		if !configured || strings.TrimSpace(config.HostCommand) == "" {
 			// 命令只来自本机配置，绝不接受请求体传入的可执行命令。
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": "host_command_missing",
-				"msg": "未配置 agent-host 启动命令：请先在设置的创作助手中配置（发行形态下由产品启动链提供）"})
+				"msg": "The agent-host startup command is not configured: Please configure it in the creation assistant of the settings first (provided by the product startup chain in the release form)"})
 			return
 		}
 		// 请求本来就落在后端自己身上：用请求的 Host 推导操作层基址，避免猜端口；
@@ -79,7 +79,7 @@ func RegisterAgentHostLifecycleRoutes(r gin.IRouter, svc ownerCredentialDirs, ho
 		provider, reason := host.ResolveProvider()
 		if reason != "" {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"code": http.StatusServiceUnavailable, "reason": reason,
-				"msg": "助手模型或凭据还没准备好"})
+				"msg": "The helper model or credentials are not ready yet"})
 			return
 		}
 		if err := host.Launch(provider, "http://"+c.Request.Host+"/api", strings.TrimSpace(c.GetHeader(httptransport.LaunchTokenHeader))); err != nil {

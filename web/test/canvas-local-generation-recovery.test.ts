@@ -16,7 +16,7 @@ describe("local canvas generation recovery", () => {
     });
 
     test("only marks orphaned local loads interrupted when they have no task to reconcile", () => {
-        const start = source.indexOf("// 本地任务同样持久化在任务表中");
+        const start = source.indexOf("// Local tasks are also persisted in the task table");
         const end = source.indexOf("}, [localMode, projectLoaded, setNodes]);", start);
         const interruptedFallback = source.slice(start, end);
 

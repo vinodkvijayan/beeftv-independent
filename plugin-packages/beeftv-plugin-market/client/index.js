@@ -3,8 +3,8 @@
 // 安装与更新统一走宿主的确认框，市场插件自己不安装任何东西。
 
 const REGISTRY_MIRRORS = [
-  { value: "https://registry.npmmirror.com", label: "国内镜像（npmmirror，默认）" },
-  { value: "https://registry.npmjs.org", label: "npm 官方源（npmjs.org）" },
+  { value: "https://registry.npmmirror.com", label: "Domestic mirror (npmmirror, default)" },
+  { value: "https://registry.npmjs.org", label: "npm official source (npmjs.org)" },
 ];
 
 const recommendationCache = new Map();
@@ -14,7 +14,7 @@ async function fetchRecommendations(registry, cached) {
   const response = await fetch(`/api/plugins/market/curated?${params}`);
   const body = await response.json().catch(() => null);
   if (!response.ok || !body || body.code !== 0) {
-    throw new Error(body?.msg || "推荐列表暂时打不开");
+    throw new Error(body?.msg || "The recommended list cannot be opened temporarily");
   }
   return (body.data?.items || []).filter(item => item.recommended);
 }
@@ -24,7 +24,7 @@ async function fetchMarket(query, registry) {
   const reg = registry ? `&registry=${encodeURIComponent(String(registry).trim())}` : "";
   const response = await fetch(`/api/plugins/market/search?q=${q}${reg}`);
   const body = await response.json().catch(() => null);
-  if (!response.ok || !body || body.code !== 0) throw new Error(body?.msg || `插件市场暂时打不开（HTTP ${response.status}）`);
+  if (!response.ok || !body || body.code !== 0) throw new Error(body?.msg || `The plug-in market is temporarily unavailable (HTTP${response.status}）`);
   return Array.isArray(body.data?.items) ? body.data.items : [];
 }
 
@@ -113,7 +113,7 @@ export function activate(host) {
           publish(await fetchRecommendations(registryMirror, false), true);
         } catch (error) {
           if (!cancelled && !recommendationCache.get(registryMirror)?.length) {
-            setCuratedError(error.message || "插件市场暂时打不开");
+            setCuratedError(error.message || "The plug-in market is temporarily unavailable");
           }
         } finally {
           if (!cancelled) setLoadingCurated(false);
@@ -135,7 +135,7 @@ export function activate(host) {
           setSearchResults(items);
         } catch (err) {
           setSearchError(
-            err?.message || "连接 npm 搜索服务失败，请检查网络后重试。",
+            err?.message || "Failed to connect to npm search service, please check the network and try again.",
           );
         } finally {
           setSearching(false);
@@ -199,8 +199,8 @@ export function activate(host) {
 
     return h("div", { className: "plugin-market", "data-testid": "beeftv-plugin-market-view" },
       h("div", { className: "plugin-market-toolbar" },
-        h("div", { className: "plugin-market-tabs", role: "group", "aria-label": "市场来源" },
-          [["curated", "精选推荐"], ["npm", "社区搜索"]].map(([value, label]) =>
+        h("div", { className: "plugin-market-tabs", role: "group", "aria-label": "Market source" },
+          [["curated", "Featured recommendations"], ["npm", "Community search"]].map(([value, label]) =>
             h("button", {
               key: value,
               type: "button",
@@ -212,7 +212,7 @@ export function activate(host) {
         ),
         h(props.RegistrySelect, {
           className: "plugin-market-registry",
-          "aria-label": "安装下载源",
+          "aria-label": "Install download source",
           "data-testid": "market-registry-select",
           value: registryMirror,
           onChange: setRegistryMirror,
@@ -222,17 +222,17 @@ export function activate(host) {
       activeTab === "npm" ? h("form", { className: "plugin-market-search", onSubmit: handleSearch },
         h("input", {
           type: "search",
-          "aria-label": "搜索社区插件",
+          "aria-label": "Search community plugins",
           "data-testid": "market-npm-search-input",
-          placeholder: "搜索社区插件",
+          placeholder: "Search community plugins",
           value: searchQuery,
           onChange: event => setSearchQuery(event.target.value),
         }),
-        h("button", { type: "submit", className: "plugin-market-button", disabled: searching, "data-testid": "market-npm-search-button" }, searching ? "搜索中…" : "搜索"),
+        h("button", { type: "submit", className: "plugin-market-button", disabled: searching, "data-testid": "market-npm-search-button" }, searching ? "Searching…" : "Search"),
       ) : null,
       visibleError ? h("p", { role: "alert", className: "plugin-market-error" }, visibleError) : null,
-      loading ? h("p", { role: "status", className: "plugin-market-empty" }, "正在读取插件…") : null,
-      !loading && !visibleError && !visibleList.length ? h("p", { className: "plugin-market-empty" }, activeTab === "npm" ? "搜索社区插件，查找可安装的扩展。" : "暂无推荐插件") : null,
+      loading ? h("p", { role: "status", className: "plugin-market-empty" }, "Loading plugins…") : null,
+      !loading && !visibleError && !visibleList.length ? h("p", { className: "plugin-market-empty" }, activeTab === "npm" ? "Search community plugins to find installable extensions." : "No recommended plugins yet") : null,
       h("div", { className: "plugins-grid", "data-testid": "market-plugin-grid" },
         visibleList.map(item => {
           const id = item.id || item.packageName;
@@ -242,13 +242,13 @@ export function activate(host) {
             key: id,
             "data-testid": `market-plugin-card-${id}`,
             name: item.name || id,
-            description: item.description || "暂无简介",
-            sourceLabel: item.bundled ? "官方" : "第三方",
-            status: installed ? "已安装" : "未安装",
+            description: item.description || "No profile yet",
+            sourceLabel: item.bundled ? "official" : "third party",
+            status: installed ? "Installed" : "Not installed",
             onOpen: () => handleOpenDetail(item),
             actions: h(React.Fragment, null,
-              hasUpdate ? h(props.Button, { className: "plugin-settings-button", "data-testid": `market-update-btn-${id}`, onClick: () => triggerInstall(item, true) }, "更新") : null,
-              h(props.Button, { className: "plugin-settings-button", "data-testid": `market-install-btn-${id}`, onClick: () => triggerInstall(item) }, installed ? "重新安装" : "安装"),
+              hasUpdate ? h(props.Button, { className: "plugin-settings-button", "data-testid": `market-update-btn-${id}`, onClick: () => triggerInstall(item, true) }, "update") : null,
+              h(props.Button, { className: "plugin-settings-button", "data-testid": `market-install-btn-${id}`, onClick: () => triggerInstall(item) }, installed ? "Reinstall" : "Installation"),
             ),
           });
         }),
@@ -267,25 +267,25 @@ export function activate(host) {
           className: "plugin-market-button plugin-market-install",
           "data-testid": "market-detail-install-btn",
           onClick: () => { const item = selectedPlugin; closeDetailModal(); triggerInstall(item); },
-        }, "安装此插件") : null,
-      }, selectedPlugin ? h("article", { className: "plugin-details-content", tabIndex: 0, "aria-label": "市场插件详情" },
+        }, "Install this plugin") : null,
+      }, selectedPlugin ? h("article", { className: "plugin-details-content", tabIndex: 0, "aria-label": "Market plugin details" },
         h("div", { className: "plugin-details-overview" },
-          h("dl", { className: "plugin-details-metadata" }, metadata("版本", selectedPlugin.version || "未提供"), metadata("作者", selectedPlugin.author || "未提供")),
+          h("dl", { className: "plugin-details-metadata" }, metadata("Version", selectedPlugin.version || "Not provided"), metadata("Author", selectedPlugin.author || "Not provided")),
           h("p", null, selectedPlugin.description),
         ),
         h("div", { className: "plugin-details-sections" },
-          h("details", null, h("summary", null, "使用说明"), loadingReadme
-            ? h("p", { role: "status" }, "正在读取使用说明…")
-            : h(props.Markdown, { className: "plugin-details-document", source: detailReadme || "此插件未提供独立的使用说明。" })),
-          h("details", null, h("summary", null, "安装来源"),
-            h("p", { className: "plugin-market-notice", "data-testid": "plugin-market-disclaimer" }, "被推荐列表收录不代表我们为它担保；请仅安装你信任来源的插件。"),
-            h("dl", null, metadata("插件包", selectedPlugin.packageName || selectedPlugin.id), metadata("下载源", registryMirror)),
+          h("details", null, h("summary", null, "Instructions for use"), loadingReadme
+            ? h("p", { role: "status" }, "Reading instructions for use...")
+            : h(props.Markdown, { className: "plugin-details-document", source: detailReadme || "This plugin does not provide independent instructions for use." })),
+          h("details", null, h("summary", null, "Installation source"),
+            h("p", { className: "plugin-market-notice", "data-testid": "plugin-market-disclaimer" }, "Being included in the recommended list does not mean we endorse it; please only install plugins from sources you trust."),
+            h("dl", null, metadata("Plug-in package", selectedPlugin.packageName || selectedPlugin.id), metadata("Download source", registryMirror)),
           ),
-          h("details", null, h("summary", null, "插件与高级信息"),
+          h("details", null, h("summary", null, "Plugins and advanced information"),
             h("dl", null,
-              metadata("分类", selectedPlugin.category || "扩展插件"),
-              metadata("标签", (selectedPlugin.tags || []).join("、") || "未提供"),
-              metadata("仓库 / 主页", selectedPlugin.repository || selectedPlugin.homepage || "未提供"),
+              metadata("Classification", selectedPlugin.category || "Extensions"),
+              metadata("label", (selectedPlugin.tags || []).join("、") || "Not provided"),
+              metadata("Warehouse / Home Page", selectedPlugin.repository || selectedPlugin.homepage || "Not provided"),
             ),
           ),
         ),
@@ -295,8 +295,8 @@ export function activate(host) {
 
   return host.contribute("pluginCenter.section", {
     id: "market",
-    label: "插件市场",
-    description: "发现推荐插件与社区扩展",
+    label: "plug-in market",
+    description: "Discover recommended plugins and community extensions",
     render: PluginMarketView,
   });
 }

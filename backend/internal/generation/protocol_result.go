@@ -22,7 +22,7 @@ func finishProtocolResult(ctx context.Context, config Config, mode string, taskI
 		pollPolicy = videoPollPolicyForConfig(ctx, config, pollPolicy)
 	}
 	if result == nil {
-		return nil, errors.New("声明式协议已完成但没有返回结果")
+		return nil, errors.New("Declarative protocol completed but no result returned")
 	}
 	if mode == "text" {
 		output := map[string]interface{}{"mode": "text", "text": result.Text}
@@ -40,10 +40,10 @@ func finishProtocolResult(ctx context.Context, config Config, mode string, taskI
 	case "audio":
 		references = result.Audios
 	default:
-		return nil, fmt.Errorf("声明式协议不支持生成模式 %s", mode)
+		return nil, fmt.Errorf("Declarative protocols do not support generation mode %s", mode)
 	}
 	if len(references) == 0 {
-		return nil, errors.New("声明式协议已完成但没有返回媒体地址")
+		return nil, errors.New("Declarative protocol completed but no media address returned")
 	}
 	items := make([]interface{}, 0, len(references))
 	for index, reference := range references {
@@ -169,10 +169,10 @@ func FinishProtocolAdapterResult(ctx context.Context, input Input, adapter proto
 		data, mimeType, err = download(ctx)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("声明式协议结果下载失败：%w", err)
+		return nil, fmt.Errorf("Declarative protocol result download failed: %w", err)
 	}
 	if len(data) == 0 {
-		return nil, errors.New("声明式协议结果下载返回空内容")
+		return nil, errors.New("Declarative protocol results download returns empty content")
 	}
 	mimeType = strings.TrimSpace(strings.Split(mimeType, ";")[0])
 	if mimeType == "" {
@@ -188,7 +188,7 @@ func FinishProtocolAdapterResult(ctx context.Context, input Input, adapter proto
 	case "audio":
 		downloaded.Audios = []protocol.MediaReference{reference}
 	default:
-		return nil, fmt.Errorf("声明式协议结果下载不支持生成模式 %s", input.Mode)
+		return nil, fmt.Errorf("Declarative protocol result download does not support build mode %s", input.Mode)
 	}
 	return FinishProtocolResult(ctx, input.Config, input.Mode, taskID, downloaded, pollPolicy)
 }
@@ -218,7 +218,7 @@ func queryProtocolVideoSource(ctx context.Context, input Input, adapter protocol
 		return VideoResultSource{}, err
 	}
 	if returnedID := strings.TrimSpace(state.TaskID); returnedID != "" && returnedID != strings.TrimSpace(taskID) {
-		return VideoResultSource{}, errors.New("查询结果与原视频任务不一致，已停止取回")
+		return VideoResultSource{}, errors.New("The query result is inconsistent with the original video task, and the retrieval has been stopped.")
 	}
 	if state.Status == protocol.StatusFailed || state.Status == protocol.StatusCancelled {
 		return VideoResultSource{}, ProtocolResultError(state.Message, taskID, body)
@@ -234,7 +234,7 @@ func queryProtocolVideoSource(ctx context.Context, input Input, adapter protocol
 			for _, candidate := range state.Result.Videos {
 				if strings.TrimSpace(candidate.ID) == referenceID {
 					if found {
-						return VideoResultSource{}, errors.New("原视频任务返回重复的产物 ID，已停止取回")
+						return VideoResultSource{}, errors.New("The original video task returned a duplicate product ID and the retrieval has been stopped.")
 					}
 					reference, found = candidate, true
 				}
@@ -248,12 +248,12 @@ func queryProtocolVideoSource(ctx context.Context, input Input, adapter protocol
 		return videoURLSource(input.Config, rawURL), err
 	}
 	if referenceID != "" || index != 0 {
-		return VideoResultSource{}, errors.New("原视频任务没有返回对应视频产物，已停止取回")
+		return VideoResultSource{}, errors.New("The original video task did not return the corresponding video product and the retrieval has been stopped.")
 	}
 	resultAdapter, ok := adapter.(protocol.ResultAdapter)
 	capability, capable := adapter.(protocol.ResultCapability)
 	if !ok || !capable || !capability.ResultAvailable() {
-		return VideoResultSource{}, errors.New("原视频任务没有返回可取回的结果")
+		return VideoResultSource{}, errors.New("The original video task did not return retrievable results.")
 	}
 	spec, err = resultAdapter.BuildResult(ctx, pollContext)
 	if err != nil {
@@ -293,10 +293,10 @@ func ProtocolMediaBytes(ctx context.Context, config Config, reference protocol.M
 			break
 		}
 		if waitErr := SleepContext(ctx, time.Duration(attempt+1)*time.Second); waitErr != nil {
-			return nil, "", fmt.Errorf("声明式协议媒体结果下载失败：%w", waitErr)
+			return nil, "", fmt.Errorf("Declarative protocol media result download failed: %w", waitErr)
 		}
 	}
-	return nil, "", fmt.Errorf("声明式协议媒体结果下载失败：%w", err)
+	return nil, "", fmt.Errorf("Declarative protocol media result download failed: %w", err)
 }
 
 func ProtocolMediaBytesOnce(ctx context.Context, config Config, reference protocol.MediaReference) ([]byte, string, error) {
@@ -306,7 +306,7 @@ func ProtocolMediaBytesOnce(ctx context.Context, config Config, reference protoc
 	}
 	value := strings.TrimSpace(reference.URL)
 	if value == "" {
-		return nil, "", errors.New("声明式协议媒体结果地址为空")
+		return nil, "", errors.New("Declarative protocol media result address is empty")
 	}
 	data, mimeType, err := GetProviderExternalBinary(WithRequestKind(ctx, "download"), config, value)
 	return data, NormalizedMediaMIMEType(mimeType, data), err
@@ -366,10 +366,10 @@ func ProtocolResultError(message, taskID string, bodies ...[]byte) error {
 	}
 	message = strings.TrimSpace(message)
 	if message == "" {
-		message = "上游返回失败状态"
+		message = "Upstream returns failure status"
 	}
 	if taskID == "" {
 		return errors.New(message)
 	}
-	return fmt.Errorf("声明式协议任务失败（任务 %s）：%s", taskID, message)
+	return fmt.Errorf("Declarative protocol task failed (task %s): %s", taskID, message)
 }

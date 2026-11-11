@@ -30,7 +30,7 @@ const mockAssets: Asset[] = [
     {
         id: "asset-img-5",
         kind: "image",
-        title: "生成图片",
+        title: "Generate pictures",
         coverUrl: pixelDataUrl,
         category: "material",
         status: "confirmed",
@@ -42,7 +42,7 @@ const mockAssets: Asset[] = [
     {
         id: "asset-audio-1",
         kind: "audio",
-        title: "音频",
+        title: "Audio",
         coverUrl: "",
         category: "material",
         status: "confirmed",
@@ -54,7 +54,7 @@ const mockAssets: Asset[] = [
     {
         id: "asset-char-1",
         kind: "entity",
-        title: "角色主角",
+        title: "Protagonist",
         coverUrl: "",
         category: "character",
         status: "confirmed",
@@ -66,7 +66,7 @@ const mockAssets: Asset[] = [
     {
         id: "asset-prop-1",
         kind: "image",
-        title: "道具钥匙",
+        title: "prop key",
         coverUrl: pixelDataUrl,
         category: "prop",
         status: "confirmed",
@@ -83,28 +83,28 @@ const mockReferences: CanvasResourceReference[] = [
     {
         id: "ref-node-1",
         kind: "audio",
-        label: "音频节点 1",
-        title: "音频节点 1",
+        label: "Audio node 1",
+        title: "Audio node 1",
         nodeId: "node-1",
         active: true,
     },
     {
         id: "ref-node-2",
         kind: "text",
-        label: "提示词节点 2",
-        title: "提示词节点 2",
+        label: "Prompt word node 2",
+        title: "Prompt word node 2",
         nodeId: "node-2",
         active: true,
     },
     {
         id: "ref-skill-1",
         kind: "skill",
-        label: "智能分镜技能",
-        title: "智能分镜技能",
+        label: "Intelligent storyboard skills",
+        title: "Intelligent storyboard skills",
         active: true,
         skill: {
             skillId: "storyboard-auto",
-            description: "根据剧本文本自动拆分分镜镜头",
+            description: "Automatically split storyboard shots based on script text",
             version: "1.0.0",
             fileCount: 4,
         },
@@ -112,8 +112,8 @@ const mockReferences: CanvasResourceReference[] = [
     {
         id: "ref-node-char-1",
         kind: "character",
-        label: "唐妙菱",
-        title: "唐妙菱",
+        label: "Tang Miaoling",
+        title: "Tang Miaoling",
         nodeId: "node-char-1",
         active: true,
     },
@@ -133,12 +133,12 @@ function TestApp() {
 
     return (
         <div style={{ padding: "40px", maxWidth: "680px", margin: "0 auto", background: "#18181b", minHeight: "100vh", color: "#fff" }}>
-            <button id="open-expanded" onClick={() => setExpanded(true)}>放大编辑</button>
+            <button id="open-expanded" onClick={() => setExpanded(true)}>EnlargeEdit</button>
             <select id="modal-layer" value={modalLayer} onChange={(event) => setModalLayer(Number(event.target.value))}><option value={1200}>1200</option><option value={2400}>2400</option></select>
             <output id="expanded-prompt">{expandedPrompt}</output>
             <output id="parameter-update">{parameterUpdate}</output>
             <ConfigProvider theme={getAntThemeConfig(true)}>
-                <Modal title="放大提示词" open={expanded} zIndex={modalLayer} footer={null} onCancel={() => setExpanded(false)}>
+                <Modal title="Enlarge prompt word" open={expanded} zIndex={modalLayer} footer={null} onCancel={() => setExpanded(false)}>
                     <CanvasResourceMentionTextarea aria-label="expanded-editor" value={expandedPrompt} references={mockReferences} includeAssetLibrary onChange={setExpandedPrompt} onSelectReference={(ref) => ref} style={{ height: 140 }} />
                     <div data-testid="image-settings">
                         <CanvasImageSettingsPopover config={imageConfig} onConfigChange={(key, value) => { setImageConfig((config) => ({ ...config, [key]: value })); setParameterUpdate(`image:${key}:${value}`); }} />
@@ -163,7 +163,7 @@ function TestApp() {
                     includeAssetLibrary
                     onChange={setRichPrompt}
                     onSelectReference={(ref) => ref}
-                    placeholder="富文本输入框，可用 @ 引用"
+                    placeholder="Rich text input box, can be referenced by @"
                     style={{ width: "100%", height: "80px", color: "#fff", background: "transparent", border: "none", resize: "none" }}
                 />
             </div>
@@ -176,7 +176,7 @@ function TestApp() {
                     onClick={() => setUnderlyingClicks((prev) => prev + 1)}
                     style={{ padding: "8px 16px", background: "#3f3f46", border: "none", borderRadius: "4px", color: "#fff" }}
                 >
-                    底层测试按钮
+                                        Bottom test button
                 </button>
             </div>
 
@@ -195,7 +195,7 @@ function TestApp() {
                         highlightLabels={false}
                         onChange={setPlainPrompt}
                         onSelectReference={(ref) => ref}
-                        placeholder="纯原生 textarea 输入框"
+                        placeholder="Pure native textarea input box"
                         style={{ width: "100%", height: "80px", color: "#fff", background: "transparent", border: "none", resize: "none" }}
                     />
                 </div>
@@ -215,7 +215,7 @@ function TestApp() {
                         autoLinkEnabled
                         onChange={setAutoLinkPrompt}
                         onSelectReference={(ref) => ref}
-                        placeholder="输入角色名后按 Tab 自动补全引用"
+                        placeholder="After entering the character name, press Tab to automatically complete the reference."
                         style={{ width: "100%", height: "80px", color: "#fff", background: "transparent", border: "none", resize: "none" }}
                     />
                 </div>

@@ -19,10 +19,10 @@ func TestAssistantProposalFailureKeepsBusinessStatus(t *testing.T) {
 		err  error
 		want int
 	}{
-		{"proposal changed", operations.Conflict("production_changed", "生成方案已变化", nil), http.StatusConflict},
-		{"proposal revoked", operations.PreconditionFailed("production_revoked", "生成方案已撤销", nil), http.StatusPreconditionFailed},
-		{"invalid kind", operations.InvalidArg("invalid_kind", "方案类型无效"), http.StatusBadRequest},
-		{"turn missing", &app.AssistantTurnError{Reason: app.AssistantTurnReasonNotFound, Message: "回合不存在"}, http.StatusNotFound},
+		{"proposal changed", operations.Conflict("production_changed", "The generation plan has changed", nil), http.StatusConflict},
+		{"proposal revoked", operations.PreconditionFailed("production_revoked", "The generation plan has been withdrawn", nil), http.StatusPreconditionFailed},
+		{"invalid kind", operations.InvalidArg("invalid_kind", "Invalid plan type"), http.StatusBadRequest},
+		{"turn missing", &app.AssistantTurnError{Reason: app.AssistantTurnReasonNotFound, Message: "Round does not exist"}, http.StatusNotFound},
 		{"unexpected", errors.New("database closed"), http.StatusInternalServerError},
 	}
 	for _, tc := range cases {

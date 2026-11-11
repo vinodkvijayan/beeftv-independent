@@ -41,11 +41,11 @@ func reconcileStoryboardDocument(before, after json.RawMessage) (json.RawMessage
 		for _, rawRow := range rows {
 			row, ok := rawRow.(map[string]any)
 			if !ok {
-				return nil, kernel.NewAppError(http.StatusBadRequest, "分镜行格式错误")
+				return nil, kernel.NewAppError(http.StatusBadRequest, "Storyline format error")
 			}
 			rowID := rowIDOf(row)
 			if rowID == "" || remaining[rowID] {
-				return nil, kernel.NewAppError(http.StatusBadRequest, "分镜行 ID 为空或重复")
+				return nil, kernel.NewAppError(http.StatusBadRequest, "Storyline ID is empty or duplicate")
 			}
 			remaining[rowID] = true
 			old := findStoryboardRow(oldRows, rowID)
@@ -54,7 +54,7 @@ func reconcileStoryboardDocument(before, after json.RawMessage) (json.RawMessage
 			}
 			seconds, ok := row["durationSeconds"].(float64)
 			if !ok {
-				return nil, kernel.NewAppError(http.StatusBadRequest, "分镜时长必填")
+				return nil, kernel.NewAppError(http.StatusBadRequest, "Storyboard duration is required")
 			}
 			if err := validateStoryboardDraft(StoryboardRowDraft{DurationSeconds: &seconds}); err != nil {
 				return nil, err
@@ -83,7 +83,7 @@ func reconcileStoryboardDocument(before, after json.RawMessage) (json.RawMessage
 	// UI journal receipts confirm the submitted document, so never silently
 	// persist a different graph. Manual UI already performs these transformations.
 	if string(canonical) != string(original) {
-		return nil, kernel.NewAppError(http.StatusBadRequest, "分镜修改须清除旧提示词模板、删除行的连线并重排镜号")
+		return nil, kernel.NewAppError(http.StatusBadRequest, "To modify the storyboard, you need to clear the old prompt word template, delete the lines of the lines, and rearrange the shot numbers.")
 	}
 	return after, nil
 }

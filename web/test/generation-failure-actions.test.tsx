@@ -11,22 +11,22 @@ import { CanvasNodeType } from "../src/types/canvas";
 
 test("uncertain submission offers original task instead of resubmitting", () => {
     const html = renderToStaticMarkup(<GenerationFailureNotice explanation={explainGenerationError({ code: "video_submission_unknown" })} onRetry={() => {}} onOpenDetails={() => {}} />);
-    expect(html).toContain("查看原任务");
-    expect(html).not.toContain("重新生成");
+    expect(html).toContain("View original task");
+    expect(html).not.toContain("Regenerate");
 });
 
 test("invalid reference explains limits without repeating unchanged input", () => {
-    const html = renderToStaticMarkup(<GenerationFailureNotice explanation={explainGenerationError("第 2 段参考音频时长为 0.90 秒，需要 2–30 秒；请裁剪或更换这段素材后再提交")} onRetry={() => {}} />);
-    expect(html).toContain("第 2 段参考音频");
-    expect(html).toContain("2–30 秒");
-    expect(html).not.toContain("上游返回：");
-    expect(html).not.toContain("重新生成");
+    const html = renderToStaticMarkup(<GenerationFailureNotice explanation={explainGenerationError("The second reference audio is 0.90 seconds long and takes 2–30 seconds; please crop or replace this material before submitting")} onRetry={() => {}} />);
+    expect(html).toContain("Reference audio segment 2");
+    expect(html).toContain("2–30 seconds");
+    expect(html).not.toContain("Upstream return:");
+    expect(html).not.toContain("Regenerate");
 });
 
 test("shared batch outputs keep task details without duplicating the full diagnostic controls", () => {
     const html = renderToStaticMarkup(<GenerationFailureNotice summaryOnly explanation={explainGenerationError({ code: "submission_uncertain" })} onOpenDetails={() => {}} />);
-    expect(html).toContain("查看原任务");
-    expect(html).not.toContain("复制排查信息");
+    expect(html).toContain("View original task");
+    expect(html).not.toContain("Copy troubleshooting information");
     expect(html).not.toContain("generation-failure-action\"");
 });
 
@@ -35,7 +35,7 @@ test("upstream BYOK and gateway messages render alongside classified category co
         status: 403,
         data: {
             error: {
-                message: "这个模型的线路已经在这把密钥的「渠道管理」里被全部取消勾选了，所以当前没有可用渠道。请打开这把密钥的「渠道管理」，至少勾上一条线路后再试。 (request id: req.20261101.zB868dI1)",
+                message: "The lines of this model have all been unchecked in the \"Channel Management\" of this key, so there are currently no available channels. Please open \"Channel Management\" for this key, hook up at least one line and try again. (request id: req.20261101.zB868dI1)",
                 type: "invalid_request_error",
                 param: "",
                 code: "channel_excluded",
@@ -44,9 +44,9 @@ test("upstream BYOK and gateway messages render alongside classified category co
     };
     const channelExplained = explainGenerationError(channelError);
     const channelHtml = renderToStaticMarkup(<GenerationFailureNotice explanation={channelExplained} />);
-    expect(channelHtml).toContain("当前渠道没有使用该模型的权限");
-    expect(channelHtml).toContain("请更换模型或检查渠道权限");
-    expect(channelHtml).toContain('<p class="generation-failure-upstream">上游返回：这个模型的线路已经在这把密钥的「渠道管理」里被全部取消勾选了，所以当前没有可用渠道。请打开这把密钥的「渠道管理」，至少勾上一条线路后再试。 (channel_excluded)</p>');
+    expect(channelHtml).toContain("The current channel does not have permission to use this model");
+    expect(channelHtml).toContain("Please change the model or check the channel permissions");
+    expect(channelHtml).toContain('<p class="generation-failure-upstream">Upstream return: The lines of this model have all been unchecked in the "Channel Management" of this key, so there are currently no available channels. Please open "Channel Management" for this key, hook up at least one line and try again. (channel_excluded)</p>');
     expect(channelHtml).not.toContain("req.20261101.zB868dI1");
 
     // Persisted backend task with failureDiagnostics preserves upstream message and providerCode.
@@ -57,53 +57,53 @@ test("upstream BYOK and gateway messages render alongside classified category co
             context={{
                 failureDiagnostics: {
                     source: "upstream_http",
-                    summary: "这个模型的线路已经在这把密钥的「渠道管理」里被全部取消勾选了，所以当前没有可用渠道。 (request id: req.20261101.zB868dI1)",
+                    summary: "The lines of this model have all been unchecked in the \"Channel Management\" of this key, so there are currently no available channels. (request id: req.20261101.zB868dI1)",
                     providerCode: "channel_excluded",
                     httpStatus: 403,
                 },
             }}
         />,
     );
-    expect(taskDiagnosticsHtml).toContain("上游返回：这个模型的线路已经在这把密钥的「渠道管理」里被全部取消勾选了，所以当前没有可用渠道。 (channel_excluded)");
+    expect(taskDiagnosticsHtml).toContain("Upstream return: The lines of this model have all been unchecked in the \"Channel Management\" of this key, so there are currently no available channels. (channel_excluded)");
 
     // Persisted frontend node metadata preserves both generationErrorSummary and non-generic generationProviderCode across reload.
     const savedChannelMeta = generationFailureMetadata(channelError, "draw cat");
     expect(savedChannelMeta.generationProviderCode).toBe("channel_excluded");
     const reloadedChannelExplained = explainGenerationError({ code: savedChannelMeta.generationErrorCode, message: savedChannelMeta.errorDetails });
     expect(formatUpstreamFailureDetail(reloadedChannelExplained, { errorSummary: savedChannelMeta.generationErrorSummary, providerCode: savedChannelMeta.generationProviderCode })).toBe(
-        "上游返回：这个模型的线路已经在这把密钥的「渠道管理」里被全部取消勾选了，所以当前没有可用渠道。请打开这把密钥的「渠道管理」，至少勾上一条线路后再试。 (channel_excluded)",
+        "Upstream return: The lines of this model have all been unchecked in the \"Channel Management\" of this key, so there are currently no available channels. Please open \"Channel Management\" for this key, hook up at least one line and try again. (channel_excluded)",
     );
 
     const missingModelError = { status: 400, data: { error: { message: "Missing 'model' field", type: "invalid_request_error", code: 400 } } };
     const savedMeta = generationFailureMetadata(missingModelError, "draw cat");
     const reloadedNodeExplained = explainGenerationError({ code: savedMeta.generationErrorCode, message: savedMeta.errorDetails });
-    expect(formatUpstreamFailureDetail(reloadedNodeExplained, { errorSummary: savedMeta.generationErrorSummary })).toBe("上游返回：Missing 'model' field");
+    expect(formatUpstreamFailureDetail(reloadedNodeExplained, { errorSummary: savedMeta.generationErrorSummary })).toBe("Upstream returns: Missing 'model' field");
 
     // Local errors, object-storage wording, reference_upload diagnostics, HTML fragments, paths, and prompt echoes are never rendered as upstream detail.
-    expect(formatUpstreamFailureDetail(explainGenerationError({ status: 500, reason: "local_storage_failed", message: "本地任务保存失败，尚未提交生成" }))).toBe("");
+    expect(formatUpstreamFailureDetail(explainGenerationError({ status: 500, reason: "local_storage_failed", message: "The local task failed to save and the generation has not yet been submitted." }))).toBe("");
     expect(formatUpstreamFailureDetail(explainGenerationError(new Error("draw failed: canvas node not found")))).toBe("");
-    expect(formatUpstreamFailureDetail(explainGenerationError("OSS 上传失败：对象存储不可用"))).toBe("");
-    expect(explainGenerationError("OSS 上传失败：对象存储不可用").summary).not.toContain("OSS");
+    expect(formatUpstreamFailureDetail(explainGenerationError("OSS upload failed: Object storage is unavailable"))).toBe("");
+    expect(explainGenerationError("OSS upload failed: Object storage is unavailable").summary).not.toContain("OSS");
     expect(formatUpstreamFailureDetail(explainGenerationError(new Error("open /Users/private/image.png: permission denied")))).toBe("");
     for (const pathMessage of [
         "failed to read /app/storage/cache/123.bin",
         "failed to read /data/foo/secret.png",
         "failed to read /custom/root/secret.png",
-        "读取/Users/private/image.png失败",
-        "无法打开（/Volumes/ExternalWork/secret.png）",
-        "读取/app/storage/cache.bin失败",
-        "错误发生在（/data/foo/a.png）",
+        "Failed to read /Users/private/image.png",
+        "Unable to open (/Volumes/ExternalWork/secret.png)",
+        "Failed to read /app/storage/cache.bin",
+        "The error occurred at (/data/foo/a.png)",
         "file:///Users/private/image.png",
         "open //Users/private/image.png",
         "path=//Volumes/ExternalWork/secret.png",
-        "读取//Users/private/image.png失败",
+        "Failed to read //Users/private/image.png",
     ]) {
         const pathError = { status: 400, data: { error: { message: pathMessage } } };
         expect(formatUpstreamFailureDetail(explainGenerationError(pathError))).toBe("");
         expect(generationFailureMetadata(pathError, "p").generationErrorSummary || "").toBe("");
     }
-    expect(formatUpstreamFailureDetail(reloadedNodeExplained, { failureDiagnostics: { source: "local_validation", summary: "当前图片模型最多支持 2 张参考图" } })).toBe("");
-    expect(formatUpstreamFailureDetail(reloadedNodeExplained, { failureDiagnostics: { source: "reference_upload", summary: "参考图 2 上传文件失败：HTTP 403 SignatureDoesNotMatch", providerCode: "SignatureDoesNotMatch" } })).toBe("");
+    expect(formatUpstreamFailureDetail(reloadedNodeExplained, { failureDiagnostics: { source: "local_validation", summary: "The current image model supports up to 2 reference images." } })).toBe("");
+    expect(formatUpstreamFailureDetail(reloadedNodeExplained, { failureDiagnostics: { source: "reference_upload", summary: "Refer to Figure 2 File upload failed: HTTP 403 SignatureDoesNotMatch", providerCode: "SignatureDoesNotMatch" } })).toBe("");
     expect(formatUpstreamFailureDetail(explainGenerationError({ status: 502, data: "<html>502 Bad Gateway</html>" }))).toBe("");
     expect(formatUpstreamFailureDetail(explainGenerationError({ status: 400, data: { error: { message: "Error: <div>Gateway error</div>" } } }))).toBe("");
     expect(formatUpstreamFailureDetail(explainGenerationError({ status: 400, data: { error: { message: "see <b>details</b>" } } }))).toBe("");
@@ -111,7 +111,7 @@ test("upstream BYOK and gateway messages render alongside classified category co
     for (const echoedPrompt of [
         'bad request: {"prompt":"user secret prompt"}',
         "Invalid value for 'prompt': 'user secret prompt'",
-        "提示词：用户的私密剧情",
+        "Prompt word: User’s private plot",
         "content: a private story idea",
         '{"content":"a private story idea"}',
         "The content field contains a private story idea",
@@ -138,7 +138,7 @@ test("upstream BYOK and gateway messages render alongside classified category co
     }
 
     const secretDetail = formatUpstreamFailureDetail(explainGenerationError({ status: 403, data: { error: { message: "Custom upstream rejection https://secret.example/path?token=PRIVATE api_key=PRIVATE", code: "custom_code" } } }));
-    expect(secretDetail).toContain("上游返回：Custom upstream rejection");
+    expect(secretDetail).toContain("Upstream return: Custom upstream rejection");
     expect(secretDetail).not.toContain("PRIVATE");
     expect(secretDetail).not.toContain("https://");
 
@@ -184,17 +184,17 @@ test("creation text recovery and canvas node success clear or preserve upstream 
     };
     const recoveredText = recoverCreationTextTask(
         { mode: "text", status: "pending", content: "", taskIds: ["text-1"] },
-        [{ id: "text-1", type: "canvas_text", status: "failed", prompt: "hi", attempts: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:01Z", errorCode: "permission", error: "当前渠道没有使用该模型的权限。请更换模型或检查渠道权限。", failureDiagnostics: failedDiagnostics }],
+        [{ id: "text-1", type: "canvas_text", status: "failed", prompt: "hi", attempts: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:01Z", errorCode: "permission", error: "The current channel does not have permission to use this model. Please change the model or check the channel permissions.", failureDiagnostics: failedDiagnostics }],
     );
     expect(recoveredText?.taskFailureDiagnostics).toEqual(failedDiagnostics);
     const reconciled = reconcileCreationTaskMessages(
         { recoverCreationTextTask } as unknown as Parameters<typeof reconcileCreationTaskMessages>[0],
-        [{ id: "c-1", title: "对话", updatedAt: "2026-11-01T00:00:00Z", messages: [{ id: "m-1", role: "assistant", mode: "text", status: "pending", content: "", createdAt: "2026-11-01T00:00:00Z", taskIds: ["text-1"] }] }],
-        [{ id: "text-1", type: "canvas_text", status: "failed", prompt: "hi", attempts: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:01Z", errorCode: "permission", error: "当前渠道没有使用该模型的权限。请更换模型或检查渠道权限。", failureDiagnostics: failedDiagnostics }],
+        [{ id: "c-1", title: "dialogue", updatedAt: "2026-11-01T00:00:00Z", messages: [{ id: "m-1", role: "assistant", mode: "text", status: "pending", content: "", createdAt: "2026-11-01T00:00:00Z", taskIds: ["text-1"] }] }],
+        [{ id: "text-1", type: "canvas_text", status: "failed", prompt: "hi", attempts: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:01Z", errorCode: "permission", error: "The current channel does not have permission to use this model. Please change the model or check the channel permissions.", failureDiagnostics: failedDiagnostics }],
     );
     const recoveredMsg = reconciled[0]!.messages[0]!;
     expect(formatUpstreamFailureDetail(explainGenerationError({ code: recoveredMsg.generationErrorCode, message: recoveredMsg.error }), { errorSummary: recoveredMsg.generationErrorSummary, providerCode: recoveredMsg.generationProviderCode, failureDiagnostics: recoveredMsg.taskFailureDiagnostics })).toBe(
-        "上游返回：Upstream model rejected parameter combination (channel_excluded)",
+        "Upstream return: Upstream model rejected parameter combination (channel_excluded)",
     );
 
     // Canvas node success clears stale generationErrorSummary and generationProviderCode so a later local failure does not show old upstream text.
@@ -209,7 +209,7 @@ test("creation text recovery and canvas node success clear or preserve upstream 
             status: "error" as const,
             content: "image:ready",
             taskId: "task-1",
-            errorDetails: "当前渠道没有使用该模型的权限。请更换模型或检查渠道权限。",
+            errorDetails: "The current channel does not have permission to use this model. Please change the model or check the channel permissions.",
             generationErrorCode: "permission",
             generationErrorSummary: "stale upstream summary",
             generationProviderCode: "channel_excluded",
@@ -237,7 +237,7 @@ test("creation text recovery and canvas node success clear or preserve upstream 
     expect(overwrittenNoCode.generationProviderCode).toBeUndefined();
     expect(overwrittenNoCode.taskFailureDiagnostics).toBeUndefined();
     expect(formatUpstreamFailureDetail(explainGenerationError({ code: overwrittenNoCode.generationErrorCode, message: overwrittenNoCode.errorDetails }), { errorSummary: overwrittenNoCode.generationErrorSummary, providerCode: overwrittenNoCode.generationProviderCode, failureDiagnostics: overwrittenNoCode.taskFailureDiagnostics })).toBe(
-        "上游返回：New parameter rejection without code",
+        "Upstream return: New parameter rejection without code",
     );
 
     const overwrittenModeration = {
@@ -251,7 +251,7 @@ test("creation text recovery and canvas node success clear or preserve upstream 
 
     const overwrittenDepthFailure = {
         ...failedNode.metadata,
-        ...depthCaptureWaitFailureMetadata(new Error("深度处理失败")),
+        ...depthCaptureWaitFailureMetadata(new Error("Depth processing failed")),
     };
     expect(overwrittenDepthFailure.generationErrorSummary).toBeUndefined();
     expect(overwrittenDepthFailure.generationProviderCode).toBeUndefined();

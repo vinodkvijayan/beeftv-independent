@@ -60,7 +60,7 @@ func (s *Service) builtinMarketReleases() ([]skillhub.Release, map[string]*model
 		releaseID := skill.ID + "-" + versionLabel
 		author := strings.TrimSpace(skill.AuthorName)
 		if author == "" {
-			author = "BeefTV 官方"
+			author = "BeefTV Official"
 		}
 		publishedAt := skill.UpdatedAt.UTC().Format(time.RFC3339)
 		rel := skillhub.Release{
@@ -137,7 +137,7 @@ func (s *Service) findBuiltinMarketRelease(id, releaseID string) (*skillhub.Rele
 
 func (s *Service) readBuiltinMarketFile(rel *skillhub.Release, ver *model.SkillVersion, name string, offset, limit int) (*skillhub.FileChunk, error) {
 	if !skillhub.SafeFilePath(name) || offset < 0 || limit < 0 || limit > 64<<10 || (limit > 0 && limit < 4) {
-		return nil, &skillhub.Error{Status: 400, Reason: "invalid_file_range", Message: "文件路径或读取范围无效"}
+		return nil, &skillhub.Error{Status: 400, Reason: "invalid_file_range", Message: "Invalid file path or read range"}
 	}
 	if limit == 0 {
 		limit = 32 << 10
@@ -151,18 +151,18 @@ func (s *Service) readBuiltinMarketFile(rel *skillhub.Release, ver *model.SkillV
 		}
 	}
 	if file == nil {
-		return nil, &skillhub.Error{Status: 404, Reason: "not_found", Message: "文件不在此发布版本清单中"}
+		return nil, &skillhub.Error{Status: 404, Reason: "not_found", Message: "File is not in this release manifest"}
 	}
 	if file.Size < 0 || file.Size > maxSkillPackageBytes {
-		return nil, &skillhub.Error{Status: 502, Reason: "file_integrity", Message: "文件大小无效"}
+		return nil, &skillhub.Error{Status: 502, Reason: "file_integrity", Message: "Invalid file size"}
 	}
 	data, err := s.readSkillArchiveEntry(ver, name)
 	if err != nil || int64(len(data)) != file.Size || skillhub.Digest(data) != file.SHA256 {
-		return nil, &skillhub.Error{Status: 502, Reason: "file_integrity", Message: "文件内容与发布版本不符"}
+		return nil, &skillhub.Error{Status: 502, Reason: "file_integrity", Message: "The file content does not match the published version"}
 	}
 	text := utf8.Valid(data)
 	if offset > len(data) || (text && offset < len(data) && !utf8.RuneStart(data[offset])) {
-		return nil, &skillhub.Error{Status: 400, Reason: "invalid_file_range", Message: "文件读取起点无效"}
+		return nil, &skillhub.Error{Status: 400, Reason: "invalid_file_range", Message: "The file reading starting point is invalid"}
 	}
 	end := min(offset+limit, len(data))
 	if text {

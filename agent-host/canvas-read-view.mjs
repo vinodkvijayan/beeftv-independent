@@ -7,11 +7,11 @@ const noisy = new Set(['taskFailureDiagnostics', 'generationFailureDiagnostics']
 
 export const CANVAS_READ_VIEW_SCHEMA = {
   type: 'object', additionalProperties: false,
-  description: '只读分页或按 nodeId+fieldPath 读取完整长字段。',
+  description: 'Read only pagination or read full long field by nodeId+fieldPath.',
   properties: {
     section: { type: 'string', enum: ['nodes', 'connections', 'canvas'] },
     nodeId: { type: 'string' },
-    fieldPath: { type: 'string', description: 'JSON Pointer（如 /metadata/prompt）' },
+    fieldPath: { type: 'string', description: 'JSON Pointer (such as /metadata/prompt)' },
     offset: { type: 'integer', minimum: 0 },
     limit: { type: 'integer', minimum: 1, maximum: MAX_ITEMS },
     textOffset: { type: 'integer', minimum: 0 },
@@ -31,7 +31,7 @@ export function canvasReadView(data, request = {}) {
   if (!doc || typeof doc !== 'object' || Array.isArray(doc)) throw Error('invalid_canvas_read_result');
   const revision = doc.revision;
   if (!Number.isSafeInteger(revision) || revision < 0) throw Error('canvas_read_revision_missing');
-  if (request.expectedRevision !== undefined && revision !== request.expectedRevision) throw Error('canvas_read_revision_changed: 画布已变化，请重新读取第一页');
+  if (request.expectedRevision !== undefined && revision !== request.expectedRevision) throw Error('canvas_read_revision_changed: The canvas has changed, please reread the first page');
   const nodes = Array.isArray(doc.nodes) ? doc.nodes : [];
   const base = { canvasId: data.result.canvasId, revision };
   let partialFields = 0;
@@ -60,7 +60,7 @@ export function canvasReadView(data, request = {}) {
       if (bytes([...items, item]) > budget) break;
       items.push(item);
     }
-    if (offset < values.length && !items.length) throw Error('canvas_read_field_too_large: 请按 nodeId/fieldPath 定位字段');
+    if (offset < values.length && !items.length) throw Error('canvas_read_field_too_large: Please locate the field by nodeId/fieldPath');
     const next = offset + items.length;
     return { items, page: { offset, returned: items.length, total: values.length, recordsComplete: next >= values.length,
       ...(next < values.length ? { nextOffset: next } : {}) } };
@@ -124,6 +124,6 @@ export function canvasReadView(data, request = {}) {
         canvasFields: Object.keys(doc), timelinePresent: doc.timeline != null } };
   }
   const response = { ...data, result: output };
-  if (bytes(response) > MAX_BYTES) throw Error('canvas_read_field_too_large: 请按 nodeId/fieldPath 定位字段');
+  if (bytes(response) > MAX_BYTES) throw Error('canvas_read_field_too_large: Please locate the field by nodeId/fieldPath');
   return response;
 }

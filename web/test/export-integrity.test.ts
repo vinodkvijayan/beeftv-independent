@@ -75,8 +75,8 @@ afterEach(async () => {
 
 function project(keys: string[]): CanvasProject {
     return {
-        id: "canvas-fixture", title: "测试画布", nodes: keys.map((storageKey, index) => ({
-            id: `node-${index}`, type: "video", title: `片段 ${index + 1}`,
+        id: "canvas-fixture", title: "test canvas", nodes: keys.map((storageKey, index) => ({
+            id: `node-${index}`, type: "video", title: `fragment${index + 1}`,
             video: { storageKey, url: "", width: 320, height: 180 },
         })), edges: [],
     } as unknown as CanvasProject;
@@ -87,7 +87,7 @@ test("a stalled media read reports progress and cancellation prevents any later 
     blockedReads.set("video:blocked", new Promise<Blob>((resolve) => { finishRead = resolve; }));
     const controller = new AbortController();
     const phases: string[] = [];
-    const exporting = exportCanvasProjects([project(["video:blocked"])], "取消测试", { signal: controller.signal, onProgress: (progress) => phases.push(progress.phase) });
+    const exporting = exportCanvasProjects([project(["video:blocked"])], "Cancel test", { signal: controller.signal, onProgress: (progress) => phases.push(progress.phase) });
     expect(phases).toEqual(["media"]);
     controller.abort();
     await expect(exporting).rejects.toHaveProperty("name", "AbortError");
@@ -100,7 +100,7 @@ test("a stalled media read reports progress and cancellation prevents any later 
 
 test("per-file export progress cannot evict a real bind failure", async () => {
     setDiagnosticUserScope("export-retention");
-    recordDiagnosticEvent({ category: "task", level: "error", code: "retained-bind-failure", message: "绑定失败" });
+    recordDiagnosticEvent({ category: "task", level: "error", code: "retained-bind-failure", message: "Binding failed" });
     const keys = Array.from({ length: 600 }, (_, index) => `video:retention-${index}`);
     for (const key of keys) blobs.set(key, new Blob(["x"]));
     await exportCanvasProjects([project(keys)]);
@@ -114,7 +114,7 @@ test("per-file export progress cannot evict a real bind failure", async () => {
 
 function mediaAsset(key?: string): Asset {
     return {
-        id: "asset-fixture", kind: "audio", title: "配音", coverUrl: "", tags: [],
+        id: "asset-fixture", kind: "audio", title: "Dubbing", coverUrl: "", tags: [],
         createdAt: "2026-09-30", updatedAt: "2026-09-30",
         data: { storageKey: key, url: "", bytes: 4, mimeType: "audio/wav" },
     };
@@ -137,7 +137,7 @@ test("folder cover export embeds canonical bytes and drops source resource ident
     const canvas = { ...project([]), folderId: "folder" };
     const read = spyOn(http, "raw").mockResolvedValue({ data: new Blob(["cover bytes"], { type: "image/jpeg" }) } as never);
     try {
-        await exportCanvasProjects([canvas], "备份", { folders: [{ id: "folder", name: "剧集", createdAt: "", updatedAt: "", coverResourceId: "old-cover", coverDataUrl: "http://old-host.invalid/stale" }] });
+        await exportCanvasProjects([canvas], "backup", { folders: [{ id: "folder", name: "drama series", createdAt: "", updatedAt: "", coverResourceId: "old-cover", coverDataUrl: "http://old-host.invalid/stale" }] });
         const archive = await readZip(new Blob([Buffer.from(saved[0].data, "base64")]));
         const manifest = JSON.parse(await archive.get("projects.json")!.text());
         const folder = manifest.folders[0];
@@ -155,13 +155,13 @@ test("missing and empty blobs are all reported before saving an archive", async 
     const error = await result.catch((cause: unknown) => cause);
     expect(error).toBeInstanceOf(ExportIntegrityError);
     expect((error as InstanceType<typeof ExportIntegrityError>).missingFiles).toEqual([
-        { owner: "测试画布", reference: "video:empty" },
-        { owner: "测试画布", reference: "video:missing" },
+        { owner: "test canvas", reference: "video:empty" },
+        { owner: "test canvas", reference: "video:missing" },
     ]);
     const messages: string[] = [];
     let successes = 0;
     await reportOwnedMediaSave({ error: (text) => messages.push(text), success: () => { successes += 1; } }, result);
-    expect(messages[0]).toContain("缺少 2 个文件");
+    expect(messages[0]).toContain("2 files missing");
     expect(messages[0]).toContain("video:missing");
     expect(messages[0]).toContain("video:empty");
     expect(successes).toBe(0);
@@ -170,10 +170,10 @@ test("missing and empty blobs are all reported before saving an archive", async 
 
 test("missing drawing document blocks current-canvas backup but can be excluded for history", async () => {
     const canvas = { ...project([]), folderId: "unexported-folder" };
-    canvas.nodes = [{ id: "drawing", type: "drawing", title: "分镜手稿", metadata: { drawingId: "sketch" } }] as CanvasProject["nodes"];
-    await expect(exportCanvasProjects([canvas])).rejects.toThrow("画板 分镜手稿");
+    canvas.nodes = [{ id: "drawing", type: "drawing", title: "Storyboard manuscript", metadata: { drawingId: "sketch" } }] as CanvasProject["nodes"];
+    await expect(exportCanvasProjects([canvas])).rejects.toThrow("Drawing board storyboard manuscript");
     expect(saved).toHaveLength(0);
-    expect(await exportCanvasProjects([canvas], "历史", { includeLocalDrawings: false })).toBe("saved");
+    expect(await exportCanvasProjects([canvas], "history", { includeLocalDrawings: false })).toBe("saved");
     const archiveFile = new File([Buffer.from(saved[0].data, "base64")], "history.zip");
     const opened = await openCanvasArchive(archiveFile);
     expect(opened.data.projects).toHaveLength(1);
@@ -183,7 +183,7 @@ test("missing drawing document blocks current-canvas backup but can be excluded 
 
 test("asset archive refuses missing files, including a missing media reference", async () => {
     await expect(exportAssets([mediaAsset("audio:missing")])).rejects.toThrow("audio:missing");
-    await expect(exportAssets([mediaAsset()])).rejects.toThrow("配音：媒体文件");
+    await expect(exportAssets([mediaAsset()])).rejects.toThrow("Dubbing: media files");
     expect(saved).toHaveLength(0);
 });
 
@@ -204,9 +204,9 @@ test("multiple canvases retain nested timeline media and collision-prone names w
     const keys = ["video:a/b", "video:a_b", "audio:voice"];
     for (const [index, key] of keys.entries()) blobs.set(key, new Blob([`media-${index}`], { type: "video/mp4" }));
     const first = project([keys[0], keys[0], keys[1]]);
-    first.timeline = { version: 2, tracks: [], durationMs: 6000, clips: [{ id: "audio", kind: "audio", nodeId: "voice", trackId: "voice", startMs: 0, durationMs: 6000, directMedia: { id: "voice", kind: "audio", title: "配音", storageKey: keys[2] } }] };
-    const second = { ...project([keys[1]]), id: "other-canvas", title: "同名画布" };
-    first.title = "同名画布";
+    first.timeline = { version: 2, tracks: [], durationMs: 6000, clips: [{ id: "audio", kind: "audio", nodeId: "voice", trackId: "voice", startMs: 0, durationMs: 6000, directMedia: { id: "voice", kind: "audio", title: "Dubbing", storageKey: keys[2] } }] };
+    const second = { ...project([keys[1]]), id: "other-canvas", title: "canvas of the same name" };
+    first.title = "canvas of the same name";
     await exportCanvasProjects([first, second]);
     const archive = await readZip(new Blob([Buffer.from(saved[0].data, "base64")]));
     const manifest = JSON.parse(await archive.get("projects.json")!.text());
@@ -223,8 +223,8 @@ test("multiple canvases retain nested timeline media and collision-prone names w
 test("a media read rejection is reported alongside other missing references and never saves", async () => {
     unreadable.add("video:disk-error");
     await expect(exportCanvasProjects([project(["video:disk-error", "video:missing"])]))
-        .rejects.toThrow("video:disk-error（读取失败）");
-    await expect(exportAssets([mediaAsset("video:disk-error")])).rejects.toThrow("读取失败");
+        .rejects.toThrow("video:disk-error (read failed)");
+    await expect(exportAssets([mediaAsset("video:disk-error")])).rejects.toThrow("Read failed");
     expect(saved).toHaveLength(0);
 });
 
@@ -285,10 +285,10 @@ test("duplicate sanitized drawing names fail instead of overwriting archive entr
     drawings.set("a_b", { version: 1, drawingId: "a_b", snapshot: {}, revision: 1, updatedAt: "2026-10-02", shapeCount: 0, pageCount: 1 });
     const canvas = project([]);
     canvas.nodes = [
-        { id: "one", type: "drawing", title: "稿一", metadata: { drawingId: "a/b" } },
-        { id: "two", type: "drawing", title: "稿二", metadata: { drawingId: "a_b" } },
+        { id: "one", type: "drawing", title: "Draft 1", metadata: { drawingId: "a/b" } },
+        { id: "two", type: "drawing", title: "Draft 2", metadata: { drawingId: "a_b" } },
     ] as CanvasProject["nodes"];
-    await expect(exportCanvasProjects([canvas])).rejects.toThrow("重名文件");
+    await expect(exportCanvasProjects([canvas])).rejects.toThrow("File with duplicate name");
     expect(saved).toHaveLength(0);
 });
 
@@ -327,14 +327,14 @@ test("missing media and corrupt canvas ZIP fail before writing restored files", 
             app: "infinite-canvas",
             version: 4,
             exportedAt: "2026-10-02T00:00:00.000Z",
-            projects: [{ project: { id: "broken", title: "损坏画布", nodes: [] }, files: [{ storageKey: "video:missing", path: "projects/broken/files/missing.mp4", mimeType: "video/mp4", bytes: 3 }] }],
+            projects: [{ project: { id: "broken", title: "damage canvas", nodes: [] }, files: [{ storageKey: "video:missing", path: "projects/broken/files/missing.mp4", mimeType: "video/mp4", bytes: 3 }] }],
         }),
     }]);
     await expect(openCanvasArchive(new File([missing], "missing.zip"))).rejects.toThrow("missing.mp4");
     expect(restored.size).toBe(0);
 
     const corrupt = await createZip([{ name: "projects.json", data: "{not-json" }]);
-    await expect(openCanvasArchive(new File([corrupt], "corrupt.zip"))).rejects.toThrow("已损坏");
+    await expect(openCanvasArchive(new File([corrupt], "corrupt.zip"))).rejects.toThrow("damaged");
     expect(restored.size).toBe(0);
 });
 
@@ -342,7 +342,7 @@ test("malformed asset archive fails before writing partial media; duplicate ZIP 
     const archive = await createZip([{ name: "assets.json", data: JSON.stringify({ assets: [], files: [{ storageKey: "audio:a", path: "a.wav" }, { storageKey: "audio:b", path: "b.wav" }] }) }, { name: "a.wav", data: "A" }]);
     await expect(readAssetPackage(new File([archive], "broken.zip"))).rejects.toThrow("b.wav");
     expect(restored.size).toBe(0);
-    await expect(createZip([{ name: "same", data: "A" }, { name: "same", data: "B" }])).rejects.toThrow("重名文件");
+    await expect(createZip([{ name: "same", data: "A" }, { name: "same", data: "B" }])).rejects.toThrow("File with duplicate name");
 });
 
 test("allowMissingMedia exports valid media and produces a restorable archive while reporting skipped files", async () => {
@@ -350,15 +350,15 @@ test("allowMissingMedia exports valid media and produces a restorable archive wh
     unreadable.add("video:broken");
     unreadable.add("corrupt-drawing");
     const canvas = project(["video:ok", "resource:missing-id", "video:broken"]);
-    canvas.nodes.push({ id: "missing-drawing", type: "drawing", title: "丢失画板", metadata: { drawingId: "gone" } } as CanvasProject["nodes"][number]);
-    canvas.nodes.push({ id: "corrupt-drawing-node", type: "drawing", title: "损坏画板", metadata: { drawingId: "corrupt-drawing" } } as CanvasProject["nodes"][number]);
+    canvas.nodes.push({ id: "missing-drawing", type: "drawing", title: "Lost artboard", metadata: { drawingId: "gone" } } as CanvasProject["nodes"][number]);
+    canvas.nodes.push({ id: "corrupt-drawing-node", type: "drawing", title: "Damage artboard", metadata: { drawingId: "corrupt-drawing" } } as CanvasProject["nodes"][number]);
     const skipped: Array<{ owner: string; reference: string }> = [];
-    expect(await exportCanvasProjects([canvas], "容错备份", {
+    expect(await exportCanvasProjects([canvas], "Fault-tolerant backup", {
         allowMissingMedia: true,
         onSkippedFiles: (items) => skipped.push(...items),
     })).toBe("saved");
     expect(skipped).toHaveLength(4);
-    expect(skipped.some((item) => item.reference.includes("损坏画板（读取失败）"))).toBe(true);
+    expect(skipped.some((item) => item.reference.includes("Corrupted artboard (failed to read)"))).toBe(true);
     expect(saved).toHaveLength(1);
     const archiveFile = new File([Buffer.from(saved[0].data, "base64")], "resilient.zip");
     const opened = await openCanvasArchive(archiveFile);
@@ -372,7 +372,7 @@ test("exportCanvasProjectsByIds rejects when any requested canvas fails to load 
     const valid = project(["video:ok"]);
     await expect(
         exportCanvasProjectsByIds(["valid-id", "missing-id"], (id) => (id === "valid-id" ? valid : undefined), { allowMissingMedia: true }),
-    ).rejects.toThrow("画布不存在，无法导出");
+    ).rejects.toThrow("Canvas does not exist and cannot be exported");
     expect(saved).toHaveLength(0);
 
     const brokenMedia = project(["video:missing"]);

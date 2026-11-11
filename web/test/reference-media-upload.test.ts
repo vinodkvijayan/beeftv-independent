@@ -17,10 +17,10 @@ test("shared uploader uses only selected owned references and preserves their sl
         UploadReferenceMedia: async (input: string[]) => { ids = input; return { owned: "https://cdn.example/reference" }; },
     } } } } as unknown as Window & typeof globalThis;
     const links = await uploadReferenceLinks([
-        { key: "image:0", label: "图片 1", resourceID: "owned" },
-        { key: "image:1", label: "图片 2", resourceID: "owned" },
-        { key: "video:0", label: "视频 1", resourceID: "manual", upload: false },
-        { key: "audio:0", label: "音频 1" },
+        { key: "image:0", label: "Picture 1", resourceID: "owned" },
+        { key: "image:1", label: "Picture 2", resourceID: "owned" },
+        { key: "video:0", label: "Video 1", resourceID: "manual", upload: false },
+        { key: "audio:0", label: "Audio 1" },
     ]);
     expect(ids).toEqual(["owned"]);
     expect(links).toEqual({ "image:0": "https://cdn.example/reference", "image:1": "https://cdn.example/reference" });
@@ -34,7 +34,7 @@ test("abort after settings prevents upload", async () => {
         ReferenceStorageSettings: async () => { controller.abort(); return { enabled: true }; },
         UploadReferenceMedia: async () => { uploads++; return {}; },
     } } } } as unknown as Window & typeof globalThis;
-    await expect(uploadReferenceLinks([{ key: "image:0", label: "图片 1", resourceID: "owned" }], controller.signal)).rejects.toThrow();
+    await expect(uploadReferenceLinks([{ key: "image:0", label: "Picture 1", resourceID: "owned" }], controller.signal)).rejects.toThrow();
     expect(uploads).toBe(0);
 });
 

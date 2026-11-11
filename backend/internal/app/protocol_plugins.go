@@ -30,7 +30,7 @@ func newPluginRuntime(dataDir string) (*pluginRuntime, error) {
 
 func newPluginRuntimeWithStore(dataDir string, store plugins.Store) (*pluginRuntime, error) {
 	if store == nil {
-		return nil, fmt.Errorf("插件状态存储未初始化")
+		return nil, fmt.Errorf("Plugin state storage is not initialized")
 	}
 	runtime, err := plugins.NewRuntimeWithStore(dataDir, store)
 	if err != nil {
@@ -44,7 +44,7 @@ func newPluginRuntimeWithStore(dataDir string, store plugins.Store) (*pluginRunt
 // protocol that saved configuration or unfinished tasks still execute with.
 func newPluginRuntimeWithReferences(dataDir string, store plugins.Store, references plugins.ReferenceSource) (*pluginRuntime, error) {
 	if store == nil {
-		return nil, fmt.Errorf("插件状态存储未初始化")
+		return nil, fmt.Errorf("Plugin state storage is not initialized")
 	}
 	runtime, err := plugins.NewRuntimeWithReferences(dataDir, store, references)
 	if err != nil {
@@ -73,21 +73,21 @@ func (c *pluginRuntime) registrySnapshot() *protocol.Registry {
 
 func (c *pluginRuntime) install(data []byte, fileName string) (PluginView, error) {
 	if c == nil || c.Runtime == nil {
-		return PluginView{}, fmt.Errorf("插件运行时未初始化")
+		return PluginView{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	return c.Runtime.Install(data, fileName)
 }
 
 func (c *pluginRuntime) setEnabled(id string, enabled bool) (PluginView, error) {
 	if c == nil || c.Runtime == nil {
-		return PluginView{}, fmt.Errorf("插件运行时未初始化")
+		return PluginView{}, fmt.Errorf("The plugin is not initialized when running")
 	}
 	return c.Runtime.SetEnabled(id, enabled)
 }
 
 func (c *pluginRuntime) uninstall(id string) error {
 	if c == nil || c.Runtime == nil {
-		return fmt.Errorf("插件运行时未初始化")
+		return fmt.Errorf("The plugin is not initialized when running")
 	}
 	return c.Runtime.Uninstall(id)
 }

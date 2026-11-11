@@ -42,19 +42,19 @@ func Inspect(ctx context.Context, dir string, repair bool) Report {
 		if ctx.Err() == nil {
 			return false
 		}
-		add("check-cancelled", "环境检查", "unknown", "检查已取消，尚未完成的项目保持未确认。")
+		add("check-cancelled", "environmental inspection", "unknown", "The inspection was canceled and the unfinished items remained unconfirmed.")
 		return true
 	}
 	if stop() {
 		return r
 	}
 	if dir == "" {
-		add("workspace", "本地存储", "skipped", "当前服务未提供本机工作区检查。", "ENV-0007")
+		add("workspace", "local storage", "skipped", "The current service does not provide native workspace checking.", "ENV-0007")
 		return r
 	}
 	root, err := os.OpenRoot(dir)
 	if err != nil {
-		add("workspace", "本地存储", "error", "无法打开当前数据目录。请检查磁盘连接和访问权限，不要新建空目录替代原项目。", "ENV-0007")
+		add("workspace", "local storage", "error", "The current data directory cannot be opened. Please check the disk connection and access permissions, and do not create an empty directory to replace the original project.", "ENV-0007")
 		return r
 	}
 	defer root.Close()
@@ -65,9 +65,9 @@ func Inspect(ctx context.Context, dir string, repair bool) Report {
 		if stop() {
 			return r
 		}
-		add("storage-write", "存储写入", "error", "当前数据目录无法完成文件写入和同步。请检查磁盘空间、权限或只读状态。", "ENV-0009")
+		add("storage-write", "storage write", "error", "File writing and synchronization cannot be completed in the current data directory. Please check disk space, permissions, or read-only status.", "ENV-0009")
 	} else {
-		add("storage-write", "存储写入", "pass", "已完成临时文件写入、同步和清理。", "ENV-0009")
+		add("storage-write", "storage write", "pass", "Temporary file writing, synchronization, and cleanup completed.", "ENV-0009")
 	}
 	if stop() {
 		return r
@@ -75,18 +75,18 @@ func Inspect(ctx context.Context, dir string, repair bool) Report {
 	free, err := freeBytes(dir)
 	switch {
 	case err != nil:
-		add("disk-space", "磁盘剩余空间", "unknown", "无法读取剩余空间，未判定磁盘正常。", "ENV-0009")
+		add("disk-space", "Disk remaining space", "unknown", "The remaining space cannot be read and the disk is not determined to be normal.", "ENV-0009")
 	case free < 1<<30:
-		add("disk-space", "磁盘剩余空间", "warning", "可用空间不足 1 GB，下载或保存大文件可能失败。请释放空间或在存储设置中迁移目录。", "ENV-0009", "ENV-0022")
+		add("disk-space", "Disk remaining space", "warning", "There is less than 1 GB of free space, downloading or saving large files may fail. Please free up space or migrate the directory in storage settings.", "ENV-0009", "ENV-0022")
 	default:
-		add("disk-space", "磁盘剩余空间", "pass", "当前可用空间超过 1 GB；大型素材和组件仍需要额外空间。", "ENV-0009")
+		add("disk-space", "Disk remaining space", "pass", "More than 1 GB of space is currently available; large assets and components still require additional space.", "ENV-0009")
 	}
 	for _, name := range []string{"tmp", "downloads"} {
 		if stop() {
 			return r
 		}
 		status, detail := scratchDirectory(ctx, root, name, repair)
-		add("directory-"+name, map[string]string{"tmp": "临时文件目录", "downloads": "组件下载目录"}[name], status, detail, "ENV-0006", "ENV-0046")
+		add("directory-"+name, map[string]string{"tmp": "Temporary file directory", "downloads": "Component download directory"}[name], status, detail, "ENV-0006", "ENV-0046")
 	}
 	if stop() {
 		return r
@@ -94,9 +94,9 @@ func Inspect(ctx context.Context, dir string, repair bool) Report {
 	path, err := mediatools.ResolveFFmpeg()
 	info, statErr := os.Stat(path)
 	if err != nil || statErr != nil || !info.Mode().IsRegular() || (runtime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0) {
-		add("media-tool", "视频处理工具", "warning", "未找到可执行的视频处理工具。部分视频预览、转码和导出将不可用，请从官方安装包重新安装。", "ENV-0014", "ENV-0015", "ENV-0016")
+		add("media-tool", "Video processing tools", "warning", "No executable video processing tool found. Some video previews, transcoding and exporting will be unavailable, please reinstall from the official installation package.", "ENV-0014", "ENV-0015", "ENV-0016")
 	} else {
-		add("media-tool", "视频处理工具", "pass", "已找到工具文件；具体素材的编解码能力仍在使用时检查。", "ENV-0014", "ENV-0015")
+		add("media-tool", "Video processing tools", "pass", "Tool file found; codec capabilities for specific assets are still being checked while in use.", "ENV-0014", "ENV-0015")
 	}
 	if stop() {
 		return r
@@ -104,20 +104,20 @@ func Inspect(ctx context.Context, dir string, repair bool) Report {
 	model, err := root.Stat("models/video-depth-anything-small/v1/checkpoints/video_depth_anything_vits.pth")
 	switch {
 	case errors.Is(err, os.ErrNotExist):
-		add("depth-model", "可选深度模型", "skipped", "尚未安装，首次使用深度动作捕捉时按官方清单下载和校验。", "ENV-0011")
+		add("depth-model", "Optional depth model", "skipped", "It has not been installed yet. When using depth motion capture for the first time, download and verify according to the official list.", "ENV-0011")
 	case err != nil || !model.Mode().IsRegular() || model.Size() != 116440756:
-		add("depth-model", "可选深度模型", "warning", "模型文件不可读或大小不完整。再次使用深度动作捕捉时将由组件安装器校验并恢复；自检不会删除或下载模型。", "ENV-0011", "ENV-0046")
+		add("depth-model", "Optional depth model", "warning", "The model file is unreadable or incomplete in size. When deep motion capture is used again, it will be verified and restored by the component installer; the self-test will not delete or download the model.", "ENV-0011", "ENV-0046")
 	default:
-		add("depth-model", "可选深度模型", "pass", "模型文件大小正常，运行前仍需组件安装器校验哈希。", "ENV-0011")
+		add("depth-model", "Optional depth model", "pass", "The model file size is normal, but the component installer still needs to verify the hash before running.", "ENV-0011")
 	}
 	if stop() {
 		return r
 	}
 	proxy := desktopnet.ConfigurationStatus()
 	if proxy.AutoConfigOnly {
-		add("proxy", "下载代理", "warning", "系统仅配置了自动代理脚本，当前下载器不能解析。请配置可用的静态系统代理或明确的代理环境变量。", "ENV-0010", "ENV-0011")
+		add("proxy", "download agent", "warning", "The system is only configured with an automatic proxy script, and the current downloader cannot parse it. Please configure an available static system proxy or an explicit proxy environment variable.", "ENV-0010", "ENV-0011")
 	} else {
-		add("proxy", "下载代理", "pass", map[string]string{"environment": "沿用明确配置的代理环境变量。", "system": "沿用系统静态代理，并向组件下载子进程传递。", "direct": "未发现静态代理配置，当前使用直连。"}[proxy.Mode]+"此项没有测试外网连通性。", "ENV-0010", "ENV-0011")
+		add("proxy", "download agent", "pass", map[string]string{"environment": "Explicitly configured proxy environment variables are inherited.", "system": "Use the system static proxy and pass it to the component download sub-process.", "direct": "No static proxy configuration found, currently using direct connection."}[proxy.Mode]+"This item does not test external network connectivity.", "ENV-0010", "ENV-0011")
 	}
 	return r
 }
@@ -145,21 +145,21 @@ func scratchDirectory(ctx context.Context, root *os.Root, name string, repair bo
 	info, err := root.Lstat(name)
 	if errors.Is(err, os.ErrNotExist) {
 		if !repair {
-			return "warning", "目录缺失，可由应用安全重建。"
+			return "warning", "The directory is missing and can be safely rebuilt by the application."
 		}
 		if ctx.Err() != nil {
-			return "unknown", "检查已取消，目录未重建。"
+			return "unknown", "The check was canceled and the directory was not rebuilt."
 		}
 		if err = root.Mkdir(name, 0o750); err != nil && !errors.Is(err, os.ErrExist) {
-			return "error", "目录重建失败，请检查写入权限。"
+			return "error", "Directory rebuild failed, please check write permissions."
 		}
 		info, err = root.Lstat(name)
 		if err == nil && info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
-			return "repaired", "已重建缺失目录并复检；未改动已有文件。"
+			return "repaired", "The missing directory has been rebuilt and rechecked; existing files have not been modified."
 		}
 	}
 	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return "error", "此位置不是普通目录或无法访问，未自动替换。"
+		return "error", "This location is not a normal directory or is inaccessible and has not been automatically replaced."
 	}
-	return "pass", "目录存在，未改动已有内容。"
+	return "pass", "The directory exists and the existing content has not been modified."
 }

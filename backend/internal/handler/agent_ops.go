@@ -42,7 +42,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.GET("/ops", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("操作层只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("The operation layer only accepts native requests"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -67,7 +67,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.POST("/ops/clients", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("客户端登记只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("Client registration only accepts local requests"))
 			return
 		}
 		if _, err := currentUser(c, svc); err != nil {
@@ -84,7 +84,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 			ApprovalMode string `json:"approvalMode"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体无效"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is invalid"))
 			return
 		}
 		reg, token, err := clients.RegisterClient(req.Kind, req.Label, agentops.ClientMode(req.Mode), agentops.ClientApprovalMode(req.ApprovalMode))
@@ -99,7 +99,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.GET("/ops/clients", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("客户端登记只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("Client registration only accepts local requests"))
 			return
 		}
 		if !requireOwner(c, svc) {
@@ -110,7 +110,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.GET("/ops/orders", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("操作层只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("The operation layer only accepts native requests"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -133,14 +133,14 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.POST("/ops/orders/:proposalId/approve", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("操作层只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("The operation layer only accepts native requests"))
 			return
 		}
 		if strings.TrimSpace(c.GetHeader("X-Beeftv-Client")) != "" || isAssistantHostRequest(c, svc) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":   http.StatusForbidden,
 				"reason": "agent_token_cannot_approve",
-				"msg":    "Agent 自身的凭据不能批准生成单，请使用工作区 owner 凭据或在 BeefTV 界面确认",
+				"msg":    "The Agent's own credentials cannot approve the generated order. Please use the workspace owner's credentials or confirm on the BeefTV interface.",
 			})
 			return
 		}
@@ -158,7 +158,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":   http.StatusForbidden,
 				"reason": "owner_required",
-				"msg":    "批准生成单需要工作区 owner 凭据或受信任的桌面界面",
+				"msg":    "Approval of build tickets requires workspace owner credentials or a trusted desktop interface",
 			})
 			return
 		}
@@ -176,7 +176,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.GET("/ops/external-writes", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("操作层只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("The operation layer only accepts native requests"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -199,7 +199,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 
 	r.POST("/ops/external-writes/:opId/undo", func(c *gin.Context) {
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("操作层只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("The operation layer only accepts native requests"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -216,7 +216,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":   http.StatusForbidden,
 				"reason": "permission_denied",
-				"msg":    "撤销外部写入需要工作区读写权限或桌面界面",
+				"msg":    "Undoing external writes requires workspace read and write permissions or a desktop interface",
 			})
 			return
 		}
@@ -246,7 +246,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 	r.POST("/ops/:op", func(c *gin.Context) {
 		// 本机入口：只接受 loopback 来源，避免被浏览器跨站或外部主机调用。
 		if !isLoopbackRequest(c.Request) {
-			fail(c, http.StatusForbidden, app.BadAuthRequest("操作层只接受本机请求"))
+			fail(c, http.StatusForbidden, app.BadAuthRequest("The operation layer only accepts native requests"))
 			return
 		}
 		user, err := currentUser(c, svc)
@@ -257,11 +257,11 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 		maxBody := max(int64(agentOpsMaxBody), canvas.EffectiveRequestMaxBodyBytes())
 		body, err := io.ReadAll(io.LimitReader(c.Request.Body, maxBody+1))
 		if err != nil {
-			fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体读取失败"))
+			fail(c, http.StatusBadRequest, app.BadAuthRequest("Failed to read request body"))
 			return
 		}
 		if int64(len(body)) > maxBody {
-			fail(c, http.StatusRequestEntityTooLarge, app.BadAuthRequest("请求体超过容量上限"))
+			fail(c, http.StatusRequestEntityTooLarge, app.BadAuthRequest("The request body exceeds the capacity limit"))
 			return
 		}
 		// 只读能力只由客户端身份（登记模式）决定：请求体不接受 readOnly，
@@ -272,7 +272,7 @@ func RegisterAgentOpsRoutes(r gin.IRouter, svc agentOpsService, store *agentops.
 		}
 		if len(strings.TrimSpace(string(body))) > 0 {
 			if err := json.Unmarshal(body, &req); err != nil {
-				fail(c, http.StatusBadRequest, app.BadAuthRequest("请求体不是合法 JSON"))
+				fail(c, http.StatusBadRequest, app.BadAuthRequest("The request body is not valid JSON"))
 				return
 			}
 		}
@@ -364,7 +364,7 @@ func requireTrustedDesktopWritePrincipal(c *gin.Context, message string) bool {
 		if !principal.ReadOnly {
 			return true
 		}
-		fail(c, http.StatusForbidden, app.Forbidden("此连接仅支持读取"))
+		fail(c, http.StatusForbidden, app.Forbidden("This connection only supports reading"))
 		return false
 	}
 	if strings.TrimSpace(c.GetHeader("X-Beeftv-Client")) != "" {
@@ -402,8 +402,8 @@ type clientAuthError struct{ message string }
 func (e clientAuthError) Error() string { return e.message }
 
 var (
-	errUnknownClient = clientAuthError{"未登记或凭据无效的 Agent 客户端"}
-	errUnidentified  = clientAuthError{"缺少可信身份：需要已登记的客户端凭据、owner 凭据或受信任的桌面界面"}
+	errUnknownClient = clientAuthError{"Agent client that is not registered or has invalid credentials"}
+	errUnidentified  = clientAuthError{"Missing trusted identity: Requires enrolled client credentials, owner credentials, or a trusted desktop interface"}
 )
 
 // loopbackHosts 是允许访问本机操作层的主机名；后续 Wails 正式 origin 也在这里登记。

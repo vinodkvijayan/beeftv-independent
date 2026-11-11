@@ -30,24 +30,24 @@ func HydrateVideoReferenceMetadata(ctx context.Context, userID string, input *In
 				continue
 			}
 			if runtime.Resources == nil {
-				return errors.New("读取任务参考资源失败：资源端口未接入")
+				return errors.New("Failed to read task reference resources: the resource port is not connected")
 			}
 			resource, err := runtime.Resources.Lookup(userID, strings.TrimPrefix(media.StorageKey, "resource:"))
 			if err != nil {
-				return fmt.Errorf("读取任务参考资源失败：%w", err)
+				return fmt.Errorf("Failed to read task reference resources: %w", err)
 			}
 			if resource.Status != "ready" {
-				return errors.New("任务参考资源尚未上传完成")
+				return errors.New("Task reference resources have not been uploaded yet")
 			}
 			if (resource.Kind == "audio" && resource.DurationMs <= 0) ||
 				(resource.Kind == "video" && (resource.DurationMs <= 0 || resource.Width <= 0 || resource.Height <= 0)) {
 				metadata, ok := runtime.Resources.(ResourceMetadataPort)
 				if !ok {
-					return errors.New("参考素材缺少时长或尺寸，媒体检查服务不可用")
+					return errors.New("Reference footage is missing duration or size, media check service is unavailable")
 				}
 				resource, err = metadata.EnsureMetadata(ctx, userID, resource.ID)
 				if err != nil {
-					return fmt.Errorf("检查参考素材失败：%w", err)
+					return fmt.Errorf("Failed to check reference material: %w", err)
 				}
 			}
 			if resource.DurationMs > 0 {
@@ -83,24 +83,24 @@ func HydrateVideoReferenceMetadata(ctx context.Context, userID string, input *In
 			var err error
 			if strings.HasPrefix(media.StorageKey, "resource:") {
 				if runtime.Resources == nil {
-					return errors.New("读取任务参考资源失败：资源端口未接入")
+					return errors.New("Failed to read task reference resources: the resource port is not connected")
 				}
 				_, body, openErr := runtime.Resources.Open(userID, strings.TrimPrefix(media.StorageKey, "resource:"))
 				if openErr != nil {
-					return fmt.Errorf("第 %d 个参考视频无法读取，请重新导入", i+1)
+					return fmt.Errorf("The %d reference video cannot be read, please re-import it.", i+1)
 				}
 				data, err = io.ReadAll(io.LimitReader(body, seedance2ReferenceMaxBytes+1))
 				_ = body.Close()
 			} else if raw := firstNonEmpty(media.DataURL, media.URL); strings.HasPrefix(raw, "data:") {
 				if len(raw) > base64.StdEncoding.EncodedLen(int(seedance2ReferenceMaxBytes))+256 {
-					return BadAuthRequest(fmt.Sprintf("第 %d 个参考视频文件不能超过 200MB", i+1))
+					return BadAuthRequest(fmt.Sprintf("The reference video file %d cannot exceed 200MB", i+1))
 				}
 				_, data, err = DecodeProviderDataURL(raw)
 			} else {
 				continue
 			}
 			if err != nil || int64(len(data)) > seedance2ReferenceMaxBytes {
-				return BadAuthRequest(fmt.Sprintf("第 %d 个参考视频无法读取或超过 200MB，请重新导入", i+1))
+				return BadAuthRequest(fmt.Sprintf("The %d reference video cannot be read or exceeds 200MB, please re-import it.", i+1))
 			}
 			if err := applySeedance2VideoProbe(ctx, input.Config, i, media, data); err != nil {
 				return err

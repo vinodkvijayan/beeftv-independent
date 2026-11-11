@@ -84,7 +84,7 @@ describe("Topaz upscale contract", () => {
     test("observer timeout and network errors cannot authorize another paid task", () => {
         expect(UPSCALE_OBSERVATION_TIMEOUT_MS).toBeGreaterThan(10 * 60 * 1000);
         for (const status of ["queued", "running"] as const) {
-            for (const reason of ["任务执行超时", "Network Error"]) {
+            for (const reason of ["Task execution timeout", "Network Error"]) {
                 const metadata = upscaleObservationFailureMetadata({ id: "topaz", status }, reason);
                 expect(metadata.status).toBe("loading");
                 expect(metadata.taskStatus).toBe(status);
@@ -97,15 +97,15 @@ describe("Topaz upscale contract", () => {
     });
     test("failed or cancelled tasks still require checking the original paid task", () => {
         for (const status of ["failed", "cancelled"] as const) {
-            const metadata = upscaleObservationFailureMetadata({ id: "topaz", status }, "终态");
+            const metadata = upscaleObservationFailureMetadata({ id: "topaz", status }, "final state");
             expect(metadata.status).toBe("error");
             expect(hasPendingUpscaleTask(metadata)).toBe(true);
-            expect(metadata.errorDetails).toContain("任务详情");
+            expect(metadata.errorDetails).toContain("Mission details");
         }
         expect(hasPendingUpscaleTask({ taskClientOperationId: "not-submitted", taskStatus: "failed", generationSubmissionState: "rejected" })).toBe(false);
         expect(hasPendingUpscaleTask({ taskId: "paid-task", taskClientOperationId: "submitted", taskStatus: "failed", generationSubmissionState: "rejected" })).toBe(true);
         expect(hasPendingUpscaleTask({ taskClientOperationId: "unknown", taskStatus: "failed", generationSubmissionState: "unknown" })).toBe(true);
-        const succeeded = upscaleObservationFailureMetadata({ id: "topaz", status: "succeeded" }, "落图失败");
+        const succeeded = upscaleObservationFailureMetadata({ id: "topaz", status: "succeeded" }, "Failed to drop the image");
         expect(hasPendingUpscaleTask(succeeded)).toBe(true);
         expect(hasPendingUpscaleTask({ ...succeeded, content: "resource-result" })).toBe(false);
     });

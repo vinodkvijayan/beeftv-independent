@@ -25,17 +25,17 @@ func ReferenceUploadFromContext(ctx context.Context) (ReferenceUploadMeta, bool)
 }
 
 func (m ReferenceUploadMeta) Label() string {
-	name := map[string]string{"image": "参考图", "video": "参考视频", "audio": "参考音频"}[m.Kind]
+	name := map[string]string{"image": "Reference picture", "video": "Reference video", "audio": "Reference audio"}[m.Kind]
 	if name == "" {
-		name = "参考素材"
+		name = "Reference material"
 	}
 	if m.Index > 0 {
 		name += fmt.Sprintf(" %d", m.Index)
 	}
-	stage := map[string]string{"create": "申请上传", "put": "上传文件", "resume": "恢复上传", "complete": "确认上传", "abort": "取消上传"}[m.Stage]
+	stage := map[string]string{"create": "Apply to upload", "put": "Upload files", "resume": "Resume upload", "complete": "Confirm upload", "abort": "Cancel upload"}[m.Stage]
 	label := strings.TrimSpace(name + " " + stage)
 	if m.Attempt > 0 {
-		label += fmt.Sprintf("（第 %d 次）", m.Attempt)
+		label += fmt.Sprintf("(%d time)", m.Attempt)
 	}
 	return label
 }
@@ -70,7 +70,7 @@ type ReferenceUploadError struct {
 }
 
 func (e *ReferenceUploadError) Error() string {
-	return e.Meta.Label() + "失败：" + DiagnosticSummary(e.Detail)
+	return e.Meta.Label() + "Failure:" + DiagnosticSummary(e.Detail)
 }
 func (e *ReferenceUploadError) Unwrap() error { return e.Cause }
 func (e *ReferenceUploadError) Is(target error) bool {
@@ -100,7 +100,7 @@ func referenceUploadAddressError(ctx context.Context, cause error) *ReferenceUpl
 	upload := referenceUploadError(referenceUploadStage(ctx, "put"), cause)
 	upload.Code = "upload_address_invalid"
 	// These are local DNS validation results, never upstream-provided messages.
-	if strings.Contains(cause.Error(), "外部服务域名解析失败") || strings.Contains(cause.Error(), "外部服务域名没有可用地址") {
+	if strings.Contains(cause.Error(), "External service domain name resolution failed") || strings.Contains(cause.Error(), "There is no available address for the external service domain name") {
 		upload.Code = "upload_transport_error"
 	}
 	return upload

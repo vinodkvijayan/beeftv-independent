@@ -22,23 +22,23 @@ func TestStopContextDoesNotReapOutsider(t *testing.T) {
 
 	host := fixtureHost(t, "http")
 	if err := host.Launch(fixtureProvider(), "http://127.0.0.1:18090/api", "desktop-shell-token"); err != nil {
-		t.Fatalf("启动测试宿主失败: %v", err)
+		t.Fatalf("Failed to start test host: %v", err)
 	}
 	childPID := host.PID()
 	if childPID == 0 || !host.Running() {
-		t.Fatal("子进程应处于运行状态")
+		t.Fatal("The child process should be running")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := host.StopContext(ctx); err != nil {
-		t.Fatalf("关闭钩子应成功停止本 Host 启动的宿主: %v", err)
+		t.Fatalf("The shutdown hook should successfully stop the host started by this Host: %v", err)
 	}
 	if !waitUntil(5*time.Second, func() bool { return syscall.Kill(childPID, syscall.Signal(0)) != nil }) {
-		t.Fatalf("宿主子进程 %d 在关闭后仍在运行", childPID)
+		t.Fatalf("Host child process %d is still running after shutdown", childPID)
 	}
 	if !outsiderAlive() {
-		t.Fatal("关闭钩子不应影响不是它启动的进程")
+		t.Fatal("A shutdown hook should not affect processes it did not start")
 	}
 }
 
@@ -57,7 +57,7 @@ func TestParentSIGKILLClosesLifetimePipeAndChildExits(t *testing.T) {
 		raw, err := os.ReadFile(endpointFile)
 		return err == nil && strings.TrimSpace(string(raw)) != ""
 	}) {
-		t.Fatal("supervisor fixture 未发布端点")
+		t.Fatal("supervisor fixture unpublished endpoint")
 	}
 	endpoint := strings.TrimSpace(mustReadFile(t, endpointFile))
 	childPID, err := strconv.Atoi(strings.TrimSpace(mustReadFile(t, filepath.Join(dataDir, "child-pid.txt"))))
@@ -71,12 +71,12 @@ func TestParentSIGKILLClosesLifetimePipeAndChildExits(t *testing.T) {
 	if !waitUntil(5*time.Second, func() bool {
 		return syscall.Kill(childPID, syscall.Signal(0)) != nil
 	}) {
-		t.Fatalf("父进程 SIGKILL 后子进程 %d 仍在运行", childPID)
+		t.Fatalf("The child process %d is still running after the parent process SIGKILL", childPID)
 	}
 	resp, getErr := http.Get(endpoint + "/health")
 	if getErr == nil {
 		resp.Body.Close()
-		t.Fatal("旧子进程不得在父进程被杀后继续服务")
+		t.Fatal("The old child process must not continue to serve after the parent process is killed")
 	}
 }
 

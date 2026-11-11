@@ -10,48 +10,48 @@ import type { CanvasProject } from "@/stores/canvas/use-canvas-store";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 
 describe("canvas node copy title", () => {
-    test("首次复制使用 copy1，后续按已有最大序号递增", () => {
-        expect(nextCopiedNodeTitle("女明星角色三视图", ["女明星角色三视图"])).toBe("女明星角色三视图_copy1");
-        expect(nextCopiedNodeTitle("女明星角色三视图", ["女明星角色三视图", "女明星角色三视图_copy1"])).toBe("女明星角色三视图_copy2");
-        expect(nextCopiedNodeTitle("女明星角色三视图", ["女明星角色三视图_copy1", "女明星角色三视图_copy3"])).toBe("女明星角色三视图_copy4");
+    test("The first copy uses copy1, and subsequent copies are incremented by the largest existing sequence number.", () => {
+        expect(nextCopiedNodeTitle("Three views of female star characters", ["Three views of female star characters"])).toBe("Three views of female star characters_copy1");
+        expect(nextCopiedNodeTitle("Three views of female star characters", ["Three views of female star characters", "Three views of female star characters_copy1"])).toBe("Three views of female star characters_copy2");
+        expect(nextCopiedNodeTitle("Three views of female star characters", ["Three views of female star characters_copy1", "Three views of female star characters_copy3"])).toBe("Three views of female star characters_copy4");
     });
 
-    test("复制已有副本时仍使用原始名称计算下一序号", () => {
-        expect(nextCopiedNodeTitle("女明星角色三视图_copy1", ["女明星角色三视图", "女明星角色三视图_copy1"])).toBe("女明星角色三视图_copy2");
+    test("When copying an existing copy, the original name is still used to calculate the next sequence number.", () => {
+        expect(nextCopiedNodeTitle("Three views of female star characters_copy1", ["Three views of female star characters", "Three views of female star characters_copy1"])).toBe("Three views of female star characters_copy2");
     });
 
-    test("兼容旧版空格 Copy 后缀", () => {
-        expect(nextCopiedNodeTitle("女明星角色三视图 Copy", ["女明星角色三视图", "女明星角色三视图 Copy"])).toBe("女明星角色三视图_copy1");
+    test("Compatible with legacy space copy suffixes", () => {
+        expect(nextCopiedNodeTitle("Three views of female star characters Copy", ["Three views of female star characters", "Three views of female star characters Copy"])).toBe("Three views of female star characters_copy1");
     });
 
-    test("同一批粘贴可以通过预留标题连续分配序号", () => {
-        const titles = new Set(["节点", "节点_copy1"]);
-        const first = nextCopiedNodeTitle("节点", titles);
+    test("The same batch of pastes can be continuously assigned serial numbers by reserving titles.", () => {
+        const titles = new Set(["node", "Node_copy1"]);
+        const first = nextCopiedNodeTitle("node", titles);
         titles.add(first);
-        const second = nextCopiedNodeTitle("节点", titles);
-        expect([first, second]).toEqual(["节点_copy2", "节点_copy3"]);
+        const second = nextCopiedNodeTitle("node", titles);
+        expect([first, second]).toEqual(["node_copy2", "node_copy3"]);
     });
 });
 
 describe("canvas generation copy metadata", () => {
-    test.each(["submitting", "unknown", "accepted", "rejected"] as const)("复制 %s 节点时同时隔离任务身份与提交状态", (state) => {
+    test.each(["submitting", "unknown", "accepted", "rejected"] as const)("When copying the %s node, isolate the task identity and submission status at the same time", (state) => {
         const source: CanvasNodeData = {
-            id: "source", type: CanvasNodeType.Video, title: "镜头", position: { x: 0, y: 0 }, width: 340, height: 240,
-            metadata: { status: "loading", taskClientOperationId: "canvas:original", generationSubmissionState: state, composerContent: "保留提示词", generationPreflightError: "原任务尚未确认" },
+            id: "source", type: CanvasNodeType.Video, title: "lens", position: { x: 0, y: 0 }, width: 340, height: 240,
+            metadata: { status: "loading", taskClientOperationId: "canvas:original", generationSubmissionState: state, composerContent: "Keep prompt word", generationPreflightError: "The original mission has not yet been confirmed" },
         };
         const metadata = isolateCopiedNodeMetadata(source, new Map([[source.id, "copy"]]));
         expect(metadata.taskClientOperationId).toBeUndefined();
         expect(metadata.generationSubmissionState).toBeUndefined();
         expect(metadata.generationPreflightError).toBeUndefined();
         expect(metadata.status).toBe("idle");
-        expect(metadata.composerContent).toBe("保留提示词");
+        expect(metadata.composerContent).toBe("Keep prompt word");
         expect(source.metadata?.generationSubmissionState).toBe(state);
         expect(source.metadata?.taskClientOperationId).toBe("canvas:original");
     });
 
-    test.each([CanvasNodeType.Image, CanvasNodeType.Video, CanvasNodeType.Audio])("%s 副本不继承原节点的生成提交标记", (type) => {
+    test.each([CanvasNodeType.Image, CanvasNodeType.Video, CanvasNodeType.Audio])("%s The copy does not inherit the generation commit mark of the original node.", (type) => {
         const source: CanvasNodeData = {
-            id: "source", type, title: "结果", position: { x: 0, y: 0 }, width: 340, height: 240,
+            id: "source", type, title: "result", position: { x: 0, y: 0 }, width: 340, height: 240,
             metadata: { content: "saved-media", assetId: "saved-asset", taskId: "old-task", generationEffectKeys: ["attach-node:old-task:source:0"] },
         };
         const metadata = isolateCopiedNodeMetadata(source, new Map([[source.id, "copy"]]));
@@ -62,17 +62,17 @@ describe("canvas generation copy metadata", () => {
         expect(source.metadata?.generationEffectKeys).toEqual(["attach-node:old-task:source:0"]);
     });
 
-    test("媒体副本保留提示词与参考字段，并明确原地回填生成结果", () => {
+    test("The media copy retains the prompt words and reference fields, and clearly backfills the generated results in place.", () => {
         const source: CanvasNodeData = {
             id: "source",
             type: CanvasNodeType.Video,
-            title: "镜头",
+            title: "lens",
             position: { x: 0, y: 0 },
             width: 340,
             height: 240,
             metadata: {
                 content: "video-url",
-                prompt: "相同提示词",
+                prompt: "Same prompt word",
                 videoStartFrameNodeId: "reference-start",
                 videoEndFrameNodeId: "reference-end",
                 generationResultPlacement: "new-version",
@@ -81,18 +81,18 @@ describe("canvas generation copy metadata", () => {
 
         const metadata = isolateCopiedNodeMetadata(source, new Map([[source.id, "copy"]]));
 
-        expect(metadata.prompt).toBe("相同提示词");
+        expect(metadata.prompt).toBe("Same prompt word");
         expect(metadata.videoStartFrameNodeId).toBe("reference-start");
         expect(metadata.videoEndFrameNodeId).toBe("reference-end");
         expect(metadata.copiedFromNodeId).toBe("source");
         expect(metadata.generationResultPlacement).toBe("replace-node");
     });
 
-    test("复制到副本的入边继续解析为同一张参考图", () => {
+    test("The incoming edge copied to the copy continues to be parsed into the same reference image.", () => {
         const reference: CanvasNodeData = {
             id: "reference",
             type: CanvasNodeType.Image,
-            title: "角色参考",
+            title: "Character reference",
             position: { x: 0, y: 0 },
             width: 340,
             height: 240,
@@ -101,24 +101,24 @@ describe("canvas generation copy metadata", () => {
         const copy: CanvasNodeData = {
             id: "copy",
             type: CanvasNodeType.Image,
-            title: "结果_copy1",
+            title: "result_copy1",
             position: { x: 400, y: 0 },
             width: 340,
             height: 240,
-            metadata: { content: "old-result", prompt: "保持角色一致", copiedFromNodeId: "source", generationResultPlacement: "replace-node" },
+            metadata: { content: "old-result", prompt: "Keep roles consistent", copiedFromNodeId: "source", generationResultPlacement: "replace-node" },
         };
 
         const context = buildNodeGenerationContext(copy.id, [reference, copy], [{ id: "copy-reference", fromNodeId: reference.id, toNodeId: copy.id }], copy.metadata!.prompt!, []);
 
-        expect(context.prompt).toBe("保持角色一致");
+        expect(context.prompt).toBe("Keep roles consistent");
         expect(context.referenceImages.map((image) => image.id)).toEqual([reference.id]);
     });
 
-    test("复制视频保留旧媒体等待新结果，新任务绑定后仍采用新视频", () => {
+    test("Copy the video and keep the old media waiting for new results. The new video will still be used after the new task is bound.", () => {
         const source: CanvasNodeData = {
             id: "video-source",
             type: CanvasNodeType.Video,
-            title: "原视频",
+            title: "Original video",
             position: { x: 0, y: 0 },
             width: 360,
             height: 640,
@@ -133,7 +133,7 @@ describe("canvas generation copy metadata", () => {
                 naturalHeight: 1280,
                 bytes: 102400,
                 mimeType: "video/mp4",
-                prompt: "原提示词",
+                prompt: "Original prompt word",
                 videoStartFrameNodeId: "ref-start",
                 status: "success",
                 taskId: "task-old",
@@ -143,7 +143,7 @@ describe("canvas generation copy metadata", () => {
         const copiedNode: CanvasNodeData = {
             ...source,
             id: "video-copy",
-            title: "原视频_copy1",
+            title: "Original video_copy1",
             metadata: copiedMetadata,
         };
 
@@ -162,14 +162,14 @@ describe("canvas generation copy metadata", () => {
             ...copiedNode,
             metadata: {
                 ...inPlaceLoadingMetadata,
-                prompt: "新提示词",
+                prompt: "new prompt word",
             },
         };
         const succeededTask: GenerationTask = {
             id: "task-new",
             type: "canvas_video",
             status: "succeeded",
-            prompt: "新提示词",
+            prompt: "new prompt word",
             attempts: 1,
             createdAt: "2026-10-14T09:02:00.000Z",
             updatedAt: "2026-10-14T09:04:37.000Z",
@@ -184,7 +184,7 @@ describe("canvas generation copy metadata", () => {
         const makeProject = (nodes: CanvasNodeData[], revision: number): CanvasProject => ({
             id: "canvas-1",
             revision,
-            title: "测试画布",
+            title: "test canvas",
             createdAt: "2026-10-14T09:00:00.000Z",
             updatedAt: "2026-10-14T09:04:37.000Z",
             nodes,

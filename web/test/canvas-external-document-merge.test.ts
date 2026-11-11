@@ -9,32 +9,32 @@ const tombstones = () => ({ projects: {}, nodes: {}, connections: {}, sessions: 
  * nodes/connections，没有 chatSessions，会话也可能没有 messages。
  * 这种文档进入本地合并时不能把整次持久化打挂，否则界面上的外部改动永远落不下来。
  */
-describe("外部写入产生的画布文档可以安全合并", () => {
-    test("缺少 chatSessions 的项目照常合并", () => {
+describe("Canvas documents produced by external writing can be safely merged", () => {
+    test("Projects missing chatSessions are merged as usual", () => {
         const document = parseCanvasStorageDocument(JSON.stringify({
-            state: { projects: [{ id: "c1", revision: 1, title: "外部画布", nodes: [{ id: "n1" }], connections: [] }] },
+            state: { projects: [{ id: "c1", revision: 1, title: "external canvas", nodes: [{ id: "n1" }], connections: [] }] },
             version: 0,
             storageRevision: 3,
             tombstones: tombstones(),
         }));
-        const external = { id: "c1", revision: 2, title: "外部改名", nodes: [{ id: "n1" }, { id: "n2" }], connections: [] } as never;
+        const external = { id: "c1", revision: 2, title: "external name change", nodes: [{ id: "n1" }, { id: "n2" }], connections: [] } as never;
 
         const result = rebaseCanvasProjects({ document, baseProjects: document.state.projects, localProjects: [external], baseRevision: 3 });
 
         expect(result.document.state.projects).toHaveLength(1);
-        expect(result.document.state.projects[0].title).toBe("外部改名");
+        expect(result.document.state.projects[0].title).toBe("external name change");
         expect(result.document.state.projects[0].nodes).toHaveLength(2);
     });
 
-    test("会话缺少 messages 字段时不抛错", () => {
+    test("No error is thrown when the session is missing the messages field", () => {
         const document = parseCanvasStorageDocument(null, []);
         const local = {
             id: "c1",
             revision: 0,
-            title: "画布",
+            title: "canvas",
             nodes: [],
             connections: [],
-            chatSessions: [{ id: "s1", title: "对话" }],
+            chatSessions: [{ id: "s1", title: "dialogue" }],
             activeChatId: "s1",
         } as never;
 
@@ -44,9 +44,9 @@ describe("外部写入产生的画布文档可以安全合并", () => {
         expect(result.document.state.projects[0].chatSessions[0].messages).toEqual([]);
     });
 
-    test("项目缺少 nodes/connections 数组时按空集合处理", () => {
+    test("When the project lacks the nodes/connections array, it is treated as an empty collection.", () => {
         const document = parseCanvasStorageDocument(null, []);
-        const local = { id: "c1", revision: 0, title: "只有标题" } as never;
+        const local = { id: "c1", revision: 0, title: "only title" } as never;
 
         const result = rebaseCanvasProjects({ document, baseProjects: [], localProjects: [local], baseRevision: 0 });
 

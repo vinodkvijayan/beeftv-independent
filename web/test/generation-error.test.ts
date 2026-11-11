@@ -3,10 +3,10 @@ import { describe, expect, test } from "bun:test";
 import { ApiError } from "../src/services/api/request";
 
 test("reference transport admission identifies blocked inputs and survives persisted display", () => {
-    const message = "当前渠道需要在线素材链接：参考图片 2、参考视频 1无法直接读取。请替换为可访问的 HTTPS 链接，或切换支持本地素材的渠道";
+    const message = "The current channel requires online material links: reference picture 2, reference video 1 cannot be read directly. Please replace with an accessible HTTPS link, or switch to a channel that supports local content";
     const failure = explainGenerationError(new ApiError(message, { status: 400, reason: "reference_media_requires_url" }));
     expect(failure.category).toBe("invalid_params");
-    expect(failure.message).toContain("参考图片 2、参考视频 1");
+    expect(failure.message).toContain("Reference picture 2, reference video 1");
     expect(failure.action).toContain("HTTPS");
     expect(failure.blockAutomaticRetry).toBe(true);
     expect(explainGenerationError(failure.message).reason).toBe(failure.reason);
@@ -21,24 +21,24 @@ test("Windows socket disconnects explain saved historical errors without exposin
 });
 
 test("local task persistence errors keep their cause through API and saved details", () => {
-    const error = new ApiError("本地任务保存失败，尚未提交生成", { status: 500, reason: "local_storage_failed" });
+    const error = new ApiError("The local task failed to save and the generation has not yet been submitted.", { status: 500, reason: "local_storage_failed" });
     const result = explainGenerationError(error);
     expect(result.category).toBe("local_storage");
-    expect(result.message).toContain("尚未提交生成");
-    expect(result.message).not.toContain("模型不接受");
+    expect(result.message).toContain("The build has not been submitted yet");
+    expect(result.message).not.toContain("Model does not accept");
     expect(result.blockAutomaticRetry).toBe(true);
     expect(explainGenerationError(result.message).category).toBe("local_storage");
     const diagnostics = formatGenerationDiagnostics(result);
-    expect(diagnostics).toContain("类别：local_storage");
-    expect(diagnostics).toContain("错误来源：本地任务存储");
-    expect(diagnostics).toContain("尚未提交生成");
+    expect(diagnostics).toContain("Category: local_storage");
+    expect(diagnostics).toContain("Error source: local task storage");
+    expect(diagnostics).toContain("The build has not been submitted yet");
 });
 
 test("local API quota keeps the actual capacity error instead of channel permissions", () => {
-    const result = explainGenerationError(new ApiError("账号任务历史已达到 100 条上限", {status: 403, code: 40301, reason: "quota_exceeded"}));
+    const result = explainGenerationError(new ApiError("The account task history has reached the upper limit of 100 items.", {status: 403, code: 40301, reason: "quota_exceeded"}));
     expect(result.category).toBe("quota_limit");
-    expect(result.reason).toContain("100 条上限");
-    expect(result.action).toContain("清理");
+    expect(result.reason).toContain("100 limit");
+    expect(result.action).toContain("clean up");
     expect(result.message).not.toMatch(/权限|供应商|账单/);
     expect(result.blockAutomaticRetry).toBe(true);
 });
@@ -49,7 +49,7 @@ test("local database failures never blame model parameters", () => {
         for (const input of [message, new Error(message), { status: 400, code: 400, reason: "invalid_argument", message }, { status: 500, data: { error: { code: "invalid_argument", message } } }]) {
             const failure = explainGenerationError(input);
             expect(failure.category).toBe("local_storage");
-            expect(failure.reason).toContain("数据库");
+            expect(failure.reason).toContain("database");
             expect(failure.message).not.toContain("failure_diagnostics");
             expect(failure.retryable).toBe(false);
             expect(failure.blockAutomaticRetry).toBe(true);
@@ -69,16 +69,16 @@ test("database classification preserves provider parameters and stable codes", (
 });
 
 test("canvas save conflicts are not vendor parameter failures", () => {
-    const saveConflict = new ApiError("云端画布已有更新，已停止覆盖；请保留本地草稿并加载最新版本", { status: 409, reason: "conflict" });
+    const saveConflict = new ApiError("The cloud canvas has been updated and coverage has stopped; please keep the local draft and load the latest version", { status: 409, reason: "conflict" });
     const explained = explainGenerationError(saveConflict);
     expect(explained.category).toBe("canvas_conflict");
-    expect(explained.action).toContain("不要重新生成");
-    expect(explained.message).not.toContain("模型不接受");
+    expect(explained.action).toContain("Don't regenerate");
+    expect(explained.message).not.toContain("Model does not accept");
     expect(explainGenerationError(explained.message).category).toBe("canvas_conflict");
 
-    expect(explainGenerationError(new ApiError("保存失败", { status: 409, reason: "stale_revision" })).category).toBe("canvas_conflict");
-    expect(explainGenerationError({ code: "canvas_conflict", message: "生成结果已保留，但画布有版本冲突。请先使用画布最新版本，再重新加载资源，不要重新生成。" }).category).toBe("canvas_conflict");
-    expect(explainGenerationError(new Error("画布有未处理的外部改动，本次未提交")).category).toBe("canvas_conflict");
+    expect(explainGenerationError(new ApiError("Save failed", { status: 409, reason: "stale_revision" })).category).toBe("canvas_conflict");
+    expect(explainGenerationError({ code: "canvas_conflict", message: "The build results are preserved, but the canvas has a version conflict. Please use the latest version of canvas first, and then reload the resources. Do not regenerate." }).category).toBe("canvas_conflict");
+    expect(explainGenerationError(new Error("The canvas has unprocessed external changes and has not been submitted this time.")).category).toBe("canvas_conflict");
 });
 
 test("image receipt states never invite automatic paid regeneration", () => {
@@ -91,13 +91,13 @@ test("image receipt states never invite automatic paid regeneration", () => {
 });
 
 test("whole request limits retain actionable copy after persistence", () => {
-    for (const body of ["", "<html>413 Request Entity Too Large</html>"]) expect(explainGenerationError({ status: 413, data: body }).reason).toContain("整次请求");
+    for (const body of ["", "<html>413 Request Entity Too Large</html>"]) expect(explainGenerationError({ status: 413, data: body }).reason).toContain("entire request");
     for (const raw of ["video request body is too large", "video request body exceeds the 64 MiB request limit; use public media URLs instead of inline base64", { error: { code: "video_request_body_too_large", message: "" } }]) {
         const failure = explainGenerationError(raw);
         for (const got of [failure, explainGenerationError({ code: failure.category, message: `${failure.reason}。${failure.action}。` })]) {
             expect(got.category).toBe("input_too_large");
-            expect(got.reason).toContain("整次请求");
-            expect(got.action).toContain("素材链接");
+            expect(got.reason).toContain("entire request");
+            expect(got.action).toContain("Material link");
             expect(got.retryable).toBe(false);
         }
     }
@@ -107,7 +107,7 @@ test("actual persisted task output contract renders identically in the frontend"
     for (const fixture of audioErrorContract) {
         // Backend app test writes the corresponding upstream failure through the
         // real terminal coordinator and DB, then asserts this exact list payload.
-        const error = `${fixture.display}。排查编号：请求 req_reference_audio_123。`;
+        const error = `${fixture.display}. Troubleshooting number: Request req_reference_audio_123.`;
         const result = explainGenerationError({ code: "invalid_params", message: error });
         expect(result.message).toBe(error);
         expect(result.category).toBe("invalid_params");
@@ -119,23 +119,23 @@ test("actual persisted task output contract renders identically in the frontend"
 describe("measured reference audio API errors", () => {
     const requestId = "202609270829245377912978268d9d6USz1NP3R";
     const cases = [
-        ["reference audio 2 is 0.900 seconds; use audio between 2 and 15 seconds", ["第 2 段", "0.900 秒", "2–15 秒", "裁剪"]],
-        ["reference audio 1 is 31.250 seconds; use audio between 2 and 30 seconds", ["第 1 段", "31.250 秒", "2–30 秒", "更换"]],
-        ["reference audio is 35.500 seconds in total; this model accepts at most 30 seconds of reference audio", ["总时长", "35.500 秒", "30 秒", "减少"]],
-        ["reference audio 3: could not download reference audio within the allowed time and URL policy", ["第 3 段", "无法下载", "重新上传", "公开访问"]],
-        ["reference audio 2: reference audio duration could not be measured: invalid WAV audio", ["第 2 段", "格式或时长无法读取", "MP3", "WAV"]],
-        ["reference audio 1: reference audio duration could not be measured: the media contains no readable audio track", ["第 1 段", "音轨", "重新导出"]],
-        ["reference audio 1 exceeds the model's 15728640 byte limit", ["第 1 段", "文件过大", "压缩"]],
-        ["reference audio 1 requires a public HTTPS URL", ["第 1 段", "无法下载", "公开访问"]],
-        ["reference audio 2: reference audio download returned HTTP 403", ["第 2 段", "无法下载", "重新上传"]],
-        ["reference audio 2: reference audio could not be downloaded completely within the allowed time", ["第 2 段", "无法下载", "重新上传"]],
-        ["reference audio 2: reference audio must be at most 15 MiB", ["第 2 段", "文件过大", "压缩"]],
-        ["reference audio 2: reference audio URL is not allowed", ["第 2 段", "无法下载", "公开访问"]],
+        ["reference audio 2 is 0.900 seconds; use audio between 2 and 15 seconds", ["Paragraph 2", "0.900 seconds", "2–15 seconds", "Crop"]],
+        ["reference audio 1 is 31.250 seconds; use audio between 2 and 30 seconds", ["Paragraph 1", "31.250 seconds", "2–30 seconds", "Replace"]],
+        ["reference audio is 35.500 seconds in total; this model accepts at most 30 seconds of reference audio", ["total duration", "35.500 seconds", "30 seconds", "reduce"]],
+        ["reference audio 3: could not download reference audio within the allowed time and URL policy", ["Paragraph 3", "Unable to download", "Reupload", "public access"]],
+        ["reference audio 2: reference audio duration could not be measured: invalid WAV audio", ["Paragraph 2", "The format or duration cannot be read", "MP3", "WAV"]],
+        ["reference audio 1: reference audio duration could not be measured: the media contains no readable audio track", ["Paragraph 1", "audio track", "Re-export"]],
+        ["reference audio 1 exceeds the model's 15728640 byte limit", ["Paragraph 1", "File too large", "Compression"]],
+        ["reference audio 1 requires a public HTTPS URL", ["Paragraph 1", "Unable to download", "public access"]],
+        ["reference audio 2: reference audio download returned HTTP 403", ["Paragraph 2", "Unable to download", "Reupload"]],
+        ["reference audio 2: reference audio could not be downloaded completely within the allowed time", ["Paragraph 2", "Unable to download", "Reupload"]],
+        ["reference audio 2: reference audio must be at most 15 MiB", ["Paragraph 2", "File too large", "Compression"]],
+        ["reference audio 2: reference audio URL is not allowed", ["Paragraph 2", "Unable to download", "public access"]],
     ] as const;
     for (const [message, fragments] of cases) {
         test(`HTTP, gateway wrapper and persisted details: ${message}`, () => {
             const body = { error: { code: "invalid_reference_audio", type: "invalid_request_error", message }, request_id: requestId };
-            for (const input of [{ response: { status: 400, data: body } }, `接口请求失败：${JSON.stringify(body)} (request id: ${requestId})`]) {
+            for (const input of [{ response: { status: 400, data: body } }, `Interface request failed:${JSON.stringify(body)} (request id: ${requestId})`]) {
                 const first = explainGenerationError(input);
                 const metadata = generationFailureMetadata(input, "test prompt");
                 const persisted = explainGenerationError({ code: metadata.generationErrorCode, message: metadata.errorDetails });
@@ -151,7 +151,7 @@ describe("measured reference audio API errors", () => {
     }
     test("unknown validation detail is actionable without reflecting secrets", () => {
         const failure = explainGenerationError({ status: 400, data: { error: { code: "invalid_reference_audio", message: "private detail https://secret.test/audio?token=abc prompt=private_words" }, request_id: requestId } });
-        expect(failure.message).toContain("检查参考音频");
+        expect(failure.message).toContain("Check reference audio");
         expect(failure.message).not.toMatch(/secret|private|token/);
         expect(failure.requestId).toBe(requestId);
         expect(failure.blockAutomaticRetry).toBe(true);
@@ -166,29 +166,29 @@ describe("measured reference audio API errors", () => {
                 error: {
                     code: "video_reference_upload_invalid",
                     type: "video_reference_upload_invalid",
-                    message: "无法识别文件。图片用 PNG、JPEG、WebP、GIF、BMP 或 TIFF。视频用 MP4 或 MOV。音频用 MP3 或 WAV。",
+                    message: "File not recognized. Use PNG, JPEG, WebP, GIF, BMP or TIFF for images. For videos use MP4 or MOV. For audio use MP3 or WAV.",
                 },
                 request_id: requestId,
             },
         });
         expect(upload400.category).toBe("invalid_params");
-        expect(upload400.reason).toBe("无法识别文件");
-        expect(upload400.action).toContain("音频用 MP3 或 WAV");
+        expect(upload400.reason).toBe("File not recognized");
+        expect(upload400.action).toContain("Audio in MP3 or WAV");
         expect(upload400.requestId).toBe(requestId);
         expect(upload400.blockAutomaticRetry).toBe(true);
 
         const count400 = explainGenerationError(
-            `{"error":{"code":"invalid_video_parameters","type":"invalid_request_error","message":"当前模型最多支持 9 个参考图片，请减少参考图片（本次传入 10 个）后再提交 (请求编号: ${requestId})"}}`,
+            `{"error":{"code":"invalid_video_parameters","type":"invalid_request_error","message":"The current model supports up to 9 reference pictures. Please reduce the reference pictures (10 are passed in this time) before submitting (request number:${requestId})"}}`,
         );
         expect(count400.category).toBe("invalid_params");
-        expect(count400.reason).toBe("当前模型最多支持 9 个参考图片");
-        expect(count400.action).toBe("请减少参考图片（本次传入 10 个）后再提交");
+        expect(count400.reason).toBe("The current model supports up to 9 reference images");
+        expect(count400.action).toBe("Please reduce the number of reference images (input 10 this time) before submitting");
         expect(count400.requestId).toBe(requestId);
-        expect(count400.message).not.toContain("请求编号:");
+        expect(count400.message).not.toContain("Request number:");
 
-        const persistedItem = explainGenerationError(`参考音频 1：无法识别文件。图片用 PNG、JPEG、WebP、GIF、BMP 或 TIFF。视频用 MP4 或 MOV。音频用 MP3 或 WAV。排查编号：请求 ${requestId}。`);
+        const persistedItem = explainGenerationError(`Reference Audio 1: File not recognized. Use PNG, JPEG, WebP, GIF, BMP or TIFF for images. For videos use MP4 or MOV. For audio use MP3 or WAV. Troubleshooting Number: Request${requestId}。`);
         expect(persistedItem.category).toBe("invalid_params");
-        expect(persistedItem.reason).toBe("参考音频 1：无法识别文件");
+        expect(persistedItem.reason).toBe("Reference Audio 1: File not recognized");
         expect(persistedItem.requestId).toBe(requestId);
 
         const futureServer = explainGenerationError({
@@ -198,57 +198,57 @@ describe("measured reference audio API errors", () => {
         expect(futureServer.category).toBe("invalid_params");
         const persistedFuture = explainGenerationError(futureServer.message);
         expect(persistedFuture.category).toBe("invalid_params");
-        expect(persistedFuture.reason).toBe("当前模型不支持同时传入首尾帧和参考音频");
-        expect(persistedFuture.action).toBe("请移除其一后再提交");
+        expect(persistedFuture.reason).toBe("The current model does not support passing in first and last frames and reference audio at the same time");
+        expect(persistedFuture.action).toBe("Please remove one of them before submitting");
         expect(persistedFuture.requestId).toBe(requestId);
 
         const busy503 = explainGenerationError({
             status: 503,
-            data: { error: { code: "invalid_request_error", message: "当前服务繁忙，请稍后再试" } },
+            data: { error: { code: "invalid_request_error", message: "The service is currently busy, please try again later." } },
         });
         expect(busy503.category).toBe("provider_unavailable");
         expect(busy503.retryable).toBe(true);
 
         const busy503Type = explainGenerationError({
             status: 503,
-            data: { error: { type: "invalid_request_error", code: "custom_gateway_code", message: "当前服务繁忙，请稍后再试" } },
+            data: { error: { type: "invalid_request_error", code: "custom_gateway_code", message: "The service is currently busy, please try again later." } },
         });
         expect(busy503Type.category).toBe("provider_unavailable");
         expect(busy503Type.retryable).toBe(true);
 
-        expect(explainGenerationError("当前模型服务暂时不可用，请稍后重试").category).not.toBe("invalid_params");
-        expect(explainGenerationError("生成失败，请重试").category).not.toBe("invalid_params");
-        expect(explainGenerationError("生成失败，请调整后重试").category).not.toBe("invalid_params");
-        expect(explainGenerationError("请求频率过高，请调整请求时间后重试").category).not.toBe("invalid_params");
-        expect(explainGenerationError("生成结果还没取回。点击「继续取回」可继续下载原结果，不会重新生成。").category).not.toBe("invalid_params");
-        expect(explainGenerationError({ status: 400, data: { error: { message: "视频结果下载失败，请稍后重试" } } }).category).toBe("download_failed");
-        expect(explainGenerationError({ status: 400, data: { error: { code: "invalid_request_error", message: "视频结果下载失败，请稍后重试" } } }).category).toBe("download_failed");
-        expect(explainGenerationError({ status: 400, data: { error: { type: "invalid_request_error", message: "接口没有返回图片" } } }).category).toBe("results_missing");
+        expect(explainGenerationError("The current model service is temporarily unavailable, please try again later.").category).not.toBe("invalid_params");
+        expect(explainGenerationError("Generation failed, please try again").category).not.toBe("invalid_params");
+        expect(explainGenerationError("Generation failed, please adjust and try again").category).not.toBe("invalid_params");
+        expect(explainGenerationError("The request frequency is too high, please adjust the request time and try again.").category).not.toBe("invalid_params");
+        expect(explainGenerationError("The generated results have not been retrieved yet. Click \"Continue Retrieval\" to continue downloading the original results and will not regenerate them.").category).not.toBe("invalid_params");
+        expect(explainGenerationError({ status: 400, data: { error: { message: "Video result download failed, please try again later." } } }).category).toBe("download_failed");
+        expect(explainGenerationError({ status: 400, data: { error: { code: "invalid_request_error", message: "Video result download failed, please try again later." } } }).category).toBe("download_failed");
+        expect(explainGenerationError({ status: 400, data: { error: { type: "invalid_request_error", message: "The interface does not return pictures" } } }).category).toBe("results_missing");
         expect(explainGenerationError({ status: 400, data: { error: { code: "invalid_request_error", message: "failed to fetch" } } }).category).toBe("network");
-        expect(explainGenerationError({ status: 400, data: { error: { type: "invalid_request_error", message: "任务已取消" } } }).category).toBe("cancelled");
-        expect(explainGenerationError({ status: 503, data: { error: { code: "invalid_request_error", message: "视频结果下载失败，请稍后重试" } } }).category).toBe("provider_unavailable");
+        expect(explainGenerationError({ status: 400, data: { error: { type: "invalid_request_error", message: "Task canceled" } } }).category).toBe("cancelled");
+        expect(explainGenerationError({ status: 503, data: { error: { code: "invalid_request_error", message: "Video result download failed, please try again later." } } }).category).toBe("provider_unavailable");
         expect(explainGenerationError({ status: 403, data: { error: { code: "invalid_request_error", message: "failed to fetch" } } }).category).toBe("permission");
-        expect(explainGenerationError({ status: 400, data: { error: { code: "invalid_request", message: "视频结果下载失败，请稍后重试" } } }).category).toBe("invalid_params");
-        expect(explainGenerationError({ data: { error: { message: "上游服务暂时不可用，请稍后重试" } } }).reason).toContain("上游服务暂时不可用");
-        expect(explainGenerationError({ status: 200, data: { error: { message: "上游服务暂时不可用，请稍后重试" } } }).reason).toContain("上游服务暂时不可用");
+        expect(explainGenerationError({ status: 400, data: { error: { code: "invalid_request", message: "Video result download failed, please try again later." } } }).category).toBe("invalid_params");
+        expect(explainGenerationError({ data: { error: { message: "The upstream service is temporarily unavailable, please try again later." } } }).reason).toContain("The upstream service is temporarily unavailable");
+        expect(explainGenerationError({ status: 200, data: { error: { message: "The upstream service is temporarily unavailable, please try again later." } } }).reason).toContain("The upstream service is temporarily unavailable");
 
         const containerPath = explainGenerationError({
             status: 400,
-            data: { error: { code: "invalid_video_parameters", message: "读取文件 /app/uploads/customer-secret.png 失败" } },
+            data: { error: { code: "invalid_video_parameters", message: "Failed to read file /app/uploads/customer-secret.png" } },
         });
         expect(containerPath.message).not.toContain("/app/");
         expect(containerPath.message).not.toContain("customer-secret");
-        expect(containerPath.message).not.toContain("[路径已隐藏]");
+        expect(containerPath.message).not.toContain("[path hidden]");
     });
     test("local total limit and combined diagnostic IDs survive persistence", () => {
-        const raw = "参考音频总时长为 16.00 秒，当前模型最多支持 15 秒；请裁剪或减少参考音频后再提交";
+        const raw = "The total duration of the reference audio is 16.00 seconds, and the current model supports up to 15 seconds; please crop or reduce the reference audio before submitting";
         const first = explainGenerationError(raw, { taskId: "task_existing_123", providerRequestId: requestId });
         const second = explainGenerationError({ code: first.category, message: first.message });
         expect(second.message).toBe(first.message);
         expect(second.requestId).toBe(requestId);
         expect(second.taskId).toBe("task_existing_123");
-        expect(second.message).toContain("16.00 秒");
-        expect(second.message).toContain("15 秒");
+        expect(second.message).toContain("16.00 seconds");
+        expect(second.message).toContain("15 seconds");
         expect(second.category).toBe("invalid_params");
         expect(second.blockAutomaticRetry).toBe(true);
     });
@@ -258,17 +258,17 @@ test("height, aspect, pixel and request-size errors stay human and never leak JS
     const height = '{"error":{"code":"400","message":"Height must be between 300px and 6000px","type":"api_error"}} (request id: 202609270829245377912978268d9d6USz1NP3R)';
     const failure = explainGenerationError(height);
     expect(failure.category).toBe("invalid_params");
-    expect(failure.action).toContain("300–6000 像素");
+    expect(failure.action).toContain("300–6000 pixels");
     expect(failure.requestId).toBe("202609270829245377912978268d9d6USz1NP3R");
     expect(failure.message).not.toContain("{");
-    expect(explainGenerationError({ code: failure.category, message: failure.message }).action).toContain("300–6000 像素");
+    expect(explainGenerationError({ code: failure.category, message: failure.message }).action).toContain("300–6000 pixels");
     expect(explainGenerationError({ code: failure.category, message: failure.message }).category).toBe("invalid_params");
     expect(explainGenerationError({ code: "invalid_parameter", message: "aspect ratio must be between 0.4 and 2.5" }).action).toContain("0.4–2.5");
-    expect(explainGenerationError({ code: "invalid_parameter", message: "pixel count must be between 409600 and 8295044" }).reason).toContain("像素总量");
-    expect(explainGenerationError({ status: 413, data: { error: { message: "Request entity too large" } } }).reason).toContain("整次请求");
-    expect(explainGenerationError({ status: 413, data: { error: { message: "image file too large" } } }).reason).toContain("单个参考文件");
-    const persisted = explainGenerationError("第 1 张参考图高度为 200 像素，需要 300–6000 像素；请调整尺寸或更换后再提交");
-    expect(persisted.reason).toContain("第 1 张");
+    expect(explainGenerationError({ code: "invalid_parameter", message: "pixel count must be between 409600 and 8295044" }).reason).toContain("Total number of pixels");
+    expect(explainGenerationError({ status: 413, data: { error: { message: "Request entity too large" } } }).reason).toContain("entire request");
+    expect(explainGenerationError({ status: 413, data: { error: { message: "image file too large" } } }).reason).toContain("single reference file");
+    const persisted = explainGenerationError("The first reference image is 200 pixels high and requires 300–6000 pixels; please resize or replace before submitting");
+    expect(persisted.reason).toContain("Picture 1");
     expect(persisted.category).toBe("invalid_params");
 });
 
@@ -276,8 +276,8 @@ test("gateway JSON suffix retains reference duration advice and request id", () 
     const raw = '{"error":{"code":"400","message":"素材转换失败: Duration must be between 1.8s and 30.2s.","type":"api_error"}} (request id: 202609270829245377912978268d9d6USz1NP3R)';
     const failure = explainGenerationError(raw);
     expect(failure.category).toBe("invalid_params");
-    expect(failure.reason).toBe("参考素材时长不符合模型要求");
-    expect(failure.action).toContain("1.8–30.2 秒");
+    expect(failure.reason).toBe("The duration of the reference material does not meet the model requirements");
+    expect(failure.action).toContain("1.8–30.2 seconds");
     expect(failure.requestId).toBe("202609270829245377912978268d9d6USz1NP3R");
     expect(failure.blockAutomaticRetry).toBe(true);
     expect(explainGenerationError({ code: "video_submission_unknown", task_id: "task-known-123" }).uncertain).toBe(true);
@@ -311,7 +311,7 @@ describe("generation error classification", () => {
             const failure = explainGenerationError({ code, message: explainGenerationError({ code }).message });
             expect(failure.category).toBe(code);
         }
-        expect(explainGenerationError({ code: "insufficient_user_quota" }).action).toContain("余额");
+        expect(explainGenerationError({ code: "insufficient_user_quota" }).action).toContain("Balance");
         expect(explainGenerationError({ code: "no_available_channel" }).category).toBe("provider_unavailable");
         expect(explainGenerationError({ code: "channel:invalid_key" }).category).toBe("provider_unavailable");
         expect(explainGenerationError({ status: 405, message: "405 Method Not Allowed" }).category).toBe("model_missing");
@@ -333,8 +333,8 @@ describe("generation error classification", () => {
 
     test("ambiguous moderation and structured prompt echoes do not invent a cause", () => {
         const text = "Your prompt or reference image was blocked by the content safety policy.";
-        expect(explainGenerationError(text).reason).toContain("提示词或参考素材");
-        expect(explainGenerationError({ error: { message: text } }).reason).toContain("提示词或参考素材");
+        expect(explainGenerationError(text).reason).toContain("Prompt words or reference materials");
+        expect(explainGenerationError({ error: { message: text } }).reason).toContain("Prompt words or reference materials");
         expect(explainGenerationError({ error: { code: "novel_error" }, prompt: "blocked by content safety policy" }).moderation).toBe(false);
         expect(explainGenerationError({ error: { message: "opaque prompt=blocked by content safety policy" } }).moderation).toBe(false);
     });
@@ -347,13 +347,13 @@ describe("generation error classification", () => {
 
     test("spaced credentials and arbitrary prompt text are never echoed", () => {
         for (const suffix of ["Authorization: Bearer PRIVATE VALUE", "Cookie: session=PRIVATE", "api_key = PRIVATE", "prompt = PRIVATE WORDS"]) {
-            expect(generationErrorMessage(`操作失败 ${suffix}`)).not.toContain("PRIVATE");
+            expect(generationErrorMessage(`Operation failed${suffix}`)).not.toContain("PRIVATE");
         }
     });
 
     test("only proven parameter limits are quoted", () => {
-        expect(explainGenerationError({ code: "invalid_parameter", message: "duration must be between 2 and 10 seconds" }).action).toContain("2–10 秒");
-        expect(explainGenerationError({ code: "invalid_parameter", message: "duration invalid" }).action).not.toContain("秒");
+        expect(explainGenerationError({ code: "invalid_parameter", message: "duration must be between 2 and 10 seconds" }).action).toContain("2–10 seconds");
+        expect(explainGenerationError({ code: "invalid_parameter", message: "duration invalid" }).action).not.toContain("sec");
         expect(explainGenerationError({ code: "invalid_parameter", message: "prompt=duration must be between 2 and 10 seconds" }).action).not.toContain("2–10");
     });
 
@@ -374,7 +374,7 @@ describe("generation error classification", () => {
             data: { error: { message: "Invalid size", type: "invalid_request_error", param: "size", code: "invalid_request" }, request_id: "req_abc123" },
         });
         expect(explained.category).toBe("invalid_params");
-        expect(explained.message).toContain("参数");
+        expect(explained.message).toContain("parameters");
         expect(explained.requestId).toBe("req_abc123");
     });
 
@@ -384,7 +384,7 @@ describe("generation error classification", () => {
             data: { error: { code: 400, message: "API key not valid", status: "UNAUTHENTICATED" } },
         });
         expect(explained.category).toBe("auth");
-        expect(explained.message).toContain("鉴权");
+        expect(explained.message).toContain("Authentication");
     });
 
     test("dashscope url error is inaccessible media", () => {
@@ -398,17 +398,17 @@ describe("generation error classification", () => {
     test("newapi length error is context too long", () => {
         const explained = explainGenerationError({
             status: 200,
-            data: { code: "RequestParameterIsWrong", data: null, msg: "参数: prompt 的长度: 23142 大于最大长度 10000" },
+            data: { code: "RequestParameterIsWrong", data: null, msg: "Parameters: length of prompt: 23142 is greater than the maximum length of 10000" },
         });
         expect(explained.category).toBe("context_too_long");
     });
 
     test("http 402 without body is unknown billing", () => {
-        const explained = explainGenerationError({ status: 402, message: "模型服务请求失败" });
+        const explained = explainGenerationError({ status: 402, message: "Model service request failed" });
         expect(explained.category).toBe("quota_unknown");
-        expect(explained.message).toContain("计费或额度");
-        expect(explained.message).not.toContain("余额");
-        expect(explained.message).not.toContain("退还");
+        expect(explained.message).toContain("Billing or quota");
+        expect(explained.message).not.toContain("Balance");
+        expect(explained.message).not.toContain("return");
     });
 
     test("http 451 safety body is moderation", () => {
@@ -417,7 +417,7 @@ describe("generation error classification", () => {
             data: "Your prompt or reference image was blocked by the content safety policy. Please adjust your prompt or reference image and try again.",
         });
         expect(explained.moderation).toBe(true);
-        expect(explained.message).toContain("内容安全审核");
+        expect(explained.message).toContain("Content security review");
         expect(explained.blockAutomaticRetry).toBe(true);
     });
 
@@ -438,7 +438,7 @@ describe("generation error classification", () => {
     });
 
     test("wrapped string errors still parse json", () => {
-        const raw = '接口请求失败：{"error":{"message":"Your prompt or reference image was blocked by the content safety policy.","code":"content_policy_violation"}}';
+        const raw = 'Interface request failed: {"error":{"message":"Your prompt or reference image was blocked by the content safety policy.","code":"content_policy_violation"}}';
         expect(explainGenerationError(raw).moderation).toBe(true);
     });
 
@@ -463,7 +463,7 @@ describe("generation error classification", () => {
 
     test("http urls in transport summaries are stripped without mangling as local paths or dropping trailing causes", () => {
         for (const msg of [
-            '本次请求准备失败：Get "https://beeftv.app/v1/models": EOF',
+            'The preparation of this request failed: Get "https://beeftv.app/v1/models": EOF',
             'Post "https://beeftv.app/v1/media/tasks": connection reset by peer',
             'Put "https://storage.example.com/media/uploads/part1?X-Amz-Signature=secret": unexpected EOF',
         ]) {
@@ -473,7 +473,7 @@ describe("generation error classification", () => {
                     summary: msg,
                 },
             });
-            expect(text).not.toContain("[路径已隐藏]");
+            expect(text).not.toContain("[path hidden]");
             expect(text).not.toContain("beeftv.app");
             expect(text).not.toContain("secret");
             expect(text).toMatch(/EOF|connection reset by peer/);
@@ -497,27 +497,27 @@ describe("generation error classification", () => {
     });
 
     test("async poll download and missing results", () => {
-        expect(explainGenerationError("视频结果下载失败（任务 task-1）：模型服务暂时不可用").category).toBe("download_failed");
-        expect(shouldBlockAutomaticRetry("视频结果下载失败（任务 task-1）：模型服务暂时不可用")).toBe(true);
-        expect(explainGenerationError("接口没有返回图片").category).toBe("results_missing");
-        expect(explainGenerationError(new Error("任务失败"), { stage: "submission_unknown" }).category).toBe("submission_uncertain");
-        expect(shouldBlockAutomaticRetry("生成失败", "submission_unknown")).toBe(true);
+        expect(explainGenerationError("Video result download failed (task task-1): The model service is temporarily unavailable").category).toBe("download_failed");
+        expect(shouldBlockAutomaticRetry("Video result download failed (task task-1): The model service is temporarily unavailable")).toBe(true);
+        expect(explainGenerationError("The interface does not return pictures").category).toBe("results_missing");
+        expect(explainGenerationError(new Error("Task failed"), { stage: "submission_unknown" }).category).toBe("submission_uncertain");
+        expect(shouldBlockAutomaticRetry("Build failed", "submission_unknown")).toBe(true);
     });
 
     test("does not promise refunds", () => {
-        expect(generationErrorMessage({ status: 400, data: { code: "sensitive_words_detected" } })).not.toContain("退还");
-        expect(generationErrorMessage({ status: 400, data: { code: "sensitive_words_detected" } })).not.toContain("积分");
+        expect(generationErrorMessage({ status: 400, data: { code: "sensitive_words_detected" } })).not.toContain("return");
+        expect(generationErrorMessage({ status: 400, data: { code: "sensitive_words_detected" } })).not.toContain("Points");
     });
 
     test("changing reference unlocks moderation retry", () => {
         const metadata = generationFailureMetadata({ status: 400, data: { error: { message: "Your prompt or reference image was blocked by the content safety policy." } } }, "same prompt", [{ id: "ref-1" }]);
         expect(unchangedModeratedPrompt(metadata, "same prompt", [{ id: "ref-1" }])).toBe(true);
         expect(unchangedModeratedPrompt(metadata, "same prompt", [{ id: "ref-2" }])).toBe(false);
-        expect(unchangedModeratedPrompt({ generationErrorCode: "moderation_input", errorDetails: "内容安全审核" }, "same prompt", [{ id: "ref-2" }])).toBe(false);
+        expect(unchangedModeratedPrompt({ generationErrorCode: "moderation_input", errorDetails: "Content security review" }, "same prompt", [{ id: "ref-2" }])).toBe(false);
     });
 
     test("missing fingerprint does not trap the user", () => {
-        expect(unchangedModeratedPrompt({ generationErrorCode: "moderation_input", errorDetails: "内容安全审核" }, "prompt")).toBe(false);
+        expect(unchangedModeratedPrompt({ generationErrorCode: "moderation_input", errorDetails: "Content security review" }, "prompt")).toBe(false);
     });
 
     test("input fingerprint changes with references", () => {
@@ -527,8 +527,8 @@ describe("generation error classification", () => {
     test("diagnostics copy is safe", () => {
         const explanation = explainGenerationError({ status: 400, data: { error: { code: "invalid_request", message: "bad" } }, message: "bad" }, { taskId: "task_safe_1", model: "demo-model" });
         const text = formatGenerationDiagnostics(explanation, { taskId: "task_safe_1", model: "demo-model", createdAt: "2026-09-26T00:00:00.000Z" });
-        expect(text).toContain("任务 ID：task_safe_1");
-        expect(text).toContain("模型：demo-model");
+        expect(text).toContain("Task ID: task_safe_1");
+        expect(text).toContain("Model: demo-model");
         expect(text).not.toContain("api-key");
     });
 
@@ -541,29 +541,29 @@ describe("generation error classification", () => {
                 requests: [{ operation: "submit", method: "POST", dispatched: false, outcome: "not_dispatched", transportPhase: "tls", transportRoute: "direct", startedAt: "2026-10-15T03:25:27Z", durationMs: 15312, requestBytes: 7557896 }],
             },
         });
-        expect(text).toContain("模型：minimax-h3");
+        expect(text).toContain("Model:minimax-h3");
         expect(text).not.toContain("seedance");
-        expect(text).toContain("请求体大小=7557896（不代表已发送）");
-        expect(text).toContain("直连；阶段=TLS 握手");
-        expect(text).toContain("请求未发送");
-        expect(text).not.toContain("上游任务可能仍在执行");
+        expect(text).toContain("Request body size = 7557896 (does not mean it has been sent)");
+        expect(text).toContain("Direct connection; stage=TLS handshake");
+        expect(text).toContain("Request not sent");
+        expect(text).not.toContain("Upstream tasks may still be executing");
     });
 
     test("persisted category is never advertised as an upstream code", () => {
-        const explanation = explainGenerationError({ code: "invalid_params", message: "模型不接受当前参数" });
+        const explanation = explainGenerationError({ code: "invalid_params", message: "Model does not accept current parameters" });
         const text = formatGenerationDiagnostics(explanation, { taskId: "local-task-123", createdAt: "2026-09-30T15:39:21+08:00" });
-        expect(text).not.toContain("上游代码：invalid_params");
-        expect(text).toContain("错误来源：未记录");
-        expect(text).toContain("请求 ID：未记录");
-        expect(text).toContain("任务创建时间：2026-09-30T15:39:21+08:00");
+        expect(text).not.toContain("Upstream code: invalid_params");
+        expect(text).toContain("Error source: undocumented");
+        expect(text).toContain("Request ID: Not logged");
+        expect(text).toContain("Task creation time: 2026-09-30T15:39:21+08:00");
     });
 
     test("diagnostics preserve constraint, request and distinct failure time", () => {
         const text = formatGenerationDiagnostics(explainGenerationError({ code: "invalid_params" }), {
             taskId: "local-task-123", createdAt: "2026-09-30T15:39:21+08:00", completedAt: "2026-09-30T15:40:11+08:00",
-            failureDiagnostics: { source: "upstream_http", summary: "size must be 1024x1024", providerCode: "invalid_size", httpStatus: 400, requestId: "req-123456", param: "size", stage: "正在生成", capturedAt: "2026-09-30T15:40:10+08:00" },
+            failureDiagnostics: { source: "upstream_http", summary: "size must be 1024x1024", providerCode: "invalid_size", httpStatus: 400, requestId: "req-123456", param: "size", stage: "Generating", capturedAt: "2026-09-30T15:40:10+08:00" },
         });
-        for (const expected of ["上游代码：invalid_size", "HTTP 状态：400", "请求 ID：req-123456", "参数：size", "错误摘要：size must be 1024x1024", "错误记录时间：2026-09-30T15:40:10+08:00", "任务结束时间：2026-09-30T15:40:11+08:00"]) expect(text).toContain(expected);
+        for (const expected of ["Upstream code: invalid_size", "HTTP status: 400", "Request ID: req-123456", "Parameters: size", "Error summary: size must be 1024x1024", "Error recording time: 2026-09-30T15:40:10+08:00", "Mission end time: 2026-09-30T15:40:11+08:00"]) expect(text).toContain(expected);
     });
 
     test("copied diagnostic evidence is sanitized again", () => {
@@ -571,43 +571,43 @@ describe("generation error classification", () => {
             source: "local_validation", summary: "cannot read C:\\Users\\PRIVATE\\image.png https://host/file?token=PRIVATE Authorization: Bearer PRIVATE multi word",
             providerCode: "invalid_params", requestId: "secret-PRIVATE", stage: "prompt=PRIVATE", capturedAt: "Cookie: PRIVATE",
         } });
-        expect(text).toContain("错误来源：本地参数校验");
+        expect(text).toContain("Source of error: local parameter verification");
         expect(text).not.toContain("PRIVATE");
-        expect(text).not.toContain("上游代码");
+        expect(text).not.toContain("upstream code");
     });
 
     test("reference upload diagnostics identify storage and the failing asset", () => {
-        const failure = explainGenerationError({ code: "provider_unavailable", message: "参考素材上传失败，本次尚未开始生成。请检查网络或稍后重试。" });
+        const failure = explainGenerationError({ code: "provider_unavailable", message: "The reference material upload failed and the generation has not started yet. Please check the network or try again later." });
         expect(failure.blockAutomaticRetry).toBe(true);
         expect(failure.blockManualRetry).toBe(false);
         const text = formatGenerationDiagnostics(failure, { failureDiagnostics: {
-            source: "reference_upload", summary: "参考图 2 上传文件失败：HTTP 403 SignatureDoesNotMatch", providerCode: "SignatureDoesNotMatch", httpStatus: 403,
-            requests: [{ operation: "reference_put", method: "PUT", dispatched: true, outcome: "http_error", httpStatus: 403, startedAt: "2026-10-19T03:00:00Z", durationMs: 123, summary: "参考图 2 上传文件失败" }],
+            source: "reference_upload", summary: "Refer to Figure 2 File upload failed: HTTP 403 SignatureDoesNotMatch", providerCode: "SignatureDoesNotMatch", httpStatus: 403,
+            requests: [{ operation: "reference_put", method: "PUT", dispatched: true, outcome: "http_error", httpStatus: 403, startedAt: "2026-10-19T03:00:00Z", durationMs: 123, summary: "Refer to Figure 2 File upload failed" }],
         } });
-        expect(text).toContain("错误来源：参考素材上传");
-        expect(text).toContain("存储返回代码：SignatureDoesNotMatch");
-        expect(text).toContain("请求 1：上传素材文件");
-        expect(text).toContain("参考图 2");
+        expect(text).toContain("Error source: Reference material upload");
+        expect(text).toContain("Store return code: SignatureDoesNotMatch");
+        expect(text).toContain("Request 1: Upload material files");
+        expect(text).toContain("Reference Figure 2");
     });
 
     test("copied original-task DNS failure identifies local network and query stage", () => {
-        const text = formatGenerationDiagnostics(explainGenerationError("模型服务域名解析失败"), { failureDiagnostics: {
-            source: "local_network", stage: "查询原任务（DNS 解析）", summary: "外部服务域名解析失败",
+        const text = formatGenerationDiagnostics(explainGenerationError("Model service domain name resolution failed"), { failureDiagnostics: {
+            source: "local_network", stage: "Query the original task (DNS resolution)", summary: "External service domain name resolution failed",
         } });
-        expect(text).toContain("错误来源：本地网络");
-        expect(text).toContain("失败阶段：查询原任务（DNS 解析）");
-        expect(text).not.toContain("正在连接上游");
-        expect(text).not.toContain("上游业务响应");
+        expect(text).toContain("Error source: local network");
+        expect(text).toContain("Failure stage: Query the original task (DNS resolution)");
+        expect(text).not.toContain("Connecting to upstream");
+        expect(text).not.toContain("Upstream business response");
     });
 
     test("copied reference failure keeps DNS stage and recovery attempt", () => {
-        const text = formatGenerationDiagnostics(explainGenerationError({ code: "provider_unavailable", message: "参考素材上传失败，本次尚未开始生成。请检查网络或稍后重试。" }), { failureDiagnostics: {
-            source: "reference_upload", requests: [{ operation: "reference_put", method: "PUT", dispatched: false, outcome: "not_dispatched", transportPhase: "dns", transportRoute: "direct", startedAt: "2026-10-22T03:00:00Z", durationMs: 123, summary: "参考图 1 上传文件（第 3 次）失败：域名解析失败" }],
+        const text = formatGenerationDiagnostics(explainGenerationError({ code: "provider_unavailable", message: "The reference material upload failed and the generation has not started yet. Please check the network or try again later." }), { failureDiagnostics: {
+            source: "reference_upload", requests: [{ operation: "reference_put", method: "PUT", dispatched: false, outcome: "not_dispatched", transportPhase: "dns", transportRoute: "direct", startedAt: "2026-10-22T03:00:00Z", durationMs: 123, summary: "Refer to Figure 1. File upload (3rd time) failed: Domain name resolution failed." }],
         } });
-        expect(text).toContain("阶段=DNS 解析");
-        expect(text).toContain("第 3 次");
-        expect(text).toContain("请求未发送");
-        expect(text).not.toContain("上游任务可能仍在执行");
+        expect(text).toContain("Stage=DNS Resolution");
+        expect(text).toContain("3rd time");
+        expect(text).toContain("Request not sent");
+        expect(text).not.toContain("Upstream tasks may still be executing");
     });
 
     test("content moderation helper recognizes new categories", () => {
@@ -616,23 +616,23 @@ describe("generation error classification", () => {
         expect(isContentModerationError({ code: "moderation_output" })).toBe(true);
         expect(isContentModerationError({ code: "sensitive_words_detected" })).toBe(true);
         expect(isContentModerationError({ category: "moderation_input" })).toBe(true);
-        expect(isContentModerationError({ code: "quota_user", message: "提示词未通过内容安全审核" })).toBe(false);
-        expect(isContentModerationError("提示词未通过内容安全审核")).toBe(false);
-        expect(isContentModerationError("上游 HTTP 400")).toBe(false);
+        expect(isContentModerationError({ code: "quota_user", message: "The prompt word failed the content security review" })).toBe(false);
+        expect(isContentModerationError("The prompt word failed the content security review")).toBe(false);
+        expect(isContentModerationError("Upstream HTTP 400")).toBe(false);
     });
 });
 
 describe("image transport errors go through the classifier", () => {
     test("readStatusError 402 is unknown billing", () => {
-        expect(readStatusError(402, "请求失败")).toContain("计费或额度");
+        expect(readStatusError(402, "Request failed")).toContain("Billing or quota");
     });
 
     test("readFetchError classifies json body and strips html", async () => {
         const jsonResponse = new Response(JSON.stringify({ error: { message: "Your prompt or reference image was blocked by the content safety policy.", code: "content_policy_violation" } }), { status: 451 });
-        expect(await readFetchError(jsonResponse, "请求失败")).toContain("内容安全审核");
+        expect(await readFetchError(jsonResponse, "Request failed")).toContain("Content security review");
         const htmlResponse = new Response("<!DOCTYPE html><html>secret</html>", { status: 502 });
-        const htmlMessage = await readFetchError(htmlResponse, "请求失败");
-        expect(htmlMessage).toContain("暂时不可用");
+        const htmlMessage = await readFetchError(htmlResponse, "Request failed");
+        expect(htmlMessage).toContain("Temporarily unavailable");
         expect(htmlMessage).not.toContain("secret");
         expect(htmlMessage).not.toContain("<html");
     });
@@ -640,9 +640,9 @@ describe("image transport errors go through the classifier", () => {
 
 
 test("pixel failure explains actual input and upstream range", () => {
-    const raw = explainGenerationError({ error: { code: "400", message: "素材转换失败: Pixel count must be between 407696 and 8295044." } });
+    const raw = explainGenerationError({ error: { code: "400", message: "Material conversion failed: Pixel count must be between 407696 and 8295044." } });
     expect(raw.action).toContain("407696–8295044");
-    const measured = explainGenerationError("第 1 个参考视频像素总量为 331776（432×768），需要 407696–8295044 像素；请调整尺寸");
+    const measured = explainGenerationError("The first reference video has a total pixel count of 331776 (432×768) and requires 407696–8295044 pixels; please resize");
     expect(measured.reason).toContain("432×768");
     expect(measured.action).toContain("407696–8295044");
 });
@@ -658,7 +658,7 @@ test("gateway video preflight failures preserve actionable details", () => {
 
 test("reference pixel diagnostic ID is not duplicated", () => {
     const id = "202609290516575609492488268d9d6HqaXq7bq";
-    const input = `第 1 个参考视频像素总量为 331776（432×768）。需要 407696–8295044 像素；请调整尺寸。排查编号：请求 ${id}。`;
+    const input = `The total number of pixels in the first reference video is 331776 (432×768). Requires 407696–8295044 pixels; please resize. Troubleshooting Number: Request${id}。`;
     const failure = explainGenerationError({ code: "invalid_params", message: input });
     expect(failure.message.split(id).length - 1).toBe(1);
     expect(failure.action).not.toContain(id);
@@ -673,15 +673,15 @@ test("media details preserve authentication and ignore prompt echoes", () => {
     expect(explainGenerationError({error: {code: "unknown", message: "Failure"}, prompt: "unsupported video codec"}).category).toBe("unknown");
 });
 
-const BACKEND_IDS = "排查编号：任务 task_abc123 · 请求 req_abc123";
+const BACKEND_IDS = "Troubleshooting number: task task_abc123 · Request req_abc123";
 const BACKEND_CASES: Array<{ code: string; reason: string; action: string; moderation?: boolean; uncertain?: boolean }> = [
-    { code: "moderation_reference", reason: "第 1 张参考图片疑似包含真人形象，该模型拒绝生成", action: "请检查并更换参考图片后重新生成", moderation: true },
-    { code: "quota_user", reason: "当前账号可用额度不足", action: "请检查账号余额，补充额度或调整令牌、套餐额度后重试" },
-    { code: "invalid_params", reason: "首尾帧模式的画面比例需跟随首帧", action: "请选择自适应比例后重新生成；如需指定比例，请改用参考生成模式" },
-    { code: "invalid_params", reason: "第 2 个参考视频时长为 3.00 秒", action: "请将这段参考视频裁剪或更换为 5–15 秒" },
-    { code: "timeout", reason: "图片任务执行超时", action: "请联系支持查询原任务结果，不要立即重新生成", uncertain: true },
-    { code: "results_missing", reason: "图片任务已结束，但未返回可用图片", action: "请联系支持核对原任务，不要重复提交", uncertain: true },
-    { code: "throttled", reason: "请求过于频繁", action: "请稍后再试" },
+    { code: "moderation_reference", reason: "The first reference image appears to contain a real person, and the model refuses to generate it.", action: "Please check and replace the reference image before regenerating", moderation: true },
+    { code: "quota_user", reason: "The available balance of the current account is insufficient", action: "Please check the account balance, replenish the quota or adjust the token or package quota and try again" },
+    { code: "invalid_params", reason: "The screen ratio of the first and last frame modes must follow the first frame", action: "Please select the adaptive scale before regenerating; if you need to specify the scale, please use the reference generation mode instead." },
+    { code: "invalid_params", reason: "The second reference video is 3.00 seconds long", action: "Please crop or replace this reference video to 5–15 seconds" },
+    { code: "timeout", reason: "Image task execution timeout", action: "Please contact support to check the original task results and do not regenerate immediately.", uncertain: true },
+    { code: "results_missing", reason: "Image task ended, but no available images were returned", action: "Please contact support to verify the original task and do not submit it again.", uncertain: true },
+    { code: "throttled", reason: "Requests are too frequent", action: "Please try again later" },
 ];
 for (const item of BACKEND_CASES) {
     test(`backend task failure ${item.code} uses the structured category: ${item.reason}`, () => {
@@ -698,16 +698,16 @@ for (const item of BACKEND_CASES) {
 }
 
 test("backend task failure category comes from the code, never from the message text", () => {
-    const result = explainGenerationError({ code: "invalid_params", message: "额度不足。请检查账号余额。" });
+    const result = explainGenerationError({ code: "invalid_params", message: "Insufficient quota. Please check your account balance." });
     expect(result.category).toBe("invalid_params");
     expect(result.moderation).toBe(false);
-    expect(explainGenerationError({ code: "canvas_conflict", message: "后端不会这样说。请忽略。" }).reason).toBe("生成结果已保留，画布尚未更新");
+    expect(explainGenerationError({ code: "canvas_conflict", message: "The backend doesn't say that. Please ignore." }).reason).toBe("The build results have been retained and the canvas has not been updated yet");
 });
 
 test("third-party gateway channel_excluded and generic invalid_request_error wrapper keep accurate categories", () => {
     const channelBody = {
         error: {
-            message: "这个模型的线路已经在这把密钥的「渠道管理」里被全部取消勾选了，所以当前没有可用渠道。请打开这把密钥的「渠道管理」，至少勾上一条线路后再试。 (request id: req.20261101.zB868dI1)",
+            message: "The lines of this model have all been unchecked in the \"Channel Management\" of this key, so there are currently no available channels. Please open \"Channel Management\" for this key, hook up at least one line and try again. (request id: req.20261101.zB868dI1)",
             type: "invalid_request_error",
             param: "",
             code: "channel_excluded",
@@ -742,7 +742,7 @@ test("third-party gateway channel_excluded and generic invalid_request_error wra
         const height = explainGenerationError({ status, data: { error: { message: "Height must be between 300px and 6000px", type: "invalid_request_error", code: "custom_gateway_code" } } });
         expect(height.category).toBe("invalid_params");
         expect(height.retryable).toBe(false);
-        expect(height.action).toContain("300–6000 像素");
+        expect(height.action).toContain("300–6000 pixels");
         expect(height.providerCode).toBe("custom_gateway_code");
 
         const quota = explainGenerationError({ status, data: { error: { message: "Your account quota is exhausted", type: "invalid_request_error", code: "custom_quota_code" } } });
@@ -767,7 +767,7 @@ test("custom relay failure header overrides local provider-text classification",
         expect((error as ChannelResponseError).category).toBe("quota_upstream");
         const explained = explainGenerationError(error);
         expect(explained.category).toBe("quota_upstream");
-        expect(explained.reason).toContain("供应商");
-        expect(explained.reason).not.toContain("内容安全");
+        expect(explained.reason).toContain("supplier");
+        expect(explained.reason).not.toContain("Content security");
     }
 });

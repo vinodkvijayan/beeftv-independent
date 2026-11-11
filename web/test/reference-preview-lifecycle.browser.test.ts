@@ -119,7 +119,7 @@ test("mention menu decodes only visible rows and releases them when closed", asy
     // A visible canvas node can hold the same poster while menu rows unmount.
     await page.evaluate(() => (window as any).holdVideo("menu-0"));
     await page.evaluate((references) => { (window as any).setReferences(references); (window as any).showMenu(); }, Array.from({ length: 40 }, (_, i) => video(`menu-${i}`)));
-    const editor = page.getByRole("textbox", { name: "引用编辑" });
+    const editor = page.getByRole("textbox", { name: "QuoteEdit" });
     await editor.pressSequentially("@menu");
     await page.locator("[data-canvas-resource-mention-menu]").waitFor({ state: "visible", timeout: 3000 });
     expect(await page.locator(".canvas-resource-mention-item").count()).toBe(40);

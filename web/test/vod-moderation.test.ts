@@ -8,15 +8,15 @@ test("VOD safety rejection reaches canvas copy and blocks unchanged retry", () =
         "Your request was rejected as a result of our safety system.",
         { code: "ContentModerationFailed", message: "opaque" },
         { code: "InvalidParameter.VoilationContent", message: "opaque" },
-        { code: "content_policy_violation", message: "本次图片生成未通过内容安全审核，请调整提示词或参考素材后重试。" },
+        { code: "content_policy_violation", message: "This image generation did not pass the content security review. Please adjust the prompt words or reference materials and try again." },
     ]) {
         const result = explainGenerationError(input);
         expect(result.moderation).toBe(true);
-        expect(result.message).toContain("内容安全审核");
+        expect(result.message).toContain("Content security review");
         expect(result.message).not.toContain("Azure");
         expect(result.blockAutomaticRetry).toBe(true);
         const metadata = canvasGenerationFailureMetadata(input, { prompt: "draw", mode: "image" });
-        expect(metadata.errorDetails).toContain("内容安全审核");
+        expect(metadata.errorDetails).toContain("Content security review");
         expect(isNodeRegenerateConfirm(metadata)).toBe(true);
         expect(unchangedModeratedPrompt(metadata, "draw")).toBe(true);
         expect(explainGenerationError({ code: metadata.generationErrorCode, message: metadata.errorDetails }).moderation).toBe(true);

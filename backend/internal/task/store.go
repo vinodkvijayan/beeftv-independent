@@ -19,7 +19,7 @@ func NewStore(repo *repository.Repository) Store {
 
 func (s repoStore) require() error {
 	if s.repo == nil {
-		return kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+		return kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 	}
 	return nil
 }

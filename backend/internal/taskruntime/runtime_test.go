@@ -134,12 +134,12 @@ func (m *memoryRepo) ClaimNext(_ context.Context, owner string, ttl time.Duratio
 
 func (m *memoryRepo) RenewLease(_ context.Context, taskID, owner string, ttl time.Duration) error {
 	if m.failRenew.Load() {
-		return errors.New("任务租约已失效")
+		return errors.New("Task lease has expired")
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.task == nil || m.task.ID != taskID || m.task.LeaseOwner != owner {
-		return errors.New("任务租约已失效")
+		return errors.New("Task lease has expired")
 	}
 	exp := time.Now().Add(ttl)
 	m.task.LeaseExpiresAt = &exp

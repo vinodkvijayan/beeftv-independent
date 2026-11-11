@@ -6,7 +6,7 @@ import (
 )
 
 func TestVideoReservationQuotaRequiresFundingEvidence(t *testing.T) {
-	if got := ClassifyText("当前账号额度不足：请检查账号余额，或联系管理员调整额度后重试"); got.Category != CategoryQuotaUser {
+	if got := ClassifyText("The current account limit is insufficient: please check the account balance, or contact the administrator to adjust the limit and try again."); got.Category != CategoryQuotaUser {
 		t.Fatal(got)
 	}
 	for _, tc := range []struct {

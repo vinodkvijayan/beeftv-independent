@@ -16,14 +16,14 @@ import (
 func TestE2EGenerationRejectsConfirmDelayInRealMode(t *testing.T) {
 	t.Setenv("BEEFTV_REAL_GEN_TEST_CONFIRM_DELAY_MS", "1")
 	if err := e2eValidateConfirmDelay(false); err == nil {
-		t.Fatal("真实模式不应接受测试延迟")
+		t.Fatal("Real mode should not accept test delays")
 	}
 	if err := e2eValidateConfirmDelay(true); err != nil {
-		t.Fatalf("假模式应允许测试延迟: %v", err)
+		t.Fatalf("Fake mode should allow test delay: %v", err)
 	}
 	t.Setenv("BEEFTV_REAL_GEN_TEST_CONFIRM_DELAY_MS", "")
 	if err := e2eValidateConfirmDelay(false); err != nil {
-		t.Fatalf("未设置测试延迟时真实模式不应失败: %v", err)
+		t.Fatalf("Real mode should not fail when no test delay is set: %v", err)
 	}
 }
 
@@ -84,7 +84,7 @@ func TestE2EGenerationUsedTasksCountsAudio(t *testing.T) {
 		{Type: "canvas_image"}, {Type: "canvas_video"}, {Type: "canvas_audio"}, {Type: "timeline_render"},
 	}
 	if used := e2eUsedGenerationTasks(summaries); used != 3 {
-		t.Fatalf("图片/视频/音频任务都应计入额度: %d", used)
+		t.Fatalf("Picture/video/audio tasks are all included in the quota: %d", used)
 	}
 }
 
@@ -106,7 +106,7 @@ func TestE2EGenerationConfirmRejectsForeignCanvas(t *testing.T) {
 		}
 		response.Body.Close()
 		if response.StatusCode != http.StatusBadRequest {
-			t.Fatalf("%s 接受了非测试画布: %d", endpoint.path, response.StatusCode)
+			t.Fatalf("%s accepted non-test canvas: %d", endpoint.path, response.StatusCode)
 		}
 	}
 	for _, path := range []string{"/__tasks?canvasId=foreign-canvas", "/__canvas?canvasId=foreign-canvas"} {
@@ -116,7 +116,7 @@ func TestE2EGenerationConfirmRejectsForeignCanvas(t *testing.T) {
 		}
 		response.Body.Close()
 		if response.StatusCode != http.StatusBadRequest {
-			t.Fatalf("%s 接受了非测试画布: %d", path, response.StatusCode)
+			t.Fatalf("%s accepted non-test canvas: %d", path, response.StatusCode)
 		}
 	}
 }
@@ -156,10 +156,10 @@ func TestE2EGenerationConfirmationGateSerializesQuota(t *testing.T) {
 		}
 	}
 	if approvals != 1 || approved != 1 {
-		t.Fatalf("并发确认超过上限: approvals=%d approved=%d decisions=%s", approvals, approved, mustJSON(decisions))
+		t.Fatalf("Concurrent confirmations exceed the upper limit: approvals=%d approved=%d decisions=%s", approvals, approved, mustJSON(decisions))
 	}
 	if gate.currentUsed() != 1 {
-		t.Fatalf("额度预留不对: %d", gate.currentUsed())
+		t.Fatalf("Incorrect quota reservation: %d", gate.currentUsed())
 	}
 }
 

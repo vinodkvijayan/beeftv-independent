@@ -123,7 +123,7 @@ func TestAssistantBackgroundContinuationWaitsForPersistedDeliveryAndReusesClaim(
 	if err := svc.Database().Create(&model.Result{ID: "background-result", UserID: "local", TaskID: "background-task", Kind: localtask.ResultKindGenerationOutput, Payload: string(payload)}).Error; err != nil {
 		t.Fatal(err)
 	}
-	asset := json.RawMessage(`{"id":"background-asset","kind":"image","title":"生成结果","coverUrl":"","source":"生成任务","tags":[],"status":"confirmed","data":{"dataUrl":"","url":"","storageKey":"resource:background-resource","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`)
+	asset := json.RawMessage(`{"id":"background-asset","kind":"image","title":"Generate results","coverUrl":"","source":"Generate task","tags":[],"status":"confirmed","data":{"dataUrl":"","url":"","storageKey":"resource:background-resource","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`)
 	if _, err := svc.UpsertUserAsset("local", asset); err != nil {
 		t.Fatal(err)
 	}

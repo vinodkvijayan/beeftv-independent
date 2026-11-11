@@ -80,7 +80,7 @@ func (s *Service) LinkProjectAsset(userID string, projectID string, req LinkProj
 		category = asset.Category
 	}
 	if !validAssetCategory(category) {
-		return AssetSummary{}, kernel.BadAuthRequest("不支持的资产业务分类")
+		return AssetSummary{}, kernel.BadAuthRequest("Unsupported asset business classification")
 	}
 	folderID, err := s.resolveAssetFolderID(projectID, req.FolderID)
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *Service) assetFromUploadedResource(userID string, resourceID string, ti
 		return nil, err
 	}
 	if resource.Kind == "" {
-		return nil, kernel.BadAuthRequest("资源缺少媒体类型，无法导入")
+		return nil, kernel.BadAuthRequest("The resource is missing a media type and cannot be imported.")
 	}
 	payload, err := json.Marshal(map[string]any{
 		"data": map[string]any{
@@ -172,7 +172,7 @@ func (s *Service) assetFromUploadedResource(userID string, resourceID string, ti
 }
 
 func mediaTitleFallback(resource *model.Resource) string {
-	base := "未命名" + resource.Kind
+	base := "Unnamed" + resource.Kind
 	if resource.Width > 0 && resource.Height > 0 {
 		base += fmt.Sprintf(" %dx%d", resource.Width, resource.Height)
 	}
@@ -195,10 +195,10 @@ func (s *Service) UnlinkProjectAsset(userID string, projectID string, assetID st
 		for _, canvas := range canvases {
 			referenced, parseErr := canvasReferencesCharacterAsset(canvas.PayloadJSON, assetID)
 			if parseErr != nil {
-				return kernel.BadAuthRequest("画布数据格式错误，无法确认角色引用")
+				return kernel.BadAuthRequest("Canvas data format error, role reference cannot be confirmed")
 			}
 			if referenced {
-				return kernel.BadAuthRequest("角色仍被项目画布引用，请先删除对应角色卡节点")
+				return kernel.BadAuthRequest("The character is still referenced by the project canvas, please delete the corresponding character card node first.")
 			}
 		}
 	}
@@ -239,15 +239,15 @@ func (s *Service) UpdateProjectAsset(userID string, projectID string, assetID st
 		return AssetSummary{}, err
 	}
 	if !linked {
-		return AssetSummary{}, kernel.BadAuthRequest("素材尚未加入当前项目")
+		return AssetSummary{}, kernel.BadAuthRequest("The material has not been added to the current project yet")
 	}
 	if req.Category != nil && req.FolderID != nil {
-		return AssetSummary{}, kernel.BadAuthRequest("一次只能修改素材分类或所在文件夹")
+		return AssetSummary{}, kernel.BadAuthRequest("Only the material category or folder can be modified at one time")
 	}
 	if req.Category != nil {
 		category := model.AssetCategory(strings.TrimSpace(*req.Category))
 		if !validAssetCategory(category) {
-			return AssetSummary{}, kernel.BadAuthRequest("不支持的资产业务分类")
+			return AssetSummary{}, kernel.BadAuthRequest("Unsupported asset business classification")
 		}
 		asset.Category = category
 		asset.UpdatedAt = time.Now()
@@ -267,7 +267,7 @@ func (s *Service) UpdateProjectAsset(userID string, projectID string, assetID st
 			return AssetSummary{}, mapProjectWriteError(err)
 		}
 	} else {
-		return AssetSummary{}, kernel.BadAuthRequest("没有可更新的素材字段")
+		return AssetSummary{}, kernel.BadAuthRequest("No material fields to update")
 	}
 	return s.assetSummary(userID, projectID, asset)
 }
@@ -285,14 +285,14 @@ func (s *Service) CreateProjectAssetVersion(userID string, projectID string, ass
 		definition = "{}"
 	}
 	if !json.Valid([]byte(definition)) {
-		return model.AssetVersion{}, kernel.BadAuthRequest("资产版本设定必须是有效 JSON")
+		return model.AssetVersion{}, kernel.BadAuthRequest("Asset version settings must be valid JSON")
 	}
 	now := time.Now()
 	version := model.AssetVersion{ID: kernel.NewID(), AssetID: assetID, Status: model.AssetVersionStatusDraft, DefinitionJSON: definition, Prompt: strings.TrimSpace(req.Prompt), Note: strings.TrimSpace(req.Note), CreatedAt: now, UpdatedAt: now}
 	asset.UpdatedAt = now
 	if err := s.repo.CreateProjectAssetVersionAndBump(userID, projectID, asset, &version); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return model.AssetVersion{}, kernel.BadAuthRequest("素材尚未加入当前项目")
+			return model.AssetVersion{}, kernel.BadAuthRequest("The material has not been added to the current project yet")
 		}
 		return model.AssetVersion{}, mapProjectWriteError(err)
 	}
@@ -308,7 +308,7 @@ func (s *Service) ConfirmProjectAssetCandidate(userID string, projectID string, 
 		return AssetSummary{}, err
 	}
 	if candidate.Status != "pending_confirmation" {
-		return AssetSummary{}, kernel.BadAuthRequest("资产候选已处理")
+		return AssetSummary{}, kernel.BadAuthRequest("Asset candidate processed")
 	}
 	now := time.Now()
 	assetID := strings.TrimSpace(req.AssetID)
@@ -396,7 +396,7 @@ func mergeCharacterCandidateDefinition(currentJSON string, candidateJSON string,
 		return "", err
 	}
 	if err := json.Unmarshal([]byte(candidateJSON), &candidate); err != nil {
-		return "", kernel.BadAuthRequest("角色候选设定格式无效")
+		return "", kernel.BadAuthRequest("Invalid character candidate setting format")
 	}
 	for key, value := range candidate {
 		if key == "aliases" || !emptyCharacterDefinitionValue(current[key]) {

@@ -41,7 +41,7 @@ test("creating a director shot opens an empty workbench at the requested canvas 
         expect(nodesRef.current).toHaveLength(1);
         expect(nodesRef.current[0].position).toEqual({ x: -200, y: -80 });
         expect(nodesRef.current[0].type).toBe("director");
-        expect(nodesRef.current[0].title).toBe("导演台 1");
+        expect(nodesRef.current[0].title).toBe("Director's Podium 1");
         expect(nodesRef.current[0].metadata).not.toHaveProperty("generationMode");
         expect(nodesRef.current[0].metadata).not.toHaveProperty("videoEditOperation");
         expect(nodesRef.current[0].metadata).not.toHaveProperty("composerContent");
@@ -51,7 +51,7 @@ test("creating a director shot opens an empty workbench at the requested canvas 
         expect(openedNodeId).toBe(nodesRef.current[0].id);
 
         createDirectorShot({ x: 500, y: 600 });
-        expect(nodesRef.current[1].title).toBe("导演台 2");
+        expect(nodesRef.current[1].title).toBe("Director's desk 2");
     } finally {
         useApp.mockRestore();
         useCanvasStore.setState((state) => ({ projects: state.projects.filter((project) => project.id !== projectId) }));

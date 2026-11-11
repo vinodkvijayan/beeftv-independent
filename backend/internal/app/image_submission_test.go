@@ -667,7 +667,7 @@ func TestImageSubmissionWorkerTimeoutAndLocalSaveFailureDeferSameAttempt(t *test
 	if s.shouldDeferImageRecovery(task, imageRecoveryError{context.Canceled}, false) {
 		t.Fatal("cancel resumed")
 	}
-	if err := s.repo.DeferRunningTaskForProviderPoll(task.ID, task.LeaseOwner, "正在恢复图片结果", 0); err != nil {
+	if err := s.repo.DeferRunningTaskForProviderPoll(task.ID, task.LeaseOwner, "Recovering image results", 0); err != nil {
 		t.Fatal(err)
 	}
 	claimed, err := s.repo.ClaimNextTask("restarted-owner", time.Minute)

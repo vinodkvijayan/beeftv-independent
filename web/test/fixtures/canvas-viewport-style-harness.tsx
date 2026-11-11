@@ -20,7 +20,7 @@ export function mountViewportStyleHarness(host: HTMLElement) {
             appearance={canvasAppearanceForTheme(params.get("theme") === "light" ? "light" : "dark")}>
             {Array.from({ length: Number(params.get("nodes") ?? 40) }, (_, i) => <div key={i} data-node-id={i} className="test-node"
                 style={{ left: (i % 8) * 180 + 20, top: Math.floor(i / 8) * 130 + 30 }}>
-                <div className="test-title">素材 {i}</div><svg width="160" height="90"><path d="M 0 45 C 40 10, 120 80, 160 45" stroke="gray" fill="none" /></svg>
+                <div className="test-title">Material{i}</div><svg width="160" height="90"><path d="M 0 45 C 40 10, 120 80, 160 45" stroke="gray" fill="none" /></svg>
             </div>)}
         </InfiniteCanvas>;
     }

@@ -72,38 +72,38 @@ type categoryCopy struct {
 }
 
 var categoryCopies = map[FailureCategory]categoryCopy{
-	CategoryLocalDiskFull:       {Reason: "本地磁盘空间不足，无法保存数据", Action: "请清理 BeefTV 数据目录所在磁盘；已有生成结果请优先取回原任务，不要重复生成"},
-	CategoryLocalCredential:     {Reason: "本地算力凭据读取失败", Action: "请检查工作区数据目录并重新连接算力账号；不要删除工作区密钥"},
-	CategoryAuth:                {Reason: "模型服务鉴权失败", Action: "请检查 API Key 后重试"},
-	CategoryPermission:          {Reason: "当前渠道没有使用该模型的权限", Action: "请更换模型或检查渠道权限"},
-	CategoryQuotaUser:           {Reason: "当前账号可用额度不足", Action: "请检查账号余额，补充额度或调整令牌、套餐额度后重试"},
-	CategoryQuotaUpstream:       {Reason: "模型供应商拒绝了计费或额度相关请求", Action: "请到供应商核对账单与额度后，再决定是否重试"},
-	CategoryQuotaUnknown:        {Reason: "模型服务拒绝了计费或额度相关请求", Action: "请到当前渠道或模型供应商核对账单与额度后，再决定是否重试"},
-	CategoryQuotaLimit:          {Reason: "模型调用已达到设置的用量上限", Action: "请检查当前渠道的用量或预算限制，调整后再试"},
-	CategoryModerationInput:     {Reason: "提示词或参考素材未通过内容安全审核", Action: "请调整提示词或参考素材后重新生成"},
-	CategoryModerationReference: {Reason: "参考素材未通过内容安全审核", Action: "请检查并更换参考素材后重新生成"},
-	CategoryModerationOutput:    {Reason: "生成结果未通过内容安全审核", Action: "请调整提示词或参考素材后重新生成"},
-	CategoryInvalidParams:       {Reason: "模型不接受当前参数", Action: "请检查模型、尺寸、时长、格式或数量后重试"},
-	CategoryLocalStorage:        {Reason: "本地数据库无法读写", Action: "请重启应用；若仍失败，请保留排查信息并联系支持，不要重复生成"},
-	CategoryContextTooLong:      {Reason: "输入内容超出模型长度限制", Action: "请缩短提示词或减少参考内容后重试"},
-	CategoryInputInaccessible:   {Reason: "参考素材无法读取", Action: "请检查素材后重试"},
-	CategoryInputTooLarge:       {Reason: "参考素材过大", Action: "请压缩或更换素材后重试"},
-	CategoryModelMissing:        {Reason: "当前模型或接口不可用", Action: "请检查模型名称和渠道配置"},
-	CategoryThrottled:           {Reason: "请求过于频繁", Action: "请稍后再试"},
-	CategoryConcurrency:         {Reason: "同时进行的生成过多", Action: "请等待已有任务完成后再试"},
-	CategoryProviderUnavailable: {Reason: "模型服务暂时不可用", Action: "请稍后重试"},
-	CategoryNetwork:             {Reason: "网络连接失败", Action: "请检查网络并核对原任务状态后，再决定是否重新生成"},
-	CategoryRequestNotSent:      {Reason: "未能连接服务，本次请求尚未提交", Action: "请检查网络或代理后重试"},
-	CategoryTimeout:             {Reason: "模型服务响应超时", Action: "请稍后查询原任务，不要立即重新提交"},
-	CategorySubmissionUncertain: {Reason: "提交结果尚未确认，上游任务可能仍在执行", Action: "请先查询原任务状态，不要立即重新提交"},
-	CategoryAsyncFailed:         {Reason: "生成任务没有完成", Action: "请查看详情后决定是否重试"},
-	CategoryCancelled:           {Reason: "任务已取消", Action: "可按原输入重新提交"},
-	CategoryPartialSuccess:      {Reason: "部分结果已生成，其余失败", Action: "请查看已有结果后再决定是否补做"},
-	CategoryDownloadFailed:      {Reason: "生成结果下载失败", Action: "请稍后重新加载，不要立即重新提交"},
-	CategoryDeliveryFailed:      {Reason: "视频已生成，但暂时无法取回", Action: "请联系支持恢复成片，恢复后点击「取回结果」；无需重新付费生成"},
-	CategoryResultsMissing:      {Reason: "任务结束但没有可用结果", Action: "请查看详情后再决定是否重试"},
-	CategoryMalformedResponse:   {Reason: "模型服务返回了无法解析的内容", Action: "请查看详情并核对原任务状态后，再决定是否重新生成"},
-	CategoryUnknown:             {Reason: "生成失败", Action: "请查看详情后再决定是否重试"},
+	CategoryLocalDiskFull:       {Reason: "Insufficient local disk space to save data", Action: "Please clean the disk where the BeefTV data directory is located; if there are already generated results, please retrieve the original task first and do not generate it again."},
+	CategoryLocalCredential:     {Reason: "Failed to read local computing power credentials", Action: "Please check the workspace data directory and reconnect the computing account; do not delete the workspace key"},
+	CategoryAuth:                {Reason: "Model service authentication failed", Action: "Please check the API Key and try again"},
+	CategoryPermission:          {Reason: "The current channel does not have permission to use this model", Action: "Please change the model or check the channel permissions"},
+	CategoryQuotaUser:           {Reason: "The available balance of the current account is insufficient", Action: "Please check the account balance, replenish the quota or adjust the token or package quota and try again"},
+	CategoryQuotaUpstream:       {Reason: "The model supplier rejected the billing or credit related request", Action: "Please check the bill and credit limit with your supplier before deciding whether to try again."},
+	CategoryQuotaUnknown:        {Reason: "The model service rejected billing or quota-related requests.", Action: "Please go to the current channel or model supplier to check the bill and limit before deciding whether to try again."},
+	CategoryQuotaLimit:          {Reason: "The model call has reached the set usage limit", Action: "Please check the usage or budget limit of the current channel, adjust it and try again"},
+	CategoryModerationInput:     {Reason: "The prompt word or reference material did not pass the content security review", Action: "Please adjust the prompt words or reference materials and regenerate"},
+	CategoryModerationReference: {Reason: "The reference material failed the content security review", Action: "Please check and replace the reference material before regenerating"},
+	CategoryModerationOutput:    {Reason: "The generated results failed content security review", Action: "Please adjust the prompt words or reference materials and regenerate"},
+	CategoryInvalidParams:       {Reason: "Model does not accept current parameters", Action: "Please check the model, size, duration, format or quantity and try again"},
+	CategoryLocalStorage:        {Reason: "The local database cannot be read or written", Action: "Please restart the application; if it still fails, please retain the troubleshooting information and contact support, and do not generate it again."},
+	CategoryContextTooLong:      {Reason: "The input content exceeds the model length limit", Action: "Please shorten the prompt words or reduce the reference content and try again"},
+	CategoryInputInaccessible:   {Reason: "Reference material cannot be read", Action: "Please check the material and try again"},
+	CategoryInputTooLarge:       {Reason: "Reference material is too large", Action: "Please compress or replace the material and try again"},
+	CategoryModelMissing:        {Reason: "The current model or interface is not available", Action: "Please check the model name and channel configuration"},
+	CategoryThrottled:           {Reason: "Requests are too frequent", Action: "Please try again later"},
+	CategoryConcurrency:         {Reason: "Too many simultaneous builds", Action: "Please wait until existing tasks are completed before trying again"},
+	CategoryProviderUnavailable: {Reason: "Model service is temporarily unavailable", Action: "Please try again later"},
+	CategoryNetwork:             {Reason: "Network connection failed", Action: "Please check the network and verify the status of the original task before deciding whether to regenerate it."},
+	CategoryRequestNotSent:      {Reason: "Failed to connect to the service, this request has not been submitted yet", Action: "Please check the network or proxy and try again"},
+	CategoryTimeout:             {Reason: "Model service response timed out", Action: "Please check the original task later and do not resubmit it immediately"},
+	CategorySubmissionUncertain: {Reason: "The submission result has not yet been confirmed, and the upstream tasks may still be executed.", Action: "Please check the original task status first and do not resubmit immediately"},
+	CategoryAsyncFailed:         {Reason: "Build task not completed", Action: "Please check the details and decide whether to try again"},
+	CategoryCancelled:           {Reason: "Task canceled", Action: "You can resubmit according to the original input"},
+	CategoryPartialSuccess:      {Reason: "Some results were generated, the rest failed", Action: "Please check the existing results before deciding whether to do it again"},
+	CategoryDownloadFailed:      {Reason: "Failed to download generated results", Action: "Please reload later and do not resubmit immediately"},
+	CategoryDeliveryFailed:      {Reason: "The video has been generated but cannot be retrieved at the moment", Action: "Please contact support to restore the film, and click \"Retrieve Results\" after restoration; there is no need to pay again to generate it."},
+	CategoryResultsMissing:      {Reason: "Task ended but no results available", Action: "Please review the details before deciding whether to try again"},
+	CategoryMalformedResponse:   {Reason: "The model service returned unresolved content", Action: "Please check the details and check the status of the original task before deciding whether to regenerate it."},
+	CategoryUnknown:             {Reason: "Build failed", Action: "Please review the details before deciding whether to try again"},
 }
 
 func (f Failure) ErrorCode() string {
@@ -153,15 +153,15 @@ func (f Failure) displayCopy() (string, string) {
 func (f Failure) debugIDLine() string {
 	parts := make([]string, 0, 2)
 	if id := sanitizeDebugID(f.TaskID); id != "" {
-		parts = append(parts, "任务 "+id)
+		parts = append(parts, "Task"+id)
 	}
 	if id := sanitizeDebugID(f.RequestID); id != "" {
-		parts = append(parts, "请求 "+id)
+		parts = append(parts, "Request"+id)
 	}
 	if len(parts) == 0 {
 		return ""
 	}
-	return "排查编号：" + strings.Join(parts, " · ")
+	return "Check number:" + strings.Join(parts, " · ")
 }
 
 func joinSentences(parts ...string) string {
@@ -231,14 +231,14 @@ func ClassifyHTTP(status int, statusText string, body string) Failure {
 		}
 	}
 	if status == 413 && failure.Category == CategoryInputTooLarge && !singleFileTooLargePattern.MatchString(body) && (failure.Reason == "" || failure.Reason == "参考素材过大") {
-		failure.Reason = "整次请求的数据量超过接口上限"
-		failure.Action = "请减少参考素材，或改用可公开访问的素材链接后再提交"
+		failure.Reason = "The amount of data requested exceeds the upper limit of the interface"
+		failure.Action = "Please reduce the number of reference materials or use publicly accessible material links before submitting."
 	}
 	if status == 524 && (failure.Category == CategoryUnknown || failure.Category == CategoryTimeout || failure.Category == CategoryProviderUnavailable || failure.Category == CategoryMalformedResponse) {
 		failure.Category = CategoryTimeout
 		failure.Uncertain = true
-		failure.Reason = "模型服务响应超时，请求可能仍在服务端执行"
-		failure.Action = "请先查询原任务或到供应商核对状态，不要立即重新提交"
+		failure.Reason = "The model service response timed out and the request may still be executed on the server."
+		failure.Action = "Please check the original task or go to the supplier to check the status first. Do not resubmit immediately."
 	}
 	_ = statusText
 	return normalizeFailure(failure)
@@ -285,7 +285,7 @@ func ClassifyError(err error) Failure {
 		}
 		uncertain := category == CategorySubmissionUncertain || managed.Pending()
 		failure := normalizeFailure(Failure{Category: category, Uncertain: uncertain, TaskID: sanitizeDebugID(managed.TaskID), ProviderCode: sanitizeProviderCode(managed.Code), ProviderMessage: DiagnosticSummary(managed.Message), Structured: true, FromCode: true})
-		if !uncertain && strings.TrimSpace(managed.Message) != "" && managed.Message != "原视频任务未成功，请查询原任务结果与扣费" {
+		if !uncertain && strings.TrimSpace(managed.Message) != "" && managed.Message != "The original video task was unsuccessful. Please check the original task results and deductions." {
 			textFailure := ClassifyText(managed.Message)
 			if textFailure.Category != CategoryUnknown && (category == CategoryAsyncFailed || category == CategoryInvalidParams || category == CategoryUnknown) {
 				failure.Category = textFailure.Category
@@ -314,7 +314,7 @@ func ClassifyError(err error) Failure {
 	}
 	var protocolPreparation ProtocolPreparationError
 	if errors.As(err, &protocolPreparation) {
-		return normalizeFailure(Failure{Category: CategoryModelMissing, Reason: protocolPreparation.Error(), Action: "本次请求尚未提交，请检查所选模型的插件是否已安装、启用并支持该生成类型"})
+		return normalizeFailure(Failure{Category: CategoryModelMissing, Reason: protocolPreparation.Error(), Action: "This request has not been submitted yet. Please check whether the plug-in of the selected model is installed, enabled and supports this generation type."})
 	}
 	if errors.Is(err, context.Canceled) {
 		return normalizeFailure(Failure{Category: CategoryCancelled})
@@ -351,7 +351,7 @@ func ClassifyError(err error) Failure {
 	if errors.As(err, &preparation) {
 		var storage ReferenceStoragePreparationError
 		if errors.As(preparation.Cause, &storage) {
-			failure := normalizeFailure(Failure{Category: CategoryProviderUnavailable, ProviderCode: "reference_media_upload_failed", Reason: "参考素材上传失败，本次尚未开始生成", Action: "请检查对象存储配置和公开读取权限后重试"})
+			failure := normalizeFailure(Failure{Category: CategoryProviderUnavailable, ProviderCode: "reference_media_upload_failed", Reason: "The reference material upload failed and the generation has not started yet.", Action: "Please check the object storage configuration and public read permissions and try again"})
 			failure.Retryable = false
 			return failure
 		}
@@ -359,19 +359,19 @@ func ClassifyError(err error) Failure {
 		if failure.ProviderCode == "image_reference_upload_failed" {
 			failure.Category = CategoryProviderUnavailable
 			failure.Uncertain = false
-			failure.Reason = "参考图片上传失败，本次尚未开始生成"
-			failure.Action = "请稍后重试"
+			failure.Reason = "The reference image upload failed and the generation has not started yet."
+			failure.Action = "Please try again later"
 			failure = normalizeFailure(failure)
 			failure.Retryable = false
 			return failure
 		}
-		return normalizeFailure(Failure{Category: CategoryInputInaccessible, Reason: "本次请求在准备时失败，未发送到模型服务", Action: "请检查参考素材和生成参数后重试"})
+		return normalizeFailure(Failure{Category: CategoryInputInaccessible, Reason: "This request failed during preparation and was not sent to the model service.", Action: "Please check the reference material and generation parameters and try again"})
 	}
 	if _, echoed := persistedReferencePreparationFailure(err.Error()); echoed {
 		return normalizeFailure(Failure{Category: CategorySubmissionUncertain})
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		return normalizeFailure(Failure{Category: CategoryTimeout, Uncertain: true, Reason: "模型服务响应超时，请求可能仍在执行", Action: "请先查询原任务，不要立即重新提交"})
+		return normalizeFailure(Failure{Category: CategoryTimeout, Uncertain: true, Reason: "Model service response timed out, the request may still be executing", Action: "Please check the original task first and do not resubmit it immediately"})
 	}
 	var circuit CircuitOpenError
 	if errors.As(err, &circuit) {
@@ -402,7 +402,7 @@ func ClassifyError(err error) Failure {
 	}
 	var dns *outbound.DNSResolutionError
 	if errors.As(err, &dns) {
-		failure := normalizeFailure(Failure{Category: CategoryNetwork, Reason: "模型服务域名解析失败", Action: "请检查网络；已提交的任务请继续查询原任务，不要重新生成"})
+		failure := normalizeFailure(Failure{Category: CategoryNetwork, Reason: "Model service domain name resolution failed", Action: "Please check the network; for tasks that have been submitted, please continue to query the original task and do not regenerate it."})
 		var networkError net.Error
 		failure.Retryable = errors.As(dns, &networkError) && (networkError.Timeout() || networkError.Temporary())
 		return failure
@@ -607,7 +607,7 @@ func ClassifyText(raw string) Failure {
 		reqID, taskID := persistedReferenceIDs(text)
 		failure.RequestID = firstNonEmpty(failure.RequestID, reqID)
 		failure.TaskID = firstNonEmpty(failure.TaskID, taskID)
-		bodyWithoutDebug := strings.SplitN(text, "。排查编号：", 2)[0]
+		bodyWithoutDebug := strings.SplitN(text, ". Check number:", 2)[0]
 		if persistedReferenceItemPrefix.MatchString(bodyWithoutDebug) {
 			failure.Category = CategoryInvalidParams
 			failure.FromCode = true

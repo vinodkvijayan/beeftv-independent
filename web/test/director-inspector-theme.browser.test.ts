@@ -13,20 +13,19 @@ beforeAll(async () => {
 afterAll(async () => { await browser?.close(); });
 
 for (const dark of [false, true]) for (const width of [1280, 620]) {
-    test(`角色检查器在${dark ? "深" : "浅"}色 ${width}px 下保持文字对比度与姿势网格`, async () => {
+    test(`The character inspector is in${dark ? "deep" : "shallow"}color${width}Maintain text contrast and posture grid under px`, async () => {
         const page = await browser.newPage({ viewport: { width, height: 900 } });
         try {
             await page.setContent(`<html class="${dark ? "dark" : ""}"><style>
-                ${styles}
-                *, *::before, *::after { transition: none !important; animation: none !important; }
+                ${styles}                *, *::before, *::after { transition: none !important; animation: none !important; }
                 body { background: var(--background); color: var(--cn-text); } input { background: transparent; color: inherit; } aside { width: min(100%, 320px); }
                 </style><aside class="director-actor-inspector">
-                <header>角色</header><input aria-label="名称" value="标准男性 1">
+                <header>Role</header><input aria-label="Name" value="Standard Male 1">
                 <div class="director-actor-axis-input"><input value="0.0"></div>
                 <div class="director-actor-hex-input"><input value="438CDB"></div>
-                <section class="director-pose-section"><div class="director-pose-grid">${Array.from({ length: 20 }, (_, i) => `<button class="director-pose-button ${i === 0 ? "is-active" : ""}">姿势</button>`).join("")}</div></section>
-                <div class="director-pose-adjust-header"><div>姿势调节</div></div>
-                <div class="director-pose-controls"><h4>身体</h4><div class="director-bone-axis-row"><span>X</span><div></div><div class="ant-input-number"><input class="ant-input-number-input" value="0.0"></div></div></div>
+                <section class="director-pose-section"><div class="director-pose-grid">${Array.from({ length: 20 }, (_, i) => `<button class="director-pose-button ${i === 0 ? "is-active" : ""}">Posture</button>`).join("")}</div></section>
+                <div class="director-pose-adjust-header"><div>Pose adjustment</div></div>
+                <div class="director-pose-controls"><h4>Body</h4><div class="director-bone-axis-row"><span>X</span><div></div><div class="ant-input-number"><input class="ant-input-number-input" value="0.0"></div></div></div>
                 </aside>`);
             const contrasts = await page.evaluate(() => {
                 function pixel(color: string) {

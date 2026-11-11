@@ -67,8 +67,8 @@ describe("canvas workspace project grouping", () => {
             withCanvasStorePersistenceSuppressed(() => {
                 useCanvasStore.setState({ projects: [] });
                 const createProject = useCanvasStore.getState().createProject as (title?: string, projectId?: string, workspaceProjectId?: string) => string;
-                rootId = createProject("测试项目");
-                childId = createProject("未命名画布", undefined, rootId);
+                rootId = createProject("test items");
+                childId = createProject("Unnamed canvas", undefined, rootId);
             });
             const created = useCanvasStore.getState().projects;
             expect(created.find((item) => item.id === rootId)?.workspaceProjectId).toBe(rootId);
@@ -97,7 +97,7 @@ describe("canvas workspace project grouping", () => {
         expect(editor).toContain("const workspaceProject = workspaceCanvases[0] || null");
         expect(editor).toContain('title={workspaceProject?.title === "未命名项目" || !workspaceProject?.title ? "未命名工作区" : workspaceProject.title}');
         expect(editor).toContain("workspaceTitle: workspaceProject?.title");
-        expect(projectMenu).toContain('setTitleDraft(workspaceTitle || "未命名工作区")');
+        expect(projectMenu).toContain('setTitleDraft(workspaceTitle || "Unnamed workspace")');
         expect(lifecycle).toContain("renameProject(canvasWorkspaceProjectId(currentProject), title)");
     });
 
@@ -108,16 +108,16 @@ describe("canvas workspace project grouping", () => {
             let copyId = "";
             withCanvasStorePersistenceSuppressed(() => {
                 useCanvasStore.setState({ projects: [] });
-                rootId = useCanvasStore.getState().createProject("画布 1");
+                rootId = useCanvasStore.getState().createProject("Canvas 1");
                 useCanvasStore.getState().updateProject(rootId, {
-                    canvasTitle: "分镜画布",
-                    nodes: [{ id: "node-1", type: "text", x: 40, y: 80, width: 320, height: 180, content: "原画布节点" }] as never,
+                    canvasTitle: "Storyboard canvas",
+                    nodes: [{ id: "node-1", type: "text", x: 40, y: 80, width: 320, height: 180, content: "Original canvas node" }] as never,
                     connections: [{ id: "connection-1", sourceNodeId: "node-1", targetNodeId: "node-2" }] as never,
                     viewport: { x: 120, y: -40, k: 1.25 },
                     timeline: { id: "timeline-1", tracks: [] } as never,
                 });
                 const root = useCanvasStore.getState().openProject(rootId)!;
-                copyId = useCanvasStore.getState().importProject({ ...root, canvasTitle: "分镜画布 副本" }, rootId);
+                copyId = useCanvasStore.getState().importProject({ ...root, canvasTitle: "Storyboard canvas copy" }, rootId);
             });
 
             const projectCanvases = workspaceProject.listCanvasWorkspaceProjectCanvases?.(useCanvasStore.getState().projects, copyId) || [];
@@ -125,7 +125,7 @@ describe("canvas workspace project grouping", () => {
             const copy = projectCanvases.find((item) => item.id === copyId);
             expect(projectCanvases.map((item) => item.id)).toEqual([rootId, copyId]);
             expect(copy?.workspaceProjectId).toBe(rootId);
-            expect(copy?.canvasTitle).toBe("分镜画布 副本");
+            expect(copy?.canvasTitle).toBe("Storyboard canvas copy");
             expect(copy?.nodes).toEqual(root?.nodes);
             expect(copy?.connections).toEqual(root?.connections);
             expect(copy?.viewport).toEqual(root?.viewport);
@@ -155,10 +155,10 @@ describe("canvas workspace project grouping", () => {
         const topBar = readFileSync(new URL("../src/pages/canvas/canvas-project-top-bar.tsx", import.meta.url), "utf8");
         const editor = readFileSync(new URL("../src/pages/canvas/project.tsx", import.meta.url), "utf8");
 
-        expect(topBar).toContain("在新窗口打开");
-        expect(topBar).toContain("重命名画布");
-        expect(topBar).toContain("复制画布");
-        expect(topBar).toContain("删除画布");
+        expect(topBar).toContain("Open in new window");
+        expect(topBar).toContain("Rename canvas");
+        expect(topBar).toContain("Duplicate canvas");
+        expect(topBar).toContain("Delete canvas");
         expect(topBar).toContain("onOpenCanvasInNewWindow");
         expect(topBar).toContain("onRenameCanvas");
         expect(topBar).toContain("onDuplicateCanvas");
@@ -173,9 +173,9 @@ describe("canvas workspace project grouping", () => {
         const topBar = readFileSync(new URL("../src/pages/canvas/canvas-project-top-bar.tsx", import.meta.url), "utf8");
         const styles = readFileSync(new URL("../src/styles/globals.css", import.meta.url), "utf8");
 
-        expect(topBar).not.toContain('label: <Link to="/canvas">画布列表</Link>');
+        expect(topBar).not.toContain('label: <Link to="/canvas">Canvas list</Link>');
         expect(topBar).toContain('className="canvas-topbar-canvas-menu-panel"');
-        expect(topBar).toContain('aria-label="新建画布"');
+        expect(topBar).toContain('aria-label="New canvas"');
         expect(topBar).toContain("canvas-topbar-canvas-menu-check");
         expect(topBar).toContain("canvas-topbar-canvas-menu-more");
         expect(styles).toContain(".canvas-topbar-canvas-menu-row:hover .canvas-topbar-canvas-menu-more");

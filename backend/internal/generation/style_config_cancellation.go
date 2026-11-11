@@ -35,30 +35,30 @@ func ApplyGenerationStyleProfile(repo *repository.Repository, userID string, tas
 		return nil
 	}
 	if _, err := prompts.ValidateStyleProfileJSON(styleProfileJSON); err != nil {
-		return fmt.Errorf("项目画风执行配置无效：%w", err)
+		return fmt.Errorf("Project style execution configuration is invalid: %w", err)
 	}
 	var profile prompts.StyleProfileDocument
 	if err := json.Unmarshal([]byte(styleProfileJSON), &profile); err != nil {
-		return fmt.Errorf("项目画风执行配置解析失败：%w", err)
+		return fmt.Errorf("Project style execution configuration analysis failed: %w", err)
 	}
 	storedProfileJSON, storedPresetID, belongsToProject, err := TaskProjectStyleProfile(repo, userID, taskProjectID)
 	if err != nil {
-		return fmt.Errorf("读取项目画风失败：%w", err)
+		return fmt.Errorf("Failed to read project style: %w", err)
 	}
 	if belongsToProject {
 		if strings.TrimSpace(storedProfileJSON) == "" {
 			if strings.TrimSpace(storedPresetID) == "" || strings.TrimSpace(profile.PresetID) != strings.TrimSpace(storedPresetID) {
-				return errors.New("项目画风已发生变化，请返回项目列表后重新打开当前项目再生成")
+				return errors.New("The project style has changed. Please return to the project list and reopen the current project to generate it again.")
 			}
 		} else {
 			matches, compareErr := EquivalentStyleProfileJSON(styleProfileJSON, storedProfileJSON)
 			if compareErr != nil {
-				return errors.New("项目画风配置暂时无法读取，请在项目设置中重新保存画风后重试")
+				return errors.New("The project style configuration cannot be read temporarily. Please re-save the style in the project settings and try again.")
 			}
 			if !matches {
 				validatedStoredProfileJSON, validateErr := prompts.ValidateStyleProfileJSON(storedProfileJSON)
 				if validateErr != nil || json.Unmarshal([]byte(validatedStoredProfileJSON), &profile) != nil {
-					return errors.New("项目画风配置暂时无法读取，请在项目设置中重新保存画风后重试")
+					return errors.New("The project style configuration cannot be read temporarily. Please re-save the style in the project settings and try again.")
 				}
 			}
 		}
@@ -67,7 +67,7 @@ func ApplyGenerationStyleProfile(repo *repository.Repository, userID string, tas
 	stylePrompt, expectedStatus, warnings := ResolveGenerationStyleExecution(profile, input.Config.Model, firstNonEmpty(input.Config.InterfaceType, input.Config.APIFormat))
 	input.Prompt = ReconcileGenerationStylePrompt(input.Prompt, plan.Prompt, stylePrompt)
 	if expectedStatus == "blocked" {
-		return fmt.Errorf("当前图片模型无法完整执行项目画风：%s。请切换图片模型，或在项目设置中停用对应画风资产", strings.Join(warnings, "；"))
+		return fmt.Errorf("The current picture model cannot fully execute the project style: %s. Please switch the image model, or disable the corresponding style assets in the project settings", strings.Join(warnings, "；"))
 	}
 	return nil
 }
@@ -76,7 +76,7 @@ func ReconcileGenerationStylePrompt(prompt string, previousStylePrompt string, c
 	content := strings.TrimSpace(prompt)
 	previous := strings.TrimSpace(previousStylePrompt)
 	if previous != "" {
-		previousBlock := "【项目画风执行规范】\n" + previous
+		previousBlock := "[Project style execution specifications]" + previous
 		if strings.HasSuffix(content, previousBlock) {
 			content = strings.TrimSpace(strings.TrimSuffix(content, previousBlock))
 		}
@@ -85,7 +85,7 @@ func ReconcileGenerationStylePrompt(prompt string, previousStylePrompt string, c
 	if current == "" || strings.HasSuffix(content, "【项目画风执行规范】\n"+current) {
 		return content
 	}
-	return strings.TrimSpace(content + "\n\n【项目画风执行规范】\n" + current)
+	return strings.TrimSpace(content + "[Project style execution specifications]" + current)
 }
 
 func TaskProjectStyleProfile(repo *repository.Repository, userID string, canvasOrProjectID string) (string, string, bool, error) {
@@ -137,15 +137,15 @@ func EquivalentStyleProfileJSON(left string, right string) (bool, error) {
 
 func DecodeStyleExecutionPlan(value interface{}) (StyleExecutionPlanDocument, error) {
 	if value == nil {
-		return StyleExecutionPlanDocument{}, errors.New("项目画风执行计划缺失")
+		return StyleExecutionPlanDocument{}, errors.New("Project style execution plan is missing")
 	}
 	raw, err := json.Marshal(value)
 	if err != nil {
-		return StyleExecutionPlanDocument{}, errors.New("项目画风执行计划格式无效")
+		return StyleExecutionPlanDocument{}, errors.New("The project style execution plan format is invalid")
 	}
 	var plan StyleExecutionPlanDocument
 	if err := json.Unmarshal(raw, &plan); err != nil {
-		return StyleExecutionPlanDocument{}, errors.New("项目画风执行计划格式无效")
+		return StyleExecutionPlanDocument{}, errors.New("The project style execution plan format is invalid")
 	}
 	return plan, nil
 }
@@ -153,7 +153,7 @@ func DecodeStyleExecutionPlan(value interface{}) (StyleExecutionPlanDocument, er
 func ResolveGenerationStyleExecution(profile prompts.StyleProfileDocument, generationModel string, interfaceType string) (string, string, []string) {
 	fragments := []string{strings.TrimSpace(profile.Prompt)}
 	if negative := strings.TrimSpace(profile.NegativePrompt); negative != "" {
-		fragments = append(fragments, "【全局负面 Prompt】\n"+negative)
+		fragments = append(fragments, "[Global Negative Prompt]"+negative)
 	}
 	warnings := make([]string, 0)
 	for _, asset := range profile.Assets {
@@ -161,15 +161,15 @@ func ResolveGenerationStyleExecution(profile prompts.StyleProfileDocument, gener
 			continue
 		}
 		if asset.Status != "validated" {
-			reason := "资产尚未验证"
+			reason := "Asset has not been verified"
 			if asset.Status == "unavailable" {
-				reason = "资产当前不可用"
+				reason = "Asset is currently unavailable"
 			}
 			warnings = append(warnings, asset.Title+"："+reason)
 			continue
 		}
 		if len(asset.BaseModels) > 0 && !StyleAssetSupportsModel(asset.BaseModels, generationModel) {
-			warnings = append(warnings, asset.Title+"：仅兼容 "+strings.Join(asset.BaseModels, "、"))
+			warnings = append(warnings, asset.Title+": Compatible only"+strings.Join(asset.BaseModels, "、"))
 			continue
 		}
 		switch asset.Kind {
@@ -177,9 +177,9 @@ func ResolveGenerationStyleExecution(profile prompts.StyleProfileDocument, gener
 			fragments = append(fragments, strings.TrimSpace(asset.PromptFragment))
 			fragments = append(fragments, prompts.NonEmptyStyleProfileStrings(asset.TriggerWords)...)
 		case "reference":
-			warnings = append(warnings, asset.Title+"：项目参考图自动注入适配器尚未启用")
+			warnings = append(warnings, asset.Title+": Project reference drawing auto-injection adapter has not been enabled yet")
 		case "lora":
-			warnings = append(warnings, asset.Title+"：当前 "+firstNonEmpty(interfaceType, "图片")+" 协议未启用 LoRA 适配器")
+			warnings = append(warnings, asset.Title+":current"+firstNonEmpty(interfaceType, "pictures")+" Protocol is not enabled for LoRA adapter")
 		}
 	}
 	normalizedFragments := prompts.NonEmptyStyleProfileStrings(fragments)
@@ -256,11 +256,11 @@ func ResolveImageCapability(repo *repository.Repository, readLocalConfig func() 
 	}
 	item, err := repo.ChannelModelByKey(channelID, ProviderChannelModelKey(input.Config))
 	if err != nil {
-		return errors.New("当前系统渠道模型未配置或已停用")
+		return errors.New("The current system channel model is not configured or disabled")
 	}
 	profile, err := modelcatalog.DecodeModelCapabilityConfig(item.CapabilityConfigJSON)
 	if err != nil {
-		return errors.New("当前图片模型能力参数无效")
+		return errors.New("The current image model capability parameter is invalid")
 	}
 	if profile != nil && profile.Image != nil {
 		input.ImageCapability = profile.Image
@@ -361,15 +361,15 @@ func ResolveVideoCapability(ctx context.Context, repo *repository.Repository, re
 	}
 	item, err := repo.ChannelModelByKey(channelID, ProviderChannelModelKey(input.Config))
 	if err != nil {
-		return errors.New("当前系统渠道模型未配置或已停用")
+		return errors.New("The current system channel model is not configured or disabled")
 	}
 	profile, err := modelcatalog.DecodeModelCapabilityConfig(item.CapabilityConfigJSON)
 	if err != nil || profile == nil || profile.Video == nil {
-		return errors.New("当前视频模型尚未配置能力参数")
+		return errors.New("The current video model has not been configured with capability parameters.")
 	}
 	normalized, err := modelcatalog.NormalizeModelCapabilityConfigForModel("video", string(item.Protocol), firstNonEmpty(item.ProviderModelKey, item.ModelKey), profile)
 	if err != nil || normalized == nil || normalized.Video == nil {
-		return errors.New("当前视频模型能力参数无效")
+		return errors.New("The current video model capability parameter is invalid")
 	}
 	input.VideoCapability = normalized.Video
 	RestoreBeefTVSeedanceAudioControl(ctx, input.Config, normalized.Video)
@@ -384,7 +384,7 @@ func ResolveProviderConfig(repo *repository.Repository, localMode bool, systemCh
 	}
 	config.Headers = headers
 	if localMode && strings.TrimSpace(config.ChannelID) != "" {
-		return Config{}, errors.New("本地工作区不支持系统渠道配置")
+		return Config{}, errors.New("Local workspace does not support system channel configuration")
 	}
 	channelID := strings.TrimSpace(config.ChannelID)
 	if channelID == "" {
@@ -398,7 +398,7 @@ func ResolveProviderConfig(repo *repository.Repository, localMode bool, systemCh
 	}
 	channel, err := systemChannel(channelID)
 	if err != nil {
-		return Config{}, errors.New("系统渠道不存在或已停用")
+		return Config{}, errors.New("System channel does not exist or has been disabled")
 	}
 	modelKey := strings.TrimPrefix(strings.TrimSpace(config.ChannelModelKey), "models/")
 	requestedModel := strings.TrimPrefix(strings.TrimSpace(config.Model), "models/")
@@ -415,7 +415,7 @@ func ResolveProviderConfig(repo *repository.Repository, localMode bool, systemCh
 		} else {
 			models := modelcatalog.ChannelModelNames(*channel)
 			if len(models) == 0 {
-				return Config{}, errors.New("系统渠道未配置可用模型")
+				return Config{}, errors.New("The system channel is not configured with available models")
 			}
 			modelKey = models[0]
 		}
@@ -427,10 +427,10 @@ func ResolveProviderConfig(repo *repository.Repository, localMode bool, systemCh
 	config.APIFormat = channel.APIFormat
 	channelModel, modelErr := repo.ChannelModelByKey(channel.ID, modelKey)
 	if modelErr != nil {
-		return Config{}, errors.New("当前系统渠道未授权该模型")
+		return Config{}, errors.New("The model is not authorized by the current system channel")
 	}
 	if channelModel.Protocol == "" {
-		return Config{}, errors.New("当前模型尚未配置请求协议")
+		return Config{}, errors.New("The current model has not been configured with a request protocol")
 	}
 	providerModelKey := strings.TrimPrefix(strings.TrimSpace(config.ProviderModelKey), "models/")
 	authorizedUpstream := strings.TrimPrefix(strings.TrimSpace(channelModel.ProviderModelKey), "models/")
@@ -444,10 +444,10 @@ func ResolveProviderConfig(repo *repository.Repository, localMode bool, systemCh
 			}
 		}
 		if !matched {
-			return Config{}, errors.New("当前模型规格已更新，请重新创建任务")
+			return Config{}, errors.New("The current model specifications have been updated, please re-create the task")
 		}
 	} else if !TrustedSystemModelIdentity(modelKey, requestedModel, providerModelKey, authorizedUpstream) {
-		return Config{}, errors.New("系统渠道模型标识不一致")
+		return Config{}, errors.New("System channel model identification is inconsistent")
 	}
 	config.InterfaceType = string(channelModel.Protocol)
 	config.APIFormat = ChannelAPIFormatForProtocol(channel.APIFormat, channelModel.Protocol)

@@ -24,7 +24,7 @@ func (s *Service) admit(userID string, req CreateRequest) (*model.Task, error) {
 	}
 	if operationKey != "" {
 		if s.store == nil {
-			return nil, kernel.WrapAppError(kernel.CodeInternal, "任务服务不可用", errStoreRequired)
+			return nil, kernel.WrapAppError(kernel.CodeInternal, "Task service is unavailable", errStoreRequired)
 		}
 		existing, lookupErr := s.store.TaskByClientOperation(userID, operationKey)
 		if lookupErr != nil {
@@ -122,7 +122,7 @@ func (s *Service) admit(userID string, req CreateRequest) (*model.Task, error) {
 		ProjectID: req.ProjectID,
 		Type:      taskType,
 		Status:    model.TaskStatusQueued,
-		Stage:     "等待队列调度",
+		Stage:     "Waiting for queue scheduling",
 		Progress:  5,
 		Prompt:    prompt,
 		Operation: req.Operation,
@@ -131,7 +131,7 @@ func (s *Service) admit(userID string, req CreateRequest) (*model.Task, error) {
 	}
 	if textReplay {
 		task.Status = model.TaskStatusTextReplay
-		task.Stage = "文本持久化（前端自管）"
+		task.Stage = "Text persistence (front-end self-managed)"
 		task.Model = strings.TrimSpace(req.Model)
 	}
 	if operationKey != "" {
@@ -184,9 +184,9 @@ func (s *Service) admit(userID string, req CreateRequest) (*model.Task, error) {
 		s.deps.Activity.Record(userID, "task", 1)
 	}
 	if textReplay {
-		s.log(userID, task.ID, "info", "文本持久化任务已创建（前端自管）", "")
+		s.log(userID, task.ID, "info", "Text persistence task has been created (front-end self-managed)", "")
 	} else {
-		s.log(userID, task.ID, "info", "任务已进入队列", "")
+		s.log(userID, task.ID, "info", "Task has been queued", "")
 	}
 	return presentTask(s.deps.Present, task)
 }
@@ -216,7 +216,7 @@ func allowsEmptyPrompt(taskType string, input map[string]any) bool {
 func encodeTaskInput(input map[string]any) (string, error) {
 	encoded, err := json.Marshal(input)
 	if err != nil {
-		return "", fmt.Errorf("序列化任务输入失败：%w", err)
+		return "", fmt.Errorf("Serialization task input failed: %w", err)
 	}
 	return string(encoded), nil
 }

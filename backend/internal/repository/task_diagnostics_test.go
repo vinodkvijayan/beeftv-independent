@@ -21,8 +21,8 @@ func TestTaskDiagnosticsRoundTripAndRetry(t *testing.T) {
 		t.Fatal(err)
 	}
 	r := New(db)
-	d := &model.TaskFailureDiagnostics{Source: "local_validation", Summary: "最多支持 2 张参考图"}
-	updated, err := r.UpdateTaskTerminalState(task.ID, "", model.TaskStatusRunning, model.TaskStatusFailed, "失败", "参数不合法", time.Now(), d)
+	d := &model.TaskFailureDiagnostics{Source: "local_validation", Summary: "Supports up to 2 reference pictures"}
+	updated, err := r.UpdateTaskTerminalState(task.ID, "", model.TaskStatusRunning, model.TaskStatusFailed, "failed", "Parameter is illegal", time.Now(), d)
 	if err != nil || !updated {
 		t.Fatalf("update: %v %v", updated, err)
 	}

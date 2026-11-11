@@ -76,13 +76,13 @@ beforeAll(async () => {
             if (path === "/api/harness/ensure" && request.method === "POST") {
                 ensureHits += 1;
                 if (gateEnsure && ensureGate) await ensureGate.promise;
-                if (failEnsure) return Response.json({ error: "网络中断" });
+                if (failEnsure) return Response.json({ error: "Network outage" });
                 return Response.json({ confirmed: !unconfirmed });
             }
             if (path === "/api/harness/save" && request.method === "POST") {
                 saveHits += 1;
                 if (gateSave && saveGate) await saveGate.promise;
-                if (failSave) return Response.json({ error: "保存失败：网络中断" });
+                if (failSave) return Response.json({ error: "Save failed: Network interruption" });
                 return Response.json({ ok: true });
             }
             if (path.startsWith("/api/")) return json([]);
@@ -127,7 +127,7 @@ test("unconfirmed persist keeps a recoverable draft and does not claim saved", a
     expect(await page.getByTestId("node-asset").textContent()).toBe("asset-1");
     const harness = await harnessState();
     expect(harness?.writes ?? []).toEqual(["setNodes"]);
-    expect((harness?.toasts ?? []).join("\n")).not.toContain("文件已添加到画布");
+    expect((harness?.toasts ?? []).join("\n")).not.toContain("File added to canvas");
 }, 15_000);
 
 test("delayed settings save after project change does not toast the new page", async () => {
@@ -143,5 +143,5 @@ test("delayed settings save after project change does not toast the new page", a
     const harness = await harnessState();
     expect(await page.getByTestId("settings-state").textContent()).toBe("idle");
     expect(harness?.writes ?? []).toEqual([]);
-    expect((harness?.toasts ?? []).join("\n")).not.toContain("项目设置已保存");
+    expect((harness?.toasts ?? []).join("\n")).not.toContain("Project settings saved");
 }, 15_000);

@@ -9,7 +9,7 @@ import type { GenerationTask } from "../src/services/api/task-center";
 
 const channel = createModelChannel({ id: "test-links", name: "Test", baseUrl: "https://provider.example", apiKey: "fixture", interfaceType: "openai-images", models: ["image-test"] });
 const options = { mode: "image" as const, prompt: "test", config: { ...defaultConfig, channels: [channel], model: encodeChannelModel(channel.id, "image-test") }, referenceImages: [{ id: "one", name: "local.png", type: "image/png", storageKey: "resource:one", width: 800, height: 600 }] };
-const rejected = new ApiError("需要在线素材", { reason: "reference_media_requires_url", status: 400 });
+const rejected = new ApiError("Need online materials", { reason: "reference_media_requires_url", status: 400 });
 
 test("concurrent native uploads poll only their own active status", async () => {
     const previousWindow = globalThis.window;
@@ -25,14 +25,14 @@ test("concurrent native uploads poll only their own active status", async () => 
             if (ids[0] === "first") { started(); return new Promise<Record<string, string>>(resolve => { finishFirst = resolve; }); }
             return { second: "https://cdn.example/second" };
         },
-        ReferenceUploadStatus: async () => { polls.push(calls.at(-1)!); return { phase: "preparing", label: "参考素材 1", startedAt: Date.now(), updatedAt: Date.now() }; },
+        ReferenceUploadStatus: async () => { polls.push(calls.at(-1)!); return { phase: "preparing", label: "Reference material 1", startedAt: Date.now(), updatedAt: Date.now() }; },
     } } } } as unknown as Window & typeof globalThis;
     try {
         const target = { projectId: "canvas-a", nodeId: "output-video" };
-        const first = uploadReferenceLinks([{ key: "a", label: "参考图片 1", resourceID: "first" }], undefined, target);
+        const first = uploadReferenceLinks([{ key: "a", label: "Reference picture 1", resourceID: "first" }], undefined, target);
         await firstStarted;
         expect(Object.values(useOperationProgress.getState().entries).find(entry => entry.target)?.target).toEqual(target);
-        const second = uploadReferenceLinks([{ key: "b", label: "参考图片 2", resourceID: "second" }]);
+        const second = uploadReferenceLinks([{ key: "b", label: "Reference picture 2", resourceID: "second" }]);
         await new Promise(resolve => setTimeout(resolve, 0));
         expect(calls).toEqual(["first"]);
         expect(polls).toEqual(["first"]);
@@ -60,7 +60,7 @@ for (const action of ["replace", "cancel", "abort", "invalid", "upstream-error"]
         const controller = new AbortController();
         const promise = submitBackendGenerationTask({ ...options, signal: controller.signal, resolveReferenceLinks: async (refs) => {
             prompts++;
-            expect(refs.map((ref) => ref.label)).toEqual(["参考图片 1"]);
+            expect(refs.map((ref) => ref.label)).toEqual(["Reference picture 1"]);
             if (action === "cancel") return null;
             if (action === "abort") controller.abort();
             return { "referenceImages:0": action === "invalid" ? "http://cdn.example/x" : "https://cdn.example/x" };

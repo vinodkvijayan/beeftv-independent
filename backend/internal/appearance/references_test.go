@@ -91,7 +91,7 @@ func TestPublicRejectsInvalidJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = New(Dependencies{Settings: repository.New(db)}).Public()
-	if err == nil || err.Error() != "外观配置格式无效" {
+	if err == nil || err.Error() != "Appearance configuration format is invalid" {
 		t.Fatalf("Public() error = %v", err)
 	}
 }

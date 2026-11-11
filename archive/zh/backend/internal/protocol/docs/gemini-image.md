@@ -1,8 +1,8 @@
-# Gemini 图片生成
+# Gemini image generation
 
-Gemini 图片插件调用 `generateContent`，把提示词和参考图组织为一个 `user` content。Data URL 被拆为 `inline_data`，外部 URL 被发送为 `file_data.file_uri`；响应从候选内容中的内联图片解析。
+The Gemini picture plug-in calls `generateContent` to organize the prompt words and reference pictures into a `user` content. The Data URL is split into `inline_data` and the external URL is sent as `file_data.file_uri`; the response is parsed from the inline image in the candidate content.
 
-## 接口与鉴权
+## Interface and authentication
 
 {{OPERATIONS}}
 
@@ -12,19 +12,19 @@ x-goog-api-key: <GEMINI_API_KEY>
 Content-Type: application/json
 ```
 
-通过后端渠道中转时，API Key 必须留在服务端头部，不能放进浏览器 URL。Vertex AI 使用不同 Base URL、OAuth 与资源路径，除非网关转换协议，否则不能直接复用此插件。
+When transferring through back-end channels, the API Key must remain in the server header and cannot be placed in the browser URL. Vertex AI uses different Base URLs, OAuth and resource paths, and this plug-in cannot be reused directly unless the gateway converts the protocol.
 
-## 模型与输出模式
+## Model and output mode
 
-只有支持原生图片输出的 Gemini 模型才能返回内联图片。模型 ID 原样放进 URL 并进行路径转义。插件不维护模型白名单、图片尺寸表或计费，因为这些应由官方模型页和渠道模型配置共同确定。
+Only Gemini models that support native image output can return inline images. The model ID is put into the URL as is and path escaped. The plugin does not maintain model whitelists, image size tables, or billing, as these should be determined by a combination of the official model page and the channel model configuration.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-`aspectRatio -> generationConfig.imageConfig.aspectRatio`。`quality` 优先、`resolution` 回退，经插件映射为 `generationConfig.imageConfig.imageSize`（仅 `1K` / `2K` / `4K`）；未知值（如画布视频清晰度 `720`）省略，不能覆盖已选的图片档位。多图由宿主按次创建，不映射 `candidateCount`。`extra` 可替换 `generationConfig`、`safetySettings` 和 `systemInstruction`；替换完整配置时调用方必须保留所需图片输出配置。
+`aspectRatio -> generationConfig.imageConfig.aspectRatio`. `quality` takes priority, `resolution` falls back, and is mapped to `generationConfig.imageConfig.imageSize` by the plug-in (only `1K` / `2K` / `4K`); unknown values ​​(such as canvas video resolution `720`) are omitted and cannot overwrite the selected picture level. Multiple images are created one by one by the host, and `candidateCount` is not mapped. `extra` replaces `generationConfig`, `safetySettings`, and `systemInstruction`; the caller must retain the desired picture output configuration when replacing the complete configuration.
 
-## 文生图请求
+## Vincent picture request
 
 ```bash
 curl "{channel_base_url}/v1beta/models/YOUR_MODEL:generateContent" \
@@ -36,7 +36,7 @@ curl "{channel_base_url}/v1beta/models/YOUR_MODEL:generateContent" \
   }'
 ```
 
-## 参考图请求
+## Reference picture request
 
 ```json
 {
@@ -47,13 +47,13 @@ curl "{channel_base_url}/v1beta/models/YOUR_MODEL:generateContent" \
 }
 ```
 
-外部 URL 会被构造成 `file_data.file_uri`。该 URI 是否允许任意 HTTP URL 取决于上游；如果官方只接受 Files API URI，必须先上传文件，当前插件不会自动代传。
+The external URL will be constructed as `file_data.file_uri`. Whether this URI allows any HTTP URL depends on the upstream; if the official only accepts Files API URI, the file must be uploaded first, and the current plug-in will not automatically transfer it.
 
-## 响应解析与安全
+## Response parsing and security
 
-解析器遍历 `candidates[].content.parts[]`，识别 `inlineData` 或 `inline_data`，再生成 `data:<mime>;base64,...`。只有文本、finishReason 或安全反馈而没有内联图片时请求会失败。大图片不能进入 localStorage，应立即转存到宿主资源存储。
+The parser traverses `candidates[].content.parts[]`, identifies `inlineData` or `inline_data`, and generates `data:<mime>;base64,...`. Requests with only text, finishReason, or safety feedback without inline images will fail. Large images cannot be entered into localStorage and should be transferred to the host resource storage immediately.
 
-## 官方资料
+## Official information
 
 - [Gemini native image generation](https://ai.google.dev/gemini-api/docs/image-generation)
 - [Gemini generateContent API](https://ai.google.dev/api/generate-content)

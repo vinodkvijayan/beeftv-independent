@@ -194,7 +194,7 @@ func DecodeLogicalDefaults(raw string, spec CapabilitySpec) (map[string]any, err
 }
 
 func errCatalogUnavailable() error {
-	return kernel.BadAuthRequest("所选模型不可用")
+	return kernel.BadAuthRequest("The selected model is not available")
 }
 
 // TestingReplaceSnapshot installs a catalog snapshot without clearing the

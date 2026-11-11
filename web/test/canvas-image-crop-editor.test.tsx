@@ -15,9 +15,9 @@ describe("CanvasImageCropEditor", () => {
         const html = renderToStaticMarkup(<CanvasImageCropEditor imageUrl="data:image/png;base64,AAAA" imageDimensions={{ width: 1200, height: 800 }} onCancel={() => {}} onConfirm={() => {}} />);
 
         expect(html).toContain('data-image-crop-inline="true"');
-        expect(html).toContain('aria-label="图片裁切选区"');
-        expect(html).toContain('aria-label="取消裁切"');
-        expect(html).toContain('aria-label="确认裁切"');
+        expect(html).toContain('aria-label="Picture cropping selection"');
+        expect(html).toContain('aria-label="Cancel cropping"');
+        expect(html).toContain('aria-label="Confirm cutting"');
         expect(html).toContain("960 × 640");
         expect(html).toContain("bg-white text-black");
         expect(html).not.toContain("ant-modal");

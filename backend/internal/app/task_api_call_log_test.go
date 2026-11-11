@@ -80,7 +80,7 @@ func TestEnsureFailedProviderAttemptLoggedFillsPreflightGapOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	service := &Service{repo: repository.New(db)}
-	failure := errors.New("Agnes Video 2.5 size 必须是 720P、960P 或 2K")
+	failure := errors.New("Agnes Video 2.5 size must be 720P, 960P or 2K")
 
 	service.ensureFailedProviderAttemptLogged(task, failure)
 	service.ensureFailedProviderAttemptLogged(task, failure)

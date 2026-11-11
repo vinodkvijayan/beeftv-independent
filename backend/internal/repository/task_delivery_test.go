@@ -85,13 +85,13 @@ func TestCommitOwnedGenerationDeliveryPreservesEditedMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := db.Model(&model.Asset{}).Where("id = ?", item.Asset.ID).Updates(map[string]any{
-		"title":        "用户改过的标题",
+		"title":        "Title changed by user",
 		"folder_id":    "folder-user",
 		"payload_json": `{"id":"generation_asset_1","title":"用户改过的标题"}`,
 	}).Error; err != nil {
 		t.Fatal(err)
 	}
-	item.Asset.Title = "生成图片"
+	item.Asset.Title = "Generate pictures"
 	item.Asset.FolderID = ""
 	item.Asset.PayloadJSON = `{"id":"generation_asset_1"}`
 	if err := repo.CommitOwnedGenerationDelivery(item); err != nil {
@@ -101,7 +101,7 @@ func TestCommitOwnedGenerationDeliveryPreservesEditedMetadata(t *testing.T) {
 	if err := db.First(&stored, "id = ?", item.Asset.ID).Error; err != nil {
 		t.Fatal(err)
 	}
-	if stored.Title != "用户改过的标题" || stored.FolderID != "folder-user" || stored.PayloadJSON != `{"id":"generation_asset_1","title":"用户改过的标题"}` {
+	if stored.Title != "Title changed by user" || stored.FolderID != "folder-user" || stored.PayloadJSON != `{"id":"generation_asset_1","title":"用户改过的标题"}` {
 		t.Fatalf("user metadata overwritten: %#v", stored)
 	}
 }
@@ -119,17 +119,17 @@ func TestCommitOwnedGenerationDeliveryRejectsForeignAsset(t *testing.T) {
 	now := time.Now()
 	item := sampleDeliveryItem(now)
 	item.Asset.UserID = "other-user"
-	item.Asset.Title = "别人的素材"
+	item.Asset.Title = "Other people’s material"
 	if err := db.Create(item.Asset).Error; err != nil {
 		t.Fatal(err)
 	}
 	item.Asset.UserID = "user-1"
-	item.Asset.Title = "生成图片"
+	item.Asset.Title = "Generate pictures"
 	if err := repo.CommitOwnedGenerationDelivery(item); !errors.Is(err, ErrAssetOwnedByAnotherUser) {
 		t.Fatalf("foreign collision = %v", err)
 	}
 	var stored model.Asset
-	if err := db.First(&stored, "id = ?", item.Asset.ID).Error; err != nil || stored.UserID != "other-user" || stored.Title != "别人的素材" {
+	if err := db.First(&stored, "id = ?", item.Asset.ID).Error; err != nil || stored.UserID != "other-user" || stored.Title != "Other people’s material" {
 		t.Fatalf("foreign asset mutated: %#v err=%v", stored, err)
 	}
 }
@@ -139,7 +139,7 @@ func sampleDeliveryItem(now time.Time) GenerationDeliveryItem {
 	versionID := "version000000000000000000000001"
 	return GenerationDeliveryItem{
 		Result:         model.Result{ID: "result00000000000000000000000001", UserID: "user-1", TaskID: "task-1", Kind: generationOutputResultKind, URL: "/api/resources/res-1/file", Payload: `{"outputIndex":0,"resourceId":"res-1","materializedAssetId":"generation_asset_1"}`, CreatedAt: now},
-		Asset:          &model.Asset{ID: assetID, UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "生成图片", PayloadJSON: `{"id":"generation_asset_1"}`, CreatedAt: now, UpdatedAt: now},
+		Asset:          &model.Asset{ID: assetID, UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: versionID, Title: "Generate pictures", PayloadJSON: `{"id":"generation_asset_1"}`, CreatedAt: now, UpdatedAt: now},
 		Version:        &model.AssetVersion{ID: versionID, AssetID: assetID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: "{}", CreatedAt: now, UpdatedAt: now},
 		Representation: &model.AssetRepresentation{ID: "repr0000000000000000000000000001", TaskID: "task-1", AssetVersionID: versionID, ResourceID: "res-1", MediaType: "image", Role: "output", CreatedAt: now},
 	}

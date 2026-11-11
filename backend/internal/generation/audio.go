@@ -19,7 +19,7 @@ func RunAudioTask(ctx context.Context, input Input) (map[string]interface{}, err
 		voice := metadataString(input.Metadata, "resolvedCharacterVoiceKey")
 		hasOmniReference := len(input.ReferenceImages) > 0 || len(input.ReferenceAudios) > 0 || strings.TrimSpace(input.Config.AudioInstructions) != ""
 		if (voice == "" && !hasOmniReference) || (voice != "" && strings.TrimSpace(input.Config.AudioVoice) != voice) {
-			return nil, RequestPreparationError{Cause: errors.New("角色配音缺少已解析的声音绑定")}
+			return nil, RequestPreparationError{Cause: errors.New("Character voice acting is missing resolved sound bindings")}
 		}
 	}
 	if client, unified, err := useManagedMediaEnvelope(ctx, input.Config, "audio"); err != nil {
@@ -35,7 +35,7 @@ func RunAudioTask(ctx context.Context, input Input) (map[string]interface{}, err
 	}
 	ctx = EnsureOfficialProtocolAdapter(ctx, input.Config.InterfaceType)
 	if _, ok := DeclarativeProtocolAdapterForContext(ctx, input.Config.InterfaceType); !ok {
-		return nil, RequestPreparationError{Cause: fmt.Errorf("音频协议插件未安装或已停用：%s", input.Config.InterfaceType)}
+		return nil, RequestPreparationError{Cause: fmt.Errorf("Audio protocol plug-in is not installed or disabled: %s", input.Config.InterfaceType)}
 	}
 	return RunDeclarativeProtocolTask(ctx, input)
 }
@@ -72,7 +72,7 @@ func isBeefTVHostFromURL(raw string) bool {
 func DecodeProviderDataURL(value string) (string, []byte, error) {
 	header, encoded, ok := strings.Cut(value, ",")
 	if !ok || !strings.HasPrefix(header, "data:") || !strings.HasSuffix(strings.ToLower(header), ";base64") {
-		return "", nil, errors.New("data URL 格式无效")
+		return "", nil, errors.New("data URL format is invalid")
 	}
 	mimeType := strings.TrimSuffix(strings.TrimPrefix(header, "data:"), ";base64")
 	data, err := base64.StdEncoding.DecodeString(encoded)
@@ -81,11 +81,11 @@ func DecodeProviderDataURL(value string) (string, []byte, error) {
 
 func ValidateGeneratedAudio(declared string, data []byte, format string) (string, error) {
 	if len(data) == 0 {
-		return "", errors.New("音频内容为空")
+		return "", errors.New("Audio content is empty")
 	}
 	detected := strings.ToLower(strings.TrimSpace(strings.Split(http.DetectContentType(data), ";")[0]))
 	if strings.Contains(detected, "json") || strings.HasPrefix(detected, "text/") || strings.HasPrefix(detected, "image/") || strings.HasPrefix(detected, "video/") {
-		return "", fmt.Errorf("上游返回了非音频内容：%s", detected)
+		return "", fmt.Errorf("Upstream returned non-audio content: %s", detected)
 	}
 	mimeType := strings.ToLower(strings.TrimSpace(strings.Split(declared, ";")[0]))
 	resolved := ""
@@ -97,10 +97,10 @@ func ValidateGeneratedAudio(declared string, data []byte, format string) (string
 		resolved = fallback
 	}
 	if resolved == "" {
-		return "", fmt.Errorf("上游响应类型不是音频：%s", defaultString(mimeType, detected))
+		return "", fmt.Errorf("Upstream response type is not audio: %s", defaultString(mimeType, detected))
 	}
 	if !AudioSignatureMatches(resolved, data) {
-		return "", fmt.Errorf("音频内容与格式不匹配：%s", resolved)
+		return "", fmt.Errorf("Audio content does not match format: %s", resolved)
 	}
 	return resolved, nil
 }

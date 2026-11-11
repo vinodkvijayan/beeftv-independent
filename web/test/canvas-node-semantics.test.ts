@@ -100,11 +100,11 @@ describe("canvas media node semantics", () => {
     });
 
     test("semantic labels distinguish generators and every result origin", () => {
-        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "generator" }))).toBe("生成节点");
-        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "upload", content: "clip" }))).toBe("已上传");
-        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "library", content: "clip" }))).toBe("素材库");
-        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "generated", content: "clip" }))).toBe("AI 生成");
-        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "derived", content: "clip" }))).toBe("处理结果");
+        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "generator" }))).toBe("Generate node");
+        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "upload", content: "clip" }))).toBe("Uploaded");
+        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "library", content: "clip" }))).toBe("Material library");
+        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "generated", content: "clip" }))).toBe("AI generated");
+        expect(canvasMediaNodeSemanticLabel(mediaNode(CanvasNodeType.Video, { nodeRole: "result", resultOrigin: "derived", content: "clip" }))).toBe("Processing results");
     });
 
     test("keeps internal media semantics out of node-card presentation", () => {

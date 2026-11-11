@@ -125,7 +125,7 @@ function Harness() {
             queueRecoveryAndBind() {
                 // Parallel task listeners can queue a recovery update before
                 // another listener binds its receipt in the same React batch.
-                setNodes(current => current.map(node => node.id === "node-recovered" ? { ...node, metadata: { ...node.metadata, errorDetails: "恢复失败", taskStatus: "failed" } } : node));
+                setNodes(current => current.map(node => node.id === "node-recovered" ? { ...node, metadata: { ...node.metadata, errorDetails: "Recovery failed", taskStatus: "failed" } } : node));
                 generationRef.current.bindGenerationTask("node-cached", { id: "receipt-task", projectId: "canvas-a", type: "canvas_image", status: "running", prompt: "receipt", attempts: 1, createdAt: "", updatedAt: "" });
             },
             switchProject(id) {

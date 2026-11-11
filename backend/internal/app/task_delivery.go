@@ -61,7 +61,7 @@ func (s *Service) attachRecoveredProviderTask(task *model.Task) *model.Task {
 		return nil
 	}
 	if err := s.DeliverSucceededTask(*task); err != nil {
-		_ = s.log(task.UserID, task.ID, "error", "任务恢复成功但结果交付失败", err.Error())
+		_ = s.log(task.UserID, task.ID, "error", "Task recovery is successful but result delivery fails", err.Error())
 	}
 	projected := taskForOutput(*task)
 	s.attachTaskDelivery(projected)

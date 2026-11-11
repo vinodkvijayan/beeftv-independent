@@ -136,8 +136,8 @@ func TestProviderRequestErrorDetails(t *testing.T) {
 		code string
 		text string
 	}{
-		{name: "cancelled", err: context.Canceled, code: "request_cancelled", text: "任务取消，中断上游请求"},
-		{name: "timeout", err: context.DeadlineExceeded, code: "upstream_timeout", text: "等待上游响应超时"},
+		{name: "cancelled", err: context.Canceled, code: "request_cancelled", text: "The task is canceled and the upstream request is interrupted."},
+		{name: "timeout", err: context.DeadlineExceeded, code: "upstream_timeout", text: "Timeout waiting for upstream response"},
 		{name: "network error", err: errors.New("dial tcp: connection refused"), text: "dial tcp: connection refused"},
 	}
 	for _, tt := range tests {
@@ -154,7 +154,7 @@ func TestPostJSONRejectsUnserializableBodyBeforeRequest(t *testing.T) {
 	err := postJSON(context.Background(), providerConfig{BaseURL: "http://127.0.0.1:1"}, "/should-not-run", map[string]any{
 		"invalid": make(chan int),
 	}, &map[string]any{})
-	if err == nil || !strings.Contains(err.Error(), "序列化上游请求失败") {
+	if err == nil || !strings.Contains(err.Error(), "Serialization upstream request failed") {
 		t.Fatalf("postJSON() error = %v, want serialization error", err)
 	}
 }
@@ -352,7 +352,7 @@ func TestSystemChannelIDFromBaseURLSupportsShortAndLegacyProxyPaths(t *testing.T
 func TestWriteMediaPartSanitizesFilenameAndSetsMimeType(t *testing.T) {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
-	if err := writeMediaPart(writer, "image", providerMedia{ID: "image-1", Name: "提示词\n带换行.png", Type: "image/png", DataURL: testReferenceImageDataURL}); err != nil {
+	if err := writeMediaPart(writer, "image", providerMedia{ID: "image-1", Name: "prompt word\nWith line breaks.png", Type: "image/png", DataURL: testReferenceImageDataURL}); err != nil {
 		t.Fatalf("writeMediaPart() error = %v", err)
 	}
 	if err := writer.Close(); err != nil {
@@ -409,7 +409,7 @@ data: {"choices":[{"delta":{"content":"：远景"}}]}
 data: [DONE]
 
 `)
-	if got, err := parseTextEventStream(chat, "chat-completion"); err != nil || got != "第一镜：远景" {
+	if got, err := parseTextEventStream(chat, "chat-completion"); err != nil || got != "First shot: long shot" {
 		t.Fatalf("Chat stream = %q, err = %v", got, err)
 	}
 
@@ -420,7 +420,7 @@ event: content_block_delta
 data: {"delta":{"type":"text_delta","text":"：远景"}}
 
 `)
-	if got, err := parseTextEventStream(claude, "claude-api"); err != nil || got != "第一镜：远景" {
+	if got, err := parseTextEventStream(claude, "claude-api"); err != nil || got != "First shot: long shot" {
 		t.Fatalf("Claude stream = %q, err = %v", got, err)
 	}
 }
@@ -429,7 +429,7 @@ func TestParseAgentToolPayloadSupportsChatCompletions(t *testing.T) {
 	result, err := parseAgentToolPayload(map[string]interface{}{
 		"choices": []interface{}{map[string]interface{}{
 			"message": map[string]interface{}{
-				"content": "准备读取画布",
+				"content": "Prepare to read canvas",
 				"tool_calls": []interface{}{map[string]interface{}{
 					"id":       "call-1",
 					"function": map[string]interface{}{"name": "canvas_get_state", "arguments": `{}`},
@@ -440,7 +440,7 @@ func TestParseAgentToolPayloadSupportsChatCompletions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parseAgentToolPayload() error = %v", err)
 	}
-	if result["text"] != "准备读取画布" {
+	if result["text"] != "Prepare to read canvas" {
 		t.Fatalf("text = %v", result["text"])
 	}
 	calls, _ := result["toolCalls"].([]interface{})
@@ -457,18 +457,18 @@ func TestParseAgentToolPayloadSupportsChatCompletions(t *testing.T) {
 func TestParseAgentToolPayloadSupportsResponses(t *testing.T) {
 	result, err := parseAgentToolPayload(map[string]interface{}{
 		"output": []interface{}{
-			map[string]interface{}{"type": "reasoning", "summary": []interface{}{map[string]interface{}{"type": "summary_text", "text": "先读取画布，再决定操作"}}},
-			map[string]interface{}{"type": "message", "content": []interface{}{map[string]interface{}{"type": "output_text", "text": "开始操作"}}},
+			map[string]interface{}{"type": "reasoning", "summary": []interface{}{map[string]interface{}{"type": "summary_text", "text": "Read the canvas first, then decide on the operation"}}},
+			map[string]interface{}{"type": "message", "content": []interface{}{map[string]interface{}{"type": "output_text", "text": "Start operation"}}},
 			map[string]interface{}{"type": "function_call", "call_id": "call-2", "name": "canvas_apply_ops", "arguments": `{"ops":[]}`},
 		},
 	}, "responses")
 	if err != nil {
 		t.Fatalf("parseAgentToolPayload() error = %v", err)
 	}
-	if result["text"] != "开始操作" {
+	if result["text"] != "Start operation" {
 		t.Fatalf("text = %v", result["text"])
 	}
-	if result["reasoning"] != "先读取画布，再决定操作" {
+	if result["reasoning"] != "Read the canvas first, then decide on the operation" {
 		t.Fatalf("reasoning = %v", result["reasoning"])
 	}
 	calls, _ := result["toolCalls"].([]interface{})
@@ -485,14 +485,14 @@ func TestParseAgentToolPayloadSupportsResponses(t *testing.T) {
 func TestParseAgentToolPayloadSupportsClaude(t *testing.T) {
 	result, err := parseAgentToolPayload(map[string]interface{}{
 		"content": []interface{}{
-			map[string]interface{}{"type": "text", "text": "开始操作"},
+			map[string]interface{}{"type": "text", "text": "Start operation"},
 			map[string]interface{}{"type": "tool_use", "id": "call-3", "name": "canvas_get_state", "input": map[string]interface{}{}},
 		},
 	}, "claude-api")
 	if err != nil {
 		t.Fatalf("parseAgentToolPayload() error = %v", err)
 	}
-	if result["text"] != "开始操作" {
+	if result["text"] != "Start operation" {
 		t.Fatalf("text = %v", result["text"])
 	}
 	calls, _ := result["toolCalls"].([]interface{})
@@ -510,14 +510,14 @@ func TestClaudeAgentBodyMapsOpenAIStyleTools(t *testing.T) {
 	body := claudeAgentBody(map[string]interface{}{
 		"messages": []interface{}{
 			map[string]interface{}{"role": "system", "content": "You are concise."},
-			map[string]interface{}{"role": "user", "content": "读取画布"},
+			map[string]interface{}{"role": "user", "content": "Read canvas"},
 			map[string]interface{}{"role": "assistant", "content": nil, "tool_calls": []interface{}{map[string]interface{}{
 				"id": "call-4", "function": map[string]interface{}{"name": "canvas_get_state", "arguments": `{}`},
 			}}},
 			map[string]interface{}{"role": "tool", "tool_call_id": "call-4", "content": `{"nodes":[]}`},
 		},
 		"tools": []interface{}{map[string]interface{}{"type": "function", "function": map[string]interface{}{
-			"name": "canvas_get_state", "description": "读取画布", "parameters": map[string]interface{}{"type": "object"},
+			"name": "canvas_get_state", "description": "Read canvas", "parameters": map[string]interface{}{"type": "object"},
 		}}},
 		"tool_choice": "required",
 	})
@@ -549,8 +549,8 @@ func TestClaudeAgentBodyMapsOpenAIStyleTools(t *testing.T) {
 func TestCanonicalAgentBodiesPreserveAssistantToolCalls(t *testing.T) {
 	request := canonicalAgentRequest{
 		Messages: []map[string]any{
-			{"role": "user", "content": "读取画布"},
-			{"role": "assistant", "content": "我先查看当前内容。", "tool_calls": []cloudAgentCall{{
+			{"role": "user", "content": "Read canvas"},
+			{"role": "assistant", "content": "I'll look at the current content first.", "tool_calls": []cloudAgentCall{{
 				ID: "call-5",
 				Function: struct {
 					Name      string `json:"name"`
@@ -564,7 +564,7 @@ func TestCanonicalAgentBodiesPreserveAssistantToolCalls(t *testing.T) {
 	chat := canonicalAgentChatBody(&request, false)
 	chatMessages, _ := chat["messages"].([]interface{})
 	assistant, _ := chatMessages[1].(map[string]interface{})
-	if assistant["content"] != "我先查看当前内容。" || len(canonicalAgentToolCalls(assistant["tool_calls"])) != 1 {
+	if assistant["content"] != "I'll look at the current content first." || len(canonicalAgentToolCalls(assistant["tool_calls"])) != 1 {
 		t.Fatalf("chat assistant message lost text or tool call: %#v", assistant)
 	}
 	// Assert the actual JSON shape, not a helper that could repair missing fields.
@@ -638,7 +638,7 @@ func TestRunAgentToolTaskOmitsToolChoiceBeforeThinkingRequest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("runAgentToolTask() error = %v", err)
 			}
-			if result["text"] != "完成" || requests != 1 {
+			if result["text"] != "Done" || requests != 1 {
 				t.Fatalf("result/requests = %#v / %d", result, requests)
 			}
 		})
@@ -664,7 +664,7 @@ func TestRunAgentToolTaskOmitsExplicitAutomaticToolChoice(t *testing.T) {
 		Config:        providerConfig{BaseURL: server.URL, APIKey: "key", Model: "model"},
 		AgentRequests: &agentToolRequests{ChatCompletion: map[string]interface{}{"messages": []interface{}{}, "tool_choice": "auto"}},
 	})
-	if err != nil || result["text"] != "完成" {
+	if err != nil || result["text"] != "Done" {
 		t.Fatalf("result = %#v, err = %v", result, err)
 	}
 }
@@ -712,7 +712,7 @@ func TestRunDeclarativeAgentTaskOmitsToolChoiceBeforeThinkingRequest(t *testing.
 	if err != nil {
 		t.Fatalf("runAgentToolTask() error = %v", err)
 	}
-	if result["text"] != "完成" {
+	if result["text"] != "Done" {
 		t.Fatalf("result = %#v", result)
 	}
 }
@@ -751,7 +751,7 @@ func TestRunAgentToolTaskFallsBackToolChoiceForImplicitThinking(t *testing.T) {
 	if err != nil {
 		t.Fatalf("runAgentToolTask() error = %v", err)
 	}
-	if result["text"] != "完成" {
+	if result["text"] != "Done" {
 		t.Fatalf("text = %v", result["text"])
 	}
 	if len(choices) != 3 || choices[0] != "required" || choices[1] != "auto" || choices[2] != nil {
@@ -785,10 +785,10 @@ data: [DONE]
 	got, err := postStreamingText(context.Background(), providerConfig{BaseURL: server.URL, APIKey: "test-key"}, "/chat/completions", map[string]interface{}{"model": "test-model"}, "chat-completion", func(delta string) {
 		deltas.WriteString(delta)
 	})
-	if err != nil || got != "流式分镜" {
+	if err != nil || got != "streaming storyboard" {
 		t.Fatalf("postStreamingText() = %q, err = %v", got, err)
 	}
-	if deltas.String() != "流式分镜" {
+	if deltas.String() != "streaming storyboard" {
 		t.Fatalf("stream deltas = %q", deltas.String())
 	}
 }
@@ -806,8 +806,8 @@ func TestTextThinkingOptionsAndReasoningParsing(t *testing.T) {
 	if chatBody["reasoning_effort"] != "medium" {
 		t.Fatalf("chat reasoning options = %#v", chatBody)
 	}
-	result, err := parseAgentToolPayload(map[string]interface{}{"choices": []interface{}{map[string]interface{}{"message": map[string]interface{}{"content": "正文", "reasoning_content": "推理摘要"}}}}, "chat-completion")
-	if err != nil || result["text"] != "正文" || result["reasoning"] != "推理摘要" {
+	result, err := parseAgentToolPayload(map[string]interface{}{"choices": []interface{}{map[string]interface{}{"message": map[string]interface{}{"content": "Text", "reasoning_content": "reasoning summary"}}}}, "chat-completion")
+	if err != nil || result["text"] != "Text" || result["reasoning"] != "reasoning summary" {
 		t.Fatalf("parsed reasoning result = %#v, err = %v", result, err)
 	}
 }
@@ -817,13 +817,11 @@ func TestStreamingAgentParserReassemblesChatToolCallsAcrossChunks(t *testing.T) 
 	parser := newStreamingAgentParser("chat-completion", func(delta string) {
 		deltas.WriteString(delta)
 	})
-	stream := `data: {"choices":[{"delta":{"content":"准备","tool_calls":[{"index":0,"id":"call-1","function":{"name":"canvas_apply_ops","arguments":"{\"ops\":"}}]}}]}
+	stream := `data: {"choices":[{"delta":{"content":"preparation","tool_calls":[{"index":0,"id":"call-1","function":{"name":"canvas_apply_ops","arguments":"{\"ops\":"}}]}}]}
 
-data: {"choices":[{"delta":{"content":"执行","tool_calls":[{"index":0,"function":{"arguments":"[]}"}}]}}]}
+data: {"choices":[{"delta":{"content":"execution","tool_calls":[{"index":0,"function":{"arguments":"[]}"}}]}}]}
 
-data: [DONE]
-
-`
+data: [DONE]`
 	parser.Consume("text/event-stream", []byte(stream[:47]))
 	parser.Consume("text/event-stream", []byte(stream[47:]))
 	parser.Flush()
@@ -831,7 +829,7 @@ data: [DONE]
 	if err != nil {
 		t.Fatalf("streamingAgentParser.Result() error = %v", err)
 	}
-	if result["text"] != "准备执行" || deltas.String() != "准备执行" {
+	if result["text"] != "ready to execute" || deltas.String() != "ready to execute" {
 		t.Fatalf("text = %v, deltas = %q", result["text"], deltas.String())
 	}
 	calls, _ := result["toolCalls"].([]interface{})
@@ -862,7 +860,7 @@ data: {"type":"response.completed","response":{"output":[{"type":"message","cont
 	if err != nil {
 		t.Fatalf("streamingAgentParser.Result() error = %v", err)
 	}
-	if result["text"] != "可见回答" || result["reasoning"] != "内部分析" || deltas.String() != "可见回答" {
+	if result["text"] != "Visible answer" || result["reasoning"] != "internal analysis" || deltas.String() != "Visible answer" {
 		t.Fatalf("result = %#v, deltas = %q", result, deltas.String())
 	}
 }
@@ -884,7 +882,7 @@ data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta"
 
 func TestProviderHTTPErrorWarnsAboutUncertain524Execution(t *testing.T) {
 	message := (providerHTTPError{StatusCode: 524, Status: "524 A Timeout Occurred"}).Error()
-	if !strings.Contains(message, "可能仍在服务端执行") || !strings.Contains(message, "不要立即重新提交") {
+	if !strings.Contains(message, "May still be executed on the server side") || !strings.Contains(message, "不要立即重新提交") {
 		t.Fatalf("providerHTTPError.Error() = %q", message)
 	}
 }
@@ -953,12 +951,12 @@ func TestProviderPayloadErrorMessageUsesSafeActionableCategories(t *testing.T) {
 		raw  string
 		want string
 	}{
-		{name: "moderation", raw: "request blocked by content policy: prompt=private", want: "内容安全审核"},
-		{name: "quota", raw: "insufficient quota for api-key=secret", want: "计费或额度"},
-		{name: "model access", raw: "model not found for tenant secret-id", want: "当前模型或接口不可用"},
-		{name: "thinking mode rejects forced tool choice", raw: `{"error":{"message":"Thinking mode does not support this tool_choice","request_id":"secret-trace"}}`, want: "不支持强制工具调用"},
-		{name: "reasoning mode rejects forced tool choice", raw: `{"error":{"message":"tool_choice=required is not supported in reasoning mode"}}`, want: "不支持强制工具调用"},
-		{name: "unknown", raw: "trace_id=private internal stack", want: "生成失败"},
+		{name: "moderation", raw: "request blocked by content policy: prompt=private", want: "Content security review"},
+		{name: "quota", raw: "insufficient quota for api-key=secret", want: "Billing or quota"},
+		{name: "model access", raw: "model not found for tenant secret-id", want: "The current model or interface is not available"},
+		{name: "thinking mode rejects forced tool choice", raw: `{"error":{"message":"Thinking mode does not support this tool_choice","request_id":"secret-trace"}}`, want: "Forced tool calls are not supported"},
+		{name: "reasoning mode rejects forced tool choice", raw: `{"error":{"message":"tool_choice=required is not supported in reasoning mode"}}`, want: "Forced tool calls are not supported"},
+		{name: "unknown", raw: "trace_id=private internal stack", want: "Build failed"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -980,7 +978,7 @@ func TestProviderPayloadErrorCategoryFlagsRealPersonRejection(t *testing.T) {
 		t.Fatalf("providerPayloadErrorCategory() ok = false, want true")
 	}
 	if !strings.Contains(message, "真人形象") {
-		t.Fatalf("providerPayloadErrorCategory() = %q, want 真人形象 category", message)
+		t.Fatalf("providerPayloadErrorCategory() = %q, want real person category", message)
 	}
 	if strings.Contains(message, "secret") || strings.Contains(message, "content[1]") {
 		t.Fatalf("provider payload detail leaked: %q", message)
@@ -1006,61 +1004,61 @@ func TestProviderUserFacingErrorMessageClassifiesRejectedRequestBodies(t *testin
 			name:       "real person rejection",
 			statusCode: http.StatusBadRequest,
 			body:       `{"error":{"code":"InputImageSensitiveContentDetected.PrivacyInformation","message":"input image may contain real person, secret-trace"}}`,
-			want:       "真人形象",
+			want:       "real person image",
 		},
 		{
 			name:       "moderation rejection",
 			statusCode: http.StatusBadRequest,
 			body:       `{"error":{"message":"request blocked by content policy, secret-trace"}}`,
-			want:       "内容安全审核",
+			want:       "Content security review",
 		},
 		{
 			name:       "unprocessable entity is classified too",
 			statusCode: http.StatusUnprocessableEntity,
 			body:       `{"error":{"message":"insufficient balance, secret-trace"}}`,
-			want:       "计费或额度",
+			want:       "Billing or quota",
 		},
 		{
 			name:       "unclassified body keeps the generic parameter hint",
 			statusCode: http.StatusBadRequest,
 			body:       `{"error":{"message":"trace_id=secret-trace"}}`,
-			want:       "请检查模型、尺寸、时长、格式或数量",
+			want:       "Please check model, size, duration, format or quantity",
 		},
 		{
 			name:       "empty body keeps the generic parameter hint",
 			statusCode: http.StatusBadRequest,
 			body:       "",
-			want:       "请检查模型、尺寸、时长、格式或数量",
+			want:       "Please check model, size, duration, format or quantity",
 		},
 		{
 			name:       "http 402 without body is unknown billing",
 			statusCode: http.StatusPaymentRequired,
 			body:       "",
-			want:       "计费或额度",
+			want:       "Billing or quota",
 		},
 		{
 			name:       "http 451 safety body",
 			statusCode: 451,
 			body:       "Your prompt or reference image was blocked by the content safety policy. Please adjust your prompt or reference image and try again.",
-			want:       "内容安全审核",
+			want:       "Content security review",
 		},
 		{
 			name:       "thinking mode rejects forced tool choice",
 			statusCode: http.StatusBadRequest,
 			body:       `{"error":{"message":"Thinking mode does not support this tool_choice","request_id":"secret"}}`,
-			want:       "不支持强制工具调用",
+			want:       "Forced tool calls are not supported",
 		},
 		{
 			name:       "payment required because balance is insufficient",
 			statusCode: http.StatusPaymentRequired,
 			body:       `{"error":{"message":"insufficient balance, api-key=secret"}}`,
-			want:       "计费或额度",
+			want:       "Billing or quota",
 		},
 		{
 			name:       "payment required because subscription is missing",
 			statusCode: http.StatusPaymentRequired,
 			body:       `{"error":{"message":"subscription required for this model, api-key=secret"}}`,
-			want:       "计费或额度",
+			want:       "Billing or quota",
 		},
 	}
 	for _, tt := range tests {
@@ -1106,13 +1104,13 @@ func TestProviderUserFacingErrorMessageOnlyClassifiesValidationStatuses(t *testi
 }
 
 func TestProviderUserFacingErrorMessageClassifiesWrappedHTTPErrors(t *testing.T) {
-	wrapped := fmt.Errorf("视频任务创建失败：%w", providerHTTPError{
+	wrapped := fmt.Errorf("Video task creation failed: %w", providerHTTPError{
 		StatusCode: http.StatusBadRequest,
 		Body:       `{"error":{"code":"InputImageSensitiveContentDetected.PrivacyInformation","message":"may contain real person","request_id":"secret-trace"}}`,
 	})
 	message := providerUserFacingErrorMessage(wrapped)
 	if !strings.Contains(message, "真人形象") {
-		t.Fatalf("providerUserFacingErrorMessage() = %q, want 真人形象 category", message)
+		t.Fatalf("providerUserFacingErrorMessage() = %q, want real person category", message)
 	}
 	if strings.Contains(message, "secret-trace") || strings.Contains(message, `{"error"`) {
 		t.Fatalf("provider response body leaked through wrapped error: %q", message)
@@ -1130,17 +1128,17 @@ func TestProviderPayloadErrorCategoryIgnoresEchoedPortraitWording(t *testing.T) 
 		{
 			name: "echoed chinese portrait prompt stays a parameter error",
 			raw:  `{"error":{"message":"invalid parameter: prompt=生成油画肖像"}}`,
-			want: "请检查模型、尺寸、时长、格式或数量",
+			want: "Please check model, size, duration, format or quantity",
 		},
 		{
 			name: "echoed english likeness prompt stays a parameter error",
 			raw:  `{"error":{"message":"invalid argument: style=likeness study"}}`,
-			want: "请检查模型、尺寸、时长、格式或数量",
+			want: "Please check model, size, duration, format or quantity",
 		},
 		{
 			name: "moderation wins over echoed real person prompt",
 			raw:  `{"error":{"message":"request blocked by content policy: prompt=real person portrait"}}`,
-			want: "安全审核",
+			want: "security audit",
 		},
 		{
 			name: "bare real person prose is not classified as likeness",
@@ -1175,7 +1173,7 @@ func TestProviderPayloadErrorCategoryPrefersProviderCodeOverModerationWording(t 
 	raw := `{"error":{"code":"InputImageSensitiveContentDetected.PrivacyInformation","message":"blocked by content policy"}}`
 	message, ok := providerPayloadErrorCategory(raw)
 	if !ok || !strings.Contains(message, "真人形象") {
-		t.Fatalf("providerPayloadErrorCategory() = %q, ok = %v, want 真人形象 category", message, ok)
+		t.Fatalf("providerPayloadErrorCategory() = %q, ok = %v, want real person category", message, ok)
 	}
 }
 
@@ -2229,7 +2227,7 @@ func TestNewAPIVideoPromptKeepsTextOnlyPromptUnchanged(t *testing.T) {
 
 func TestVideoProviderPromptsKeepReferencePromptUnchanged(t *testing.T) {
 	input := canvasGenerationInput{
-		Prompt:          "镜头缓慢前推，人物走向门口",
+		Prompt:          "The camera slowly moves forward, and the character walks towards the door",
 		ReferenceImages: []providerMedia{{ID: "image-1", DataURL: testReferenceImageDataURL}},
 		Metadata:        map[string]interface{}{"videoEditOperation": "image_to_video"},
 	}
@@ -2485,7 +2483,7 @@ func TestProtocolRequestRestoresDeclaredVideoResolutionEnum(t *testing.T) {
 	}{
 		{name: "lowercase suffix", quality: "480", resolutions: []string{"480p", "720p"}, want: "480p"},
 		{name: "provider casing", quality: "1080", resolutions: []string{"720P", "1080P"}, want: "1080P"},
-		{name: "opaque enum", quality: "768p竖", resolutions: []string{"768p竖", "768p横"}, want: "768p竖"},
+		{name: "opaque enum", quality: "768p vertical", resolutions: []string{"768p vertical", "768p horizontal"}, want: "768p vertical"},
 		{name: "unmatched custom value", quality: "native", resolutions: []string{"720p"}, want: "native"},
 	}
 	for _, test := range tests {
@@ -2919,8 +2917,8 @@ func TestResolveGenerationStyleExecutionUsesValidatedPromptAssets(t *testing.T) 
 		Prompt:          "base style",
 		ExecutionPolicy: "compatible-fallback",
 		Assets: []styleProfileAsset{
-			{ID: "prompt-1", Kind: "prompt", Title: "色彩约束", Provider: "builtin", Enabled: &enabled, Status: "validated", PromptFragment: "muted palette", TriggerWords: []string{"soft light"}},
-			{ID: "lora-1", Kind: "lora", Title: "东方角色 LoRA", Provider: "liblib", Enabled: &enabled, Status: "validated", SourceID: "model-1"},
+			{ID: "prompt-1", Kind: "prompt", Title: "color constraints", Provider: "builtin", Enabled: &enabled, Status: "validated", PromptFragment: "muted palette", TriggerWords: []string{"soft light"}},
+			{ID: "lora-1", Kind: "lora", Title: "Oriental character LoRA", Provider: "liblib", Enabled: &enabled, Status: "validated", SourceID: "model-1"},
 		},
 	}
 	prompt, status, warnings := resolveGenerationStyleExecution(profile, "image-model", "openai-image")
@@ -2936,7 +2934,7 @@ func TestResolveGenerationStyleExecutionStrictPolicyBlocksUnsupportedAsset(t *te
 	profile := styleProfileDocument{
 		Prompt:          "base style",
 		ExecutionPolicy: "strict-assets",
-		Assets:          []styleProfileAsset{{ID: "reference-1", Kind: "reference", Title: "项目参考图", Provider: "project", Status: "validated", ReferenceResourceIDs: []string{"resource-1"}}},
+		Assets:          []styleProfileAsset{{ID: "reference-1", Kind: "reference", Title: "Project reference drawing", Provider: "project", Status: "validated", ReferenceResourceIDs: []string{"resource-1"}}},
 	}
 	_, status, warnings := resolveGenerationStyleExecution(profile, "image-model", "openai-image")
 	if status != "blocked" || len(warnings) != 1 {
@@ -2949,7 +2947,7 @@ func TestResolveGenerationStyleExecutionSkipsPromptAssetForOtherModel(t *testing
 		Prompt:          "base style",
 		ExecutionPolicy: "compatible-fallback",
 		Assets: []styleProfileAsset{{
-			ID: "template-1", Kind: "template", Title: "专用模板", Provider: "workflow", Status: "validated",
+			ID: "template-1", Kind: "template", Title: "Dedicated template", Provider: "workflow", Status: "validated",
 			BaseModels: []string{"supported-model"}, PromptFragment: "must not be injected",
 		}},
 	}
@@ -2964,20 +2962,20 @@ func TestApplyGenerationStyleProfileRebuildsStaleClientPlanForResolvedModel(t *t
 	profile := styleProfileDocument{
 		SchemaVersion:   1,
 		PresetID:        "style-1",
-		Title:           "项目画风",
+		Title:           "Project style",
 		Prompt:          "base style",
 		ExecutionPolicy: "compatible-fallback",
 		Source:          "user",
 		Revision:        1,
 		Assets: []styleProfileAsset{{
-			ID: "template-1", Kind: "template", Title: "旧模型模板", Provider: "workflow", Enabled: &enabled, Status: "validated",
+			ID: "template-1", Kind: "template", Title: "old model template", Provider: "workflow", Enabled: &enabled, Status: "validated",
 			BaseModels: []string{"client-model"}, PromptFragment: "client-only fragment",
 		}},
 	}
 	clientPrompt, clientStatus, _ := resolveGenerationStyleExecution(profile, "client-model", "openai-image")
 	input := canvasGenerationInput{
 		Mode:   "image",
-		Prompt: "portrait\n\n【项目画风执行规范】\n" + clientPrompt,
+		Prompt: "portrait\n\n[Project style execution specifications]" + clientPrompt,
 		Config: providerConfig{Model: "resolved-model", InterfaceType: "openai-image"},
 		Metadata: map[string]interface{}{
 			"styleProfileJson": prompts.MustStyleProfileJSON(profile),
@@ -2991,7 +2989,7 @@ func TestApplyGenerationStyleProfileRebuildsStaleClientPlanForResolvedModel(t *t
 	if err := (&Service{}).applyGenerationStyleProfile("user-1", "", &input); err != nil {
 		t.Fatalf("applyGenerationStyleProfile() error = %v", err)
 	}
-	if input.Prompt != "portrait\n\n【项目画风执行规范】\nbase style" {
+	if input.Prompt != "portrait\n\n[Project style execution specifications]\nbase style" {
 		t.Fatalf("applyGenerationStyleProfile() prompt = %q", input.Prompt)
 	}
 }
@@ -3201,7 +3199,7 @@ func TestRunMiniMaxVideoTaskUsesExplicitReferenceRoles(t *testing.T) {
 
 	_, err := runVideoTaskForTest(context.Background(), canvasGenerationInput{
 		Mode:            "video",
-		Prompt:          "保持角色一致",
+		Prompt:          "Keep roles consistent",
 		Config:          providerConfig{BaseURL: server.URL, APIKey: "test-key", Model: "MiniMax-H3", InterfaceType: "minimax-video", VideoSeconds: "6", VQuality: "768P", Size: "16:9"},
 		ReferenceImages: []providerMedia{{ID: "character-1", URL: server.URL + "/character.png"}},
 		ReferenceAudios: []providerMedia{{ID: "voice-1", URL: server.URL + "/voice.mp3"}},

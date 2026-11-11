@@ -33,7 +33,7 @@ func PostStreamingAgent(ctx context.Context, config Config, path string, body ma
 	if !strings.Contains(strings.ToLower(mimeType), "event-stream") {
 		var payload map[string]interface{}
 		if err := json.Unmarshal(data, &payload); err != nil {
-			return nil, fmt.Errorf("Agent 接口返回格式无效：%w", err)
+			return nil, fmt.Errorf("The Agent interface return format is invalid: %w", err)
 		}
 		return ParseAgentToolPayload(payload, protocol)
 	}
@@ -111,7 +111,7 @@ func (p *StreamingAgentParser) consumeFrame(frame string) {
 	}
 	var payload map[string]interface{}
 	if err := json.Unmarshal([]byte(raw), &payload); err != nil {
-		p.err = fmt.Errorf("Agent 流式事件解析失败：%w", err)
+		p.err = fmt.Errorf("Agent streaming event parsing failed: %w", err)
 		return
 	}
 	if err := ValidateTextPayload(payload); err != nil {
@@ -219,7 +219,7 @@ func (p *StreamingAgentParser) consumeClaudeEvent(payload map[string]interface{}
 		}
 	case "error":
 		errValue, _ := payload["error"].(map[string]interface{})
-		p.err = errors.New(defaultString(stringField(errValue, "message"), "Claude 上游返回失败"))
+		p.err = errors.New(defaultString(stringField(errValue, "message"), "Claude upstream return failure"))
 	}
 }
 
@@ -303,13 +303,13 @@ func (p *StreamingAgentParser) Result() (map[string]interface{}, error) {
 		}
 		var parsed interface{}
 		if err := json.Unmarshal([]byte(arguments), &parsed); err != nil {
-			return nil, fmt.Errorf("Agent 工具参数不是完整 JSON：%w", err)
+			return nil, fmt.Errorf("Agent tool parameters are not complete JSON: %w", err)
 		}
 		calls = append(calls, map[string]interface{}{"id": call.id, "type": "function", "function": map[string]interface{}{"name": call.name, "arguments": arguments}})
 	}
 	result["toolCalls"] = calls
 	if p.text.Len() == 0 && len(calls) == 0 {
-		return nil, errors.New("画布 Agent 接口没有返回内容")
+		return nil, errors.New("Canvas Agent interface returns no content")
 	}
 	return result, nil
 }
@@ -335,7 +335,7 @@ func PostStreamingTextResult(ctx context.Context, config Config, path string, bo
 	}
 	result := ProviderTextResult{Text: stringField(parsed, "text"), Reasoning: stringField(parsed, "reasoning")}
 	if result.Text == "" {
-		return ProviderTextResult{}, errors.New("流式文本接口没有返回内容")
+		return ProviderTextResult{}, errors.New("The streaming text interface returns no content")
 	}
 	return result, nil
 }
@@ -360,13 +360,13 @@ func ParseTextEventStream(data []byte, protocol string) (string, error) {
 		}
 		var payload map[string]interface{}
 		if err := json.Unmarshal([]byte(raw), &payload); err != nil {
-			return fmt.Errorf("流式文本事件解析失败：%w", err)
+			return fmt.Errorf("Streaming text event parsing failed: %w", err)
 		}
 		if eventName == "error" {
 			if err := ValidateTextPayload(payload); err != nil {
 				return err
 			}
-			return errors.New("上游流式文本请求失败")
+			return errors.New("Upstream streaming text request failed")
 		}
 		if err := ValidateTextPayload(payload); err != nil {
 			return err
@@ -407,13 +407,13 @@ func ParseTextEventStream(data []byte, protocol string) (string, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("读取流式文本响应失败：%w", err)
+		return "", fmt.Errorf("Failed to read streaming text response: %w", err)
 	}
 	if err := flush(); err != nil {
 		return "", err
 	}
 	if text.Len() == 0 {
-		return "", errors.New("流式文本接口没有返回内容")
+		return "", errors.New("The streaming text interface returns no content")
 	}
 	return text.String(), nil
 }

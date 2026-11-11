@@ -27,7 +27,7 @@ func (s *Service) validateCanvasMediaAssetsWithCandidates(userID string, raw jso
 func (s *Service) validateCanvasMediaAssetsWithBaseline(userID string, raw json.RawMessage, existing *model.CanvasProject, candidates []model.Asset) error {
 	references, err := MediaAssetReferences(raw)
 	if err != nil {
-		return kernel.BadAuthRequest("画布媒体数据格式错误")
+		return kernel.BadAuthRequest("Canvas media data format error")
 	}
 	if len(references) == 0 {
 		return nil
@@ -59,7 +59,7 @@ func (s *Service) validateCanvasMediaAssetsWithBaseline(userID string, raw json.
 	resourceIDSet := make(map[string]struct{}, len(references))
 	for _, reference := range references {
 		if reference.AssetID == "" {
-			return kernel.BadAuthRequest("画布媒体尚未进入素材库，请等待同步完成后重试")
+			return kernel.BadAuthRequest("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.")
 		}
 		assetIDSet[reference.AssetID] = struct{}{}
 		resourceIDSet[reference.ResourceID] = struct{}{}
@@ -92,14 +92,14 @@ func (s *Service) validateCanvasMediaAssetsWithBaseline(userID string, raw json.
 
 	for _, reference := range references {
 		if _, exists := readyResources[reference.ResourceID]; !exists {
-			return kernel.BadAuthRequest("画布媒体对应的资源不存在或尚未就绪，请重新上传")
+			return kernel.BadAuthRequest("The resources corresponding to the canvas media do not exist or are not ready yet. Please upload again.")
 		}
 		resourceIDs, assetExists := assetResources[reference.AssetID]
 		if !assetExists {
-			return kernel.BadAuthRequest("画布媒体尚未进入素材库，请等待同步完成后重试")
+			return kernel.BadAuthRequest("The canvas media has not yet entered the material library, please wait for synchronization to complete and try again.")
 		}
 		if _, matches := resourceIDs[reference.ResourceID]; !matches {
-			return kernel.BadAuthRequest("画布媒体与素材库记录不一致，请重新同步")
+			return kernel.BadAuthRequest("Canvas media and material library records are inconsistent, please re-synchronize.")
 		}
 	}
 	return nil

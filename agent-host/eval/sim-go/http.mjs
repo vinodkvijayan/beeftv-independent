@@ -93,7 +93,7 @@ export function createSimServer(state) {
         if (req.method === 'GET') {
           const canvasId = subId || url.searchParams.get('canvasId') || state.defaultCanvasId;
           const doc = state.canvases.get(canvasId);
-          if (!doc) throw notFound('canvas_not_found', `画布不存在: ${canvasId}`);
+          if (!doc) throw notFound('canvas_not_found', `Canvas does not exist:${canvasId}`);
           sendOk(res, { canvasId, canvas: clone(doc) });
           return;
         }
@@ -126,7 +126,7 @@ export function createSimServer(state) {
           if (!rec && state.options.autoAuthorizeTurns !== false) {
             rec = beginTurn(state, { turnId, canvasId: state.defaultCanvasId, permissionMode: 'canvas' });
           }
-          if (!rec) throw permissionDenied('turn_not_open', '任务不可恢复');
+          if (!rec) throw permissionDenied('turn_not_open', 'Task is not recoverable');
           sendOk(res, {
             turnId: rec.turnId,
             canvasId: rec.canvasId,
@@ -259,7 +259,7 @@ export function createSimServer(state) {
         if (req.method === 'GET') {
           if (sub) {
             const task = state.tasks.get(decodeURIComponent(sub));
-            if (!task) throw notFound('task_not_found', '任务不存在');
+            if (!task) throw notFound('task_not_found', 'Task does not exist');
             sendOk(res, clone(task));
             return;
           }
@@ -277,7 +277,7 @@ export function createSimServer(state) {
           }
           if (body.ConfirmedByUser === false || body.confirmed === false) {
             state.counts.unconfirmedTasks += 1;
-            throw permissionDenied('generation_confirmation_required', '付费生成必须经过用户确认');
+            throw permissionDenied('generation_confirmation_required', 'Paid generation must be confirmed by the user');
           }
           // 直接为指定节点创建生成任务（测试/模拟用）
           state.seq.proposal += 1;
@@ -300,7 +300,7 @@ export function createSimServer(state) {
         }
       }
 
-      sendEnvelope(res, 404, 404, null, `未找到路由: ${req.method} ${pathname}`, 'not_found');
+      sendEnvelope(res, 404, 404, null, `Route not found:${req.method} ${pathname}`, 'not_found');
     } catch (error) {
       sendError(res, error);
     }

@@ -143,7 +143,7 @@ func DecodeGenerationArtifact(deps DeliveryMediaDeps, userID, identity, mediaTyp
 		}
 		if downloadErr != nil {
 			if errors.Is(downloadErr, outbound.ErrResourceTooLarge) {
-				return "", nil, "", "", 0, 0, 0, kernel.BadAuthRequest(fmt.Sprintf("远程资源必须小于 %s", localasset.FormatStorageLimit(maxBytes)))
+				return "", nil, "", "", 0, 0, 0, kernel.BadAuthRequest(fmt.Sprintf("The remote resource must be smaller than %s", localasset.FormatStorageLimit(maxBytes)))
 			}
 			return "", nil, "", "", 0, 0, 0, downloadErr
 		}
@@ -351,7 +351,7 @@ func RefreshManagedArtifactURL(
 	taskID, rawIndex, ok := strings.Cut(identity, ":")
 	index, err := strconv.Atoi(rawIndex)
 	if !ok || err != nil || index < 0 {
-		return "", false, errors.New("生成结果身份无效")
+		return "", false, errors.New("Generate result identity is invalid")
 	}
 	task, err := repo.TaskForUser(userID, taskID)
 	if err != nil {
@@ -365,7 +365,7 @@ func RefreshManagedArtifactURL(
 		return "", false, nil
 	}
 	if status != "completed" || index >= len(outputs) || outputs[index].Kind != kind || outputs[index].URL == "" {
-		return "", true, errors.New("原任务结果暂不可用，请稍后继续取回")
+		return "", true, errors.New("The original task results are temporarily unavailable, please retrieve them later.")
 	}
 	return outputs[index].URL, true, nil
 }
@@ -380,7 +380,7 @@ func RestoreManagedUpscaleAudio(
 ) ([]byte, error) {
 	taskID, _, ok := strings.Cut(identity, ":")
 	if !ok {
-		return nil, errors.New("生成结果身份无效")
+		return nil, errors.New("Generate result identity is invalid")
 	}
 	task, err := repo.TaskForUser(userID, taskID)
 	if err != nil {

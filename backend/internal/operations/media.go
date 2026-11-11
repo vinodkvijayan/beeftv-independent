@@ -94,7 +94,7 @@ type mediaEvidenceRequest struct {
 	Checks  bool     `json:"checks"`
 }
 
-const mediaEvidenceSchema = `{"type":"object","description":"一次读取15秒内区间的证据","properties":{"startMs":{"type":"integer"},"endMs":{"type":"integer"},"modes":{"type":"array","items":{"type":"string","enum":["frames","video","audio"]}},"checks":{"type":"boolean"}},"required":["startMs","endMs","modes"]}`
+const mediaEvidenceSchema = `{"type":"object","description":"Read the evidence within 15 seconds at a time","properties":{"startMs":{"type":"integer"},"endMs":{"type":"integer"}," modes":{"type":"array","items":{"type":"string","enum":["frames","video","audio"]}},"checks":{"type":"boolean"}},"required":["startMs","endMs","modes"]}`
 
 // ValidateMediaReference shares the owned-node/asset linkage checks with chat
 // admission. Client-supplied resource IDs never grant access on their own.
@@ -115,9 +115,9 @@ func ValidateMediaReference(domain Domain, userID, canvasID, nodeID, assetID, re
 func registerMediaOps(r *Registry) {
 	registerMediaReview(r)
 	summaries := map[string]string{
-		"media.overview": "获取媒体版本、时长与概览（可选15秒内 evidence）；概览不能替代连续影音审查",
-		"media.inspect":  "读取媒体片段（每次最多 15 秒；图片可用 imageCrop 分区查看）",
-		"media.check":    "客观测量黑屏、音量与静音停顿；不能判断声音内容，不能替代实际听看",
+		"media.overview": "Get media version, duration and overview (optional evidence within 15 seconds); overview cannot replace continuous video review",
+		"media.inspect":  "Read media segments (up to 15 seconds each; images can be viewed with imageCrop partitions)",
+		"media.check":    "Objectively measure black screen, volume and silent pauses; it cannot judge the content of the sound and cannot replace actual listening.",
 	}
 	for _, id := range []string{"media.overview", "media.inspect", "media.check"} {
 		operation := id
@@ -139,7 +139,7 @@ func registerMediaOps(r *Registry) {
 
 func resolveMediaResource(ctx *Context, args mediaArgs) (string, error) {
 	if strings.TrimSpace(args.CanvasID) == "" || (args.NodeID == "") == (args.AssetID == "") {
-		return "", InvalidArg("invalid_media_target", "指定 canvasId 和一个 nodeId 或 assetId")
+		return "", InvalidArg("invalid_media_target", "Specify canvasId and a nodeId or assetId")
 	}
 	// Read the owned canvas even for asset targets; scope authorization is enforced
 	// by the registry before this function, not by model-provided claims.
@@ -160,7 +160,7 @@ func resolveMediaResource(ctx *Context, args mediaArgs) (string, error) {
 			}
 		}
 		if target == nil {
-			return "", PermissionDenied("node_not_in_canvas", "节点不属于指定画布")
+			return "", PermissionDenied("node_not_in_canvas", "Node does not belong to the specified canvas")
 		}
 	} else {
 		asset, err := ctx.Domain.OwnedAsset(ctx.UserID, args.AssetID)
@@ -168,27 +168,27 @@ func resolveMediaResource(ctx *Context, args mediaArgs) (string, error) {
 			return "", mapDomainError(err)
 		}
 		if asset == nil {
-			return "", NotFound("asset_not_found", "素材不存在")
+			return "", NotFound("asset_not_found", "Material does not exist")
 		}
 		if err := json.Unmarshal([]byte(asset.PayloadJSON), &target); err != nil {
-			return "", PreconditionFailed("media_reference_unreadable", "素材引用无法读取", nil)
+			return "", PreconditionFailed("media_reference_unreadable", "Material reference cannot be read", nil)
 		}
 	}
 	ids := map[string]bool{}
 	collectMediaResourceIDs(target, ids)
 	if args.ResourceID != "" {
 		if !ids[args.ResourceID] {
-			return "", PermissionDenied("media_not_referenced", "这个资源未关联到指定素材或节点")
+			return "", PermissionDenied("media_not_referenced", "This resource is not associated with the specified material or node")
 		}
 		return args.ResourceID, nil
 	}
 	if len(ids) != 1 {
-		return "", InvalidArg("media_resource_required", "目标必须有一个媒体资源，或指定其关联的 resourceId")
+		return "", InvalidArg("media_resource_required", "The target must have a media resource, or specify its associated resourceId")
 	}
 	for id := range ids {
 		return id, nil
 	}
-	return "", NotFound("media_not_found", "媒体不存在")
+	return "", NotFound("media_not_found", "media does not exist")
 }
 
 func collectMediaResourceIDs(value any, ids map[string]bool) {
@@ -254,19 +254,19 @@ func runMedia(opCtx *Context, operation string, raw json.RawMessage) (any, error
 		return nil, err
 	}
 	if args.ImageCrop != nil && (operation != "media.inspect" || (args.Mode != "" && args.Mode != "frames") || args.StartMs != 0 || args.EndMs != 0 || !args.ImageCrop.valid()) {
-		return nil, InvalidArg("invalid_image_crop", "图片局部范围必须位于原图内，且只能用于图片的零区间 frames 检查")
+		return nil, InvalidArg("invalid_image_crop", "The local range of the image must be within the original image and can only be used for the zero interval frames check of the image.")
 	}
 	if args.Evidence != nil {
 		if operation != "media.overview" || args.Evidence.StartMs == nil || args.Evidence.EndMs == nil || len(args.Evidence.Modes) == 0 || len(args.Evidence.Modes) > 3 {
-			return nil, InvalidArg("invalid_media_evidence", "仅 overview 支持 evidence，明确提供 startMs、endMs 和1至3种模式")
+			return nil, InvalidArg("invalid_media_evidence", "Only overview supports evidence, explicitly providing startMs, endMs and modes 1 to 3.")
 		}
 		if *args.Evidence.StartMs < 0 || *args.Evidence.EndMs <= *args.Evidence.StartMs || *args.Evidence.EndMs-*args.Evidence.StartMs > 15000 {
-			return nil, InvalidArg("invalid_media_interval", "证据区间必须为明确的正区间，每次最多15秒")
+			return nil, InvalidArg("invalid_media_interval", "The evidence interval must be a clear positive interval, up to 15 seconds each time")
 		}
 		seen := map[string]bool{}
 		for _, mode := range args.Evidence.Modes {
 			if (mode != "frames" && mode != "video" && mode != "audio") || seen[mode] {
-				return nil, InvalidArg("invalid_media_evidence", "证据模式只能为不重复的 frames、video、audio")
+				return nil, InvalidArg("invalid_media_evidence", "The evidence mode can only be non-repeating frames, video, audio")
 			}
 			seen[mode] = true
 		}
@@ -280,16 +280,16 @@ func runMedia(opCtx *Context, operation string, raw json.RawMessage) (any, error
 		return nil, mapDomainError(err)
 	}
 	if resource == nil || resource.Size > maxMediaSourceBytes {
-		return nil, PreconditionFailed("media_too_large", "当前媒体检查支持 256 MiB 以内的素材", nil)
+		return nil, PreconditionFailed("media_too_large", "Media checking currently supports assets up to 256 MiB", nil)
 	}
 	isImage := strings.HasPrefix(resource.MimeType, "image/") || strings.EqualFold(resource.Kind, "image")
 	genericMime := resource.MimeType == "" || resource.MimeType == "application/octet-stream"
 	if args.ImageCrop != nil && !isImage && !genericMime {
-		return nil, InvalidArg("invalid_image_crop", "局部图片检查仅适用于图片素材")
+		return nil, InvalidArg("invalid_image_crop", "Partial image inspection only applies to image materials")
 	}
 	opener, ok := opCtx.Domain.(MediaSourceOpener)
 	if !ok {
-		return nil, Unsupported("media_unavailable", "当前工作区不支持媒体检查")
+		return nil, Unsupported("media_unavailable", "The current workspace does not support media inspection")
 	}
 	ctx, cancel := context.WithTimeout(opCtx.Context, 90*time.Second)
 	defer cancel()
@@ -298,7 +298,7 @@ func runMedia(opCtx *Context, operation string, raw json.RawMessage) (any, error
 		return nil, mapDomainError(err)
 	}
 	if body == nil {
-		return nil, PreconditionFailed("media_unavailable", "媒体暂时无法读取", nil)
+		return nil, PreconditionFailed("media_unavailable", "The media cannot be read at the moment", nil)
 	}
 	defer body.Close()
 	readDone := make(chan struct{})
@@ -312,27 +312,27 @@ func runMedia(opCtx *Context, operation string, raw json.RawMessage) (any, error
 	}()
 	dir, err := os.MkdirTemp("", "beeftv-media-*")
 	if err != nil {
-		return nil, PreconditionFailed("media_storage_unavailable", "媒体检查临时空间不可用", nil)
+		return nil, PreconditionFailed("media_storage_unavailable", "Media check temporary space is not available", nil)
 	}
 	defer os.RemoveAll(dir)
 	input := filepath.Join(dir, "source")
 	file, err := os.OpenFile(input, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		return nil, PreconditionFailed("media_storage_unavailable", "媒体检查临时空间不可用", nil)
+		return nil, PreconditionFailed("media_storage_unavailable", "Media check temporary space is not available", nil)
 	}
 	hash := sha256.New()
 	n, copyErr := io.Copy(io.MultiWriter(file, hash), io.LimitReader(contextReader{ctx, body}, maxMediaSourceBytes+1))
 	closeErr := file.Close()
 	if copyErr != nil || closeErr != nil {
-		return nil, PreconditionFailed("media_read_failed", "媒体读取失败", nil)
+		return nil, PreconditionFailed("media_read_failed", "Media read failed", nil)
 	}
 	if n > maxMediaSourceBytes {
-		return nil, PreconditionFailed("media_too_large", "当前媒体检查支持 256 MiB 以内的素材", nil)
+		return nil, PreconditionFailed("media_too_large", "Media checking currently supports assets up to 256 MiB", nil)
 	}
 	// Uploaded playlists may point at unrelated local files or network URLs.
 	// Accept self-contained binary containers only before invoking any decoder.
 	if !selfContainedMedia(input) {
-		return nil, Unsupported("media_format_unsupported", "当前检查支持常见图片、MP4、WebM、WAV、MP3、OGG 和 FLAC 文件")
+		return nil, Unsupported("media_format_unsupported", "Current inspection supports common image, MP4, WebM, WAV, MP3, OGG and FLAC files")
 	}
 	if !isImage && genericMime {
 		if _, _, cfgErr := imageConfig(input); cfgErr == nil || cfgErr == errImageTooManyPixels {
@@ -340,24 +340,24 @@ func runMedia(opCtx *Context, operation string, raw json.RawMessage) (any, error
 		}
 	}
 	if args.ImageCrop != nil && !isImage {
-		return nil, InvalidArg("invalid_image_crop", "局部图片检查仅适用于图片素材")
+		return nil, InvalidArg("invalid_image_crop", "Partial image inspection only applies to image materials")
 	}
 	version := hex.EncodeToString(hash.Sum(nil))
 	if operation != "media.overview" && args.ExpectedVersion == "" {
-		return nil, InvalidArg("media_version_required", "先读取 overview，再提供 expectedVersion")
+		return nil, InvalidArg("media_version_required", "Read the overview first, then provide expectedVersion")
 	}
 	if args.ExpectedVersion != "" && args.ExpectedVersion != version {
-		return nil, Conflict("stale_media_version", "素材内容已变化，请重新读取 overview", map[string]any{"currentVersion": version})
+		return nil, Conflict("stale_media_version", "The material content has changed, please re-read the overview", map[string]any{"currentVersion": version})
 	}
 	facts, err := probeMediaFacts(ctx, input, isImage)
 	if err != nil {
 		if err == errImageTooManyPixels {
-			return nil, PreconditionFailed("media_too_large", "图片像素超过 3200 万上限", nil)
+			return nil, PreconditionFailed("media_too_large", "The image pixel exceeds the upper limit of 32 million", nil)
 		}
 		if isImage {
-			return nil, Unsupported("media_format_unsupported", "当前图片检查支持 PNG、JPEG、WebP、GIF、BMP 和 TIFF 文件")
+			return nil, Unsupported("media_format_unsupported", "Current image inspection supports PNG, JPEG, WebP, GIF, BMP and TIFF files")
 		}
-		return nil, PreconditionFailed("media_probe_failed", "无法检查媒体，请确认 ffprobe 已安装且素材可读取", nil)
+		return nil, PreconditionFailed("media_probe_failed", "Unable to check media, please make sure ffprobe is installed and the material can be read", nil)
 	}
 	prepared := preparedMedia{input: input, directory: dir, source: MediaSource{CanvasID: args.CanvasID, NodeID: args.NodeID, AssetID: args.AssetID, ResourceID: resourceID, Version: version}, facts: facts, image: isImage}
 	if args.Evidence == nil {
@@ -394,7 +394,7 @@ func runMedia(opCtx *Context, operation string, raw json.RawMessage) (any, error
 			total += int64(base64.StdEncoding.DecodedLen(len(content.Data)))
 		}
 		if total > maxMediaPartBytes {
-			return nil, PreconditionFailed("media_part_too_large", "媒体证据总量过大，请缩小检查区间或减少模式", nil)
+			return nil, PreconditionFailed("media_part_too_large", "The total amount of media evidence is too large. Please narrow the inspection range or reduce the mode.", nil)
 		}
 	}
 	result.Evidence = modes
@@ -420,16 +420,16 @@ func (p preparedMedia) read(ctx context.Context, operation string, args mediaArg
 		args.EndMs = facts.DurationMs
 	}
 	if !image && (args.StartMs < 0 || args.EndMs <= args.StartMs || args.EndMs > facts.DurationMs) {
-		return MediaResult{}, InvalidArg("invalid_media_interval", "片段区间必须位于素材时长内")
+		return MediaResult{}, InvalidArg("invalid_media_interval", "The clip interval must be within the duration of the material")
 	}
 	if image && (args.StartMs != 0 || args.EndMs != 0 || args.Mode == "video" || args.Mode == "audio" || operation == "media.check") {
-		return MediaResult{}, InvalidArg("invalid_media_interval", "图片仅支持 overview 或零区间的 frames 检查")
+		return MediaResult{}, InvalidArg("invalid_media_interval", "Pictures only support overview or zero interval frames check")
 	}
 	if operation == "media.inspect" && args.EndMs-args.StartMs > 15000 {
-		return MediaResult{}, InvalidArg("media_interval_too_long", "每次查看或听取最多 15 秒")
+		return MediaResult{}, InvalidArg("media_interval_too_long", "View or listen for up to 15 seconds at a time")
 	}
 	if operation == "media.check" && args.EndMs-args.StartMs > 300000 {
-		return MediaResult{}, InvalidArg("media_interval_too_long", "每次客观检测最多 5 分钟")
+		return MediaResult{}, InvalidArg("media_interval_too_long", "Maximum 5 minutes per objective test")
 	}
 	source := p.source
 	source.StartMs, source.EndMs = args.StartMs, args.EndMs
@@ -439,7 +439,7 @@ func (p preparedMedia) read(ctx context.Context, operation string, args mediaArg
 	}
 	bin, err := editing.ResolveFFmpegBinary()
 	if err != nil {
-		return MediaResult{}, PreconditionFailed("media_ffmpeg_unavailable", "媒体检查需要 ffmpeg", nil)
+		return MediaResult{}, PreconditionFailed("media_ffmpeg_unavailable", "Media checking requires ffmpeg", nil)
 	}
 	if operation == "media.check" {
 		command := []string{"-nostdin", "-hide_banner", "-ss", mediaSeconds(args.StartMs), "-i", input, "-t", mediaSeconds(args.EndMs - args.StartMs)}
@@ -458,7 +458,7 @@ func (p preparedMedia) read(ctx context.Context, operation string, args mediaArg
 			result.SilenceIntervals = parseMediaSilence(string(output), args.StartMs, args.EndMs)
 			result.SilenceDetection = &MediaSilenceDetection{NoiseDB: -35, MinimumDurationMs: 120, TimestampKind: "source_time"}
 		}
-		result.Note = "客观测量：黑屏可能是有意设计；存在音轨不代表有声音；音量不能判断声音内容。静音区间限定在本次请求内，以原素材时间表示，仅供寻找候选停顿，不是词时间戳；裁剪后用 media.inspect audio 实际听取再确认切点。"
+		result.Note = "Objective measurement: The black screen may be intentional; the presence of an audio track does not mean there is sound; the volume cannot determine the sound content. The mute interval is limited to this request, expressed in the original material time, and is only for finding candidate pauses, not word timestamps; after cropping, use media.inspect audio to actually listen and confirm the cut point."
 		return result, nil
 	}
 	mode := args.Mode
@@ -470,7 +470,7 @@ func (p preparedMedia) read(ctx context.Context, operation string, args mediaArg
 	}
 	if mode == "frames" {
 		if !facts.HasVideo {
-			return MediaResult{}, InvalidArg("media_no_video", "这个素材没有画面")
+			return MediaResult{}, InvalidArg("media_no_video", "This material has no screen")
 		}
 		count := 4
 		if operation == "media.overview" {
@@ -500,19 +500,19 @@ func (p preparedMedia) read(ctx context.Context, operation string, args mediaArg
 				total += base64.StdEncoding.DecodedLen(len(item.Data))
 			}
 			if int64(total) > maxMediaPartBytes {
-				return MediaResult{}, PreconditionFailed("media_part_too_large", "媒体预览过大，请缩小检查区间", nil)
+				return MediaResult{}, PreconditionFailed("media_part_too_large", "The media preview is too large, please narrow the inspection range.", nil)
 			}
 		}
 		return result, nil
 	}
 	if mode != "video" && mode != "audio" {
-		return MediaResult{}, InvalidArg("invalid_media_mode", "mode 必须是 frames、video 或 audio")
+		return MediaResult{}, InvalidArg("invalid_media_mode", "mode must be frames, video or audio")
 	}
 	if mode == "audio" && !facts.HasAudio {
-		return MediaResult{}, InvalidArg("media_no_audio", "这个素材没有音轨")
+		return MediaResult{}, InvalidArg("media_no_audio", "This material has no audio track")
 	}
 	if mode == "video" && !facts.HasVideo {
-		return MediaResult{}, InvalidArg("media_no_video", "这个素材没有画面")
+		return MediaResult{}, InvalidArg("media_no_video", "This material has no screen")
 	}
 	mime, output := "video/mp4", filepath.Join(dir, "clip.mp4")
 	command := []string{"-nostdin", "-v", "error", "-i", input, "-ss", mediaSeconds(args.StartMs), "-t", mediaSeconds(args.EndMs - args.StartMs)}
@@ -553,7 +553,7 @@ func mediaCommand(ctx context.Context, bin string, args ...string) ([]byte, erro
 	cmd.Stdout = &log
 	cmd.Stderr = &log
 	if err := cmd.Run(); err != nil {
-		return nil, PreconditionFailed("media_processing_failed", "媒体处理失败或超时，请缩小检查区间后重试", nil)
+		return nil, PreconditionFailed("media_processing_failed", "Media processing failed or timed out, please narrow the check interval and try again.", nil)
 	}
 	return log.data, nil
 }
@@ -561,14 +561,14 @@ func mediaCommand(ctx context.Context, bin string, args ...string) ([]byte, erro
 func mediaFilePart(file, kind, mime string, source MediaSource) (MediaPart, error) {
 	stat, err := os.Stat(file)
 	if err != nil || stat.Size() == 0 {
-		return MediaPart{}, PreconditionFailed("media_processing_failed", "媒体处理未产生有效内容", nil)
+		return MediaPart{}, PreconditionFailed("media_processing_failed", "Media processing did not produce valid content", nil)
 	}
 	if stat.Size() > maxMediaPartBytes {
-		return MediaPart{}, PreconditionFailed("media_part_too_large", "片段过大，请缩小检查区间", nil)
+		return MediaPart{}, PreconditionFailed("media_part_too_large", "The fragment is too large, please narrow the inspection range.", nil)
 	}
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return MediaPart{}, PreconditionFailed("media_processing_failed", "媒体处理结果无法读取", nil)
+		return MediaPart{}, PreconditionFailed("media_processing_failed", "Media processing results cannot be read", nil)
 	}
 	hash := sha256.Sum256(data)
 	return MediaPart{Type: kind, MimeType: mime, Data: base64.StdEncoding.EncodeToString(data), SHA256: hex.EncodeToString(hash[:]), Source: source}, nil

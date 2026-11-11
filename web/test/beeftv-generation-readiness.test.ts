@@ -43,7 +43,7 @@ function beefTVConfig(connected: boolean): AiConfig {
 function manualConfig(apiKey: string): AiConfig {
     const channel = createModelChannel({
         id: "manual",
-        name: "工作室渠道",
+        name: "studio channels",
         baseUrl: "https://api.example.com",
         apiKey,
         models: ["local-image", "local-video"],
@@ -106,7 +106,7 @@ describe("managed BeefTV generation readiness", () => {
         for (const order of ["manual-first", "beef-first"] as const) {
             const manualEmpty = createModelChannel({
                 id: "manual",
-                name: "工作室渠道",
+                name: "studio channels",
                 baseUrl: "https://api.example.com",
                 apiKey: "",
                 models: [sharedVideo, sharedAudio],
@@ -148,7 +148,7 @@ describe("managed BeefTV generation readiness", () => {
             };
             expect(ready(selectedManualEmpty, selectedManualEmpty.videoModel)).toBe(false);
             expect(ready(selectedManualEmpty, selectedManualEmpty.audioModel)).toBe(false);
-            expect(() => assertAudioConfig(resolveModelRequestConfig(selectedManualEmpty, selectedManualEmpty.audioModel), selectedManualEmpty.audioModel)).toThrow("请先配置 API Key");
+            expect(() => assertAudioConfig(resolveModelRequestConfig(selectedManualEmpty, selectedManualEmpty.audioModel), selectedManualEmpty.audioModel)).toThrow("Please configure API Key first");
 
             const selectedManualKeyed = arrange(manualKeyed);
             selectedManualKeyed.videoModel = encodeChannelModel("manual", sharedVideo);

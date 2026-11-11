@@ -36,15 +36,15 @@ afterAll(async () => { await browser?.close(); server?.stop(true); }, 30000);
 async function open(options: { reduced?: boolean; dark?: boolean; mobile?: boolean } = {}): Promise<Page> {
     const page = await browser.newPage({ viewport: { width: options.mobile ? 390 : 1424, height: 921 }, reducedMotion: options.reduced ? "reduce" : "no-preference" });
     await page.goto(server.url.toString() + (options.dark ? "?theme=dark" : ""));
-    await page.getByRole("button", { name: "删除渠道 工作室渠道" }).waitFor();
+    await page.getByRole("button", { name: "Delete Channel Studio Channel" }).waitFor();
     return page;
 }
 
 const events = (page: Page) => page.evaluate(() => (window as unknown as { diagnostics: () => DiagnosticEvent[] }).diagnostics());
 
-async function openOverlayPicker(page: Page, surface: "侧栏" | "弹窗") {
-    await page.getByRole("button", { name: `打开验证${surface}` }).click();
-    const kind = surface === "侧栏" ? "drawer" : "modal";
+async function openOverlayPicker(page: Page, surface: "sidebar" | "Pop-up window") {
+    await page.getByRole("button", { name: `Turn on verification${surface}` }).click();
+    const kind = surface === "sidebar" ? "drawer" : "modal";
     await page.locator(`[data-testid="overlay-motion-state"][data-${kind}-settled="true"]`).waitFor({ state: "attached" });
     const select = page.locator(`.ant-${kind} .model-default-select`).first();
     await select.click();
@@ -91,7 +91,7 @@ function expectPickerAttached({ triggerBox, popupBox }: Awaited<ReturnType<typeo
     expect(Math.abs(popupBox.x - triggerBox.x)).toBeLessThanOrEqual(8);
 }
 
-test("菜单在窗口外时诊断报告不可见，保留动效偏好", async () => {
+test("The diagnostic report is not visible when the menu is outside the window, and the animation preference is retained.", async () => {
     const page = await open({ reduced: true });
     try {
         await page.addStyleTag({ content: ".model-default-select-popup { left: -20000px !important; top: -20000px !important; }" });
@@ -100,14 +100,14 @@ test("菜单在窗口外时诊断报告不可见，保留动效偏好", async ()
         const recorded = await events(page);
         const hidden = recorded.find(event => event.code === "MODEL_PICKER_POPUP_HIDDEN")!;
         expect(hidden.level).toBe("warning");
-        expect(hidden.message).toContain("在窗口外");
-        expect(hidden.message).toContain("无法检测遮挡");
-        expect(hidden.message).toContain("减少动态效果 开启");
+        expect(hidden.message).toContain("outside the window");
+        expect(hidden.message).toContain("Unable to detect occlusion");
+        expect(hidden.message).toContain("Reduce dynamic effects on");
         expect(recorded.some(event => event.code === "MODEL_PICKER_OPEN")).toBe(false);
     } finally { await page.close(); }
 }, 30000);
 
-test("高分屏默认模型菜单紧贴自己的选择框", async () => {
+test("The default model menu of the high-resolution screen is close to its own selection box", async () => {
     const page = await open({ reduced: true });
     try {
         await page.setViewportSize({ width: 2560, height: 1440 });
@@ -124,8 +124,8 @@ test("高分屏默认模型菜单紧贴自己的选择框", async () => {
     } finally { await page.close(); }
 }, 15000);
 
-for (const [surface, cpuRate] of [["侧栏", 1], ["弹窗", 1], ["弹窗", 4]] as const) {
-    test(`减少动态效果下，${surface}里的菜单保持贴合选择框${cpuRate > 1 ? "（4 倍 CPU 降速）" : ""}`, async () => {
+for (const [surface, cpuRate] of [["sidebar", 1], ["Pop-up window", 1], ["Pop-up window", 4]] as const) {
+    test(`With reduced dynamic effects,${surface}The menu inside keeps fitting the select box${cpuRate > 1 ? "(4x CPU slowdown)" : ""}`, async () => {
         const page = await open({ reduced: true });
         try {
             if (cpuRate > 1) {
@@ -145,10 +145,10 @@ for (const [surface, cpuRate] of [["侧栏", 1], ["弹窗", 1], ["弹窗", 4]] a
     }, 15000);
 }
 
-test("动效结束后故意偏移的弹窗菜单仍不通过贴合断言", async () => {
+test("The pop-up menu that was intentionally shifted after the animation ended still failed to pass the fit assertion.", async () => {
     const page = await open({ reduced: true });
     try {
-        const { select, popup } = await openOverlayPicker(page, "弹窗");
+        const { select, popup } = await openOverlayPicker(page, "Pop-up window");
         await page.addStyleTag({ content: ".model-default-select-popup { top: 700px !important; }" });
         const geometry = await readSettledPicker(page, select, popup);
         expect(geometry.popupBox.y).toBe(700);
@@ -156,7 +156,7 @@ test("动效结束后故意偏移的弹窗菜单仍不通过贴合断言", async
     } finally { await page.close(); }
 }, 15000);
 
-test("菜单仍在窗口内但偏离选择框时单独告警", async () => {
+test("Alert separately when the menu is still within the window but deviates from the selection box", async () => {
     const page = await open({ reduced: true });
     try {
         await page.addStyleTag({ content: ".model-default-select-popup { top: 700px !important; }" });
@@ -164,16 +164,16 @@ test("菜单仍在窗口内但偏离选择框时单独告警", async () => {
         await page.waitForFunction(() => (window as unknown as { diagnostics: () => DiagnosticEvent[] }).diagnostics().some(event => event.code === "MODEL_PICKER_POPUP_MISALIGNED"));
         const event = (await events(page)).find(event => event.code === "MODEL_PICKER_POPUP_MISALIGNED")!;
         expect(event.level).toBe("warning");
-        expect(event.message).toContain("在窗口内");
-        expect(event.message).toContain("菜单位置偏离选择框");
+        expect(event.message).toContain("within window");
+        expect(event.message).toContain("Menu position deviates from selection box");
     } finally { await page.close(); }
 }, 15000);
 
 for (const dark of [false, true]) {
-    test(`模型能力标签有可读的文字与底色：${dark ? "深色" : "浅色"}`, async () => {
+    test(`Model capability labels have readable text and background:${dark ? "Dark" : "light color"}`, async () => {
         const page = await open({ dark });
         try {
-            await page.getByRole("button", { name: "查看模型能力标签" }).click();
+            await page.getByRole("button", { name: "View model capability labels" }).click();
             const tag = page.locator(".ant-tag").first();
             const contrast = await tag.evaluate(element => {
                 const style = getComputedStyle(element);
@@ -198,18 +198,18 @@ for (const dark of [false, true]) {
     }, 15000);
 }
 
-test("快速切换模型时诊断只检查最后打开的菜单", async () => {
+test("Diagnostics only checks the last opened menu when quickly switching models", async () => {
     const page = await open({ reduced: true });
     try {
         await page.locator('section[aria-labelledby="default-image-title"] .model-default-select').click();
         await page.locator('section[aria-labelledby="default-text-title"] .model-default-select').click();
-        await page.waitForFunction(() => (window as unknown as { diagnostics: () => DiagnosticEvent[] }).diagnostics().some(event => event.code === "MODEL_PICKER_OPEN" && event.message.startsWith("默认文本模型")), undefined, { timeout: 3000 });
+        await page.waitForFunction(() => (window as unknown as { diagnostics: () => DiagnosticEvent[] }).diagnostics().some(event => event.code === "MODEL_PICKER_OPEN" && event.message.startsWith("Default text model")), undefined, { timeout: 3000 });
         const opened = (await events(page)).filter(event => event.code === "MODEL_PICKER_OPEN" || event.code === "MODEL_PICKER_POPUP_HIDDEN");
         expect(opened).toHaveLength(1);
-        expect(opened[0]!.message).toContain("默认文本模型");
-        expect(opened[0]!.message).toContain("在窗口内");
+        expect(opened[0]!.message).toContain("Default text model");
+        expect(opened[0]!.message).toContain("within window");
         const recorded = await events(page);
-        expect(recorded.some(event => event.code === "MODEL_PICKER_CLOSE" && event.message.startsWith("默认生图模型"))).toBe(true);
+        expect(recorded.some(event => event.code === "MODEL_PICKER_CLOSE" && event.message.startsWith("Default graph model"))).toBe(true);
         expect(recorded.some(event => event.code === "MODEL_PICKER_POPUP_HIDDEN")).toBe(false);
     } finally { await page.close(); }
 }, 30000);
@@ -217,11 +217,11 @@ test("快速切换模型时诊断只检查最后打开的菜单", async () => {
 for (const reduced of [false, true]) {
     for (const dark of [false, true]) {
         for (const mobile of [false, true]) {
-            test(`删除渠道确认可见并可点击：${reduced ? "减少动态效果" : "普通动效"} / ${dark ? "深色" : "浅色"} / ${mobile ? "手机" : "桌面"}`, async () => {
+            test(`Delete channel confirmation is visible and clickable:${reduced ? "Reduce dynamic effects" : "Ordinary animation"} / ${dark ? "Dark" : "light color"} / ${mobile ? "mobile phone" : "Desktop"}`, async () => {
                 const page = await open({ reduced, dark, mobile });
                 const screenshotBase = process.env.BEEFTV_SETTINGS_SCREENSHOT_DIR && `${process.env.BEEFTV_SETTINGS_SCREENSHOT_DIR}/delete-${reduced ? "reduced" : "normal"}-${dark ? "dark" : "light"}-${mobile ? "mobile" : "desktop"}`;
                 try {
-                    const trigger = page.getByRole("button", { name: "删除渠道 工作室渠道" });
+                    const trigger = page.getByRole("button", { name: "Delete Channel Studio Channel" });
                     if (screenshotBase) await page.screenshot({ path: `${screenshotBase}-before.png` });
                     await trigger.click();
                     const ok = page.locator(".ant-popconfirm button").filter({ hasText: /^删\s?除$/ });
@@ -277,31 +277,31 @@ for (const reduced of [false, true]) {
     }
 }
 
-test("默认模型下拉展开时诊断记录点击、弹层位置与遮挡情况", async () => {
+test("Diagnose and record clicks, elastic layer positions and occlusions when the default model is pulled down and expanded.", async () => {
     const page = await open();
     try {
         await page.locator('section[aria-labelledby="default-text-title"] .model-default-select').click();
         await page.locator(".model-default-select-popup .ant-select-item-option").first().waitFor();
         await page.waitForFunction(() => (window as unknown as { diagnostics: () => DiagnosticEvent[] }).diagnostics().some(event => event.code === "MODEL_PICKER_OPEN" || event.code === "MODEL_PICKER_POPUP_HIDDEN"), undefined, { timeout: 3000 });
         const recorded = await events(page);
-        expect(recorded.some(event => event.code === "MODEL_PICKER_PRESS" && event.message.includes("默认文本模型"))).toBe(true);
+        expect(recorded.some(event => event.code === "MODEL_PICKER_PRESS" && event.message.includes("Default text model"))).toBe(true);
         const opened = recorded.find(event => event.code === "MODEL_PICKER_OPEN")!;
-        expect(opened.message).toContain("未被遮挡");
-        expect(opened.message).toContain("已渲染选项 3 个");
-        expect(opened.message).toContain("在窗口内");
+        expect(opened.message).toContain("not obscured");
+        expect(opened.message).toContain("3 options rendered");
+        expect(opened.message).toContain("within window");
     } finally { await page.close(); }
 }, 30000);
 
 for (const reduced of [false, true]) {
-    test(`产品侧栏和弹窗关闭后移除遮罩：${reduced ? "减少动态效果" : "普通动效"}`, async () => {
+    test(`Remove the mask after the product sidebar and pop-up window are closed:${reduced ? "Reduce dynamic effects" : "Ordinary animation"}`, async () => {
         const page = await open({ reduced });
         try {
             const initialOverflow = await page.evaluate(() => getComputedStyle(document.body).overflow);
-            await page.getByRole("button", { name: "打开验证侧栏", exact: true }).click();
-            await page.getByRole("button", { name: "关闭验证侧栏", exact: true }).click();
+            await page.getByRole("button", { name: "Open verification sidebar", exact: true }).click();
+            await page.getByRole("button", { name: "Close verification sidebar", exact: true }).click();
             await page.locator(".ant-drawer").waitFor({ state: "detached", timeout: 3000 });
-            await page.getByRole("button", { name: "打开验证弹窗", exact: true }).click();
-            await page.getByRole("button", { name: "关闭验证弹窗", exact: true }).click();
+            await page.getByRole("button", { name: "Open verification pop-up window", exact: true }).click();
+            await page.getByRole("button", { name: "Close verification pop-up window", exact: true }).click();
             await page.locator(".ant-modal-root").waitFor({ state: "detached", timeout: 3000 });
             expect(await page.evaluate(() => document.querySelectorAll(".ant-drawer-mask, .ant-modal-mask").length)).toBe(0);
             expect(await page.evaluate(() => getComputedStyle(document.body).overflow)).toBe(initialOverflow);
@@ -309,7 +309,7 @@ for (const reduced of [false, true]) {
     }, 30000);
     for (const dark of [false, true]) {
         for (const mobile of [false, true]) {
-            test(`六类默认模型可见并可选择：${reduced ? "减少动态效果" : "普通动效"} / ${dark ? "深色" : "浅色"} / ${mobile ? "手机" : "桌面"}`, async () => {
+            test(`Six categories of default models are visible and selectable:${reduced ? "Reduce dynamic effects" : "Ordinary animation"} / ${dark ? "Dark" : "light color"} / ${mobile ? "mobile phone" : "Desktop"}`, async () => {
                 const page = await open({ reduced, dark, mobile });
                 try {
                     for (const [id, key, model] of [
@@ -350,7 +350,7 @@ for (const reduced of [false, true]) {
     }
 }
 
-test("盖在下拉上的浮层接走点击时，诊断记下是谁挡住了", async () => {
+test("When the overlay covering the drop-down picks up the click, it diagnoses and records who is blocking it.", async () => {
     const page = await open();
     try {
         const select = page.locator(".model-default-select").first();

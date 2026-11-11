@@ -14,23 +14,23 @@ import { h3AspectConfig, h3Models, h3StyleModels } from "./h3-aspect-config";
 const dark = new URLSearchParams(location.search).get("theme") === "dark";
 useCanvasThemeStore.setState({ active: true, theme: dark ? "dark" : "light" });
 useConfigStore.getState().replaceConfig(h3AspectConfig());
-const image: CanvasResourceReference = { id: "fixture-image", nodeId: "frame", kind: "image", label: "图片1", title: "横屏首帧", active: true, previewUrl: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#87928f"/></svg>') };
+const image: CanvasResourceReference = { id: "fixture-image", nodeId: "frame", kind: "image", label: "Picture 1", title: "First frame of horizontal screen", active: true, previewUrl: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#87928f"/></svg>') };
 
 function Harness() {
     const [references, setReferences] = useState<CanvasResourceReference[]>([image]);
-    const character: CanvasResourceReference = { ...image, id: "character", nodeId: "character", kind: "character", label: "角色1", title: "角色卡封面" };
-    const [node, setNode] = useState<CanvasNodeData>({ id: "video", type: CanvasNodeType.Video, title: "视频生成", position: { x: 0, y: 0 }, width: 360, height: 260, metadata: { model: "beeftv::minimax-h3-max-turbo", composerContent: "人物走向镜头", size: "9:16", vquality: "768p", seconds: "15" } });
+    const character: CanvasResourceReference = { ...image, id: "character", nodeId: "character", kind: "character", label: "role 1", title: "Character card cover" };
+    const [node, setNode] = useState<CanvasNodeData>({ id: "video", type: CanvasNodeType.Video, title: "video generation", position: { x: 0, y: 0 }, width: 360, height: 260, metadata: { model: "beeftv::minimax-h3-max-turbo", composerContent: "Character walks towards camera", size: "9:16", vquality: "768p", seconds: "15" } });
     return <main style={{ padding: 16, maxWidth: 430, margin: "48px auto" }}>
-        <nav aria-label="验证场景" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+        <nav aria-label="Verification scenario" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             {h3Models.map((model) => <button key={model} onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, model: `beeftv::${model}` } }))}>{model}</button>)}
-            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, model: `beeftv::${h3StyleModels[0]}` } }))}>H3 手绘</button>
-            <button onClick={() => { setReferences(references.length ? [] : [image]); setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: undefined, videoEditOperation: undefined } })); }}>{references.length ? "断开图片" : "接入图片"}</button>
-            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: "frame", videoEndFrameNodeId: undefined } }))}>指定首帧</button>
-            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: "frame" } }))}>只用尾帧</button>
-            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: "frame", videoEndFrameNodeId: "frame" } }))}>首尾帧</button>
-            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: undefined, videoEditOperation: "reference_to_video" } }))}>普通参考</button>
-            <button onClick={() => setReferences([image, character])}>加入角色卡</button>
-            <button onClick={() => { setReferences([character]); setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: undefined, videoEditOperation: undefined } })); }}>仅角色卡</button>
+            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, model: `beeftv::${h3StyleModels[0]}` } }))}>H3 hand drawn</button>
+            <button onClick={() => { setReferences(references.length ? [] : [image]); setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: undefined, videoEditOperation: undefined } })); }}>{references.length ? "disconnect picture" : "Access pictures"}</button>
+            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: "frame", videoEndFrameNodeId: undefined } }))}>Specify first frame</button>
+            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: "frame" } }))}>Only use last frame</button>
+            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: "frame", videoEndFrameNodeId: "frame" } }))}>First and last frames</button>
+            <button onClick={() => setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: undefined, videoEditOperation: "reference_to_video" } }))}>general reference</button>
+            <button onClick={() => setReferences([image, character])}>Add character card</button>
+            <button onClick={() => { setReferences([character]); setNode((current) => ({ ...current, metadata: { ...current.metadata, videoStartFrameNodeId: undefined, videoEndFrameNodeId: undefined, videoEditOperation: undefined } })); }}>Only character cards</button>
         </nav>
         <section data-testid="product-panel" style={{ position: "relative" }}>
             <CanvasNodePromptPanel projectId="fixture-project" node={node} isRunning={false} mentionReferences={references} onPromptChange={(_id, composerContent) => setNode((current) => ({ ...current, metadata: { ...current.metadata, composerContent } }))} onConfigChange={(_id, patch) => setNode((current) => ({ ...current, metadata: { ...current.metadata, ...patch } }))} onGenerate={() => {}} onRemoveReference={() => setReferences([])} />

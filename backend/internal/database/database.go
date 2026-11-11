@@ -41,7 +41,7 @@ func Open(config Config) (*gorm.DB, error) {
 			}),
 		})
 	default:
-		return nil, fmt.Errorf("不支持的数据库驱动：%s", driver)
+		return nil, fmt.Errorf("Unsupported database driver: %s", driver)
 	}
 }
 

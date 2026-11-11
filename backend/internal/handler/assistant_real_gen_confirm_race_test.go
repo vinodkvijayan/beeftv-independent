@@ -74,7 +74,7 @@ func TestE2EGenerationDriverSettlesWhileConfirmInFlight(t *testing.T) {
 			break
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("确认请求没有进入 gate 锁内\n%s", redactSecret(log.String(), harness.upstreamKey))
+			t.Fatalf("Confirm that the request does not enter the gate lock\n%s", redactSecret(log.String(), harness.upstreamKey))
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -87,7 +87,7 @@ func TestE2EGenerationDriverSettlesWhileConfirmInFlight(t *testing.T) {
 	case <-done:
 	case <-time.After(25 * time.Second):
 		_ = command.Process.Kill()
-		t.Fatalf("确认在途时 SIGINT 未在 25 秒内退出\n%s", redactSecret(log.String(), harness.upstreamKey))
+		t.Fatalf("Confirm that SIGINT does not exit within 25 seconds while in transit\n%s", redactSecret(log.String(), harness.upstreamKey))
 	}
 
 	raw, err := os.ReadFile(filepath.Join(outDir, "report.json"))
@@ -100,15 +100,15 @@ func TestE2EGenerationDriverSettlesWhileConfirmInFlight(t *testing.T) {
 	}
 	tasks := harness.backendTasks()
 	if len(tasks) == 0 {
-		t.Fatalf("确认在途但最终没有任务被创建，测试未覆盖竞态\n%s", redactSecret(log.String(), harness.upstreamKey))
+		t.Fatalf("It was confirmed that it was in progress but no task was created in the end, and the test did not cover the race condition.\n%s", redactSecret(log.String(), harness.upstreamKey))
 	}
 	if len(report.PendingTasks) == 0 && !report.ConfirmationOutcomeUnknown {
-		t.Fatalf("后端有 %d 个任务，但报告既没有 pendingTasks 也没有标记确认结果未知: %+v", len(tasks), report)
+		t.Fatalf("The backend has %d tasks, but the report has neither pendingTasks nor flagged acknowledgments. The result is unknown: %+v", len(tasks), report)
 	}
 	if len(report.PendingTasks) > 0 && len(report.CancelAttempts) == 0 {
-		t.Fatalf("pendingTasks 没有对应取消尝试: %+v", report.CancelAttempts)
+		t.Fatalf("pendingTasks has no corresponding cancellation attempt: %+v", report.CancelAttempts)
 	}
 	if len(report.RelatedProposalIDs) == 0 {
-		t.Fatal("报告没有记录本次待确认方案 ID")
+		t.Fatal("The report does not record the ID of the solution to be confirmed.")
 	}
 }

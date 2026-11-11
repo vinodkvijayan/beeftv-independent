@@ -200,7 +200,7 @@ func TestBeefTVModelAdapterLiveMatrix(t *testing.T) {
 	var wg sync.WaitGroup
 	for _, item := range catalog.Data {
 		recheckResponse := last[item.ID].Status == "succeeded" && last[item.ID].Protocol != "openai-response" && strings.Contains(strings.Join(item.Endpoints, ","), "openai-response")
-		recheckComplete := !last[item.ID].Uncertain && last[item.ID].Detail == "声明式协议已完成但没有返回结果" && strings.Contains(","+os.Getenv("BEEFTV_AUDIT_RECHECK_COMPLETE")+",", ","+item.ID+",")
+		recheckComplete := !last[item.ID].Uncertain && last[item.ID].Detail == "Declarative protocol completed but no result returned" && strings.Contains(","+os.Getenv("BEEFTV_AUDIT_RECHECK_COMPLETE")+",", ","+item.ID+",")
 		speechCheck := os.Getenv("BEEFTV_AUDIT_SPEECH_FILE") != "" && last[item.ID].Status == "succeeded" && last[item.ID].Bytes == 0 && strings.Contains(strings.Join(item.Endpoints, ","), "audio.transcriptions")
 		recoverCached := strings.Contains(","+os.Getenv("BEEFTV_AUDIT_RECOVER_CACHED")+",", ","+item.ID+",")
 		resumeVideo := last[item.ID].ProviderTask != "" && strings.Contains(","+os.Getenv("BEEFTV_AUDIT_RESUME_VIDEO")+",", ","+item.ID+",")
@@ -327,9 +327,9 @@ func TestBeefTVModelAdapterLiveMatrix(t *testing.T) {
 				}
 			}
 			if mode == "audio" {
-				input.Prompt = "你好，这是模型接口测试。"
+				input.Prompt = "Hello, this is a model interface test."
 				if strings.Contains(id, "music") {
-					input.Prompt = "轻柔的钢琴纯音乐，温暖明亮，不要人声。"
+					input.Prompt = "Soft piano pure music, warm and bright, without human voice."
 				}
 			}
 			var result map[string]interface{}

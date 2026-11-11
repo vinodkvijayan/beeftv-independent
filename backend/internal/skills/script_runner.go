@@ -32,7 +32,7 @@ const (
 	MaxScriptArgBytes       = 4096
 	MaxScriptStdinBytes     = 64 * 1024
 	MaxScriptOutputBytes    = 64 * 1024
-	ScriptOutputTruncNotice = "\n...[输出已截断，仅保留前 64 KiB]"
+	ScriptOutputTruncNotice = "...[Output truncated to first 64 KiB]"
 )
 
 type ScriptRunRequest struct {
@@ -153,15 +153,15 @@ func resolveScriptInterpreterWithLookPath(kind, bundledNodePath, goos string, lo
 			Status:  400,
 			Code:    400,
 			Reason:  "script_interpreter_missing",
-			Message: "未检测到 Python 3 运行环境，无法运行此技能脚本。请先在电脑上安装 Python 3 并加入系统 PATH 后重试。",
+			Message: "The Python 3 runtime environment is not detected and this skill script cannot be run. Please install Python 3 on your computer first and add it to the system PATH before trying again.",
 		}
 	case "bash":
 		if resolved, err := lookPath("bash"); err == nil && strings.TrimSpace(resolved) != "" {
 			return resolved, nil, nil
 		}
-		msg := "未检测到 Bash 运行环境，无法运行此技能脚本。请先在系统中安装 bash 后重试。"
+		msg := "The Bash runtime environment is not detected and this skill script cannot be run. Please install bash in your system and try again."
 		if goos == "windows" {
-			msg = "未检测到 Bash 运行环境，无法运行 .sh 脚本。请先安装 Git for Windows（Git Bash）或 WSL 并加入系统 PATH 后重试。"
+			msg = "The Bash running environment is not detected and the .sh script cannot be run. Please install Git for Windows (Git Bash) or WSL first and add it to the system PATH and try again."
 		}
 		return "", nil, &kernel.AppError{Status: 400, Code: 400, Reason: "script_interpreter_missing", Message: msg}
 	case "node":
@@ -177,14 +177,14 @@ func resolveScriptInterpreterWithLookPath(kind, bundledNodePath, goos string, lo
 			Status:  400,
 			Code:    400,
 			Reason:  "script_interpreter_missing",
-			Message: "未检测到 Node.js 运行环境，无法运行此技能脚本。请重新安装完整客户端或在系统中安装 Node.js 后重试。",
+			Message: "The Node.js running environment is not detected and this skill script cannot be run. Please reinstall the full client or install Node.js on your system and try again.",
 		}
 	default:
 		return "", nil, &kernel.AppError{
 			Status:  400,
 			Code:    400,
 			Reason:  "script_interpreter_unsupported",
-			Message: "不支持运行该类型的脚本文件（仅支持 .py、.sh、.bash、.js、.mjs、.cjs）。",
+			Message: "Running this type of script file is not supported (only .py, .sh, .bash, .js, .mjs, .cjs).",
 		}
 	}
 }
@@ -212,7 +212,7 @@ func (s *Service) ValidateScriptRun(userID string, req ScriptRunRequest, bundled
 	rawPath := strings.TrimSpace(req.ScriptPath)
 	normPath, normErr := normalizeSkillPath(rawPath)
 	if normErr != nil || normPath != rawPath || !IsSkillScriptPath(normPath) {
-		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_path", Message: "技能脚本路径必须位于包内 scripts/ 或 script/ 目录下"}
+		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_path", Message: "The skill script path must be located in the scripts/ or script/ directory within the package"}
 	}
 	foundFile := false
 	for _, f := range files {
@@ -222,7 +222,7 @@ func (s *Service) ValidateScriptRun(userID string, req ScriptRunRequest, bundled
 		}
 	}
 	if !foundFile {
-		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "script_not_found", Message: "这个脚本文件不在所选技能版本中"}
+		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "script_not_found", Message: "This script file is not in the selected skill version"}
 	}
 	interpKind, supported := SkillScriptInterpreter(normPath)
 	if !supported {
@@ -230,33 +230,33 @@ func (s *Service) ValidateScriptRun(userID string, req ScriptRunRequest, bundled
 			Status:  400,
 			Code:    400,
 			Reason:  "script_interpreter_unsupported",
-			Message: "不支持运行该类型的脚本文件（仅支持 .py、.sh、.bash、.js、.mjs、.cjs）。",
+			Message: "Running this type of script file is not supported (only .py, .sh, .bash, .js, .mjs, .cjs).",
 		}
 	}
 	if len(req.Args) > MaxScriptArgs {
-		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_args", Message: "脚本参数数量不能超过 64 个"}
+		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_args", Message: "The number of script parameters cannot exceed 64"}
 	}
 	totalArgBytes := 0
 	cleanArgs := make([]string, len(req.Args))
 	for i, arg := range req.Args {
 		if len(arg) > MaxScriptArgBytes || strings.ContainsRune(arg, 0) {
-			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_args", Message: "脚本参数长度超过限制或包含非法字符"}
+			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_args", Message: "The script parameter length exceeds the limit or contains illegal characters"}
 		}
 		totalArgBytes += len(arg)
 		if totalArgBytes > MaxScriptStdinBytes {
-			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_args", Message: "脚本参数总长度不能超过 64 KiB"}
+			return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_args", Message: "The total length of script parameters cannot exceed 64 KiB"}
 		}
 		cleanArgs[i] = arg
 	}
 	if len(req.Stdin) > MaxScriptStdinBytes || strings.ContainsRune(req.Stdin, 0) {
-		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_stdin", Message: "脚本标准输入不能超过 64 KiB"}
+		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_stdin", Message: "Script standard input cannot exceed 64 KiB"}
 	}
 	timeoutSec := req.TimeoutSec
 	if timeoutSec <= 0 {
 		timeoutSec = DefaultScriptTimeoutSec
 	}
 	if timeoutSec > MaxScriptTimeoutSec {
-		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_timeout", Message: fmt.Sprintf("脚本超时时间必须在 1 到 %d 秒之间", MaxScriptTimeoutSec)}
+		return nil, &kernel.AppError{Status: 400, Code: 400, Reason: "invalid_script_timeout", Message: fmt.Sprintf("Script timeout must be between 1 and %d seconds", MaxScriptTimeoutSec)}
 	}
 	lookPath := exec.LookPath
 	if s.scriptState != nil && s.scriptState.lookPath != nil {
@@ -303,7 +303,7 @@ func (s *Service) ExecuteSkillScript(ctx context.Context, userID string, req Scr
 	}
 	tempDir, err := os.MkdirTemp("", "beeftv-skill-run-*")
 	if err != nil {
-		return nil, kernel.WrapAppError(500, "无法创建脚本隔离运行目录", err)
+		return nil, kernel.WrapAppError(500, "Unable to create script isolation run directory", err)
 	}
 	defer os.RemoveAll(tempDir)
 	_ = os.Chmod(tempDir, 0o700)
@@ -313,7 +313,7 @@ func (s *Service) ExecuteSkillScript(ctx context.Context, userID string, req Scr
 	tmpSubDir := filepath.Join(tempDir, "tmp")
 	for _, dir := range []string{skillDir, homeDir, tmpSubDir} {
 		if err := os.MkdirAll(dir, 0o700); err != nil {
-			return nil, kernel.WrapAppError(500, "无法准备脚本隔离运行目录", err)
+			return nil, kernel.WrapAppError(500, "Unable to prepare script isolation run directory", err)
 		}
 	}
 	if err := s.extractVerifiedSkillPackage(validated.Version, validated.Files, skillDir); err != nil {
@@ -333,7 +333,7 @@ func (s *Service) ExecuteSkillScript(ctx context.Context, userID string, req Scr
 		}
 		outputDir = filepath.Join(s.dataDir, "workspace-outputs", canvasKey, runKey)
 		if err := os.MkdirAll(outputDir, 0o700); err != nil {
-			return nil, kernel.WrapAppError(500, "无法准备脚本输出目录", err)
+			return nil, kernel.WrapAppError(500, "Unable to prepare script output directory", err)
 		}
 	}
 
@@ -406,7 +406,7 @@ func (s *Service) extractVerifiedSkillPackage(version *model.SkillVersion, files
 	archivePath := filepath.Join(s.dataDir, "skill-packages", filepath.FromSlash(version.PackageKey))
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
-		return kernel.WrapAppError(400, "所选技能版本文件不可读取，请重新安装或选择可用版本", err)
+		return kernel.WrapAppError(400, "The selected skill version file cannot be read, please reinstall or select an available version", err)
 	}
 	defer reader.Close()
 
@@ -422,24 +422,24 @@ func (s *Service) extractVerifiedSkillPackage(version *model.SkillVersion, files
 			continue
 		}
 		if entry.Mode()&os.ModeSymlink != 0 || !entry.Mode().IsRegular() {
-			return kernel.BadAuthRequest("技能包不能包含软链接或特殊文件")
+			return kernel.BadAuthRequest("Skill packs cannot contain soft links or special files")
 		}
 		normPath, err := normalizeSkillPath(entry.Name)
 		if err != nil || normPath != entry.Name {
-			return kernel.BadAuthRequest("技能包文件路径无效")
+			return kernel.BadAuthRequest("Skill pack file path is invalid")
 		}
 		meta, ok := expected[normPath]
 		if !ok {
-			return kernel.NewAppError(409, "技能包内容与登记清单不一致，请重新选择")
+			return kernel.NewAppError(409, "The content of the skill package is inconsistent with the registration list, please select again.")
 		}
 		rc, err := entry.Open()
 		if err != nil {
-			return kernel.WrapAppError(400, "无法读取技能包文件", err)
+			return kernel.WrapAppError(400, "Unable to read skill pack file", err)
 		}
 		data, readErr := io.ReadAll(io.LimitReader(rc, maxSkillPackageBytes-total+1))
 		_ = rc.Close()
 		if readErr != nil {
-			return kernel.WrapAppError(400, "无法读取技能包文件", readErr)
+			return kernel.WrapAppError(400, "Unable to read skill pack file", readErr)
 		}
 		total += int64(len(data))
 		if total > maxSkillPackageBytes {
@@ -447,27 +447,27 @@ func (s *Service) extractVerifiedSkillPackage(version *model.SkillVersion, files
 		}
 		sum := sha256.Sum256(data)
 		if int64(len(data)) != meta.Size || hex.EncodeToString(sum[:]) != meta.SHA256 {
-			return kernel.NewAppError(409, "技能文件内容校验失败，请重新选择")
+			return kernel.NewAppError(409, "Skill file content verification failed, please select again")
 		}
 		targetPath := filepath.Join(cleanDest, filepath.FromSlash(normPath))
 		rel, relErr := filepath.Rel(cleanDest, targetPath)
 		if relErr != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			return kernel.BadAuthRequest("技能文件路径越界")
+			return kernel.BadAuthRequest("Skill file path out of bounds")
 		}
 		if err := os.MkdirAll(filepath.Dir(targetPath), 0o700); err != nil {
-			return kernel.WrapAppError(500, "无法创建技能脚本目录", err)
+			return kernel.WrapAppError(500, "Unable to create skill script directory", err)
 		}
 		mode := os.FileMode(0o600)
 		if IsSkillScriptPath(normPath) {
 			mode = 0o700
 		}
 		if err := os.WriteFile(targetPath, data, mode); err != nil {
-			return kernel.WrapAppError(500, "无法写入技能脚本文件", err)
+			return kernel.WrapAppError(500, "Unable to write skill script file", err)
 		}
 		extracted[normPath] = true
 	}
 	if len(extracted) != len(expected) {
-		return kernel.NewAppError(409, "技能包文件缺失，请重新安装或选择可用版本")
+		return kernel.NewAppError(409, "The skill pack file is missing, please reinstall or select an available version.")
 	}
 	return nil
 }

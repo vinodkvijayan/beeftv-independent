@@ -42,24 +42,24 @@ func TestCommitUserCanvasDocumentPreservesUntouchedFieldsAndCAS(t *testing.T) {
 	if err := json.Unmarshal(after, &doc); err != nil {
 		t.Fatal(err)
 	}
-	if doc["id"] != "canvas" || doc["title"] != "手工提交" || doc["customKeep"] != "keep-me" {
-		t.Fatalf("合并丢字段: %s", after)
+	if doc["id"] != "canvas" || doc["title"] != "Manual submission" || doc["customKeep"] != "keep-me" {
+		t.Fatalf("Merge missing fields: %s", after)
 	}
 	if doc["remoteContentHash"] != nil {
-		t.Fatal("不应写入 remoteContentHash")
+		t.Fatal("remoteContentHash should not be written to")
 	}
 	viewport := doc["viewport"].(map[string]any)
 	if viewport["x"] != float64(0) {
-		t.Fatalf("视口应由服务端保留: %s", after)
+		t.Fatalf("The viewport should be reserved by the server: %s", after)
 	}
 	_, _, err = svc.CommitUserCanvasDocument("owner", "canvas", created.Revision, overlay)
 	var appErr *kernel.AppError
 	if !errors.As(err, &appErr) || appErr.Status != http.StatusConflict {
-		t.Fatalf("过期 revision 必须冲突: %v", err)
+		t.Fatalf("Outdated revision must conflict: %v", err)
 	}
 	_, _, err = svc.CommitUserCanvasDocument("owner", "missing", summary.Revision, overlay)
 	if !errors.As(err, &appErr) || appErr.Status != http.StatusNotFound {
-		t.Fatalf("缺失画布必须 404: %v", err)
+		t.Fatalf("Missing canvas must be 404: %v", err)
 	}
 }
 
@@ -74,7 +74,7 @@ func TestCommitUserCanvasDocumentHealsOwnedMediaAndAllowsEditsWithLegacyReferenc
 	if err := svc.repo.CreateResource(&resource); err != nil {
 		t.Fatal(err)
 	}
-	rawAsset := json.RawMessage(`{"id":"asset-owned","kind":"image","title":"生成图","coverUrl":"/api/resources/res-owned/file","tags":[],"status":"confirmed","source":"生成任务","data":{"dataUrl":"/api/resources/res-owned/file","storageKey":"resource:res-owned","width":512,"height":512,"bytes":128,"mimeType":"image/png"}}`)
+	rawAsset := json.RawMessage(`{"id":"asset-owned","kind":"image","title":"Generate image","coverUrl":"/api/resources/res-owned/file","tags":[],"status":"confirmed","source":"Generate task","data":{"dataUrl":"/api/resources/res-owned/file","storageKey":"resource:res-owned","width":512,"height":512,"bytes":128,"mimeType":"image/png"}}`)
 	if _, err := svc.UpsertUserAsset("owner", rawAsset); err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func TestCommitUserCanvasDocumentHealsOwnedMediaAndAllowsEditsWithLegacyReferenc
 	stored := model.CanvasProject{
 		ID:       "legacy-canvas",
 		UserID:   "owner",
-		Title:    "大画布",
+		Title:    "large canvas",
 		Revision: 0,
 		PayloadJSON: `{
 			"id":"legacy-canvas",
@@ -141,10 +141,10 @@ func TestCommitUserCanvasDocumentHealsOwnedMediaAndAllowsEditsWithLegacyReferenc
 
 	// ValidateSyncedPayload allows >4MB canvas payloads (up to default 64MB) while keeping 4MB limit for assets.
 	largeCanvas := json.RawMessage(`{"id":"big","nodes":[{"id":"t","type":"text","content":"` + strings.Repeat("a", 5<<20) + `"}]}`)
-	if err := ValidateSyncedPayload(largeCanvas, "画布"); err != nil {
+	if err := ValidateSyncedPayload(largeCanvas, "canvas"); err != nil {
 		t.Fatalf("ValidateSyncedPayload rejected 5MB canvas: %v", err)
 	}
-	if err := asset.ValidateSyncedPayload(largeCanvas, "素材"); err == nil {
+	if err := asset.ValidateSyncedPayload(largeCanvas, "Material"); err == nil {
 		t.Fatal("asset.ValidateSyncedPayload accepted 5MB asset")
 	}
 }
@@ -158,7 +158,7 @@ func TestCanvasDocumentCustomCapacityLimit(t *testing.T) {
 		t.Fatalf("default CanvasDocumentLimitMB = %d, want %d", got, DefaultCanvasDocumentLimitMB)
 	}
 
-	payload2MB := json.RawMessage(`{"id":"custom-limit-canvas","revision":0,"title":"容量测试","nodes":[{"id":"t","type":"text","content":"` + strings.Repeat("x", (1<<20)+512*1024) + `"}],"connections":[]}`)
+	payload2MB := json.RawMessage(`{"id":"custom-limit-canvas","revision":0,"title":"Capacity Test","nodes":[{"id":"t","type":"text","content":"` + strings.Repeat("x", (1<<20)+512*1024) + `"}],"connections":[]}`)
 
 	if _, err := svc.UpdateCanvasDocumentLimitMB(1); err != nil {
 		t.Fatalf("UpdateCanvasDocumentLimitMB(1): %v", err)
@@ -198,11 +198,11 @@ func TestCanvasDocumentCustomCapacityLimit(t *testing.T) {
 	if got := reloaded.CanvasDocumentLimitMB(); got != 0 || EffectiveCanvasDocumentLimitMB() != 0 {
 		t.Fatalf("expected New(repo) to hydrate persisted 0 from DB, got %d / %d", got, EffectiveCanvasDocumentLimitMB())
 	}
-	if err := ValidateSyncedPayload(payload2MB, "画布"); err != nil {
+	if err := ValidateSyncedPayload(payload2MB, "canvas"); err != nil {
 		t.Fatalf("expected unlimited ValidateSyncedPayload to accept payload: %v", err)
 	}
 	inlineMedia := json.RawMessage(`{"id":"inline","nodes":[{"id":"img","type":"image","content":"data:image/png;base64,iVBORw0KGgo="}]}`)
-	if err := ValidateSyncedPayload(inlineMedia, "画布"); err == nil {
+	if err := ValidateSyncedPayload(inlineMedia, "canvas"); err == nil {
 		t.Fatal("expected inline media data URL to remain rejected even when canvas size is unlimited")
 	}
 }
@@ -229,7 +229,7 @@ func TestUpsertMinimalCanvasNormalizesGraphArraysAndNodeTimestamps(t *testing.T)
 	}
 
 	summary, createdNodes, err := svc.CreateUserCanvasNodes("owner", "minimal-canvas", []NodeDraft{
-		{Title: "测试节点", Type: "text", Prompt: "初始正文"},
+		{Title: "test node", Type: "text", Prompt: "initial text"},
 	}, created.Revision)
 	if err != nil {
 		t.Fatalf("CreateUserCanvasNodes: %v", err)
@@ -237,7 +237,7 @@ func TestUpsertMinimalCanvasNormalizesGraphArraysAndNodeTimestamps(t *testing.T)
 	if len(createdNodes) != 1 {
 		t.Fatalf("createdNodes = %d", len(createdNodes))
 	}
-	if _, err := svc.UpdateUserCanvasNodeFields("owner", "minimal-canvas", createdNodes[0].ID, map[string]any{"title": "已改名"}, summary.Revision); err != nil {
+	if _, err := svc.UpdateUserCanvasNodeFields("owner", "minimal-canvas", createdNodes[0].ID, map[string]any{"title": "Name changed"}, summary.Revision); err != nil {
 		t.Fatalf("UpdateUserCanvasNodeFields: %v", err)
 	}
 	afterRaw, err := svc.UserCanvasProject("owner", "minimal-canvas")

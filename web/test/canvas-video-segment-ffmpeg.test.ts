@@ -91,7 +91,7 @@ describe.skipIf(!hasFfmpeg)("remove-audio ffmpeg args on real media", () => {
     });
 
     test.skipIf(!QA_SOURCE)("optional BEEFTV_SEGMENT_QA_MP4 full-source mute keeps a video stream", () => {
-        if (!existsSync(QA_SOURCE)) throw new Error(`BEEFTV_SEGMENT_QA_MP4 指向的文件不存在`);
+        if (!existsSync(QA_SOURCE)) throw new Error(`The file pointed to by BEEFTV_SEGMENT_QA_MP4 does not exist`);
         const dir = mkdtempSync(join(tmpdir(), "beeftv-segment-qa-"));
         try {
             copyFileSync(QA_SOURCE, join(dir, SEGMENT_INPUT_NAME));

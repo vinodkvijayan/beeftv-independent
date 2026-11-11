@@ -25,13 +25,13 @@ async function withStubbedApi<T>(envelope: unknown, status: number, run: (record
     }
 }
 
-describe("外部 Agent 接入 API", () => {
-    test("旧版只读连接保持只读提示，新连接使用全部创作工具", () => {
-        expect(agentClientModeLabel("read-only")).toBe("旧版只读连接");
-        expect(agentClientModeSummary("read-only")).toContain("重新连接");
-        expect(agentClientModeLabel("read-write")).toBe("全部创作工具");
+describe("External Agent Access API", () => {
+    test("Older read-only connections retain the read-only prompt, new connections use all authoring tools", () => {
+        expect(agentClientModeLabel("read-only")).toBe("Legacy read-only connections");
+        expect(agentClientModeSummary("read-only")).toContain("Reconnect");
+        expect(agentClientModeLabel("read-write")).toBe("All creative tools");
     });
-    test("列表按信封解包，并同时给出已连接客户端和命令行工具状态", async () => {
+    test("The list is unpacked by envelope and gives both connected client and command line tool status", async () => {
         const data = {
             clients: [{ id: "c-1", label: "Codex", kind: "codex", mode: "read-only", createdAt: "2026-09-20T02:00:00Z", lastUsedAt: null }],
             cli: { path: "/Applications/BeefTV.app/Contents/Resources/beeftv", available: true, installCommand: "ln -s /x/beeftv /usr/local/bin/beeftv" },
@@ -42,7 +42,7 @@ describe("外部 Agent 接入 API", () => {
         });
     });
 
-    test("创建只提交类型，并解包出一次性接入内容", async () => {
+    test("Create a submit-only type and unpack the one-time access content", async () => {
         const data = {
             client: { id: "c-2", label: "Cursor", kind: "cursor", mode: "read-write", createdAt: "2026-09-20T02:00:00Z", lastUsedAt: null },
             token: "secret-token",
@@ -54,14 +54,14 @@ describe("外部 Agent 接入 API", () => {
         });
     });
 
-    test("断开对 id 做路径转义，并解包 revoked", async () => {
+    test("Disconnect path escaping of id and unpack revoked", async () => {
         await withStubbedApi({ code: 0, data: { revoked: true }, msg: "ok" }, 200, async (recorded) => {
             await expect(revokeAgentClient("c 3/4")).resolves.toEqual({ revoked: true });
             expect(recorded[0]).toMatchObject({ method: "delete", url: "/agent-clients/c%203%2F4" });
         });
     });
 
-    test("后端还没有这个能力时抛出可识别的 404，页面据此显示空态", async () => {
+    test("When the backend does not have this capability, a recognizable 404 is thrown, and the page displays an empty state accordingly.", async () => {
         await withStubbedApi({ code: 40401, data: null, msg: "not found", reason: "not_found" }, 404, async () => {
             const thrown = await listAgentClients().catch((error) => error);
             expect(thrown).toBeInstanceOf(ApiError);
@@ -69,7 +69,7 @@ describe("外部 Agent 接入 API", () => {
         });
     });
 
-    test("一键接入只提交类型，断开对类型做路径转义", async () => {
+    test("One-click access only submits the type, and disconnects the path escape for the type.", async () => {
         const integration = { kind: "claude", name: "Claude Code", detected: true, connected: true, skillInstalled: true, needsRetry: false } as const;
         await withStubbedApi({ code: 0, data: { integration }, msg: "ok" }, 200, async (recorded) => {
             await expect(connectAgentIntegration("claude")).resolves.toEqual({ integration });
@@ -79,7 +79,7 @@ describe("外部 Agent 接入 API", () => {
         });
     });
 
-    test("列表返回的一键接入状态原样解包", async () => {
+    test("The one-click access status returned by the list is unpacked as it is.", async () => {
         const integrations = [{ kind: "codex", name: "Codex", detected: false, connected: false, skillInstalled: false, needsRetry: false }];
         await withStubbedApi({ code: 0, data: { clients: [], cli: { path: "", available: false, installCommand: "" }, integrations }, msg: "ok" }, 200, async () => {
             const result = await listAgentClients();
@@ -87,24 +87,24 @@ describe("外部 Agent 接入 API", () => {
         });
     });
 
-    test("断开成功后把无法自动移除的说明一并解包", async () => {
+    test("After the disconnection is successful, unpack the instructions that cannot be automatically removed.", async () => {
         const integration = { kind: "codex", name: "Codex", detected: true, connected: false, skillInstalled: false, needsRetry: false } as const;
-        const warning = "BeefTV 已停止接受 Codex 的访问。Codex 里的 BeefTV 连接没能自动移除，可以在它的 MCP 设置里手动删除。";
+        const warning = "BeefTV has stopped accepting access to Codex. The BeefTV connection in Codex is not automatically removed and can be manually removed in its MCP settings.";
         await withStubbedApi({ code: 0, data: { integration, warning }, msg: "ok" }, 200, async () => {
             await expect(disconnectAgentIntegration("codex")).resolves.toEqual({ integration, warning });
         });
     });
 });
 
-describe("接入内容按客户端类型选命令或配置", () => {
-    test("Claude Desktop 使用配置文件而非 Claude Code 命令", () => {
+describe("Access content: Select commands or configurations based on client type", () => {
+    test("Claude Desktop uses configuration files instead of Claude Code commands", () => {
         const block = agentClientSetupBlock({ kind: "claude-desktop", title: "T", json: '{"mcpServers":{"beeftv":{}}}' });
         expect(block?.format).toBe("json");
-        expect(block?.instruction).toContain("保留已有服务");
-        expect(block?.instruction).toContain("完全退出");
-        expect(block?.instruction).not.toContain("终端运行");
+        expect(block?.instruction).toContain("Keep existing services");
+        expect(block?.instruction).toContain("Completely exit");
+        expect(block?.instruction).not.toContain("Terminal run");
     });
-    test("codex / claude 展示终端命令", () => {
+    test("codex/claude displays terminal commands", () => {
         for (const kind of ["codex", "claude"] as const) {
             const block = agentClientSetupBlock({ kind, title: "T", command: "beeftv mcp add", json: '{"mcpServers":{}}' });
             expect(block).toMatchObject({ text: "beeftv mcp add", format: "command" });
@@ -112,18 +112,18 @@ describe("接入内容按客户端类型选命令或配置", () => {
         }
     });
 
-    test("cursor 展示配置并指向 ~/.cursor/mcp.json", () => {
+    test("cursor displays configuration and points to ~/.cursor/mcp.json", () => {
         const block = agentClientSetupBlock({ kind: "cursor", title: "T", command: "beeftv mcp add", json: '{"mcpServers":{"beeftv":{}}}' });
-        expect(block).toMatchObject({ text: '{"mcpServers":{"beeftv":{}}}', format: "json", instruction: "粘贴到 ~/.cursor/mcp.json。" });
+        expect(block).toMatchObject({ text: '{"mcpServers":{"beeftv":{}}}', format: "json", instruction: "Paste into ~/.cursor/mcp.json." });
     });
 
-    test("其他 MCP 客户端展示配置，指引不提 Cursor 的路径", () => {
+    test("Other MCP clients display configuration, and the guide does not mention the Cursor path.", () => {
         const block = agentClientSetupBlock({ kind: "other", title: "T", json: '{"mcpServers":{}}' });
         expect(block?.format).toBe("json");
         expect(block?.instruction).not.toContain(".cursor");
     });
 
-    test("只给到另一种形式时按实际内容展示，不留空白", () => {
+    test("When only given to another form, the actual content will be displayed without leaving any blank space.", () => {
         expect(agentClientSetupBlock({ kind: "codex", title: "T", json: '{"mcpServers":{}}' })).toMatchObject({ format: "json" });
         expect(agentClientSetupBlock({ kind: "cursor", title: "T", command: "beeftv mcp add" })).toMatchObject({ format: "command" });
         expect(agentClientSetupBlock({ kind: "codex", title: "T" })).toBeNull();
@@ -131,63 +131,63 @@ describe("接入内容按客户端类型选命令或配置", () => {
     });
 });
 
-describe("一键接入的按钮状态", () => {
+describe("Button status for one-click access", () => {
     const base: AgentIntegration = { kind: "claude", name: "Claude Code", detected: true, connected: false, skillInstalled: false, needsRetry: false };
 
-    test("未检测到时只说明怎么出现，不显示可点的接入", () => {
+    test("If it is not detected, it will only explain how it appeared, but will not show the clickable access.", () => {
         const integration = { ...base, detected: false };
-        expect(agentIntegrationStatusLabel(integration)).toBe("未检测到");
+        expect(agentIntegrationStatusLabel(integration)).toBe("not detected");
         expect(agentIntegrationAction(integration)).toBe("unavailable");
-        expect(agentIntegrationHint(integration)).toBe("没有检测到 Claude Code 的命令行。安装后打开一次，再回到这里。");
+        expect(agentIntegrationHint(integration)).toBe("Claude Code's command line is not detected. Open it once after installation and come back here.");
     });
 
-    test("配置还在但这次没检测到 Agent 时，仍能断开 BeefTV 写入的配置", () => {
+    test("When the configuration is still there but no Agent is detected this time, the configuration written by BeefTV can still be disconnected.", () => {
         const integration = { ...base, detected: false, connected: true, skillInstalled: true };
-        expect(agentIntegrationStatusLabel(integration)).toBe("已接入");
+        expect(agentIntegrationStatusLabel(integration)).toBe("Already connected");
         expect(agentIntegrationAction(integration)).toBe("disconnect");
-        expect(agentIntegrationHint(integration)).toBe("已接入，但这次没有检测到 Claude Code。重新打开或重新安装 Claude Code 后就会生效。");
+        expect(agentIntegrationHint(integration)).toBe("Connected, but no Claude Code detected this time. It will take effect after reopening or reinstalling Claude Code.");
     });
 
-    test("上一次没有清理完时显示需要重试，并给出断开这个动作", () => {
+    test("If the cleanup was not completed last time, it will display the need to retry and give the action of disconnecting.", () => {
         const integration = { ...base, connected: true, skillInstalled: true, needsRetry: true };
-        expect(agentIntegrationStatusLabel(integration)).toBe("需要重试");
+        expect(agentIntegrationStatusLabel(integration)).toBe("Need to retry");
         expect(agentIntegrationAction(integration)).toBe("disconnect");
-        expect(agentIntegrationHint(integration)).toBe("上一次没有清理完连接。再点一次断开即可重试。");
+        expect(agentIntegrationHint(integration)).toBe("The connection was not cleared last time. Click Disconnect again to try again.");
     });
 
-    test("检测到但未接入时说明会发生什么", () => {
-        expect(agentIntegrationStatusLabel(base)).toBe("未接入");
+    test("Explain what happens when detected but not connected", () => {
+        expect(agentIntegrationStatusLabel(base)).toBe("Not connected");
         expect(agentIntegrationAction(base)).toBe("connect");
-        expect(agentIntegrationHint(base)).toBe("接入后会在 Claude Code 里添加 BeefTV，并装好一份画布使用说明。");
+        expect(agentIntegrationHint(base)).toBe("After accessing, BeefTV will be added to Claude Code and a canvas usage instruction will be installed.");
     });
 
-    test("已接入时显示断开，并说明打开就能用", () => {
+    test("When connected, it displays disconnected and explains that it can be used once it is turned on.", () => {
         const integration = { ...base, connected: true, skillInstalled: true };
-        expect(agentIntegrationStatusLabel(integration)).toBe("已接入");
+        expect(agentIntegrationStatusLabel(integration)).toBe("Already connected");
         expect(agentIntegrationAction(integration)).toBe("disconnect");
-        expect(agentIntegrationHint(integration)).toBe("已接入。打开 Claude Code 就能使用 BeefTV 画布。");
+        expect(agentIntegrationHint(integration)).toBe("Accessed. Open Claude Code to use the BeefTV canvas.");
     });
 
-    test("配置写入了但使用说明缺失时如实提示，不假装完成", () => {
+    test("When the configuration is written but the instructions for use are missing, prompt the truth and do not pretend to complete it.", () => {
         const integration = { ...base, kind: "codex" as const, name: "Codex", connected: true, skillInstalled: false };
-        expect(agentIntegrationHint(integration)).toBe("已接入，但使用说明没有写入。请检查对应技能目录里是否已有同名内容。");
+        expect(agentIntegrationHint(integration)).toBe("It has been connected, but the instructions for use have not been written. Please check whether there is content with the same name in the corresponding skill directory.");
     });
 });
 
-describe("最近使用时间", () => {
+describe("Recent usage time", () => {
     const now = Date.parse("2026-09-29T12:00:00Z");
 
-    test("没用过就说没用过", () => {
-        expect(agentClientLastUsedLabel(null, now)).toBe("还没用过");
-        expect(agentClientLastUsedLabel("", now)).toBe("还没用过");
-        expect(agentClientLastUsedLabel("not-a-date", now)).toBe("还没用过");
+    test("If you haven't used it, just say you haven't used it.", () => {
+        expect(agentClientLastUsedLabel(null, now)).toBe("Not used yet");
+        expect(agentClientLastUsedLabel("", now)).toBe("Not used yet");
+        expect(agentClientLastUsedLabel("not-a-date", now)).toBe("Not used yet");
     });
 
-    test("按相对时间收敛到一句话", () => {
-        expect(agentClientLastUsedLabel("2026-09-29T11:59:30Z", now)).toBe("刚刚");
-        expect(agentClientLastUsedLabel("2026-09-29T11:30:00Z", now)).toBe("30 分钟前");
-        expect(agentClientLastUsedLabel("2026-09-29T06:00:00Z", now)).toBe("6 小时前");
-        expect(agentClientLastUsedLabel("2026-09-26T12:00:00Z", now)).toBe("3 天前");
+    test("Convergence to one sentence according to relative time", () => {
+        expect(agentClientLastUsedLabel("2026-09-29T11:59:30Z", now)).toBe("just now");
+        expect(agentClientLastUsedLabel("2026-09-29T11:30:00Z", now)).toBe("30 minutes ago");
+        expect(agentClientLastUsedLabel("2026-09-29T06:00:00Z", now)).toBe("6 hours ago");
+        expect(agentClientLastUsedLabel("2026-09-26T12:00:00Z", now)).toBe("3 days ago");
         expect(agentClientLastUsedLabel("2026-01-05T12:00:00Z", now)).toContain("2026");
     });
 });
@@ -199,14 +199,14 @@ function configWithChannels(channels: ModelChannel[], overrides: Partial<AiConfi
 function channel(id: string, profiles: Array<{ model: string; capability: "text" | "image"; protocol?: string }>, enabled = true): ModelChannel {
     return createModelChannel({
         id,
-        name: `渠道 ${id}`,
+        name: `channel${id}`,
         enabled,
         models: profiles.map((profile) => profile.model),
         modelProfiles: profiles.map((profile) => ({ model: profile.model, capability: profile.capability, protocol: profile.protocol })),
     });
 }
 
-describe("助手模型可选项", () => {
+describe("Helper model options", () => {
     const config = configWithChannels([
         channel("a", [
             { model: "chat-1", capability: "text", protocol: "chat-completion" },
@@ -218,42 +218,42 @@ describe("助手模型可选项", () => {
         channel("b", [{ model: "chat-2", capability: "text", protocol: "chat-completion" }], false),
     ]);
 
-    test("只留文本能力且协议受支持的模型，值形如 channelId::modelId", () => {
+    test("Models with only text capabilities and supported protocols, with values in the form channelId::modelId", () => {
         expect(assistantModelOptions(config)).toEqual(["a::chat-1", "a::claude-1", "a::resp-1"]);
     });
 
-    test("未启用渠道的模型不出现在可选项里", () => {
+    test("Models without enabled channels do not appear in the options", () => {
         expect(assistantModelOptions(config)).not.toContain("b::chat-2");
     });
 
-    test("文本模型没写协议时按对话协议处理，仍然可选", () => {
+    test("When the text model does not write a protocol, it will be processed according to the dialogue protocol, which is still optional.", () => {
         const implicit = configWithChannels([channel("c", [{ model: "chat-3", capability: "text" }])]);
         expect(assistantModelOptions(implicit)).toEqual(["c::chat-3"]);
     });
 });
 
-describe("助手模型的保存值", () => {
+describe("Saved value of helper model", () => {
     const config = configWithChannels([channel("a", [{ model: "chat-1", capability: "text", protocol: "chat-completion" }])], { textModel: "a::chat-1" });
 
-    test("空值表示跟随默认文本模型", () => {
+    test("A null value means to follow the default text model", () => {
         expect(normalizeAssistantModel(config, "")).toBe("");
         expect(normalizeAssistantModel(config, undefined)).toBe("");
         expect(resolveAssistantModel(config)).toBe("a::chat-1");
     });
 
-    test("保存的是渠道加模型的完整取值", () => {
+    test("What is saved is the complete value of the channel plus model.", () => {
         expect(normalizeAssistantModel(config, "a::chat-1")).toBe("a::chat-1");
         expect(resolveAssistantModel({ ...config, assistantModel: "a::chat-1" })).toBe("a::chat-1");
     });
 
-    test("指向已消失的渠道或不支持的协议时回落到跟随默认", () => {
+    test("Fallback to follow default when pointing to a disappeared channel or unsupported protocol", () => {
         expect(normalizeAssistantModel(config, "gone::chat-1")).toBe("");
         const unsupported = configWithChannels([channel("a", [{ model: "img-1", capability: "image", protocol: "openai-image" }])], { textModel: "" });
         expect(normalizeAssistantModel(unsupported, "a::img-1")).toBe("");
         expect(resolveAssistantModel({ ...unsupported, assistantModel: "a::img-1" })).toBe("");
     });
 
-    test("默认配置带上助手模型字段，默认为空", () => {
+    test("The default configuration brings the assistant model field, which is empty by default.", () => {
         expect(defaultConfig.assistantModel).toBe("");
     });
 });

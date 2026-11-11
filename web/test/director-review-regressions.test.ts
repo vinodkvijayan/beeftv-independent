@@ -7,7 +7,7 @@ import { resolveDirectorCameraLocalFraming, resolveDirectorCameraTransform } fro
 import { replaceDirectorSceneObjects } from "@/lib/canvas/director/director-camera-binding";
 import { directorAsyncSession } from "@/lib/canvas/director/director-async-session";
 
-test("复制轨迹后控制点引用属于副本，可独立编辑和撤销轨迹", () => {
+test("After copying the track, the control point reference belongs to the copy, and the track can be edited and undoed independently.", () => {
     const actor = createDirectorActorPath(createDirectorActor(), "ring", 5);
     const clone = duplicateDirectorObject(actor);
     expect(clone.motionPath!.controlKeyframeIds).toEqual([clone.keyframes[0].id, clone.keyframes[16].id, clone.keyframes[32].id]);
@@ -20,7 +20,7 @@ test("复制轨迹后控制点引用属于副本，可独立编辑和撤销轨�
     expect(cameraClone.drawnPath!.originalKeyframes![0].id).not.toBe(camera.keyframes[0].id);
 });
 
-test("只有位置轨道的相机也能用 gizmo 旋转并保持到实际取景", () => {
+test("Cameras with only position tracks can also be rotated using the gizmo and maintained until the actual view is taken", () => {
     const camera = recordDirectorCameraPositionAtTime(createDirectorCamera(), 0, 0);
     const from = resolveDirectorCameraTransform(camera, 0);
     const next = resolveDirectorCameraGizmoEdit({ camera, from, edited: { ...from, rotation: [0, 1, 0] }, rawTime: 0, snappedTime: 0 });
@@ -30,7 +30,7 @@ test("只有位置轨道的相机也能用 gizmo 旋转并保持到实际取景"
     expect(moved.keyframes[0].rotationKeyed).toBe(false);
 });
 
-test("多选平移后轨迹中心同步，后续缩放围绕新中心", () => {
+test("After multi-select panning, the trajectory center is synchronized, and subsequent zooming revolves around the new center.", () => {
     const actor = createDirectorActorPath(createDirectorActor(), "ring", 5);
     const moved = resolveDirectorMultiObjectTransformEdit({ objects: [actor], selectedIds: [actor.id], representativeId: actor.id, from: actor.transform, to: { ...actor.transform, position: [10, 0, 0] }, autoKey: false, time: 0 })[0];
     expect(moved.motionPath!.transform.position).toEqual([8, 0, 0]);
@@ -38,7 +38,7 @@ test("多选平移后轨迹中心同步，后续缩放围绕新中心", () => {
     expect(scaled.keyframes[0].transform.position).toEqual([12, 0, 0]);
 });
 
-test("组旋转缩放同时变换整条轨迹与中心，AutoKey 不移动轨迹中心", () => {
+test("Group rotation and scaling transform the entire trajectory and center at the same time, AutoKey does not move the trajectory center", () => {
     const actor = createDirectorActorPath(createDirectorActor(), "ring", 5);
     const args = { objects: [actor], selectedIds: [actor.id], from: directorIdentityTransform(), to: { position: [10, 0, 0] as [number, number, number], rotation: [0, Math.PI / 2, 0] as [number, number, number], scale: [2, 2, 2] as [number, number, number] }, autoKey: false, time: 0 };
     const moved = resolveDirectorMultiObjectGroupTransformEdit(args)[0];
@@ -48,20 +48,20 @@ test("组旋转缩放同时变换整条轨迹与中心，AutoKey 不移动轨迹
     expect(resolveDirectorMultiObjectGroupTransformEdit({ ...args, autoKey: true })[0].motionPath).toBe(actor.motionPath);
 });
 
-test("多选属性修改模型朝向或尺寸时，不伪造轨迹自身的旋转缩放", () => {
+test("When the multi-select attribute modifies the model orientation or size, the rotation and scaling of the trajectory itself will not be faked.", () => {
     const actor = createDirectorActorPath(createDirectorActor(), "ring", 5);
     const next = resolveDirectorMultiObjectTransformEdit({ objects: [actor], selectedIds: [actor.id], representativeId: actor.id, from: actor.transform, to: { ...actor.transform, rotation: [0, 1, 0], scale: [2, 2, 2] }, autoKey: false, time: 0 })[0];
     expect(next.motionPath!.transform).toEqual(actor.motionPath!.transform);
     expect(next.keyframes.map((key) => key.transform.position)).toEqual(actor.keyframes.map((key) => key.transform.position));
 });
 
-test("AI 替换前烘焙跟随和注视，不让摄影机突然跳回旧基准", () => {
+test("Bake follow and gaze before AI replacement to prevent the camera from suddenly jumping back to the old baseline", () => {
     const scene = createDirectorScene();
     const actor = scene.objects[0];
     actor.transform.position = [5, 0, 0];
     scene.cameras[0] = { ...scene.cameras[0], followObjectId: actor.id, followAnchor: [0, 0, 0], lookAtMode: "object", lookAtObjectId: actor.id };
     const before = resolveDirectorCameraLocalFraming(scene, scene.cameras[0], 0);
-    const next = replaceDirectorSceneObjects(scene, [createDirectorActor("新角色")], 0);
+    const next = replaceDirectorSceneObjects(scene, [createDirectorActor("new role")], 0);
     const after = resolveDirectorCameraLocalFraming(next, next.cameras[0], 0);
     expect(after).toEqual(before);
     expect(next.cameras[0].transform.position[0]).toBeCloseTo(scene.cameras[0].transform.position[0] + 5);
@@ -69,7 +69,7 @@ test("AI 替换前烘焙跟随和注视，不让摄影机突然跳回旧基准",
     expect(next.cameras[0].lookAtObjectId).toBeUndefined();
 });
 
-test("旧会话异步完成时关闭再打开同一场景也不会恢复写权限", async () => {
+test("Closing and reopening the same scene while the old session is asynchronously completed will not restore write permissions.", async () => {
     const old = new AbortController();
     const operation = directorAsyncSession(old.signal);
     let resolve!: () => void;
@@ -78,7 +78,7 @@ test("旧会话异步完成时关闭再打开同一场景也不会恢复写权�
     old.abort();
     const reopened = directorAsyncSession(new AbortController().signal);
     resolve();
-    await expect(pending).rejects.toThrow("导演台会话已结束");
+    await expect(pending).rejects.toThrow("Director's desk session has ended");
     expect(writes).toBe(0);
     expect(reopened.current()).toBe(true);
 });

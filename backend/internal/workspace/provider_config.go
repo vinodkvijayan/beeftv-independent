@@ -30,11 +30,11 @@ type ProviderConfig struct {
 }
 
 var (
-	ErrProviderConfigRevisionConflict = errors.New("本地模型配置已被其他写入更新")
-	ErrUnmatchedRedactedSecret        = errors.New("本地模型配置包含无法对应的脱敏密钥，请重新填写该密钥")
-	ErrInvalidProviderIdentity        = errors.New("本地模型配置包含无效或重复的渠道 ID")
-	ErrMalformedProviderConfig        = errors.New("本地模型配置损坏")
-	ErrProviderConfigNotObject        = errors.New("本地模型配置必须是 JSON 对象")
+	ErrProviderConfigRevisionConflict = errors.New("The local model configuration has been updated by other writes")
+	ErrUnmatchedRedactedSecret        = errors.New("The local model configuration contains a desensitization key that cannot be matched. Please fill in the key again.")
+	ErrInvalidProviderIdentity        = errors.New("Local model configuration contains invalid or duplicate channel ID")
+	ErrMalformedProviderConfig        = errors.New("Local model configuration is corrupted")
+	ErrProviderConfigNotObject        = errors.New("Local model configuration must be a JSON object")
 )
 
 var providerConfigGuards sync.Map // canonical data dir -> *sync.Mutex
@@ -42,7 +42,7 @@ var providerConfigGuards sync.Map // canonical data dir -> *sync.Mutex
 func NewProviderConfig(dataDir string) (*ProviderConfig, error) {
 	dataDir = strings.TrimSpace(dataDir)
 	if dataDir == "" {
-		return nil, errors.New("本地工作区数据目录不能为空")
+		return nil, errors.New("The local workspace data directory cannot be empty")
 	}
 	canonical, err := canonicalWorkspacePath(dataDir)
 	if err != nil {
@@ -54,16 +54,16 @@ func NewProviderConfig(dataDir string) (*ProviderConfig, error) {
 func canonicalWorkspacePath(dataDir string) (string, error) {
 	abs, err := filepath.Abs(dataDir)
 	if err != nil {
-		return "", fmt.Errorf("解析本地工作区数据目录失败: %w", err)
+		return "", fmt.Errorf("Failed to parse local workspace data directory: %w", err)
 	}
 	abs = filepath.Clean(abs)
 	existing, missing, err := splitExistingPrefix(abs)
 	if err != nil {
-		return "", fmt.Errorf("解析本地工作区数据目录失败: %w", err)
+		return "", fmt.Errorf("Failed to parse local workspace data directory: %w", err)
 	}
 	resolved, err := filepath.EvalSymlinks(existing)
 	if err != nil {
-		return "", fmt.Errorf("解析本地工作区数据目录失败: %w", err)
+		return "", fmt.Errorf("Failed to parse local workspace data directory: %w", err)
 	}
 	if len(missing) == 0 {
 		return resolved, nil
@@ -122,7 +122,7 @@ func (s *ProviderConfig) ReadRedactedModelConfig() ([]byte, error) {
 	}
 	var value any
 	if err := json.Unmarshal(body, &value); err != nil {
-		return nil, fmt.Errorf("本地模型配置损坏: %w", err)
+		return nil, fmt.Errorf("The local model configuration is damaged: %w", err)
 	}
 	redactSecrets(value)
 	return json.Marshal(value)
@@ -202,7 +202,7 @@ func savedAssistantSelection(config map[string]any) string {
 
 func (s *ProviderConfig) saveLocalModelConfig(body []byte, existingDocument ProviderStateDocument) (int64, error) {
 	if len(body) == 0 || len(body) > 2<<20 {
-		return existingDocument.Revision, errors.New("本地模型配置大小无效")
+		return existingDocument.Revision, errors.New("Local model configuration size is invalid")
 	}
 	incoming, err := decodeIncomingConfig(body)
 	if err != nil {
@@ -231,43 +231,43 @@ func (s *ProviderConfig) saveLocalModelConfig(body []byte, existingDocument Prov
 func (s *ProviderConfig) writeDocument(document ProviderStateDocument) error {
 	canonical, err := s.encodeStoredDocument(document)
 	if err != nil {
-		return fmt.Errorf("编码本地模型配置失败: %w", err)
+		return fmt.Errorf("Encoding local model configuration failed: %w", err)
 	}
 	if err := os.MkdirAll(s.dataDir, 0o700); err != nil {
-		return fmt.Errorf("创建本地配置目录失败: %w", err)
+		return fmt.Errorf("Failed to create local configuration directory: %w", err)
 	}
 	if err := os.Chmod(s.dataDir, 0o700); err != nil {
-		return fmt.Errorf("设置本地配置目录权限失败: %w", err)
+		return fmt.Errorf("Failed to set local configuration directory permissions: %w", err)
 	}
 	tmp, err := os.CreateTemp(s.dataDir, ".local-model-config-*")
 	if err != nil {
-		return fmt.Errorf("创建本地配置临时文件失败: %w", err)
+		return fmt.Errorf("Failed to create local configuration temporary file: %w", err)
 	}
 	tmpName := tmp.Name()
 	defer os.Remove(tmpName)
 	if err := tmp.Chmod(0o600); err != nil {
 		_ = tmp.Close()
-		return fmt.Errorf("设置本地配置权限失败: %w", err)
+		return fmt.Errorf("Failed to set local configuration permissions: %w", err)
 	}
 	if _, err := tmp.Write(canonical); err != nil {
 		_ = tmp.Close()
-		return fmt.Errorf("写入本地模型配置失败: %w", err)
+		return fmt.Errorf("Failed to write local model configuration: %w", err)
 	}
 	if err := tmp.Sync(); err != nil {
 		_ = tmp.Close()
-		return fmt.Errorf("同步本地模型配置失败: %w", err)
+		return fmt.Errorf("Failed to synchronize local model configuration: %w", err)
 	}
 	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("关闭本地模型配置失败: %w", err)
+		return fmt.Errorf("Failed to close local model configuration: %w", err)
 	}
 	if err := s.rotateBackup(); err != nil {
 		return err
 	}
 	if err := os.Rename(tmpName, s.path()); err != nil {
-		return fmt.Errorf("替换本地模型配置失败: %w", err)
+		return fmt.Errorf("Failed to replace local model configuration: %w", err)
 	}
 	if err := os.Chmod(s.path(), 0o600); err != nil {
-		return fmt.Errorf("设置本地配置权限失败: %w", err)
+		return fmt.Errorf("Failed to set local configuration permissions: %w", err)
 	}
 	if directory, err := os.Open(s.dataDir); err == nil {
 		_ = directory.Sync()
@@ -289,7 +289,7 @@ func (s *ProviderConfig) LoadEffectiveModelConfig() (EffectiveModelConfig, Confi
 	}
 	effective, err := effectiveProviderState(document)
 	if err != nil {
-		return EffectiveModelConfig{}, health, fmt.Errorf("合并内置模型配置失败: %w", err)
+		return EffectiveModelConfig{}, health, fmt.Errorf("Failed to merge built-in model configuration: %w", err)
 	}
 	return effective, health, nil
 }
@@ -313,7 +313,7 @@ func (s *ProviderConfig) SavedProtocolReferences() (map[string]int64, error) {
 	}
 	document, _, decodeErr := s.decodeStoredDocument(body)
 	if decodeErr != nil {
-		return nil, fmt.Errorf("本地模型配置无法解析，保留全部官方协议: %w", decodeErr)
+		return nil, fmt.Errorf("The local model configuration cannot be parsed, all official protocols are retained: %w", decodeErr)
 	}
 	return savedProtocolCounts(document.Config), nil
 }
@@ -388,14 +388,14 @@ func (s *ProviderConfig) readAuditDocument() ([]byte, error) {
 		return body, nil
 	}
 	if !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("读取本地模型配置失败: %w", err)
+		return nil, fmt.Errorf("Failed to read local model configuration: %w", err)
 	}
 	backup, backupErr := os.ReadFile(s.backupPath())
 	if errors.Is(backupErr, os.ErrNotExist) {
 		return nil, nil
 	}
 	if backupErr != nil {
-		return nil, fmt.Errorf("读取本地模型配置备份失败: %w", backupErr)
+		return nil, fmt.Errorf("Failed to read local model configuration backup: %w", backupErr)
 	}
 	return backup, nil
 }
@@ -420,22 +420,22 @@ func (s *ProviderConfig) loadDocument() (ProviderStateDocument, ConfigHealth, er
 			return newProviderState(map[string]any{}, 0), ConfigHealthDefault, nil
 		}
 		if backupErr != nil {
-			return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("读取模型配置备份失败: %w", backupErr)
+			return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("Failed to read model configuration backup: %w", backupErr)
 		}
 		document, _, decodeErr := s.decodeStoredDocument(backup)
 		if decodeErr != nil {
-			return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("模型配置缺失且备份损坏: %w", decodeErr)
+			return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("Model configuration is missing and backup is damaged: %w", decodeErr)
 		}
 		return document, ConfigHealthRecovered, nil
 	}
 	if err != nil {
-		return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("读取本地模型配置失败: %w", err)
+		return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("Failed to read local model configuration: %w", err)
 	}
 	document, migrated, decodeErr := s.decodeStoredDocument(body)
 	if decodeErr == nil {
 		if migrated {
 			if err := s.writeDocument(document); err != nil {
-				return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("加密旧模型配置失败: %w", err)
+				return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("Encryption of old model configuration failed: %w", err)
 			}
 			return document, ConfigHealthMigrated, nil
 		}
@@ -443,11 +443,11 @@ func (s *ProviderConfig) loadDocument() (ProviderStateDocument, ConfigHealth, er
 	}
 	backup, backupErr := os.ReadFile(s.backupPath())
 	if backupErr != nil {
-		return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("本地模型配置损坏且无可用备份: %w", decodeErr)
+		return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("The local model configuration is corrupted and no backup is available: %w", decodeErr)
 	}
 	document, _, backupDecodeErr := s.decodeStoredDocument(backup)
 	if backupDecodeErr != nil {
-		return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("本地模型配置及备份均损坏: %w", decodeErr)
+		return ProviderStateDocument{}, ConfigHealthReady, fmt.Errorf("The local model configuration and backup are damaged: %w", decodeErr)
 	}
 	return document, ConfigHealthRecovered, nil
 }
@@ -459,11 +459,11 @@ func (s *ProviderConfig) loadPrimaryDocument() (ProviderStateDocument, error) {
 		return document, recoverErr
 	}
 	if err != nil {
-		return ProviderStateDocument{}, fmt.Errorf("读取本地模型配置失败: %w", err)
+		return ProviderStateDocument{}, fmt.Errorf("Failed to read local model configuration: %w", err)
 	}
 	document, _, decodeErr := s.decodeStoredDocument(body)
 	if decodeErr != nil {
-		return ProviderStateDocument{}, fmt.Errorf("本地模型配置损坏: %w", decodeErr)
+		return ProviderStateDocument{}, fmt.Errorf("The local model configuration is damaged: %w", decodeErr)
 	}
 	return document, nil
 }
@@ -477,7 +477,7 @@ func decodeProviderDocument(body []byte) (ProviderStateDocument, bool, error) {
 	if err := json.Unmarshal(body, &raw); err != nil {
 		var syntax *json.SyntaxError
 		if errors.As(err, &syntax) {
-			return ProviderStateDocument{}, false, errors.New("本地模型配置必须是有效 JSON")
+			return ProviderStateDocument{}, false, errors.New("Local model configuration must be valid JSON")
 		}
 		return ProviderStateDocument{}, false, ErrMalformedProviderConfig
 	}
@@ -571,7 +571,7 @@ func (s *ProviderConfig) decodeStoredDocument(body []byte) (ProviderStateDocumen
 	}
 	if envelope.EncryptedConfig == "" {
 		if envelope.SchemaVersion == 2 {
-			return ProviderStateDocument{}, false, errors.New("本地模型配置密文缺失")
+			return ProviderStateDocument{}, false, errors.New("The local model configuration secret text is missing")
 		}
 		document, _, err := decodeProviderDocument(body)
 		return document, true, err
@@ -589,7 +589,7 @@ func (s *ProviderConfig) rotateBackup() error {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("读取旧模型配置失败: %w", err)
+		return fmt.Errorf("Failed to read old model configuration: %w", err)
 	}
 	document, _, err := s.decodeStoredDocument(source)
 	if err != nil {
@@ -601,7 +601,7 @@ func (s *ProviderConfig) rotateBackup() error {
 	}
 	tmp, err := os.CreateTemp(s.dataDir, ".local-model-config-backup-*")
 	if err != nil {
-		return fmt.Errorf("创建模型配置备份失败: %w", err)
+		return fmt.Errorf("Failed to create model configuration backup: %w", err)
 	}
 	tmpName := tmp.Name()
 	defer os.Remove(tmpName)
@@ -611,7 +611,7 @@ func (s *ProviderConfig) rotateBackup() error {
 	}
 	if _, err := tmp.Write(canonical); err != nil {
 		_ = tmp.Close()
-		return fmt.Errorf("写入模型配置备份失败: %w", err)
+		return fmt.Errorf("Failed to write model configuration backup: %w", err)
 	}
 	if err := tmp.Sync(); err != nil {
 		_ = tmp.Close()
@@ -621,7 +621,7 @@ func (s *ProviderConfig) rotateBackup() error {
 		return err
 	}
 	if err := os.Rename(tmpName, s.backupPath()); err != nil {
-		return fmt.Errorf("替换模型配置备份失败: %w", err)
+		return fmt.Errorf("Replacement model configuration backup failed: %w", err)
 	}
 	return nil
 }

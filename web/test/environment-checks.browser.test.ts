@@ -40,8 +40,8 @@ beforeAll(async () => {
             if (body.repair !== true) return new Response("unexpected repair request", { status: 400 });
             requests++;
             return Response.json({ checks: [
-                { id: "directory-tmp", title: "临时文件目录", status: "repaired", detail: "已重建缺失目录并复检；未改动已有文件。", cases: ["ENV-0006"] },
-                { id: "media-tool", title: "视频处理工具", status: "warning", detail: "未找到可执行的视频处理工具。部分视频预览、转码和导出将不可用，请从官方安装包重新安装。", cases: ["ENV-0014"] },
+                { id: "directory-tmp", title: "Temporary file directory", status: "repaired", detail: "The missing directory has been rebuilt and rechecked; existing files have not been modified.", cases: ["ENV-0006"] },
+                { id: "media-tool", title: "Video processing tools", status: "warning", detail: "No executable video processing tool found. Some video previews, transcoding and exporting will be unavailable, please reinstall from the official installation package.", cases: ["ENV-0014"] },
             ] });
         }
         return new Response('<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/style.css"><div id="root"></div><script type="module" src="/app.js"></script>', { headers: { "Content-Type": "text/html" } });
@@ -62,17 +62,17 @@ for (const width of [390, 1440]) for (const dark of [false, true]) test(`environ
     try {
         await page.addInitScript(() => { Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true }); });
         await page.goto(server.url + (dark ? "?dark" : ""), { waitUntil: "domcontentloaded" });
-        await page.getByRole("heading", { name: "环境自检", exact: true }).waitFor();
-        await page.getByText("已修复", { exact: true }).waitFor();
-        await page.getByText("已重建缺失目录并复检；未改动已有文件。", { exact: true }).waitFor();
+        await page.getByRole("heading", { name: "Environmental self-check", exact: true }).waitFor();
+        await page.getByText("Fixed", { exact: true }).waitFor();
+        await page.getByText("The missing directory has been rebuilt and rechecked; existing files have not been modified.", { exact: true }).waitFor();
         expect(await page.evaluate(() => (window as any).createTestBusinessID().length)).toBe(21);
         expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
         const before = requests;
         const response = page.waitForResponse(item => item.url().endsWith("/api/diagnostics/environment") && item.request().method() === "POST");
-        await page.getByRole("button", { name: "重新检查", exact: true }).click();
+        await page.getByRole("button", { name: "recheck", exact: true }).click();
         await response;
-        await page.waitForFunction(() => document.querySelector('[aria-label="重新检查"]')?.getAttribute("aria-busy") === "false");
-        expect(await page.getByRole("button", { name: "重新检查", exact: true }).isEnabled()).toBe(true);
+        await page.waitForFunction(() => document.querySelector('[aria-label="Recheck"]')?.getAttribute("aria-busy") === "false");
+        expect(await page.getByRole("button", { name: "recheck", exact: true }).isEnabled()).toBe(true);
         expect(requests).toBeGreaterThan(before);
         expect((await page.evaluate(() => indexedDB.databases())).filter(db => db.name?.startsWith("beeftv-environment-probe-")).length).toBe(0);
         await page.screenshot({ path: import.meta.dir + `/../../output/environment-check/${width}-${dark}.png` });
@@ -91,10 +91,10 @@ for (const missing of ["structuredClone", "indexedDB", "getRandomValues"]) test(
             Object.defineProperty(Element.prototype, "replaceChildren", { value: undefined, configurable: true });
         }, missing);
         await page.goto(server.url + "preflight");
-        await page.getByRole("heading", { name: "运行环境需要更新" }).waitFor();
+        await page.getByRole("heading", { name: "The operating environment needs to be updated" }).waitFor();
         expect(await page.evaluate(() => (window as any).workspaceStarts || 0)).toBe(0);
         expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-        await page.getByRole("button", { name: "重新加载" }).waitFor();
+        await page.getByRole("button", { name: "reload" }).waitFor();
         if (missing === "structuredClone") await page.screenshot({ path: import.meta.dir + "/../../output/environment-check/preflight-390.png" });
     } finally { await page.close(); }
 }, 15000);
@@ -104,7 +104,7 @@ test("real entry starts once and hides raw bootstrap errors", async () => {
         const page = await browser.newPage();
         try {
             await page.goto(server.url + "preflight" + (failure ? "?fail" : ""));
-            await page.getByText(failure ? "工作区暂时无法打开" : "工作区已打开", { exact: true }).waitFor();
+            await page.getByText(failure ? "The workspace cannot be opened temporarily" : "Workspace is open", { exact: true }).waitFor();
             expect(await page.evaluate(() => (window as any).workspaceStarts)).toBe(1);
             expect(await page.locator("body").innerText()).not.toContain("synthetic-private-path-and-secret");
         } finally { await page.close(); }
@@ -117,8 +117,8 @@ test("denied browser storage and unavailable backend stay distinct", async () =>
         await page.addInitScript(() => { indexedDB.open = () => { throw new DOMException("blocked", "SecurityError"); }; });
         await page.route("**/api/diagnostics/environment", route => route.fulfill({ status: 503, body: "unavailable" }));
         await page.goto(server.url.toString());
-        await page.getByText("本地服务检查未完成，以下仅为浏览器检查结果。请确认后端运行后重试。", { exact: true }).waitFor();
-        await page.getByText("本地缓存无法写入，请检查隐私设置、存储空间或更新运行时。", { exact: true }).waitFor();
+        await page.getByText("The local service check has not been completed. The following are only the browser check results. Please confirm that the backend is running and try again.", { exact: true }).waitFor();
+        await page.getByText("The local cache cannot be written to, please check privacy settings, storage, or update the runtime.", { exact: true }).waitFor();
         const startup = await page.evaluate(() => (window as any).runStartupEnvironmentCheck());
         expect(startup.checks.find((item: any) => item.id === "indexed-db").status).toBe("error");
         expect(startup.checks.find((item: any) => item.id === "check-unavailable").status).toBe("unknown");

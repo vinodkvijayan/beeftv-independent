@@ -121,18 +121,18 @@ describe("local-executor clientOperationId intent", () => {
         expect(afterUnknown.submittedTaskId).toBeUndefined();
         expect(nextLocalExecutorClientOperationId(afterUnknown)).toBe(first);
         expect(isUncertainLocalExecutorSubmit(new Error("Failed to fetch"))).toBe(true);
-        expect(isUncertainLocalExecutorSubmit(new ApiError("冲突", { status: 409 }))).toBe(true);
+        expect(isUncertainLocalExecutorSubmit(new ApiError("conflict", { status: 409 }))).toBe(true);
     });
 
     test("explicit new terminal retry differs from the original submit identity", () => {
         const first = nextLocalExecutorClientOperationId(null);
         const submitted = localExecutorIntentAfterSubmit(first, generationTask({ id: "task-terminal", clientOperationId: first }));
-        const afterTerminal = localExecutorIntentAfterError(submitted, new Error("任务失败"));
+        const afterTerminal = localExecutorIntentAfterError(submitted, new Error("Task failed"));
         const next = nextLocalExecutorClientOperationId(afterTerminal);
         expect(afterTerminal.submittedTaskId).toBe("task-terminal");
         expect(next).not.toBe(first);
-        expect(isUncertainLocalExecutorSubmit(new Error("任务失败"), "task-terminal")).toBe(false);
-        expect(isUncertainLocalExecutorSubmit(new ApiError("缺少媒体", { status: 400 }))).toBe(false);
+        expect(isUncertainLocalExecutorSubmit(new Error("Task failed"), "task-terminal")).toBe(false);
+        expect(isUncertainLocalExecutorSubmit(new ApiError("lack of media", { status: 400 }))).toBe(false);
         expect(isUncertainLocalExecutorSubmit(new DOMException("Aborted", "AbortError"))).toBe(false);
     });
 
@@ -141,12 +141,12 @@ describe("local-executor clientOperationId intent", () => {
         const first = nextLocalExecutorClientOperationId(null, frozenInputKey);
         const after400 = localExecutorIntentAfterError(
             { clientOperationId: first, frozenInputKey },
-            new ApiError("缺少媒体", { status: 400 }),
+            new ApiError("lack of media", { status: 400 }),
         );
         expect(after400.terminal).toBe(true);
         expect(after400.submittedTaskId).toBeUndefined();
         expect(nextLocalExecutorClientOperationId(after400, frozenInputKey)).not.toBe(first);
-        expect(isUncertainLocalExecutorSubmit(new ApiError("缺少媒体", { status: 400 }))).toBe(false);
+        expect(isUncertainLocalExecutorSubmit(new ApiError("lack of media", { status: 400 }))).toBe(false);
     });
 
     test("uncertain retry with edited timeline or resource does not reuse clientOperationId", () => {
@@ -380,7 +380,7 @@ describe("local-executor submit and attach ownership", () => {
                             id: "render-ok",
                             clientOperationId: operationId,
                             status: "failed",
-                            error: "编码器失败",
+                            error: "Encoder failed",
                         }));
                     }
                     return envelope(generationTask({
@@ -391,7 +391,7 @@ describe("local-executor submit and attach ownership", () => {
                     }));
                 }
                 if (path === "/tasks/render-ok") {
-                    return envelope(generationTask({ id: "render-ok", status: "failed", error: "编码器失败" }));
+                    return envelope(generationTask({ id: "render-ok", status: "failed", error: "Encoder failed" }));
                 }
                 if (path === "/tasks/render-retry") {
                     return envelope(generationTask({
@@ -430,7 +430,7 @@ describe("local-executor submit and attach ownership", () => {
                         intent = localExecutorIntentAfterSubmit(reused, created);
                     },
                 })).rejects.toBeTruthy();
-                intent = localExecutorIntentAfterError(intent!, new Error("任务失败"));
+                intent = localExecutorIntentAfterError(intent!, new Error("Task failed"));
                 const regenerated = nextLocalExecutorClientOperationId(intent);
                 expect(regenerated).not.toBe(firstId);
                 const owned = await runOwnedTimelineRender({
@@ -459,7 +459,7 @@ describe("local-executor submit and attach ownership", () => {
                 if (path === "/timeline/renders") {
                     const operationId = String(requestBody(config)?.clientOperationId || "");
                     posts.push(operationId);
-                    if (posts.length === 1) throw new ApiError("缺少媒体", { status: 400 });
+                    if (posts.length === 1) throw new ApiError("lack of media", { status: 400 });
                     return envelope(generationTask({
                         id: "render-after-400",
                         clientOperationId: operationId,
@@ -489,7 +489,7 @@ describe("local-executor submit and attach ownership", () => {
                     intervalMs: 1,
                     timeoutMs: 1000,
                 })).rejects.toBeTruthy();
-                const after400 = localExecutorIntentAfterError({ clientOperationId: firstId, frozenInputKey }, new ApiError("缺少媒体", { status: 400 }));
+                const after400 = localExecutorIntentAfterError({ clientOperationId: firstId, frozenInputKey }, new ApiError("lack of media", { status: 400 }));
                 const retryId = nextLocalExecutorClientOperationId(after400, frozenInputKey);
                 expect(retryId).not.toBe(firstId);
                 const owned = await runOwnedTimelineRender({

@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-market",
   "version": "0.1.2",
-  "description": "浏览官方推荐列表与 npm 社区插件，一键安装、更新与管理 BeefTV 插件。",
+  "description": "Browse the official recommended list and npm community plugins, and install, update and manage BeefTV plugins with one click.",
   "type": "module",
   "license": "Apache-2.0",
   "keywords": [
@@ -9,7 +9,7 @@
     "market"
   ],
   "beeftv": {
-    "name": "插件市场",
+    "name": "plug-in market",
     "client": "./client/index.js",
     "surfaces": [
       "fullscreen"

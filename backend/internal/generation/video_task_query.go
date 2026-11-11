@@ -67,7 +67,7 @@ func ValidateVideoTaskState(taskID string, state map[string]interface{}) (map[st
 		for _, field := range []string{"id", "task_id", "taskId"} {
 			id, err := firstJSONString(state, field)
 			if err != nil || (id != "" && id != strings.TrimSpace(taskID)) {
-				return nil, errors.New("上游返回的任务 ID 与原视频任务不一致")
+				return nil, errors.New("The task ID returned by the upstream is inconsistent with the original video task")
 			}
 		}
 		nested, ok := state["data"].(map[string]interface{})
@@ -92,12 +92,12 @@ func VideoTaskSucceeded(status string) bool {
 func QueryHandwrittenVideoTask(ctx context.Context, input Input, taskID string) (map[string]interface{}, string, error) {
 	taskID = strings.TrimSpace(taskID)
 	if taskID == "" {
-		return nil, "", errors.New("该任务没有可恢复的上游任务 ID")
+		return nil, "", errors.New("The task has no recoverable upstream task ID")
 	}
 	if strings.TrimSpace(input.Config.InterfaceType) != "" {
 		_, official := OfficialDeclarativeVideoInterface(input.Config.InterfaceType)
 		if official || !IsArkPlanVideoConfig(input.Config) {
-			return nil, "", errors.New("该任务的请求协议不支持安全查询上游状态")
+			return nil, "", errors.New("The request protocol of this task does not support secure querying of upstream status")
 		}
 	}
 	path := "/videos/" + url.PathEscape(taskID)
@@ -124,7 +124,7 @@ func QueryHandwrittenVideoTask(ctx context.Context, input Input, taskID string) 
 			rawURL = NewAPIVideoResultURL(state)
 		}
 		if status == "failed" || status == "cancelled" || status == "expired" {
-			return VideoResultSource{}, status, errors.New(defaultString(SeedanceErrorMessage(state), "原视频任务未成功，无法取回结果"))
+			return VideoResultSource{}, status, errors.New(defaultString(SeedanceErrorMessage(state), "The original video task was unsuccessful and the results cannot be retrieved."))
 		}
 		if !VideoTaskSucceeded(status) {
 			return VideoResultSource{}, status, nil
@@ -149,7 +149,7 @@ func QueryHandwrittenVideoTask(ctx context.Context, input Input, taskID string) 
 	policy := videoPollPolicyForConfig(ctx, input.Config, DefaultVideoPollPolicy())
 	data, mimeType, err := RunVideoDownload(ctx, taskID, policy, VideoResultDownloader(input.Config, taskID, source, renew))
 	if err != nil {
-		return nil, status, fmt.Errorf("视频结果下载失败（原任务 %s）：%w", taskID, err)
+		return nil, status, fmt.Errorf("Video result download failed (original task %s): %w", taskID, err)
 	}
 	mimeType = NormalizedMediaMIMEType(mimeType, data)
 	return map[string]interface{}{"mode": "video", "video": map[string]interface{}{"dataUrl": DataURL(mimeType, data), "mimeType": mimeType}}, status, nil

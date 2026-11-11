@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-ysdui",
   "version": "1.0.1",
-  "description": "内置银盛云枢壹算 (OneAxis) 算力与多模态渠道插件，支持填写 API Key 一键同步 DeepSeek、Qwen、GLM、Kimi、MiniMax、混元、豆包 Seedream 5.0 / Seedance 2.0 & 2.5、Wan 3.0、MiniMax H3、混元 Image 3.0 与 WAND-Vega 图生/视频模型。",
+  "description": "Built-in OneAxis computing power and multi-modal channel plug-in, supports one-click synchronization of DeepSeek, Qwen, GLM, Kimi, MiniMax, Hunyuan, Doubao Seedream 5.0 / Seedance 2.0 & 2.5, Wan 3.0, MiniMax H3, Hunyuan Image 3.0 and WAND-Vega image/video models by filling in the API Key.",
   "type": "module",
   "main": "./client/index.js",
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
     "wand-vega"
   ],
   "beeftv": {
-    "name": "银盛云枢壹算算力与多模态渠道",
+    "name": "Yinshengyunshu computing power and multi-modal channels",
     "client": "./client/index.js",
     "permissions": [
       "generation.run",
@@ -30,9 +30,9 @@
         {
           "name": "apiKey",
           "type": "secret",
-          "label": "银盛云枢壹算 API Key",
+          "label": "Yinshengyunshu Yisheng API Key",
           "required": true,
-          "description": "填写银盛云枢壹算 (https://www.ysdui.cn) 提供的 sk-... 密钥"
+          "description": "Fill in the sk-... key provided by Yinsheng Yunshu Yishuan (https://www.ysdui.cn))"
         },
         {
           "name": "baseUrl",
@@ -40,7 +40,7 @@
           "label": "Base URL",
           "required": false,
           "default": "https://tokenhub.ysdui.cn",
-          "description": "银盛云枢壹算接口根地址，默认 https://tokenhub.ysdui.cn"
+          "description": "Yinshengyunshu calculation interface root address, default https://tokenhub.ysdui.cn"
         }
       ]
     },
@@ -48,7 +48,7 @@
       "providers": [
         {
           "id": "ysdui-image",
-          "label": "银盛云枢壹算同步图像生成 (Seedream / Qwen / 混元)",
+          "label": "Yinshengyunshu one calculation synchronous image generation (Seedream / Qwen / Hunyuan)",
           "capabilities": [
             "image"
           ],
@@ -100,56 +100,56 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "同步图像模型 ID（如 doubao-seedream-5-0-260128、doubao-seedream-5-0-pro-260628、qwen-image-3.0-pro、hy-image-v3.0）。"
+              "description": "Sync image model IDs (such as doubao-seedream-5-0-260128, doubao-seedream-5-0-pro-260628, qwen-image-3.0-pro, hy-image-v3.0)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": true,
               "mapping": "prompt",
-              "description": "图像描述提示词。"
+              "description": "Image description prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "required": false,
               "mapping": "images",
-              "description": "参考图列表（URL 或 Base64 Data URL），用于单图编辑或多图融合。"
+              "description": "Reference image list (URL or Base64 Data URL), used for single image editing or multi-image fusion."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "required": false,
               "mapping": "size",
-              "description": "画幅比例或像素尺寸。"
+              "description": "Aspect ratio or pixel size."
             },
             {
               "name": "quality",
               "type": "string",
               "required": false,
               "mapping": "size",
-              "description": "清晰度档位（1k、2k）。"
+              "description": "Resolution level (1k, 2k)."
             },
             {
               "name": "imageCount",
               "type": "integer",
               "required": false,
               "mapping": "n / sequential_image_generation_options.max_images",
-              "description": "生成张数（Qwen 使用 n，Seedream 5.0 Lite 组图使用 sequential_image_generation_options.max_images）。"
+              "description": "Number of generated images (Qwen uses n, Seedream 5.0 Lite images use sequential_image_generation_options.max_images)."
             },
             {
               "name": "watermark",
               "type": "boolean",
               "required": false,
               "mapping": "watermark",
-              "description": "是否添加水印。"
+              "description": "Whether to add watermark."
             },
             {
               "name": "providerOptions",
               "type": "object",
               "required": false,
               "mapping": "provider-specific fields",
-              "description": "模型个性化参数（background、output_format、layer_decomposition、optimize_prompt_options、negative_prompt、prompt_extend）。"
+              "description": "Model personalized parameters (background, output_format, layer_decomposition, optimize_prompt_options, negative_prompt, prompt_extend)."
             }
           ],
           "variables": [
@@ -1323,7 +1323,7 @@
         },
         {
           "id": "ysdui-image-task",
-          "label": "银盛云枢壹算异步图像任务 (WAND-Vega Image)",
+          "label": "Yinshengyunshu one-computation asynchronous image task (WAND-Vega Image)",
           "capabilities": [
             "image"
           ],
@@ -1375,35 +1375,35 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "WAND-Vega 异步图像模型 ID（如 wand-vega-image-pro、wand-vega-image-1.5-pro、wand-vega-image-flash）。"
+              "description": "WAND-Vega asynchronous image model ID (such as wand-vega-image-pro, wand-vega-image-1.5-pro, wand-vega-image-flash)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": true,
               "mapping": "prompt",
-              "description": "图像描述提示词。"
+              "description": "Image description prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "required": false,
               "mapping": "images",
-              "description": "参考图列表（URL 或 Base64 Data URL，最多 14 张）。"
+              "description": "List of reference images (URL or Base64 Data URL, up to 14 images)."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "required": false,
               "mapping": "size",
-              "description": "画幅比例或像素尺寸。"
+              "description": "Aspect ratio or pixel size."
             },
             {
               "name": "quality",
               "type": "string",
               "required": false,
               "mapping": "size",
-              "description": "清晰度档位（1k、2k、4k）。"
+              "description": "Resolution levels (1k, 2k, 4k)."
             }
           ],
           "variables": [
@@ -1937,7 +1937,7 @@
         },
         {
           "id": "ysdui-video",
-          "label": "银盛云枢壹算统一视频生成 (Seedance / Wan 3.0 / MiniMax H3 / WAND-Vega)",
+          "label": "Yinsheng Yunshu unified video generation (Seedance / Wan 3.0 / MiniMax H3 / WAND-Vega)",
           "capabilities": [
             "video"
           ],
@@ -1991,77 +1991,77 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "视频模型 ID（如 doubao-seedance-2-0-260128、doubao-seedance-2-5-260628、wan3.0-video、minimax-h3、wand-vega-video-1.0-lite）。"
+              "description": "Video model ID (such as doubao-seedance-2-0-260128, doubao-seedance-2-5-260628, wan3.0-video, minimax-h3, wand-vega-video-1.0-lite)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": true,
               "mapping": "prompt",
-              "description": "视频提示词。"
+              "description": "Video prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "required": false,
               "mapping": "content[type=image_url]",
-              "description": "首帧 (first_frame)、尾帧 (last_frame)、多模态参考图 (reference_image)。"
+              "description": "First frame (first_frame), last frame (last_frame), multi-modal reference image (reference_image)."
             },
             {
               "name": "videos",
               "type": "media[]",
               "required": false,
               "mapping": "content[type=video_url]",
-              "description": "参考视频 (reference_video)。"
+              "description": "Reference video (reference_video)."
             },
             {
               "name": "audios",
               "type": "media[]",
               "required": false,
               "mapping": "content[type=audio_url]",
-              "description": "参考音频 (reference_audio)。"
+              "description": "Reference audio (reference_audio)."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "required": false,
               "mapping": "ratio",
-              "description": "画幅比例（16:9、9:16、4:3、3:4、1:1、21:9、adaptive）。"
+              "description": "Aspect ratio (16:9, 9:16, 4:3, 3:4, 1:1, 21:9, adaptive)."
             },
             {
               "name": "resolution",
               "type": "string",
               "required": false,
               "mapping": "resolution",
-              "description": "输出分辨率档位（480P、720P、768P、1080P、2K、4K）。"
+              "description": "Output resolution gears (480P, 720P, 768P, 1080P, 2K, 4K)."
             },
             {
               "name": "duration",
               "type": "integer",
               "required": false,
               "mapping": "duration",
-              "description": "视频时长秒数（Wan 3.0 支持 2-30 秒，其余支持 4-15 秒，Seedance 支持 -1 自动时长）。"
+              "description": "Video duration in seconds (Wan 3.0 supports 2-30 seconds, others support 4-15 seconds, Seedance supports -1 automatic duration)."
             },
             {
               "name": "generateAudio",
               "type": "boolean",
               "required": false,
               "mapping": "generate_audio",
-              "description": "是否生成同步音频（仅支持音频开关的模型发送）。"
+              "description": "Whether to generate synchronized audio (only models that support the audio switch are sent)."
             },
             {
               "name": "watermark",
               "type": "boolean",
               "required": false,
               "mapping": "watermark",
-              "description": "是否包含水印（仅支持水印开关的模型发送）。"
+              "description": "Whether to include a watermark (only models that support the watermark switch are sent)."
             },
             {
               "name": "providerOptions",
               "type": "object",
               "required": false,
               "mapping": "provider-specific fields",
-              "description": "渠道个性化参数（Doubao: reference_mode / output_format / return_last_frame；Qwen: prompt_extend）。"
+              "description": "Channel personalization parameters (Doubao: reference_mode / output_format / return_last_frame; Qwen: prompt_extend)."
             }
           ],
           "variables": [

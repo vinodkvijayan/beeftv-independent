@@ -27,7 +27,7 @@ for (const fixture of fixtures) {
             expect(persisted.requestId).toBe(first.requestId);
             expect(shouldBlockAutomaticRetry(input)).toBe(true);
         }
-        const emitted = `${fixture.reason}。${fixture.action}。排查编号：请求 req_moderation_123。`;
+        const emitted = `${fixture.reason}。${fixture.action}. Troubleshooting number: Request req_moderation_123.`;
         expect(explainGenerationError({ code: fixture.category, message: emitted }).message).toBe(emitted);
         expect(explainGenerationError(fixture.message + " Request id: req_moderation_123").requestId).toBe(requestId);
     });
@@ -45,14 +45,14 @@ test("specific provider codes outrank incidental safety text; request echoes are
     const wrapped = explainGenerationError({ error: { code: "moderation_output", message: persisted }, request_id: "req_outer123", task_id: "task_outer123" });
     expect(wrapped.requestId).toBe("req_outer123");
     expect(wrapped.taskId).toBe("task_outer123");
-    const conflicting = explainGenerationError({ error: { code: "moderation_output", message: persisted + "排查编号：任务 task_inner123 · 请求 req_inner123。" }, request_id: "req_outer123", task_id: "task_outer123" });
+    const conflicting = explainGenerationError({ error: { code: "moderation_output", message: persisted + "Troubleshooting number: Task task_inner123 · Request req_inner123." }, request_id: "req_outer123", task_id: "task_outer123" });
     expect(conflicting.requestId).toBe("req_outer123");
     expect(conflicting.taskId).toBe("task_outer123");
     expect(explainGenerationError("The request failed because the output may contain sensitive information.").category).toBe("moderation_output");
     expect(explainGenerationError({ error: { code: "invalid_api_key", message: fixtures[0].message } }).category).toBe("auth");
     expect(explainGenerationError({ error: { code: "invalid_request_error", message: "invalid parameter" }, prompt: fixtures[0].message }).category).toBe("invalid_params");
     expect(explainGenerationError({ error: { message: "opaque", code: "upstream_error" }, input: fixtures[0].message }).category).toBe("unknown");
-    expect(explainGenerationError({ error: { message: "opaque", code: "invalid_api_key" }, prompt: "真人形象" }).category).toBe("auth");
+    expect(explainGenerationError({ error: { message: "opaque", code: "invalid_api_key" }, prompt: "real person image" }).category).toBe("auth");
     const f = explainGenerationError({ error: { code: "invalid_request_error", message: "Rate limit exceeded" } });
     expect(f.category).toBe("throttled");
 });

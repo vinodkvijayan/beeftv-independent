@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { withCanvasWheelHarness, wheelNodeGeometry } from "./helpers/canvas-wheel-harness";
 
-test("固定滚轮行为不再按设备步长猜测：平移只平移，缩放连触控板小步长也缩放", async () => {
+test("Fixed wheel behavior no longer guesses by device step size: pan only pans, zoom also scales even with small touchpad steps", async () => {
     await withCanvasWheelHarness(async (page) => {
         // 滚轮步长在固定平移下原样平移，不再被当成缩放。
         const pan = await wheelNodeGeometry(page, 120);

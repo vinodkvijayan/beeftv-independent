@@ -46,7 +46,7 @@ func NormalizeClientApprovalMode(raw string) (ClientApprovalMode, error) {
 	case ClientApprovalAuto:
 		return ClientApprovalAuto, nil
 	default:
-		return "", InvalidArg("invalid_approval_mode", "approvalMode 必须是 ask、caller 或 auto")
+		return "", InvalidArg("invalid_approval_mode", "approvalMode must be ask, caller or auto")
 	}
 }
 
@@ -168,7 +168,7 @@ func (r *ClientRegistry) RegisterClientOrigin(kind, label, origin string, mode C
 		mode = ClientReadWrite
 	}
 	if mode != ClientReadOnly && mode != ClientReadWrite {
-		return ClientRegistration{}, "", InvalidArg("invalid_mode", "mode 必须是 read-only 或 read-write")
+		return ClientRegistration{}, "", InvalidArg("invalid_mode", "mode must be read-only or read-write")
 	}
 	normalizedApproval, err := NormalizeClientApprovalMode(string(approvalMode))
 	if err != nil {
@@ -282,7 +282,7 @@ func (r *ClientRegistry) ListLive() ([]ClientRegistration, error) {
 func (r *ClientRegistry) Revoke(clientID string) error {
 	clientID = strings.TrimSpace(clientID)
 	if clientID == "" {
-		return InvalidArg("missing_client_id", "缺少客户端 ID")
+		return InvalidArg("missing_client_id", "Missing client ID")
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -301,7 +301,7 @@ func (r *ClientRegistry) Revoke(clientID string) error {
 		}
 		return nil
 	}
-	return NotFound("client_not_found", "没有这个客户端登记")
+	return NotFound("client_not_found", "There is no such client registration")
 }
 
 // atomicWriteFile 先写临时文件再改名，避免并发登记时留下半截文件丢记录。
@@ -320,7 +320,7 @@ func atomicWriteFile(path string, data []byte) error {
 		return err
 	}
 	if err := restrictFile(name); err != nil {
-		log.Printf("凭据文件 %s 未能收紧为仅当前用户可读：%v", filepath.Base(path), err)
+		log.Printf("Credentials file %s failed to be tightened to be readable only by the current user: %v", filepath.Base(path), err)
 	}
 	if _, err := tmp.Write(data); err != nil {
 		tmp.Close()
@@ -410,7 +410,7 @@ func restrictExisting(path string) {
 	}
 	_ = os.Chmod(path, 0o600)
 	if err := restrictFile(path); err != nil {
-		log.Printf("凭据文件 %s 未能收紧为仅当前用户可读：%v", filepath.Base(path), err)
+		log.Printf("Credentials file %s failed to be tightened to be readable only by the current user: %v", filepath.Base(path), err)
 	}
 }
 

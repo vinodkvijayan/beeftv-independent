@@ -15,7 +15,7 @@ function node(id: string, title: string, metadata: CanvasNodeData["metadata"] = 
     return { id, type: CanvasNodeType.Image, title, position, width: 320, height: 220, metadata };
 }
 
-function project(nodes: CanvasNodeData[], revision: number, title = "画布"): CanvasProject {
+function project(nodes: CanvasNodeData[], revision: number, title = "canvas"): CanvasProject {
     return {
         id: "c1",
         revision,
@@ -36,25 +36,25 @@ function project(nodes: CanvasNodeData[], revision: number, title = "画布"): C
 describe("settleInFlightGenerationOverlay", () => {
     test("settle comment matches overlay empty-string exception", () => {
         const source = readFileSync(resolve(import.meta.dir, "../src/lib/canvas/canvas-document-rebase.ts"), "utf8");
-        expect(source).not.toContain("人类写过的 content（含空串）保留");
-        expect(source).toContain("loading/error 上的空 content 是 overlay");
-        expect(source).toContain("人类写过的非空 content 保留");
-        expect(source).toContain("非 overlay 上的空串按真实编辑保留");
-        expect(source).toContain("不同 taskId 不会写回旧 storageKey");
+        expect(source).not.toContain("Content written by humans (including empty strings) is retained");
+        expect(source).toContain("Empty content on loading/error is overlay");
+        expect(source).toContain("Non-empty content written by humans is retained");
+        expect(source).toContain("Empty strings on non-overlay are retained according to real editing");
+        expect(source).toContain("Different taskId will not write back the old storageKey");
     });
 
     test("in-flight loading overlay adopts remote success and keeps Agent sibling nodes", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", prompt: "猫" });
-        const camp = node("node-camp", "秋日旅行·露营桌", { status: "idle" }, { x: 80, y: 40 });
-        const lake = node("node-lake", "秋日旅行·湖畔横移", { status: "idle" }, { x: 160, y: 40 });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", prompt: "cat" });
+        const camp = node("node-camp", "Autumn travel camping table", { status: "idle" }, { x: 80, y: 40 });
+        const lake = node("node-lake", "Autumn travel·Lakeside traverse", { status: "idle" }, { x: 160, y: 40 });
         const base = project([original, camp, lake], 10);
         const local = project([
-            { ...original, metadata: { taskId: "task-1", status: "loading", taskStatus: "running", taskProgress: 42, taskStage: "出图中", prompt: "猫" } },
+            { ...original, metadata: { taskId: "task-1", status: "loading", taskStatus: "running", taskProgress: 42, taskStage: "Pictured", prompt: "cat" } },
             camp,
             lake,
         ], 10);
         const remote = project([
-            { ...original, metadata: { taskId: "task-1", status: "success", taskStatus: "succeeded", taskProgress: 100, content: "https://media/gen", storageKey: "res-gen", prompt: "猫" } },
+            { ...original, metadata: { taskId: "task-1", status: "success", taskStatus: "succeeded", taskProgress: 100, content: "https://media/gen", storageKey: "res-gen", prompt: "cat" } },
             camp,
             lake,
         ], 14);
@@ -64,34 +64,34 @@ describe("settleInFlightGenerationOverlay", () => {
         expect(rebased.project.nodes.map((item) => item.id)).toEqual(["image-origin", "node-camp", "node-lake"]);
         expect(rebased.project.nodes[0]?.metadata?.status).toBe("success");
         expect(rebased.project.nodes[0]?.metadata?.content).toBe("https://media/gen");
-        expect(rebased.project.nodes[1]?.title).toBe("秋日旅行·露营桌");
-        expect(rebased.project.nodes[2]?.title).toBe("秋日旅行·湖畔横移");
+        expect(rebased.project.nodes[1]?.title).toBe("Autumn travel camping table");
+        expect(rebased.project.nodes[2]?.title).toBe("Autumn travel·Lakeside traverse");
     });
 
     test("same-field human content edit keeps local value and remains a recoverable conflict", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", content: "旧图" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", content: "old picture" });
         const base = project([original], 10);
-        const local = project([{ ...original, metadata: { taskId: "task-1", status: "loading", content: "人类改过的内容" } }], 10);
+        const local = project([{ ...original, metadata: { taskId: "task-1", status: "loading", content: "Content modified by humans" } }], 10);
         const remote = project([{ ...original, metadata: { taskId: "task-1", status: "success", content: "https://media/gen", storageKey: "res-gen" } }], 14);
         const settled = settleInFlightGenerationOverlay({ base, local, remote });
-        expect(settled.nodes[0]?.metadata?.content).toBe("人类改过的内容");
+        expect(settled.nodes[0]?.metadata?.content).toBe("Content modified by humans");
         expect(settled.nodes[0]?.metadata?.status).toBe("loading");
         const rebased = rebaseCanvasDocumentThreeWay({ base, local: settled, remote });
         expect(rebased.conflict).toBe(true);
-        expect(rebased.project.nodes[0]?.metadata?.content).toBe("人类改过的内容");
+        expect(rebased.project.nodes[0]?.metadata?.content).toBe("Content modified by humans");
         expect(rebased.project.nodes[0]?.metadata?.status).not.toBe("success");
     });
 
     test("new task deleting content adopts remote success as a normal clear of the old result", () => {
-        const original = node("image-origin", "原图", { taskId: "task-old", status: "success", content: "旧图", storageKey: "old-key" });
+        const original = node("image-origin", "Original picture", { taskId: "task-old", status: "success", content: "old picture", storageKey: "old-key" });
         const base = project([original], 10);
         const local = project([{
             ...original,
-            metadata: { taskId: "task-2", status: "loading", taskStatus: "running", taskProgress: 12, prompt: "猫" },
+            metadata: { taskId: "task-2", status: "loading", taskStatus: "running", taskProgress: 12, prompt: "cat" },
         }], 10);
         const remote = project([{
             ...original,
-            metadata: { taskId: "task-2", status: "success", taskStatus: "succeeded", taskProgress: 100, content: "https://media/new", storageKey: "res-new", prompt: "猫" },
+            metadata: { taskId: "task-2", status: "success", taskStatus: "succeeded", taskProgress: 100, content: "https://media/new", storageKey: "res-new", prompt: "cat" },
         }], 14);
         expect(Object.prototype.hasOwnProperty.call(local.nodes[0]?.metadata || {}, "content")).toBe(false);
         const settled = settleInFlightGenerationOverlay({ base, local, remote });
@@ -104,7 +104,7 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("same-task in-flight empty overlay adopts remote bound success", () => {
-        const original = node("node-dlu63hran9ns-43e87554d6", "秋日旅行", {
+        const original = node("node-dlu63hran9ns-43e87554d6", "Autumn travel", {
             taskId: "e24cb37f0a7d146afc8560456d88a550",
             status: "success",
             taskStatus: "succeeded",
@@ -125,20 +125,20 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("in-flight nonempty human content still wins over remote success", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", content: "旧图", storageKey: "old-key" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", content: "old picture", storageKey: "old-key" });
         const base = project([original], 10);
-        const local = project([{ ...original, metadata: { taskId: "task-1", status: "loading", content: "人类改过的内容" } }], 10);
+        const local = project([{ ...original, metadata: { taskId: "task-1", status: "loading", content: "Content modified by humans" } }], 10);
         const remote = project([{ ...original, metadata: { taskId: "task-1", status: "success", content: "https://media/gen", storageKey: "res-gen" } }], 14);
         const settled = settleInFlightGenerationOverlay({ base, local, remote });
-        expect(settled.nodes[0]?.metadata?.content).toBe("人类改过的内容");
+        expect(settled.nodes[0]?.metadata?.content).toBe("Content modified by humans");
         expect(settled.nodes[0]?.metadata?.status).toBe("loading");
         const rebased = rebaseCanvasDocumentThreeWay({ base, local: settled, remote });
         expect(rebased.conflict).toBe(true);
-        expect(rebased.project.nodes[0]?.metadata?.content).toBe("人类改过的内容");
+        expect(rebased.project.nodes[0]?.metadata?.content).toBe("Content modified by humans");
     });
 
     test("baseline empty content on first generation is not treated as a human clear", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", content: "" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", content: "" });
         const base = project([original], 10);
         const local = project([{ ...original, metadata: { taskId: "task-1", status: "loading", content: "", taskStatus: "running" } }], 10);
         const remote = project([{ ...original, metadata: { taskId: "task-1", status: "success", content: "https://media/gen", storageKey: "res-gen" } }], 14);
@@ -150,7 +150,7 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("remote taskStatus succeeded without bound media is not authoritative completion", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", content: "旧图" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", content: "old picture" });
         const base = project([original], 10);
         const local = project([{
             ...original,
@@ -169,11 +169,11 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("remote success without media result does not clear local media fields", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", content: "旧图" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", content: "old picture" });
         const base = project([original], 10);
         const local = project([{
             ...original,
-            metadata: { taskId: "task-1", status: "error", content: "https://local-kept", storageKey: "local-key", errorDetails: "画布已在别处更新" },
+            metadata: { taskId: "task-1", status: "error", content: "https://local-kept", storageKey: "local-key", errorDetails: "Canvas has been updated elsewhere" },
         }], 10);
         const remote = project([{
             ...original,
@@ -187,23 +187,23 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("idle or human non-overlay status is not overwritten by remote bound success", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", content: "旧图" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", content: "old picture" });
         const base = project([original], 10);
-        const idleLocal = project([{ ...original, metadata: { taskId: "task-1", status: "idle", content: "旧图", prompt: "人类改了提示" } }], 10);
-        const successLocal = project([{ ...original, metadata: { taskId: "task-1", status: "success", content: "人类留下的图" } }], 10);
+        const idleLocal = project([{ ...original, metadata: { taskId: "task-1", status: "idle", content: "old picture", prompt: "Humans changed the prompt" } }], 10);
+        const successLocal = project([{ ...original, metadata: { taskId: "task-1", status: "success", content: "Pictures left by humans" } }], 10);
         const remote = project([{ ...original, metadata: { taskId: "task-1", status: "success", content: "https://media/gen", storageKey: "res-gen" } }], 14);
         const settledIdle = settleInFlightGenerationOverlay({ base, local: idleLocal, remote });
         const settledSuccess = settleInFlightGenerationOverlay({ base, local: successLocal, remote });
         expect(settledIdle.nodes[0]).toBe(idleLocal.nodes[0]);
         expect(settledIdle.nodes[0]?.metadata?.status).toBe("idle");
-        expect(settledIdle.nodes[0]?.metadata?.content).toBe("旧图");
-        expect(settledIdle.nodes[0]?.metadata?.prompt).toBe("人类改了提示");
+        expect(settledIdle.nodes[0]?.metadata?.content).toBe("old picture");
+        expect(settledIdle.nodes[0]?.metadata?.prompt).toBe("Humans changed the prompt");
         expect(settledSuccess.nodes[0]).toBe(successLocal.nodes[0]);
-        expect(settledSuccess.nodes[0]?.metadata?.content).toBe("人类留下的图");
+        expect(settledSuccess.nodes[0]?.metadata?.content).toBe("Pictures left by humans");
     });
 
     test("error overlay of the same in-flight task adopts remote bound success", () => {
-        const original = node("image-origin", "原图", { taskId: "task-1", status: "idle", prompt: "猫" });
+        const original = node("image-origin", "Original picture", { taskId: "task-1", status: "idle", prompt: "cat" });
         const base = project([original], 10);
         const local = project([{
             ...original,
@@ -211,13 +211,13 @@ describe("settleInFlightGenerationOverlay", () => {
                 taskId: "task-1",
                 status: "error",
                 generationErrorCode: "canvas_conflict",
-                errorDetails: "云端画布已有更新，已停止覆盖；请保留本地草稿并加载最新版本",
-                prompt: "猫",
+                errorDetails: "The cloud canvas has been updated and coverage has stopped; please keep the local draft and load the latest version",
+                prompt: "cat",
             },
         }], 10);
         const remote = project([{
             ...original,
-            metadata: { taskId: "task-1", status: "success", taskStatus: "succeeded", content: "https://media/gen", storageKey: "res-gen", prompt: "猫" },
+            metadata: { taskId: "task-1", status: "success", taskStatus: "succeeded", content: "https://media/gen", storageKey: "res-gen", prompt: "cat" },
         }], 14);
         const settled = settleInFlightGenerationOverlay({ base, local, remote });
         expect(settled.nodes[0]?.metadata?.status).toBe("success");
@@ -229,7 +229,7 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("new-task overlay does not adopt a different remote task's bound success", () => {
-        const original = node("node-dlu63hran9ns-43e87554d6", "秋日旅行", {
+        const original = node("node-dlu63hran9ns-43e87554d6", "Autumn travel", {
             taskId: "e24cb37f0a7d146afc8560456d88a550",
             status: "success",
             taskStatus: "succeeded",
@@ -239,7 +239,7 @@ describe("settleInFlightGenerationOverlay", () => {
         const base = project([original], 34);
         const local = project([{
             ...original,
-            metadata: { taskId: "task-new", status: "loading", taskStatus: "running", prompt: "新提示" },
+            metadata: { taskId: "task-new", status: "loading", taskStatus: "running", prompt: "new tips" },
         }], 34);
         const remote = project([original], 34);
         expect(Object.prototype.hasOwnProperty.call(local.nodes[0]?.metadata || {}, "content")).toBe(false);
@@ -252,10 +252,10 @@ describe("settleInFlightGenerationOverlay", () => {
     });
 
     test("real human empty-string clear on non-overlay is not settled as overlay", () => {
-        const original = node("image-origin", "原图", {
+        const original = node("image-origin", "Original picture", {
             taskId: "task-1",
             status: "success",
-            content: "旧图",
+            content: "old picture",
             storageKey: "old-key",
         });
         const base = project([original], 10);
@@ -270,14 +270,14 @@ describe("settleInFlightGenerationOverlay", () => {
 
     test("settled overlay and stale running bound node both resolve taskOutcome to ready", () => {
         const inFlightOutcome = { phase: "running" as const, regenerate: "blocked" as const, reason: "in_flight" };
-        const original = node("image-origin", "原图", {
+        const original = node("image-origin", "Original picture", {
             taskId: "task-1",
             status: "loading",
             taskStatus: "running",
             taskOutcome: inFlightOutcome,
         });
         const remoteBoundWithoutOutcome = project([
-            node("image-origin", "原图", {
+            node("image-origin", "Original picture", {
                 taskId: "task-1",
                 status: "success",
                 taskStatus: "succeeded",
@@ -299,7 +299,7 @@ describe("settleInFlightGenerationOverlay", () => {
         });
 
         const staleBoundLocal = project([
-            node("image-origin", "原图", {
+            node("image-origin", "Original picture", {
                 taskId: "task-1",
                 status: "success",
                 taskStatus: "succeeded",
@@ -327,8 +327,8 @@ describe("rebaseCanvasDocumentThreeWay node timestamps", () => {
     const stamp = (item: CanvasNodeData): CanvasNodeData => ({ ...item, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-02T00:00:00.000Z" });
 
     test("remote delete drops a node whose local copy only gained createdAt/updatedAt", () => {
-        const assistant = node("a1", "助手文本");
-        const kept = node("k1", "保留");
+        const assistant = node("a1", "Helper text");
+        const kept = node("k1", "Reserve");
         const result = rebaseCanvasDocumentThreeWay({
             base: project([assistant, kept], 7),
             local: project([stamp(assistant), kept], 7),
@@ -339,24 +339,24 @@ describe("rebaseCanvasDocumentThreeWay node timestamps", () => {
     });
 
     test("remote delete of a locally retitled node is still a conflict and keeps the local node", () => {
-        const assistant = node("a1", "助手文本");
+        const assistant = node("a1", "Helper text");
         const result = rebaseCanvasDocumentThreeWay({
             base: project([assistant], 7),
-            local: project([{ ...stamp(assistant), title: "本地改过的标题" }], 7),
+            local: project([{ ...stamp(assistant), title: "Locally modified title" }], 7),
             remote: project([], 8),
         });
         expect(result.conflict).toBe(true);
-        expect(result.project.nodes.map((item) => item.title)).toEqual(["本地改过的标题"]);
+        expect(result.project.nodes.map((item) => item.title)).toEqual(["Locally modified title"]);
     });
 
     test("node-level updatedAt differences and backend null-cleared bind fields do not cause false conflicts", () => {
         const baseNode: CanvasNodeData = {
-            ...node("v1", "分镜视频", {
+            ...node("v1", "Storyboard video", {
                 taskId: "task-1",
                 status: "loading",
                 taskStatus: "running",
                 taskStage: "generating",
-                errorDetails: "旧错误",
+                errorDetails: "old error",
             }),
             createdAt: "2026-01-01T00:00:00.000Z",
             updatedAt: "2026-01-01T00:00:00.000Z",
@@ -397,7 +397,7 @@ describe("rebaseCanvasDocumentThreeWay node timestamps", () => {
     });
 
     test("same-task in-flight polling telemetry differences do not trigger rebase conflict", () => {
-        const baseNode = node("v1", "分镜视频", {
+        const baseNode = node("v1", "Storyboard video", {
             taskId: "task-running",
             status: "loading",
             taskStatus: "running",
@@ -441,12 +441,12 @@ describe("rebaseCanvasDocumentThreeWay node timestamps", () => {
             status: "running",
             stage: "generating",
             progress: 30,
-            prompt: "镜头1",
+            prompt: "Shot 1",
             attempts: 1,
             createdAt: "2026-01-01T00:00:00.000Z",
             updatedAt: "2026-01-01T00:00:02.000Z",
         };
-        const boundNodes = canvasGenerationTaskNodes([node("v1", "镜头1")], "v1", initialTask);
+        const boundNodes = canvasGenerationTaskNodes([node("v1", "Shot 1")], "v1", initialTask);
         const pollTickNodes = canvasGenerationTaskNodes(boundNodes, "v1", {
             ...initialTask,
             updatedAt: "2026-01-01T00:00:04.000Z",
@@ -464,31 +464,31 @@ describe("rebaseCanvasDocumentThreeWay node timestamps", () => {
     });
 
     test("task failure transition and subsequent retry submission do not trigger false rebase conflict", () => {
-        const baseNode = node("v1", "分镜视频", {
+        const baseNode = node("v1", "Storyboard video", {
             taskId: "task-1",
             status: "loading",
             taskStatus: "running",
             taskProgress: 20,
             taskUpdatedAt: "2026-01-01T00:00:02.000Z",
-            prompt: "让主角转身",
+            prompt: "Let the protagonist turn around",
         });
-        const failedRemoteNode = node("v1", "分镜视频", {
+        const failedRemoteNode = node("v1", "Storyboard video", {
             taskId: "task-1",
             status: "error",
             taskStatus: "failed",
-            errorDetails: "上游请求超时",
+            errorDetails: "Upstream request timeout",
             generationErrorCode: "timeout",
             taskOutcome: { phase: "failed", regenerate: "confirm", reason: "outcome_unknown" },
             taskUpdatedAt: "2026-01-01T00:00:08.000Z",
-            prompt: "让主角转身",
+            prompt: "Let the protagonist turn around",
         });
-        const resubmittedLocalNode = node("v1", "分镜视频", {
+        const resubmittedLocalNode = node("v1", "Storyboard video", {
             taskId: "task-2",
             status: "loading",
             taskStatus: "running",
             taskProgress: 5,
             taskUpdatedAt: "2026-01-01T00:00:12.000Z",
-            prompt: "让主角转身微笑",
+            prompt: "Make the protagonist turn around and smile",
         });
         const rebased = rebaseCanvasDocumentThreeWay({
             base: project([baseNode], 10),
@@ -499,26 +499,26 @@ describe("rebaseCanvasDocumentThreeWay node timestamps", () => {
         expect(rebased.project.nodes[0]?.metadata?.status).toBe("loading");
         expect(rebased.project.nodes[0]?.metadata?.taskId).toBe("task-2");
         expect(rebased.project.nodes[0]?.metadata?.errorDetails).toBeUndefined();
-        expect(rebased.project.nodes[0]?.metadata?.prompt).toBe("让主角转身微笑");
+        expect(rebased.project.nodes[0]?.metadata?.prompt).toBe("Make the protagonist turn around and smile");
     });
 
     test("insertCanvasResourceMentionAtSelection inserts token at cursor offset instead of always appending", () => {
-        const ref = { id: "ref-1", nodeId: "img-1", kind: "image" as const, label: "图片1", title: "角色图", active: true };
-        const middle = insertCanvasResourceMentionAtSelection("让主角走到门前，然后转身", ref, { start: 1, end: 1 });
-        expect(middle.prompt).toBe("让@[node:img-1] 主角走到门前，然后转身");
-        expect(middle.cursor).toBe("让@[node:img-1] ".length);
+        const ref = { id: "ref-1", nodeId: "img-1", kind: "image" as const, label: "Picture 1", title: "character diagram", active: true };
+        const middle = insertCanvasResourceMentionAtSelection("Let the protagonist walk to the door and then turn around", ref, { start: 1, end: 1 });
+        expect(middle.prompt).toBe("Let @[node:img-1] the protagonist walk to the door and then turn around");
+        expect(middle.cursor).toBe("let@[node:img-1]".length);
 
-        const tail = insertCanvasResourceMentionAtSelection("让主角走到门前", ref, null);
-        expect(tail.prompt).toBe("让主角走到门前 @[node:img-1] ");
+        const tail = insertCanvasResourceMentionAtSelection("Let the protagonist walk to the door", ref, null);
+        expect(tail.prompt).toBe("Let the protagonist walk to the door @[node:img-1]");
     });
 
     test("sameNodeSemanticData ignores in-flight poll telemetry keys and isolateCopiedNodeMetadata strips generatedFromNodeId", () => {
-        const n1 = node("v1", "视频", { status: "loading", taskId: "t1", taskProgress: 10, taskUpdatedAt: "t1" });
-        const n2 = node("v1", "视频", { status: "loading", taskId: "t1", taskProgress: 65, taskUpdatedAt: "t2", taskStage: "rendering" });
+        const n1 = node("v1", "video", { status: "loading", taskId: "t1", taskProgress: 10, taskUpdatedAt: "t1" });
+        const n2 = node("v1", "video", { status: "loading", taskId: "t1", taskProgress: 65, taskUpdatedAt: "t2", taskStage: "rendering" });
         expect(sameNodeSemanticData(n1, n2)).toBe(true);
 
         const copiedMeta = isolateCopiedNodeMetadata(
-            node("v2", "视频副本", {
+            node("v2", "video copy", {
                 content: "/api/resources/r1/file",
                 generatedFromNodeId: "img-origin",
                 generationFailure: { category: "request_failed", retryable: true, summary: "err", detail: "err" } as never,

@@ -166,7 +166,7 @@ func (s *Service) runTranscode(ctx context.Context, resourceID string, src strin
 				releaseClaim(s.store, resourceID)
 				return
 			}
-			_, _ = finishPlayback(s.store, resourceID, model.PlaybackStatusFailed, "", clipText(fmt.Sprintf("转码 panic：%v", r), 1000), "panic")
+			_, _ = finishPlayback(s.store, resourceID, model.PlaybackStatusFailed, "", clipText(fmt.Sprintf("Transcoding panic: %v", r), 1000), "panic")
 		}
 	}()
 	if err := ctx.Err(); err != nil {

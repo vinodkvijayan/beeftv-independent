@@ -12,14 +12,14 @@ test("GUI subtitle command, save and reopen retain project output", async () => 
     const output = { width: 720, height: 1280, fps: 24 };
     store.getState().load(normalizeTimelineProject({
         version: 2, durationMs: 1000, output,
-        tracks: [{ id: "captions", kind: "subtitle", label: "字幕", order: 0 }],
-        clips: [{ id: "caption", kind: "subtitle", nodeId: "", trackId: "captions", startMs: 0, durationMs: 1000, text: "原句" }],
+        tracks: [{ id: "captions", kind: "subtitle", label: "subtitles", order: 0 }],
+        clips: [{ id: "caption", kind: "subtitle", nodeId: "", trackId: "captions", startMs: 0, durationMs: 1000, text: "Original sentence" }],
     }));
-    store.getState().dispatch({ op: "setClipProperty", payload: { id: "caption", patch: { text: "修改后的字幕" } } });
+    store.getState().dispatch({ op: "setClipProperty", payload: { id: "caption", patch: { text: "Modified subtitles" } } });
     await store.getState().flushSave();
     expect(saves).toHaveLength(1);
     expect(saves[0].output).toEqual(output);
     store.getState().load(normalizeTimelineProject(saves[0]));
     expect(store.getState().project?.output).toEqual(output);
-    expect(store.getState().project?.clips[0].text).toBe("修改后的字幕");
+    expect(store.getState().project?.clips[0].text).toBe("Modified subtitles");
 });

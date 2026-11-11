@@ -11,7 +11,7 @@ test("binding refusal retains the actual server task instead of borrowing the la
     const task = { id: "paid-video", clientOperationId: "canvas:" + "a".repeat(110) } as GenerationTask;
     recordCanvasBindingDiagnostic({
         phase: "refused", canvasId: "canvas-1", nodeId: "video-1", outputIndex: 0, task,
-        error: new ApiError("节点已绑定到其他任务", { status: 409, reason: "node_task_mismatch", requestId: "req-bind", details: {
+        error: new ApiError("Node is bound to other tasks", { status: 409, reason: "node_task_mismatch", requestId: "req-bind", details: {
             canvasBinding: { source: "server", nodeId: "video-1", nodeTaskId: "new-task", nodeClientOperationId: "canvas:new",
                 revision: 42, nodePresent: true, nodeHasMedia: false, prompt: "never-export-prompt", url: "https://secret.example/clip" },
         } }),

@@ -2,23 +2,23 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { markdownPlainText } from "./markdown-plain-text";
 
-test("markdownPlainText 剥离标题、加粗和列表记号", () => {
-    assert.equal(markdownPlainText("## 结论先行\n\n**没有创建任何节点**\n- 第一点\n- 第二点"), "结论先行 没有创建任何节点 第一点 第二点");
+test("markdownPlainText strips titles, bold and list marks", () => {
+    assert.equal(markdownPlainText("## Conclusion first\n\n**No nodes created**\n- The first point\n- Second point"), "Conclusion first No nodes are created First point Second point");
 });
 
-test("markdownPlainText 围栏代码块替换为占位词，包括未闭合的围栏", () => {
-    assert.equal(markdownPlainText("看这段：\n```json\n{\"a\":1}\n```"), "看这段： 代码块");
-    assert.equal(markdownPlainText("开头 ```js\nconst a = 1;"), "开头 代码块");
+test("markdownPlainText fence code blocks replaced with placeholders, including unclosed fences", () => {
+    assert.equal(markdownPlainText("Look at this:\n```json\n{\"a\":1}\n```"), "Look at this: code block");
+    assert.equal(markdownPlainText("Start with ```js\nconst a = 1;"), "Start code block");
 });
 
-test("markdownPlainText 链接保留文案，图片保留 alt", () => {
-    assert.equal(markdownPlainText("[文档](https://example.com) 和 ![分镜](a.png)"), "文档 和 分镜");
+test("markdownPlainText links retain the copy and images retain alt", () => {
+    assert.equal(markdownPlainText("[Document](https://example.com) and ![Storyboard](a.png)"), "Documentation and storyboards");
 });
 
-test("markdownPlainText 表格压缩为单元格文本", () => {
-    assert.equal(markdownPlainText("| 镜头 | 时长 |\n| --- | --- |\n| 1 | 3s |"), "镜头 时长 1 3s");
+test("markdownPlainText compresses the table into cell text", () => {
+    assert.equal(markdownPlainText("| Shot | Duration |\n| --- | --- |\n| 1 | 3s |"), "Shot duration 1 3s");
 });
 
-test("markdownPlainText 行内代码与引用块只保留内容", () => {
-    assert.equal(markdownPlainText("> 引用 `generate_media` 工具"), "引用 generate_media 工具");
+test("markdownPlainText inline code and quote blocks only retain content", () => {
+    assert.equal(markdownPlainText("> Reference `generate_media` tool"), "Quoting the generate_media tool");
 });

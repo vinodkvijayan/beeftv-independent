@@ -117,7 +117,7 @@ func (m *memStore) Retry(userID string, prepared *model.Task, limit int) (*model
 		return nil, repository.ErrActiveTaskLimit
 	}
 	task.Status = model.TaskStatusQueued
-	task.Stage = "等待队列调度"
+	task.Stage = "Waiting for queue scheduling"
 	task.Progress = 5
 	task.Error = ""
 	task.InputJSON = prepared.InputJSON
@@ -136,8 +136,8 @@ func (m *memStore) CancelIfStatus(userID, id string, expected model.TaskStatus, 
 		return false, nil
 	}
 	task.Status = model.TaskStatusCancelled
-	task.Stage = "任务已取消"
-	task.Error = "任务已取消"
+	task.Stage = "Task canceled"
+	task.Error = "Task canceled"
 	task.CompletedAt = &now
 	m.tasks[id] = task
 	return true, nil
@@ -229,7 +229,7 @@ func (f failClass) UserMessage(string) string {
 	if f.message != "" {
 		return f.message
 	}
-	return "任务失败"
+	return "Task failed"
 }
 
 type flagReplay struct{}
@@ -256,7 +256,7 @@ type allowMedia struct{}
 type blockedTransportMedia struct{ allowMedia }
 
 func (blockedTransportMedia) ValidateTransport(string, map[string]any) error {
-	return &kernel.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Message: "当前渠道需要在线素材链接：参考图片 1无法直接读取"}
+	return &kernel.AppError{Status: 400, Code: 400, Reason: "reference_media_requires_url", Message: "The current channel requires online material links: reference picture 1 cannot be read directly"}
 }
 
 func TestMediaTransportRejectedBeforeQueueAndOnFreshRetry(t *testing.T) {
@@ -506,9 +506,9 @@ func TestRetiredOperationsAreRejectedAndHistoryKept(t *testing.T) {
 	store := newMemStore()
 	svc := domainService(store, nil)
 	for _, req := range []CreateRequest{
-		{Type: "canvas_text", Operation: "cloud_agent", Prompt: "帮我改画布"},
-		{Type: "canvas_text", Operation: "agent_memory_compact", Prompt: "压缩"},
-		{Type: "canvas_text", Prompt: "帮我改画布", Input: map[string]any{"cloudAgent": map[string]any{"version": 1}}},
+		{Type: "canvas_text", Operation: "cloud_agent", Prompt: "Help me change the canvas"},
+		{Type: "canvas_text", Operation: "agent_memory_compact", Prompt: "Compression"},
+		{Type: "canvas_text", Prompt: "Help me change the canvas", Input: map[string]any{"cloudAgent": map[string]any{"version": 1}}},
 	} {
 		if _, err := svc.CreateTask("user", req); err == nil || !strings.Contains(err.Error(), "已下线") {
 			t.Fatalf("retired create error = %v for %#v", err, req)
@@ -520,14 +520,14 @@ func TestRetiredOperationsAreRejectedAndHistoryKept(t *testing.T) {
 	now := time.Now()
 	legacy := model.Task{
 		ID: "legacy-agent-failed", UserID: "user", Type: "canvas_text", Operation: RetiredCloudAgentPrefix,
-		Status: model.TaskStatusFailed, Error: "上一版失败原因", Prompt: "帮我改画布", CreatedAt: now, UpdatedAt: now,
+		Status: model.TaskStatusFailed, Error: "Reason for failure of previous version", Prompt: "Help me change the canvas", CreatedAt: now, UpdatedAt: now,
 	}
 	store.tasks[legacy.ID] = legacy
 	if _, err := svc.Retry("user", legacy.ID); err == nil || !strings.Contains(err.Error(), "已下线") {
 		t.Fatalf("retired retry error = %v", err)
 	}
 	stored, _ := store.TaskForUser("user", legacy.ID)
-	if stored.Status != model.TaskStatusFailed || stored.Error != "上一版失败原因" {
+	if stored.Status != model.TaskStatusFailed || stored.Error != "Reason for failure of previous version" {
 		t.Fatalf("historical row mutated: %+v", stored)
 	}
 	trusted, err := svc.CreateTask("user", CreateRequest{
@@ -562,12 +562,12 @@ func TestDrainRejectsCreateAndRetry(t *testing.T) {
 func TestRetryUnknownAcceptanceAndImageReceiptStayOnOriginalTask(t *testing.T) {
 	store := newMemStore()
 	svc := domainService(store, func(deps *Dependencies) {
-		deps.Images = imageGuard{err: kernel.BadAuthRequest("图片请求可能已经生成，请保留任务记录并联系支持查询结果，不要重复提交")}
+		deps.Images = imageGuard{err: kernel.BadAuthRequest("The image request may have already been generated. Please keep the task record and contact support to query the results. Do not submit again.")}
 		deps.Failures = failClass{block: true, category: generation.CategorySubmissionUncertain}
 	})
 	task := model.Task{
 		ID: "img-1", UserID: "user", Type: "canvas_image", Status: model.TaskStatusFailed,
-		Stage: "submission_unknown", Error: "提交结果尚未确认", Prompt: "cat",
+		Stage: "submission_unknown", Error: "The submission result has not yet been confirmed", Prompt: "cat",
 	}
 	store.tasks[task.ID] = task
 	if _, err := svc.Retry("user", task.ID); err == nil || !strings.Contains(err.Error(), "不要重复提交") && !strings.Contains(err.Error(), "尚未确认") {
@@ -722,9 +722,9 @@ func TestTextReplayRejectsForeignDeletedArchivedScope(t *testing.T) {
 		name string
 		err  error
 	}{
-		{"foreign", kernel.Forbidden("无权使用该项目")},
-		{"deleted", kernel.NotFound("项目不存在")},
-		{"archived", kernel.BadAuthRequest("项目已归档，无法创建生成任务")},
+		{"foreign", kernel.Forbidden("Don't have permission to use this item")},
+		{"deleted", kernel.NotFound("Project does not exist")},
+		{"archived", kernel.BadAuthRequest("The project is archived and the build task cannot be created")},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -765,7 +765,7 @@ func TestTextReplayRejectsUnserializableInput(t *testing.T) {
 	store := newMemStore()
 	svc := domainService(store, func(deps *Dependencies) { deps.Catalog = poisonCatalog{} })
 	_, err := svc.CreateTask("user", textReplayReq("hello", "proposal:text:poison"))
-	if err == nil || !strings.Contains(err.Error(), "序列化任务输入失败") {
+	if err == nil || !strings.Contains(err.Error(), "Serialization task input failed") {
 		t.Fatalf("marshal error = %v", err)
 	}
 	if listed, _ := store.List("user", 10, "", false); len(listed) != 0 {

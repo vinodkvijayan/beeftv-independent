@@ -25,15 +25,15 @@ function keyframe(id: string, time: number, value: DirectorTransform): DirectorK
 }
 
 describe("snapDirectorTime", () => {
-    test("按帧率吸附并夹到非负", () => {
+    test("Snap by frame rate and clip to non-negative", () => {
         expect(snapDirectorTime(1.031, 24)).toBeCloseTo(1.0416666, 6);
         expect(snapDirectorTime(-0.4, 24)).toBe(0);
         expect(snapDirectorTime(1.031, 0)).toBeCloseTo(1.0416666, 6);
     });
 });
 
-describe("摄影机对齐当前视图", () => {
-    test("无关键帧时更新基础 transform", () => {
+describe("Camera snaps to current view", () => {
+    test("Update base transform when there are no keyframes", () => {
         const camera = createDirectorCamera();
         const aligned = transform([9, 3, 2]);
         const next = resolveDirectorCameraAlignment(camera, aligned, 1);
@@ -41,7 +41,7 @@ describe("摄影机对齐当前视图", () => {
         expect(next.keyframes).toEqual([]);
     });
 
-    test("已有轨迹时写当前时间关键帧，CAM 立即显示对齐结果且不丢其他帧", () => {
+    test("Write the current time keyframe when there is a track, and CAM will immediately display the alignment result without losing other frames.", () => {
         const camera = {
             ...createDirectorCamera(),
             keyframes: [keyframe("start", 0, transform([0, 0, 0])), keyframe("end", 2, transform([10, 0, 0]))],
@@ -55,7 +55,7 @@ describe("摄影机对齐当前视图", () => {
         expect(next.keyframes.find((item) => item.id === "end")).toEqual(camera.keyframes[1]);
     });
 
-    test("移动光学专用帧时重新建立位置关键帧，且保留焦点", () => {
+    test("Re-establish position keyframes when moving optical-specific frames and preserve focus", () => {
         const camera = { ...createDirectorCamera(), keyframes: [
             keyframe("start", 0, transform([0, 0, 0])),
             { ...keyframe("focus", 1, transform([5, 0, 0])), positionKeyed: false, target: [1, 1, 0] as [number, number, number] },
@@ -69,8 +69,8 @@ describe("摄影机对齐当前视图", () => {
     });
 });
 
-describe("生成摄影机运镜首尾帧", () => {
-    test("推进、拉远和环绕相对当前焦点计算；摇镜与俯仰旋转摄影机而不平移", () => {
+describe("Generate the first and last frames of the camera movement", () => {
+    test("Advance, zoom out, and orbit are calculated relative to the current focus; pan and tilt rotate the camera without panning.", () => {
         const start = transform([0, 2, 0]);
         const target: [number, number, number] = [10, 2, 0];
         const pushed = resolveDirectorCameraMoveTransform(start, target, "push_in");
@@ -91,7 +91,7 @@ describe("生成摄影机运镜首尾帧", () => {
         expect(orbited.position[2]).toBeGreaterThan(0);
     });
 
-    test("保留手工中间帧、已有 id 与 easing，只更新首尾 transform", () => {
+    test("Keep the manual intermediate frames, existing ids and easing, and only update the first and last transforms", () => {
         const existing: DirectorKeyframe[] = [{ ...keyframe("start", 0, transform([9, 0, 0])), easing: "step" }, { ...keyframe("manual", 1, transform([4, 2, 0])), easing: "smooth" }, keyframe("end", 2, transform([8, 0, 0]))];
         const next = resolveDirectorCameraMoveKeyframes(existing, transform([0, 0, 0]), transform([2, 0, 0]), 2);
         expect(next.map((item) => item.id)).toEqual(["start", "manual", "end"]);
@@ -101,44 +101,44 @@ describe("生成摄影机运镜首尾帧", () => {
         expect(next[0].easing).toBe("step");
     });
 
-    test("空轨道生成两枚有序首尾帧", () => {
+    test("The empty track generates two ordered first and last frames.", () => {
         const next = resolveDirectorCameraMoveKeyframes([], transform([0, 0, 0]), transform([0, 0, -2]), 3);
         expect(next.map((item) => item.time)).toEqual([0, 3]);
     });
 });
 
-describe("播放头循环推进", () => {
-    test("跨越镜头末尾时保留余量", () => {
+describe("Playhead loop advance", () => {
+    test("Preserve margin when crossing end of shot", () => {
         expect(advanceDirectorPlayhead(1.9, 0.3, 2)).toBeCloseTo(0.2, 8);
     });
 
-    test("非法播放头、增量和时长安全回落", () => {
+    test("Safe fallback of illegal playheads, increments and durations", () => {
         expect(advanceDirectorPlayhead(Number.NaN, 0.5, 2)).toBe(0.5);
         expect(advanceDirectorPlayhead(1, Number.NaN, 2)).toBe(1);
         expect(advanceDirectorPlayhead(1, 1, 0)).toBe(0);
     });
 });
 
-describe("Transform 轨迹统计", () => {
-    test("按时间顺序累计空间路径，不把输入数组顺序当成路径顺序", () => {
+describe("Transform trajectory statistics", () => {
+    test("Accumulate spatial paths in chronological order, and do not regard the input array order as the path order.", () => {
         const keys = [keyframe("end", 2, transform([3, 4, 0])), keyframe("start", 0, transform([0, 0, 0])), keyframe("middle", 1, transform([0, 4, 0]))];
         expect(directorTransformPathLength(keys)).toBe(7);
         expect(keys.map((key) => key.id)).toEqual(["end", "start", "middle"]);
     });
 
-    test("忽略含非法坐标的段，避免 NaN 污染轨迹显示判断", () => {
+    test("Ignore segments containing illegal coordinates to avoid NaN pollution in trajectory display judgment.", () => {
         const keys = [keyframe("valid", 0, transform([0, 0, 0])), keyframe("invalid", 1, transform([Number.NaN, 2, 0])), keyframe("valid-again", 2, transform([3, 4, 0]))];
         expect(directorTransformPathLength(keys)).toBe(0);
     });
 
-    test("轨迹渲染过滤非法时间与坐标，不把 NaN/Infinity 传给 Three", () => {
+    test("Track rendering filters out illegal times and coordinates, and does not pass NaN/Infinity to Three", () => {
         const keys = [keyframe("start", 0, transform([0, 0, 0])), keyframe("bad-time", Number.NaN, transform([1, 0, 0])), keyframe("bad-position", 1, transform([Number.POSITIVE_INFINITY, 0, 0])), keyframe("end", 2, transform([2, 0, 0]))];
         const renderable = finiteDirectorTransformKeyframes(keys);
         expect(renderable.map((item) => item.id)).toEqual(["start", "end"]);
         expect(renderable.flatMap((item) => [item.time, ...item.transform.position]).every(Number.isFinite)).toBe(true);
     });
 
-    test("纯旋转帧不得伪造人物运动轨迹", () => {
+    test("Pure rotation frames must not falsify character movement trajectories", () => {
         const keys: DirectorKeyframe[] = [
             { ...keyframe("start", 0, transform([0, 0, 0])), positionKeyed: false, rotationKeyed: true },
             { ...keyframe("end", 2, transform([5, 0, 0])), positionKeyed: false, rotationKeyed: true },
@@ -148,8 +148,8 @@ describe("Transform 轨迹统计", () => {
     });
 });
 
-describe("resolveDirectorObjectTransformEdit：Auto Key 打开", () => {
-    test("只在吸附播放头写单个关键帧，base 与其他关键帧不变", () => {
+describe("resolveDirectorObjectTransformEdit: Auto Key on", () => {
+    test("Only write a single keyframe in the adsorption playhead, and the base and other keyframes remain unchanged.", () => {
         const base = transform([0, 0, 0]);
         const keyframes = [keyframe("k0", 0, transform([0, 0, 0])), keyframe("k2", 2, transform([4, 0, 0]))];
         const edit = resolveDirectorObjectTransformEdit({ base, keyframes, rendered: transform([2, 0, 0]), edited: transform([2, 5, 0]), autoKey: true, time: 1 });
@@ -160,13 +160,13 @@ describe("resolveDirectorObjectTransformEdit：Auto Key 打开", () => {
         expect(edit.keyframes.find((item) => item.id === "k2")?.transform.position).toEqual([4, 0, 0]);
     });
 
-    test("同一时间重复编辑复用同一关键帧而不是新增", () => {
+    test("Repeated editing at the same time reuses the same keyframe instead of adding new ones", () => {
         const edit = resolveDirectorObjectTransformEdit({ base: transform([0, 0, 0]), keyframes: [keyframe("k1", 1, transform([1, 0, 0]))], rendered: transform([1, 0, 0]), edited: transform([9, 0, 0]), autoKey: true, time: 1 });
         expect(edit.keyframes).toHaveLength(1);
         expect(edit.keyframes[0].transform.position).toEqual([9, 0, 0]);
     });
 
-    test("已有部分属性组帧时自动关键帧编辑位置会启用位置，而不误开缩放", () => {
+    test("When some attributes are already framed, the automatic keyframe editing position will enable the position without accidentally turning on the zoom.", () => {
         const base = transform([0, 0, 0]);
         const keyframes: DirectorKeyframe[] = [{ id: "rotation-only", time: 1, transform: base, positionKeyed: false, rotationKeyed: true, scaleKeyed: false }];
         const edit = resolveDirectorObjectTransformEdit({ base, keyframes, rendered: base, edited: transform([5, 0, 0]), autoKey: true, time: 1 });
@@ -176,15 +176,15 @@ describe("resolveDirectorObjectTransformEdit：Auto Key 打开", () => {
     });
 });
 
-describe("resolveDirectorObjectTransformEdit：Auto Key 关闭", () => {
-    test("无关键帧时直接改写 base，保留用户输入的精确数值", () => {
+describe("resolveDirectorObjectTransformEdit:Auto Key off", () => {
+    test("When there are no keyframes, base is rewritten directly and the exact value entered by the user is retained.", () => {
         const edited = transform([1.5, 2.25, -3], [0.1, 0.2, 0.3], [2, 2, 2]);
         const edit = resolveDirectorObjectTransformEdit({ base: transform([0, 0, 0]), keyframes: [], rendered: transform([0, 0, 0]), edited, autoKey: false, time: 0.5 });
         expect(edit.transform).toEqual(edited);
         expect(edit.keyframes).toEqual([]);
     });
 
-    test("有关键帧时把增量整体搬到 base 和所有关键帧，编辑立即可见", () => {
+    test("When there are keyframes, move the entire increment to base and all keyframes, and the edit will be immediately visible.", () => {
         const base = transform([0, 0, 0]);
         const keyframes = [keyframe("k0", 0, transform([0, 0, 0])), keyframe("k2", 2, transform([4, 0, 0]))];
         const rendered = interpolateDirectorTransform(base, keyframes, 1);
@@ -199,8 +199,8 @@ describe("resolveDirectorObjectTransformEdit：Auto Key 关闭", () => {
     });
 });
 
-describe("未被编辑场景的兼容性", () => {
-    test("单关键帧场景在编辑前后都由该关键帧决定渲染", () => {
+describe("Compatibility of unedited scenes", () => {
+    test("Single keyframe scenes are rendered by this keyframe before and after editing.", () => {
         const base = transform([0, 0, 0]);
         const keyframes = [keyframe("only", 1, transform([7, 0, 0]))];
         expect(interpolateDirectorTransform(base, keyframes, 0).position).toEqual([7, 0, 0]);
@@ -210,7 +210,7 @@ describe("未被编辑场景的兼容性", () => {
         expect(interpolateDirectorTransform(edit.transform, edit.keyframes, 3).position).toEqual([7, 2, 0]);
     });
 
-    test("零增量编辑不改变任何已有关键帧的渲染结果", () => {
+    test("Zero incremental editing does not change the rendering results of any existing keyframes", () => {
         const base = transform([1, 1, 1], [0, 0.3, 0], [2, 2, 2]);
         const keyframes = [keyframe("a", 0, transform([0, 0, 0])), keyframe("b", 4, transform([8, 2, 0]))];
         const rendered = interpolateDirectorTransform(base, keyframes, 2);
@@ -224,8 +224,8 @@ describe("未被编辑场景的兼容性", () => {
     });
 });
 
-describe("缩放增量的零值与比例行为", () => {
-    test("源缩放为 0 时用绝对偏移，不产生 Infinity 或 NaN", () => {
+describe("Zero value and proportional behavior of scaling increments", () => {
+    test("Use absolute offset when source scale is 0, no Infinity or NaN will be generated", () => {
         const delta = directorTransformDelta(transform([0, 0, 0], [0, 0, 0], [0, 0, 0]), transform([0, 0, 0], [0, 0, 0], [3, 0, 1.5]));
         expect(delta.scaleRatio).toEqual([1, 1, 1]);
         expect(delta.scaleOffset).toEqual([3, 0, 1.5]);
@@ -234,13 +234,13 @@ describe("缩放增量的零值与比例行为", () => {
         expect(applied.scale).toEqual([3, 0, 1.5]);
     });
 
-    test("非零缩放走比例，等比套用到其他关键帧", () => {
+    test("Non-zero scaling takes place proportionally and is applied to other keyframes proportionally.", () => {
         const delta = directorTransformDelta(transform([0, 0, 0], [0, 0, 0], [2, 2, 2]), transform([0, 0, 0], [0, 0, 0], [3, 3, 3]));
         expect(delta.scaleRatio).toEqual([1.5, 1.5, 1.5]);
         expect(applyDirectorTransformDelta(transform([0, 0, 0], [0, 0, 0], [4, 4, 4]), delta).scale).toEqual([6, 6, 6]);
     });
 
-    test("旋转增量在整条路径上保持确定性（按朝向而非欧拉三元组断言）", () => {
+    test("Rotation increments remain deterministic over the entire path (asserted by orientation rather than Euler triples)", () => {
         const delta = directorTransformDelta(transform([0, 0, 0], [0, 0, 0]), transform([0, 0, 0], [0, Math.PI / 2, 0]));
         const applied = applyDirectorTransformDelta(transform([0, 0, 0], [0, 0, 0]), delta);
         expect(applied.rotation[1]).toBeCloseTo(Math.PI / 2, 6);
@@ -252,7 +252,7 @@ describe("缩放增量的零值与比例行为", () => {
     });
 });
 
-describe("raw playhead 与 snapped 目的时间的分工（#2 回归）", () => {
+describe("The division of labor between raw playhead and snapped purpose time (#2 Return)", () => {
     // 24fps 下 1.02s 落在两个帧格之间：snapped = 1.0，raw = 1.02。
     const fps = 24;
     const rawTime = 1.02;
@@ -260,13 +260,13 @@ describe("raw playhead 与 snapped 目的时间的分工（#2 回归）", () => 
     const base = transform([0, 0, 0]);
     const keyframes = [keyframe("k0", 0, transform([0, 0, 0])), keyframe("k2", 2, transform([20, 0, 0]))];
 
-    test("前置条件：raw 与 snapped 真的解算出不同的值", () => {
+    test("Precondition: raw and snapped really solve for different values.", () => {
         expect(snappedTime).toBeCloseTo(1, 6);
         expect(interpolateDirectorTransform(base, keyframes, rawTime).position[0]).toBeCloseTo(10.2, 6);
         expect(interpolateDirectorTransform(base, keyframes, snappedTime).position[0]).toBeCloseTo(10, 6);
     });
 
-    test("记录关键帧：取值用 raw，写入时间用 snapped", () => {
+    test("Record key frames: use raw for values and snapped for writing times.", () => {
         const record = resolveDirectorKeyframeRecord({ base, keyframes, rawTime, snappedTime });
         expect(record.time).toBeCloseTo(1, 6);
         // 取错时间会写成 10（rendered-at-snapped），这里必须是 10.2（rendered-at-raw）。
@@ -275,7 +275,7 @@ describe("raw playhead 与 snapped 目的时间的分工（#2 回归）", () => 
         expect(written?.transform.position[0]).toBeCloseTo(10.2, 6);
     });
 
-    test("位置菱形只切换位置组，第二次点击移除这一组而不创建空帧", () => {
+    test("The position diamond only switches the position group, a second click removes this group without creating an empty frame", () => {
         const first = resolveDirectorKeyframeRecord({ base, keyframes: [], rawTime: 1, snappedTime: 1, channel: "position" });
         expect(first.keyframes).toHaveLength(1);
         expect(first.keyframes[0]).toMatchObject({ positionKeyed: true, rotationKeyed: false, scaleKeyed: false });
@@ -283,7 +283,7 @@ describe("raw playhead 与 snapped 目的时间的分工（#2 回归）", () => 
         expect(second.keyframes).toEqual([]);
     });
 
-    test("已有旋转组的同一帧加入位置，再取消位置仍保留旋转", () => {
+    test("Add the position to the same frame that already has a rotation group, and then cancel the position and still retain the rotation.", () => {
         const rotation = resolveDirectorKeyframeRecord({ base, keyframes: [], rawTime: 1, snappedTime: 1, channel: "rotation" });
         const withPosition = resolveDirectorKeyframeRecord({ base, keyframes: rotation.keyframes, rawTime: 1, snappedTime: 1, channel: "position" });
         expect(withPosition.keyframes[0]).toMatchObject({ positionKeyed: true, rotationKeyed: true, scaleKeyed: false });
@@ -292,7 +292,7 @@ describe("raw playhead 与 snapped 目的时间的分工（#2 回归）", () => 
         expect(withoutPosition.keyframes[0]).toMatchObject({ positionKeyed: false, rotationKeyed: true, scaleKeyed: false });
     });
 
-    test("AutoKey OFF 的增量起点必须是 rendered-at-raw，否则编辑后在 raw 处漂移", () => {
+    test("The incremental starting point of AutoKey OFF must be rendered-at-raw, otherwise it will drift at raw after editing.", () => {
         const edited = transform([10.2, 4, 0]);
         const fromRaw = interpolateDirectorTransform(base, keyframes, rawTime);
         const correct = resolveDirectorObjectTransformEdit({ base, keyframes, rendered: fromRaw, edited, autoKey: false, time: snappedTime });
@@ -306,7 +306,7 @@ describe("raw playhead 与 snapped 目的时间的分工（#2 回归）", () => 
         expect(Math.abs(afterDrift.position[0] - edited.position[0])).toBeGreaterThan(0.1);
     });
 
-    test("AutoKey ON 在 raw 与 snapped 之间时只写一个吸附帧", () => {
+    test("AutoKey ON only writes one snap frame when between raw and snapped", () => {
         const rendered = interpolateDirectorTransform(base, keyframes, rawTime);
         const edit = resolveDirectorObjectTransformEdit({ base, keyframes, rendered, edited: transform([10.2, 7, 0]), autoKey: true, time: snappedTime });
         expect(edit.keyframes).toHaveLength(3);

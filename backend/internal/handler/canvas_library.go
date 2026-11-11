@@ -64,11 +64,11 @@ func registerCanvasLibraryRoutes(r *gin.RouterGroup, owners workspaceOwners, can
 			ID string `json:"id"`
 		}
 		if json.Unmarshal(req.Folder, &identity) != nil {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("文件夹数据格式错误"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Folder data format error"))
 			return
 		}
 		if identity.ID != "" && identity.ID != c.Param("id") {
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("文件夹 ID 与请求路径不一致"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Folder ID does not match requested path"))
 			return
 		}
 		folder, err := writes.UpsertUserCanvasFolder(user.ID, c.Param("id"), req.Folder)
@@ -133,10 +133,10 @@ func registerCanvasLibraryRoutes(r *gin.RouterGroup, owners workspaceOwners, can
 		if err := c.ShouldBindJSON(&req); err != nil {
 			var maxErr *http.MaxBytesError
 			if errors.As(err, &maxErr) {
-				failService(c, kernel.QuotaExceeded(fmt.Sprintf("账号画布和素材数据已达到 %dMB 上限，请先删除不需要的内容", policy.Resource.StructuredDataMB)))
+				failService(c, kernel.QuotaExceeded(fmt.Sprintf("The account canvas and material data have reached the upper limit of %dMB. Please delete unnecessary content first.", policy.Resource.StructuredDataMB)))
 				return
 			}
-			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("画板数据格式错误"))
+			fail(c, http.StatusBadRequest, kernel.BadAuthRequest("Artboard data format error"))
 			return
 		}
 		drawing, err := writes.UpsertUserCanvasDrawing(user.ID, c.Param("id"), c.Param("drawingId"), req.Drawing)

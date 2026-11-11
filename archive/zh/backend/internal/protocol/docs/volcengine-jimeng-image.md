@@ -1,24 +1,24 @@
-# 即梦官方图片异步 API
+# Jimeng official picture asynchronous API
 
-本插件使用即梦视觉异步任务模式：提交任务取得 `task_id`，再以相同 `req_key` 查询结果。接口由火山引擎视觉服务的 AK/SK 签名体系保护，不是 Bearer 兼容接口。
+This plug-in uses the Jimeng Vision asynchronous task mode: submit the task to obtain `task_id`, and then query the result with the same `req_key`. The interface is protected by the AK/SK signature system of the Volcano Engine Vision Service and is not a Bearer compatible interface.
 
-## 接口与签名
+## Interface and signature
 
 {{OPERATIONS}}
 
-逻辑操作名为 `CVSync2AsyncSubmitTask` 和 `CVSync2AsyncGetResult`。实际主机、Query 参数、Service/Region 与签名头由渠道的火山签名实现负责；不能只对这两个字符串执行普通 HTTP POST。
+The logical operations are named `CVSync2AsyncSubmitTask` and `CVSync2AsyncGetResult`. The actual host, Query parameters, Service/Region and signature headers are the responsibility of the channel's Volcano signature implementation; you cannot just perform a normal HTTP POST on these two strings.
 
-## 模型与 req_key
+## Model and req_key
 
-宿主模型 ID 映射为 `req_key`，必须与已开通的即梦能力完全一致。插件不提供可能过期的 `req_key` 白名单，也不根据名字推断文生图、图生图或版本能力。
+The host model ID is mapped to `req_key`, which must be completely consistent with the activated dream ability. The plug-in does not provide a whitelist of `req_key` that may be out of date, nor does it infer font, graph, or version capabilities from the name.
 
-## 参数与字段映射
+## Parameter and field mapping
 
 {{PARAMETERS}}
 
-当前实现发送 `req_key`、`prompt`，有参考图时发送 `image_urls`。`extra` 可覆盖 `req_key`、`prompt`、`image_urls`、`seed`、`width`、`height`。平台的 `aspectRatio`、`quality`、`resolution` 和 `imageCount` 没有自动转换。
+Currently, `req_key` and `prompt` are sent, and `image_urls` is sent when there is a reference picture. `extra` can cover `req_key`, `prompt`, `image_urls`, `seed`, `width`, `height`. There is no automatic conversion for platforms `aspectRatio`, `quality`, `resolution` and `imageCount`.
 
-## 创建请求正文
+## Create request body
 
 ```json
 {
@@ -31,27 +31,27 @@
 }
 ```
 
-创建响应至少需要可识别任务 ID：
+Creating a response requires at least a recognizable task ID:
 
 ```json
 {"data":{"task_id":"task_xxx"}}
 ```
 
-## 轮询请求与结果
+## Polling requests and results
 
 ```json
 {"req_key":"YOUR_JIMENG_REQ_KEY","task_id":"task_xxx"}
 ```
 
-轮询响应从顶层、`task` 或 `data` 读取状态，并按图片类型提取 `images`、`image_url`、`imageUrl`、`result_url` 或 `url`；图片数组可包含 URL 字符串或对象。若结果只出现在即梦其他专属嵌套字段中，需要补 fixture 和专属解析，不能把“拿到 completed”当作已经保存图片。
+The poll response reads status from the top level, `task` or `data`, and extracts by image type `images`, `image_url`, `imageUrl`, `result_url` or `url`; the image array can contain URL strings or objects. If the result only appears in other exclusive nested fields of Jimeng, fixture and exclusive analysis need to be supplemented, and "get completed" cannot be regarded as a saved image.
 
-## 错误与排查
+## Errors and troubleshooting
 
-签名时间偏差、Region/Service 错误、`req_key` 未开通、素材不可下载、宽高不支持和内容审核都会导致失败。日志可以记录请求 ID 和错误码，不得记录 Secret Key、完整签名或私有素材 data URL。
+Signature time deviation, Region/Service error, `req_key` not activated, material cannot be downloaded, width and height not supported, and content review will all cause failure. Logs may record request IDs and error codes, but may not record Secret Keys, full signatures, or private material data URLs.
 
-## 官方资料
+## Official information
 
-- [火山引擎视觉智能开放平台](https://www.volcengine.com/docs/85621)
-- [火山引擎签名方法](https://www.volcengine.com/docs/6369/67269)
+- [Volcano Engine Vision Intelligent Open Platform](https://www.volcengine.com/docs/85621)
+- [Volcano Engine Signature Method](https://www.volcengine.com/docs/6369/67269)
 
 {{CONTRACT}}

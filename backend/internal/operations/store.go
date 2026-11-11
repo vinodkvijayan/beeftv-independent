@@ -103,7 +103,7 @@ func (s *Store) Run(ctx context.Context, req RunRequest, fn func(tx *gorm.DB) ([
 		ctx = context.Background()
 	}
 	if !s.Available() {
-		return RunOutcome{}, newError(CodeInternal, "op_store_unavailable", "操作记录存储不可用", nil)
+		return RunOutcome{}, newError(CodeInternal, "op_store_unavailable", "Operation record storage is unavailable", nil)
 	}
 	db := s.db.WithContext(ctx)
 	if strings.TrimSpace(req.OpID) == "" {
@@ -129,11 +129,11 @@ func (s *Store) Run(ctx context.Context, req RunRequest, fn func(tx *gorm.DB) ([
 			}
 			if existing.Status != "succeeded" {
 				return Conflict("operation_in_progress",
-					"同一操作正在执行或上次未成功，未回放结果", map[string]any{"opId": req.OpID, "status": existing.Status})
+					"The same operation is being executed or was not successful last time and the results are not played back", map[string]any{"opId": req.OpID, "status": existing.Status})
 			}
 			if !payloadHashAccepted(existing.PayloadHash, req) || existing.Op != req.Op {
 				return Conflict("operation_id_reused_with_different_payload",
-					"同一操作 ID 已用于不同的请求内容；请换用新的操作 ID",
+					"The same operation ID has been used for different request content; please use a new operation ID instead",
 					map[string]any{"opId": req.OpID, "existingOp": existing.Op})
 			}
 			outcome = RunOutcome{Result: []byte(existing.ResultJSON), Replayed: true}
@@ -141,7 +141,7 @@ func (s *Store) Run(ctx context.Context, req RunRequest, fn func(tx *gorm.DB) ([
 		}
 		if strings.TrimSpace(req.TurnID) != "" {
 			if req.TurnGuard == nil {
-				return PreconditionFailed("turn_guard_unavailable", "助手轮次校验不可用", nil)
+				return PreconditionFailed("turn_guard_unavailable", "Assistant round verification is not available", nil)
 			}
 			if err := req.TurnGuard.VerifyOpenAssistantTurnInTx(tx, req.UserID, req.TurnID, req.CanvasID); err != nil {
 				return err
@@ -193,11 +193,11 @@ func (s *Store) runOutOfTx(db *gorm.DB, req RunRequest, fn func(tx *gorm.DB) ([]
 			}
 			if existing.Status != "succeeded" {
 				return Conflict("operation_in_progress",
-					"同一操作正在执行或上次未成功，未回放结果", map[string]any{"opId": req.OpID, "status": existing.Status})
+					"The same operation is being executed or was not successful last time and the results are not played back", map[string]any{"opId": req.OpID, "status": existing.Status})
 			}
 			if !payloadHashAccepted(existing.PayloadHash, req) || existing.Op != req.Op {
 				return Conflict("operation_id_reused_with_different_payload",
-					"同一操作 ID 已用于不同的请求内容；请换用新的操作 ID",
+					"The same operation ID has been used for different request content; please use a new operation ID instead",
 					map[string]any{"opId": req.OpID, "existingOp": existing.Op})
 			}
 			outcome = RunOutcome{Result: []byte(existing.ResultJSON), Replayed: true}
@@ -205,7 +205,7 @@ func (s *Store) runOutOfTx(db *gorm.DB, req RunRequest, fn func(tx *gorm.DB) ([]
 		}
 		if strings.TrimSpace(req.TurnID) != "" {
 			if req.TurnGuard == nil {
-				return PreconditionFailed("turn_guard_unavailable", "助手轮次校验不可用", nil)
+				return PreconditionFailed("turn_guard_unavailable", "Assistant round verification is not available", nil)
 			}
 			if err := req.TurnGuard.VerifyOpenAssistantTurnInTx(tx, req.UserID, req.TurnID, req.CanvasID); err != nil {
 				return err
@@ -242,7 +242,7 @@ func (s *Store) runOutOfTx(db *gorm.DB, req RunRequest, fn func(tx *gorm.DB) ([]
 // RunDomain 把当前事务绑成 Domain 再执行：业务端口拿不到 *gorm.DB。
 func (s *Store) RunDomain(ctx context.Context, req RunRequest, binder DomainBinder, fn func(domain Domain) ([]byte, error)) (RunOutcome, error) {
 	if binder == nil {
-		return RunOutcome{}, newError(CodeInternal, "op_domain_unavailable", "操作域绑定不可用", nil)
+		return RunOutcome{}, newError(CodeInternal, "op_domain_unavailable", "Operation domain binding is not available", nil)
 	}
 	if guard, ok := binder.(TurnGuard); ok {
 		req.TurnGuard = guard
@@ -250,7 +250,7 @@ func (s *Store) RunDomain(ctx context.Context, req RunRequest, binder DomainBind
 	return s.Run(ctx, req, func(tx *gorm.DB) ([]byte, error) {
 		domain := binder.BindDomain(tx)
 		if domain == nil {
-			return nil, newError(CodeInternal, "op_domain_unavailable", "操作域绑定不可用", nil)
+			return nil, newError(CodeInternal, "op_domain_unavailable", "Operation domain binding is not available", nil)
 		}
 		return fn(domain)
 	})

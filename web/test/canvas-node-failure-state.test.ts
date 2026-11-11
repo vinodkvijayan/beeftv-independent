@@ -42,7 +42,7 @@ test("changed error and cleared failure cannot reuse a stale explanation", () =>
 });
 
 test("upload interruption and recovery placeholders are not generation failures", () => {
-    for (const metadata of [{ fileUpload: "error" as const, errorDetails: "上传已中断，请重新选择文件上传" }, { status: "loading" as const, errorDetails: "正在从任务中心恢复生成状态..." }]) {
+    for (const metadata of [{ fileUpload: "error" as const, errorDetails: "Upload has been interrupted, please select file upload again" }, { status: "loading" as const, errorDetails: "Restoring build status from Task Center..." }]) {
         const item = { ...failure(), metadata };
         expect(persistCanvasNodeFailure(item)).toBe(item);
     }
@@ -50,12 +50,12 @@ test("upload interruption and recovery placeholders are not generation failures"
 
 test("an explicit outcome written over a local one is kept, so the node can regenerate", () => {
     const uncertain = failure();
-    uncertain.metadata = { status: "error", generationSubmissionState: "unknown", generationErrorCode: "submission_uncertain", errorDetails: "提交结果待确认" };
+    uncertain.metadata = { status: "error", generationSubmissionState: "unknown", generationErrorCode: "submission_uncertain", errorDetails: "Submit results to be confirmed" };
     const saved = persistCanvasNodeFailure(uncertain);
     expect(saved.metadata?.taskOutcome?.reason).toBe("submission_unknown");
     expect(saved.metadata?.taskOutcomeSource).toBe("local");
     // Recovery found no task for the operation: it writes not_charged and clears the marker.
-    const recovered = persistCanvasNodeFailure({ ...saved, metadata: { ...saved.metadata, generationSubmissionState: undefined, errorDetails: "上次提交没有找到，可以重新生成", taskOutcome: { phase: "failed", regenerate: "allowed", reason: "not_charged" } } });
+    const recovered = persistCanvasNodeFailure({ ...saved, metadata: { ...saved.metadata, generationSubmissionState: undefined, errorDetails: "The last submission was not found and can be regenerated.", taskOutcome: { phase: "failed", regenerate: "allowed", reason: "not_charged" } } });
     expect(recovered.metadata?.taskOutcome).toEqual({ phase: "failed", regenerate: "allowed", reason: "not_charged" });
     expect(recovered.metadata?.taskOutcomeSource).toBeUndefined();
     expect(recovered.metadata?.generationFailure?.localOutcome).toBeUndefined();
@@ -68,7 +68,7 @@ test("a local outcome is not a live task for generating state or upscale locks",
     const { hasCancellableCanvasNodeTask, isCanvasNodeGenerating } = await import("@/lib/canvas/canvas-node-task-state");
     const { canReloadCanvasNodeResource, isNodeRegenerateBlocked } = await import("@/lib/task-outcome");
     const uncertain = failure();
-    uncertain.metadata = { status: "error", generationSubmissionState: "unknown", errorDetails: "提交结果待确认" };
+    uncertain.metadata = { status: "error", generationSubmissionState: "unknown", errorDetails: "Submit results to be confirmed" };
     const saved = persistCanvasNodeFailure(uncertain);
     expect(saved.metadata?.taskOutcome?.phase).toBe("retrievable");
     expect(isCanvasNodeGenerating(uncertain)).toBe(false);
@@ -80,7 +80,7 @@ test("a local outcome is not a live task for generating state or upscale locks",
             taskId: "task-retrievable",
             taskStatus: "succeeded" as const,
             taskOutcome: { phase: "retrievable" as const, regenerate: "blocked" as const, reason: "delivery_pending" },
-            errorDetails: "生成结果已保留，请点击「继续取回」",
+            errorDetails: "The generated results have been retained, please click \"Continue to retrieve\"",
         },
     };
     expect(isCanvasNodeGenerating(retrievable)).toBe(false);

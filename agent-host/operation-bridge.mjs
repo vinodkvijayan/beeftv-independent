@@ -36,14 +36,14 @@ const canvasMutation = descriptor => descriptor.id.startsWith('canvas.') &&
 
 function assertToolGeneration(generation, descriptor, signal, turn) {
   if (generation.aborted || signal?.aborted) throw new Error('aborted');
-  if (generation.permissionMode === 'read-only' && (!descriptor.readOnly || descriptor.id === 'canvas.generation.propose' || descriptor.id === 'skill.script.run')) throw new Error('scope_denied: 本轮助手只能读取');
+  if (generation.permissionMode === 'read-only' && (!descriptor.readOnly || descriptor.id === 'canvas.generation.propose' || descriptor.id === 'skill.script.run')) throw new Error('scope_denied: This round of assistants can only read');
   if (canvasMutation(descriptor)) {
-    if (turn.studioReadAvailable === false) throw new Error('canvas_snapshot_unavailable: 无法读取当前画布，已暂停写入，请先恢复现场读取');
-    if (turn.canvasContextChanged) throw new Error('canvas_context_changed: 画布已变化，同批剩余写入已暂停；先依据最新现场重新决策，不要重放旧操作');
+    if (turn.studioReadAvailable === false) throw new Error('canvas_snapshot_unavailable: Unable to read the current canvas, writing has been suspended, please resume on-site reading first');
+    if (turn.canvasContextChanged) throw new Error('canvas_context_changed: The canvas has changed, and the remaining writes in the same batch have been suspended; make a new decision based on the latest scene first, and do not replay old operations.');
   }
   if ((!descriptor.readOnly || descriptor.id === 'canvas.generation.propose' || descriptor.id === 'skill.script.run') &&
       (generation.pendingInput?.state === 'pending' || generation.pendingInputError || generation.modelEpoch !== generation.intentEpoch)) {
-    throw new Error('turn_intent_changed: 已收到新的要求，先读取新要求再修改');
+    throw new Error('turn_intent_changed: A new request has been received. Read the new request first and then modify it.');
   }
 }
 
@@ -53,7 +53,7 @@ export const ASSISTANT_CANVAS_NODE_UPDATE_PATCH = {
   },
   content: {
     type: 'string',
-    description: '文本节点的正文或下次生成提示词草稿（省略的字段保持原样）',
+    description: 'The text of the text node or the draft prompt word generated next time (the omitted fields remain as they are)',
   },
 };
 
@@ -142,14 +142,14 @@ export function createOperationBridge({
           }
         } else if (Object.hasOwn(descriptor.params?.properties || {}, 'canvasId')) {
           if ((generation.permissionMode || 'canvas') === 'canvas' && descriptor.id !== 'canvas.get' && params.canvasId !== undefined && params.canvasId !== canvasId) {
-            throw new Error(`scope_denied: 画布参数与当前会话不一致（${params.canvasId} ≠ ${canvasId}）`);
+            throw new Error(`scope_denied: The canvas parameters are inconsistent with the current session (${params.canvasId} ≠ ${canvasId}）`);
           }
           if (params.canvasId === undefined) params.canvasId = canvasId;
         }
         let opId = '';
         if (!descriptor.readOnly) {
           if (!toolCallId) {
-            throw new Error(`missing_tool_call_id: ${descriptor.id} 写入缺少工具调用标识，已拒绝以免重复写入`);
+            throw new Error(`missing_tool_call_id: ${descriptor.id} Write missing tool call identifier, rejected to avoid repeated writing`);
           }
           opId = toolOperationId(identityPrefix, toolCallId);
           if (descriptor.id === 'canvas.task.bind') {
@@ -159,7 +159,7 @@ export function createOperationBridge({
             params.nodeId = typeof params.nodeId === 'string' ? params.nodeId.trim() : '';
             params.outputIndex = params.outputIndex ?? 0;
             if (!params.taskId || !params.nodeId || !Number.isSafeInteger(params.outputIndex) || params.outputIndex < 0) {
-              throw new Error('invalid_params: 绑定产物需要有效任务、节点和输出序号');
+              throw new Error('invalid_params: Binding products require valid tasks, nodes and output sequence numbers');
             }
             opId = `attach-node:${params.taskId}:${params.nodeId}:${params.outputIndex}`;
           }
@@ -170,7 +170,7 @@ export function createOperationBridge({
           turn.writeRequests ||= [];
           const prior = turn.writeRequests.find(item => item.opId === opId);
           if (prior && (prior.opID !== descriptor.id || prior.canvasId !== params.canvasId || prior.expectedRevision !== params.expectedRevision)) {
-            throw new Error('operation_id_reused_with_different_payload: 工具调用标识对应的操作已经改变');
+            throw new Error('operation_id_reused_with_different_payload: The operation corresponding to the tool call ID has changed');
           }
           const rebased = prior ? prior.sentRevision : rebaseOntoWriteChain(turn, params.canvasId, params.expectedRevision);
           if (!prior) turn.writeRequests.push({ opId, opID: descriptor.id, canvasId: params.canvasId, expectedRevision: params.expectedRevision, sentRevision: rebased });
@@ -223,14 +223,14 @@ export function createOperationBridge({
           log.push({ toolCallId: toolCallId || null, tool: descriptor.id, args: params, isError: true, error: error.message, ms: Date.now() - started, ...rebaseNote });
           if (canvasMutation(descriptor) && typeof params.canvasId === 'string' && ['stale_revision', 'revision_conflict'].includes(error.reason)) {
             turn.canvasContextChanged = true;
-            const content = [{ type: 'text', text: `${error.reason}: 本次写入明确被拒绝，没有提交成功。画布已变化，同批剩余写入已暂停。请核对最新内容与已有结果，再决定下一步；不要只替换版本号重放旧操作。` }];
+            const content = [{ type: 'text', text: `${error.reason}: This write was explicitly rejected and was not submitted successfully. The canvas has changed and remaining writes in the same batch have been paused. Please check the latest content and existing results before deciding the next step; do not just replace the version number and replay the old operation.` }];
             try {
               const current = await opsRequest('POST', '/ops/canvas.get', { params: { canvasId: params.canvasId } }, signal, turn.turnId);
               if (current?.result?.canvasId !== params.canvasId) throw new Error('invalid_canvas_read_result');
               content.push({ type: 'text', text: JSON.stringify(canvasReadView(current)) });
             } catch {
               turn.studioReadAvailable = false;
-              content.push({ type: 'text', text: '最新画布读取失败，状态未知。不要把历史画布当成当前状态；等待读取恢复后再继续。' });
+              content.push({ type: 'text', text: 'Failed to read latest canvas, status unknown. Do not treat the history canvas as the current state; wait for reads to resume before continuing.' });
             }
             error.message = content.map(part => part.text).join('\n\n');
           }
@@ -261,7 +261,7 @@ export function scopedSchema(params, allowReferencedCanvasRead = false, descript
   if (descriptorId === CANVAS_NODE_UPDATE) projectCanvasNodeUpdateSchema(clone);
   if (descriptorId === 'canvas.search') {
     clone.properties ||= {};
-    clone.properties.projectId = { type: 'string', description: '可选项目 ID；省略搜索本账号全部画布。不是画布 ID。' };
+    clone.properties.projectId = { type: 'string', description: 'Optional project ID; omit search of all canvases for this account. Not a canvas ID.' };
     delete clone.properties.canvasId;
   }
   if (descriptorId === 'canvas.get') {
@@ -290,5 +290,5 @@ function assertAssistantNodeUpdateArgs(descriptor, params) {
   const patch = params?.patch;
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return;
   if (!Object.hasOwn(patch, 'prompt')) return;
-  throw new Error('unsupported_patch_field: canvas.node.update 不能提交 patch.prompt。改可编辑提示词请用 content，未改的字段不要提交');
+  throw new Error('unsupported_patch_field: canvas.node.update cannot submit patch.prompt. Please use content to change the editable prompt word, and do not submit the fields that have not been changed.');
 }

@@ -23,7 +23,7 @@ func (s *Service) BindDurableSession(userID, turnID, sessionID string, historica
 			return nil
 		}
 		if row.DurableSessionID != "" && row.DurableSessionID != sessionID {
-			return &Error{Reason: "session_binding_conflict", Message: "对话不能转移到其他会话"}
+			return &Error{Reason: "session_binding_conflict", Message: "Conversations cannot be transferred to other conversations"}
 		}
 		if row.Undone || (row.State != StateOpen && !(historical && row.State == StateSettled)) {
 			return errNotFound()

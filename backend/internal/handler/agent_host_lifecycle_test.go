@@ -61,7 +61,7 @@ func TestHostConfigResponseOmitsProviderSecret(t *testing.T) {
 		t.Fatalf("status = %d body=%s", recorder.Code, recorder.Body.String())
 	}
 	if strings.Contains(recorder.Body.String(), "secret-key") {
-		t.Fatalf("config 响应不得包含模型密钥: %s", recorder.Body.String())
+		t.Fatalf("config response must not contain model key: %s", recorder.Body.String())
 	}
 	var envelope struct {
 		Data struct {
@@ -75,7 +75,7 @@ func TestHostConfigResponseOmitsProviderSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 	if envelope.Data.Provider.Model != "MiniMax-M3" || !envelope.Data.Provider.HasKey {
-		t.Fatalf("应公开模型与 hasKey，得到 %#v", envelope.Data.Provider)
+		t.Fatalf("Should expose model with hasKey, get %#v", envelope.Data.Provider)
 	}
 }
 
@@ -139,7 +139,7 @@ func TestHostStartWithoutCommandReturnsMissingReason(t *testing.T) {
 		t.Fatalf("status = %d body=%s", recorder.Code, recorder.Body.String())
 	}
 	if !strings.Contains(recorder.Body.String(), `"reason":"host_command_missing"`) {
-		t.Fatalf("未配置命令时应返回 host_command_missing: %s", recorder.Body.String())
+		t.Fatalf("When the command is not configured, host_command_missing: %s should be returned.", recorder.Body.String())
 	}
 }
 
@@ -181,7 +181,7 @@ func ownedListenerNode(t *testing.T) string {
 	}
 	path, err := exec.LookPath("node")
 	if err != nil {
-		t.Fatal("需要 node 运行 owned-listener 夹具")
+		t.Fatal("Requires node to run the owned-listener fixture")
 	}
 	return path
 }
@@ -190,11 +190,11 @@ func ownedListenerScript(t *testing.T) string {
 	t.Helper()
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
-		t.Fatal("无法定位测试文件")
+		t.Fatal("Unable to locate test file")
 	}
 	script := filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "..", "agent-host", "test-support", "owned-listener.mjs"))
 	if _, err := os.Stat(script); err != nil {
-		t.Fatalf("owned-listener 不存在: %v", err)
+		t.Fatalf("owned-listener does not exist: %v", err)
 	}
 	return script
 }
@@ -274,7 +274,7 @@ func TestRepeatedStatusStartStopShareHostOwnership(t *testing.T) {
 	}
 	first := decodeLifecyclePID(t, start)
 	if host.PID() != first {
-		t.Fatalf("启动后 Host.PID=%d，响应 pid=%d", host.PID(), first)
+		t.Fatalf("After startup, Host.PID=%d, response pid=%d", host.PID(), first)
 	}
 
 	status := lifecycleRequest(router, http.MethodGet, "/api/assistant/status", "", "")
@@ -282,7 +282,7 @@ func TestRepeatedStatusStartStopShareHostOwnership(t *testing.T) {
 		t.Fatalf("status = %d body=%s", status.Code, status.Body.String())
 	}
 	if host.PID() != first {
-		t.Fatalf("状态查询必须复用同一 Host，pid %d -> %d", first, host.PID())
+		t.Fatalf("Status query must reuse the same Host, pid %d -> %d", first, host.PID())
 	}
 
 	stop := lifecycleRequest(router, http.MethodPost, "/api/assistant/host/stop", owner, "{}")
@@ -290,7 +290,7 @@ func TestRepeatedStatusStartStopShareHostOwnership(t *testing.T) {
 		t.Fatalf("stop status = %d body=%s", stop.Code, stop.Body.String())
 	}
 	if host.Running() {
-		t.Fatal("停止后注入的 Host 必须不再持有子进程")
+		t.Fatal("The injected Host after stopping must no longer hold child processes")
 	}
 
 	relaunched := lifecycleRequest(router, http.MethodGet, "/api/assistant/status", "", "")
@@ -298,7 +298,7 @@ func TestRepeatedStatusStartStopShareHostOwnership(t *testing.T) {
 		t.Fatalf("relaunched status = %d body=%s", relaunched.Code, relaunched.Body.String())
 	}
 	if !waitUntil(3*time.Second, func() bool { return host.PID() > 0 && host.PID() != first }) {
-		t.Fatalf("停止后的状态查询必须把子进程挂回同一 Host，pid=%d first=%d running=%v", host.PID(), first, host.Running())
+		t.Fatalf("The status query after stopping must hang the child process back to the same Host, pid=%d first=%d running=%v", host.PID(), first, host.Running())
 	}
 	second := host.PID()
 
@@ -307,7 +307,7 @@ func TestRepeatedStatusStartStopShareHostOwnership(t *testing.T) {
 		t.Fatalf("second start = %d body=%s", again.Code, again.Body.String())
 	}
 	if host.PID() != second {
-		t.Fatalf("已在跑时 start 必须仍是同一子进程，pid %d -> %d", second, host.PID())
+		t.Fatalf("When it is already running, start must still be the same child process, pid %d -> %d", second, host.PID())
 	}
 
 	inspect := lifecycleRequest(router, http.MethodGet, "/api/assistant/host/config", owner, "")
@@ -315,7 +315,7 @@ func TestRepeatedStatusStartStopShareHostOwnership(t *testing.T) {
 		t.Fatalf("config status = %d body=%s", inspect.Code, inspect.Body.String())
 	}
 	if !strings.Contains(inspect.Body.String(), `"supervisorRunning":true`) {
-		t.Fatalf("共享 Host 应报告运行中: %s", inspect.Body.String())
+		t.Fatalf("The shared host should report running: %s", inspect.Body.String())
 	}
 }
 
@@ -347,7 +347,7 @@ func TestMissingHostFailsWithoutSpawning(t *testing.T) {
 		t.Fatalf("status = %d body=%s", status.Code, status.Body.String())
 	}
 	if !strings.Contains(status.Body.String(), `"reason":"host_unreachable"`) {
-		t.Fatalf("缺失 Host 的状态查询应返回 host_unreachable: %s", status.Body.String())
+		t.Fatalf("Status query for missing Host should return host_unreachable: %s", status.Body.String())
 	}
 
 	for _, item := range []struct{ method, path string }{
@@ -360,13 +360,13 @@ func TestMissingHostFailsWithoutSpawning(t *testing.T) {
 			t.Fatalf("%s %s status = %d body=%s", item.method, item.path, recorder.Code, recorder.Body.String())
 		}
 		if !strings.Contains(recorder.Body.String(), `"reason":"host_unreachable"`) {
-			t.Fatalf("%s %s 应返回 host_unreachable: %s", item.method, item.path, recorder.Body.String())
+			t.Fatalf("%s %s should return host_unreachable: %s", item.method, item.path, recorder.Body.String())
 		}
 	}
 
 	time.Sleep(200 * time.Millisecond)
 	if _, err := os.Stat(marker); err == nil {
-		t.Fatal("缺失 Host 时不得拉起子进程")
+		t.Fatal("Child processes must not be started when Host is missing")
 	}
 }
 
@@ -402,7 +402,7 @@ func startOwnedListenerHost(t *testing.T) (*assistantruntime.Host, http.Handler,
 		t.Fatalf("start status = %d body=%s", start.Code, start.Body.String())
 	}
 	if host.PID() == 0 || host.Endpoint() == "" {
-		t.Fatal("owned-listener 应已就绪")
+		t.Fatal("owned-listener should be ready")
 	}
 	return host, router, dataDir
 }
@@ -421,10 +421,10 @@ func TestStatusTimeoutChildWithFingerprintChangeDoesNotRelaunch(t *testing.T) {
 		t.Fatalf("status = %d body=%s", status.Code, status.Body.String())
 	}
 	if host.PID() != firstPID || host.Endpoint() != firstURL {
-		t.Fatalf("健康未知时不得重启 pid %d→%d url %s→%s", firstPID, host.PID(), firstURL, host.Endpoint())
+		t.Fatalf("Do not restart when health is unknown pid %d→%d url %s→%s", firstPID, host.PID(), firstURL, host.Endpoint())
 	}
 	if strings.Contains(status.Body.String(), `"available":true`) {
-		t.Fatalf("探测超时时不得标成已就绪: %s", status.Body.String())
+		t.Fatalf("Do not mark ready when detection times out: %s", status.Body.String())
 	}
 }
 
@@ -438,10 +438,10 @@ func TestStatusHealthyIdleFingerprintChangeRestarts(t *testing.T) {
 		t.Fatalf("status = %d body=%s", status.Code, status.Body.String())
 	}
 	if host.PID() == 0 || host.PID() == firstPID {
-		t.Fatalf("空闲且健康时应按新指纹重启 pid=%d first=%d body=%s", host.PID(), firstPID, status.Body.String())
+		t.Fatalf("When idle and healthy, you should restart according to the new fingerprint pid=%d first=%d body=%s", host.PID(), firstPID, status.Body.String())
 	}
 	if !strings.Contains(status.Body.String(), `"reason":"host_starting"`) {
-		t.Fatalf("重启后状态应为 host_starting: %s", status.Body.String())
+		t.Fatalf("After restarting, the status should be host_starting: %s", status.Body.String())
 	}
 }
 

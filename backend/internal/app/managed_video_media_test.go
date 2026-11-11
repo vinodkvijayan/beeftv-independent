@@ -116,7 +116,7 @@ func TestManagedMediaRestartQueriesAndPersistsOriginal(t *testing.T) {
 				if err != nil || receipt.SendCount != 1 || receipt.QueryCipher == "" {
 					t.Fatalf("receipt=%+v err=%v", receipt, err)
 				}
-				task.Status, task.LeaseOwner, task.LeaseExpiresAt, task.Stage = model.TaskStatusFailed, "", nil, "调用失败"
+				task.Status, task.LeaseOwner, task.LeaseExpiresAt, task.Stage = model.TaskStatusFailed, "", nil, "call failed"
 				attempt.DispatchState = "accepted"
 				if err := svc.repo.SaveRouteAttempt(attempt); err != nil {
 					t.Fatal(err)

@@ -43,9 +43,9 @@ func TestBindProjectCharacterVoiceWithSampleResource(t *testing.T) {
 	}
 
 	now := time.Now()
-	project := model.Project{ID: "project-voice", UserID: "user-voice", Name: "声音绑定测试", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
-	asset := model.Asset{ID: "character-voice", UserID: project.UserID, Kind: "entity", Category: model.AssetCategoryCharacter, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: "character-voice-v1", Title: "张振天"}
-	asset.PayloadJSON = `{"id":"character-voice","kind":"entity","category":"character","status":"confirmed","primaryVersionId":"character-voice-v1","title":"张振天","data":{"definition":{}}}`
+	project := model.Project{ID: "project-voice", UserID: "user-voice", Name: "sound binding test", Status: model.ProjectStatusActive, Revision: 1, CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "character-voice", UserID: project.UserID, Kind: "entity", Category: model.AssetCategoryCharacter, Status: model.AssetVersionStatusConfirmed, PrimaryVersionID: "character-voice-v1", Title: "Zhang Zhentian"}
+	asset.PayloadJSON = `{"id":"character-voice","kind":"entity","category":"character","status":"confirmed","primaryVersionId":"character-voice-v1","title":"Zhang Zhentian","data":{"definition":{}}}`
 	version := model.AssetVersion{ID: asset.PrimaryVersionID, AssetID: asset.ID, Version: 1, Status: model.AssetVersionStatusConfirmed, DefinitionJSON: `{}`,
 		CreatedAt: now, UpdatedAt: now}
 	link := model.ProjectAssetLink{ID: "project-character-voice-link", ProjectID: project.ID, AssetID: asset.ID, CreatedAt: now}
@@ -56,7 +56,7 @@ func TestBindProjectCharacterVoiceWithSampleResource(t *testing.T) {
 		}
 	}
 
-	result, err := (&Service{repo: repository.New(db)}).ProjectService().BindProjectCharacterVoice(project.UserID, project.ID, asset.ID, BindCharacterVoiceRequest{SampleResourceID: resource.ID, VoiceName: "张振天原声"})
+	result, err := (&Service{repo: repository.New(db)}).ProjectService().BindProjectCharacterVoice(project.UserID, project.ID, asset.ID, BindCharacterVoiceRequest{SampleResourceID: resource.ID, VoiceName: "Zhang Zhentian original voice"})
 	if err != nil {
 		t.Fatal(err)
 	}

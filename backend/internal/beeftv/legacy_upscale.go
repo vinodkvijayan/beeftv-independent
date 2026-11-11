@@ -44,7 +44,7 @@ var legacyUpscaleTaskID = regexp.MustCompile(`^[A-Za-z0-9_-]{1,128}$`)
 
 func LegacyUpscaleTaskPath(id string) (string, error) {
 	if !legacyUpscaleTaskID.MatchString(id) {
-		return "", errors.New("超分任务 ID 无效")
+		return "", errors.New("Invalid super mission ID")
 	}
 	return "/media-upscale/tasks/" + url.PathEscape(id), nil
 }
@@ -53,7 +53,7 @@ func (c *MediaClient) EstimateLegacyUpscale(ctx context.Context, input LegacyUps
 	var estimate UpscaleEstimate
 	err := c.LegacyJSON(ctx, http.MethodPost, "/media-upscale/estimate", LegacyUpscaleBody(input), &estimate)
 	if err == nil && (estimate.Model != input.Model || estimate.Currency != "CNY" || estimate.Reservation <= 0 || estimate.GenerationSubmitted) {
-		err = errors.New("超分预估费用无效，请重新获取")
+		err = errors.New("The estimated cost for exceeding the score is invalid, please obtain it again.")
 	}
 	return estimate, err
 }
@@ -77,7 +77,7 @@ func (c *MediaClient) QueryLegacyUpscale(ctx context.Context, id, model, mediaTy
 		return task, err
 	}
 	if task.TaskID != id || task.Model != model || (task.MediaType != "image" && task.MediaType != "video") || (mediaType != "" && task.MediaType != mediaType) {
-		return task, errors.New("超分回执与原任务不一致")
+		return task, errors.New("The super score receipt is inconsistent with the original task")
 	}
 	return task, nil
 }
@@ -95,7 +95,7 @@ func (c *MediaClient) LegacyUpscaleContent(ctx context.Context, id string, limit
 		return nil, "", err
 	}
 	req.Header.Del(MediaProtocolHeader)
-	data, header, err := c.sendWith(c.storageClient("超分结果重定向次数过多"), req, limit)
+	data, header, err := c.sendWith(c.storageClient("Super score result redirects too many times"), req, limit)
 	return data, header.Get("Content-Type"), err
 }
 func (c *MediaClient) CancelLegacyUpscale(ctx context.Context, id string) error {
@@ -111,7 +111,7 @@ func (c *MediaClient) CancelLegacyUpscale(ctx context.Context, id string) error 
 		return err
 	}
 	if response.TaskID != id || !response.Requested {
-		return errors.New("超分取消请求尚未确认")
+		return errors.New("Super Score Cancellation Request Not Confirmed")
 	}
 	return nil
 }

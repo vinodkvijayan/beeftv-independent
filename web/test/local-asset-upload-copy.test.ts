@@ -11,7 +11,7 @@ const resourceStorageMode = readFileSync(resolve(import.meta.dir, "../src/servic
 describe("local asset upload semantics", () => {
     test("uses local copy while preserving remote upload wording", () => {
         expect(assets).toContain('{imageUploading ? (remoteMode ? "正在上传图片" : "正在保存图片") : "选择图片文件"}');
-        expect(assets).toContain('remoteMode ? "正在上传到云端" : "正在保存到本地"');
+        expect(assets).toContain('remoteMode ? "Uploading to the cloud" : "Saving to local"');
     });
 
     test("browser-local files stay canonical; desktop IndexedDB fallback reports pending", () => {
@@ -29,7 +29,7 @@ describe("local asset upload semantics", () => {
     });
 
     test("3D model fallback uses hosted-only remote wording", () => {
-        expect(assets).toContain("等待远端同步");
-        expect(assets).not.toContain("尚未上传到服务器");
+        expect(assets).toContain("Waiting for remote synchronization");
+        expect(assets).not.toContain("Not uploaded to server yet");
     });
 });

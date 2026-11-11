@@ -33,24 +33,24 @@ const provider = createServer(async (req, res) => {
   const body = await readJSON(req); payloads.push(body);
   const step = providerStep++;
   let tool = providerMode === 'unbound' && step === 0
-    ? { name: 'canvas_nodes_create', arguments: JSON.stringify({ expectedRevision: canvas.revision, nodes: [{ id: 'image-new', type: 'image', title: '新首帧' }, { id: 'video-new', type: 'video', title: '新视频' }] }) } : null;
+    ? { name: 'canvas_nodes_create', arguments: JSON.stringify({ expectedRevision: canvas.revision, nodes: [{ id: 'image-new', type: 'image', title: 'new first frame' }, { id: 'video-new', type: 'video', title: 'new video' }] }) } : null;
   if (providerMode === 'foreign-read' && step === 0) {
-    canvas = { ...canvas, revision: canvas.revision + 1, nodes: [{ id: 'edited', type: 'text', title: '用户刚修改的节点' }] };
+    canvas = { ...canvas, revision: canvas.revision + 1, nodes: [{ id: 'edited', type: 'text', title: 'The node just modified by the user' }] };
     tool = { name: 'canvas_get', arguments: '{}' };
   }
   if (providerMode === 'foreign-hidden' && step === 0) {
     canvas.revision++;
-    canvas.nodes.at(-1).metadata = { content: '用户在长画布末尾改过的正文' };
+    canvas.nodes.at(-1).metadata = { content: 'Text modified by the user at the end of the long canvas' };
     tool = { name: 'canvas_get', arguments: '{}' };
   }
   if (providerMode === 'conflict' && step < 2) {
     tool = { name: 'canvas_nodes_create', arguments: JSON.stringify({ expectedRevision: canvas.revision,
-      nodes: [{ id: step === 0 ? 'rejected' : 'replanned', type: 'text', title: '重新规划后创建' }] }) };
-    if (step === 0) canvas = { ...canvas, revision: canvas.revision + 1, nodes: [{ id: 'user-kept', type: 'text', title: '保留用户修改' }] };
+      nodes: [{ id: step === 0 ? 'rejected' : 'replanned', type: 'text', title: 'Created after re-planning' }] }) };
+    if (step === 0) canvas = { ...canvas, revision: canvas.revision + 1, nodes: [{ id: 'user-kept', type: 'text', title: 'Keep user modifications' }] };
   }
   if (providerMode === 'read-outage' && step < 2) {
     tool = { name: 'canvas_nodes_create', arguments: JSON.stringify({ expectedRevision: canvas.revision,
-      nodes: [{ id: `outage-${step}`, type: 'text', title: '读取失败前的写入' }] }) };
+      nodes: [{ id: `outage-${step}`, type: 'text', title: 'Write before read failure' }] }) };
     if (step === 0) readFailure = 'denied';
   }
   res.writeHead(200, { 'content-type': 'text/event-stream' });
@@ -132,7 +132,7 @@ async function scenario(name, fn) {
 try {
   const opsPort = await listen(ops), modelPort = await listen(provider);
   await startHost(opsPort, modelPort, true);
-  canvas.nodes = Array.from({ length: 6 }, (_, i) => ({ id: `n${i}`, type: 'text', title: `原节点${i}`, metadata: { content: 'original' } }));
+  canvas.nodes = Array.from({ length: 6 }, (_, i) => ({ id: `n${i}`, type: 'text', title: `original node${i}`, metadata: { content: 'original' } }));
   await scenario('read-only-http-envelope-reaches-current-studio', async () => {
     const [body] = await chat();
     assert.match(system(body), /画布版本 7/); assert.match(system(body), /文本 6/); assert.doesNotMatch(system(body), /画布是空的/);
@@ -153,7 +153,7 @@ try {
     readFailure = '';
   }
   await scenario('complete-snapshot-is-not-limited-to-model-first-page', async () => {
-    canvas = { revision: 20, nodes: Array.from({ length: 61 }, (_, i) => ({ id: `many-${i}`, type: 'text', title: `节点${i}` })), connections: [] };
+    canvas = { revision: 20, nodes: Array.from({ length: 61 }, (_, i) => ({ id: `many-${i}`, type: 'text', title: `node${i}` })), connections: [] };
     const [body] = await chat('many-canvas'); assert.match(system(body), /文本 61/);
   });
   await scenario('explicit-empty-and-omitted-empty-collections-stay-valid', async () => {
@@ -164,12 +164,12 @@ try {
   assert(calls.every(c => ['/api/ops/canvas.get', '/api/ops/skill.catalog'].includes(c.path)), 'read-only phase must not write');
   await startHost(opsPort, modelPort, false);
   await scenario('canvas-mode-unpacks-six-nodes-instead-of-reporting-empty', async () => {
-    canvas = { revision: 29, nodes: Array.from({ length: 6 }, (_, i) => ({ id: `six-${i}`, type: 'text', title: `六节点${i}` })), connections: [] };
+    canvas = { revision: 29, nodes: Array.from({ length: 6 }, (_, i) => ({ id: `six-${i}`, type: 'text', title: `Six nodes${i}` })), connections: [] };
     const [body] = await chat('six-canvas');
     assert.match(system(body), /画布版本 29/); assert.match(system(body), /文本 6/); assert.doesNotMatch(system(body), /画布是空的/);
   });
   await scenario('http-snapshot-drives-unbound-media-reminder-after-write', async () => {
-    canvas = { revision: 30, nodes: [{ id: 'board', type: 'script', title: '真实分镜', metadata: { storyboard: { rows: [{ id: 'row-1', shotNumber: 1 }] } } }], connections: [] };
+    canvas = { revision: 30, nodes: [{ id: 'board', type: 'script', title: 'Real storyboard', metadata: { storyboard: { rows: [{ id: 'row-1', shotNumber: 1 }] } } }], connections: [] };
     providerMode = 'unbound'; providerStep = 0;
     const bodies = await chat('unbound-canvas');
     assert.equal(bodies.length, 3, 'one tool response, one attempted reply, one reminder continuation');
@@ -179,7 +179,7 @@ try {
     assert.equal(calls.filter(c => c.path === '/api/ops/canvas.nodes.create').length, 1);
   });
   await scenario('foreign-edit-after-model-dispatch-is-current-on-next-model-request', async () => {
-    canvas = { revision: 40, nodes: [{ id: 'old', type: 'text', title: '旧节点' }], connections: [] };
+    canvas = { revision: 40, nodes: [{ id: 'old', type: 'text', title: 'old node' }], connections: [] };
     providerMode = 'foreign-read'; providerStep = 0;
     const bodies = await chat('foreign-canvas');
     assert.equal(bodies.length, 2);
@@ -198,7 +198,7 @@ try {
     assert.equal(canvas.revision, 52);
   });
   await scenario('edits-outside-bounded-node-preview-still-reach-the-next-decision', async () => {
-    canvas = { revision: 55, nodes: Array.from({ length: 12 }, (_, i) => ({ id: `brief-${i}`, type: 'text', title: `内容节点${i}`, metadata: { content: '原文' } })), connections: [] };
+    canvas = { revision: 55, nodes: Array.from({ length: 12 }, (_, i) => ({ id: `brief-${i}`, type: 'text', title: `content node${i}`, metadata: { content: 'Original text' } })), connections: [] };
     providerMode = 'foreign-hidden'; providerStep = 0;
     const bodies = await chat('long-canvas');
     assert.equal(bodies.length, 2);
@@ -222,7 +222,7 @@ try {
   });
   await scenario('host-restart-preserves-session-and-refreshes-live-canvas-before-model', async () => {
     await startHost(opsPort, modelPort, false);
-    canvas = { ...canvas, revision: 62, nodes: [{ id: 'after-restart', type: 'text', title: '重启后的现场' }] };
+    canvas = { ...canvas, revision: 62, nodes: [{ id: 'after-restart', type: 'text', title: 'The scene after restarting' }] };
     const [body] = await chat('outage-canvas');
     assert.match(system(body), /画布版本 62/);
     assert.match(system(body), /重启后的现场/);

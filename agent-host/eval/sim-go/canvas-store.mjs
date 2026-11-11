@@ -8,7 +8,7 @@ export function ensureCanvas(state, canvasId = state.defaultCanvasId, seed = nul
       ? clone(seed)
       : {
           id: canvasId,
-          title: `画布 ${canvasId}`,
+          title: `canvas${canvasId}`,
           revision: 1,
           nodes: [],
           connections: [],
@@ -37,14 +37,14 @@ export function ensureCanvas(state, canvasId = state.defaultCanvasId, seed = nul
 
 export function saveCanvas(state, canvasId, doc, expectedRevision, reason = 'op', turnId = '') {
   const current = state.canvases.get(canvasId);
-  if (!current) throw notFound('canvas_not_found', `画布不存在: ${canvasId}`);
+  if (!current) throw notFound('canvas_not_found', `Canvas does not exist:${canvasId}`);
   if (expectedRevision !== undefined && expectedRevision !== null) {
     if (!Number.isSafeInteger(Number(expectedRevision)) || Number(expectedRevision) < 0) {
-      throw invalidArg('invalid_params', 'expectedRevision 必须是非负整数');
+      throw invalidArg('invalid_params', 'expectedRevision must be a non-negative integer');
     }
     if (Number(expectedRevision) !== current.revision) {
       state.counts.revisionConflicts += 1;
-      throw conflict('revision_conflict', '画布已变化，请重新读取', { currentRevision: current.revision });
+      throw conflict('revision_conflict', 'The canvas has changed, please read again', { currentRevision: current.revision });
     }
   }
   doc.id = canvasId;
@@ -78,9 +78,9 @@ export function buildDefaultMetadata(type, prompt = '') {
           operation: 'try_on',
           concurrency: 10,
           referenceColumns: [
-            { id: 'reference-1', label: '参考图 1' },
-            { id: 'reference-2', label: '参考图 2' },
-            { id: 'reference-3', label: '参考图 3' },
+            { id: 'reference-1', label: 'Reference Figure 1' },
+            { id: 'reference-2', label: 'Reference Figure 2' },
+            { id: 'reference-3', label: 'Reference Figure 3' },
           ],
           rows: [],
         },
@@ -103,7 +103,7 @@ export function buildDefaultMetadata(type, prompt = '') {
 export function userEditNode(state, nodeId, patch = {}, canvasId = state.defaultCanvasId) {
   const doc = clone(ensureCanvas(state, canvasId));
   const node = (doc.nodes || []).find((n) => n.id === nodeId);
-  if (!node) throw notFound('node_not_found', `节点不存在: ${nodeId}`);
+  if (!node) throw notFound('node_not_found', `Node does not exist:${nodeId}`);
   node.metadata ||= {};
   if (patch.title !== undefined) node.title = String(patch.title);
   if (patch.content !== undefined) {

@@ -19,14 +19,14 @@ import (
 func (s *Service) CommitUserCanvasDocument(userID, canvasID string, expectedRevision int64, document json.RawMessage) (UserDataSummary, json.RawMessage, error) {
 	canvasID = strings.TrimSpace(canvasID)
 	if canvasID == "" {
-		return UserDataSummary{}, nil, kernel.BadAuthRequest("画布 ID 必填")
+		return UserDataSummary{}, nil, kernel.BadAuthRequest("Canvas ID required")
 	}
 	if expectedRevision < 0 {
-		return UserDataSummary{}, nil, kernel.BadAuthRequest("画布版本无效")
+		return UserDataSummary{}, nil, kernel.BadAuthRequest("Canvas version is invalid")
 	}
 	existing, err := s.repo.CanvasProjectForUser(userID, canvasID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return UserDataSummary{}, nil, kernel.NewAppError(http.StatusNotFound, "画布不存在或无权访问")
+		return UserDataSummary{}, nil, kernel.NewAppError(http.StatusNotFound, "Canvas does not exist or does not have access")
 	}
 	if err != nil {
 		return UserDataSummary{}, nil, err
@@ -69,18 +69,18 @@ func mergeCanvasDocumentOverlay(current, overlay json.RawMessage, canvasID strin
 	base := map[string]json.RawMessage{}
 	if len(current) > 0 {
 		if err := json.Unmarshal(current, &base); err != nil {
-			return nil, kernel.BadAuthRequest("画布数据格式错误")
+			return nil, kernel.BadAuthRequest("Canvas data format error")
 		}
 	}
 	if len(overlay) == 0 || strings.TrimSpace(string(overlay)) == "null" {
-		return nil, kernel.BadAuthRequest("画布文档必填")
+		return nil, kernel.BadAuthRequest("Canvas document required")
 	}
 	var patch map[string]json.RawMessage
 	if err := json.Unmarshal(overlay, &patch); err != nil {
-		return nil, kernel.BadAuthRequest("画布文档格式错误")
+		return nil, kernel.BadAuthRequest("Canvas document format error")
 	}
 	if patch == nil {
-		return nil, kernel.BadAuthRequest("画布文档格式错误")
+		return nil, kernel.BadAuthRequest("Canvas document format error")
 	}
 	for key, value := range patch {
 		switch key {

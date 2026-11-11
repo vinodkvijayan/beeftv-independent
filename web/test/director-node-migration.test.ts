@@ -8,37 +8,37 @@ test("legacy director video nodes become named director nodes without generation
     const node: CanvasNodeData = {
         id: "legacy-director",
         type: CanvasNodeType.Video,
-        title: "镜头 4",
+        title: "Shot 4",
         position: { x: 20, y: 30 },
         width: 768,
         height: 704,
         metadata: {
             workflowKind: "shot",
-            workflowTitle: "镜头 4",
+            workflowTitle: "Shot 4",
             directorSceneId: "scene-4",
             directorShotId: "shot-4",
             generationMode: "video",
             videoEditOperation: "text_to_video",
-            composerContent: "旧的节点级提示词",
-            prompt: "旧的模型提示词",
+            composerContent: "Old node-level prompt words",
+            prompt: "Old model prompt words",
         },
     };
 
     const scene = createDirectorScene();
     scene.id = "scene-4";
     scene.shots[0].id = "shot-4";
-    scene.shots[0].prompt = "已有镜头描述";
+    scene.shots[0].prompt = "Lens description already available";
     const result = migrateDirectorCanvas([node], [scene]);
     const migrated = result.nodes[0];
-    expect(result.directorScenes[0].shots[0].prompt).toBe("已有镜头描述\n\n旧的节点级提示词\n\n旧的模型提示词");
+    expect(result.directorScenes[0].shots[0].prompt).toBe("Lens description already available\n\nOld node-level prompt words\n\nOld model prompt words");
     const again = migrateDirectorCanvas(result.nodes, result.directorScenes);
     expect(again.nodes[0]).toBe(migrated);
     expect(again.directorScenes).toBe(result.directorScenes);
-    expect(scene.shots[0].prompt).toBe("已有镜头描述");
-    expect(migrateDirectorCanvas([node], []).nodes[0].metadata?.composerContent).toBe("旧的节点级提示词");
+    expect(scene.shots[0].prompt).toBe("Lens description already available");
+    expect(migrateDirectorCanvas([node], []).nodes[0].metadata?.composerContent).toBe("Old node-level prompt words");
 
     expect(migrated.type).toBe("director");
-    expect(migrated.title).toBe("导演台");
+    expect(migrated.title).toBe("Director's desk");
     expect(migrated.position).toEqual({ x: 20, y: 30 });
     expect(migrated.metadata).toMatchObject({ workflowKind: "shot", directorSceneId: "scene-4", directorShotId: "shot-4" });
     expect(migrated.metadata).not.toHaveProperty("generationMode");
@@ -51,7 +51,7 @@ test("regular video nodes retain their media type and metadata", () => {
     const node: CanvasNodeData = {
         id: "video-1",
         type: CanvasNodeType.Video,
-        title: "普通视频",
+        title: "Normal video",
         position: { x: 0, y: 0 },
         width: 720,
         height: 405,
@@ -65,7 +65,7 @@ test("already migrated director nodes retain a user-edited title", () => {
     const node: CanvasNodeData = {
         id: "director-custom-title",
         type: CanvasNodeType.Director,
-        title: "导演台 夜景分镜",
+        title: "Director's desk night scene storyboard",
         position: { x: 0, y: 0 },
         width: 640,
         height: 640,
@@ -75,7 +75,7 @@ test("already migrated director nodes retain a user-edited title", () => {
     expect(normalizeDirectorCanvasNode(node)).toBe(node);
     const scene = createDirectorScene();
     scene.id = "scene-1";
-    scene.shots[0].prompt = "  保留已有镜头的排版\n";
+    scene.shots[0].prompt = "  Keep the layout of existing shots";
     expect(migrateDirectorCanvas([node], [scene]).directorScenes[0]).toBe(scene);
 });
 
@@ -83,7 +83,7 @@ test("legacy default-size director cards are enlarged while user-sized cards rem
     const legacyDefault: CanvasNodeData = {
         id: "director-default-size",
         type: CanvasNodeType.Director,
-        title: "导演台 1",
+        title: "Director's Podium 1",
         position: { x: 0, y: 0 },
         width: 560,
         height: 560,

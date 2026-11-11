@@ -4,7 +4,7 @@ import { chromium } from "playwright";
 import postcss from "postcss";
 import tailwind from "@tailwindcss/postcss";
 
-test("GPT Image 39档在设置面板均能点击并原值提交，明暗主题与窄屏可用", async () => {
+test("GPT Image 39 files can be clicked in the settings panel and submitted with the original value. Light and dark themes and narrow screens are available.", async () => {
     const build = await Bun.build({ entrypoints: [import.meta.dir + "/fixtures/gpt-image-settings-harness.tsx"], target: "browser", define: {
         "process.env.NODE_ENV": '"production"', "import.meta.env.DEV": "false", "import.meta.env.PROD": "true", "import.meta.env.MODE": '"production"', "import.meta.env.VITE_CANVAS_LOCAL_MODE": '"true"', "import.meta.env.VITE_CANVAS_BACKEND_URL": '"/api"',
     }, plugins: [{ name: "source", setup(builder) {
@@ -39,10 +39,10 @@ test("GPT Image 39档在设置面板均能点击并原值提交，明暗主题�
             await page.route("https://**", (route) => route.abort());
             await page.goto(`${server.url}?theme=${theme}`);
             expect(await page.locator(".image-size-tiers").evaluate((element) => getComputedStyle(element).display)).toBe("grid");
-            expect(await page.getByTestId("creation-labels").textContent()).toBe("超高、最高");
-            expect(await page.getByRole("button", { name: "自动", exact: true }).count()).toBe(0);
-            expect(await page.getByRole("button", { name: "低", exact: true }).getAttribute("aria-pressed")).toBe("true");
-            await page.getByRole("button", { name: "校验请求", exact: true }).click();
+            expect(await page.getByTestId("creation-labels").textContent()).toBe("super high, highest");
+            expect(await page.getByRole("button", { name: "automatic", exact: true }).count()).toBe(0);
+            expect(await page.getByRole("button", { name: "Low", exact: true }).getAttribute("aria-pressed")).toBe("true");
+            await page.getByRole("button", { name: "Verification request", exact: true }).click();
             await page.waitForFunction(() => Boolean(document.querySelector('[role="status"]')?.textContent));
             expect((requests.at(-1)! as { input: { config: { quality: string } } }).input.config.quality).toBe("low");
             if (process.env.GPT_IMAGE_SETTINGS_SCREENSHOTS) {
@@ -50,19 +50,19 @@ test("GPT Image 39档在设置面板均能点击并原值提交，明暗主题�
                 await page.screenshot({ path: `${process.env.GPT_IMAGE_SETTINGS_SCREENSHOTS}/image2-default-${theme}-${width}.png`, fullPage: true });
             }
             for (const model of ["gpt-image-2", "gpt-image-2.5-flare", "gpt-image-2.5-sunburst"]) {
-                await page.getByRole("combobox", { name: "模型" }).selectOption(`beeftv::${model}`);
+                await page.getByRole("combobox", { name: "model" }).selectOption(`beeftv::${model}`);
                 const qualities = model === "gpt-image-2" ? ["low", "medium", "high"] : ["low", "medium", "high", "xhigh", "max"];
-                expect(await page.getByRole("button", { name: "最高", exact: true }).count()).toBe(model === "gpt-image-2" ? 0 : 1);
+                expect(await page.getByRole("button", { name: "highest", exact: true }).count()).toBe(model === "gpt-image-2" ? 0 : 1);
                 for (const quality of qualities) {
-                    const label = ({ low: "低", medium: "中", high: "高", xhigh: "超高", max: "最高" } as Record<string, string>)[quality]!;
+                    const label = ({ low: "Low", medium: "Medium", high: "High", xhigh: "super high", max: "highest" } as Record<string, string>)[quality]!;
                     await page.getByRole("button", { name: label, exact: true }).click();
                     for (const [tier, size] of [["1K", "1024x1024"], ["2K", "2048x2048"], ["4K", "2880x2880"]]) {
                         await page.getByRole("button", { name: tier, exact: true }).click();
                         expect(JSON.parse((await page.getByTestId("selection").textContent())!)).toEqual({ quality, size });
                         const before = requests.length;
-                        await page.getByRole("button", { name: "校验请求", exact: true }).click();
+                        await page.getByRole("button", { name: "Verification request", exact: true }).click();
                         await page.waitForFunction(() => Boolean(document.querySelector('[role="status"]')?.textContent));
-                        expect(await page.locator('[role="status"]').textContent()).toBe("已校验");
+                        expect(await page.locator('[role="status"]').textContent()).toBe("Verified");
                         expect(requests.length).toBe(before + 1);
                         const body = requests.at(-1)! as { input: { config: Record<string, unknown> } };
                         expect(body.input.config).toMatchObject({ model, quality, size, count: "1" });

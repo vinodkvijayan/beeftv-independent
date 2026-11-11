@@ -35,21 +35,21 @@ func TestQuoteUsesCatalogPrices(t *testing.T) {
 		approx bool
 		basis  string
 	}{
-		{"per-second video with paid references", "minimax-h3", Target{Kind: "video", Resolution: "768p", Seconds: 6, ReferenceImages: 7}, 5.2895, false, "768p ¥0.6103/秒 × 6 秒 + 参考图 2 张 × ¥0.8138"},
-		{"resolution without p suffix", "minimax-h3-max-turbo", Target{Kind: "video", Resolution: "1080", Seconds: 10}, 4.8826, false, "1080p ¥0.4883/秒 × 10 秒"},
-		{"token video converted per second", "seedance-2.0", Target{Kind: "video", Resolution: "720p", Seconds: 5}, 4.968, true, "720p ¥0.9936/秒 × 5 秒，按 Token 折算"},
-		{"token video several outputs", "seedance-2.0-fast", Target{Kind: "video", Resolution: "480p", Seconds: 10, Count: 2}, 4.4194, true, "每个 480p ¥0.221/秒 × 10 秒，共 2 个，按 Token 折算"},
-		{"video billed on combined seconds without references", "wan3.0-video", Target{Kind: "video", Resolution: "720p", Seconds: 5}, 4.05, false, "720p ¥0.81/秒 × 5 秒"},
-		{"gpt image tier from size", "gpt-image-2", Target{Kind: "image", Size: "1024x1024", Quality: "low", Count: 4, ReferenceImages: 2}, 1.7, false, "1K 低质量 ¥0.35/张 × 4 张 + 参考图 2 张 × ¥0.15"},
-		{"gpt image 2K tier", "gpt-image-2", Target{Kind: "image", Size: "2048x2048", Quality: "high"}, 4.4, false, "2K 高质量 ¥4.4/张 × 1 张"},
-		{"gpt image auto quality", "gpt-image-2.5", Target{Kind: "image", Size: "1536x1024", Quality: "auto"}, 0.4, false, "1K 中质量 ¥0.4/张 × 1 张"},
-		{"gpt image default size", "gpt-image-2.5-sunburst", Target{Kind: "image", Quality: "xhigh"}, 1.1, false, "1K 超高质量 ¥1.1/张 × 1 张"},
-		{"seedream first reference included", "dola-seedream-5-0-pro-260628", Target{Kind: "image", Size: "2K", ReferenceImages: 3}, 0.1953, false, "2K ¥0.1831/张 × 1 张 + 参考图 2 张 × ¥0.0061"},
-		{"seedream pixel area tier", "dola-seedream-5-0-pro-260628", Target{Kind: "image", Size: "1536x1536"}, 0.0915, false, "1K ¥0.0915/张 × 1 张"},
-		{"seedream larger sizes share the 2K price", "seedream-5-0-260128", Target{Kind: "image", Size: "4K", Count: 3}, 0.2136, false, "2K ¥0.0712/张 × 3 张"},
-		{"flat image price", "midjourney-v8.2", Target{Kind: "image", Count: 4}, 1.62, false, "¥0.405/张 × 4 张"},
-		{"speech by characters", "minimax-speech-2.8-hd", Target{Kind: "audio", Characters: 100}, 0.035, true, "100 字 × ¥350/百万字"},
-		{"music per request", "minimax-music-v3.0", Target{Kind: "audio", Count: 2}, 2, false, "¥1/次 × 2 次"},
+		{"per-second video with paid references", "minimax-h3", Target{Kind: "video", Resolution: "768p", Seconds: 6, ReferenceImages: 7}, 5.2895, false, "768p ¥0.6103/second × 6 seconds + 2 reference pictures × ¥0.8138"},
+		{"resolution without p suffix", "minimax-h3-max-turbo", Target{Kind: "video", Resolution: "1080", Seconds: 10}, 4.8826, false, "1080p ¥0.4883/second × 10 seconds"},
+		{"token video converted per second", "seedance-2.0", Target{Kind: "video", Resolution: "720p", Seconds: 5}, 4.968, true, "720p ¥0.9936/second × 5 seconds, converted by Token"},
+		{"token video several outputs", "seedance-2.0-fast", Target{Kind: "video", Resolution: "480p", Seconds: 10, Count: 2}, 4.4194, true, "Each 480p ¥0.221/second × 10 seconds, 2 in total, converted by Token"},
+		{"video billed on combined seconds without references", "wan3.0-video", Target{Kind: "video", Resolution: "720p", Seconds: 5}, 4.05, false, "720p ¥0.81/sec × 5 seconds"},
+		{"gpt image tier from size", "gpt-image-2", Target{Kind: "image", Size: "1024x1024", Quality: "low", Count: 4, ReferenceImages: 2}, 1.7, false, "1K low quality ¥0.35/picture × 4 pictures + 2 reference pictures × ¥0.15"},
+		{"gpt image 2K tier", "gpt-image-2", Target{Kind: "image", Size: "2048x2048", Quality: "high"}, 4.4, false, "2K high quality ¥4.4/sheet × 1 sheet"},
+		{"gpt image auto quality", "gpt-image-2.5", Target{Kind: "image", Size: "1536x1024", Quality: "auto"}, 0.4, false, "1K medium quality ¥0.4/sheet × 1 sheet"},
+		{"gpt image default size", "gpt-image-2.5-sunburst", Target{Kind: "image", Quality: "xhigh"}, 1.1, false, "1K super high quality ¥1.1/sheet × 1 sheet"},
+		{"seedream first reference included", "dola-seedream-5-0-pro-260628", Target{Kind: "image", Size: "2K", ReferenceImages: 3}, 0.1953, false, "2K ¥0.1831/picture × 1 picture + 2 reference pictures × ¥0.0061"},
+		{"seedream pixel area tier", "dola-seedream-5-0-pro-260628", Target{Kind: "image", Size: "1536x1536"}, 0.0915, false, "1K ¥0.0915/sheet × 1 sheet"},
+		{"seedream larger sizes share the 2K price", "seedream-5-0-260128", Target{Kind: "image", Size: "4K", Count: 3}, 0.2136, false, "2K ¥0.0712/sheet × 3 sheets"},
+		{"flat image price", "midjourney-v8.2", Target{Kind: "image", Count: 4}, 1.62, false, "¥0.405/sheet × 4 sheets"},
+		{"speech by characters", "minimax-speech-2.8-hd", Target{Kind: "audio", Characters: 100}, 0.035, true, "100 words × ¥350/million words"},
+		{"music per request", "minimax-music-v3.0", Target{Kind: "audio", Count: 2}, 2, false, "¥1/time × 2 times"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -74,14 +74,14 @@ func TestQuoteLeavesUndeterminedPricesUnknown(t *testing.T) {
 		target Target
 		basis  string
 	}{
-		{"token video with reference video", "seedance-2.0", Target{Kind: "video", Resolution: "720p", Seconds: 5, ReferenceVideos: 1}, "含参考视频，按实际视频 Token 结算（720p ¥28/百万 Token）"},
-		{"token video without per-second conversion", "seedance-2.0-portrait", Target{Kind: "video", Resolution: "720p", Seconds: 5}, "720p 按实际视频 Token 结算（¥47.4698/百万 Token）"},
-		{"reference video seconds are billed", "wan3.0-video", Target{Kind: "video", Resolution: "720p", Seconds: 5, ReferenceVideos: 1}, "含参考视频，按生成和参考视频的实际秒数结算（720p ¥0.81/秒）"},
-		{"unlisted resolution", "kling-video-v3", Target{Kind: "video", Resolution: "1080p", Seconds: 5}, "1080p 暂无价格"},
-		{"model-chosen duration", "minimax-h3", Target{Kind: "video", Resolution: "768p"}, "时长由模型决定，按实际时长结算"},
-		{"layer decomposition", "dola-seedream-5-0-flash-260915", Target{Kind: "image", Layers: true}, "图层拆分按实际拆出的图层数计费，每层 ¥0.0366"},
-		{"unlisted image tier", "gpt-image-2", Target{Kind: "image", Size: "auto-ish", Quality: "low"}, "低质量 暂无价格"},
-		{"empty speech", "minimax-speech-2.8-turbo", Target{Kind: "audio"}, "台词为空，暂无价格"},
+		{"token video with reference video", "seedance-2.0", Target{Kind: "video", Resolution: "720p", Seconds: 5, ReferenceVideos: 1}, "Including reference video, settlement will be based on actual video Token (720p ¥28/million Tokens)"},
+		{"token video without per-second conversion", "seedance-2.0-portrait", Target{Kind: "video", Resolution: "720p", Seconds: 5}, "720p is settled based on actual video Token (¥47.4698/million Tokens)"},
+		{"reference video seconds are billed", "wan3.0-video", Target{Kind: "video", Resolution: "720p", Seconds: 5, ReferenceVideos: 1}, "Including reference video, billed based on the actual seconds of generated and reference videos (720p ¥0.81/second)"},
+		{"unlisted resolution", "kling-video-v3", Target{Kind: "video", Resolution: "1080p", Seconds: 5}, "1080p No price yet"},
+		{"model-chosen duration", "minimax-h3", Target{Kind: "video", Resolution: "768p"}, "The duration is determined by the model and will be settled based on the actual duration."},
+		{"layer decomposition", "dola-seedream-5-0-flash-260915", Target{Kind: "image", Layers: true}, "Layer splitting is charged based on the actual number of layers removed, ¥0.0366 per layer"},
+		{"unlisted image tier", "gpt-image-2", Target{Kind: "image", Size: "auto-ish", Quality: "low"}, "Low quality No price yet"},
+		{"empty speech", "minimax-speech-2.8-turbo", Target{Kind: "audio"}, "The line is empty and there is no price yet."},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestQuoteLeavesUndeterminedPricesUnknown(t *testing.T) {
 
 func TestQuoteKeepsUpfrontChargeOutOfAmount(t *testing.T) {
 	got := Quote(catalogTable(t, "topaz-proteus"), Target{Kind: "video"})
-	if got.Amount != nil || got.Reserve == nil || *got.Reserve != 27.1256 || got.Basis != "先扣 ¥27.13，账单核对后按实际结算" {
+	if got.Amount != nil || got.Reserve == nil || *got.Reserve != 27.1256 || got.Basis != "¥27.13 will be deducted first, and the actual settlement will be made after the bill is verified." {
 		t.Fatalf("got %+v", got)
 	}
 	if summary := Summarize([]Estimate{got}); summary.Amount != 0 || summary.Unknown != 1 {
@@ -106,7 +106,7 @@ func TestQuoteKeepsUpfrontChargeOutOfAmount(t *testing.T) {
 func TestEstimateTextShowsAmountWithBasis(t *testing.T) {
 	exact := Quote(catalogTable(t, "gpt-image-2"), Target{Kind: "image", Size: "2048x2048", Quality: "high", Count: 3})
 	token := Quote(catalogTable(t, "seedance-2.0"), Target{Kind: "video", Resolution: "1080p", Seconds: 10})
-	if exact.Text != "预计 ¥13.2（2K 高质量 ¥4.4/张 × 3 张）" || token.Text != "约 ¥24.79（1080p ¥2.4786/秒 × 10 秒，按 Token 折算）" {
+	if exact.Text != "Estimated ¥13.2 (2K high quality ¥4.4/picture × 3 pictures)" || token.Text != "About ¥24.79 (1080p ¥2.4786/second × 10 seconds, converted by Token)" {
 		t.Fatalf("got %q / %q", exact.Text, token.Text)
 	}
 }
@@ -119,10 +119,10 @@ func TestSummarizeNamesUnknownItems(t *testing.T) {
 		items []Estimate
 		text  string
 	}{
-		{[]Estimate{image}, "预计费用：¥0.35"},
-		{[]Estimate{video, image}, "预计费用：约 ¥5.32"},
-		{[]Estimate{video, image, missing}, "预计费用：已知部分约 ¥5.32，另有 1 项暂无价格"},
-		{[]Estimate{missing}, "预计费用：暂无价格，按所选渠道实际计费"},
+		{[]Estimate{image}, "Estimated cost: ¥0.35"},
+		{[]Estimate{video, image}, "Estimated cost: approximately ¥5.32"},
+		{[]Estimate{video, image, missing}, "Estimated cost: The known part is about ¥5.32, and there is another item with no price yet."},
+		{[]Estimate{missing}, "Estimated cost: No price yet, actual billing will be based on the selected channel"},
 	}
 	for _, tc := range cases {
 		if got := Summarize(tc.items).Text; got != tc.text {

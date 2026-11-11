@@ -10,7 +10,7 @@ const restores: Array<() => void> = [];
 afterEach(() => { for (const restore of restores.splice(0).reverse()) restore(); });
 
 function context(referenceImages: ReferenceImage[]): NodeGenerationContext {
-    return { prompt: "保留构图", referenceImages, referenceVideos: [], referenceAudios: [], characterReferences: [], resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 1, imageCount: referenceImages.length, videoCount: 0, audioCount: 0 };
+    return { prompt: "Preserve composition", referenceImages, referenceVideos: [], referenceAudios: [], characterReferences: [], resolvedCharacterVersions: [], resolvedCharacterVoices: [], textCount: 1, imageCount: referenceImages.length, videoCount: 0, audioCount: 0 };
 }
 
 function preventImageRead() {
@@ -34,7 +34,7 @@ test("owned and HTTP image references do not wait for the browser preview cache"
 test("character main and supplemental representations remain resource references", async () => {
     const read = preventImageRead();
     const detail = spyOn(projects, "getProjectCharacter").mockResolvedValue({
-        asset: { id: "character", title: "禾禾" },
+        asset: { id: "character", title: "Hehe" },
         character: { versionId: "v2", definition: {}, representations: [
             { id: "primary", resourceId: "primary-image", role: "primary" },
             { id: "side", resourceId: "side-image", role: "side" },
@@ -47,7 +47,7 @@ test("character main and supplemental representations remain resource references
     expect(hydrated.referenceImages.map(image => image.storageKey)).toEqual(["resource:primary-image", "resource:side-image"]);
     expect(hydrated.referenceImages.every(image => image.dataUrl === "")).toBe(true);
     expect(hydrated.resolvedCharacterVersions).toEqual([{ assetId: "character", versionId: "v2" }]);
-    expect(hydrated.prompt).toContain("禾禾");
+    expect(hydrated.prompt).toContain("Hehe");
     const undeclaredHydrated = await hydrateNodeGenerationContext(input, "canvas", "project", "image");
     expect(undeclaredHydrated.referenceImages.map(image => image.storageKey)).toEqual(["resource:primary-image"]);
     expect(read).not.toHaveBeenCalled();

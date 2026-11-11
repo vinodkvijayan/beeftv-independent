@@ -17,11 +17,11 @@ describe("task text SSE parser", () => {
             ["delta", 9],
             ["terminal", undefined],
         ]);
-        expect(events[2]?.data).toEqual({ sequence: 9, content: "第二段" });
+        expect(events[2]?.data).toEqual({ sequence: 9, content: "Second paragraph" });
     });
 
     test("rejects malformed JSON instead of silently dropping task output", () => {
         const parser = createTaskTextStreamParser();
-        expect(() => consumeTaskTextStream(parser, "event: delta\ndata: {broken}\n\n", () => undefined)).toThrow("任务文本流返回了无效数据");
+        expect(() => consumeTaskTextStream(parser, "event: delta\ndata: {broken}\n\n", () => undefined)).toThrow("Task text stream returned invalid data");
     });
 });

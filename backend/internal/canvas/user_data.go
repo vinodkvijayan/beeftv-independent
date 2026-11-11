@@ -95,7 +95,7 @@ func (s *Service) UpdateCanvasDocumentLimitMB(limitMB int64) (int64, error) {
 
 func (s *Service) UpdateCanvasDocumentLimitMBBy(actorID string, limitMB int64) (int64, error) {
 	if limitMB < 0 || limitMB > MaxCanvasDocumentLimitMB {
-		return 0, kernel.BadAuthRequest("单画布容量上限必须是 0-512 MB 的整数（0 表示不限制）")
+		return 0, kernel.BadAuthRequest("The upper limit of single canvas capacity must be an integer from 0 to 512 MB (0 means no limit)")
 	}
 	if strings.TrimSpace(actorID) == "" {
 		actorID = "owner"
@@ -286,13 +286,13 @@ func (s *Service) upsertUserCanvasProjectAndPayload(userID string, raw json.RawM
 		Revision *int64 `json:"revision"`
 	}
 	if err := json.Unmarshal(raw, &version); err != nil {
-		return UserDataSummary{}, nil, kernel.BadAuthRequest("画布版本格式错误")
+		return UserDataSummary{}, nil, kernel.BadAuthRequest("Canvas version format error")
 	}
 	if version.Revision == nil {
-		return UserDataSummary{}, nil, kernel.NewAppError(http.StatusPreconditionRequired, "缺少画布版本，请保留本地草稿后重新加载画布")
+		return UserDataSummary{}, nil, kernel.NewAppError(http.StatusPreconditionRequired, "Missing canvas version, please keep the local draft and reload the canvas")
 	}
 	if *version.Revision < 0 || *version.Revision >= 9007199254740991 {
-		return UserDataSummary{}, nil, kernel.BadAuthRequest("画布版本无效")
+		return UserDataSummary{}, nil, kernel.BadAuthRequest("Canvas version is invalid")
 	}
 	_ = s.CanvasDocumentLimitMB()
 	project, err := canvasProjectFromJSON(userID, raw)
@@ -371,10 +371,10 @@ func (s *Service) upsertUserCanvasProjectAndPayload(userID string, raw json.RawM
 					return canvasRevisionConflict()
 				}
 				if errors.Is(err, repository.ErrCanvasHistoryResourceMissing) {
-					return kernel.NewAppError(http.StatusConflict, "画布引用的素材已变化，当前内容未被覆盖，请保留草稿并重新加载")
+					return kernel.NewAppError(http.StatusConflict, "The material referenced by the canvas has changed and the current content has not been overwritten. Please keep the draft and reload it.")
 				}
 				if errors.Is(err, repository.ErrCanvasLibraryFolderMissing) {
-					return kernel.BadAuthRequest("画布文件夹不存在")
+					return kernel.BadAuthRequest("Canvas folder does not exist")
 				}
 				return err
 			}
@@ -427,7 +427,7 @@ func userDataSummaryFromAsset(item asset.Summary) UserDataSummary {
 }
 
 func canvasProjectFromJSON(userID string, raw json.RawMessage) (model.CanvasProject, error) {
-	if err := ValidateSyncedPayload(raw, "画布"); err != nil {
+	if err := ValidateSyncedPayload(raw, "canvas"); err != nil {
 		return model.CanvasProject{}, err
 	}
 	var payload struct {
@@ -439,7 +439,7 @@ func canvasProjectFromJSON(userID string, raw json.RawMessage) (model.CanvasProj
 		UpdatedAt string `json:"updatedAt"`
 	}
 	if err := json.Unmarshal(raw, &payload); err != nil {
-		return model.CanvasProject{}, kernel.BadAuthRequest("画布数据格式错误")
+		return model.CanvasProject{}, kernel.BadAuthRequest("Canvas data format error")
 	}
 	now := time.Now()
 	createdAt := parseClientTime(payload.CreatedAt, now)

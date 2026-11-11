@@ -55,7 +55,7 @@ func (s *Service) prepareArkPrivateAssetReferences(ctx context.Context, userID s
 		return err
 	}
 	if taskID := taskExecutionID(ctx); taskID != "" {
-		_ = s.repo.UpdateTaskProgress(taskID, "同步方舟可信素材", 36)
+		_ = s.repo.UpdateTaskProgress(taskID, "Synchronized Ark’s credible materials", 36)
 	}
 	for _, list := range collections {
 		for index := range *list {
@@ -69,13 +69,13 @@ func (s *Service) prepareArkPrivateAssetReferences(ctx context.Context, userID s
 			}
 			resource, err := s.Resource(userID, resourceID)
 			if err != nil {
-				return fmt.Errorf("读取方舟参考素材失败：%w", err)
+				return fmt.Errorf("Failed to read Ark reference material: %w", err)
 			}
 			if resource.Status != model.ResourceStatusReady {
-				return errors.New("方舟参考素材尚未上传完成")
+				return errors.New("Ark reference material has not been uploaded yet")
 			}
 			if arkPrivateAssetTypeForMime(resource.MimeType) == "" {
-				return errors.New("方舟可信素材库仅支持上传图片、视频或音频参考素材")
+				return errors.New("Ark's trusted material library only supports uploading pictures, videos or audio reference materials")
 			}
 			assetID, err := s.ensureArkPrivateAsset(ctx, userID, resource, settingRecord, &setting)
 			if err != nil {
@@ -86,7 +86,7 @@ func (s *Service) prepareArkPrivateAssetReferences(ctx context.Context, userID s
 		}
 	}
 	if taskID := taskExecutionID(ctx); taskID != "" {
-		_ = s.repo.UpdateTaskProgress(taskID, "调用生成模型", 40)
+		_ = s.repo.UpdateTaskProgress(taskID, "Call the generated model", 40)
 	}
 	return nil
 }
@@ -94,31 +94,31 @@ func (s *Service) prepareArkPrivateAssetReferences(ctx context.Context, userID s
 // SyncResourceToArkPrivateAsset 是用户显式触发的参考素材预同步入口。
 func (s *Service) SyncResourceToArkPrivateAsset(ctx context.Context, actor *model.User, resourceID string) (*ArkPrivateAssetSyncResult, error) {
 	if s.IsLocalMode() {
-		return nil, BadAuthRequest("本地工作区不支持将素材同步到云端可信素材库")
+		return nil, BadAuthRequest("The local workspace does not support synchronizing materials to the cloud trusted material library")
 	}
 	resourceID = strings.TrimSpace(resourceID)
 	if resourceID == "" {
-		return nil, BadAuthRequest("请选择要同步的图片素材")
+		return nil, BadAuthRequest("Please select the picture material to be synchronized")
 	}
 	resource, err := s.Resource(actor.ID, resourceID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, NotFound("图片素材不存在或无权访问")
+		return nil, NotFound("The picture material does not exist or you have no permission to access it.")
 	}
 	if err != nil {
 		return nil, err
 	}
 	if resource.Status != model.ResourceStatusReady {
-		return nil, BadAuthRequest("图片素材尚未上传完成")
+		return nil, BadAuthRequest("The picture material has not been uploaded yet")
 	}
 	if arkPrivateAssetTypeForMime(resource.MimeType) == "" {
-		return nil, BadAuthRequest("方舟可信素材库仅支持上传图片、视频或音频素材")
+		return nil, BadAuthRequest("Ark's trusted material library only supports uploading pictures, videos or audio materials")
 	}
 	settingRecord, setting, err := s.readArkPrivateAssetSetting()
 	if err != nil {
 		return nil, err
 	}
 	if !setting.Enabled || setting.AccessKeyID == "" || setting.AccessKeySecret == "" {
-		return nil, BadAuthRequest("方舟可信素材库尚未配置，请由管理员在方舟素材库设置中填写启用的 IAM AK/SK")
+		return nil, BadAuthRequest("The Ark trusted material library has not been configured yet. Please let the administrator fill in the enabled IAM AK/SK in the Ark material library settings.")
 	}
 	if _, err := s.ensureArkPrivateAsset(ctx, actor.ID, resource, settingRecord, &setting); err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (s *Service) ensureArkPrivateAsset(ctx context.Context, userID string, reso
 	binding.AssetGroupID = groupID
 	resourceURL, err := s.directResourceURL(resource, time.Now().Add(time.Hour))
 	if err != nil {
-		return "", s.failArkPrivateAssetBinding(binding, fmt.Errorf("生成方舟素材临时地址失败：%w", err))
+		return "", s.failArkPrivateAssetBinding(binding, fmt.Errorf("Failed to generate temporary address of Ark material: %w", err))
 	}
 	assetType := arkPrivateAssetTypeForMime(resource.MimeType)
 	if assetType == "" {
@@ -198,11 +198,11 @@ func (s *Service) ensureArkPrivateAsset(ctx context.Context, userID string, reso
 		response, err = callArkPrivateAssetAPI(ctx, *setting, "CreateAsset", payload)
 	}
 	if err != nil {
-		return "", s.failArkPrivateAssetBinding(binding, fmt.Errorf("上传方舟可信素材失败：%w", err))
+		return "", s.failArkPrivateAssetBinding(binding, fmt.Errorf("Failed to upload Ark's trusted material: %w", err))
 	}
 	assetID := arkPrivateAssetResponseField(response, "AssetId", "AssetID", "asset_id", "Id", "ID", "id")
 	if assetID == "" {
-		return "", s.failArkPrivateAssetBinding(binding, errors.New("方舟素材库没有返回素材 ID"))
+		return "", s.failArkPrivateAssetBinding(binding, errors.New("Ark material library does not return material ID"))
 	}
 	binding.ArkAssetID = assetID
 	binding.Status = arkPrivateAssetStatusWait
@@ -219,16 +219,16 @@ func (s *Service) ensureArkPrivateAssetGroup(ctx context.Context, settingRecord 
 	}
 	response, err := callArkPrivateAssetAPI(ctx, *setting, "CreateAssetGroup", map[string]interface{}{
 		"Name":        "ark-private-assets",
-		"Description": "自动导入的方舟可信素材",
+		"Description": "Automatically imported Ark trustworthy materials",
 		"GroupType":   arkPrivateAssetGroupType,
 		"ProjectName": setting.ProjectName,
 	})
 	if err != nil {
-		return "", fmt.Errorf("创建方舟素材组失败：%w", err)
+		return "", fmt.Errorf("Failed to create Ark material group: %w", err)
 	}
 	groupID := arkPrivateAssetResponseField(response, "GroupId", "GroupID", "group_id", "Id", "ID", "id")
 	if groupID == "" {
-		return "", errors.New("方舟素材库没有返回素材组 ID")
+		return "", errors.New("Ark material library does not return material group ID")
 	}
 	setting.DefaultGroupID = groupID
 	if settingRecord == nil {
@@ -246,11 +246,11 @@ func (s *Service) waitForArkPrivateAsset(ctx context.Context, binding *model.Ark
 		switch strings.ToLower(strings.TrimSpace(binding.Status)) {
 		case arkPrivateAssetStatusLive:
 			if strings.TrimSpace(binding.ArkAssetID) == "" {
-				return "", errors.New("方舟可信素材记录缺少素材 ID")
+				return "", errors.New("Ark's trusted material records are missing material IDs")
 			}
 			return binding.ArkAssetID, nil
 		case arkPrivateAssetStatusFail:
-			return "", fmt.Errorf("方舟可信素材审核失败：%s", defaultString(binding.Error, "请更换拥有使用权的虚拟人物素材后重试"))
+			return "", fmt.Errorf("Ark's trusted material review failed: %s", defaultString(binding.Error, "Please change the avatar material that you have the right to use and try again."))
 		}
 		if binding.ArkAssetID != "" {
 			response, err := callArkPrivateAssetAPI(ctx, *setting, "GetAsset", map[string]interface{}{
@@ -258,7 +258,7 @@ func (s *Service) waitForArkPrivateAsset(ctx context.Context, binding *model.Ark
 				"ProjectName": setting.ProjectName,
 			})
 			if err != nil {
-				return "", fmt.Errorf("查询方舟可信素材审核状态失败：%w", err)
+				return "", fmt.Errorf("Failed to query the review status of Ark's trusted materials: %w", err)
 			}
 			status := strings.ToLower(arkPrivateAssetResponseField(response, "Status", "status"))
 			switch status {
@@ -272,13 +272,13 @@ func (s *Service) waitForArkPrivateAsset(ctx context.Context, binding *model.Ark
 			case "failed":
 				message := arkPrivateAssetResponseField(response, "ErrorMessage", "Message", "message")
 				binding.Status = arkPrivateAssetStatusFail
-				binding.Error = defaultString(message, "方舟未通过素材审核")
+				binding.Error = defaultString(message, "Ark failed to pass material review")
 				if err := s.repo.SaveArkPrivateAssetBinding(binding); err != nil {
 					return "", err
 				}
-				return "", fmt.Errorf("方舟可信素材审核失败：%s", binding.Error)
+				return "", fmt.Errorf("Ark's trusted material review failed: %s", binding.Error)
 			case "":
-				return "", errors.New("方舟可信素材状态缺失")
+				return "", errors.New("Ark’s trusted material status is missing")
 			}
 		}
 		if err := sleepContext(ctx, 2*time.Second); err != nil {
@@ -290,7 +290,7 @@ func (s *Service) waitForArkPrivateAsset(ctx context.Context, binding *model.Ark
 		}
 		binding = latest
 	}
-	return "", errors.New("方舟可信素材审核超时，请稍后重新提交视频任务")
+	return "", errors.New("The review of Ark's trusted material has timed out, please resubmit the video task later.")
 }
 
 func isUnsupportedArkModerationParamError(err error) bool {

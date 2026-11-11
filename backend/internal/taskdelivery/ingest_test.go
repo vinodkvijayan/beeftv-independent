@@ -153,7 +153,7 @@ func TestIngestMalformedDataURLStrictVersusLegacy(t *testing.T) {
 }
 
 func TestIngestQuotaRefusalDoesNotRewrite(t *testing.T) {
-	ingestor, _, repo, _, _ := newIngestHarness(t, ingestRefuseQuota{err: errors.New("账号资源和会话附件已达到 20GB 上限")})
+	ingestor, _, repo, _, _ := newIngestHarness(t, ingestRefuseQuota{err: errors.New("Account resources and session attachments have reached the 20GB limit")})
 	_, err := ingestor.IngestResult("user-1", map[string]interface{}{
 		"image": map[string]interface{}{"dataUrl": tinyPNGDataURL},
 	}, IngestOptions{EnforceQuota: true})
@@ -167,7 +167,7 @@ func TestIngestQuotaRefusalDoesNotRewrite(t *testing.T) {
 }
 
 func TestIngestLegacySkipDoesNotReserveGeneratedQuota(t *testing.T) {
-	ingestor, _, repo, _, _ := newIngestHarness(t, ingestRefuseQuota{err: errors.New("20GB 上限")})
+	ingestor, _, repo, _, _ := newIngestHarness(t, ingestRefuseQuota{err: errors.New("20GB limit")})
 	result, err := ingestor.IngestResult("user-1", map[string]interface{}{
 		"image": map[string]interface{}{"dataUrl": tinyPNGDataURL},
 	}, IngestOptions{SkipInvalidDataURL: true, EnforceQuota: false})

@@ -18,15 +18,15 @@ func TestUpsertUserAssetRejectsResourceSwapWhenCanvasReferencesIt(t *testing.T) 
 			t.Fatal(err)
 		}
 	}
-	oldAsset := json.RawMessage(`{"id":"shared-asset","kind":"image","title":"旧素材","coverUrl":"/api/resources/resource-old/file","tags":[],"status":"confirmed","source":"生成任务","data":{"dataUrl":"/api/resources/resource-old/file","storageKey":"resource:resource-old","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`)
+	oldAsset := json.RawMessage(`{"id":"shared-asset","kind":"image","title":"Old Material","coverUrl":"/api/resources/resource-old/file","tags":[],"status":"confirmed","source":"Generate Task","data":{"dataUrl":"/api/resources/resource-old/file","storageKey":"resource:resource-old","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`)
 	if _, err := svc.UpsertUserAsset("owner", oldAsset); err != nil {
 		t.Fatal(err)
 	}
-	canvas := json.RawMessage(`{"id":"canvas","revision":0,"title":"引用","nodes":[{"id":"node","type":"image","metadata":{"assetId":"shared-asset","storageKey":"resource:resource-old"}}],"connections":[]}`)
+	canvas := json.RawMessage(`{"id":"canvas","revision":0,"title":"citation","nodes":[{"id":"node","type":"image","metadata":{"assetId":"shared-asset","storageKey":"resource:resource-old"}}],"connections":[]}`)
 	if _, err := svc.UpsertUserCanvasProject("owner", canvas); err != nil {
 		t.Fatal(err)
 	}
-	replacement := json.RawMessage(`{"id":"shared-asset","kind":"image","title":"新素材","coverUrl":"/api/resources/resource-new/file","tags":[],"status":"confirmed","source":"生成任务","data":{"dataUrl":"/api/resources/resource-new/file","storageKey":"resource:resource-new","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`)
+	replacement := json.RawMessage(`{"id":"shared-asset","kind":"image","title":"New Material","coverUrl":"/api/resources/resource-new/file","tags":[],"status":"confirmed","source":"Generate Task","data":{"dataUrl":"/api/resources/resource-new/file","storageKey":"resource:resource-new","width":1,"height":1,"bytes":1,"mimeType":"image/png"}}`)
 	if _, err := svc.UpsertUserAsset("owner", replacement); err == nil {
 		t.Fatal("resource swap succeeded while canvas still referenced the old bytes")
 	}

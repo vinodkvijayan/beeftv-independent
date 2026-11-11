@@ -3,21 +3,21 @@ import { expect, test } from 'bun:test';
 import { SYSTEM_PROMPT } from './system-prompt.mjs';
 
 test('media policy chooses minimum evidence and never presents frames as watched or heard media', () => {
-  for (const instruction of ['最低必要', 'mode=frames', 'mode=video', 'mode=audio', '静态截图', '不能据此声称', '15 秒', '分段', '实际读取的区间']) {
+  for (const instruction of ['minimum necessary', 'mode=frames', 'mode=video', 'mode=audio', 'static screenshot', 'It cannot be claimed based on this', '15 seconds', 'segmentation', 'actual read interval']) {
     expect(SYSTEM_PROMPT).toContain(instruction);
   }
-  expect(SYSTEM_PROMPT).toContain('不必读取原生视频或音频');
-  expect(SYSTEM_PROMPT).toContain('用户明确要求看视频并听音频');
+  expect(SYSTEM_PROMPT).toContain('No need to read native video or audio');
+  expect(SYSTEM_PROMPT).toContain('The user explicitly requested to watch the video and listen to the audio');
   expect(SYSTEM_PROMPT).toContain('evidence:{startMs,endMs,modes,checks:true}');
-  expect(SYSTEM_PROMPT).toContain('单个 media.overview evidence');
-  expect(SYSTEM_PROMPT).toContain('媒体检查不能证明 ZIP 已生成');
+  expect(SYSTEM_PROMPT).toContain('single media.overview evidence');
+  expect(SYSTEM_PROMPT).toContain('Media inspection does not prove that the ZIP was generated');
 });
 
 test('skills preserve ordered work without imposing a confirmation after every step', () => {
-  for (const instruction of ['之后每一轮都按它的步骤顺序执行', '连续推进无需确认的步骤', '用户明确要求分步确认', '付费提案需要确认', '当前提供的工具与模型目录', '数量、画幅、类别', '先用 skill_load 读取', '没做的步骤不能说成已完成']) {
+  for (const instruction of ['After that, each round is executed in the order of its steps.', 'Continuously advance steps without confirmation', 'The user explicitly requests step-by-step confirmation', 'Paid proposals require confirmation', 'Catalog of currently provided tools and models', 'Quantity, frame, category', 'First use skill_load to read', 'Steps that are not done cannot be said to be completed.']) {
     expect(SYSTEM_PROMPT).toContain(instruction);
   }
-  expect(SYSTEM_PROMPT).toContain('不要因题材相同而把单张图片、单个视频扩展成整套流程');
+  expect(SYSTEM_PROMPT).toContain('Don’t expand a single picture or video into a whole set of processes just because the subject matter is the same.');
 });
 
 test('storyboard image and video nodes are bound back to their rows with the row prompts', () => {
@@ -27,28 +27,28 @@ test('storyboard image and video nodes are bound back to their rows with the row
 });
 
 test('producer workflow respects studio changes, maintains plan_update, and inspects generated media', () => {
-  for (const instruction of ['制作现场摘要', '不要用旧草稿覆盖用户的改动', 'plan_update', 'needs_user', '查看产物是否符合分镜要求', '只针对失败或缺失的节点重新提议']) {
+  for (const instruction of ['Create a live summary', 'Don\'t overwrite user changes with old drafts', 'plan_update', 'needs_user', 'Check whether the product meets the storyboard requirements', 'Only re-propose failed or missing nodes']) {
     expect(SYSTEM_PROMPT).toContain(instruction);
   }
-  expect(SYSTEM_PROMPT).toContain('成功提案会结束本轮并等待用户确认');
-  expect(SYSTEM_PROMPT).toContain('在同一次响应发出');
-  expect(SYSTEM_PROMPT).toContain('也不要留到提案之后');
+  expect(SYSTEM_PROMPT).toContain('A successful proposal will end the round and wait for user confirmation');
+  expect(SYSTEM_PROMPT).toContain('issued in the same response');
+  expect(SYSTEM_PROMPT).toContain('Don’t leave it until after the proposal, either.');
 });
 
 test('optional short-film storyboard and cross-shot method lives in the versioned builtin skill instead of resident prompt', () => {
   expect(SYSTEM_PROMPT.length).toBeLessThanOrEqual(2500);
-  expect(SYSTEM_PROMPT).not.toContain('短片分镜只填本次必需字段');
-  expect(SYSTEM_PROMPT).not.toContain('同一商品、角色或场景需要跨镜一致时');
-  expect(SYSTEM_PROMPT).not.toContain('H3 系列');
+  expect(SYSTEM_PROMPT).not.toContain('For the short film storyboard, only fill in the required fields for this time');
+  expect(SYSTEM_PROMPT).not.toContain('When the same product, character or scene needs to be consistent across cameras');
+  expect(SYSTEM_PROMPT).not.toContain('H3 series');
   expect(SYSTEM_PROMPT).not.toContain('prepareMedia');
   expect(SYSTEM_PROMPT).not.toContain('syncBoundNodes');
-  expect(SYSTEM_PROMPT).toContain('省略 image/video');
-  expect(SYSTEM_PROMPT).toContain('不要编造审批，也不要承诺已经扣费或已经出图');
+  expect(SYSTEM_PROMPT).toContain('Omit image/video');
+  expect(SYSTEM_PROMPT).toContain('Do not fabricate approvals, and do not promise that fees have been deducted or drawings have been produced.');
   const skills = JSON.parse(fs.readFileSync(new URL('../backend/internal/skills/seed/skills.json', import.meta.url), 'utf8'));
   const producerSkill = skills.find((item) => item.skill_id === '14811816970252');
-  expect(producerSkill?.instruction).toContain('短片分镜只填本次必需字段');
-  expect(producerSkill?.instruction).toContain('同一商品、角色或场景需要跨镜一致时');
-  expect(producerSkill?.instruction).toContain('H3 系列');
-  expect(producerSkill?.instruction).toContain('此规则不用于多素材参考模式');
-  expect(producerSkill?.instruction).toContain('不声称完成工具未提供的模式切换');
+  expect(producerSkill?.instruction).toContain('For the short film storyboard, only fill in the required fields for this time');
+  expect(producerSkill?.instruction).toContain('When the same product, character or scene needs to be consistent across cameras');
+  expect(producerSkill?.instruction).toContain('H3 series');
+  expect(producerSkill?.instruction).toContain('This rule does not apply to multi-material reference mode');
+  expect(producerSkill?.instruction).toContain('Does not claim to complete mode switching not provided by the tool');
 });

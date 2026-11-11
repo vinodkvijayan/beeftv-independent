@@ -96,7 +96,7 @@ beforeAll(async () => {
                 return ok({
                     state: connectionState,
                     hasCredential: true,
-                    account: { id: "u-1", display_name: "测试账号", email: "tester@example.com" },
+                    account: { id: "u-1", display_name: "Test account", email: "tester@example.com" },
                 });
             }
             if (path.endsWith("/beeftv/connection/cancel")) {
@@ -115,7 +115,7 @@ beforeAll(async () => {
                     state: snapshotState,
                     hasCredential: hasRetainedCredential,
                     catalogFailed: snapshotState === "catalog_failed" || snapshotState === "connection_error",
-                    account: hasRetainedCredential ? { id: "u-1", display_name: "测试账号", email: "tester@example.com" } : null,
+                    account: hasRetainedCredential ? { id: "u-1", display_name: "Test account", email: "tester@example.com" } : null,
                 });
             }
             if (path.includes("model-config")) {
@@ -138,15 +138,15 @@ beforeAll(async () => {
                     await curatedGate.enter();
                 }
                 if (failCuratedRemote) {
-                    return Response.json({ code: 502, msg: "测试推荐源暂不可用" }, { status: 502 });
+                    return Response.json({ code: 502, msg: "Test recommendation source is temporarily unavailable" }, { status: 502 });
                 }
                 return ok({
-                    items: [{ id: "demo-curated", packageName: "demo-curated", name: "精选演示插件", description: "用于验证冷启动加载态", version: "0.1.0", recommended: true }],
+                    items: [{ id: "demo-curated", packageName: "demo-curated", name: "Featured Demo Plugins", description: "Used to verify cold start loading status", version: "0.1.0", recommended: true }],
                 });
             }
             if (path === "/api/plugins/market/search") {
                 if (failNpmSearch) {
-                    return Response.json({ code: 502, msg: "社区搜索暂不可用" }, { status: 502 });
+                    return Response.json({ code: 502, msg: "Community search is currently unavailable" }, { status: 502 });
                 }
                 return ok({ items: [] });
             }
@@ -172,7 +172,7 @@ test("opening sidebar account modal never auto-starts OAuth; explicit login, cha
     const page = await browser.newPage({ viewport: { width: 960, height: 760 } });
     try {
         await page.goto(server.url.toString());
-        const trigger = page.getByRole("button", { name: "登录 BeefTV", exact: true });
+        const trigger = page.getByRole("button", { name: "Login to BeefTV", exact: true });
         await trigger.waitFor();
         expect(connectionReads).toBe(1);
 
@@ -181,7 +181,7 @@ test("opening sidebar account modal never auto-starts OAuth; explicit login, cha
         await modal.waitFor();
         expect(startCalls).toBe(0);
 
-        await modal.getByRole("button", { name: "通用设置" }).click();
+        await modal.getByRole("button", { name: "General settings" }).click();
         expect(await modal.innerText()).toContain(version);
         await modal.getByRole("button", { name: /查看更新日志/ }).click();
         const changelogDialog = page.locator(".app-changelog-modal .ant-modal");
@@ -190,17 +190,17 @@ test("opening sidebar account modal never auto-starts OAuth; explicit login, cha
         await changelogDialog.locator(".ant-modal-close").click();
         await changelogDialog.waitFor({ state: "hidden" });
 
-        await modal.getByRole("button", { name: "账号与余额" }).click();
+        await modal.getByRole("button", { name: "Account and balance" }).click();
         await modal.getByRole("button", { name: /^登\s*录$/ }).click();
-        await modal.getByText("测试账号").waitFor();
+        await modal.getByText("Test account").waitFor();
         expect(startCalls).toBe(1);
 
-        await modal.getByRole("button", { name: "模型", exact: true }).click();
-        await modal.getByText("模型同步失败").waitFor();
+        await modal.getByRole("button", { name: "model", exact: true }).click();
+        await modal.getByText("Model synchronization failed").waitFor();
         expect(catalogReads).toBe(1);
 
-        await modal.getByRole("button", { name: "重试同步", exact: true }).click();
-        await modal.getByText("已连接，模型已同步到本地").waitFor();
+        await modal.getByRole("button", { name: "Retry sync", exact: true }).click();
+        await modal.getByText("Connected, model has been synchronized to local").waitFor();
         expect(catalogReads).toBe(2);
     } finally {
         await page.close();
@@ -212,20 +212,20 @@ test("catalog_failed keeps authenticated account identity/wallet and retries bac
     const page = await browser.newPage({ viewport: { width: 960, height: 760 } });
     try {
         await page.goto(server.url.toString());
-        const trigger = page.getByRole("button", { name: "BeefTV 账户：测试账号", exact: true });
+        const trigger = page.getByRole("button", { name: "BeefTV Account: Test Account", exact: true });
         await trigger.waitFor();
         await trigger.click();
 
         const modal = page.locator(".account-settings-modal");
         await modal.waitFor();
         expect(startCalls).toBe(0);
-        expect(await modal.getByRole("button", { name: "余额与用量" }).isDisabled()).toBe(false);
-        expect(await modal.innerText()).toContain("模型列表读取失败，请重试");
+        expect(await modal.getByRole("button", { name: "Balance and usage" }).isDisabled()).toBe(false);
+        expect(await modal.innerText()).toContain("Failed to read model list, please try again");
 
-        await modal.getByRole("button", { name: "模型", exact: true }).click();
-        await modal.getByText("模型同步失败").waitFor();
-        await modal.getByRole("button", { name: "重试同步", exact: true }).click();
-        await modal.getByText("已连接，模型已同步到本地").waitFor();
+        await modal.getByRole("button", { name: "model", exact: true }).click();
+        await modal.getByText("Model synchronization failed").waitFor();
+        await modal.getByRole("button", { name: "Retry sync", exact: true }).click();
+        await modal.getByText("Connected, model has been synchronized to local").waitFor();
         expect(startCalls).toBe(1);
     } finally {
         await page.close();
@@ -237,13 +237,13 @@ test("connection_error with catalogFailed=true retries backend finalize from mod
     const page = await browser.newPage({ viewport: { width: 960, height: 760 } });
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "登录 BeefTV", exact: true }).click();
+        await page.getByRole("button", { name: "Login to BeefTV", exact: true }).click();
         const modal = page.locator(".account-settings-modal");
         await modal.waitFor();
-        await modal.getByRole("button", { name: "模型", exact: true }).click();
-        await modal.getByText("模型同步失败").waitFor();
-        await modal.getByRole("button", { name: "重试同步", exact: true }).click();
-        await modal.getByText("已连接，模型已同步到本地").waitFor();
+        await modal.getByRole("button", { name: "model", exact: true }).click();
+        await modal.getByText("Model synchronization failed").waitFor();
+        await modal.getByRole("button", { name: "Retry sync", exact: true }).click();
+        await modal.getByText("Connected, model has been synchronized to local").waitFor();
         expect(startCalls).toBe(1);
     } finally {
         await page.close();
@@ -255,7 +255,7 @@ test("stale background poll cannot overwrite a newer connection action result", 
     const page = await browser.newPage({ viewport: { width: 960, height: 760 } });
     try {
         await page.goto(server.url.toString());
-        const trigger = page.getByRole("button", { name: "等待登录确认", exact: true });
+        const trigger = page.getByRole("button", { name: "Waiting for login confirmation", exact: true });
         await trigger.waitFor();
         await trigger.click();
         const modal = page.locator(".account-settings-modal");
@@ -264,13 +264,13 @@ test("stale background poll cannot overwrite a newer connection action result", 
         blockNextConnectionPoll = true;
         await connectionPollGate.entered;
 
-        await modal.getByRole("button", { name: "取消本次登录", exact: true }).click();
-        await modal.getByText("已取消本次连接").waitFor();
+        await modal.getByRole("button", { name: "Cancel this login", exact: true }).click();
+        await modal.getByText("This connection has been canceled").waitFor();
 
         connectionPollGate.release();
         await page.waitForTimeout(250);
-        expect(await modal.innerText()).toContain("已取消本次连接");
-        expect(await modal.innerText()).not.toContain("请在浏览器中确认授权");
+        expect(await modal.innerText()).toContain("This connection has been canceled");
+        expect(await modal.innerText()).not.toContain("Please confirm authorization in your browser");
     } finally {
         await page.close();
     }
@@ -280,15 +280,15 @@ test("collapsing sidebar resets expanded social links without stealing focus fro
     const page = await browser.newPage({ viewport: { width: 960, height: 760 } });
     try {
         await page.goto(server.url.toString());
-        await page.getByRole("button", { name: "联系我们" }).click();
-        await page.getByRole("button", { name: "收起联系方式" }).waitFor();
+        await page.getByRole("button", { name: "Contact us" }).click();
+        await page.getByRole("button", { name: "Close contact information" }).waitFor();
 
-        const collapseBtn = page.getByRole("button", { name: "切换侧栏收起" });
+        const collapseBtn = page.getByRole("button", { name: "Toggle sidebarCollapse" });
         await collapseBtn.click();
         expect(await collapseBtn.evaluate((el) => document.activeElement === el)).toBe(true);
 
         await collapseBtn.click();
-        const contactBtn = page.getByRole("button", { name: "联系我们" });
+        const contactBtn = page.getByRole("button", { name: "Contact us" });
         expect(await contactBtn.getAttribute("aria-expanded")).toBe("false");
     } finally {
         await page.close();
@@ -301,31 +301,31 @@ test("plugin market keeps loading on empty cache, clears curated error after rec
     try {
         await page.goto(new URL("/market", server.url).toString());
         await curatedGate.entered;
-        await page.getByText("正在读取插件…").waitFor();
-        expect(await page.locator(".plugin-market").innerText()).not.toContain("暂无推荐插件");
+        await page.getByText("Loading plugins…").waitFor();
+        expect(await page.locator(".plugin-market").innerText()).not.toContain("No recommended plugins yet");
 
         curatedGate.release();
-        await page.getByText("精选演示插件").waitFor();
+        await page.getByText("Featured Demo Plugins").waitFor();
 
         failCuratedRemote = true;
-        await page.getByRole("combobox", { name: "安装下载源" }).click();
+        await page.getByRole("combobox", { name: "Install download source" }).click();
         await page.locator(".ant-select-item-option-content").filter({ hasText: /npmjs\.org/ }).click();
-        await page.getByRole("alert").filter({ hasText: "测试推荐源暂不可用" }).waitFor();
+        await page.getByRole("alert").filter({ hasText: "Test recommendation source is temporarily unavailable" }).waitFor();
 
         failCuratedRemote = false;
-        await page.getByRole("combobox", { name: "安装下载源" }).click();
+        await page.getByRole("combobox", { name: "Install download source" }).click();
         await page.locator(".ant-select-item-option-content").filter({ hasText: /npmmirror/ }).click();
         await page.waitForFunction(() => !document.querySelector('[role="alert"]'));
-        expect(await page.locator(".plugin-market").innerText()).toContain("精选演示插件");
+        expect(await page.locator(".plugin-market").innerText()).toContain("Featured Demo Plugins");
 
         failNpmSearch = true;
         await page.getByTestId("market-tab-npm").click();
         await page.getByTestId("market-npm-search-button").click();
-        await page.getByRole("alert").filter({ hasText: "社区搜索暂不可用" }).waitFor();
+        await page.getByRole("alert").filter({ hasText: "Community search is currently unavailable" }).waitFor();
 
         await page.getByTestId("market-tab-curated").click();
         await page.waitForFunction(() => !document.querySelector('[role="alert"]'));
-        expect(await page.locator(".plugin-market").innerText()).toContain("精选演示插件");
+        expect(await page.locator(".plugin-market").innerText()).toContain("Featured Demo Plugins");
     } finally {
         await page.close();
     }

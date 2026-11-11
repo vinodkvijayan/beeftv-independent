@@ -113,10 +113,10 @@ func (s *Service) Change(userID, id, action string, cmd Command) (any, error) {
 					return err
 				}
 				if !validRunStatus(cmd.Status) {
-					return kernel.BadAuthRequest("创作状态无效")
+					return kernel.BadAuthRequest("Creation status is invalid")
 				}
 				if run.Status == "cancelled" && cmd.Status != "cancelled" {
-					return Conflict("已取消会话不能继续执行")
+					return Conflict("A canceled session cannot continue")
 				}
 				state, _ := json.Marshal(cmd.State)
 				run.StateJSON = string(state)
@@ -188,7 +188,7 @@ func (s *Service) ExecuteSubmission(userID, id string, cmd Command) (*model.Task
 
 func (s *Service) validateRunQuota(userID string, repo *repository.Repository, creating bool, delta int64) error {
 	if s.deps.Quota == nil {
-		return kernel.NewAppError(kernel.CodeInternal, "创作配额服务不可用")
+		return kernel.NewAppError(kernel.CodeInternal, "Authoring quota service is unavailable")
 	}
 	return s.deps.Quota.ValidateRun(userID, repo, creating, delta)
 }

@@ -29,11 +29,11 @@ func TestTaskSettlementMigrationUpgradesReleasedV26Database(t *testing.T) {
 	if err = db.Exec("ALTER TABLE image_submissions DROP COLUMN query_cipher").Error; err != nil {
 		t.Fatal(err)
 	}
-	if err = db.Exec(`INSERT INTO tasks(id,user_id,type,status,stage,result_json,recovery_outcome) VALUES('released','owner','canvas_image','failed','任务失败','original','no_result')`).Error; err != nil {
+	if err = db.Exec(`INSERT INTO tasks(id,user_id,type,status,stage,result_json,recovery_outcome) VALUES('released','owner','canvas_image','failed','task failed','original','no_result')`).Error; err != nil {
 		t.Fatal(err)
 	}
 	if err = RequireLocalSchema(db); err == nil {
-		t.Fatal("v26 库不应通过当前结构检查")
+		t.Fatal("v26 library should not pass current structure check")
 	}
 	for i := 0; i < 2; i++ {
 		if err = MigrateLocalSchema(db); err != nil {
@@ -41,7 +41,7 @@ func TestTaskSettlementMigrationUpgradesReleasedV26Database(t *testing.T) {
 		}
 	}
 	if err = RequireLocalSchema(db); err != nil {
-		t.Fatalf("升级后启动检查失败: %v", err)
+		t.Fatalf("Boot check failed after upgrade: %v", err)
 	}
 	var row struct {
 		RecoveryOutcome *string
@@ -53,6 +53,6 @@ func TestTaskSettlementMigrationUpgradesReleasedV26Database(t *testing.T) {
 		t.Fatal(err)
 	}
 	if row.RecoveryOutcome == nil || *row.RecoveryOutcome != "no_result" || row.BeefUsageState != nil || row.ImageJobID != "" || row.ResultJSON != "original" {
-		t.Fatalf("历史任务被改写: %+v", row)
+		t.Fatalf("Historical mission has been rewritten: %+v", row)
 	}
 }

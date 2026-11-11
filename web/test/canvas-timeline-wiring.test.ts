@@ -8,8 +8,8 @@ const editorDialogs = readFileSync(new URL("../src/pages/canvas/canvas-project-e
 test("timeline media actions are required and wired back to the canvas", () => {
     expect(dialog).toContain("onUploadLocalFiles: (files: File[]) => Promise<TimelineDirectMedia[]>");
     expect(dialog).toContain("onCreateAssembledNode: (blob: Blob, title: string) => Promise<CanvasNodeData | null>");
-    expect(dialog).not.toContain("本地上传暂未接线");
-    expect(dialog).not.toContain("保存回画布暂未接线");
+    expect(dialog).not.toContain("Local upload is not connected yet");
+    expect(dialog).not.toContain("Save back to canvas, not connected yet");
     expect(project).toContain("onUploadLocalFiles: uploadTimelineMedia");
     expect(project).toContain("onCreateAssembledNode: createVideoNodeFromBlob");
     expect(editorDialogs).toContain("onUploadLocalFiles={timeline.onUploadLocalFiles}");

@@ -17,15 +17,15 @@ func (r *Router) ResolveLogicalModel(logicalModelID string, intent ModelRequestI
 	}
 	cached, ok := snapshot.Models[strings.TrimSpace(logicalModelID)]
 	if !ok {
-		return nil, kernel.BadAuthRequest("所选模型不可用")
+		return nil, kernel.BadAuthRequest("The selected model is not available")
 	}
 	intent.Options = mergeIntentDefaults(intent.Options, cached.Defaults)
 	if match := MatchCapability(cached.ProductSpec, intent); !match.Matched {
-		return nil, kernel.BadAuthRequest("所选模型不支持当前请求：" + strings.Join(match.Reasons, "；"))
+		return nil, kernel.BadAuthRequest("The selected model does not support the current request:" + strings.Join(match.Reasons, "；"))
 	}
 	eligible := r.EligibleLogicalRoutes(cached.Routes, intent, nil)
 	if len(eligible) == 0 {
-		return nil, kernel.BadAuthRequest("当前模型暂时无法满足这组输入和参数")
+		return nil, kernel.BadAuthRequest("The current model is temporarily unable to satisfy this set of inputs and parameters")
 	}
 	selected := WeightedRoute(eligible)
 	variant := channelModelVariantForIntent(selected.ChannelModel, intent)
@@ -115,7 +115,7 @@ func (r *Router) SimulateLogicalModelRoute(id string, intent ModelRequestIntent)
 	}
 	cached, ok := snapshot.Models[id]
 	if !ok {
-		return nil, kernel.BadAuthRequest("前台模型未启用或尚未发布")
+		return nil, kernel.BadAuthRequest("The frontend model is not enabled or has not been published yet")
 	}
 	intent.Options = mergeIntentDefaults(intent.Options, cached.Defaults)
 	return &RouteSimulationResult{ProductMatch: MatchCapability(cached.ProductSpec, intent), Candidates: r.SortedRouteDiagnostics(cached.Routes, intent)}, nil

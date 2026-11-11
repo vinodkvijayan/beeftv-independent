@@ -3,7 +3,7 @@ import { defaultImageCapabilityConfig, normalizeImageValue, upgradeGPTImageCapab
 import { backendProviderConfig } from "../src/services/api/generation-task";
 import { createModelChannel, defaultConfig, normalizeConfigSnapshot } from "../src/stores/use-config-store";
 
-test("image2缺省与旧auto统一显示并提交low，显式质量和尺寸保留", () => {
+test("Image2 defaults to unified display and low submission with the old auto, and explicit quality and size retention", () => {
     const legacy = defaultImageCapabilityConfig("openai-image", "gpt-image-2");
     legacy.quality = { supported: true, values: ["auto", "low", "medium", "high"], default: "auto" };
     const profile = upgradeGPTImageCapability(legacy, "openai-image", "gpt-image-2");

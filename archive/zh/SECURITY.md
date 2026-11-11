@@ -1,23 +1,23 @@
-# 安全策略
+# security policy
 
-## 支持范围
+## Support range
 
-安全修复优先应用于 `main` 和最新发布版本。历史版本不保证单独回补。
+Security fixes are prioritized for `main` and latest releases. Historical versions do not guarantee individual backfill.
 
-## 报告漏洞
+## Report a vulnerability
 
-请不要通过公开 Issue 披露尚未修复的漏洞。优先使用 GitHub 仓库的
+Please do not disclose unfixed vulnerabilities through public issues. Priority is given to using GitHub repositories
 [Private vulnerability reporting](https://github.com/glanderness/BeefTV/security/advisories/new)，
-或发送邮件至 `2667983673@qq.com`。
+Or send an email to `2667983673@qq.com`.
 
-报告中请包含受影响版本、复现步骤、影响范围和可行的缓解建议。请勿访问、下载或修改不属于你的数据，也不要对公开实例进行持续压测。
+Please include the affected version, steps to reproduce, scope of impact, and possible mitigation suggestions in your report. Please do not access, download, or modify data that does not belong to you, and do not perform continuous stress testing on public instances.
 
-维护者会尽快确认收到报告，在验证影响后同步修复进度。漏洞修复公开前，请为项目和用户保留合理的修复窗口。
+The maintainer will confirm receipt of the report as soon as possible and synchronize the repair progress after verifying the impact. Before making a bug fix public, keep a reasonable fix window for the project and users.
 
-## 部署者责任
+## Deployer Responsibilities
 
-- 生产环境必须使用 HTTPS，并将 `CANVAS_CORS_ORIGINS` 设置为明确的前端 Origin。
-- 首个管理员应在服务暴露公网前完成注册，公开注册默认保持关闭。
-- 数据目录、SQLite 数据库、备份和 `.settings-key` 必须限制为服务账号可读。
-- 系统模型渠道和 OSS 使用最小权限密钥，并设置供应商侧预算与告警。
-- 不要将 `.env`、数据库、日志、备份或真实密钥提交到 Git。
+- Production environments must use HTTPS and set `CANVAS_CORS_ORIGINS` as the explicit frontend Origin.
+- The first administrator should complete registration before the service is exposed to the public network. Public registration remains closed by default.
+- The data directory, SQLite database, backup, and `.settings-key` must be restricted to be readable by the service account.
+- System model channels and OSS use least privilege keys, and set supplier-side budgets and alarms.
+- Do not commit `.env`, databases, logs, backups, or real keys to Git.

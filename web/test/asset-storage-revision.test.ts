@@ -7,7 +7,7 @@ import type { Asset } from "@/stores/use-asset-store";
 const completeAsset = {
     id: "library-image",
     kind: "image",
-    title: "素材",
+    title: "Material",
     coverUrl: "",
     tags: [],
     createdAt: "2026-08-29T00:00:00.000Z",

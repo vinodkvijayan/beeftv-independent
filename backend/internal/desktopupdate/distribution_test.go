@@ -10,7 +10,7 @@ import (
 
 func TestPackageManagedBlocksAllUpdaterActions(t *testing.T) {
 	e := NewWithOptions(Options{PackageManaged: true, CurrentVersion: "v1.7.15", FeedURL: "https://example.com/feed", PublicKey: "invalid"})
-	if s := e.Status(); s.Status != StatusDisabled || s.Error != "请下载新版 DEB 安装包更新。" {
+	if s := e.Status(); s.Status != StatusDisabled || s.Error != "Please download the new DEB installation package update." {
 		t.Fatalf("package update instruction missing: %+v", s)
 	}
 	if _, err := e.CheckForUpdate(context.Background()); !errors.Is(err, ErrDisabled) {

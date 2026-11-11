@@ -4,7 +4,7 @@ import { modelCapabilityConfigFor } from "../src/lib/model-capabilities";
 import { explainGenerationError } from "../src/lib/generation-error";
 
 test("persisted material duration explanation keeps actionable limits", () => {
-    const text = "参考素材时长不符合模型要求。请检查每段参考音频和视频，将不符合要求的素材调整为 1.8–30.2 秒后重新提交。";
+    const text = "The reference material duration does not meet the model requirements. Please check each reference audio and video, adjust the footage that does not meet the requirements to 1.8–30.2 seconds and resubmit.";
     expect(explainGenerationError({ code: "invalid_params", message: text }).action).toContain("1.8–30.2");
 });
 

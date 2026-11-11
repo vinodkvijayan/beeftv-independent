@@ -17,7 +17,7 @@ import (
 
 func TestAgentLargeSkillInstruction(t *testing.T) {
 	s, _ := agentSkillFixture(t)
-	body := "---\nname: 导演\ndescription: 长技能测试\n---\n" + strings.Repeat("镜头", 13000)
+	body := "---\nname: director\ndescription: Long skills test\n---" + strings.Repeat("lens", 13000)
 	pin := installAgentSkill(t, s, map[string]string{"SKILL.md": body})
 	if _, err := s.ValidateAgentSkills("owner", []Pin{pin}); err != nil {
 		t.Fatal(err)
@@ -26,7 +26,7 @@ func TestAgentLargeSkillInstruction(t *testing.T) {
 	if err != nil || resource.Instruction != body {
 		t.Fatalf("large skill was rejected or truncated: %v", err)
 	}
-	large := installAgentSkill(t, s, map[string]string{"SKILL.md": "---\nname: 太大\ndescription: 上限测试\n---\n" + strings.Repeat("字", 90000)})
+	large := installAgentSkill(t, s, map[string]string{"SKILL.md": "---\nname: too big\ndescription: upper limit test\n---" + strings.Repeat("chars", 90000)})
 	if _, err := s.ValidateAgentSkills("owner", []Pin{large}); err == nil {
 		t.Fatal("oversized skill accepted")
 	}
@@ -82,15 +82,15 @@ func TestInstalledUserSkillTasksUsePinnedBodyAndAuxiliaryFiles(t *testing.T) {
 		scriptSupported             bool
 		unsupportedCap              string
 	}{
-		{"咖啡短片分镜", "读取 references/shots.md，为三个段落各建一个草稿镜头，不生成。", "磨豆；手冲；甜点", "references/shots.md", false, ""},
-		{"采访切片", "读取 references/interview.md，只使用原话标出保留区间，禁止编造采访。", "00:02-00:06 主人公说：每天练习。", "references/interview.md", false, ""},
-		{"声音审片Python", "读取 scripts/listen.py；需要运行脚本时提交确认。", "print('audio ok')", "scripts/listen.py", true, ""},
-		{"脚本目录单数", "读取 script/run.js；需要运行脚本时提交确认。", "console.log('ok')", "script/run.js", true, ""},
-		{"不支持的脚本解释器", "读取 scripts/legacy.txt；不支持的解释器明确提示。", "puts 'unsupported'", "scripts/legacy.txt", false, "unsupported_script_interpreter"},
+		{"Coffee short storyboard", "Read references/shots.md, create a draft shot for each of the three paragraphs, and do not generate it.", "Grinding beans; hand brewing; dessert", "references/shots.md", false, ""},
+		{"interview slices", "Read references/interview.md, only use original words to mark the reserved intervals, and no fabricated interviews are allowed.", "00:02-00:06 The protagonist said: Practice every day.", "references/interview.md", false, ""},
+		{"Sound review Python", "Read scripts/listen.py; submit confirmation when you need to run the script.", "print('audio ok')", "scripts/listen.py", true, ""},
+		{"script directory singular", "Read script/run.js; submit confirmation when you need to run the script.", "console.log('ok')", "script/run.js", true, ""},
+		{"Unsupported script interpreter", "Read scripts/legacy.txt; unsupported interpreters explicitly prompt.", "puts 'unsupported'", "scripts/legacy.txt", false, "unsupported_script_interpreter"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			pin := installAgentSkill(t, s, map[string]string{"SKILL.md": "---\nname: " + tc.name + "\ndescription: 用户上传的创作流程\n---\n" + tc.body, tc.path: tc.reference})
+			pin := installAgentSkill(t, s, map[string]string{"SKILL.md": "---\nname: " + tc.name + "description: The creative process uploaded by the user\n---" + tc.body, tc.path: tc.reference})
 			if _, err := s.ValidateAgentSkills("owner", []Pin{pin}); err != nil {
 				t.Fatal(err)
 			}
@@ -125,15 +125,15 @@ func TestInstalledUserSkillTasksUsePinnedBodyAndAuxiliaryFiles(t *testing.T) {
 
 func TestSkillPinUpdateRestartUninstallAndCorruption(t *testing.T) {
 	s, db := agentSkillFixture(t)
-	pin := installAgentSkill(t, s, map[string]string{"SKILL.md": "# 原版\n\n保留原始拍摄要求。", "references/shot.md": "旧版镜头"})
+	pin := installAgentSkill(t, s, map[string]string{"SKILL.md": "# original\n\nKeep the original shooting requirements.", "references/shot.md": "Older lenses"})
 	skill, _ := s.ownedSkill("owner", pin.SkillID)
-	archive, _ := archiveFromZip(skillZip(t, map[string]string{"SKILL.md": "# 新版\n\n改用新版要求。", "references/shot.md": "新版镜头"}), "")
+	archive, _ := archiveFromZip(skillZip(t, map[string]string{"SKILL.md": "# new version\n\nUse the new version requirements instead.", "references/shot.md": "New lens"}), "")
 	if err := s.addSkillArchiveVersion(skill, archive, "zip", "", "", "", "", false); err != nil {
 		t.Fatal(err)
 	}
 	reopened := New(repository.New(db), s.dataDir, nil)
 	old, err := reopened.AgentFile("owner", pin, "references/shot.md")
-	if err != nil || old.Content != "旧版镜头" {
+	if err != nil || old.Content != "Older lenses" {
 		t.Fatalf("pinned version drifted %v %+v", err, old)
 	}
 	wrong := pin
@@ -141,7 +141,7 @@ func TestSkillPinUpdateRestartUninstallAndCorruption(t *testing.T) {
 	if _, err := s.AgentVersion("owner", wrong); err == nil {
 		t.Fatal("hash mismatch accepted")
 	}
-	other := installAgentSkill(t, s, map[string]string{"SKILL.md": "# 另一个\n\n描述"})
+	other := installAgentSkill(t, s, map[string]string{"SKILL.md": "# another\n\nDescription"})
 	wrong = pin
 	wrong.VersionID = other.VersionID
 	if _, err := s.AgentVersion("owner", wrong); err == nil {

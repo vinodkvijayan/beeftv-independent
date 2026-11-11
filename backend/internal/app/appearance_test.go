@@ -121,8 +121,8 @@ func TestAppearanceUsesVersionedPublicAssets(t *testing.T) {
 	saveAppearanceSettingForTest(t, svc, AppearanceSetting{
 		BrandName:                 "HIMA Studio",
 		BrandSlug:                 "hima-studio",
-		AuthHeroTitle:             "把灵感，\n变成可见的故事。",
-		AuthHeroDescription:       "从画布开始，持续推进你的创作。",
+		AuthHeroTitle:             "bring inspiration,\nBecome a visible story.",
+		AuthHeroDescription:       "Start with a canvas and work your way forward.",
 		LogoResourceID:            "brand-logo",
 		DarkLogoResourceID:        "brand-logo-dark",
 		LogoFrameEnabled:          false,
@@ -130,18 +130,18 @@ func TestAppearanceUsesVersionedPublicAssets(t *testing.T) {
 		AuthVideoPosterResourceID: "brand-poster",
 		AuthVideoAutoplay:         false,
 		SkinID:                    "studio-indigo",
-		SEOTitle:                  "HIMA Studio - AI 影视工作台",
-		SEODescription:            "面向 Agent、图片、视频、画布与短剧生产的一体化 AI 创作工作台。",
-		SEOKeywords:               "AI 影视,短剧,画布",
+		SEOTitle:                  "HIMA Studio - AI film and television workbench",
+		SEODescription:            "An integrated AI creation workbench for Agent, image, video, canvas and short play production.",
+		SEOKeywords:               "AI film and television, short drama, canvas",
 		FooterCopyright:           "© 2026 HIMA Studio. All rights reserved.",
 		ICPFilingEnabled:          true,
-		ICPFilingNumber:           "蜀ICP备2026000000号-1",
+		ICPFilingNumber:           "Sichuan ICP No. 2026000000-1",
 	})
 	public, err := svc.Appearance()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !public.Configured || public.BrandName != "HIMA Studio" || public.BrandSlug != "hima-studio" || public.AuthHeroTitle != "把灵感，\n变成可见的故事。" || public.AuthHeroDescription != "从画布开始，持续推进你的创作。" || !public.LogoConfigured || !public.DarkLogoConfigured || public.LogoFrameEnabled || !public.AuthVideoConfigured || !public.AuthVideoPosterConfigured || public.AuthVideoAutoplay || public.SkinID != "studio-indigo" || public.SEOTitle != "HIMA Studio - AI 影视工作台" || public.SEOKeywords != "AI 影视,短剧,画布" || !public.ICPFilingEnabled || public.ICPFilingNumber != "蜀ICP备2026000000号-1" {
+	if !public.Configured || public.BrandName != "HIMA Studio" || public.BrandSlug != "hima-studio" || public.AuthHeroTitle != "bring inspiration,\nBecome a visible story." || public.AuthHeroDescription != "Start with a canvas and work your way forward." || !public.LogoConfigured || !public.DarkLogoConfigured || public.LogoFrameEnabled || !public.AuthVideoConfigured || !public.AuthVideoPosterConfigured || public.AuthVideoAutoplay || public.SkinID != "studio-indigo" || public.SEOTitle != "HIMA Studio - AI film and television workbench" || public.SEOKeywords != "AI film and television, short drama, canvas" || !public.ICPFilingEnabled || public.ICPFilingNumber != "Sichuan ICP No. 2026000000-1" {
 		t.Fatalf("Appearance() = %#v", public)
 	}
 	for _, assetURL := range []string{public.LogoURL, public.DarkLogoURL, public.AuthVideoURL, public.AuthVideoPosterURL} {
@@ -288,7 +288,7 @@ func TestUploadAppearanceLogoAlwaysUsesServerLocalStorage(t *testing.T) {
 func TestAppearanceSkinLibraryProjectsCustomActiveSkin(t *testing.T) {
 	svc, _, _, _ := newAppearanceTestService(t)
 	themes := defaultAppearanceSkinThemes()
-	custom := cloneAppearanceSkin(themes[0], "custom-editorial", "片场夜蓝", "自定义控件与明暗色")
+	custom := cloneAppearanceSkin(themes[0], "custom-editorial", "Studio night blue", "Custom controls and light and dark colors")
 	custom.Tokens.Light.Primary = "#123456"
 	custom.Tokens.Light.PrimaryHover = "#234567"
 	custom.Tokens.Dark.Primary = "#abcdef"

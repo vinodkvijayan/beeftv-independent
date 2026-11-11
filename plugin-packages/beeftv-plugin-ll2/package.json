@@ -1,7 +1,7 @@
 {
   "name": "beeftv-plugin-ll2",
   "version": "1.0.2",
-  "description": "内置 LL2 (DMC) 算力与视频渠道插件，支持填写 API Key 一键同步 DeepSeek V4.1、Seedance 2.0、Vidu Q3、MiniMax H3、Super Vega 1.0 与 Auto HD 超分模型。",
+  "description": "Built-in LL2 (DMC) computing power and video channel plug-in, supports one-click synchronization of DeepSeek V4.1, Seedance 2.0, Vidu Q3, MiniMax H3, Super Vega 1.0 and Auto HD super-resolution models by filling in the API Key.",
   "type": "module",
   "main": "./client/index.js",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
     "super-vega"
   ],
   "beeftv": {
-    "name": "LL2 算力与视频渠道",
+    "name": "LL2 computing power and video channels",
     "client": "./client/index.js",
     "permissions": [
       "generation.run",
@@ -29,7 +29,7 @@
           "type": "secret",
           "label": "LL2 API Key",
           "required": true,
-          "description": "填写 LL2 (https://api.ll2.cn) 提供的 sk-... 密钥"
+          "description": "Fill in LL2 (sk-... key provided by https://api.ll2.cn)"
         },
         {
           "name": "baseUrl",
@@ -37,7 +37,7 @@
           "label": "Base URL",
           "required": false,
           "default": "https://api.ll2.cn",
-          "description": "LL2 接口根地址，默认 https://api.ll2.cn"
+          "description": "LL2 interface root address, default https://api.ll2.cn"
         }
       ]
     },
@@ -73,70 +73,70 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "Seedance 2.0 模型 ID（如 doubao-seedance-2-0、doubao-seedance-2-0-fast）。"
+              "description": "Seedance 2.0 model ID (e.g. doubao-seedance-2-0, doubao-seedance-2-0-fast)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": true,
               "mapping": "content[type=text].text",
-              "description": "视频提示词。"
+              "description": "Video prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "required": false,
               "mapping": "content[type=image_url]",
-              "description": "首帧、尾帧、参考图等 role 原样映射。"
+              "description": "The first frame, last frame, reference picture, etc. role are mapped as they are."
             },
             {
               "name": "videos",
               "type": "media[]",
               "required": false,
               "mapping": "content[type=video_url]",
-              "description": "参考视频。"
+              "description": "Reference video."
             },
             {
               "name": "audios",
               "type": "media[]",
               "required": false,
               "mapping": "content[type=audio_url]",
-              "description": "参考音频。"
+              "description": "Reference audio."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "required": false,
               "mapping": "ratio",
-              "description": "输出画幅比例。"
+              "description": "Output aspect ratio."
             },
             {
               "name": "resolution",
               "type": "string",
               "required": false,
               "mapping": "resolution",
-              "description": "输出分辨率档位（480p、720p）。"
+              "description": "Output resolution gear (480p, 720p)."
             },
             {
               "name": "duration",
               "type": "integer",
               "required": false,
               "mapping": "duration",
-              "description": "输出时长秒数（4-15 秒）。"
+              "description": "Output duration in seconds (4-15 seconds)."
             },
             {
               "name": "generateAudio",
               "type": "boolean",
               "required": false,
               "mapping": "generate_audio",
-              "description": "是否生成音频。"
+              "description": "Whether to generate audio."
             },
             {
               "name": "watermark",
               "type": "boolean",
               "required": false,
               "mapping": "watermark",
-              "description": "是否带水印。"
+              "description": "Whether to include watermark."
             }
           ],
           "create": {
@@ -396,56 +396,56 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "Vidu 视频模型 ID（如 viduq3-pro、viduq3-turbo）。"
+              "description": "Vidu video model ID (such as viduq3-pro, viduq3-turbo)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": false,
               "mapping": "prompt",
-              "description": "视频提示词。"
+              "description": "Video prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "required": false,
               "mapping": "images",
-              "description": "显式 role 图片输入（first_frame、last_frame、reference_image）。"
+              "description": "Explicit role image input (first_frame, last_frame, reference_image)."
             },
             {
               "name": "duration",
               "type": "integer",
               "required": false,
               "mapping": "duration",
-              "description": "时长秒数（1-16 秒）。"
+              "description": "Duration in seconds (1-16 seconds)."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "required": false,
               "mapping": "aspect_ratio",
-              "description": "画幅比例（16:9、9:16、4:3、3:4、1:1）。"
+              "description": "Aspect ratio (16:9, 9:16, 4:3, 3:4, 1:1)."
             },
             {
               "name": "resolution",
               "type": "string",
               "required": false,
               "mapping": "resolution",
-              "description": "分辨率档位（540p、720p、1080p）。"
+              "description": "Resolution levels (540p, 720p, 1080p)."
             },
             {
               "name": "generateAudio",
               "type": "boolean",
               "required": false,
               "mapping": "audio",
-              "description": "是否音视频直出。"
+              "description": "Whether audio and video are streamed directly."
             },
             {
               "name": "watermark",
               "type": "boolean",
               "required": false,
               "mapping": "watermark",
-              "description": "水印开关。"
+              "description": "Watermark switch."
             }
           ],
           "create": {
@@ -719,51 +719,51 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "MiniMax 视频模型 ID（如 MiniMax-H3）。"
+              "description": "MiniMax video model ID (such as MiniMax-H3)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": true,
               "mapping": "content[type=text].text",
-              "description": "视频提示词。"
+              "description": "Video prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "mapping": "content[type=image_url]",
-              "description": "支持 first_frame、last_frame、reference_image。"
+              "description": "Support first_frame, last_frame, reference_image."
             },
             {
               "name": "videos",
               "type": "media[]",
               "mapping": "content[type=video_url]",
-              "description": "参考视频。"
+              "description": "Reference video."
             },
             {
               "name": "audios",
               "type": "media[]",
               "mapping": "content[type=audio_url]",
-              "description": "参考音频。"
+              "description": "Reference audio."
             },
             {
               "name": "duration",
               "type": "integer",
               "required": true,
               "mapping": "duration",
-              "description": "4-15 秒。"
+              "description": "4-15 seconds."
             },
             {
               "name": "resolution",
               "type": "string",
               "mapping": "resolution",
-              "description": "固定支持 768P。"
+              "description": "Fixed support for 768P."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "mapping": "ratio",
-              "description": "画幅比例。"
+              "description": "Aspect ratio."
             }
           ],
           "create": {
@@ -1018,63 +1018,63 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "Super Vega 视频模型 ID（如 Super Vega 1.0-pro-mini、Super Vega 1.0-lite）。"
+              "description": "Super Vega video model ID (e.g. Super Vega 1.0-pro-mini, Super Vega 1.0-lite)."
             },
             {
               "name": "prompt",
               "type": "string",
               "required": false,
               "mapping": "Prompt",
-              "description": "视频提示词。"
+              "description": "Video prompt words."
             },
             {
               "name": "images",
               "type": "media[]",
               "required": false,
               "mapping": "FileInfos",
-              "description": "首帧、尾帧与参考图写入 FileInfos(Category=Image, Usage=FirstFrame|LastFrame|Reference)。"
+              "description": "The first frame, last frame and reference image are written to FileInfos(Category=Image, Usage=FirstFrame|LastFrame|Reference)."
             },
             {
               "name": "videos",
               "type": "media[]",
               "required": false,
               "mapping": "FileInfos",
-              "description": "参考视频写入 FileInfos(Category=Video)。"
+              "description": "Reference video is written to FileInfos(Category=Video)."
             },
             {
               "name": "audios",
               "type": "media[]",
               "required": false,
               "mapping": "FileInfos",
-              "description": "参考音频写入 FileInfos(Category=Audio)。"
+              "description": "Reference audio is written to FileInfos(Category=Audio)."
             },
             {
               "name": "duration",
               "type": "integer",
               "required": false,
               "mapping": "OutputConfig.Duration",
-              "description": "时长秒数（4-15 秒）。"
+              "description": "Duration in seconds (4-15 seconds)."
             },
             {
               "name": "aspectRatio",
               "type": "string",
               "required": false,
               "mapping": "OutputConfig.AspectRatio",
-              "description": "画幅比例（16:9、9:16、4:3、3:4、1:1、21:9）。"
+              "description": "Aspect ratio (16:9, 9:16, 4:3, 3:4, 1:1, 21:9)."
             },
             {
               "name": "resolution",
               "type": "string",
               "required": false,
               "mapping": "OutputConfig.Resolution",
-              "description": "分辨率档位（720P、768P、1080P）。"
+              "description": "Resolution gears (720P, 768P, 1080P)."
             },
             {
               "name": "generateAudio",
               "type": "boolean",
               "required": false,
               "mapping": "OutputConfig.AudioGeneration",
-              "description": "音画同出（Enabled；1.0-lite 自动省略）。"
+              "description": "Audio and video output simultaneously (Enabled; automatically omitted in 1.0-lite)."
             }
           ],
           "create": {
@@ -1392,7 +1392,7 @@
         },
         {
           "id": "ll2-auto-hd-video",
-          "label": "LL2 Auto HD 视频超分",
+          "label": "LL2 Auto HD video super score",
           "capabilities": [
             "video"
           ],
@@ -1418,21 +1418,21 @@
               "type": "string",
               "required": true,
               "mapping": "model",
-              "description": "模型名称（auto-hd）。"
+              "description": "Model name (auto-hd)."
             },
             {
               "name": "videos",
               "type": "media[]",
               "required": true,
               "mapping": "video_url",
-              "description": "待超分视频公网 URL（取第一段参考视频）。"
+              "description": "The public URL of the video to be super-resolution (take the first reference video)."
             },
             {
               "name": "resolution",
               "type": "string",
               "required": true,
               "mapping": "resolution",
-              "description": "目标清晰度（720p、1080p、2k、4k）。"
+              "description": "Target clarity (720p, 1080p, 2k, 4k)."
             }
           ],
           "validations": [
@@ -1447,7 +1447,7 @@
                   1
                 ]
               },
-              "message": "auto-hd 视频超分需要提供 1 个参考视频"
+              "message": "Auto-hd video super score requires 1 reference video"
             }
           ],
           "create": {

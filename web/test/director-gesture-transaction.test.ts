@@ -16,66 +16,66 @@ function camera(keyframes: DirectorKeyframe[] = []) {
     };
 }
 
-describe("手势状态机：恰好一次提交且总能释放 transforming", () => {
-    test("start 进入手势并禁用 Orbit", () => {
+describe("Gesture state machine: submit exactly once and always release transforming", () => {
+    test("start to enter gestures and disable Orbit", () => {
         const started = reduceDirectorGesture(directorGestureIdle, "start");
         expect(started).toEqual({ active: true, committed: false, transforming: true });
     });
 
-    test("成功结束恰好提交一次", () => {
+    test("Successfully completed and submitted exactly once", () => {
         const committed = reduceDirectorGesture(reduceDirectorGesture(directorGestureIdle, "start"), "commit");
         expect(committed).toEqual({ active: false, committed: true, transforming: false });
     });
 
-    test("取消不提交，并且清掉 transforming", () => {
+    test("Cancel without submitting and clear transforming", () => {
         const cancelled = reduceDirectorGesture(reduceDirectorGesture(directorGestureIdle, "start"), "cancel");
         expect(cancelled).toEqual({ active: false, committed: false, transforming: false });
     });
 
-    test("终态后重复事件不会二次提交", () => {
+    test("Repeated events after the final state will not be submitted twice.", () => {
         const committed = reduceDirectorGesture(reduceDirectorGesture(directorGestureIdle, "start"), "commit");
         expect(reduceDirectorGesture(committed, "commit").committed).toBe(false);
         expect(reduceDirectorGesture(committed, "cancel").committed).toBe(false);
     });
 
-    test("未开始手势时的终态事件是安全的空操作", () => {
+    test("The final event when the gesture is not started is a safe no-op", () => {
         expect(reduceDirectorGesture(directorGestureIdle, "commit")).toEqual(directorGestureIdle);
         expect(reduceDirectorGesture(directorGestureIdle, "cancel")).toEqual(directorGestureIdle);
     });
 
-    test("任意终态路径都不会让 transforming 留在 true", () => {
+    test("No final path will leave transforming true", () => {
         (["commit", "cancel"] as const).forEach((event) => {
             expect(reduceDirectorGesture(reduceDirectorGesture(directorGestureIdle, "start"), event).transforming).toBe(false);
         });
     });
 });
 
-describe("directorCameraSyncKey：暂停且无关键帧时不与用户 Orbit 抢夺", () => {
-    test("暂停且无关键帧时播放头变化不改变同步键", () => {
+describe("directorCameraSyncKey: Do not compete with user Orbit when paused and no keyframes", () => {
+    test("Playhead changes do not change the sync key when paused and without keyframes", () => {
         const first = directorCameraSyncKey({ camera: camera(), playhead: 0, playing: false });
         const second = directorCameraSyncKey({ camera: camera(), playhead: 2.5, playing: false });
         expect(first).toBe(second);
     });
 
-    test("暂停但有关键帧时拖动播放头会驱动相机", () => {
+    test("Dragging the playhead while paused but with keyframes drives the camera", () => {
         const keyframes = [{ id: "k0", time: 0, transform: camera().transform }];
         expect(directorCameraSyncKey({ camera: camera(keyframes), playhead: 0, playing: false })).not.toBe(directorCameraSyncKey({ camera: camera(keyframes), playhead: 1, playing: false }));
     });
 
-    test("播放中始终跟随播放头", () => {
+    test("Always follow the playhead during playback", () => {
         expect(directorCameraSyncKey({ camera: camera(), playhead: 0, playing: true })).not.toBe(directorCameraSyncKey({ camera: camera(), playhead: 1, playing: true }));
     });
 
-    test("相机静态属性变化会强制重新同步", () => {
+    test("Camera static property changes will force resynchronization", () => {
         const aligned = { ...camera(), transform: { ...camera().transform, position: [9, 9, 9] as [number, number, number] } };
         expect(directorCameraSyncKey({ camera: aligned, playhead: 0, playing: false })).not.toBe(directorCameraSyncKey({ camera: camera(), playhead: 0, playing: false }));
     });
 
-    test("没有相机时不写入", () => {
+    test("Don't write when there is no camera", () => {
         expect(directorCameraSyncKey({ camera: null, playhead: 0, playing: true })).toBeNull();
     });
 
-    test("同一 playhead 只改关键帧 transform，同步键必须变化（#3 回归）", () => {
+    test("The same playhead only changes the keyframe transform, the synchronization key must change (#3 regression)", () => {
         const before = [{ id: "k0", time: 0, transform: camera().transform }];
         const after = [{ id: "k0", time: 0, transform: { ...camera().transform, position: [1, 2, 3] as [number, number, number] } }];
         const beforeKey = directorCameraSyncKey({ camera: camera(before), playhead: 0, playing: false });
@@ -83,20 +83,20 @@ describe("directorCameraSyncKey：暂停且无关键帧时不与用户 Orbit 抢
         expect(beforeKey).not.toBe(afterKey);
     });
 
-    test("同一 playhead 改动区间外的关键帧不影响解算值时也保持稳定", () => {
+    test("The same playhead remains stable even when changing keyframes outside the range does not affect the solution value.", () => {
         const keyframes = [{ id: "k0", time: 0, transform: camera().transform }];
         expect(directorCameraSyncKey({ camera: camera(keyframes), playhead: 0, playing: false })).toBe(directorCameraSyncKey({ camera: camera(keyframes), playhead: 0, playing: false }));
     });
 
-    test("同一 playhead 新增关键帧改变解算结果时同步键变化", () => {
+    test("Add keyframes to the same playhead to synchronize key changes when the solution results change.", () => {
         const single = [{ id: "k0", time: 0, transform: camera().transform }];
         const pair = [...single, { id: "k1", time: 2, transform: { ...camera().transform, position: [8, 8, 8] as [number, number, number] } }];
         expect(directorCameraSyncKey({ camera: camera(single), playhead: 1, playing: false })).not.toBe(directorCameraSyncKey({ camera: camera(pair), playhead: 1, playing: false }));
     });
 });
 
-describe("导演台会话状态：Auto Key 默认关闭", () => {
-    test("初始状态与 reset 后都为关闭", () => {
+describe("Director's desk session status: Auto Key is turned off by default", () => {
+    test("Both the initial state and after reset are closed.", () => {
         expect(useDirectorWorkbenchStore.getState().autoKey).toBe(false);
         useDirectorWorkbenchStore.getState().setAutoKey(true);
         expect(useDirectorWorkbenchStore.getState().autoKey).toBe(true);

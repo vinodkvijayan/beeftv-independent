@@ -21,7 +21,7 @@ const channel = createModelChannel({
 });
 const config = { ...defaultConfig, channels: [channel], model: encodeChannelModel(channel.id, "seedance-2.5"), videoSeconds: "5" };
 const profile = modelCapabilityConfigFor(config, config.model).video!;
-const audio: ReferenceAudio = { id: "generated", name: "配音.mp3", type: "audio/mpeg", url: "/api/resources/generated/file", storageKey: "resource:generated" };
+const audio: ReferenceAudio = { id: "generated", name: "Dubbing.mp3", type: "audio/mpeg", url: "/api/resources/generated/file", storageKey: "resource:generated" };
 
 function mockGeneratedAudio(durationMs: number | undefined) {
     const resource = spyOn(resources, "getResource").mockResolvedValue({ id: "generated", durationMs: 0, mimeType: "audio/mpeg" } as resources.RemoteResource);
@@ -80,7 +80,7 @@ test("backend preparation also probes references without a canvas", async () => 
 test("a generated character voice sample with zero resource duration is probed before canvas preflight", async () => {
     const mocks = mockGeneratedAudio(2500);
     const character = spyOn(projects, "getProjectCharacter").mockResolvedValue({
-        asset: { id: "character", title: "角色" },
+        asset: { id: "character", title: "role" },
         character: { versionId: "version", definition: {}, representations: [], voice: { profile: { sampleResourceId: "generated" }, instructions: "" } },
     } as Awaited<ReturnType<typeof projects.getProjectCharacter>>);
     try {
@@ -107,8 +107,8 @@ test("a generated character voice sample with zero resource duration is probed b
 });
 
 for (const [duration, message] of [
-    [900, "0.90 秒"],
-    [undefined, "时长无法读取"],
+    [900, "0.90 seconds"],
+    [undefined, "Unable to read duration"],
 ] as const) {
 }
 

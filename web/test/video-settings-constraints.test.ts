@@ -13,7 +13,7 @@ test("H3 base ordinary references retain an independent ratio", () => {
 });
 
 test("Max and Turbo treat ordinary image inputs as keyframes", () => {
-    for (const model of h3Models.slice(1)) expect(videoSettingsConstraints(h3AspectConfig(model), { imageCount: 1 }).ratioLabel).toBe("随首帧图片");
+    for (const model of h3Models.slice(1)) expect(videoSettingsConstraints(h3AspectConfig(model), { imageCount: 1 }).ratioLabel).toBe("With the first frame picture");
 });
 
 test("same-name models on custom endpoints keep their own protocol controls", () => {
@@ -38,8 +38,8 @@ test("switching to Seedance preserves its existing settings constraints", () => 
         ],
     };
     const config = { ...base, channels: [channel], model: "beeftv::seedance-2.5" };
-    expect(videoSettingsConstraints(config, { imageCount: 1 }).ratioLabel).toBe("随首帧");
-    expect(videoSettingsConstraints(config, { videoCount: 1 }, { videoEditOperation: "inpaint" })).toEqual({ ratioLabel: "随原视频", durationLocked: true });
+    expect(videoSettingsConstraints(config, { imageCount: 1 }).ratioLabel).toBe("Follow the first frame");
+    expect(videoSettingsConstraints(config, { videoCount: 1 }, { videoEditOperation: "inpaint" })).toEqual({ ratioLabel: "Suiyuan video", durationLocked: true });
     expect(videoSettingsConstraints(config, { characterCount: 1 }).ratioLabel).toBeUndefined();
 });
 
@@ -50,7 +50,7 @@ test("a character card cover alone does not determine keyframe mode", () => {
         expect(videoSettingsConstraints(config, { imageCount: 1, characterCount: 1 }, { videoStartFrameNodeId: "frame" }).ratioLabel).toBeUndefined();
         expect(videoSettingsConstraints(config, { imageCount: 1, characterCount: 1 }, { videoEndFrameNodeId: "frame" }).ratioLabel).toBeUndefined();
     }
-    expect(videoSettingsConstraints(h3AspectConfig(), { characterCount: 1 }).ratioHelp).toContain("多素材参考生成使用所选比例");
+    expect(videoSettingsConstraints(h3AspectConfig(), { characterCount: 1 }).ratioHelp).toContain("Multi-material reference generation using selected scale");
 });
 
 for (const model of h3Models) {

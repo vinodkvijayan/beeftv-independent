@@ -17,7 +17,7 @@ func TestUpscaleAdmissionPinsOfficialCredentialAndPayload(t *testing.T) {
 	if err := s.SaveLocalModelConfig([]byte(`{"channels":[{"id":"beeftv","baseUrl":"https://beeftv.app","apiKey":"synthetic-disk-key","enabled":true}]}`)); err != nil {
 		t.Fatal(err)
 	}
-	input := map[string]any{"mode": "image", "prompt": "AI 超分", "config": map[string]any{"credentialRef": "beeftv", "apiKey": "forged-client-key", "baseUrl": "https://untrusted.invalid", "model": "topaz-standard-v2", "interfaceType": "newapi"}, "upscale": map[string]any{"factor": 2}, "referenceImages": []any{map[string]any{"storageKey": "resource:owned-source"}}}
+	input := map[string]any{"mode": "image", "prompt": "AI super score", "config": map[string]any{"credentialRef": "beeftv", "apiKey": "forged-client-key", "baseUrl": "https://untrusted.invalid", "model": "topaz-standard-v2", "interfaceType": "newapi"}, "upscale": map[string]any{"factor": 2}, "referenceImages": []any{map[string]any{"storageKey": "resource:owned-source"}}}
 	resolved, err := s.resolveManagedBeefTVSecrets(input)
 	if err != nil {
 		t.Fatal(err)
@@ -140,8 +140,8 @@ func TestUpscaleFourModelsAdmitAndReplayThroughTaskDomain(t *testing.T) {
 			if kind == "video" {
 				field = "referenceVideos"
 			}
-			input := map[string]any{"mode": kind, "prompt": "AI 超分", "config": map[string]any{"credentialRef": "beeftv", "model": name, "interfaceType": "newapi"}, "upscale": map[string]any{"factor": 2}, field: []any{map[string]any{"storageKey": "resource:owned-source"}}, "metadata": map[string]any{"clientOperationId": "stable-upscale-operation"}}
-			request := CreateTaskRequest{Type: "canvas_" + kind, Operation: kind, Model: name, Prompt: "AI 超分", Input: input}
+			input := map[string]any{"mode": kind, "prompt": "AI super score", "config": map[string]any{"credentialRef": "beeftv", "model": name, "interfaceType": "newapi"}, "upscale": map[string]any{"factor": 2}, field: []any{map[string]any{"storageKey": "resource:owned-source"}}, "metadata": map[string]any{"clientOperationId": "stable-upscale-operation"}}
+			request := CreateTaskRequest{Type: "canvas_" + kind, Operation: kind, Model: name, Prompt: "AI super score", Input: input}
 			first, err := s.CreateTask("user", request)
 			if err != nil {
 				t.Fatal(err)

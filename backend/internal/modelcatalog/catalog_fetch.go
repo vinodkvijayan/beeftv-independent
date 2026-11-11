@@ -12,13 +12,13 @@ import (
 
 type CatalogJSONError struct{ Cause error }
 
-func (e CatalogJSONError) Error() string { return "模型服务返回的不是有效 JSON" }
+func (e CatalogJSONError) Error() string { return "The model service returned not valid JSON" }
 func (e CatalogJSONError) Unwrap() error { return e.Cause }
 
 type CatalogUpstreamRejectedError struct{}
 
 func (CatalogUpstreamRejectedError) Error() string {
-	return "模型服务返回失败，请检查渠道配置"
+	return "The model service failed to return, please check the channel configuration."
 }
 
 type catalogPayload struct {
@@ -68,7 +68,7 @@ func NormalizeCatalogAPIFormat(apiFormat string) (string, error) {
 		normalized = "openai"
 	}
 	if normalized != "openai" && normalized != "gemini" {
-		return "", kernel.BadAuthRequest("接口协议不支持拉取模型")
+		return "", kernel.BadAuthRequest("The interface protocol does not support the pull model")
 	}
 	return normalized, nil
 }
@@ -82,10 +82,10 @@ func ValidateCatalogRequest(baseURL, apiKey, apiFormat string) (string, string, 
 	baseURL = CatalogBaseURL(baseURL)
 	apiKey = strings.TrimSpace(apiKey)
 	if baseURL == "" {
-		return "", "", "", kernel.BadAuthRequest("请填写 Base URL")
+		return "", "", "", kernel.BadAuthRequest("Please fill in the Base URL")
 	}
 	if apiKey == "" {
-		return "", "", "", kernel.BadAuthRequest("请填写 API Key")
+		return "", "", "", kernel.BadAuthRequest("Please fill in API Key")
 	}
 	normalizedFormat, err := NormalizeCatalogAPIFormat(apiFormat)
 	if err != nil {
@@ -100,7 +100,7 @@ func LoadChannelModelCatalog(ctx context.Context, fetcher CatalogFetcher, baseUR
 		return nil, err
 	}
 	if fetcher == nil {
-		return nil, CatalogFetchError{Cause: kernel.BadAuthRequest("模型服务地址无效")}
+		return nil, CatalogFetchError{Cause: kernel.BadAuthRequest("The model service address is invalid")}
 	}
 	data, err := fetcher(ctx, baseURL, apiFormat, apiKey, headers)
 	if err != nil {

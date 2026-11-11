@@ -29,10 +29,10 @@ func TestUserAssetsPagePaginatesAndIsolatesUsers(t *testing.T) {
 	repo, db := newAssetLibraryTestRepository(t)
 	now := time.Now().UTC()
 	for _, asset := range []model.Asset{
-		{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1","title":"海边"}`, CreatedAt: now, UpdatedAt: now},
-		{ID: "asset-2", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "室内", PayloadJSON: `{"id":"asset-2","title":"室内"}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
-		{ID: "asset-3", UserID: "user-1", Kind: "text", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed, Title: "提示词", PayloadJSON: `{"id":"asset-3","title":"提示词"}`, CreatedAt: now, UpdatedAt: now.Add(2 * time.Second)},
-		{ID: "asset-4", UserID: "user-2", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "他人素材", PayloadJSON: `{"id":"asset-4","title":"他人素材"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1","title":"海边"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-2", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "indoor", PayloadJSON: `{"id":"asset-2","title":"室内"}`, CreatedAt: now, UpdatedAt: now.Add(time.Second)},
+		{ID: "asset-3", UserID: "user-1", Kind: "text", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed, Title: "prompt word", PayloadJSON: `{"id":"asset-3","title":"提示词"}`, CreatedAt: now, UpdatedAt: now.Add(2 * time.Second)},
+		{ID: "asset-4", UserID: "user-2", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Other people's material", PayloadJSON: `{"id":"asset-4","title":"他人素材"}`, CreatedAt: now, UpdatedAt: now},
 	} {
 		if err := db.Create(&asset).Error; err != nil {
 			t.Fatal(err)
@@ -51,8 +51,8 @@ func TestUserAssetsPagePaginatesAndIsolatesUsers(t *testing.T) {
 func TestDeleteAssetFolderMovesAssetsToUncategorized(t *testing.T) {
 	repo, db := newAssetLibraryTestRepository(t)
 	now := time.Now().UTC()
-	folder := model.AssetFolder{ID: "folder-1", UserID: "user-1", Name: "灵感", NameKey: "灵感", Position: 0, CreatedAt: now, UpdatedAt: now}
-	asset := model.Asset{ID: "asset-1", UserID: "user-1", FolderID: folder.ID, Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1","folderId":"folder-1"}`, CreatedAt: now, UpdatedAt: now}
+	folder := model.AssetFolder{ID: "folder-1", UserID: "user-1", Name: "inspiration", NameKey: "inspiration", Position: 0, CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "asset-1", UserID: "user-1", FolderID: folder.ID, Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1","folderId":"folder-1"}`, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&folder).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestDeleteAssetFolderMovesAssetsToUncategorized(t *testing.T) {
 func TestMoveUserAssetsToFolderRejectsMissingFolder(t *testing.T) {
 	repo, db := newAssetLibraryTestRepository(t)
 	now := time.Now().UTC()
-	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1"}`, CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1"}`, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&asset).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func TestAssignUserAssetFolderDoesNotOverwriteConcurrentPayload(t *testing.T) {
 	now := time.Now().UTC()
 	original := `{"id":"asset-1","source":"生成任务","folderId":""}`
 	updated := `{"id":"asset-1","source":"生成任务","title":"已物化","folderId":""}`
-	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: original, CreatedAt: now, UpdatedAt: now}
+	asset := model.Asset{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: original, CreatedAt: now, UpdatedAt: now}
 	if err := db.Create(&asset).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -126,10 +126,10 @@ func TestAssignUserAssetFolderDoesNotOverwriteConcurrentPayload(t *testing.T) {
 func TestMoveUserAssetsToFolderRollsBackWhenAnyAssetIsForeign(t *testing.T) {
 	repo, db := newAssetLibraryTestRepository(t)
 	now := time.Now().UTC()
-	folder := model.AssetFolder{ID: "folder-1", UserID: "user-1", Name: "灵感", NameKey: "灵感", Position: 0, CreatedAt: now, UpdatedAt: now}
+	folder := model.AssetFolder{ID: "folder-1", UserID: "user-1", Name: "inspiration", NameKey: "inspiration", Position: 0, CreatedAt: now, UpdatedAt: now}
 	assets := []model.Asset{
-		{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "海边", PayloadJSON: `{"id":"asset-1"}`, CreatedAt: now, UpdatedAt: now},
-		{ID: "asset-2", UserID: "user-2", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "他人素材", PayloadJSON: `{"id":"asset-2"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-1", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "seaside", PayloadJSON: `{"id":"asset-1"}`, CreatedAt: now, UpdatedAt: now},
+		{ID: "asset-2", UserID: "user-2", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed, Title: "Other people's material", PayloadJSON: `{"id":"asset-2"}`, CreatedAt: now, UpdatedAt: now},
 	}
 	if err := db.Create(&folder).Error; err != nil {
 		t.Fatal(err)
@@ -171,32 +171,32 @@ func TestUserAssetsPageFiltersFavoriteRecentProjectBeforePagination(t *testing.T
 	}
 	create(model.Asset{
 		ID: "plain-old", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "普通旧素材", PayloadJSON: `{"id":"plain-old","title":"普通旧素材","metadata":{"favorite":false}}`,
+		Title: "plain old material", PayloadJSON: `{"id":"plain-old","title":"plain old material","metadata":{"favorite":false}}`,
 		CreatedAt: now.Add(-40 * 24 * time.Hour), UpdatedAt: now.Add(-40 * 24 * time.Hour),
 	})
 	create(model.Asset{
 		ID: "recent-plain", UserID: "user-1", Kind: "text", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed,
-		Title: "最近文本", PayloadJSON: `{"id":"recent-plain","title":"最近文本","metadata":{"projectName":"海边剧"}}`,
+		Title: "recent text", PayloadJSON: `{"id":"recent-plain","title":"最近文本","metadata":{"projectName":"海边剧"}}`,
 		CreatedAt: now, UpdatedAt: now.Add(200 * time.Second),
 	})
 	create(model.Asset{
 		ID: "named-project", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "具名项目", PayloadJSON: `{"id":"named-project","title":"具名项目","metadata":{"projectName":" 海边剧 "}}`,
+		Title: "named project", PayloadJSON: `{"id":"named-project","title":"具名项目","metadata":{"projectName":" 海边剧 "}}`,
 		CreatedAt: now, UpdatedAt: now.Add(201 * time.Second),
 	})
 	create(model.Asset{
 		ID: "linked-project", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "已关联", PayloadJSON: `{"id":"linked-project","title":"已关联","metadata":{"projectIds":["p-1"]}}`,
+		Title: "Already linked", PayloadJSON: `{"id":"linked-project","title":"Linked","metadata":{"projectIds":["p-1"]}}`,
 		CreatedAt: now, UpdatedAt: now.Add(202 * time.Second),
 	})
 	create(model.Asset{
 		ID: "unlinked-project", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "未关联", PayloadJSON: `{"id":"unlinked-project","title":"未关联","metadata":{}}`,
+		Title: "Not associated", PayloadJSON: `{"id":"unlinked-project","title":"unlinked","metadata":{}}`,
 		CreatedAt: now, UpdatedAt: now.Add(203 * time.Second),
 	})
 	create(model.Asset{
 		ID: "other-user", UserID: "user-2", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "他人收藏", PayloadJSON: `{"id":"other-user","metadata":{"favorite":true}}`,
+		Title: "Collection by others", PayloadJSON: `{"id":"other-user","metadata":{"favorite":true}}`,
 		CreatedAt: now, UpdatedAt: now,
 	})
 
@@ -242,21 +242,21 @@ func TestUserAssetsPageFiltersFavoriteRecentProjectBeforePagination(t *testing.T
 		}
 	}
 
-	named, namedTotal, err := repo.UserAssetsPage("user-1", 1, 40, UserAssetPageFilter{Status: "active", Project: "海边剧"})
+	named, namedTotal, err := repo.UserAssetsPage("user-1", 1, 40, UserAssetPageFilter{Status: "active", Project: "seaside drama"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if namedTotal != 2 || !assetIDSet(named).Equal("recent-plain", "named-project") {
 		t.Fatalf("named project = total %d ids %s", namedTotal, assetIDs(named))
 	}
-	linked, linkedTotal, err := repo.UserAssetsPage("user-1", 1, 40, UserAssetPageFilter{Status: "active", Project: "已关联项目"})
+	linked, linkedTotal, err := repo.UserAssetsPage("user-1", 1, 40, UserAssetPageFilter{Status: "active", Project: "Linked projects"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if linkedTotal != 1 || len(linked) != 1 || linked[0].ID != "linked-project" {
 		t.Fatalf("linked project = total %d ids %s", linkedTotal, assetIDs(linked))
 	}
-	unlinked, unlinkedTotal, err := repo.UserAssetsPage("user-1", 1, 40, UserAssetPageFilter{Status: "active", Project: "未关联项目"})
+	unlinked, unlinkedTotal, err := repo.UserAssetsPage("user-1", 1, 40, UserAssetPageFilter{Status: "active", Project: "No associated projects"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,7 +277,7 @@ func TestUserAssetsPageFiltersFavoriteRecentProjectBeforePagination(t *testing.T
 		t.Fatal(err)
 	}
 	projectCounts := facetCountMap(projectRows)
-	if projectCounts["海边剧"] != 2 || projectCounts["已关联项目"] != 1 || projectCounts["未关联项目"] != 127 || len(projectCounts) != 3 {
+	if projectCounts["seaside drama"] != 2 || projectCounts["Linked projects"] != 1 || projectCounts["No associated projects"] != 127 || len(projectCounts) != 3 {
 		t.Fatalf("project counts = %#v", projectCounts)
 	}
 }
@@ -325,19 +325,19 @@ func TestUserAssetsPageFiltersGeneratedBeforePagination(t *testing.T) {
 	}
 	create(model.Asset{
 		ID: "gen-text", UserID: "user-1", Kind: "text", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed,
-		Title: "生成文本", PayloadJSON: `{"id":"gen-text","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now.Add(400 * time.Second),
+		Title: "generate text", PayloadJSON: `{"id":"gen-text","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now.Add(400 * time.Second),
 	})
 	create(model.Asset{
 		ID: "gen-archived", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusArchived,
-		Title: "归档生成", PayloadJSON: `{"id":"gen-archived","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now.Add(401 * time.Second),
+		Title: "Archive generation", PayloadJSON: `{"id":"gen-archived","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now.Add(401 * time.Second),
 	})
 	create(model.Asset{
 		ID: "gen-entity", UserID: "user-1", Kind: "entity", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed,
-		Title: "角色", PayloadJSON: `{"id":"gen-entity","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now.Add(402 * time.Second),
+		Title: "role", PayloadJSON: `{"id":"gen-entity","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now.Add(402 * time.Second),
 	})
 	create(model.Asset{
 		ID: "gen-other", UserID: "user-2", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "他人生成", PayloadJSON: `{"id":"gen-other","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now,
+		Title: "Generated by others", PayloadJSON: `{"id":"gen-other","source":"生成任务"}`, CreatedAt: now, UpdatedAt: now,
 	})
 
 	unfiltered, unfilteredTotal, err := repo.UserAssetsPage("user-1", 1, 120, UserAssetPageFilter{Status: "active"})
@@ -421,19 +421,19 @@ func TestUserAssetProjectCountsUsesActiveNonEntitySemantics(t *testing.T) {
 	}
 	create(model.Asset{
 		ID: "named", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "海边", PayloadJSON: `{"id":"named","metadata":{"projectName":"海边剧"}}`, CreatedAt: now, UpdatedAt: now,
+		Title: "seaside", PayloadJSON: `{"id":"named","metadata":{"projectName":"海边剧"}}`, CreatedAt: now, UpdatedAt: now,
 	})
 	create(model.Asset{
 		ID: "archived", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusArchived,
-		Title: "归档", PayloadJSON: `{"id":"archived","metadata":{"projectName":"归档项目"}}`, CreatedAt: now, UpdatedAt: now,
+		Title: "Archive", PayloadJSON: `{"id":"archived","metadata":{"projectName":"归档项目"}}`, CreatedAt: now, UpdatedAt: now,
 	})
 	create(model.Asset{
 		ID: "entity", UserID: "user-1", Kind: "entity", Category: model.AssetCategoryOther, Status: model.AssetVersionStatusConfirmed,
-		Title: "角色", PayloadJSON: `{"id":"entity","metadata":{"projectName":"角色项目"}}`, CreatedAt: now, UpdatedAt: now,
+		Title: "role", PayloadJSON: `{"id":"entity","metadata":{"projectName":"角色项目"}}`, CreatedAt: now, UpdatedAt: now,
 	})
 	create(model.Asset{
 		ID: "plain", UserID: "user-1", Kind: "image", Category: model.AssetCategoryMaterial, Status: model.AssetVersionStatusConfirmed,
-		Title: "普通", PayloadJSON: `{"id":"plain","metadata":{}}`, CreatedAt: now, UpdatedAt: now,
+		Title: "Ordinary", PayloadJSON: `{"id":"plain","metadata":{}}`, CreatedAt: now, UpdatedAt: now,
 	})
 
 	rows, err := repo.UserAssetProjectCounts("user-1")
@@ -441,7 +441,7 @@ func TestUserAssetProjectCountsUsesActiveNonEntitySemantics(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := facetCountMap(rows)
-	if got["海边剧"] != 1 || got["未关联项目"] != 1 || got["归档项目"] != 0 || got["角色项目"] != 0 || len(got) != 2 {
+	if got["seaside drama"] != 1 || got["No associated projects"] != 1 || got["Archive items"] != 0 || got["role project"] != 0 || len(got) != 2 {
 		t.Fatalf("active non-entity project counts = %#v", got)
 	}
 }

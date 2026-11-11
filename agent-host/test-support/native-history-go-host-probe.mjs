@@ -13,7 +13,7 @@ const listen = (server) => new Promise((resolve) => server.listen(0, '127.0.0.1'
 function send(res, model, tool, args = {}) {
   res.writeHead(200, { 'content-type': 'text/event-stream' });
   const frame = (delta, finish_reason = null) => res.write('data: ' + JSON.stringify({ id: 'fixture', object: 'chat.completion.chunk', created: 1, model, choices: [{ index: 0, delta, finish_reason }] }) + '\n\n');
-  frame(tool ? { role: 'assistant', tool_calls: [{ index: 0, id: 'call-' + tool + '-' + modelCalls, type: 'function', function: { name: tool, arguments: JSON.stringify(args) } }] } : { role: 'assistant', content: args.finalText || '已读取实际参考图片、15秒音频和15秒视频。' });
+  frame(tool ? { role: 'assistant', tool_calls: [{ index: 0, id: 'call-' + tool + '-' + modelCalls, type: 'function', function: { name: tool, arguments: JSON.stringify(args) } }] } : { role: 'assistant', content: args.finalText || 'The actual reference image, 15 seconds of audio and 15 seconds of video have been read.' });
   frame({}, tool ? 'tool_calls' : 'stop'); res.end('data: [DONE]\n\n');
 }
 const captured = []; let expected;
@@ -60,7 +60,7 @@ const provider = createServer(async (req, res) => {
         assert(request.messages.some(message => message.role === 'user' &&
           JSON.stringify(message.content).includes('BEEFTV_INPUT:audio-supplement')));
       }
-      return send(res, request.model, null, { finalText: '同一会话历史音频保留，补充要求已收到。' });
+      return send(res, request.model, null, { finalText: 'The historical audio of the same session is retained and the supplementary request has been received.' });
     }
     if (mainCalls === 1) assertPart(parts, 'image/jpeg', expected.image);
     const toolResults = request.messages.filter(message => message.role === 'tool');
@@ -134,7 +134,7 @@ try {
     await until(async () => { try { return (await fetch(base + '/health', { signal: AbortSignal.timeout(500) })).ok; } catch { return false; } });
   }
   await start();
-  await api('/chat', { canvasId: config.canvasId, turnId: config.turnId, message: '检查参考音视频的实际内容', revisionBefore: 1, attachments: [config.image,config.audio,config.video] });
+  await api('/chat', { canvasId: config.canvasId, turnId: config.turnId, message: 'Check the actual content of the reference audio and video', revisionBefore: 1, attachments: [config.image,config.audio,config.video] });
   let history;
   await until(async () => { history = await (await api('/history?canvasId=' + config.canvasId)).json(); return history.turns?.length === 1; });
   if(config.failAfterMedia) {
@@ -161,10 +161,10 @@ try {
     assert.deepEqual(restored.turns[0].toolCalls.filter(call=>call.tool==='media.inspect').map(call=>call.mediaFacts),recordedFacts);
   }
   continuing = true;
-  await api('/chat',{canvasId:config.canvasId,sessionId:history.sessionId,turnId:config.nextTurnId,message:'在当前画布权限继续讨论已有素材',revisionBefore:1});
+  await api('/chat',{canvasId:config.canvasId,sessionId:history.sessionId,turnId:config.nextTurnId,message:'Continue to discuss existing materials with current canvas permissions',revisionBefore:1});
   await until(() => releaseContinuation);
   const steer = await api('/steer', {canvasId:config.canvasId,sessionId:history.sessionId,
-    requestId:'audio-supplement',message:'请保留声音中的提示音顺序。',attachments:[config.audio]});
+    requestId:'audio-supplement',message:'Please keep the order of the tones in the sound.',attachments:[config.audio]});
   assert.equal(steer.status,202,await steer.text());
   releaseContinuation();
   await until(async()=>{history=await(await api('/history?canvasId='+config.canvasId)).json();return history.turns?.length===2});
@@ -173,7 +173,7 @@ try {
   assert.equal(history.turns[1].supplementInputs[0].attachments[0].resourceId,config.audio.resourceId);
   assert(captured.some(part=>part.mime==='video/mp4'));
   assert.equal((await backend('/__fixture/invalidate-audio',{})).status,200);
-  await api('/chat',{canvasId:config.canvasId,sessionId:history.sessionId,turnId:config.invalidTurnId,message:'继续',revisionBefore:1});
+  await api('/chat',{canvasId:config.canvasId,sessionId:history.sessionId,turnId:config.invalidTurnId,message:'continue',revisionBefore:1});
   await until(async()=>{history=await(await api('/history?canvasId='+config.canvasId)).json();return history.turns?.length===3});
   assert.match(history.turns[2].error,/历史音频.*重新添加/);assert.doesNotMatch(history.turns[2].error,/Connection error/);assert.equal(mainCalls,config.failAfterMedia ? 6 : 7,'SDK deterministic history failure must not dispatch or retry provider');
   const ledger=fs.readFileSync(path.join(config.directory,'agent-requests.jsonl'),'utf8').trim().split('\n');assert.equal(ledger.length,config.failAfterMedia ? 6 : 7);

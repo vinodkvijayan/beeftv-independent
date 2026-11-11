@@ -70,16 +70,16 @@ func TestPrepareStoryboardDraftTitlesFollowOptionalTemplate(t *testing.T) {
 		RowIDs:     rows,
 		Image:      map[string]any{"model": "image-model"},
 		Video:      map[string]any{"model": "video-model", "generateAudio": "true"},
-		ImageTitle: "镜 {n} 首帧",
-		VideoTitle: "镜 {n} 视频",
+		ImageTitle: "Mirror {n} first frame",
+		VideoTitle: "Mirror {n} Video",
 	}, revision)
 	if err != nil {
 		t.Fatal(err)
 	}
 	doc, _ := svc.loadCanvasDoc("owner", id)
 	for i, shot := range result.Shots {
-		imageTitle := []string{"镜 1 首帧", "镜 2 首帧"}[i]
-		videoTitle := []string{"镜 1 视频", "镜 2 视频"}[i]
+		imageTitle := []string{"Mirror 1 first frame", "Mirror 2 first frame"}[i]
+		videoTitle := []string{"mirror 1 video", "mirror 2 video"}[i]
 		if got := findCanvasNode(doc, shot.ImageNodeID)["title"]; got != imageTitle {
 			t.Fatalf("image title = %v, want %s", got, imageTitle)
 		}
@@ -104,10 +104,10 @@ func TestPrepareStoryboardDraftTitlesKeepDefaultWhenOmitted(t *testing.T) {
 		image := findCanvasNode(doc, shot.ImageNodeID)
 		video := findCanvasNode(doc, shot.VideoNodeID)
 		shotNumber := int(findStoryboardRow(docStoryboardForTest(doc), shot.RowID)["shotNumber"].(float64))
-		if want := "镜头 " + strconv.Itoa(shotNumber) + " · 首帧"; image["title"] != want {
+		if want := "lens" + strconv.Itoa(shotNumber) + " · First frame"; image["title"] != want {
 			t.Fatalf("image title = %v, want %s", image["title"], want)
 		}
-		if want := "镜头 " + strconv.Itoa(shotNumber) + " · 视频"; video["title"] != want {
+		if want := "lens" + strconv.Itoa(shotNumber) + " · Video"; video["title"] != want {
 			t.Fatalf("video title = %v, want %s", video["title"], want)
 		}
 	}
@@ -250,25 +250,25 @@ func TestPrepareStoryboardScriptOnlyCreation(t *testing.T) {
 	svc, id, _, revision := storyboardFixture(t)
 	summary, result, err := svc.PrepareUserCanvasStoryboard("owner", id, "", StoryboardPreparation{
 		Script: &StoryboardDraft{
-			Title: "三镜分镜",
+			Title: "Three-shot storyboard",
 			Rows: []StoryboardRowDraft{
-				{DurationSeconds: floatPtr(5), PlotDescription: strPtr("第一镜"), ImageGenerationPrompt: strPtr("镜1首帧"), VideoMotionPrompt: strPtr("镜1运镜")},
-				{DurationSeconds: floatPtr(6), PlotDescription: strPtr("第二镜"), ImageGenerationPrompt: strPtr("镜2首帧"), VideoMotionPrompt: strPtr("镜2运镜")},
+				{DurationSeconds: floatPtr(5), PlotDescription: strPtr("first shot"), ImageGenerationPrompt: strPtr("Mirror 1 first frame"), VideoMotionPrompt: strPtr("Mirror 1 movement mirror")},
+				{DurationSeconds: floatPtr(6), PlotDescription: strPtr("second shot"), ImageGenerationPrompt: strPtr("Mirror 2 first frame"), VideoMotionPrompt: strPtr("Mirror 2 movement mirror")},
 			},
 		},
 	}, revision)
 	if err != nil {
-		t.Fatalf("只建分镜应成功: %v", err)
+		t.Fatalf("Only building storyboards should succeed: %v", err)
 	}
 	if summary.Revision != revision+1 || result.ScriptNodeID == "" || len(result.Created) != 1 || len(result.Shots) != 2 || len(result.CreatedEdgeIDs) != 0 {
-		t.Fatalf("只建分镜返回不符预期: %#v %#v", summary, result)
+		t.Fatalf("Only building storyboards returns unexpected results: %#v %#v", summary, result)
 	}
 	rows := storyboardRowsOf(t, svc, id, result.ScriptNodeID)
-	if len(rows) != 2 || rows[0]["imageGenerationPrompt"] != "镜1首帧" || rows[1]["videoMotionPrompt"] != "镜2运镜" {
-		t.Fatalf("分镜行内容不符预期: %#v", rows)
+	if len(rows) != 2 || rows[0]["imageGenerationPrompt"] != "Mirror 1 first frame" || rows[1]["videoMotionPrompt"] != "Mirror 2 movement mirror" {
+		t.Fatalf("Storyline content does not meet expectations: %#v", rows)
 	}
 	if _, _, err := svc.PrepareUserCanvasStoryboard("owner", id, result.ScriptNodeID, StoryboardPreparation{RowIDs: []string{result.Shots[0].RowID}}, summary.Revision); err == nil {
-		t.Fatal("已有分镜且不传 image/video 参数应被拒绝")
+		t.Fatal("If there is already a storyboard and no image/video parameters are passed, it should be rejected.")
 	}
 }
 
@@ -276,35 +276,35 @@ func TestPrepareStoryboardMinimalEssentialFieldsBackfill(t *testing.T) {
 	svc, id, _, revision := storyboardFixture(t)
 	summary, result, err := svc.PrepareUserCanvasStoryboard("owner", id, "", StoryboardPreparation{
 		Script: &StoryboardDraft{
-			Title: "精简分镜",
+			Title: "Streamlined storyboards",
 			Rows: []StoryboardRowDraft{
-				{PlotDescription: strPtr("雨夜巷口主角撑伞回头"), VideoMotionPrompt: strPtr("镜头缓慢推近主角眼神")},
-				{ImageGenerationPrompt: strPtr("霓虹灯牌下黑衣人闪身入巷"), VideoMotionPrompt: strPtr("跟拍黑衣人背影消失")},
+				{PlotDescription: strPtr("The protagonist holds an umbrella and looks back at the alley on a rainy night"), VideoMotionPrompt: strPtr("The camera slowly zooms in on the protagonist’s eyes")},
+				{ImageGenerationPrompt: strPtr("Under the neon sign, the man in black ducks into the alley"), VideoMotionPrompt: strPtr("Follow the figure of the man in black and disappear")},
 			},
 		},
 		Image: map[string]any{"model": "image-model", "size": "9:16"},
 		Video: map[string]any{"model": "video-model", "generateAudio": "true"},
 	}, revision)
 	if err != nil {
-		t.Fatalf("只填核心字段应成功准备: %v", err)
+		t.Fatalf("Filling in only the core fields should prepare successfully: %v", err)
 	}
 	if summary.Revision != revision+1 || len(result.Shots) != 2 {
-		t.Fatalf("准备结果不符预期: %#v %#v", summary, result)
+		t.Fatalf("The preparation result is not as expected: %#v %#v", summary, result)
 	}
 	rows := storyboardRowsOf(t, svc, id, result.ScriptNodeID)
-	if rows[0]["imageGenerationPrompt"] != "雨夜巷口主角撑伞回头" || rows[1]["plotDescription"] != "霓虹灯牌下黑衣人闪身入巷" {
-		t.Fatalf("缺失的 plotDescription / imageGenerationPrompt 应互为兜底: %#v", rows)
+	if rows[0]["imageGenerationPrompt"] != "The protagonist holds an umbrella and looks back at the alley on a rainy night" || rows[1]["plotDescription"] != "Under the neon sign, the man in black ducks into the alley" {
+		t.Fatalf("Missing plotDescription / imageGenerationPrompt should be mutually exclusive: %#v", rows)
 	}
 	if _, _, err := svc.PrepareUserCanvasStoryboard("owner", id, "", StoryboardPreparation{
 		Script: &StoryboardDraft{
-			Title: "仅运镜分镜",
+			Title: "Storyboarding only",
 			Rows: []StoryboardRowDraft{
-				{VideoMotionPrompt: strPtr("镜头缓慢拉远")},
+				{VideoMotionPrompt: strPtr("The camera slowly zooms out")},
 			},
 		},
 		Image: map[string]any{"model": "image-model", "size": "9:16"},
 	}, summary.Revision); err == nil {
-		t.Fatal("仅填 videoMotionPrompt 不应误作首帧画面提示词")
+		t.Fatal("Only fill in videoMotionPrompt and should not be mistaken for the first frame prompt word")
 	}
 }
 
@@ -313,45 +313,45 @@ func TestPrepareStoryboardTemplateTitlesRejectDuplicates(t *testing.T) {
 	svc, id, revision, rows := preparationFixture(t)
 	_, _, err := svc.PrepareUserCanvasStoryboard("owner", id, "script", StoryboardPreparation{
 		RowIDs: rows, Image: map[string]any{"model": "image-model"}, Video: map[string]any{"model": "video-model", "generateAudio": "true"},
-		ImageTitle: "镜 {n}", VideoTitle: "镜 {n}",
+		ImageTitle: "Mirror {n}", VideoTitle: "Mirror {n}",
 	}, revision)
 	if err == nil {
-		t.Fatal("首帧与视频模板相同时应拒绝")
+		t.Fatal("The first frame should be rejected if it is the same as the video template.")
 	}
 	summary, _, err := svc.PrepareUserCanvasStoryboard("owner", id, "script", StoryboardPreparation{
-		RowIDs: rows, Image: map[string]any{"model": "image-model"}, ImageTitle: "镜 {n} 首帧",
+		RowIDs: rows, Image: map[string]any{"model": "image-model"}, ImageTitle: "Mirror {n} first frame",
 	}, revision)
 	if err != nil {
 		t.Fatal(err)
 	}
 	before, _ := svc.loadCanvasDoc("owner", id)
 	_, _, err = svc.PrepareUserCanvasStoryboard("owner", id, "script", StoryboardPreparation{
-		RowIDs: rows, Video: map[string]any{"model": "video-model", "generateAudio": "true"}, VideoTitle: "镜 {n} 首帧",
+		RowIDs: rows, Video: map[string]any{"model": "video-model", "generateAudio": "true"}, VideoTitle: "Mirror {n} first frame",
 	}, summary.Revision)
 	if err == nil {
-		t.Fatal("模板标题撞上已有节点时应拒绝")
+		t.Fatal("Template titles should be rejected when they hit existing nodes")
 	}
 	after, _ := svc.loadCanvasDoc("owner", id)
 	if len(canvasDocNodes(after)) != len(canvasDocNodes(before)) {
-		t.Fatal("拒绝后画布不应新增节点")
+		t.Fatal("No new nodes should be added to the canvas after rejection")
 	}
 }
 
 // 模板标题撞上同批的默认标题时同样拒绝，无论模板在首帧还是视频一侧。
 func TestPrepareStoryboardTemplateTitleRejectsBatchDefaultCollision(t *testing.T) {
 	for _, input := range []StoryboardPreparation{
-		{Image: map[string]any{"model": "image-model"}, Video: map[string]any{"model": "video-model", "generateAudio": "true"}, VideoTitle: "镜头 {n} · 首帧"},
-		{Image: map[string]any{"model": "image-model"}, Video: map[string]any{"model": "video-model", "generateAudio": "true"}, ImageTitle: "镜头 {n} · 视频"},
+		{Image: map[string]any{"model": "image-model"}, Video: map[string]any{"model": "video-model", "generateAudio": "true"}, VideoTitle: "Lens {n} · First frame"},
+		{Image: map[string]any{"model": "image-model"}, Video: map[string]any{"model": "video-model", "generateAudio": "true"}, ImageTitle: "Lens {n} · Video"},
 	} {
 		svc, id, revision, rows := preparationFixture(t)
 		input.RowIDs = rows
 		before, _ := svc.loadCanvasDoc("owner", id)
 		if _, _, err := svc.PrepareUserCanvasStoryboard("owner", id, "script", input, revision); err == nil {
-			t.Fatalf("模板与同批默认标题重名应拒绝: %+v", input)
+			t.Fatalf("Templates with the same name as the default title of the same batch should be rejected: %+v", input)
 		}
 		after, _ := svc.loadCanvasDoc("owner", id)
 		if len(canvasDocNodes(after)) != len(canvasDocNodes(before)) {
-			t.Fatal("拒绝后画布不应新增节点")
+			t.Fatal("No new nodes should be added to the canvas after rejection")
 		}
 	}
 }

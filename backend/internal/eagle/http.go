@@ -16,7 +16,7 @@ func (c *Client) jsonRequest(method string, baseURL *url.URL, endpoint string, p
 	requestURL := *baseURL
 	endpointURL, err := url.Parse(endpoint)
 	if err != nil || endpointURL.IsAbs() || endpointURL.Host != "" || endpointURL.Path == "" {
-		return errors.New("Eagle API 路径无效")
+		return errors.New("Eagle API path is invalid")
 	}
 	requestURL.Path = strings.TrimRight(requestURL.Path, "/") + endpointURL.Path
 	requestURL.RawQuery = endpointURL.RawQuery
@@ -44,17 +44,17 @@ func (c *Client) jsonRequest(method string, baseURL *url.URL, endpoint string, p
 	}
 	response, err := client.Do(request)
 	if err != nil {
-		return errors.New("无法连接 Eagle，请确认 Eagle 已启动并打开素材库")
+		return errors.New("Unable to connect to Eagle, please confirm that Eagle is started and open the material library")
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		if response.StatusCode == http.StatusNotFound {
-			return errors.New("Eagle 未找到当前接口或素材，请确认 Eagle 已打开素材库并使用默认 API 地址")
+			return errors.New("Eagle did not find the current interface or material. Please confirm that Eagle has opened the material library and used the default API address.")
 		}
-		return fmt.Errorf("Eagle API 返回 HTTP %d", response.StatusCode)
+		return fmt.Errorf("Eagle API returns HTTP %d", response.StatusCode)
 	}
 	if err := json.NewDecoder(response.Body).Decode(target); err != nil {
-		return errors.New("Eagle API 返回了无法解析的数据")
+		return errors.New("Eagle API returned unparseable data")
 	}
 	return nil
 }
@@ -86,7 +86,7 @@ type pinnedRoundTripper struct {
 
 func (p pinnedRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	if p.trusted == nil || req == nil || req.URL == nil || req.URL.User != nil || !sameTrustedDestination(p.trusted, req.URL) {
-		return nil, errors.New("Eagle 只允许连接已校验的本机地址")
+		return nil, errors.New("Eagle only allows connections to verified local addresses")
 	}
 	base := p.base
 	if base == nil {

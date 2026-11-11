@@ -10,8 +10,8 @@ import (
 
 type LegacyVideoReference struct{ ID, Kind, URL string }
 
-var ErrReferencesNotUploaded = errors.New("参考素材尚未上传完成")
-var ErrInvalidVideoReferences = errors.New("已选择的关键帧不在本次参考素材中")
+var ErrReferencesNotUploaded = errors.New("The reference material has not been uploaded yet")
+var ErrInvalidVideoReferences = errors.New("The selected keyframe is not in this reference material")
 
 type LegacyVideoInput struct {
 	Model, Prompt, Seconds, Resolution, AspectRatio, DraftTaskID string
@@ -195,7 +195,7 @@ func (c *MediaClient) CreateLegacyVideo(ctx context.Context, key string, input L
 			return value, nil
 		}
 	}
-	return "", errors.New("视频接口没有返回有效任务编号")
+	return "", errors.New("The video interface did not return a valid task number")
 }
 
 type LegacyVideoTask struct {
@@ -221,7 +221,7 @@ func (t LegacyVideoTask) Failure() error {
 				return &MediaTaskError{Category: "async_failed", TaskID: t.ID, Message: message}
 			}
 		}
-		return &MediaTaskError{Code: "video_task_failed", Category: "async_failed", TaskID: t.ID, Message: "原视频任务未成功，请查询原任务结果与扣费"}
+		return &MediaTaskError{Code: "video_task_failed", Category: "async_failed", TaskID: t.ID, Message: "The original video task was unsuccessful. Please check the original task results and deductions."}
 	}
 	return nil
 }
@@ -230,7 +230,7 @@ func (c *MediaClient) QueryLegacyVideo(ctx context.Context, id string) (LegacyVi
 	var task LegacyVideoTask
 	task.ID = id
 	if id == "" {
-		return task, errors.New("视频任务编号为空")
+		return task, errors.New("Video task number is empty")
 	}
 	path := "/videos/" + url.PathEscape(id)
 	err := c.LegacyJSON(ctx, http.MethodGet, path, nil, &task.State)
@@ -247,7 +247,7 @@ func (c *MediaClient) QueryLegacyVideo(ctx context.Context, id string) (LegacyVi
 			if value, exists := state[key]; exists && value != nil {
 				identity, ok := value.(string)
 				if !ok || identity != "" && identity != id {
-					return task, errors.New("视频回执与原任务编号不一致")
+					return task, errors.New("The video receipt is inconsistent with the original task number")
 				}
 			}
 		}
@@ -319,7 +319,7 @@ func (c *MediaClient) LegacyVideoContent(ctx context.Context, path string, limit
 		return nil, "", err
 	}
 	req.Header.Del(MediaProtocolHeader)
-	data, header, err := c.sendWith(c.storageClient("视频结果重定向次数过多"), req, limit)
+	data, header, err := c.sendWith(c.storageClient("Video results redirect too many times"), req, limit)
 	return data, header.Get("Content-Type"), err
 }
 

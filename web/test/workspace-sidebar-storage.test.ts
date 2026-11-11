@@ -88,7 +88,7 @@ describe("workspace sidebar storage meter", () => {
             },
         });
         http.patch = (async (_url: string, body?: unknown) => {
-            if (failPatch) throw new Error("后端保存失败");
+            if (failPatch) throw new Error("Backend save failed");
             const payload = body as { canvasDocumentMB: number };
             return { canvasDocumentMB: payload.canvasDocumentMB } as never;
         }) as typeof http.patch;
@@ -97,13 +97,13 @@ describe("workspace sidebar storage meter", () => {
             expect(await updateCanvasDocumentLimitMB(256)).toBe(256);
             expect(readLocalCanvasDocumentLimitMB()).toBe(256);
             failPatch = true;
-            await expect(updateCanvasDocumentLimitMB(128)).rejects.toThrow("后端保存失败");
+            await expect(updateCanvasDocumentLimitMB(128)).rejects.toThrow("Backend save failed");
             expect(readLocalCanvasDocumentLimitMB()).toBe(256);
             failPatch = false;
             expect(await updateCanvasDocumentLimitMB(0)).toBe(0);
             expect(readLocalCanvasDocumentLimitMB()).toBe(0);
-            await expect(updateCanvasDocumentLimitMB(-1)).rejects.toThrow("单画布容量上限");
-            await expect(updateCanvasDocumentLimitMB(9999)).rejects.toThrow("单画布容量上限");
+            await expect(updateCanvasDocumentLimitMB(-1)).rejects.toThrow("Maximum capacity of a single canvas");
+            await expect(updateCanvasDocumentLimitMB(9999)).rejects.toThrow("Maximum capacity of a single canvas");
         } finally {
             http.patch = prevPatch;
             Object.defineProperty(globalThis, "localStorage", {

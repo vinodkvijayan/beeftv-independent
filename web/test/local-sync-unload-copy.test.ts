@@ -6,7 +6,7 @@ const source = readFileSync(resolve(import.meta.dir, "../src/stores/use-sync-pro
 
 describe("local sync unload warning", () => {
     test("uses local wording when all active progress entries are local", () => {
-        expect(source).toContain('const localOnly = progress.every((item) => item.message?.includes("本地"));');
-        expect(source).toContain('localOnly ? "画布正在保存到本地，请勿关闭页面。" : "画布正在同步至云端，请勿关闭页面。"');
+        expect(source).toContain('const localOnly = progress.every((item) => item.message?.includes("local"));');
+        expect(source).toContain('localOnly ? "The canvas is being saved locally, please do not close the page." : "The canvas is being synchronized to the cloud, please do not close the page."');
     });
 });

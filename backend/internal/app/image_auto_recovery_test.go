@@ -38,7 +38,7 @@ func TestHistoricalImageAutoRecoveryDownloadsAndBindsLegacyCanvas(t *testing.T) 
 	defer upstream.Close()
 	task := model.Task{ID: "historical-image", UserID: "local", ProjectID: canvasID, Type: "canvas_image", Status: model.TaskStatusFailed, Stage: "submission_unknown", Error: "context deadline exceeded", RouteRun: 3,
 		InputJSON: `{"mode":"image","metadata":{"source":"canvas","nodeId":"n1"}}`}
-	doc, _ := json.Marshal(map[string]any{"id": canvasID, "title": "历史图片恢复", "revision": revision, "nodes": []any{map[string]any{"id": "n1", "type": "image", "title": "图片", "position": map[string]any{"x": 0, "y": 0}, "metadata": map[string]any{"taskId": task.ID, "status": "error", "generationSubmissionState": "unknown"}}}, "connections": []any{}})
+	doc, _ := json.Marshal(map[string]any{"id": canvasID, "title": "Historical picture recovery", "revision": revision, "nodes": []any{map[string]any{"id": "n1", "type": "image", "title": "pictures", "position": map[string]any{"x": 0, "y": 0}, "metadata": map[string]any{"taskId": task.ID, "status": "error", "generationSubmissionState": "unknown"}}}, "connections": []any{}})
 	if _, err := s.UpsertUserCanvasProject("local", doc); err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestHistoricalImageAutoRecoveryDownloadsAndBindsLegacyCanvas(t *testing.T) 
 	}
 	before, err := s.Task("local", task.ID)
 	if err != nil || before.Outcome == nil || before.Outcome.Phase != "retrievable" {
-		t.Fatalf("恢复前=%+v %v", before, err)
+		t.Fatalf("Before restoration=%+v %v", before, err)
 	}
 	// 只启动真实交付定时器，不启动会执行生成的主 worker。
 	sqlDB, _ := db.DB()
@@ -86,7 +86,7 @@ func TestHistoricalImageAutoRecoveryDownloadsAndBindsLegacyCanvas(t *testing.T) 
 	}
 	got, err := s.Task("local", task.ID)
 	if err != nil || got.Status != model.TaskStatusSucceeded || got.Outcome.Phase != "ready" || got.RouteRun != 3 || len(got.Outputs) != 1 || got.Outputs[0].ResourceID == "" {
-		t.Fatalf("恢复后=%+v %v", got, err)
+		t.Fatalf("After recovery=%+v %v", got, err)
 	}
 	raw, err := s.UserCanvasProject("local", canvasID)
 	if err != nil {
@@ -97,15 +97,15 @@ func TestHistoricalImageAutoRecoveryDownloadsAndBindsLegacyCanvas(t *testing.T) 
 	}
 	meta := document.Nodes[0].Metadata
 	if meta["status"] != "success" || meta["content"] == nil {
-		t.Fatalf("旧前端使用的成片字段未写回: %s", raw)
+		t.Fatalf("The piece field used by the old front end was not written back: %s", raw)
 	}
 	var tasks, attempts int64
 	db.Model(&model.Task{}).Count(&tasks)
 	db.Model(&model.RouteAttempt{}).Count(&attempts)
 	if tasks != 1 || attempts != 0 || posts.Load() != 0 || gets.Load() != 1 {
-		t.Fatalf("任务=%d 路由=%d GET=%d POST=%d", tasks, attempts, gets.Load(), posts.Load())
+		t.Fatalf("Task=%d Route=%d GET=%d POST=%d", tasks, attempts, gets.Load(), posts.Load())
 	}
-	t.Logf("历史回执→后台重建→GET 下载→旧画布 success/content：通过；task=%s routeRun=%d，GET=%d POST=%d", got.ID, got.RouteRun, gets.Load(), posts.Load())
+	t.Logf("Historical receipt→Background reconstruction→GET download→Old canvas success/content: passed; task=%s routeRun=%d, GET=%d POST=%d", got.ID, got.RouteRun, gets.Load(), posts.Load())
 }
 
 func TestAutomaticImageRecoveryConclusions(t *testing.T) {
@@ -153,7 +153,7 @@ func TestAutomaticImageRecoveryConclusions(t *testing.T) {
 			}
 			if name == "read-failure" || name == "lease-conflict" {
 				if err == nil || stored.RecoveryOutcome != nil {
-					t.Fatalf("暂时失败变成永久结论: %+v %v", stored, err)
+					t.Fatalf("Temporary failure becomes permanent conclusion: %+v %v", stored, err)
 				}
 				return
 			}
@@ -162,14 +162,14 @@ func TestAutomaticImageRecoveryConclusions(t *testing.T) {
 				want = localtask.RecoveryNoResult
 			}
 			if err != nil || stored.RecoveryOutcome == nil || *stored.RecoveryOutcome != want {
-				t.Fatalf("结论=%+v want=%s err=%v", stored, want, err)
+				t.Fatalf("conclusion=%+v want=%s err=%v", stored, want, err)
 			}
 			got, err := s.Task(task.UserID, task.ID)
 			if err != nil || got.Outcome.Phase != "failed" {
-				t.Fatalf("投影=%+v err=%v", got, err)
+				t.Fatalf("projection=%+v err=%v", got, err)
 			}
 			if name != "rejected" && got.Outcome.Regenerate != "confirm" {
-				t.Fatal("没有结果被当成未计费")
+				t.Fatal("No results are treated as unbilled")
 			}
 		})
 	}
@@ -183,14 +183,14 @@ func TestAutomaticImageReplayUsesFrozenRequestBeyondOldSendLimit(t *testing.T) {
 			var originalKey string
 			server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.Method != "POST" {
-					t.Error("不应重新协商或组装请求")
+					t.Error("Requests should not be renegotiated or assembled")
 					w.WriteHeader(500)
 					return
 				}
 				sends.Add(1)
 				body, _ := io.ReadAll(r.Body)
 				if string(body) != string(original) || r.Header.Get("Idempotency-Key") != originalKey || r.Header.Get("Authorization") != "Bearer private-test-key" {
-					t.Error("原字节或原键改变")
+					t.Error("Original byte or original key changes")
 				}
 				w.Header().Set("Content-Type", "application/json")
 				fmt.Fprintf(w, `{"data":[{"url":%q}]}`, serverArtifactURL)
@@ -306,10 +306,10 @@ func TestAutomaticImageRecoveryExpiredOrUnsafeReplayNeverSends(t *testing.T) {
 			stored, _ := s.repo.Task(task.ID)
 			fresh, _ := s.repo.ImageSubmission(row.AttemptID, row.TaskID, row.UserID)
 			if fresh.SendCount != 0 || stored.Status != task.Status {
-				t.Fatal("越权恢复或发送了不安全的请求")
+				t.Fatal("Restored beyond authority or sent an unsafe request")
 			}
 			if mode != "cancelled" && (stored.RecoveryOutcome == nil || *stored.RecoveryOutcome != localtask.RecoveryUnrecoverable) {
-				t.Fatal("缺失取不回结论")
+				t.Fatal("No conclusion can be retrieved if missing")
 			}
 		})
 	}
@@ -338,6 +338,6 @@ func TestAutomaticImageRecoveryTemporaryReplayPreservesUnknown(t *testing.T) {
 	}
 	stored, _ := s.repo.Task(task.ID)
 	if stored.RecoveryOutcome != nil {
-		t.Fatal("发送失败被当成结果丢失")
+		t.Fatal("Failure to send is treated as result loss")
 	}
 }

@@ -64,7 +64,7 @@ func runManagedLegacyVideo(ctx context.Context, input Input, policy VideoPollPol
 	id := ResumedProviderRequestID(ctx)
 	if id == "" {
 		if SubmissionKeyFromContext(ctx) == "" {
-			return nil, RequestPreparationError{Cause: errors.New("视频任务缺少持久化提交编号")}
+			return nil, RequestPreparationError{Cause: errors.New("Video task is missing persistence commit number")}
 		}
 		createCtx := WithRequestKind(ctx, "create")
 		var err error

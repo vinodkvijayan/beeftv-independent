@@ -12,7 +12,7 @@
     { "clipId": "voice", "sourceId": "voice", "startMs": 1000, "durationMs": 2000, "sourceStartMs": 500, "volume": 1 }
   ],
   "subtitles": [
-    { "clipId": "sub", "startMs": 500, "durationMs": 5000, "text": "中文字幕完整性验证" }
+    { "clipId": "sub", "startMs": 500, "durationMs": 5000, "text": "Chinese subtitle integrity verification" }
   ],
-  "subtitleSrt": "1\n00:00:00,500 --> 00:00:05,500\n中文字幕完整性验证\n\n"
+  "subtitleSrt": "1\n00:00:00,500 --> 00:00:05,500\nChinese subtitle integrity verification"
 }
