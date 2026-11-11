@@ -31,13 +31,13 @@ const assetCommitChains = new Map<string, Promise<unknown>>();
 
 export class WorkspaceAssetMediaPendingError extends Error {
     constructor() {
-        super("素材文件尚未保存到工作区，修改已保留在本机");
+        super("The material file has not been saved to the workspace, and the modifications have been retained locally.");
         this.name = "WorkspaceAssetMediaPendingError";
     }
 }
 
 function assertAssetWriteReceipt(receipt: AssetWriteReceipt | undefined, id: string): asserts receipt is AssetWriteReceipt {
-    if (!receipt || receipt.id !== id) throw new Error("素材保存回执无效，修改已保留在本机");
+    if (!receipt || receipt.id !== id) throw new Error("The material save receipt is invalid and the modifications have been retained locally.");
 }
 
 function throwIfAborted(signal?: AbortSignal) {
@@ -223,14 +223,14 @@ export type DeleteWorkspaceAssetOptions = {
 
 export async function deleteWorkspaceAsset(id: string, options?: DeleteWorkspaceAssetOptions) {
     const assetId = id.trim();
-    if (!assetId) throw new Error("素材 ID 不能为空");
+    if (!assetId) throw new Error("Material ID cannot be empty");
     await hydrateAssetStoreDrafts();
 
     if (usesBrowserLocalResourceStore()) {
         if (options?.expectedStatus) {
             const live = useAssetStore.getState().assets.find((item) => item.id === assetId);
             if (live && live.status !== options.expectedStatus) {
-                throw new ApiError("素材已不在回收站，未删除", { status: 409, code: 409 });
+                throw new ApiError("The material is no longer in the recycle bin and has not been deleted.", { status: 409, code: 409 });
             }
         }
         await useAssetStore.getState().removeAsset(assetId);

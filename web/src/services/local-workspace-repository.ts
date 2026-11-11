@@ -32,7 +32,7 @@ export class CanvasProjectionError extends Error {
     }
 }
 
-const CANVAS_PROJECTION_INCOMPLETE = "服务端已保存，本地画布还没写完。请重试这次回写，不要重新生成。";
+const CANVAS_PROJECTION_INCOMPLETE = "The server has saved it, but the local canvas has not yet been written. Please retry this writeback without regenerating.";
 
 function incompleteCanvasProjection(id: string, scope: string, identity: string | null | undefined, cause: unknown) {
     const journal = peekCanvasOperationJournal(id, scope);
@@ -98,7 +98,7 @@ function invokeProjectionListener(
     try {
         listener(project, previous);
     } catch (error) {
-        console.error("画布刷新通知失败", { id: project.id, error });
+        console.error("Canvas refresh notification failed", { id: project.id, error });
     }
 }
 
@@ -122,7 +122,7 @@ function publishCanvasSaveProgress(id: string, scope: string, failed = false) {
 
 function throwIfCanvasNotWritable(id: string, scope: string) {
     if (canvasDeleting.has(saveKey(scope, id))) {
-        throw new CanvasBackendSubmitPausedError("画布正在删除，未提交");
+        throw new CanvasBackendSubmitPausedError("Canvas is being deleted and not submitted");
     }
     if (canvasSubmitBlocked(id, scope)) {
         throw new CanvasBackendSubmitPausedError();
@@ -436,7 +436,7 @@ export function beginLocalCanvasProject(title: string, projectId?: string, initi
     // WebKit storage transaction must never block navigation after the Go
     // repository has durably accepted the project.
     void flushCanvasStorePersistence().catch((error) => {
-        console.error("画布本地缓存写入失败，已保存到桌面数据库", { id, error });
+        console.error("Canvas local cache write failed, saved to desktop database", { id, error });
     });
     return { id, saved };
 }
@@ -458,7 +458,7 @@ function syncLocalCanvasProject(id: string): Promise<void> {
     }
     const previous = backendSaveTails.get(key) || Promise.resolve();
     const next = previous.catch(() => undefined).then(async () => {
-        if (canvasDeleting.has(key)) throw new CanvasBackendSubmitPausedError("画布正在删除，未提交");
+        if (canvasDeleting.has(key)) throw new CanvasBackendSubmitPausedError("Canvas is being deleted and not submitted");
         await commitLiveCanvasDocument(id);
     });
     const tail = next.finally(() => {
@@ -497,7 +497,7 @@ async function applyAcceptedCanvasSave(id: string, submitted: CanvasProject, sav
         return;
     }
     void flushCanvasStorePersistence().catch((error) => {
-        console.error("画布本地缓存写入失败，已保存到桌面数据库", { id, error });
+        console.error("Canvas local cache write failed, saved to desktop database", { id, error });
     });
 }
 
@@ -508,7 +508,7 @@ async function putCanvasProjectToBackend(id: string, project: CanvasProject, end
             { project: projectForSave },
             {},
         );
-        if (!response.project || response.project.id !== id) throw new Error("画布保存回执无效，修改仍保留在本地，请重试");
+        if (!response.project || response.project.id !== id) throw new Error("The canvas save receipt is invalid, the modifications are still retained locally, please try again.");
         return response.project;
     } catch (error) {
         await handleRejectedCanvasBackendSave(id, project, error, getActiveUserScope());
@@ -542,7 +542,7 @@ async function commitLiveCanvasDocumentUnlocked(id: string) {
         const live = openLocalCanvasProject(id);
         const current = peekCanvasOperationJournal(id, scope);
         if (sent && live && current?.confirmedSnapshot && sameCanvasDocument(current.confirmedSnapshot, live) && !current.inFlight) return;
-        throw new CanvasBackendSubmitPausedError(canvasDeleting.has(saveKey(scope, id)) ? "画布正在删除，未提交" : "画布有未处理的外部改动，本次未提交");
+        throw new CanvasBackendSubmitPausedError(canvasDeleting.has(saveKey(scope, id)) ? "Canvas is being deleted and not submitted" : "The canvas has unprocessed external changes and has not been submitted this time.");
     }
     const outcome = await queueAndSendLiveCanvasDocument(id, peekCanvasOperationJournal(id, scope)?.confirmedSnapshot ?? null, rebaseAllowed);
     if (outcome !== "rebased") return;
@@ -739,7 +739,7 @@ export async function adoptServerConfirmedGenerationPatch(rawProject: CanvasProj
             if (settled !== live) {
                 applyLiveCanvasProject(project.id, settled, false);
                 void flushCanvasStorePersistence().catch((error) => {
-                    console.error("画布本地缓存写入失败，生成结果已保存到桌面数据库", { id: project.id, error });
+                    console.error("Canvas local cache write failed, the generated results have been saved to the desktop database", { id: project.id, error });
                 });
             }
             return settled;
@@ -789,7 +789,7 @@ export function scheduleLocalCanvasBackendSync(id: string) {
         }
         void syncLocalCanvasProject(id).catch((error) => {
             if (isCanvasSubmitControlError(error)) return;
-            console.error("画布后端持久化失败，等待下次编辑重试", { id, error });
+            console.error("Canvas backend persistence failed, waiting for the next edit to try again", { id, error });
         });
     }, 500));
     publishCanvasSaveProgress(id, scope);
@@ -828,14 +828,14 @@ export async function hydrateLocalCanvasProjectsFromBackend() {
             });
             const batch = Array.isArray(response.projects) ? response.projects : [];
             hasMore = response.hasMore === true;
-            if (hasMore && batch.length === 0) throw new Error("项目分页未返回内容，请重试");
+            if (hasMore && batch.length === 0) throw new Error("No content was returned from the project page, please try again");
             summaries.push(...batch);
             page += 1;
         }
         if (summaries.length === 0) return false;
         const projects = (await Promise.all(summaries.map(async (summary) => {
             const detail = await http.get<{ project: CanvasProject }>(`/canvas-projects/${encodeURIComponent(summary.id)}`);
-            if (!detail.project) throw new Error("项目内容未返回");
+            if (!detail.project) throw new Error("Project content not returned");
             return normalizeCanvasProjectGraph(detail.project);
         }))).filter((project): project is CanvasProject => Boolean(project));
         if (projects.length === 0) return false;
@@ -871,8 +871,8 @@ export async function hydrateLocalCanvasProjectsFromBackend() {
         await flushCanvasStorePersistence();
         return true;
     } catch (error) {
-        console.error("项目列表同步失败", error);
-        failure="项目暂时无法读取，现有数据已保留。请重试或在设置中导出问题记录。";
+        console.error("Project list synchronization failed", error);
+        failure="The item cannot be read at the moment, existing data has been retained. Please try again or export the problem history in settings.";
         return false;
     } finally {
         finishCanvasHydration(attempt,failure);
@@ -882,7 +882,7 @@ export async function hydrateLocalCanvasProjectsFromBackend() {
 /** Read the durable document without adopting it or hiding errors behind local state. */
 export async function readLocalCanvasProjectFromBackend(id: string): Promise<CanvasProject> {
     const response = await http.get<{ project: CanvasProject }>(`/canvas-projects/${encodeURIComponent(id)}`);
-    if (!response.project) throw new Error("画布读取失败，请重试");
+    if (!response.project) throw new Error("Canvas reading failed, please try again");
     return normalizeCanvasProjectGraph(response.project);
 }
 
@@ -914,15 +914,15 @@ export async function openLocalCanvasProjectFromBackend(id: string) {
 
 function restoreHistoryRequestError(snapshotId: unknown, revision: unknown) {
     const identity = typeof snapshotId === "string" ? snapshotId.trim() : "";
-    if (!identity) throw new Error("历史版本不存在或已过期，请刷新历史列表");
+    if (!identity) throw new Error("The historical version does not exist or has expired. Please refresh the history list.");
     if (typeof revision !== "number" || !Number.isInteger(revision) || revision < 0) {
-        throw new Error("请先刷新画布版本再恢复");
+        throw new Error("Please refresh the canvas version before restoring");
     }
     return { snapshotId: identity, revision };
 }
 
 function restoreDidNotApply() {
-    return new Error("恢复没有完成，画布内容没有被替换。");
+    return new Error("The restore was not completed and the canvas contents were not replaced.");
 }
 
 /**
@@ -934,7 +934,7 @@ export async function restoreLocalCanvasProjectFromHistory(
     historyRestore: { snapshotId: string; revision: number },
 ): Promise<CanvasProject> {
     const canvasId = id.trim();
-    if (!canvasId) throw new Error("画布不存在或无权访问");
+    if (!canvasId) throw new Error("Canvas does not exist or does not have access");
     const { snapshotId, revision } = restoreHistoryRequestError(historyRestore.snapshotId, historyRestore.revision);
     return withCanvasProjection(getActiveUserScope(), canvasId, () => restoreLocalCanvasProjectFromHistoryUnlocked(canvasId, snapshotId, revision));
 }
@@ -946,7 +946,7 @@ async function restoreLocalCanvasProjectFromHistoryUnlocked(
 ): Promise<CanvasProject> {
     const scope = getActiveUserScope();
     if (canvasDeleting.has(saveKey(scope, id))) {
-        throw new CanvasBackendSubmitPausedError("画布正在删除，未提交");
+        throw new CanvasBackendSubmitPausedError("Canvas is being deleted and not submitted");
     }
     let receipt;
     try {
@@ -954,7 +954,7 @@ async function restoreLocalCanvasProjectFromHistoryUnlocked(
         receipt = response?.project;
     } catch (error) {
         if (isCanvasRevisionConflict(error)) {
-            throw new Error("当前画布已有更新，这次没有恢复。请重新打开版本记录后再试。");
+            throw new Error("The current canvas has been updated and will not be restored this time. Please reopen version records and try again.");
         }
         throw error;
     }
@@ -965,7 +965,7 @@ async function restoreLocalCanvasProjectFromHistoryUnlocked(
     }
     const backendProject = await readLocalCanvasProjectFromBackend(id);
     if (backendProject.id !== id || (backendProject.revision ?? 0) !== restoredRevision) {
-        throw new Error("恢复后没有读到新版本，请重试。");
+        throw new Error("No new version was read after recovery, please try again.");
     }
     await updateCanvasOperationJournal(id, scope, (current) => ({
         ...current,
@@ -1139,7 +1139,7 @@ export async function deleteLocalCanvasProjects(ids: readonly string[]) {
                 clearCanvasBackendSaveProgress(id, scope);
                 deleted.push(id);
             } catch (error) {
-                console.error("画布后端删除失败", { id, error });
+                console.error("Canvas backend deletion failed", { id, error });
                 failures.push(error);
                 if (!useCanvasStore.getState().openProject(id)) {
                     const snapshot = snapshots.find((item) => item.id === id);
@@ -1152,7 +1152,7 @@ export async function deleteLocalCanvasProjects(ids: readonly string[]) {
             const removed = snapshots.filter((item) => deleted.includes(item.id));
             if (removed.length) useCanvasHistoryStore.getState().recordDeletedProjects(removed);
             await flushCanvasStorePersistence().catch((error) => {
-                console.error("画布本地缓存写入失败，已从桌面数据库删除", { ids: deleted, error });
+                console.error("Canvas local cache write failed, deleted from desktop database", { ids: deleted, error });
             });
         }
         if (failures.length) throw failures[0];

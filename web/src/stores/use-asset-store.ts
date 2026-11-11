@@ -438,7 +438,7 @@ async function commitPendingAssetStorePersistenceLocked(scope: string) {
         // 这样既不会用伪造默认值掩盖坏数据，也不会让一条旧记录阻断整库的后续写入。
         const recovery = parseAssetStorageDocumentRecovering(await storage.getItem(queued.name), queued.baseAssets);
         if (recovery.invalid.length) {
-            console.warn("素材本地缓存包含无法恢复的历史记录，写回时将隔离这些记录", {
+            console.warn("The local cache of footage contains unrecoverable history, which will be quarantined on writeback", {
                 scope,
                 invalid: recovery.invalid,
             });
@@ -472,7 +472,7 @@ async function writeQueuedAssetPersist(scope: string) {
 async function readPersistedAssetDocumentForScope(scope: string) {
     const recovery = parseAssetStorageDocumentRecovering(await localForageStorageForScope(scope).getItem(ASSET_STORE_KEY));
     if (recovery.invalid.length) {
-        console.warn("素材本地缓存包含无法恢复的历史记录，已隔离并保留其诊断信息", {
+        console.warn("The footage local cache contains unrecoverable history, which has been quarantined and retains its diagnostic information", {
             scope,
             invalid: recovery.invalid,
         });
@@ -588,7 +588,7 @@ const assetStorage: PersistStorage<AssetStore> = {
         }
         const recovery = parseAssetStorageDocumentRecovering(value);
         if (recovery.invalid.length) {
-            console.warn("素材本地缓存包含无法恢复的历史记录，已隔离并保留其诊断信息", {
+            console.warn("The footage local cache contains unrecoverable history, which has been quarantined and retains its diagnostic information", {
                 scope,
                 invalid: recovery.invalid,
             });
@@ -602,7 +602,7 @@ const assetStorage: PersistStorage<AssetStore> = {
             try {
                 return await normalizePersistedAsset(asset);
             } catch (error) {
-                console.warn("素材本地缓存中的媒体已不可用，已保留该记录", {
+                console.warn("The media in the material local cache is no longer available, the record has been retained", {
                     scope,
                     assetId: asset.id,
                     error: error instanceof Error ? error.message : String(error),

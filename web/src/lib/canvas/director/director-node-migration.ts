@@ -45,7 +45,7 @@ export function normalizeDirectorCanvasNode(node: CanvasNodeData, proseTransferr
     return {
         ...node,
         type: CanvasNodeType.Director,
-        title: node.type === CanvasNodeType.Director ? node.title : "导演台",
+        title: node.type === CanvasNodeType.Director ? node.title : "Director's desk",
         width: hasLegacyDefaultSize ? 640 : node.width,
         height: hasLegacyDefaultSize ? 640 : node.height,
         metadata,

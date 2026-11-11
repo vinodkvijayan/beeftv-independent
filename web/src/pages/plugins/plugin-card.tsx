@@ -3,7 +3,7 @@ import type { PluginCardProps } from "@/lib/plugins/plugin-types";
 export function PluginCard({ name, description, sourceLabel, status, onOpen, openLabel, actions, children, "data-testid": testId }: PluginCardProps) {
     return (
         <section className="product-collection-card plugin-card library-card-surface" data-testid={testId}>
-            <button type="button" className="plugin-card-main" aria-label={openLabel || `查看${name}详情`} onClick={onOpen}>
+            <button type="button" className="plugin-card-main" aria-label={openLabel || `View${name}Details`} onClick={onOpen}>
                 <div className="plugin-card-heading">
                     <div className="min-w-0 flex-1">
                         <div className="plugin-card-title-row"><h3>{name}</h3></div>

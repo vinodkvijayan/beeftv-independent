@@ -1,9 +1,9 @@
 import type { StoryboardColumn, StoryboardRow } from "@/types/canvas";
 
 export const STORYBOARD_CONTENT_COLUMNS = [
-    { label: "视频提示词", value: "videoMotionPrompt" },
-    { label: "图片提示词", value: "imageGenerationPrompt" },
-    { label: "画面描述", value: "plotDescription" },
+    { label: "Video prompt words", value: "videoMotionPrompt" },
+    { label: "Picture prompt words", value: "imageGenerationPrompt" },
+    { label: "Screen description", value: "plotDescription" },
 ] as const;
 export type StoryboardContentColumn = (typeof STORYBOARD_CONTENT_COLUMNS)[number]["value"];
 const defaults: StoryboardColumn[] = ["shotNumber", "durationSeconds", "videoMotionPrompt", "dialogue", "assets"];

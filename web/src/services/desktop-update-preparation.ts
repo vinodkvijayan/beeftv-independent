@@ -4,7 +4,7 @@ import { canvasSyncProgressKey, type SyncProjectProgress } from "@/stores/use-sy
 
 export class DesktopUpdateSaveInProgressError extends Error {
     constructor() {
-        super("仍有内容正在写入，请等待保存结束后再更新。");
+        super("There is still content being written, please wait until the save is completed before updating.");
     }
 }
 
@@ -19,7 +19,7 @@ export function assertDesktopUpdateProgressSettled(
     const progress = Object.entries(records).filter(([key, item]) => key === canvasSyncProgressKey(item.projectId, scope)).map(([, item]) => item);
     if (progress.some(item => ["pending", "uploading", "saving"].includes(item.phase))) throw new DesktopUpdateSaveInProgressError();
     if (!allowFailed && progress.some(item => projectIds.has(item.projectId) && (item.phase === "error" || item.phase === "conflict"))) {
-        throw new Error("有画布保存失败或存在内容冲突，请处理后重试，或选择仍然更新。");
+        throw new Error("There is a canvas that failed to save or there is a content conflict. Please handle it and try again, or choose to update anyway.");
     }
 }
 

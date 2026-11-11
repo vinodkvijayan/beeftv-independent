@@ -29,15 +29,15 @@ export function WorkspaceOperationProgress() {
         return () => clearInterval(timer);
     }, [active]);
     if (!operations.length) return null;
-    return <aside className="workspace-operation-tray" aria-label="文件处理进度" data-canvas-no-zoom>
+    return <aside className="workspace-operation-tray" aria-label="File processing progress" data-canvas-no-zoom>
         <button className="workspace-operation-heading" type="button" aria-expanded={!collapsed} onClick={() => setCollapsed(value => !value)}>
-            <span>文件处理{active ? " · " + active + " 项进行中" : " · 已结束"}</span>{collapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            <span>File processing{active ? " · " + active + " item in progress" : " · ended"}</span>{collapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
         {!collapsed ? <div className="workspace-operation-list">{operations.map(item => <section key={item.id} className="workspace-operation-item" data-phase={item.phase}>
             <div className="workspace-operation-title">
                 {item.phase === "error" ? <TriangleAlert size={15} /> : item.phase === "done" ? <Check size={15} /> : <LoaderCircle size={15} className="file-operation-spin" />}
                 <strong title={item.title}>{item.title}</strong>
-                {item.phase === "done" || item.phase === "error" ? <button type="button" aria-label={"关闭" + item.title + "进度"} onClick={() => remove(item.id)}><X size={14} /></button> : null}
+                {item.phase === "done" || item.phase === "error" ? <button type="button" aria-label={"Close" + item.title + "Progress"} onClick={() => remove(item.id)}><X size={14} /></button> : null}
             </div>
             <FileOperationProgress progress={item} now={Math.max(now, Date.now())} />
         </section>)}</div> : null}

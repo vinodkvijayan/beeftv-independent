@@ -17,13 +17,13 @@ export async function requestImageQuestion(config: AiConfig, messages: AiTextMes
     const requestConfig = resolveModelRequestConfig(config, config.model || config.textModel);
     try {
         if (requestConfig.apiFormat === "gemini") {
-            const answer = (await requestGeminiStreamingResponse(requestConfig, toGeminiBody(requestConfig, messages), onDelta, options)).content || "没有返回内容";
-            if (answer === "没有返回内容") onDelta(answer);
+            const answer = (await requestGeminiStreamingResponse(requestConfig, toGeminiBody(requestConfig, messages), onDelta, options)).content || "No content returned";
+            if (answer === "No content returned") onDelta(answer);
             return answer;
         }
         if (requestConfig.interfaceType === "claude-api") {
-            const answer = (await requestStreamingClaude(requestConfig, toClaudeBody(requestConfig, messages), onDelta, options)).content || "没有返回内容";
-            if (answer === "没有返回内容") onDelta(answer);
+            const answer = (await requestStreamingClaude(requestConfig, toClaudeBody(requestConfig, messages), onDelta, options)).content || "No content returned";
+            if (answer === "No content returned") onDelta(answer);
             return answer;
         }
         if (requestConfig.interfaceType === "chat-completion" || !requestConfig.interfaceType) {
@@ -38,8 +38,8 @@ export async function requestImageQuestion(config: AiConfig, messages: AiTextMes
                         onDelta,
                         options,
                     )
-                ).content || "没有返回内容";
-            if (answer === "没有返回内容") onDelta(answer);
+                ).content || "No content returned";
+            if (answer === "No content returned") onDelta(answer);
             return answer;
         }
         const answer =
@@ -53,11 +53,11 @@ export async function requestImageQuestion(config: AiConfig, messages: AiTextMes
                     onDelta,
                     options,
                 )
-            ).content || "没有返回内容";
-        if (answer === "没有返回内容") onDelta(answer);
+            ).content || "No content returned";
+        if (answer === "No content returned") onDelta(answer);
         return answer;
     } catch (error) {
-        throw new Error(readAxiosError(error, "请求失败"));
+        throw new Error(readAxiosError(error, "Request failed"));
     }
 }
 
@@ -110,7 +110,7 @@ export async function requestToolResponse(config: AiConfig, messages: ResponseIn
             options,
         );
     } catch (error) {
-        throw new Error(readAxiosError(error, "请求失败"));
+        throw new Error(readAxiosError(error, "Request failed"));
     }
 }
 

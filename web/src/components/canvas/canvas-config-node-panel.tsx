@@ -25,16 +25,16 @@ type CanvasConfigNodePanelProps = {
 };
 
 const videoOperationOptions: Array<{ label: string; value: CanvasVideoEditOperation }> = [
-    { label: "文生视频", value: "text_to_video" },
-    { label: "图生视频", value: "image_to_video" },
-    { label: "全模态参考", value: "reference_to_video" },
-    { label: "视频续写", value: "extend" },
-    { label: "局部修改", value: "inpaint" },
-    { label: "元素替换", value: "replace_element" },
-    { label: "运镜调整", value: "camera_motion" },
-    { label: "风格迁移", value: "style_transfer" },
-    { label: "音频生视频", value: "audio_to_video" },
-    { label: "版本对比", value: "compare_versions" },
+    { label: "Vincent Video", value: "text_to_video" },
+    { label: "tusheng video", value: "image_to_video" },
+    { label: "Full modal reference", value: "reference_to_video" },
+    { label: "Video continuation", value: "extend" },
+    { label: "local modification", value: "inpaint" },
+    { label: "element replacement", value: "replace_element" },
+    { label: "Mirror movement adjustment", value: "camera_motion" },
+    { label: "style transfer", value: "style_transfer" },
+    { label: "Audio produces video", value: "audio_to_video" },
+    { label: "Version comparison", value: "compare_versions" },
 ];
 
 export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigChange, onGenerate, onComposerToggle, workspaceMode = "professional" }: CanvasConfigNodePanelProps) {
@@ -52,10 +52,10 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
     return (
         <div className="canvas-config-node-panel thin-scrollbar flex h-full w-full cursor-move flex-col gap-3.5 overflow-y-auto px-4 pb-4 pt-8 text-sm" style={{ color: theme.node.text }} onWheel={(event) => event.stopPropagation()}>
             <div className="flex min-h-9 items-center justify-between gap-3">
-                <div className="shrink-0 text-sm font-semibold">{simpleMode ? "快速生成" : "生成配置"}</div>
+                <div className="shrink-0 text-sm font-semibold">{simpleMode ? "Quickly generate" : "Generate configuration"}</div>
                 {simpleMode ? (
                     <span className="rounded-md px-2 py-1 text-[var(--fs-tiny)]" style={{ background: theme.node.fill, color: theme.node.muted }}>
-                        自动配置
+                                                automatic configuration
                     </span>
                 ) : (
                     <div className="cursor-default" data-canvas-no-zoom onMouseDown={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
@@ -70,7 +70,7 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                                     label: (
                                         <span className="inline-flex items-center gap-1">
                                             <ImageIcon className="size-3.5" />
-                                            生图
+                                                                                        raw picture
                                         </span>
                                     ),
                                 },
@@ -79,7 +79,7 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                                     label: (
                                         <span className="inline-flex items-center gap-1">
                                             <Video className="size-3.5" />
-                                            视频
+                                                                                        video
                                         </span>
                                     ),
                                 },
@@ -88,7 +88,7 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                                     label: (
                                         <span className="inline-flex items-center gap-1">
                                             <Music2 className="size-3.5" />
-                                            音频
+                                                                                        Audio
                                         </span>
                                     ),
                                 },
@@ -99,11 +99,11 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
             </div>
 
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <InputChip label="提示词" value={`${inputSummary.textCount} 个`} style={chipStyle} />
-                <InputChip label="参考图" value={`${inputSummary.imageCount} 张`} style={chipStyle} />
-                <InputChip label="参考视频" value={`${inputSummary.videoCount} 个`} style={chipStyle} />
-                <InputChip label="参考音频" value={`${inputSummary.audioCount} 个`} style={chipStyle} />
-                {inputSummary.characterCount ? <InputChip label="角色卡" value={`${inputSummary.characterCount} 个`} style={chipStyle} /> : null}
+                <InputChip label="prompt word" value={`${inputSummary.textCount} a`} style={chipStyle} />
+                <InputChip label="Reference picture" value={`${inputSummary.imageCount} Zhang`} style={chipStyle} />
+                <InputChip label="Reference video" value={`${inputSummary.videoCount} a`} style={chipStyle} />
+                <InputChip label="Reference audio" value={`${inputSummary.audioCount} a`} style={chipStyle} />
+                {inputSummary.characterCount ? <InputChip label="character card" value={`${inputSummary.characterCount} a`} style={chipStyle} /> : null}
             </div>
 
             <button
@@ -117,9 +117,9 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                     {simpleMode ? <MessageSquare className="size-3.5" /> : <Sparkles className="size-3.5" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                    <span className="block text-[var(--fs-label)] font-semibold">{simpleMode ? "编辑生成内容" : "组装提示词"}</span>
+                    <span className="block text-[var(--fs-label)] font-semibold">{simpleMode ? "Edit generated content" : "Assembly prompt words"}</span>
                     <span className="block truncate text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>
-                        {hasComposerContent ? "已填写，可继续编辑或引用素材" : "输入提示词，或用 @ 引用连接素材"}
+                        {hasComposerContent ? "Completed, you can continue to edit or quote materials" : "Enter a prompt word, or use @ citation to connect the material"}
                     </span>
                 </span>
                 <ChevronDown className="size-3.5 -rotate-90 opacity-45 transition-transform group-hover:translate-x-0.5" />
@@ -129,7 +129,7 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                 <div className="cursor-default" data-canvas-no-zoom onMouseDown={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
                     {(videoSupportsTaskTypeConstraints(modelCapabilityConfigFor(config, config.model).video) || isH3Model(config.model)) ? (
                         <Select
-                            aria-label="视频生成模式"
+                            aria-label="Video generation mode"
                             className="w-full"
                             value={isH3Model(config.model) ? h3VideoOperation(config.model, inputSummary, node.metadata?.videoEditOperation) : resolveVideoOperation(inputSummary, node.metadata?.videoEditOperation)}
                             options={videoOperationOptions
@@ -139,7 +139,7 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                                 )
                                 .map((option) => ({
                                     ...option,
-                                    label: option.value === "image_to_video" ? "首帧 / 首尾帧" : option.value === "reference_to_video" ? "参考生成" : option.label,
+                                    label: option.value === "image_to_video" ? "First frame/First and last frame" : option.value === "reference_to_video" ? "Reference generation" : option.label,
                                     disabled:
                                         option.value === "image_to_video"
                                             ? inputSummary.imageCount + inputSummary.characterCount < 1 ||
@@ -160,11 +160,11 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                         <div
                             className="flex h-9 min-w-0 items-center gap-2 rounded-lg border px-2 text-[var(--fs-label)]"
                             style={{ background: theme.node.fill, borderColor: theme.node.stroke, color: theme.node.text }}
-                            title="已连接的图片、视频和音频会自动传给模型"
+                            title="Connected images, videos and audios are automatically passed to the model"
                         >
                             <ImageIcon className="size-3.5 shrink-0 opacity-75" />
-                            <span className="shrink-0 font-medium">{modelCapabilityConfigFor(config, config.model).video?.operations.includes("reference_to_video") ? "参考生成" : "图片生成"}</span>
-                            <span className="min-w-0 truncate opacity-60">已连接媒体自动映射</span>
+                            <span className="shrink-0 font-medium">{modelCapabilityConfigFor(config, config.model).video?.operations.includes("reference_to_video") ? "Reference generation" : "Image generation"}</span>
+                            <span className="min-w-0 truncate opacity-60">Connected media auto-mapping</span>
                         </div>
                     )}
                 </div>
@@ -183,7 +183,7 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
 
             {simpleMode ? (
                 <div className="rounded-lg px-3 py-2.5 text-[var(--fs-label)]" style={{ background: theme.node.fill, color: theme.node.muted }}>
-                    将使用当前默认模型与生成参数
+                                        Will use the current default model and build parameters
                 </div>
             ) : null}
 
@@ -194,13 +194,13 @@ export function CanvasConfigNodePanel({ node, isRunning, inputSummary, onConfigC
                     {isRunning ? (
                         <>
                             <LoaderCircle className="size-4 animate-spin" />
-                            <span>生成中</span>
+                            <span>Generating</span>
                         </>
                     ) : (
                         <>
-                            <span>生成</span>
+                            <span>generate</span>
                             <Play className="size-4" />
-                            <span>开始生成</span>
+                            <span>Start generating</span>
                         </>
                     )}
                 </span>

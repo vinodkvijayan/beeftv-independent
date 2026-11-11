@@ -58,7 +58,7 @@ export function ClientRootInit({ children }: { children: ReactNode }) {
         const controller = new AbortController();
         void runStartupEnvironmentCheck(controller.signal).then((report) => {
             if (useUserStore.getState().user?.id === userId && report?.checks.some((check) => check.status === "error" || check.status === "warning")) {
-                message.warning("环境检查发现可能影响创作的问题，可在设置的问题诊断中查看。", 8);
+                message.warning("The environment check finds problems that may affect creation, which can be viewed in the problem diagnosis of settings.", 8);
             }
         });
         return () => {
@@ -72,7 +72,7 @@ export function ClientRootInit({ children }: { children: ReactNode }) {
         const confirm = () => {
             if (updateStartupConfirmed.current || !useAssetStore.persist.hasHydrated() || !useCanvasStore.persist.hasHydrated()) return;
             updateStartupConfirmed.current = true;
-            void confirmDesktopUpdateStartup().catch((error) => console.warn("升级文件清理将在下次启动时重试", error));
+            void confirmDesktopUpdateStartup().catch((error) => console.warn("Upgrade file cleanup will be retried on next boot", error));
         };
         const stopAssets = useAssetStore.persist.onFinishHydration(confirm);
         const stopCanvases = useCanvasStore.persist.onFinishHydration(confirm);
@@ -101,7 +101,7 @@ export function ClientRootInit({ children }: { children: ReactNode }) {
                         const migrated = await Promise.all(legacyEnabledIds.map((pluginId) => setUserPluginEnabled(pluginId, true)));
                         for (const state of migrated) states[state.pluginId] = state;
                     } catch (error) {
-                        console.warn("迁移用户插件启用状态失败，已保留服务端状态", error);
+                        console.warn("Failed to migrate user plug-in enabled status, server status has been retained", error);
                     }
                 }
                 if (!cancelled && useUserStore.getState().user?.id === userId) {
@@ -131,7 +131,7 @@ export function ClientRootInit({ children }: { children: ReactNode }) {
         localMediaCleanupScope.current = scope;
         void useAssetStore.getState().cleanupImages().catch((error) => {
             // Cache cleanup is best effort; it must never block opening the local workspace.
-            console.warn("本地媒体缓存清理失败，已保留当前工作区", { scope, error });
+            console.warn("Local media cache cleanup failed, current workspace retained", { scope, error });
         });
     }, [assetsHydrated, canvasHydrated, localMode]);
 
@@ -178,12 +178,12 @@ export function ClientRootInit({ children }: { children: ReactNode }) {
                             }
                           : channel,
                   )
-                : [createModelChannel({ id: "default", name: "默认渠道", baseUrl: baseUrl || undefined })],
+                : [createModelChannel({ id: "default", name: "Default channel", baseUrl: baseUrl || undefined })],
         );
         if (baseUrl) updateConfig("baseUrl", baseUrl);
         navigateToSettings({ section: "channels" });
-        if (ignoredApiKey) message.warning("出于安全考虑，链接中的 API Key 已忽略，请在配置中手动填写");
-        else message.success("已导入本地直连地址");
+        if (ignoredApiKey) message.warning("For security reasons, the API Key in the link has been ignored, please fill it in manually in the configuration");
+        else message.success("Local direct address has been imported");
     }, [config.channels, message, updateConfig]);
 
     return <>{children}</>;

@@ -18,9 +18,9 @@ export function ChannelRequestAddressLines({ channel }: { channel: ModelChannel 
     if (!urls) return null;
     return (
         <>
-            {urls.catalog ? <p className="mt-1 text-xs text-foreground/50 [overflow-wrap:anywhere]">模型目录地址：<UrlText url={urls.catalog} /></p> : null}
+            {urls.catalog ? <p className="mt-1 text-xs text-foreground/50 [overflow-wrap:anywhere]">Model directory address:<UrlText url={urls.catalog} /></p> : null}
             {distinct(urls.text).map((url) => (
-                <p key={url} className="mt-0.5 text-xs text-foreground/50 [overflow-wrap:anywhere]">对话请求地址：<UrlText url={url} /></p>
+                <p key={url} className="mt-0.5 text-xs text-foreground/50 [overflow-wrap:anywhere]">Dialogue request address:<UrlText url={url} /></p>
             ))}
         </>
     );
@@ -42,8 +42,8 @@ export function ChannelRequestAddressBlocks({ channel }: { channel: ModelChannel
     if (!urls || (!urls.catalog && !distinct(urls.text).length)) return null;
     return (
         <div className="model-service-urls">
-            {urls.catalog ? <AddressBlock label="模型目录地址" url={urls.catalog} /> : null}
-            {distinct(urls.text).map((url) => <AddressBlock key={url} label="对话请求地址" url={url} />)}
+            {urls.catalog ? <AddressBlock label="Model directory address" url={urls.catalog} /> : null}
+            {distinct(urls.text).map((url) => <AddressBlock key={url} label="Conversation request address" url={url} />)}
         </div>
     );
 }

@@ -10,25 +10,25 @@ import { CanvasNodeType } from "@/types/canvas";
 import "./folder-preview-lab.css";
 
 const STYLE_PRESETS: Array<{ style: CanvasFolderStyle; name: string; hint: string }> = [
-    { style: "glass", name: "流光玻璃", hint: "复刻参考 · 加号入口" },
-    { style: "stacked", name: "内容陈列", hint: "复刻参考 · 文件预览" },
-    { style: "midnight", name: "午夜封面", hint: "复刻参考 · 深色标签" },
-    { style: "paper", name: "纸感收藏", hint: "衍生 · 轻量资料" },
-    { style: "cinema", name: "电影胶片", hint: "衍生 · 影像项目" },
-    { style: "compact", name: "紧凑资料", hint: "衍生 · 高频调用" },
+    { style: "glass", name: "Streamer glass", hint: "Reproduction reference · Plus entry" },
+    { style: "stacked", name: "Content display", hint: "Reproduction reference · File preview" },
+    { style: "midnight", name: "midnight cover", hint: "Reproduction reference · Dark label" },
+    { style: "paper", name: "Paper collection", hint: "Derived · lightweight data" },
+    { style: "cinema", name: "movie film", hint: "Derivative · Video Project" },
+    { style: "compact", name: "compact data", hint: "Derivatives · High frequency calls" },
 ];
 
 const PRESET_GROUPS = [
     {
         key: "reference",
-        title: "原图复刻",
-        description: "三种参考结构：玻璃加号、内容陈列、午夜封面。",
+        title: "Reproduction of original image",
+        description: "Three reference structures: glass plus sign, content display, and midnight cover.",
         presets: STYLE_PRESETS.slice(0, 3),
     },
     {
         key: "derived",
-        title: "风格衍生",
-        description: "外形与主题正交组合，六种结构都可切换四套皮肤。",
+        title: "Style derivation",
+        description: "The appearance and theme are orthogonally combined, and each of the six structures can be switched to four sets of skins.",
         presets: STYLE_PRESETS.slice(3),
     },
 ];
@@ -53,7 +53,7 @@ function makeFolderNode(style: CanvasFolderStyle, index: number): CanvasNodeData
     return {
         id: `folder-${style}`,
         type: CanvasNodeType.Frame,
-        title: ["My Files", "Archives", "My Files", "灵感收藏", "影像资产", "快速调用"][index],
+        title: ["My Files", "Archives", "My Files", "inspiration collection", "Image assets", "Quick call"][index],
         position: { x: 0, y: 0 },
         width: 360,
         height: 280,
@@ -69,7 +69,7 @@ const INITIAL_FOLDERS = STYLE_PRESETS.map((preset, index) => makeFolderNode(pres
 const INITIAL_CHILDREN = Object.fromEntries(
     INITIAL_FOLDERS.map((folder, folderIndex) => [
         folder.id,
-        SAMPLE_MEDIA.slice(0, 3 + (folderIndex % 3)).map((source, childIndex) => makeMediaNode(`${folder.id}-asset-${childIndex}`, ["主视觉", "氛围参考", "场景草图", "色彩方案", "镜头灵感"][childIndex], source, childIndex)),
+        SAMPLE_MEDIA.slice(0, 3 + (folderIndex % 3)).map((source, childIndex) => makeMediaNode(`${folder.id}-asset-${childIndex}`, ["main vision", "Atmosphere reference", "scene sketch", "color scheme", "Lens inspiration"][childIndex], source, childIndex)),
     ]),
 ) as Record<string, CanvasNodeData[]>;
 
@@ -92,7 +92,7 @@ export default function FolderPreviewLab() {
         setChildrenByFolder((current) => {
             const previous = current[openedId] || [];
             const index = previous.length;
-            const next = makeMediaNode(`${openedId}-asset-${Date.now()}`, `新素材 ${index + 1}`, SAMPLE_MEDIA[index % SAMPLE_MEDIA.length], index);
+            const next = makeMediaNode(`${openedId}-asset-${Date.now()}`, `new material${index + 1}`, SAMPLE_MEDIA[index % SAMPLE_MEDIA.length], index);
             return { ...current, [openedId]: [...previous, next] };
         });
     };
@@ -102,18 +102,18 @@ export default function FolderPreviewLab() {
             <header className="folder-preview-lab-header">
                 <div>
                     <span className="folder-preview-lab-kicker">DEV · INTERACTIVE FOLDER LAB</span>
-                    <h1>通用素材文件夹</h1>
-                    <p>文件夹外形与主题皮肤独立：四套主题都不是内部素材。打开后，真实内容以独立卡片展示；悬停、单击、双击与菜单均可交互。</p>
+                    <h1>Common material folder</h1>
+                    <p>The folder appearance and theme skin are independent: the four sets of themes are not internal materials. After opening, the real content is displayed as an independent card; hover, click, double-click and menu can all be interacted with.</p>
                 </div>
                 <div className="folder-preview-lab-controls">
-                    <div className="folder-preview-lab-theme" aria-label="预览主题">
+                    <div className="folder-preview-lab-theme" aria-label="Preview theme">
                         <button type="button" aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>
-                            <Moon aria-hidden /> 深色
+                            <Moon aria-hidden />  Dark
                         </button>
                     </div>
                     <div className="folder-preview-lab-guide">
                         <MousePointer2 aria-hidden />
-                        <span>试试 hover、双击与样式切换</span>
+                        <span>Try hover, double-click and style switching</span>
                     </div>
                 </div>
             </header>
@@ -138,7 +138,7 @@ export default function FolderPreviewLab() {
                                         className="folder-preview-lab-folder"
                                         role="button"
                                         tabIndex={0}
-                                        aria-label={`打开 ${folder.title}`}
+                                        aria-label={`open${folder.title}`}
                                         onClick={() => setSelectedId(folder.id)}
                                         onDoubleClick={() => setOpenedId(folder.id)}
                                         onKeyDown={(event) => {
@@ -177,7 +177,7 @@ export default function FolderPreviewLab() {
                                         />
                                     </div>
                                     <button type="button" className="folder-preview-lab-open" onClick={() => setOpenedId(folder.id)}>
-                                        <FolderOpen aria-hidden /> 打开文件夹
+                                        <FolderOpen aria-hidden />  open folder
                                     </button>
                                 </article>
                             );
@@ -186,7 +186,7 @@ export default function FolderPreviewLab() {
                 </section>
             ))}
 
-            <section className="folder-preview-lab-theme-catalog" aria-label="可用文件夹主题">
+            <section className="folder-preview-lab-theme-catalog" aria-label="Available folder themes">
                 {CANVAS_FOLDER_THEME_OPTIONS.map((item) => (
                     <div key={item.key}>
                         <img src={item.cover} alt="" />
@@ -196,17 +196,17 @@ export default function FolderPreviewLab() {
             </section>
 
             {openedFolder ? (
-                <section className="folder-preview-lab-drawer" aria-label={`${openedFolder.title} 内容`}>
+                <section className="folder-preview-lab-drawer" aria-label={`${openedFolder.title} content`}>
                     <div className="folder-preview-lab-drawer-header">
                         <button type="button" onClick={() => setOpenedId(null)}>
-                            <ChevronLeft aria-hidden /> 返回
+                            <ChevronLeft aria-hidden />  Return
                         </button>
                         <div>
-                            <span>已打开</span>
+                            <span>Opened</span>
                             <h2>{openedFolder.title}</h2>
                         </div>
                         <button type="button" onClick={addSampleContent}>
-                            <ImagePlus aria-hidden /> 添加示例内容
+                            <ImagePlus aria-hidden />  Add sample content
                         </button>
                     </div>
                     <div className="folder-preview-lab-assets">
@@ -215,7 +215,7 @@ export default function FolderPreviewLab() {
                                 <img src={node.metadata?.content} alt="" draggable={false} />
                                 <div>
                                     <strong>{node.title}</strong>
-                                    <span>图片素材</span>
+                                    <span>Picture material</span>
                                 </div>
                             </article>
                         ))}

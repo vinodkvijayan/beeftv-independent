@@ -37,7 +37,7 @@ export function useCanvasStyleWorkflow({pageUi,  canvasId, domainProjectId, node
                 prompt: preset.prompt,
                 status: "success",
                 workflowKind: "styleboard",
-                workflowTitle: "项目画风",
+                workflowTitle: "Project style",
                 workflowDescription: preset.description,
                 stylePresetId: preset.id,
                 styleProfileJson: profileJson,
@@ -45,11 +45,11 @@ export function useCanvasStyleWorkflow({pageUi,  canvasId, domainProjectId, node
             };
             let styleNode: CanvasNodeData;
             if (current) {
-                styleNode = { ...current, title: `画风 · ${preset.title}`, metadata: { ...current.metadata, ...metadata } };
+                styleNode = { ...current, title: `Painting style ·${preset.title}`, metadata: { ...current.metadata, ...metadata } };
                 nodesRef.current = nodesRef.current.map((node) => (node.id === current.id ? styleNode : node));
             } else {
                 styleNode = createCanvasNode(CanvasNodeType.Text, getCanvasCenter(), metadata);
-                styleNode.title = `画风 · ${preset.title}`;
+                styleNode.title = `Painting style ·${preset.title}`;
                 styleNode.width = 420;
                 styleNode.height = 240;
                 nodesRef.current = [...nodesRef.current, styleNode];
@@ -61,20 +61,20 @@ export function useCanvasStyleWorkflow({pageUi,  canvasId, domainProjectId, node
             pageUi.getState().setSelectedConnectionId(null);
             pageUi.getState().setDialogNodeId(null);
             setStylePickerOpen(false);
-            message.success(`已应用“${preset.title}”画风`);
+            message.success(`Applied"${preset.title}" style of painting`);
         },
         [pageUi, getCanvasCenter, message, nodesRef, selectedNodeIdsRef, setNodes, setStylePickerOpen],
     );
 
     const persistStyleMutation = useMutation({
         mutationFn: ({ preset, profileJson }: { preset: CanvasStylePreset; profileJson: string }) => {
-            if (!domainProjectId) throw new Error("画布尚未关联项目");
+            if (!domainProjectId) throw new Error("Canvas has no associated project yet");
             return updateDomainProject(domainProjectId, { stylePresetId: preset.id, styleProfileJson: profileJson });
         },
     });
 
     const applyCanvasStyleAsync = useCallback(async (preset: CanvasStylePreset) => {
-        if (applyingRef.current) throw new Error("画风正在保存，请稍后重试");
+        if (applyingRef.current) throw new Error("The style is being saved, please try again later.");
         const scope = getActiveUserScope();
         applyingRef.current = true;
         try {
@@ -83,14 +83,14 @@ export function useCanvasStyleWorkflow({pageUi,  canvasId, domainProjectId, node
                 await persistStyleMutation.mutateAsync({ preset, profileJson });
                 void queryClient.invalidateQueries({ queryKey: ["project", domainProjectId] });
             }
-            if (!liveContext.current.mounted || liveContext.current.canvasId !== canvasId || liveContext.current.domainProjectId !== domainProjectId || getActiveUserScope() !== scope) throw new Error("页面或账号已变化，未向当前画布应用画风；如项目保存已完成，请回原项目查看");
+            if (!liveContext.current.mounted || liveContext.current.canvasId !== canvasId || liveContext.current.domainProjectId !== domainProjectId || getActiveUserScope() !== scope) throw new Error("The page or account has changed, and the painting style has not been applied to the current canvas; if the project saving has been completed, please go back to the original project to view");
             applyCanvasStyle(preset, profileJson);
         } finally { applyingRef.current = false; }
     }, [canvasId, domainProjectId, persistStyleMutation.mutateAsync, queryClient, applyCanvasStyle]);
 
     const selectCanvasStyle = useCallback(
         (preset: CanvasStylePreset) => {
-            void applyCanvasStyleAsync(preset).catch((error) => message.error(error instanceof Error ? error.message : "项目画风保存失败"));
+            void applyCanvasStyleAsync(preset).catch((error) => message.error(error instanceof Error ? error.message : "Failed to save project style"));
         },
         [applyCanvasStyleAsync, message],
     );

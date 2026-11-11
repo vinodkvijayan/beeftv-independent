@@ -2,7 +2,7 @@ import { getNodeListLabel } from "@/lib/canvas/node-registry";
 import { canvasNodeCreatedAt, canvasNodeUpdatedAt } from "@/lib/canvas/canvas-node-timestamps";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 
-const searchTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+const searchTimeFormatter = new Intl.DateTimeFormat("en-US", {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -19,7 +19,7 @@ export function searchCanvasNodes(nodes: CanvasNodeData[], query: string, limit 
 }
 
 export function canvasNodeSearchContext(node: CanvasNodeData) {
-    const location = [node.metadata?.chapterTitle, typeof node.metadata?.shotIndex === "number" ? `镜头 ${node.metadata.shotIndex}` : ""].filter(Boolean).join(" · ");
+    const location = [node.metadata?.chapterTitle, typeof node.metadata?.shotIndex === "number" ? `lens${node.metadata.shotIndex}` : ""].filter(Boolean).join(" · ");
     return location || node.metadata?.prompt || node.metadata?.composerContent || node.metadata?.workflowDescription || textualNodeContent(node) || getNodeListLabel(node.type);
 }
 
@@ -40,8 +40,8 @@ export function canvasNodeSearchTimes(node: CanvasNodeData) {
     return {
         createdAt,
         updatedAt,
-        createdLabel: createdAt ? searchTimeFormatter.format(new Date(createdAt)) : "未记录",
-        updatedLabel: updatedAt ? searchTimeFormatter.format(new Date(updatedAt)) : "未记录",
+        createdLabel: createdAt ? searchTimeFormatter.format(new Date(createdAt)) : "Not recorded",
+        updatedLabel: updatedAt ? searchTimeFormatter.format(new Date(updatedAt)) : "Not recorded",
     };
 }
 
@@ -57,7 +57,7 @@ function canvasNodeSearchTerms(node: CanvasNodeData) {
         node.metadata?.chapterTitle,
         node.metadata?.workflowTitle,
         node.metadata?.workflowDescription,
-        typeof node.metadata?.shotIndex === "number" ? `镜头 ${node.metadata.shotIndex}` : "",
+        typeof node.metadata?.shotIndex === "number" ? `lens${node.metadata.shotIndex}` : "",
         ...(node.metadata?.assetTags || []),
     ].filter((value): value is string => typeof value === "string" && Boolean(value));
 }
@@ -77,8 +77,8 @@ function timestampValue(value?: string) {
 
 function formatDuration(durationMs: number) {
     const seconds = Math.max(0, Math.round(durationMs / 1000));
-    if (seconds < 60) return `${seconds}秒`;
-    return `${Math.floor(seconds / 60)}分${seconds % 60}秒`;
+    if (seconds < 60) return `${seconds}sec`;
+    return `${Math.floor(seconds / 60)}points${seconds % 60}sec`;
 }
 
 function formatBytes(bytes: number) {

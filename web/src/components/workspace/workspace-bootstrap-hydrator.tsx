@@ -22,13 +22,13 @@ export function WorkspaceBootstrapHydrator({ children }: { children: ReactNode }
         let cancelled = false;
         const loadWorkspace = () => {
             const bootstrap = getWorkspaceBootstrap();
-            const timeout = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("本地工作区启动超时")), 15_000));
+            const timeout = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Local workspace startup timeout")), 15_000));
             return Promise.race([bootstrap, timeout]);
         };
         void initializeWorkspaceState({
             loadWorkspace,
             createLocalWorkspace: () => {
-                if (isEmbeddedRuntime()) throw new Error("无法读取当前嵌入工作区");
+                if (isEmbeddedRuntime()) throw new Error("Unable to read current embedded workspace");
                 return createLocalWorkspacePayload();
             },
             applySession: async (payload) => {
@@ -75,8 +75,8 @@ export function WorkspaceBootstrapHydrator({ children }: { children: ReactNode }
         };
     }, []);
 
-    if (restoreStatus === "error") return <WorkspaceErrorState title="工作区暂时无法加载" description="项目或模型配置未能完成读取。原有配置不会被覆盖，请重新加载后再试。" onRetry={() => window.location.reload()} />;
-    return hydrated && restoreStatus === "ready" ? children : <FullScreenLoader label="正在准备本地工作区" detail="加载项目、画布与模型配置" />;
+    if (restoreStatus === "error") return <WorkspaceErrorState title="The workspace cannot be loaded temporarily" description="The project or model configuration failed to complete reading. The original configuration will not be overwritten, please reload and try again." onRetry={() => window.location.reload()} />;
+    return hydrated && restoreStatus === "ready" ? children : <FullScreenLoader label="Preparing local workspace" detail="Load project, canvas and model configurations" />;
 }
 
 export async function initializeWorkspaceState<T>({
@@ -138,8 +138,8 @@ function createLocalWorkspacePayload(): WorkspaceBootstrapPayload {
             localAssets: true,
             providerCalls: true,
         },
-        user: { id: "local", username: "local", displayName: "本地工作区", role: "user", status: "active", createdAt: "", updatedAt: "" },
-        workspace: { id: "local", name: "本地工作区", owner: "local", storage: "sqlite" },
+        user: { id: "local", username: "local", displayName: "local workspace", role: "user", status: "active", createdAt: "", updatedAt: "" },
+        workspace: { id: "local", name: "local workspace", owner: "local", storage: "sqlite" },
         storageMode: "local",
         features: { shortDramaEnabled: true, taskCenterEnabled: true, customChannelsEnabled: true, frontendModelsEnabled: false, pluginCenterEnabled: true, systemPluginsVisibleToUsers: true },
     };

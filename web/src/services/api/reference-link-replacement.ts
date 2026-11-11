@@ -20,13 +20,13 @@ export async function uploadReferenceLinks(references: ReferenceLinkRequest[], s
     const previousUpload = referenceUploadQueue;
     let releaseUpload!: () => void;
     referenceUploadQueue = new Promise<void>(resolve => { releaseUpload = resolve; });
-    const progress = startOperation("上传参考素材", { target, detail: "正在等待上传参考素材" });
+    const progress = startOperation("Upload reference materials", { target, detail: "Waiting for reference material to be uploaded" });
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const poll = async () => {
         try {
             const state = await binding.ReferenceUploadStatus?.();
-            if (!stopped && state?.phase) progress.update({ ...state, detail: (state.phase === "transferring" ? "正在上传" : state.phase === "processing" ? "正在确认" : "正在准备") + state.label });
+            if (!stopped && state?.phase) progress.update({ ...state, detail: (state.phase === "transferring" ? "Uploading" : state.phase === "processing" ? "Confirming" : "Preparing") + state.label });
         } catch { /* The upload promise owns errors; progress polling must not repeat it. */ }
         if (!stopped) timer = setTimeout(poll, 500);
     };
@@ -34,14 +34,14 @@ export async function uploadReferenceLinks(references: ReferenceLinkRequest[], s
     try {
         await previousUpload;
         signal?.throwIfAborted();
-        progress.update({ detail: "正在准备参考素材" });
+        progress.update({ detail: "Preparing reference materials" });
         const pending = binding.UploadReferenceMedia([...new Set(candidates.map((item) => item.resourceID!))]);
         void poll();
         urls = await pending;
-        if (target) progress.dismiss(); else progress.done("参考素材已上传并确认可用");
+        if (target) progress.dismiss(); else progress.done("Reference material has been uploaded and confirmed to be available");
     } catch (error) {
         if (target || signal?.aborted) progress.dismiss();
-        else progress.fail("参考素材上传未完成，请查看错误后重试");
+        else progress.fail("The reference material upload is not completed, please check the error and try again.");
         throw error;
     }
     finally { stopped = true; if (timer) clearTimeout(timer); releaseUpload(); }

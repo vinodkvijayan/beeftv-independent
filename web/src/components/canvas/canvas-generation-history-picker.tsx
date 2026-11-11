@@ -90,14 +90,14 @@ export function CanvasGenerationHistoryPicker({ open, projectId, onClose, onSele
             onSelectRef.current(resolved);
         } catch (error) {
             if (!canvasGenerationHistorySelectStillValid(captured, liveSelectGate())) return;
-            message.error(error instanceof Error ? error.message : "生成结果无法插入画布");
+            message.error(error instanceof Error ? error.message : "The generated results cannot be inserted into the canvas");
         } finally {
             if (selectionRequest.current === request) { selectionRequest.current = null; setSelectingId(""); }
         }
     };
 
     return (
-        <AppModal open={open} destroyOnHidden centered title="生成历史" footer={null} onCancel={() => { cancelSelection(); setSelectingId(""); onClose(); }} width={760}>
+        <AppModal open={open} destroyOnHidden centered title="Build history" footer={null} onCancel={() => { cancelSelection(); setSelectingId(""); onClose(); }} width={760}>
             <div className="mt-4 min-h-48 max-h-[min(560px,65vh)] overflow-y-auto pr-1">
                 {query.isLoading ? <div className="grid min-h-40 place-items-center"><Spin /></div> : tasks.length ? (
                     groups.map(date => <section key={date} className="generation-history-group">
@@ -108,7 +108,7 @@ export function CanvasGenerationHistoryPicker({ open, projectId, onClose, onSele
                     </section>)
                 ) : (
                     <div className="flex min-h-24 flex-col items-center justify-center gap-2 text-sm text-foreground/55">
-                        {query.isError ? <>生成历史暂时无法读取<Button type="text" onClick={() => void query.refetch()}>重试</Button></> : "暂无生成结果"}
+                        {query.isError ? <>The generation history cannot be read at the moment.<Button type="text" onClick={() => void query.refetch()}>Try again</Button></> : "No results generated yet"}
                     </div>
                 )}
             </div>
@@ -125,14 +125,14 @@ export function HistoryTaskCard({ task, active, selecting, onSelect }: { task: G
     const Icon = mode === "video" ? FileVideo : mode === "audio" ? FileAudio : ImageIcon;
     const iconFallback = <div className="grid size-full place-items-center text-foreground/45"><Icon className="size-7" /></div>;
     return (
-        <article className="generation-history-card group" title={task.prompt} aria-label={`添加${modeLabel(mode)}到画布：${task.prompt.slice(0, 40)}`} aria-busy={selecting} aria-disabled={selecting} role="button" tabIndex={0} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocus={() => setFocused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); }} onClick={() => { if (!selecting) onSelect(); }} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); if (!selecting) onSelect(); } }}>
+        <article className="generation-history-card group" title={task.prompt} aria-label={`add${modeLabel(mode)}to canvas:${task.prompt.slice(0, 40)}`} aria-busy={selecting} aria-disabled={selecting} role="button" tabIndex={0} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocus={() => setFocused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); }} onClick={() => { if (!selecting) onSelect(); }} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); if (!selecting) onSelect(); } }}>
             <div className="generation-history-thumb">
                 {mode === "video" && active && (hovered || focused) ? <HistoryMediaPreview key={task.id} task={task} /> : storageKey ? (
-                    <CachedResourceImage storageKey={storageKey} alt="生成结果预览" loading="lazy" className="size-full object-cover" fallback={iconFallback} loadingFallback={iconFallback} />
+                    <CachedResourceImage storageKey={storageKey} alt="Generate results preview" loading="lazy" className="size-full object-cover" fallback={iconFallback} loadingFallback={iconFallback} />
                 ) : preview ? (
-                    <img src={preview} alt="生成结果预览" loading="lazy" className="size-full object-cover" />
+                    <img src={preview} alt="Generate results preview" loading="lazy" className="size-full object-cover" />
                 ) : iconFallback}
-                <span className="generation-history-badge" style={{ position: "absolute", top: 6, left: 6, padding: "1px 5px", border: "1px solid rgba(255,255,255,.32)", borderRadius: 4, background: "rgba(30,30,30,.55)", color: "rgba(255,255,255,.78)", fontSize: 10, lineHeight: "16px" }}>AI生成</span>
+                <span className="generation-history-badge" style={{ position: "absolute", top: 6, left: 6, padding: "1px 5px", border: "1px solid rgba(255,255,255,.32)", borderRadius: 4, background: "rgba(30,30,30,.55)", color: "rgba(255,255,255,.78)", fontSize: 10, lineHeight: "16px" }}>AI generated</span>
                 {selecting ? <div className="absolute inset-0 grid place-items-center bg-black/30"><Spin size="small" /></div> : null}
             </div>
         </article>
@@ -154,24 +154,24 @@ function HistoryMediaPreview({ task }: { task: GenerationTask }) {
             const media = result.video;
             const fallback = media?.dataUrl || media?.url || "";
             const id = resourceIdFromStorageKey(media?.storageKey) || ownedResourceIdFromMediaRef(media?.storageKey, fallback) || (typeof result.resourceId === "string" ? result.resourceId : "");
-            if (!id && !fallback) throw new Error("缺少媒体地址");
+            if (!id && !fallback) throw new Error("Missing media address");
             if (!cancelled) setMedia({ storageKey: id ? resourceStorageKey(id) : media?.storageKey || "", url: fallback });
         })().catch(() => { if (!cancelled) setError(true); });
         return () => { cancelled = true; controller.abort(); };
     }, [task.id, task.projectId, retry]);
     const playback = useResourceVideoPlayback(media?.storageKey || "", media?.url || "", Boolean(media));
-    if (error || playback.error) return <div className="flex size-full flex-col items-center justify-center gap-2 text-xs text-foreground/60" role="status">预览加载失败<Button size="small" type="text" onClick={event => { event.stopPropagation(); if (error) setRetry(value => value + 1); else playback.retry(); }}>重新加载</Button></div>;
+    if (error || playback.error) return <div className="flex size-full flex-col items-center justify-center gap-2 text-xs text-foreground/60" role="status">Preview failed to load<Button size="small" type="text" onClick={event => { event.stopPropagation(); if (error) setRetry(value => value + 1); else playback.retry(); }}>reload</Button></div>;
     if (!playback.url) return <div className="grid size-full place-items-center"><Spin size="small" /></div>;
-    return <video src={playback.url} aria-label="生成视频预览" muted playsInline autoPlay preload="metadata" className="size-full object-cover" onError={() => { if (!playback.requestCompatible()) playback.fail(); }} />;
+    return <video src={playback.url} aria-label="Generate video preview" muted playsInline autoPlay preload="metadata" className="size-full object-cover" onError={() => { if (!playback.requestCompatible()) playback.fail(); }} />;
 }
 
 function historyTaskDay(task: GenerationTask) {
     const date = new Date(task.completedAt || task.createdAt);
-    return Number.isNaN(date.getTime()) ? "日期未知" : date.toLocaleDateString("sv-SE");
+    return Number.isNaN(date.getTime()) ? "date unknown" : date.toLocaleDateString("sv-SE");
 }
 
 function modeLabel(mode: string) {
-    return mode === "video" ? "视频" : mode === "audio" ? "音频" : "图片";
+    return mode === "video" ? "video" : mode === "audio" ? "Audio" : "pictures";
 }
 
 export function generationHistoryPreviewImageSrc(task: GenerationTask) {

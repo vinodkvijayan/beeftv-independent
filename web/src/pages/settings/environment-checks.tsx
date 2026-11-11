@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { browserCapabilities, browserChecks, checkEnvironment, type EnvironmentCheck } from "@/services/diagnostics/environment-check";
 import { probeBrowserStorage } from "@/services/diagnostics/browser-environment";
 
-const labels: Record<EnvironmentCheck["status"], string> = { pass: "正常", warning: "需留意", error: "需处理", repaired: "已修复", skipped: "可选", unknown: "未确认" };
+const labels: Record<EnvironmentCheck["status"], string> = { pass: "normal", warning: "Need to pay attention", error: "Need processing", repaired: "Fixed", skipped: "Optional", unknown: "Not confirmed" };
 
 export function EnvironmentChecks() {
     const [checks, setChecks] = useState<EnvironmentCheck[]>([]);
@@ -26,17 +26,17 @@ export function EnvironmentChecks() {
         } catch {
             if (controller.signal.aborted) return;
             setChecks(client);
-            setError("本地服务检查未完成，以下仅为浏览器检查结果。请确认后端运行后重试。");
+            setError("The local service check has not been completed. The following are only the browser check results. Please confirm that the backend is running and try again.");
         } finally { if (!controller.signal.aborted) setBusy(false); }
     }
     useEffect(() => { void run(); return () => active.current?.abort(); }, []);
-    return <section aria-label="环境自检" className="space-y-3">
+    return <section aria-label="Environmental self-check" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-sm font-medium">环境自检</h3>
-            <Button aria-label="重新检查" aria-busy={busy} disabled={busy} onClick={() => void run()}>{busy ? "检查中" : "重新检查"}</Button>
+            <h3 className="text-sm font-medium">Environmental self-check</h3>
+            <Button aria-label="recheck" aria-busy={busy} disabled={busy} onClick={() => void run()}>{busy ? "Under inspection" : "recheck"}</Button>
         </div>
-        <p className="text-xs leading-5 text-foreground/55">仅补建缺失的临时目录。结果随诊断包导出。</p>
-        {busy ? <p role="status" className="text-xs text-foreground/55">正在检查运行环境…</p> : null}
+        <p className="text-xs leading-5 text-foreground/55">Only the missing temporary directories will be rebuilt. The results are exported with the diagnostic package.</p>
+        {busy ? <p role="status" className="text-xs text-foreground/55">Checking the operating environment...</p> : null}
         {error ? <p role="alert" className="text-xs leading-5 text-destructive">{error}</p> : null}
         <ul className="divide-y divide-border" aria-busy={busy}>
             {checks.map((check) => <li key={check.id} className="py-2">

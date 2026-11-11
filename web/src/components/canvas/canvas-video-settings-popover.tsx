@@ -38,9 +38,9 @@ export function CanvasVideoSettingsPopover({ config, onConfigChange, buttonClass
     const draftActive = Boolean(videoProfile?.draft?.supported && config.videoDraft === "true" && (!resolution || isVideoResolutionMatch(resolution, "480p")));
     const summary = [
         ...(resolutionSupported ? [videoResolutionLabel(resolution)] : []),
-        ...(draftActive ? ["样片"] : []),
+        ...(draftActive ? ["Samples"] : []),
         ...(sizeSupported ? [taskConstraints?.ratioLabel || videoSizeLabel(size)] : []),
-        taskConstraints?.durationLocked ? "随原视频时长" : videoSecondsLabel(config.videoSeconds, videoProfile),
+        taskConstraints?.durationLocked ? "Follow the original video duration" : videoSecondsLabel(config.videoSeconds, videoProfile),
     ].join(" · ");
     const displaySummary = summaryOverride || summary;
 
@@ -71,7 +71,7 @@ export function CanvasVideoSettingsPopover({ config, onConfigChange, buttonClass
     return (
         <>
             <span ref={buttonRef} className="inline-flex min-w-0">
-                <Button size="small" type="text" className={`canvas-generation-settings-trigger ${buttonClassName || "!h-8 !max-w-[170px] !justify-start !rounded-full !px-2.5"}`} style={{ background: theme.node.fill, color: theme.node.text }} icon={<Settings2 className="size-3.5" />} aria-expanded={open} aria-label={`高级设置：${displaySummary}`} title={`高级设置 · ${displaySummary}`} onClick={() => setOpen((current) => !current)}>
+                <Button size="small" type="text" className={`canvas-generation-settings-trigger ${buttonClassName || "!h-8 !max-w-[170px] !justify-start !rounded-full !px-2.5"}`} style={{ background: theme.node.fill, color: theme.node.text }} icon={<Settings2 className="size-3.5" />} aria-expanded={open} aria-label={`Advanced settings:${displaySummary}`} title={`Advanced settings ·${displaySummary}`} onClick={() => setOpen((current) => !current)}>
                     <span className="truncate">{displaySummary}</span>
                 </Button>
             </span>
@@ -140,14 +140,14 @@ function VideoSettingsPortal({
             <VideoSettingsPanel config={config} onConfigChange={(key, value) => onConfigChange(key, value)} theme={theme} className="space-y-3" taskConstraints={taskConstraints} />
             {children ? <div className="mt-3">{children}</div> : null}
             <div className="mt-3 flex items-center justify-between gap-2 border-t pt-2 text-[var(--fs-micro)]" style={{ borderColor: theme.toolbar.border, color: theme.node.muted }}>
-                <span className="truncate">当前参数已自动设为默认</span>
+                <span className="truncate">The current parameters have been automatically set to default</span>
                 <button
                     type="button"
                     className="shrink-0 cursor-pointer font-medium transition-opacity hover:opacity-80"
                     style={{ color: theme.accent.primary }}
                     onClick={() => resetVideoSettings()}
                 >
-                    恢复初始默认
+                                        Restore initial default
                 </button>
             </div>
         </div>,

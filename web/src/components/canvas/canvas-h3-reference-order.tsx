@@ -24,8 +24,8 @@ export function CanvasH3ReferenceOrder({ model, inputs, metadata, onChange }: { 
     };
     return (
         <details className="mt-2 rounded border border-[var(--color-border)] px-2 py-2" data-canvas-no-zoom>
-            <summary className="cursor-pointer text-[var(--fs-tiny)]">参考素材顺序</summary>
-            <p className="my-2 text-[var(--fs-micro)] opacity-65">调整参考顺序，同时切换为参考生成。角色卡的图片和声音按卡片位置传入；未排序的引用放在末尾。</p>
+            <summary className="cursor-pointer text-[var(--fs-tiny)]">Reference material order</summary>
+            <p className="my-2 text-[var(--fs-micro)] opacity-65">Adjust the reference order and switch to reference generation. Character card images and sounds are passed in by card position; unsorted references are placed at the end.</p>
             <ol className="flex flex-col gap-1">
                 {order.map((id, index) => {
                     const item = refs.find((i) => i.nodeId === id)!;
@@ -33,10 +33,10 @@ export function CanvasH3ReferenceOrder({ model, inputs, metadata, onChange }: { 
                         <li key={id} className="flex min-w-0 items-center gap-1">
                             <span className="shrink-0 text-[var(--fs-micro)]">{index + 1}.</span>
                             <span className="min-w-0 flex-1 truncate text-[var(--fs-micro)]">{item.title}</span>
-                            <button type="button" aria-label={`上移 ${item.title}`} disabled={index === 0} onClick={() => move(index, -1)} className="rounded p-1 disabled:opacity-30">
+                            <button type="button" aria-label={`move up${item.title}`} disabled={index === 0} onClick={() => move(index, -1)} className="rounded p-1 disabled:opacity-30">
                                 <ArrowUp size={14} />
                             </button>
-                            <button type="button" aria-label={`下移 ${item.title}`} disabled={index === order.length - 1} onClick={() => move(index, 1)} className="rounded p-1 disabled:opacity-30">
+                            <button type="button" aria-label={`move down${item.title}`} disabled={index === order.length - 1} onClick={() => move(index, 1)} className="rounded p-1 disabled:opacity-30">
                                 <ArrowDown size={14} />
                             </button>
                         </li>

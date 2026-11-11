@@ -45,7 +45,7 @@ export function cropDirectorCanvas(source: HTMLCanvasElement, aspectRatio: Direc
     output.width = crop.width;
     output.height = crop.height;
     const context = output.getContext("2d");
-    if (!context) throw new Error("无法创建画幅裁切画布");
+    if (!context) throw new Error("Unable to create frame crop canvas");
     context.drawImage(source, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
     return output;
 }

@@ -1,4 +1,4 @@
-export const VOICE_PREVIEW_SAMPLE_PHRASE = "你好，欢迎使用 BeefTV 创作画布，这是一段配音音色试听。";
+export const VOICE_PREVIEW_SAMPLE_PHRASE = "Hello and welcome to the BeefTV creative canvas, this is a voiceover sound preview.";
 
 export type VoicePreviewProfile = {
     voiceId: string;
@@ -30,29 +30,29 @@ const PRESET_VOICE_PROFILES: Record<string, PresetVoiceProfile> = {
     verse: { label: "Verse", pitch: 1.04, rate: 1.06, frequencyHz: 466 },
     marin: { label: "Marin", pitch: 1.14, rate: 1.0, frequencyHz: 540 },
     cedar: { label: "Cedar", pitch: 0.88, rate: 0.94, frequencyHz: 360 },
-    "male-qn-qingse": { label: "青涩青年", pitch: 0.96, rate: 1.02, frequencyHz: 392 },
-    "male-qn-jingying": { label: "精英青年", pitch: 0.88, rate: 1.0, frequencyHz: 360 },
-    "male-qn-badao": { label: "霸道青年", pitch: 0.78, rate: 0.94, frequencyHz: 330 },
-    "male-qn-daxuesheng": { label: "青年大学生", pitch: 0.94, rate: 1.04, frequencyHz: 380 },
-    "female-shaonv": { label: "少女", pitch: 1.24, rate: 1.06, frequencyHz: 587 },
-    "female-yujie": { label: "御姐", pitch: 1.02, rate: 0.95, frequencyHz: 466 },
-    "female-chengshu": { label: "成熟女性", pitch: 1.06, rate: 0.96, frequencyHz: 494 },
-    "female-tianmei": { label: "甜美女性", pitch: 1.2, rate: 1.03, frequencyHz: 554 },
-    presenter_male: { label: "男主持人", pitch: 0.86, rate: 0.98, frequencyHz: 349 },
-    presenter_female: { label: "女主持人", pitch: 1.1, rate: 1.0, frequencyHz: 512 },
-    audiobook_male_1: { label: "男有声书 1", pitch: 0.84, rate: 0.92, frequencyHz: 340 },
-    audiobook_male_2: { label: "男有声书 2", pitch: 0.9, rate: 0.95, frequencyHz: 370 },
-    audiobook_female_1: { label: "女有声书 1", pitch: 1.12, rate: 0.94, frequencyHz: 500 },
-    audiobook_female_2: { label: "女有声书 2", pitch: 1.18, rate: 0.97, frequencyHz: 530 },
-    auto: { label: "自动（全能参考）", pitch: 1.04, rate: 1.0, frequencyHz: 480 },
-    zh_female_cancan_uranus_bigtts: { label: "灿灿女声", pitch: 1.08, rate: 1.0, frequencyHz: 512 },
-    zh_female_vv_uranus_bigtts: { label: "薇薇少女", pitch: 1.2, rate: 1.04, frequencyHz: 560 },
-    zh_female_xiaohe_uranus_bigtts: { label: "温柔小荷", pitch: 1.12, rate: 0.98, frequencyHz: 528 },
-    zh_female_shuangkuaisisi_uranus_bigtts: { label: "爽快思思", pitch: 1.14, rate: 1.05, frequencyHz: 540 },
-    zh_male_m191_uranus_bigtts: { label: "云舟男声", pitch: 0.88, rate: 0.98, frequencyHz: 360 },
-    zh_male_taocheng_uranus_bigtts: { label: "阳光小天", pitch: 0.96, rate: 1.03, frequencyHz: 392 },
-    zh_male_dayi_uranus_bigtts: { label: "磁性大壹", pitch: 0.82, rate: 0.95, frequencyHz: 340 },
-    zh_male_liufei_uranus_bigtts: { label: "儒雅刘飞", pitch: 0.9, rate: 0.97, frequencyHz: 372 },
+    "male-qn-qingse": { label: "Youthful youth", pitch: 0.96, rate: 1.02, frequencyHz: 392 },
+    "male-qn-jingying": { label: "elite youth", pitch: 0.88, rate: 1.0, frequencyHz: 360 },
+    "male-qn-badao": { label: "Domineering youth", pitch: 0.78, rate: 0.94, frequencyHz: 330 },
+    "male-qn-daxuesheng": { label: "young college students", pitch: 0.94, rate: 1.04, frequencyHz: 380 },
+    "female-shaonv": { label: "girl", pitch: 1.24, rate: 1.06, frequencyHz: 587 },
+    "female-yujie": { label: "Royal sister", pitch: 1.02, rate: 0.95, frequencyHz: 466 },
+    "female-chengshu": { label: "mature women", pitch: 1.06, rate: 0.96, frequencyHz: 494 },
+    "female-tianmei": { label: "sweet women", pitch: 1.2, rate: 1.03, frequencyHz: 554 },
+    presenter_male: { label: "male host", pitch: 0.86, rate: 0.98, frequencyHz: 349 },
+    presenter_female: { label: "female host", pitch: 1.1, rate: 1.0, frequencyHz: 512 },
+    audiobook_male_1: { label: "Male Audiobook 1", pitch: 0.84, rate: 0.92, frequencyHz: 340 },
+    audiobook_male_2: { label: "Male Audiobook 2", pitch: 0.9, rate: 0.95, frequencyHz: 370 },
+    audiobook_female_1: { label: "Female Audiobook 1", pitch: 1.12, rate: 0.94, frequencyHz: 500 },
+    audiobook_female_2: { label: "Female Audiobook 2", pitch: 1.18, rate: 0.97, frequencyHz: 530 },
+    auto: { label: "Automatic (all-purpose reference)", pitch: 1.04, rate: 1.0, frequencyHz: 480 },
+    zh_female_cancan_uranus_bigtts: { label: "Brilliant female voice", pitch: 1.08, rate: 1.0, frequencyHz: 512 },
+    zh_female_vv_uranus_bigtts: { label: "Weiwei girl", pitch: 1.2, rate: 1.04, frequencyHz: 560 },
+    zh_female_xiaohe_uranus_bigtts: { label: "gentle little lotus", pitch: 1.12, rate: 0.98, frequencyHz: 528 },
+    zh_female_shuangkuaisisi_uranus_bigtts: { label: "Happy thinking", pitch: 1.14, rate: 1.05, frequencyHz: 540 },
+    zh_male_m191_uranus_bigtts: { label: "Yunzhou male voice", pitch: 0.88, rate: 0.98, frequencyHz: 360 },
+    zh_male_taocheng_uranus_bigtts: { label: "sunny little day", pitch: 0.96, rate: 1.03, frequencyHz: 392 },
+    zh_male_dayi_uranus_bigtts: { label: "Magnetic Big One", pitch: 0.82, rate: 0.95, frequencyHz: 340 },
+    zh_male_liufei_uranus_bigtts: { label: "Elegant Liu Fei", pitch: 0.9, rate: 0.97, frequencyHz: 372 },
 };
 
 function hashVoiceKey(value: string): number {
@@ -190,7 +190,7 @@ export async function previewAudioVoice(
         try {
             synth.cancel?.();
             const utterance = new UtteranceCtor(profile.sampleText);
-            utterance.lang = "zh-CN";
+            utterance.lang = "en-US";
             utterance.pitch = profile.pitch;
             utterance.rate = effectiveRate;
             if (typeof synth.getVoices === "function") {

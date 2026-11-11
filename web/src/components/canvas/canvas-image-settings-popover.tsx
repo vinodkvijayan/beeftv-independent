@@ -35,12 +35,12 @@ export function CanvasImageSettingsPopover({ config, onConfigChange, onOpenChang
     const normalized = normalizeImageValue(profile, config);
     const seedream = seedreamFamily(config.model || config.imageModel);
     const summaryParts = [
-        ...(seedream && config.seedreamMode === "layers" ? ["图层拆分"] : []),
+        ...(seedream && config.seedreamMode === "layers" ? ["Split layers"] : []),
         ...(profile.size.parameter !== "none" ? [imageSizeLabel(normalized.size, profile)] : []),
         ...(profile.quality.supported ? [imageQualityLabel(normalized.quality)] : []),
-        ...(seedream && seedream !== "pro" && seedream !== "flash" && Number(config.seedreamMaxImages) > 1 ? [`每批最多 ${config.seedreamMaxImages} 张`] : []),
-        ...(showCount && profile.maxOutputs > 1 ? [`${normalized.count} ${seedream ? "批" : "张"}`] : []),
-        ...(profile.transparentBackground.supported && normalized.transparentBackground === "true" ? ["透明"] : []),
+        ...(seedream && seedream !== "pro" && seedream !== "flash" && Number(config.seedreamMaxImages) > 1 ? [`Maximum per batch${config.seedreamMaxImages} Zhang`] : []),
+        ...(showCount && profile.maxOutputs > 1 ? [`${normalized.count} ${seedream ? "batch" : "images"}`] : []),
+        ...(profile.transparentBackground.supported && normalized.transparentBackground === "true" ? ["Transparent"] : []),
     ];
     const summary = summaryOverride || summaryParts.join(" · ");
     const hasSettings = profile.size.parameter !== "none" || profile.quality.supported || profile.transparentBackground.supported || (showCount && profile.maxOutputs > 1);
@@ -79,7 +79,7 @@ export function CanvasImageSettingsPopover({ config, onConfigChange, onOpenChang
     return (
         <>
             <span ref={buttonRef} className="inline-flex min-w-0">
-                <Button size="small" type="text" className={`canvas-generation-settings-trigger ${buttonClassName || "!h-8 !max-w-[180px] !justify-start !rounded-full !px-2.5"}`} style={{ background: theme.node.fill, color: theme.node.text }} icon={<Settings2 className="size-3.5" />} aria-expanded={open} aria-label={`高级设置：${summary}`} title={`高级设置 · ${summary}`} onClick={() => updateOpen(!open)}>
+                <Button size="small" type="text" className={`canvas-generation-settings-trigger ${buttonClassName || "!h-8 !max-w-[180px] !justify-start !rounded-full !px-2.5"}`} style={{ background: theme.node.fill, color: theme.node.text }} icon={<Settings2 className="size-3.5" />} aria-expanded={open} aria-label={`Advanced settings:${summary}`} title={`Advanced settings ·${summary}`} onClick={() => updateOpen(!open)}>
                     <span className="truncate">{summary}</span>
                 </Button>
             </span>
@@ -141,14 +141,14 @@ function ImageSettingsPortal({
         >
             <ImageSettingsPanel config={config} onConfigChange={(key, value) => onConfigChange(key, value)} theme={theme} showCount={showCount} quickCount={3} className="space-y-3" />
             <div className="mt-3 flex items-center justify-between gap-2 border-t pt-2 text-[var(--fs-micro)]" style={{ borderColor: theme.toolbar.border, color: theme.node.muted }}>
-                <span className="truncate">当前参数已自动设为默认</span>
+                <span className="truncate">The current parameters have been automatically set to default</span>
                 <button
                     type="button"
                     className="shrink-0 cursor-pointer font-medium transition-opacity hover:opacity-80"
                     style={{ color: theme.accent.primary }}
                     onClick={() => resetImageSettings()}
                 >
-                    恢复初始默认
+                                        Restore initial default
                 </button>
             </div>
         </div>,

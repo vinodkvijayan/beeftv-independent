@@ -28,45 +28,45 @@ export function SkillInstallForm({ form, id, initialValues, onFinish, mode, inst
     return <WorkspaceForm<InstallFormValues> form={form} id={id} name={id} initialValues={initialValues}
         className="skill-install-form" disabled={installing} aria-busy={installing} onFinish={onFinish}>
         {mode === "github" ? <>
-            <Form.Item name="url" label="GitHub 地址" rules={[{ required: true, message: "请填写 GitHub 仓库地址" }, { type: "url", message: "请输入有效链接" }]}>
+            <Form.Item name="url" label="GitHub address" rules={[{ required: true, message: "Please fill in the GitHub warehouse address" }, { type: "url", message: "Please enter a valid link" }]}>
                 <Input type="url" inputMode="url" spellCheck={false} prefix={<GitBranch className="size-4 text-foreground/35" />} placeholder="https://github.com/owner/repository" />
             </Form.Item>
             <div className="grid gap-x-3 sm:grid-cols-2">
-                <Form.Item name="ref" label="分支或标签" extra="留空时使用默认分支"><Input spellCheck={false} placeholder="main" /></Form.Item>
-                <Form.Item name="subdir" label="技能子目录" extra="仓库仅含一个技能时可留空"><Input spellCheck={false} placeholder="skills/ai-director" /></Form.Item>
+                <Form.Item name="ref" label="branch or tag" extra="Use default branch when left empty"><Input spellCheck={false} placeholder="main" /></Form.Item>
+                <Form.Item name="subdir" label="Skills subdirectory" extra="If the warehouse only contains one skill, it can be left blank."><Input spellCheck={false} placeholder="skills/ai-director" /></Form.Item>
             </div>
         </> : <>
             <Form.Item name="files" valuePropName="fileList" getValueFromEvent={({ fileList }: { fileList: UploadFile[] }) => fileList.slice(-1)}
-                rules={[{ required: true, type: "array", min: 1, message: `请选择一个 ${mode === "zip" ? "ZIP 技能包" : "Markdown 文件"}` }]}>
+                rules={[{ required: true, type: "array", min: 1, message: `Please select one${mode === "zip" ? "ZIP skill pack" : "Markdown file"}` }]}>
             <Upload.Dragger disabled={installing} accept={mode === "zip" ? ".zip,application/zip" : ".md,.markdown,text/markdown"}
                 maxCount={1}
                 beforeUpload={(file) => {
                     if (file.size > 200 * 1024 * 1024) {
-                        form?.setFields([{ name: "files", errors: ["技能文件超过 200MB，请精简后重新选择。"] }]);
+                        form?.setFields([{ name: "files", errors: ["The skill file exceeds 200MB, please streamline it and select again."] }]);
                         return Upload.LIST_IGNORE;
                     }
                     return false;
                 }}>
                 <UploadCloud className="mx-auto mb-3 size-8 text-foreground/38" />
-                <div className="text-sm font-medium">拖入或选择 {mode === "zip" ? "ZIP 技能包" : "Markdown 文件"}</div>
-                <div className="mt-1 text-xs text-foreground/45">{mode === "zip" ? "根目录或唯一子目录中必须包含 SKILL.md" : "普通 .md 会作为技能入口 SKILL.md 安装"}</div>
+                <div className="text-sm font-medium">Drag or select{mode === "zip" ? "ZIP skill pack" : "Markdown file"}</div>
+                <div className="mt-1 text-xs text-foreground/45">{mode === "zip" ? "SKILL.md must be in the root directory or only subdirectory" : "Ordinary .md will be installed as the skill entrance SKILL.md"}</div>
             </Upload.Dragger>
             </Form.Item>
             <div className="grid gap-x-3 sm:grid-cols-2">
-                <Form.Item name="name" label="覆盖名称" extra="可选，留空时自动读取"><Input maxLength={80} autoComplete="off" /></Form.Item>
-                <Form.Item name="description" label="覆盖简介" extra="可选，留空时自动读取"><Input maxLength={1024} autoComplete="off" /></Form.Item>
+                <Form.Item name="name" label="Override name" extra="Optional, automatically read if left blank"><Input maxLength={80} autoComplete="off" /></Form.Item>
+                <Form.Item name="description" label="Coverage Introduction" extra="Optional, automatically read if left blank"><Input maxLength={1024} autoComplete="off" /></Form.Item>
             </div>
         </>}
         <div className="grid gap-x-3 sm:grid-cols-2">
-            <Form.Item name="tag" label="技能分类" rules={[{ required: true, message: "请选择技能分类" }]}>
+            <Form.Item name="tag" label="Skill classification" rules={[{ required: true, message: "Please select a skill category" }]}>
                 <Select className="skill-install-category" options={fallbackSkillCategories} />
             </Form.Item>
-            <Form.Item hidden={localRuntime} name="is_public" label="公开状态" valuePropName="checked" extra="公开后其他用户可以加入使用。">
-                <Switch disabled={installing} aria-label="公开状态" checkedChildren="公开" unCheckedChildren="私有" />
+            <Form.Item hidden={localRuntime} name="is_public" label="public status" valuePropName="checked" extra="After it is made public, other users can join in and use it.">
+                <Switch disabled={installing} aria-label="public status" checkedChildren="public" unCheckedChildren="private" />
             </Form.Item>
         </div>
-        {mode === "github" ? <Form.Item name="autoUpdate" label="自动同步" valuePropName="checked" extra="后台每 6 小时检查一次提交版本，并记录最近检查与同步时间。">
-            <Switch disabled={installing} aria-label="自动同步" checkedChildren="开启" unCheckedChildren="关闭" />
+        {mode === "github" ? <Form.Item name="autoUpdate" label="Automatic synchronization" valuePropName="checked" extra="The background checks the submitted version every 6 hours and records the latest check and synchronization time.">
+            <Switch disabled={installing} aria-label="Automatic synchronization" checkedChildren="turn on" unCheckedChildren="Close" />
         </Form.Item> : null}
     </WorkspaceForm>;
 }

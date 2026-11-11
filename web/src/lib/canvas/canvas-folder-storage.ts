@@ -12,7 +12,7 @@ export const CANVAS_FOLDER_PENDING_KEY = "infinite-canvas:canvas_folder_pending"
 
 export class FolderPendingUnreadableError extends Error {
     constructor() {
-        super("文件夹未保存的修改无法读取");
+        super("Unsaved modifications to the folder cannot be read");
         this.name = "FolderPendingUnreadableError";
     }
 }
@@ -292,16 +292,16 @@ function isFailedPrecondition(error: unknown) {
 }
 
 function persistErrorMessage(error: unknown) {
-    if (isFailedPrecondition(error)) return "文件夹已删除，未保存的修改还在本机";
+    if (isFailedPrecondition(error)) return "The folder has been deleted, but unsaved changes are still on this computer";
     if (error instanceof Error && error.message) return error.message;
-    return "文件夹没有保存成功";
+    return "The folder was not saved successfully";
 }
 
 async function commitFolderIntent(id: string, generation: number) {
     const pending = await readPendingRecord(getActiveUserScope());
     const intent = pending.intents[id];
     if (!intent || intent.generation !== generation) return;
-    if (intent.blockedReimport) throw new Error(intent.error || "文件夹已删除，未保存的修改还在本机");
+    if (intent.blockedReimport) throw new Error(intent.error || "The folder has been deleted, but unsaved changes are still on this computer");
     if (intent.kind === "delete") {
         try {
             await deleteCanvasLibraryFolderRemote(id);
@@ -326,7 +326,7 @@ async function commitFolderIntent(id: string, generation: number) {
     });
     const staged = latest.intents[id];
     if (!folderReceiptMatches(saved, id, staged?.folder?.name || intent.folder.name)) {
-        throw new Error("文件夹没有保存成功");
+        throw new Error("The folder was not saved successfully");
     }
     const live = await mutatePending(getActiveUserScope(), (current) => {
         if (current.intents[id]?.generation !== generation) return current;
@@ -398,9 +398,9 @@ export async function persistCanvasLibraryFolder(folder: CanvasFolder): Promise<
     return live || liveCover(folder);
 }
 
-export async function createCanvasLibraryFolder(name = "未命名文件夹") {
+export async function createCanvasLibraryFolder(name = "unnamed folder") {
     const now = new Date().toISOString();
-    const folder: CanvasFolder = { id: nanoid(), name: name.trim() || "未命名文件夹", createdAt: now, updatedAt: now };
+    const folder: CanvasFolder = { id: nanoid(), name: name.trim() || "unnamed folder", createdAt: now, updatedAt: now };
     if (usesBrowserLocalResourceStore()) {
         const id = useCanvasStore.getState().createFolder(folder.name);
         return id;
@@ -417,13 +417,13 @@ export async function createCanvasLibraryFolder(name = "未命名文件夹") {
 }
 
 export async function renameCanvasLibraryFolder(id: string, name: string) {
-    const nextName = name.trim() || "未命名文件夹";
+    const nextName = name.trim() || "unnamed folder";
     if (usesBrowserLocalResourceStore()) {
         useCanvasStore.getState().renameFolder(id, nextName);
         return;
     }
     const current = useCanvasStore.getState().folders.find((folder) => folder.id === id);
-    if (!current) throw new Error("文件夹没有保存成功");
+    if (!current) throw new Error("The folder was not saved successfully");
     const generation = await stageUpsert({ ...current, name: nextName, updatedAt: new Date().toISOString() });
     try {
         await enqueueFolderCommit(getActiveUserScope(), id, () => commitFolderIntent(id, generation));
@@ -463,7 +463,7 @@ export async function persistCanvasFolderCover(id: string, coverDataUrl: string)
         return;
     }
     const current = useCanvasStore.getState().folders.find((folder) => folder.id === id);
-    if (!current) throw new Error("封面没有保存成功");
+    if (!current) throw new Error("The cover was not saved successfully");
     const generation = await stageUpsert({
         ...current,
         coverResourceId: undefined,

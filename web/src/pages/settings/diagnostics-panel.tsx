@@ -20,10 +20,10 @@ type DiagnosticsPanelProps = {
 type DiagnosticRange = "15m" | "30m" | "1h" | "24h";
 
 const rangeOptions: { value: DiagnosticRange; label: string }[] = [
-    { value: "15m", label: "最近 15 分钟" },
-    { value: "30m", label: "最近 30 分钟" },
-    { value: "1h", label: "最近 1 小时" },
-    { value: "24h", label: "最近 24 小时" },
+    { value: "15m", label: "Last 15 minutes" },
+    { value: "30m", label: "Last 30 minutes" },
+    { value: "1h", label: "Last 1 hour" },
+    { value: "24h", label: "last 24 hours" },
 ];
 
 export default function DiagnosticsPanel({ taskId, projectId, open, onClose }: DiagnosticsPanelProps) {
@@ -64,9 +64,9 @@ export default function DiagnosticsPanel({ taskId, projectId, open, onClose }: D
             const saved = await downloadDiagnosticBundle(download);
             if (saved !== "saved") return;
             setBundleId(download.bundleId);
-            message.success("诊断包已保存，请连同诊断编号提交给支持人员");
+            message.success("The diagnostic package has been saved, please submit it to support along with the diagnostic number");
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "导出诊断包失败");
+            message.error(error instanceof Error ? error.message : "Failed to export diagnostic package");
         } finally {
             setExporting(false);
         }
@@ -85,8 +85,8 @@ export default function DiagnosticsPanel({ taskId, projectId, open, onClose }: D
             rootClassName="app-spatial-modal diagnostics-modal"
             title={(
                 <div className="flex items-center justify-between gap-2">
-                    <span>问题诊断</span>
-                    <Button type="text" aria-label="关闭问题诊断" disabled={exporting} icon={<X className="size-4" />} onClick={onClose} />
+                    <span>Problem diagnosis</span>
+                    <Button type="text" aria-label="Close problem diagnosis" disabled={exporting} icon={<X className="size-4" />} onClick={onClose} />
                 </div>
             )}
         >
@@ -94,9 +94,9 @@ export default function DiagnosticsPanel({ taskId, projectId, open, onClose }: D
                 {open ? <EnvironmentChecks /> : null}
                 <div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <span className="text-sm font-medium">日志范围</span>
+                        <span className="text-sm font-medium">Log range</span>
                         <Select
-                            ariaLabel="日志范围"
+                            ariaLabel="Log range"
                             className="w-full sm:w-60"
                             value={range}
                             options={rangeOptions}
@@ -107,44 +107,44 @@ export default function DiagnosticsPanel({ taskId, projectId, open, onClose }: D
                         />
                     </div>
                     <p className="mt-3 text-xs leading-5 text-foreground/55" aria-live="polite">
-                        {loadingPreview ? "正在读取日志…" : preview ? `包含 ${preview.taskCount} 个生成任务、${preview.apiCallCount} 次媒体请求${preview.assistantTurnCount === undefined ? "" : `、${preview.assistantTurnCount} 轮助手记录`}及前端日志。` : "暂时无法读取记录数量，可继续尝试导出。"}
+                        {loadingPreview ? "Reading logs…" : preview ? `contains${preview.taskCount} generation tasks,${preview.apiCallCount} media requests${preview.assistantTurnCount === undefined ? "" : `、${preview.assistantTurnCount} wheel helper record`}and front-end logs.` : "The number of records cannot be read at the moment. You can continue to try exporting."}
                     </p>
-                    {preview && (preview.willTruncate || Object.values(preview.collectors || {}).some(collector => collector.status !== "complete")) ? <p className="mt-1 text-xs leading-5 text-foreground/55" role="status">部分记录缺失或已达保留上限，诊断包会注明缺失范围；无法保证还原全部经过。</p> : null}
+                    {preview && (preview.willTruncate || Object.values(preview.collectors || {}).some(collector => collector.status !== "complete")) ? <p className="mt-1 text-xs leading-5 text-foreground/55" role="status">Some records are missing or have reached the retention limit, and the diagnostic package will indicate the missing range; there is no guarantee that the restoration will be complete.</p> : null}
                 </div>
                 {openUpdateLogs ? <div>
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-sm font-medium">应用更新日志</p>
-                        <Button onClick={() => { setUpdateLogError(""); void openUpdateLogs().catch(() => setUpdateLogError("无法打开日志文件夹，请在存储设置中查看当前目录。")); }}>打开日志文件夹</Button>
+                        <p className="text-sm font-medium">App update log</p>
+                        <Button onClick={() => { setUpdateLogError(""); void openUpdateLogs().catch(() => setUpdateLogError("Unable to open log folder, please check the current directory in storage settings.")); }}>Open log folder</Button>
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-foreground/55">{preview?.updateLog?.status === "available" ? `诊断包将包含 ${preview.updateLog.lines} 条更新记录。` : preview?.updateLog?.status === "unreadable" ? "部分更新日志无法读取，其他信息仍可导出。" : preview?.updateLog?.status === "missing" ? "未找到更新日志，其他信息仍可导出。" : "请选择覆盖更新失败时间的日志范围。"}</p>
-                    {preview?.updateLog?.truncated ? <p className="mt-1 text-xs leading-5 text-foreground/55">日志较多，仅包含最近的部分更新记录。</p> : null}
-                    <p className="mt-1 text-xs leading-5 text-foreground/55">日志位于当前数据目录，文件名为 update.log。</p>
+                    <p className="mt-1 text-xs leading-5 text-foreground/55">{preview?.updateLog?.status === "available" ? `The diagnostic package will contain${preview.updateLog.lines} update records.` : preview?.updateLog?.status === "unreadable" ? "Some update logs cannot be read, but other information can still be exported." : preview?.updateLog?.status === "missing" ? "No update log found, other information can still be exported." : "Please select a log range that covers the time the update failed."}</p>
+                    {preview?.updateLog?.truncated ? <p className="mt-1 text-xs leading-5 text-foreground/55">There are many logs and only some recent update records are included.</p> : null}
+                    <p className="mt-1 text-xs leading-5 text-foreground/55">The log is located in the current data directory and the file name is update.log.</p>
                     {updateLogError ? <p className="mt-1 text-xs leading-5 text-destructive" role="alert">{updateLogError}</p> : null}
                 </div> : null}
                 <div>
                     <label className="mb-3 block text-sm font-medium" htmlFor="diagnostic-description">
-                        问题描述 <span className="ml-1 text-xs font-normal text-foreground/55">可选</span>
+                                                Problem description<span className="ml-1 text-xs font-normal text-foreground/55">Optional</span>
                     </label>
-                    <Input.TextArea id="diagnostic-description" rows={3} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="例如：生成一直停在处理中。" />
+                    <Input.TextArea id="diagnostic-description" rows={3} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="For example: The build keeps getting stuck in processing." />
                 </div>
                 <div className="flex items-center justify-between gap-4">
                     <div className="min-w-0">
-                        <p className="text-sm font-medium">视频预览缓存</p>
-                        <p className="mt-1 text-xs leading-5 text-foreground/55">清理预览以释放空间，原文件保留。</p>
+                        <p className="text-sm font-medium">Video preview cache</p>
+                        <p className="mt-1 text-xs leading-5 text-foreground/55">Clean the preview to free up space and keep the original files.</p>
                     </div>
                     <Button className="shrink-0" loading={clearingPreviews} onClick={async () => {
                         setClearingPreviews(true);
-                        try { const result = await clearVideoPreviewCache(); message.success(`已清理 ${result.cleared} 个视频预览`); }
-                        catch (error) { message.error(error instanceof Error ? error.message : "清理失败，请重试"); }
+                        try { const result = await clearVideoPreviewCache(); message.success(`Cleaned${result.cleared} video previews`); }
+                        catch (error) { message.error(error instanceof Error ? error.message : "Cleanup failed, please try again"); }
                         finally { setClearingPreviews(false); }
-                    }}>清理预览缓存</Button>
+                    }}>Clear preview cache</Button>
                 </div>
                 <div>
                     <div className="flex items-center justify-between gap-4">
-                        <p className="min-w-0 text-xs leading-5 text-foreground/55">诊断包不包含密钥、Cookie 等隐私或原始媒体</p>
-                        <Button className="shrink-0" type="primary" icon={<Download className="size-4" />} loading={exporting} onClick={() => void handleExport()}>导出诊断包</Button>
+                        <p className="min-w-0 text-xs leading-5 text-foreground/55">Diagnostic package does not contain private or original media such as keys, cookies</p>
+                        <Button className="shrink-0" type="primary" icon={<Download className="size-4" />} loading={exporting} onClick={() => void handleExport()}>Export diagnostic package</Button>
                     </div>
-                    {bundleId ? <p className="mt-3 break-all text-xs text-foreground/65" role="status">诊断编号：{bundleId}</p> : null}
+                    {bundleId ? <p className="mt-3 break-all text-xs text-foreground/65" role="status">Diagnosis number:{bundleId}</p> : null}
                 </div>
             </div>
         </AppModal>

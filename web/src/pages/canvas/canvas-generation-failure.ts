@@ -55,7 +55,7 @@ export function canvasGenerationFailureMetadata(error: unknown, input: CanvasGen
     return embeddedOutcome ? { ...failure, taskOutcome: embeddedOutcome } : failure;
 }
 
-export function canvasTaskFailureMetadata(task: GenerationTask, metadata?: CanvasNodeMetadata, error: unknown = { code: task.errorCode, message: task.error || (task.status === "cancelled" ? "任务已取消" : "任务失败") }) {
+export function canvasTaskFailureMetadata(task: GenerationTask, metadata?: CanvasNodeMetadata, error: unknown = { code: task.errorCode, message: task.error || (task.status === "cancelled" ? "Task canceled" : "Task failed") }) {
     let input: CanvasGenerationFailureInput = { prompt: task.prompt || metadata?.prompt || "" };
     try {
         const stored = JSON.parse(task.inputJson || "{}");
@@ -72,7 +72,7 @@ export function canvasTaskFailureMetadata(task: GenerationTask, metadata?: Canva
         failure.failedPromptFingerprint = metadata.failedPromptFingerprint;
     }
     const cause = error instanceof Error && error.cause instanceof Error ? error.cause : error;
-    const diagnostics = task.status === "succeeded" ? { ...task.failureDiagnostics, source: "client_result" as const, executionResult: "completed" as const, summary: cause instanceof Error ? cause.message : failure.generationErrorSummary, stage: "画布应用结果", capturedAt: new Date().toISOString() } : (task.failureDiagnostics ?? failure.taskFailureDiagnostics);
+    const diagnostics = task.status === "succeeded" ? { ...task.failureDiagnostics, source: "client_result" as const, executionResult: "completed" as const, summary: cause instanceof Error ? cause.message : failure.generationErrorSummary, stage: "Canvas application results", capturedAt: new Date().toISOString() } : (task.failureDiagnostics ?? failure.taskFailureDiagnostics);
     const backendOutcome = readTaskOutcome(task);
     // 原任务成功但本机应用失败时结果仍可取回；后台已判定结果取不回（phase=failed）时，结论和提示都以后台为准。
     const resultLost = task.status === "succeeded" && backendOutcome?.phase === "failed";
@@ -88,10 +88,10 @@ export function canvasImagePendingResultMessage(node: CanvasNodeData | undefined
     const unavailable = related.find((item) => readNodeTaskOutcome(item?.metadata)?.reason === "result_target_unavailable" || item?.metadata?.generationErrorCode === "result_target_unavailable");
     if (unavailable) return explainGenerationError({ code: "result_target_unavailable" }).message;
     if (related.some((item) => readNodeTaskOutcome(item?.metadata)?.reason === "submission_unknown" || item?.metadata?.generationSubmissionState === "unknown")) {
-        return "提交结果尚未确认，请查询原任务";
+        return "The submission result has not been confirmed yet, please check the original task";
     }
     const missing = related.find((item) => item?.metadata?.generationErrorCode === "results_missing" || readNodeTaskOutcome(item?.metadata)?.phase === "retrievable");
-    return missing?.metadata?.errorDetails || node?.metadata?.errorDetails || "生成结果已保留，请点击「继续取回」";
+    return missing?.metadata?.errorDetails || node?.metadata?.errorDetails || "The generated results have been retained, please click \"Continue to retrieve\"";
 }
 
 const TRANSIENT_POLL_TIMESTAMP_KEYS = new Set(["taskUpdatedAt", "taskDurationMs"]);
@@ -139,7 +139,7 @@ export function canvasGenerationTaskNodes(nodes: CanvasNodeData[], targetNodeId:
             ? {
                   taskOutcome: task.outcome ?? ({ phase: "retrievable", regenerate: "blocked", reason: "delivery_pending" } as const),
                   generationErrorCode: "download_failed" as const,
-                  errorDetails: task.stage === "delivery_timed_out" ? "取回结果已超时，可以继续取回" : "已停止取回，可以继续取回",
+                  errorDetails: task.stage === "delivery_timed_out" ? "The retrieval of results has timed out. You can continue to retrieve the results." : "Retrieval has been stopped. You can continue to retrieve it.",
               }
             : failed
               ? canvasTaskFailureMetadata(task, node.metadata)
@@ -154,13 +154,13 @@ export function canvasGenerationTaskNodes(nodes: CanvasNodeData[], targetNodeId:
                           ? ({ phase: "failed", regenerate: "blocked", reason: "result_target_unavailable" } as const)
                           : ({ phase: "retrievable", regenerate: "blocked", reason: "delivery_pending" } as const),
                       generationErrorCode: node.metadata?.generationErrorCode,
-                      errorDetails: node.metadata?.errorDetails || (targetUnavailable ? explainGenerationError({ code: "result_target_unavailable" }).message : "生成结果已保留，请点击「继续取回」"),
+                      errorDetails: node.metadata?.errorDetails || (targetUnavailable ? explainGenerationError({ code: "result_target_unavailable" }).message : "The generated results have been retained, please click \"Continue to retrieve\""),
                   }
                 : {
                       ...(hasCompletedContent && (!task.outcome || task.outcome.phase === "running" || task.outcome.phase === "fetching")
                           ? { taskOutcome: { phase: "ready", regenerate: "allowed", reason: "result_ready" } as const }
                           : {}),
-                      errorDetails: backendTerminalFailure ? (task.error || "生成结果已不可取回") : undefined,
+                      errorDetails: backendTerminalFailure ? (task.error || "The generated results are irretrievable") : undefined,
                       generationErrorCode: undefined,
                       generationErrorSummary: undefined,
                       generationProviderCode: undefined,

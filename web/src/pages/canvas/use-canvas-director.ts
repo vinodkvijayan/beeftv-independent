@@ -86,7 +86,7 @@ export function useCanvasDirector({
         const current = () => !signal.aborted && operation.isCurrent() && directorReferenceTargetRef.current?.projectId === projectId
             && directorReferenceTargetRef.current?.nodeId === directorNodeId
             && nodesRef.current.some((item) => item.id === directorNodeId);
-        if (!current()) throw new DOMException("导演台会话已结束", "AbortError");
+        if (!current()) throw new DOMException("Director's desk session has ended", "AbortError");
         const node = createCanvasNode(CanvasNodeType.Image, getCanvasCenter(), imageMetadata(image));
         node.title = title;
         const linked = connectDirectorReferenceNodes([...nodesRef.current, node], connectionsRef.current, [node.id], directorNodeId || "", () => nanoid(), "replace");
@@ -98,22 +98,22 @@ export function useCanvasDirector({
         pageUi.getState().setSelectedConnectionId(null);
         try {
             const result = await ensureCanvasNodeAsset({ canvasId: projectId, domainProjectId: domainProjectId, node, source: "canvas-upload" });
-            if (!current()) throw new DOMException("导演台会话已结束", "AbortError");
+            if (!current()) throw new DOMException("Director's desk session has ended", "AbortError");
             setNodes((currentNodes) => currentNodes.map((item) => item.id === node.id ? { ...item, metadata: { ...item.metadata, assetId: result.assetId } } : item));
             return { assetId: result.assetId, persisted: result.confirmed };
         } catch (error) {
-            if (!current()) throw new DOMException("导演台会话已结束", "AbortError");
-            message.warning(error instanceof Error ? `图片已加入画布，但素材同步失败：${error.message}` : "图片已加入画布，但素材同步失败");
+            if (!current()) throw new DOMException("Director's desk session has ended", "AbortError");
+            message.warning(error instanceof Error ? `The image has been added to the canvas, but the material synchronization failed:${error.message}` : "The image has been added to the canvas, but the material synchronization failed");
             return { assetId: findWorkspaceAssetIdByStorageKey(image.storageKey) };
         }
     }, [connectionsRef, domainProjectId, directorNodeId, getCanvasCenter, message, nodesRef, projectId, setConnections, setNodes, pageUi, lifetime, mountedRef]);
     /** 新建空导演台；演员、道具和机位由用户进入工作台后自行添加。 */
     const createDirectorShot = useCallback((position?: Position) => {
         const shotIndex = nextDirectorNodeIndex(nodesRef.current);
-        const directorTitle = `导演台 ${shotIndex}`;
-        let scene = createDirectorSceneFromTemplate("empty", `镜头 ${shotIndex}`);
+        const directorTitle = `Director's desk${shotIndex}`;
+        let scene = createDirectorSceneFromTemplate("empty", `lens${shotIndex}`);
         const shot = scene.shots[0];
-        scene = { ...scene, shots: [{ ...shot, name: `镜头 ${shotIndex}` }] };
+        scene = { ...scene, shots: [{ ...shot, name: `lens${shotIndex}` }] };
         const node = createCanvasNode(CanvasNodeType.Director, position || getCanvasCenter(), {
             workflowKind: "shot",
             workflowTitle: directorTitle,
@@ -140,7 +140,7 @@ export function useCanvasDirector({
         if (!scene) {
             // 孤儿节点修复路径：节点存在但场景丢了。这不是「新建」，不弹模板选择，
             // 用空场景兜底 —— 绝不在用户没选过的情况下塞演员进去。
-            scene = createDirectorSceneFromTemplate("empty", node.metadata?.workflowTitle || node.title || "镜头场景");
+            scene = createDirectorSceneFromTemplate("empty", node.metadata?.workflowTitle || node.title || "camera scene");
             const shot = scene.shots[0];
             scene = { ...scene, shots: [{ ...shot, name: node.metadata?.workflowTitle || node.title || shot.name, prompt: node.metadata?.workflowDescription || "" }] };
             const directorSceneId = scene.id;
@@ -192,9 +192,9 @@ export function useCanvasDirector({
 
     const applyDirectorOutput = useCallback(async (output: DirectorSceneOutput) => {
         const outputProjectId = projectId;
-        if (projectIdRef.current !== outputProjectId) throw new Error("画布项目已切换，请重试");
+        if (projectIdRef.current !== outputProjectId) throw new Error("Canvas item has been switched, please try again");
         const sourceNodeAtStart = nodesRef.current.find((item) => item.id === directorNodeId);
-        if (!sourceNodeAtStart || sourceNodeAtStart.metadata?.directorSceneId !== output.scene.id) throw new Error("镜头节点不存在或场景已切换");
+        if (!sourceNodeAtStart || sourceNodeAtStart.metadata?.directorSceneId !== output.scene.id) throw new Error("The lens node does not exist or the scene has been switched");
         const sourceNodeId = sourceNodeAtStart.id;
         const [image, videoUpload] = await Promise.all([
             uploadImage(output.beauty),
@@ -206,10 +206,10 @@ export function useCanvasDirector({
         const sourceNode = nodesRef.current.find((item) => item.id === sourceNodeId);
         const latestScene = outputProject?.directorScenes.find((item) => item.id === output.scene.id);
         const target = { currentProjectId: projectIdRef.current, outputProjectId, projectExists: Boolean(outputProject), sourceNode, sourceNodeId, latestScene, sceneId: output.scene.id, shotId: output.shot.id };
-        if (!isDirectorOutputTargetCurrent(target) || !sourceNode || !latestScene) throw new Error("输出期间项目或镜头已切换、删除，请重试");
+        if (!isDirectorOutputTargetCurrent(target) || !sourceNode || !latestScene) throw new Error("The project or lens has been switched or deleted during output, please try again.");
         const previewId = sourceNode.metadata?.directorPreviewNodeId || `image-director-${Date.now()}`;
         const mergedScene = mergeDirectorOutputPreview(latestScene, { sceneId: output.scene.id, shotId: output.shot.id, previewNodeId: previewId });
-        if (!mergedScene) throw new Error("输出期间镜头已切换或删除，请重试");
+        if (!mergedScene) throw new Error("Lens has been switched or deleted during output, please try again");
         const previewSize = fitNodeSize(image.width, image.height);
         const nextNodes = [...nodesRef.current];
         const previewIndex = nextNodes.findIndex((item) => item.id === previewId);
@@ -228,27 +228,27 @@ export function useCanvasDirector({
             ...existingPreview,
             id: previewId,
             type: CanvasNodeType.Image,
-            title: `${sourceNode.title} · 导演台构图`,
+            title: `${sourceNode.title} · Director’s desk composition`,
             position: outputPositions.previewPosition,
             width: previewSize.width,
             height: previewSize.height,
-            metadata: { ...existingPreview?.metadata, ...imageMetadata(image), prompt: output.prompt, workflowKind: "reference_set", assetTags: ["导演台构图", `镜头:${sourceNode.title}`] },
+            metadata: { ...existingPreview?.metadata, ...imageMetadata(image), prompt: output.prompt, workflowKind: "reference_set", assetTags: ["Director's desk composition", `Lens:${sourceNode.title}`] },
         };
         if (previewIndex >= 0) nextNodes[previewIndex] = previewNode;
         else nextNodes.push(previewNode);
 
         if (videoUpload) {
             const outputVideoId = clayVideoId;
-            if (!outputVideoId) throw new Error("视频节点 ID 未准备好，请重试导出");
+            if (!outputVideoId) throw new Error("Video node ID is not ready, please try export again");
             const videoNode: CanvasNodeData = {
                 ...existingVideo,
                 id: outputVideoId,
                 type: CanvasNodeType.Video,
-                title: `${sourceNode.title} · 白膜视频`,
+                title: `${sourceNode.title} · White film video`,
                 position: outputPositions.videoPosition,
                 width: existingVideo?.width || 360,
                 height: existingVideo?.height || 220,
-                metadata: { ...existingVideo?.metadata, ...directorClayVideoMetadata(videoUpload, image), prompt: output.prompt, workflowKind: "reference_video", assetTags: ["导演台白膜", `镜头:${sourceNode.title}`] },
+                metadata: { ...existingVideo?.metadata, ...directorClayVideoMetadata(videoUpload, image), prompt: output.prompt, workflowKind: "reference_video", assetTags: ["Director's white film", `Lens:${sourceNode.title}`] },
             };
             if (videoIndex >= 0) nextNodes[videoIndex] = videoNode;
             else nextNodes.push(videoNode);
@@ -267,9 +267,9 @@ export function useCanvasDirector({
         const commitProject = useCanvasStore.getState().projects.find((item) => item.id === outputProjectId);
         const commitSourceNode = nodesRef.current.find((item) => item.id === sourceNodeId);
         const commitScene = commitProject?.directorScenes.find((item) => item.id === output.scene.id);
-        if (!isDirectorOutputTargetCurrent({ ...target, currentProjectId: projectIdRef.current, projectExists: Boolean(commitProject), sourceNode: commitSourceNode, latestScene: commitScene })) throw new Error("输出期间项目或镜头已切换、删除，请重试");
+        if (!isDirectorOutputTargetCurrent({ ...target, currentProjectId: projectIdRef.current, projectExists: Boolean(commitProject), sourceNode: commitSourceNode, latestScene: commitScene })) throw new Error("The project or lens has been switched or deleted during output, please try again.");
         const committedScene = mergeDirectorOutputPreview(commitScene!, { sceneId: output.scene.id, shotId: output.shot.id, previewNodeId: previewId });
-        if (!committedScene) throw new Error("输出期间镜头已切换或删除，请重试");
+        if (!committedScene) throw new Error("Lens has been switched or deleted during output, please try again");
         const retiredReferenceIds = new Set([commitSourceNode?.metadata?.directorDepthNodeId, commitSourceNode?.metadata?.directorNormalNodeId].filter(Boolean));
         const referenceAssetNodeIds = Array.from(new Set([
             ...(commitSourceNode?.metadata?.referenceAssetNodeIds || []).filter((id) => !retiredReferenceIds.has(id)),

@@ -55,7 +55,7 @@ export function useCanvasAssistantContinuation(assistant: CanvasAssistantControl
                 setRows(results);
                 if (!results.length) setNotice("");
                 if (shouldReloadForContinuation(live.current, results, hadRows)) await live.current.reloadHistory();
-            })().catch(() => { if (isCurrent()) setNotice("暂时无法读取继续状态，请重新读取。"); }).finally(() => {
+            })().catch(() => { if (isCurrent()) setNotice("The continuation status cannot be read at the moment, please read again."); }).finally(() => {
                 checking.current.delete(identity);
                 if (dirty.current.delete(identity) && isCurrent()) setRefresh(value => value + 1);
             });
@@ -85,8 +85,8 @@ export function useCanvasAssistantContinuation(assistant: CanvasAssistantControl
             if (active.current !== stoppedIdentity || !mounted.current) return;
             await controller.reloadHistory();
             if (active.current !== stoppedIdentity || !mounted.current) return;
-            setRows([]); setNotice("已停止自动继续，生成任务可在任务中心查看。");
-        } catch { if (active.current === stoppedIdentity && mounted.current) setNotice("停止状态未能确认，请重试停止。"); }
+            setRows([]); setNotice("Automatic continuation has been stopped, and the generated tasks can be viewed in the task center.");
+        } catch { if (active.current === stoppedIdentity && mounted.current) setNotice("The stop status cannot be confirmed, please try stopping again."); }
     }, []);
-    return { pending: rows.length > 0, notice: rows.length ? notice || "生成结果就绪后，会继续检查与剪辑。" : notice, stop, refresh: () => { stopped.current = false; setRefresh(value => value + 1); } };
+    return { pending: rows.length > 0, notice: rows.length ? notice || "After the generated results are ready, inspection and editing continue." : notice, stop, refresh: () => { stopped.current = false; setRefresh(value => value + 1); } };
 }

@@ -136,7 +136,7 @@ export type CreateTaskInput = {
 };
 export function createGenerationTask(input: CreateTaskInput, config?: HttpRequestConfig) {
     return http.post<GenerationTask>("/tasks", input, config).then((task) => {
-        recordDiagnosticEvent({ level: "info", category: "task", code: "task_created", message: "任务已创建", taskId: task.id, projectId: task.projectId, canvasId: task.projectId, nodeId: task.clientContext?.nodeId, clientOperationId: task.clientOperationId, traceId: task.traceId || getDiagnosticTraceId(task.id) });
+        recordDiagnosticEvent({ level: "info", category: "task", code: "task_created", message: "Task has been created", taskId: task.id, projectId: task.projectId, canvasId: task.projectId, nodeId: task.clientContext?.nodeId, clientOperationId: task.clientOperationId, traceId: task.traceId || getDiagnosticTraceId(task.id) });
         notifyCanvasTaskCreated(task);
         return task;
     });
@@ -151,7 +151,7 @@ export type GenerationTaskPageRequest = {
 
 /** A missing receipt never authorizes another paid generation. */
 export async function findGenerationTaskByOperation(operationId: string, projectId: string, signal?: AbortSignal): Promise<GenerationTask | undefined> {
-    if (typeof operationId !== "string" || !operationId.trim()) throw new Error("缺少提交标识，无法查询原任务");
+    if (typeof operationId !== "string" || !operationId.trim()) throw new Error("The submission identifier is missing and the original task cannot be queried.");
     try {
         return await http.get<GenerationTask>(`/tasks/by-operation/${encodeURIComponent(operationId)}`, { params: { projectId }, signal });
     } catch (error) {
@@ -257,7 +257,7 @@ export function createGenerationTaskSubscriptionService(dependencies: Generation
                 window.dispatchEvent(new CustomEvent("canvas:task-updated", { detail: { task } }));
             }
         } catch (error) {
-            console.warn("生成任务的辅助通知失败，本地订阅者已正常更新", { taskId: task.id, error });
+            console.warn("Auxiliary notifications for generating tasks failed, local subscribers were updated normally", { taskId: task.id, error });
         }
     };
     const observe = (id: string, entry: Entry) => {
@@ -276,7 +276,7 @@ export function createGenerationTaskSubscriptionService(dependencies: Generation
             // Only clear this attempt: a newer subscriber may already have
             // installed its replacement while this rejection was settling.
             if (entry.observation === observation) entry.observation = undefined;
-            console.warn("生成任务观察中断，后续订阅将重新建立连接", { taskId: id, error });
+            console.warn("Generate task observation is interrupted, subsequent subscriptions will re-establish the connection", { taskId: id, error });
         });
         entry.observation = observation;
         return observation;
@@ -452,7 +452,7 @@ export async function waitForGenerationTask(id: string, options?: WaitForGenerat
                 return task;
             }
             if (task.status === "failed" || task.status === "cancelled") {
-                const message = task.error ? generationErrorMessage(task.errorCode ? { code: task.errorCode, message: task.error } : task.error) : `任务${task.status === "cancelled" ? "已取消" : "失败"}`;
+                const message = task.error ? generationErrorMessage(task.errorCode ? { code: task.errorCode, message: task.error } : task.error) : `Task${task.status === "cancelled" ? "Canceled" : "failed"}`;
                 const error = new Error(message) as Error & {
                     code?: string;
                     taskOutcome?: import("@/lib/task-outcome").TaskOutcome;
@@ -475,7 +475,7 @@ export async function waitForGenerationTask(id: string, options?: WaitForGenerat
     } finally {
         if (publishedDelivery) publishGenerationDeliveryProgress(id, undefined);
     }
-    throw new Error(lastQueryError instanceof Error ? `任务状态同步失败：${lastQueryError.message}` : "任务执行超时，请稍后重试");
+    throw new Error(lastQueryError instanceof Error ? `Task status synchronization failed:${lastQueryError.message}` : "Task execution timed out, please try again later");
 }
 
 async function waitForGenerationTaskTextEvents(id: string, options: WaitForGenerationTaskOptions) {
@@ -505,9 +505,9 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
             });
             if (!response.ok) throw new TaskTextStreamFatalError(await taskTextStreamHTTPError(response));
             if (!(response.headers.get("content-type") || "").toLowerCase().includes("text/event-stream")) {
-                throw new TaskTextStreamFatalError("任务文本流接口未返回事件流，请检查后端地址和反向代理配置");
+                throw new TaskTextStreamFatalError("The task text stream interface did not return the event stream, please check the backend address and reverse proxy configuration");
             }
-            if (!response.body) throw new Error("任务文本流不可用");
+            if (!response.body) throw new Error("Task text stream is not available");
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             const parser = createTaskTextStreamParser();
@@ -546,7 +546,7 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
                     }
                     return;
                 }
-                if (event.event === "error") throw new Error(typeof payload.message === "string" ? payload.message : "任务文本流不可用");
+                if (event.event === "error") throw new Error(typeof payload.message === "string" ? payload.message : "Task text stream is not available");
             };
             try {
                 for (;;) {
@@ -564,11 +564,11 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
                 options.onTaskUpdate?.(completed);
                 if (completed.status === "succeeded") return completed;
                 if (completed.status === "failed" || completed.status === "cancelled") {
-                    const message = completed.error ? generationErrorMessage(completed.errorCode ? { code: completed.errorCode, message: completed.error } : completed.error) : `任务${completed.status === "cancelled" ? "已取消" : "失败"}`;
+                    const message = completed.error ? generationErrorMessage(completed.errorCode ? { code: completed.errorCode, message: completed.error } : completed.error) : `Task${completed.status === "cancelled" ? "Canceled" : "failed"}`;
                     throw new TaskTextStreamFatalError(message, completed.errorCode, completed.outcome, completed.failureDiagnostics);
                 }
             }
-            lastStreamError = new Error("任务文本流连接提前结束");
+            lastStreamError = new Error("Task text stream connection ended prematurely");
         } catch (error) {
             if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
             if (error instanceof TaskTextStreamFatalError) throw error;
@@ -576,7 +576,7 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
         }
         await delay(intervalMs, options.signal);
     }
-    throw new Error(lastStreamError instanceof Error ? `任务文本流同步失败：${lastStreamError.message}` : "任务执行超时，请稍后重试");
+    throw new Error(lastStreamError instanceof Error ? `Task text stream synchronization failed:${lastStreamError.message}` : "Task execution timed out, please try again later");
 }
 
 function asTaskTextStreamRecord(value: unknown): Record<string, unknown> {
@@ -616,7 +616,7 @@ async function taskTextStreamHTTPError(response: Response) {
     } catch {
         // SSE 错误响应可能是空正文或网关 HTML，只返回状态码，避免泄露正文。
     }
-    return `任务文本流请求失败（HTTP ${response.status}）`;
+    return `Task text stream request failed (HTTP${response.status}）`;
 }
 
 function taskWaitTimeoutMs(task?: GenerationTask) {

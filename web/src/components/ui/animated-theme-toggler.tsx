@@ -213,7 +213,7 @@ export const AnimatedThemeToggler = ({ children, className, duration = 400, vari
     return (
         <button type="button" ref={buttonRef} onClick={toggleTheme} className={cn(className)} {...props}>
             {children ?? (isDark ? <Sun /> : <Moon />)}
-            <span className="sr-only">{props["aria-label"] || "切换主题"}</span>
+            <span className="sr-only">{props["aria-label"] || "switch theme"}</span>
         </button>
     );
 };

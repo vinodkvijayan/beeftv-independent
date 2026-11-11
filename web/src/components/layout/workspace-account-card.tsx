@@ -8,14 +8,14 @@ import "./workspace-account-card.css";
 export function WorkspaceAccountCard({ onNavigate }: { onNavigate: () => void }) {
     const user = useUserStore((state) => state.user);
     if (!user) return null;
-    return <section className="workspace-account-card" aria-label="我的账户">
+    return <section className="workspace-account-card" aria-label="my account">
         <header className="workspace-account-card-identity">
             <UserAvatar user={user} className="workspace-account-card-avatar" />
             <div><strong>{user.displayName || user.username}</strong><span>@{user.username}</span></div>
-            <em>{user.role === "admin" ? "管理员" : "创作者"}</em>
+            <em>{user.role === "admin" ? "Administrator" : "Creator"}</em>
         </header>
-        <nav className="workspace-account-card-actions" aria-label="账户操作">
-            <Link to="/settings" onClick={onNavigate}><Settings /><span>本地设置</span><ArrowUpRight /></Link>
+        <nav className="workspace-account-card-actions" aria-label="Account operations">
+            <Link to="/settings" onClick={onNavigate}><Settings /><span>local settings</span><ArrowUpRight /></Link>
         </nav>
     </section>;
 }

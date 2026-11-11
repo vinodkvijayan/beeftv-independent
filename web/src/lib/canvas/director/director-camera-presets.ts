@@ -4,21 +4,21 @@ import { createDirectorCamera, directorFocalLengthToFov } from "@/lib/canvas/dir
 import type { DirectorCamera, DirectorTransform, DirectorVec3 } from "@/types/director";
 
 export const DIRECTOR_CAMERA_PRESETS = [
-    { id: "current", label: "当前视角", offset: [0, 0, 0], focalLength: 35 },
-    { id: "front-medium", label: "正面中景", offset: [0, 0.2, 4.5], focalLength: 50 },
-    { id: "front-close", label: "正面特写", offset: [0, 0.25, 2.1], focalLength: 70 },
-    { id: "front-wide", label: "正面全景", offset: [0, 1.2, 9], focalLength: 28 },
-    { id: "side-follow", label: "侧面跟拍", offset: [4.5, 0.2, -1.3], focalLength: 50 },
-    { id: "side-close", label: "侧面近景", offset: [2.2, 0.2, -0.3], focalLength: 70 },
-    { id: "back-medium", label: "背面中景", offset: [0, 0.2, -4.5], focalLength: 50 },
-    { id: "top-wide", label: "俯拍全景", offset: [0, 8, 3], focalLength: 28 },
-    { id: "top-45", label: "45° 俯拍", offset: [0, 5, 5], focalLength: 35 },
-    { id: "low-up", label: "低角度仰拍", offset: [0, -0.7, 3.3], focalLength: 50 },
-    { id: "low-wide", label: "低角度广角", offset: [0, -0.6, 5], focalLength: 24 },
-    { id: "shoulder-left", label: "过肩镜头", offset: [-0.9, 0.1, -1.3], focalLength: 50 },
-    { id: "shoulder-right", label: "过肩镜头（右）", offset: [0.9, 0.1, -1.3], focalLength: 50 },
-    { id: "bird-eye", label: "鸟瞰", offset: [0, 12, 0.05], focalLength: 28 },
-    { id: "dutch", label: "荷兰角", offset: [0, 0.2, 4.5], focalLength: 50 },
+    { id: "current", label: "current perspective", offset: [0, 0, 0], focalLength: 35 },
+    { id: "front-medium", label: "front mid shot", offset: [0, 0.2, 4.5], focalLength: 50 },
+    { id: "front-close", label: "Frontal close-up", offset: [0, 0.25, 2.1], focalLength: 70 },
+    { id: "front-wide", label: "Frontal panorama", offset: [0, 1.2, 9], focalLength: 28 },
+    { id: "side-follow", label: "Side tracking shot", offset: [4.5, 0.2, -1.3], focalLength: 50 },
+    { id: "side-close", label: "Side view", offset: [2.2, 0.2, -0.3], focalLength: 70 },
+    { id: "back-medium", label: "back mid shot", offset: [0, 0.2, -4.5], focalLength: 50 },
+    { id: "top-wide", label: "Panoramic shot from above", offset: [0, 8, 3], focalLength: 28 },
+    { id: "top-45", label: "45° overhead shot", offset: [0, 5, 5], focalLength: 35 },
+    { id: "low-up", label: "low angle shot", offset: [0, -0.7, 3.3], focalLength: 50 },
+    { id: "low-wide", label: "low angle wide angle", offset: [0, -0.6, 5], focalLength: 24 },
+    { id: "shoulder-left", label: "over the shoulder shot", offset: [-0.9, 0.1, -1.3], focalLength: 50 },
+    { id: "shoulder-right", label: "Over the shoulder shot (right)", offset: [0.9, 0.1, -1.3], focalLength: 50 },
+    { id: "bird-eye", label: "bird's eye view", offset: [0, 12, 0.05], focalLength: 28 },
+    { id: "dutch", label: "Dutch Cape", offset: [0, 0.2, 4.5], focalLength: 50 },
 ] as const;
 
 export type DirectorCameraPresetId = typeof DIRECTOR_CAMERA_PRESETS[number]["id"];

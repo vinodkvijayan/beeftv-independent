@@ -53,7 +53,7 @@ function effectStorage(scope: string): EffectStorage {
 function effectLock(): AsyncLock {
     if (typeof window !== "undefined") {
         const locks = navigator.locks;
-        if (!locks) throw new Error("当前浏览器不支持跨页面生成副作用互斥");
+        if (!locks) throw new Error("Current browsers do not support cross-page generation of side-effect mutual exclusions.");
         return locks;
     }
     return {
@@ -100,9 +100,9 @@ function parseRecord(value: string | null, taskId: string, effectKey: string): E
     try {
         parsed = JSON.parse(value);
     } catch {
-        throw new Error("生成副作用持久状态无效");
+        throw new Error("Generating side effects persistent state is invalid");
     }
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("生成副作用持久状态无效");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Generating side effects persistent state is invalid");
     const record = parsed as EffectRecord;
     const allowed = new Set(["version", "taskId", "effectKey", "state", "fence", "leaseToken", "leaseExpiresAt", "completedAt", "releasedAt", "result"]);
     if (
@@ -114,18 +114,18 @@ function parseRecord(value: string | null, taskId: string, effectKey: string): E
         record.fence < 1 ||
         !["pending", "completed", "released"].includes(record.state)
     ) {
-        throw new Error("生成副作用持久状态无效");
+        throw new Error("Generating side effects persistent state is invalid");
     }
     if (record.state === "pending") {
         if (typeof record.leaseToken !== "string" || typeof record.leaseExpiresAt !== "string" || !Number.isFinite(Date.parse(record.leaseExpiresAt)) || record.completedAt !== undefined || record.releasedAt !== undefined || record.result !== undefined) {
-            throw new Error("生成副作用持久状态无效");
+            throw new Error("Generating side effects persistent state is invalid");
         }
     } else if (record.state === "completed") {
         if (typeof record.completedAt !== "string" || !Number.isFinite(Date.parse(record.completedAt)) || record.leaseToken !== undefined || record.leaseExpiresAt !== undefined || record.releasedAt !== undefined || !validResult(record.result ?? {})) {
-            throw new Error("生成副作用持久状态无效");
+            throw new Error("Generating side effects persistent state is invalid");
         }
     } else if (typeof record.releasedAt !== "string" || !Number.isFinite(Date.parse(record.releasedAt)) || record.leaseToken !== undefined || record.leaseExpiresAt !== undefined || record.completedAt !== undefined || record.result !== undefined) {
-        throw new Error("生成副作用持久状态无效");
+        throw new Error("Generating side effects persistent state is invalid");
     }
     return record;
 }
@@ -139,7 +139,7 @@ export function createProviderNeutralGenerationTaskEffectStore(
     const now = dependencies.now ?? (() => new Date());
     const leaseMs = dependencies.leaseMs ?? DEFAULT_LEASE_MS;
     if (!Number.isSafeInteger(leaseMs) || leaseMs < 100 || leaseMs > 3_600_000) {
-        throw new Error("生成副作用租约时长无效");
+        throw new Error("Generate side effect lease duration is invalid");
     }
     const leases = new Map<string, EffectLease>();
     const leasesByBinding = new Map<string, EffectLease>();
@@ -205,11 +205,11 @@ export function createProviderNeutralGenerationTaskEffectStore(
         },
         async renew(effectKey, taskId, binding) {
             const owned = ownedLease(effectKey, taskId, binding);
-            if (!owned) throw new Error("生成副作用租约缺失");
+            if (!owned) throw new Error("Generate side effects lease missing");
             return withRecord(owned.scope, taskId, effectKey, async (record, storage, key) => {
                 const current = now();
                 if (record?.state !== "pending" || record.leaseToken !== owned.leaseToken || record.fence !== owned.fence || Date.parse(record.leaseExpiresAt!) <= current.getTime()) {
-                    throw new Error("生成副作用租约已失效");
+                    throw new Error("Generate side effects lease has expired");
                 }
                 owned.expiresAt = new Date(current.getTime() + leaseMs).toISOString();
                 await storage.setItem(key, JSON.stringify({ ...record, leaseExpiresAt: owned.expiresAt } satisfies EffectRecord));
@@ -217,13 +217,13 @@ export function createProviderNeutralGenerationTaskEffectStore(
             });
         },
         async complete(effectKey, taskId, result, binding) {
-            if (!validResult(result)) throw new Error("生成副作用结果无效");
+            if (!validResult(result)) throw new Error("Generate side effect result is invalid");
             const owned = ownedLease(effectKey, taskId, binding);
-            if (!owned) throw new Error("生成副作用租约缺失");
+            if (!owned) throw new Error("Generate side effects lease missing");
             await withRecord(owned.scope, taskId, effectKey, async (record, storage, key) => {
                 const current = now();
                 if (record?.state !== "pending" || record.leaseToken !== owned.leaseToken || record.fence !== owned.fence || Date.parse(record.leaseExpiresAt!) <= current.getTime()) {
-                    throw new Error("生成副作用租约已失效");
+                    throw new Error("Generate side effects lease has expired");
                 }
                 await storage.setItem(
                     key,
@@ -242,11 +242,11 @@ export function createProviderNeutralGenerationTaskEffectStore(
         },
         async release(effectKey, taskId, binding) {
             const owned = ownedLease(effectKey, taskId, binding);
-            if (!owned) throw new Error("生成副作用租约缺失");
+            if (!owned) throw new Error("Generate side effects lease missing");
             await withRecord(owned.scope, taskId, effectKey, async (record, storage, key) => {
                 const current = now();
                 if (record?.state !== "pending" || record.leaseToken !== owned.leaseToken || record.fence !== owned.fence || Date.parse(record.leaseExpiresAt!) <= current.getTime()) {
-                    throw new Error("生成副作用租约已失效");
+                    throw new Error("Generate side effects lease has expired");
                 }
                 await storage.setItem(
                     key,

@@ -32,8 +32,8 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
         if (normalized !== nodesRef.current) { nodesRef.current = normalized; setNodes(normalized); }
     }, [nodes, nodesRef, readOnly, setNodes]);
     const assertCurrent = () => {
-        if (!alive.current || identity.current !== canvasId) throw new Error("画布已切换，请返回原画布查看工作流");
-        if (currentReadOnly.current) throw new Error("只读画布不能修改工作流");
+        if (!alive.current || identity.current !== canvasId) throw new Error("The canvas has been switched, please return to the original canvas to view the workflow");
+        if (currentReadOnly.current) throw new Error("Read-only canvas cannot modify workflow");
     };
     const commit = (update: (current: CanvasNodeData[]) => CanvasNodeData[]) => {
         assertCurrent();
@@ -43,7 +43,7 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
     const valueNode = async (node: CanvasNodeData, value: WorkflowValue): Promise<CanvasNodeData> => {
         const resource = value.resourceId ? await getResource(value.resourceId, config) : undefined;
         assertCurrent();
-        if (resource && (resource.status !== "ready" || resource.kind !== node.type)) throw new Error(`「${node.title}」的素材类型不匹配或尚未就绪`);
+        if (resource && (resource.status !== "ready" || resource.kind !== node.type)) throw new Error(`「${node.title}'s asset type does not match or is not ready yet`);
         const next: CanvasNodeData = { ...node, metadata: { ...node.metadata, assetId: undefined,
             storageKey: resource ? `resource:${resource.id}` : undefined, content: resource ? resourceFileUrl(resource.id) : value.text || "",
             mimeType: resource?.mimeType, bytes: resource?.size, naturalWidth: resource?.width, naturalHeight: resource?.height, durationMs: resource?.durationMs,
@@ -84,11 +84,11 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
                 await syncRun(control.id, run);
                 return;
             }
-            if (!node || slot?.role !== "input" || !control) throw new Error("输入槽位不存在");
-            if (workflowInstanceLocked(control) || locks.current.has(control.id)) throw new Error("工作流提交或运行中，请结束后再替换素材");
+            if (!node || slot?.role !== "input" || !control) throw new Error("Input slot does not exist");
+            if (workflowInstanceLocked(control) || locks.current.has(control.id)) throw new Error("The workflow is being submitted or running, please finish it before replacing the material.");
             const next = node.type === "text" ? { ...node, metadata: { ...node.metadata, content: value.text || "" } } : await valueNode(node, value);
             // The user may have removed the instance while an upload was being bound.
-            if (workflowInstanceLocked(nodesRef.current.find(item => item.id === control.id))) throw new Error("工作流已开始运行，请结束后再替换素材");
+            if (workflowInstanceLocked(nodesRef.current.find(item => item.id === control.id))) throw new Error("The workflow has started running, please finish it before replacing the materials.");
             commit(current => current.map(item => item.id === node.id ? { ...item, metadata: { ...next.metadata, workflowSlot: item.metadata?.workflowSlot } }
                 : item.id === control.id ? { ...item, metadata: { ...item.metadata, reusableWorkflow: { ...item.metadata!.reusableWorkflow!, error: undefined, inputsChanged: true } } } : item));
         } finally { locks.current.delete(nodeId); }
@@ -125,20 +125,20 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
             assertCurrent();
             const control = nodesRef.current.find(node => node.id === instanceId);
             const state = control?.metadata?.reusableWorkflow;
-            if (!control || !state) throw new Error("工作流实例不存在");
-            if (nodesRef.current.some(node => node.metadata?.workflowSlot?.instanceId === instanceId && (locks.current.has(node.id) || uploads.current.has(node.id)))) throw new Error("素材正在保存，请稍后运行");
+            if (!control || !state) throw new Error("Workflow instance does not exist");
+            if (nodesRef.current.some(node => node.metadata?.workflowSlot?.instanceId === instanceId && (locks.current.has(node.id) || uploads.current.has(node.id)))) throw new Error("The material is being saved, please run it later");
             let run: WorkflowRun;
             if (kind === "start") {
                 if (state.run?.status === "queued" || state.run?.status === "running") return;
                 for (const source of state.definition.nodes) {
-                    if (nodesRef.current.filter(node => node.metadata?.workflowSlot?.instanceId === instanceId && node.metadata.workflowSlot.nodeId === source.id).length !== 1) throw new Error("工作流节点重复或缺失，请从模板库重新添加");
+                    if (nodesRef.current.filter(node => node.metadata?.workflowSlot?.instanceId === instanceId && node.metadata.workflowSlot.nodeId === source.id).length !== 1) throw new Error("The workflow node is duplicated or missing, please add it again from the template library.");
                 }
                 const intent = state.intent || { clientOperationId: `workflow:${nanoid()}`, inputs: workflowInstanceInputs(control, nodesRef.current) };
                 // Persist the receipt before submitting so a reload can safely confirm the same request.
                 commit(current => current.map(node => node.id === instanceId ? { ...node, metadata: { ...node.metadata, reusableWorkflow: { ...state, intent, error: undefined } } } : node));
-                if (!await persist()) throw new Error("运行标识未能保存，请保存画布后重试");
+                if (!await persist()) throw new Error("The run logo could not be saved, please save the canvas and try again.");
                 assertCurrent();
-                if (!nodesRef.current.some(node => node.id === instanceId)) throw new Error("工作流实例已移除，未提交生成");
+                if (!nodesRef.current.some(node => node.id === instanceId)) throw new Error("The workflow instance has been removed and the build has not been submitted.");
                 try { run = await startWorkflowRun(state.templateId, { ...intent, templateRevision: state.templateRevision || 1 }, config); }
                 catch (cause) {
                     if (!submissionAcceptanceUnknown(cause)) commit(current => current.map(node => node.id === instanceId ? { ...node, metadata: { ...node.metadata, reusableWorkflow: { ...node.metadata!.reusableWorkflow!, intent: undefined } } } : node));
@@ -146,7 +146,7 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
                 }
             } else {
                 if (!state.run) return;
-                if (kind === "retry" && state.inputsChanged) throw new Error("输入已更换，请开始新一轮运行");
+                if (kind === "retry" && state.inputsChanged) throw new Error("The input has been changed, please start a new run.");
                 run = kind === "retry" ? await retryWorkflowRun(state.run.id, config) : await cancelWorkflowRun(state.run.id, config);
             }
             commit(current => current.map(node => {
@@ -157,7 +157,7 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
             }));
             await syncRun(instanceId, run);
         } catch (cause) {
-            const error = cause instanceof Error ? cause.message : "工作流操作失败";
+            const error = cause instanceof Error ? cause.message : "Workflow operation failed";
             if (alive.current && identity.current === canvasId) {
                 try { commit(current => current.map(node => node.id === instanceId ? { ...node, metadata: { ...node.metadata, reusableWorkflow: { ...node.metadata!.reusableWorkflow!, error } } } : node)); } catch { /* Canvas changed; no writes to the new canvas. */ }
                 onError(error);
@@ -181,7 +181,7 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
                     await syncRun(instanceId, run);
                 } catch (cause) {
                     if (!cancelled) {
-                        try { commit(current => current.map(node => node.id === instanceId ? { ...node, metadata: { ...node.metadata, reusableWorkflow: { ...node.metadata!.reusableWorkflow!, error: `${cause instanceof Error ? cause.message : "同步失败"}；后台仍会继续运行` } } } : node)); } catch { /* Canvas changed. */ }
+                        try { commit(current => current.map(node => node.id === instanceId ? { ...node, metadata: { ...node.metadata, reusableWorkflow: { ...node.metadata!.reusableWorkflow!, error: `${cause instanceof Error ? cause.message : "Sync failed"};The background will continue to run` } } } : node)); } catch { /* Canvas changed. */ }
                     }
                 } finally { syncing.current.delete(instanceId); }
             }
@@ -208,7 +208,7 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
             if (frame || source.metadata?.workflowSlot) return true;
             return false;
         }
-        void setValue(target.id, source.type === "text" ? { text: source.metadata?.content || "" } : { resourceId: canvasNodeResourceId(source) }).catch(cause => onError(cause instanceof Error ? cause.message : "替换失败"));
+        void setValue(target.id, source.type === "text" ? { text: source.metadata?.content || "" } : { resourceId: canvasNodeResourceId(source) }).catch(cause => onError(cause instanceof Error ? cause.message : "Replacement failed"));
         return true;
         // Reads current nodes and canvas identity before committing.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -219,22 +219,22 @@ export function useCanvasWorkflowInstances({ canvasId, domainProjectId, readOnly
             assertCurrent();
             const control = nodesRef.current.find(node => node.id === instanceId);
             const state = control?.metadata?.reusableWorkflow;
-            if (!control || !state || workflowInstanceLocked(control)) throw new Error("请等待工作流结束后再更新");
+            if (!control || !state || workflowInstanceLocked(control)) throw new Error("Please wait until the workflow ends before updating");
             const latest = (await getWorkflowEditor(state.templateId, undefined, config)).workflow;
             assertCurrent();
-            if ((latest.revision || 1) <= (state.templateRevision || 1)) { void message.info("当前实例已是最新版本"); return; }
+            if ((latest.revision || 1) <= (state.templateRevision || 1)) { void message.info("The current instance is already the latest version"); return; }
             const preview = upgradeWorkflowInstance(control, nodesRef.current, connectionsRef.current, latest);
-            modal.confirm({ title: `更新到版本 ${latest.revision}？`, content: `新增 ${preview.added} 个节点，移除 ${preview.removed} 个节点。保留类型兼容的输入素材，清空上次执行结果；可通过画布撤销恢复。`, okText: "更新实例", cancelText: "取消", onOk: () => {
+            modal.confirm({ title: `Update to version${latest.revision}？`, content: `New${preview.added} nodes, remove${preview.removed} nodes. Keep input materials with compatible types and clear the last execution results; they can be restored through canvas undo.`, okText: "Update instance", cancelText: "Cancel", onOk: () => {
                 assertCurrent();
                 const current = nodesRef.current.find(node => node.id === instanceId);
-                if (!current || workflowInstanceLocked(current)) throw new Error("实例已切换或开始运行，请结束后重试");
+                if (!current || workflowInstanceLocked(current)) throw new Error("The instance has been switched or started running. Please try again after finishing.");
                 const upgraded = upgradeWorkflowInstance(current, nodesRef.current, connectionsRef.current, latest);
                 connectionsRef.current = upgraded.connections;
                 setConnections(upgraded.connections);
                 commit(() => upgraded.nodes);
                 focusNode(upgraded.frame);
             } });
-        } catch (cause) { onError(cause instanceof Error ? cause.message : "更新失败"); }
+        } catch (cause) { onError(cause instanceof Error ? cause.message : "Update failed"); }
     };
     return { add, setValue, action, drop, uploadBusy, update };
 }

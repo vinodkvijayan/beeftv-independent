@@ -46,17 +46,17 @@ export function CanvasAudioPlayer({ node, theme }: CanvasAudioPlayerProps) {
     const seek = (event: React.ChangeEvent<HTMLInputElement>) => {
         seekCanvasAudio(node.id, Number(event.target.value), source);
     };
-    const label = node.title || "音频";
+    const label = node.title || "Audio";
     const isPlaying = snapshot.phase === "playing";
     const isLoading = snapshot.phase === "loading";
     const isError = snapshot.phase === "error";
 
     return (
-        <div role="group" aria-label={`${label}播放控件`} className="flex h-full w-full min-w-0 flex-col justify-center gap-2.5 px-4" style={{ color: theme.node.text }}>
+        <div role="group" aria-label={`${label}playback controls`} className="flex h-full w-full min-w-0 flex-col justify-center gap-2.5 px-4" style={{ color: theme.node.text }}>
             <div className="flex min-w-0 items-center gap-3">
                 <button
                     type="button"
-                    aria-label={isPlaying ? `暂停${label}` : `播放${label}`}
+                    aria-label={isPlaying ? `pause${label}` : `play${label}`}
                     className="grid size-10 shrink-0 place-items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-45"
                     style={{ borderColor: `${theme.node.activeStroke}80`, background: `${theme.node.activeStroke}18`, color: theme.node.activeStroke }}
                     disabled={isLoading || (!source.content && !source.storageKey)}
@@ -79,7 +79,7 @@ export function CanvasAudioPlayer({ node, theme }: CanvasAudioPlayerProps) {
                         max={Math.max(1, durationMs)}
                         step={1}
                         value={Math.min(Math.max(0, snapshot.currentTimeMs), Math.max(1, durationMs))}
-                        aria-label={`${label}播放进度`}
+                        aria-label={`${label}Playback progress`}
                         className="h-3 w-full cursor-pointer accent-[var(--canvas-accent)]"
                         style={{ accentColor: theme.node.activeStroke }}
                         disabled={!durationMs || isError}
@@ -105,7 +105,7 @@ export function CanvasAudioPlayer({ node, theme }: CanvasAudioPlayerProps) {
             {isError ? (
                 <div role="status" className="flex min-w-0 items-center gap-1.5 truncate text-[var(--fs-tiny)]" style={{ color: theme.accent.danger || theme.node.muted }}>
                     <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{snapshot.error || "音频播放失败"}</span>
+                    <span className="truncate">{snapshot.error || "Audio playback failed"}</span>
                 </div>
             ) : null}
         </div>

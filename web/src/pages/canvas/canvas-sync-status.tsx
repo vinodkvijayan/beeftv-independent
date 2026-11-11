@@ -29,24 +29,24 @@ export function canvasSyncStatusView(localOnly: boolean, progress: Pick<SyncProj
     if (localOnly) {
         if (phase === "conflict") {
             return {
-                label: "版本冲突 · 未保存",
+                label: "Version conflict · not saved",
                 tone: "failed",
-                detail: "画布已在别处更新，这次修改还没保存。",
-                note: "自动保存已暂停。使用最新版本前，会先存一份本地草稿。",
+                detail: "The canvas has been updated elsewhere and this change has not been saved.",
+                note: "Autosave is paused. Before using the latest version, a local draft will be saved.",
                 action: "use-latest",
             };
         }
-        if (phase === "error") return { label: "保存失败", tone: "failed", detail: "保存没有完成，修改仍保留在本机。", action: "retry-save" };
-        if (saving) return { label: "正在保存", tone: "saving", detail: "正在保存到本机。" };
-        return { label: "已保存在本地", tone: "saved", detail: "画布已保存在本机。" };
+        if (phase === "error") return { label: "Save failed", tone: "failed", detail: "The save is not completed and the modifications are still retained on this machine.", action: "retry-save" };
+        if (saving) return { label: "Saving", tone: "saving", detail: "Saving to local machine." };
+        return { label: "Saved locally", tone: "saved", detail: "The canvas is saved locally." };
     }
     const conflict = phase === "conflict";
     const failed = phase === "error" || conflict || !phase;
     return {
-        label: conflict ? "版本冲突 · 未同步" : !phase ? "尚未同步" : failed ? "云端未保存" : saving ? "正在保存" : "已保存",
+        label: conflict ? "Version conflict · Not synchronized" : !phase ? "Not synced yet" : failed ? "Not saved in cloud" : saving ? "Saving" : "saved",
         tone: saving ? "saving" : failed ? "failed" : "saved",
-        detail: progress?.message || (phase === "done" ? "画布已同步到云端" : "尚未确认云端保存，请保留本地内容"),
-        note: conflict ? "此画布的自动提交已暂停。加载最新版前会保留本地草稿，可下载后从画布列表导入为副本。" : undefined,
+        detail: progress?.message || (phase === "done" ? "Canvas has been synced to the cloud" : "Cloud saving has not been confirmed yet, please keep local content"),
+        note: conflict ? "Autocommit for this canvas is paused. The local draft will be retained before loading the latest version, which can be imported as a copy from the canvas list after downloading." : undefined,
         action: "load-cloud",
     };
 }
@@ -129,7 +129,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                 current.map((item) => (item.opId === write.opId ? { ...item, undone: true } : item)),
             );
             setExternalWriteOpen(false);
-            message.success(`已撤销 ${write.clientLabel} 的改动`);
+            message.success(`Revoked${write.clientLabel} changes`);
             if (write.op === "canvas.create") {
                 useCanvasStore.getState().deleteProjects([projectId]);
                 if (typeof window !== "undefined") {
@@ -148,7 +148,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                 .then((refreshed) => setExternalWrites(refreshed))
                 .catch(() => {});
         } catch (error) {
-            message.error(error instanceof Error && error.message ? error.message : "撤销外部改动失败，请重试");
+            message.error(error instanceof Error && error.message ? error.message : "Failed to undo external changes, please try again");
         } finally {
             setUndoingOpId(null);
         }
@@ -161,7 +161,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
         try {
             await acceptExternalCanvasRevision(projectId);
         } catch (error) {
-            message.error(error instanceof Error && error.message ? error.message : "加载最新版本失败，请重试");
+            message.error(error instanceof Error && error.message ? error.message : "Failed to load the latest version, please try again");
         } finally {
             setAdopting(false);
         }
@@ -171,7 +171,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
         try {
             await operation();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "操作失败，请重试");
+            message.error(error instanceof Error ? error.message : "Operation failed, please try again");
         } finally {
             setBusy(false);
         }
@@ -186,11 +186,11 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                     data-canvas-external-revision={externalRevision}
                     className="canvas-sync-external-notice"
                     loading={adopting}
-                    aria-label="画布已在别处更新，使用最新版本"
+                    aria-label="Canvas has been updated elsewhere to use the latest version"
                     icon={<RefreshCw className="size-3.5" />}
                     onClick={() => void adoptLatest()}
                 >
-                    <span className="canvas-sync-status-label text-xs">画布已在别处更新 · 使用最新版本</span>
+                    <span className="canvas-sync-status-label text-xs">Canvas has been updated elsewhere · Use the latest version</span>
                 </Button>
             ) : null}
             {latestExternalWrite ? (
@@ -203,14 +203,14 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                         <div className="max-w-80 space-y-2.5" data-canvas-no-zoom>
                             <div className="space-y-1">
                                 <p className="text-xs font-medium">
-                                    外部改动来源：{latestExternalWrite.clientLabel}
+                                                                        Sources of external changes:{latestExternalWrite.clientLabel}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     {latestExternalWrite.summary}（v{latestExternalWrite.revisionBefore} → v{latestExternalWrite.revisionAfter}）
                                 </p>
                                 {latestExternalWrite.modifiedNodes?.length ? (
                                     <p className="text-xs text-muted-foreground">
-                                        涉及节点：{latestExternalWrite.modifiedNodes.map((node) => node.title || node.id).join("、")}
+                                                                                Involved nodes:{latestExternalWrite.modifiedNodes.map((node) => node.title || node.id).join("、")}
                                     </p>
                                 ) : null}
                             </div>
@@ -224,7 +224,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                                             }
                                         }}
                                     >
-                                        定位改动节点
+                                                                                Locate change nodes
                                     </Button>
                                 ) : null}
                                 <Button
@@ -234,7 +234,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                                     loading={undoingOpId === latestExternalWrite.opId}
                                     onClick={() => void handleUndoExternalWrite(latestExternalWrite)}
                                 >
-                                    撤销此次改动
+                                                                        Undo this change
                                 </Button>
                             </div>
                         </div>
@@ -244,11 +244,11 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                         size="small"
                         type="text"
                         data-canvas-external-write-op={latestExternalWrite.opId}
-                        aria-label={`外部改动：${latestExternalWrite.clientLabel} ${latestExternalWrite.summary}`}
+                        aria-label={`External changes:${latestExternalWrite.clientLabel} ${latestExternalWrite.summary}`}
                         icon={<Undo2 className="size-3.5" />}
                     >
                         <span className="canvas-sync-status-label text-xs">
-                            外部改动 · {latestExternalWrite.clientLabel}：{latestExternalWrite.summary}
+                                                        External changes ·{latestExternalWrite.clientLabel}：{latestExternalWrite.summary}
                         </span>
                     </Button>
                 </Popover>
@@ -263,9 +263,9 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                         <p role="status" className="text-sm">{view.detail}</p>
                         {view.note ? <p className="text-xs text-muted-foreground">{view.note}</p> : null}
                         <div className="flex flex-wrap gap-2">
-                            {view.action === "use-latest" ? <Button size="small" type="primary" loading={adopting} disabled={busy} onClick={() => void adoptLatest()}>使用最新版本</Button> : null}
-                            {view.action === "retry-save" ? <Button size="small" type="primary" loading={busy} onClick={() => void run(() => syncLocalCanvasProjectToBackend(projectId))}>重试保存</Button> : null}
-                            {view.action === "load-cloud" ? <Button size="small" loading={busy} onClick={() => void run(onLoadLatest)}>加载云端最新版本</Button> : null}
+                            {view.action === "use-latest" ? <Button size="small" type="primary" loading={adopting} disabled={busy} onClick={() => void adoptLatest()}>Use the latest version</Button> : null}
+                            {view.action === "retry-save" ? <Button size="small" type="primary" loading={busy} onClick={() => void run(() => syncLocalCanvasProjectToBackend(projectId))}>Retry saving</Button> : null}
+                            {view.action === "load-cloud" ? <Button size="small" loading={busy} onClick={() => void run(onLoadLatest)}>Load the latest version from the cloud</Button> : null}
                             <Button
                                 size="small"
                                 disabled={busy}
@@ -275,18 +275,18 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                                         const project = store.openProject(projectId);
                                         if (project) {
                                             let skippedCount = 0;
-                                            const result = await exportCanvasProjects([project], `${project.title}-本地草稿`, {
+                                            const result = await exportCanvasProjects([project], `${project.title}- local draft`, {
                                                 folders: store.folders,
                                                 allowMissingMedia: true,
                                                 onSkippedFiles: (missing) => { skippedCount = missing.length; },
                                             });
                                             if (result === "cancelled") return;
-                                            if (skippedCount > 0) message.warning(`已导出备份，已自动跳过 ${skippedCount} 个缺失或无法读取的素材`);
+                                            if (skippedCount > 0) message.warning(`Backup has been exported and automatically skipped${skippedCount} missing or unreadable assets`);
                                         }
                                     })
                                 }
                             >
-                                下载当前内容
+                                                                Download current content
                             </Button>
                             <Button
                                 size="small"
@@ -301,13 +301,13 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                                             {
                                                 folders: store.folders,
                                                 allowMissingMedia: true,
-                                                onSkipped: (count) => message.warning(`已导出备份，已自动跳过 ${count} 个缺失或无法读取的素材`),
+                                                onSkipped: (count) => message.warning(`Backup has been exported and automatically skipped${count} missing or unreadable assets`),
                                             },
                                         );
                                     })
                                 }
                             >
-                                导出整个项目
+                                                                Export the entire project
                             </Button>
                             {onOpenVersions ? (
                                 <Button
@@ -317,7 +317,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                                         onOpenVersions();
                                     }}
                                 >
-                                    版本记录{progress?.draftCount ? ` · ${progress.draftCount} 份草稿` : ""}
+                                                                        version record{progress?.draftCount ? ` · ${progress.draftCount} draft` : ""}
                                 </Button>
                             ) : null}
                         </div>
@@ -328,7 +328,7 @@ export function CanvasSyncStatus({ projectId, onLoadLatest, onOpenVersions }: { 
                     type="text"
                     size="small"
                     danger={view.tone === "failed"}
-                    aria-label={`画布保存状态：${label}`}
+                    aria-label={`Canvas save status:${label}`}
                     icon={syncStatusIcon(localOnly, view.tone)}
                 >
                     <span className="canvas-sync-status-label text-xs">{label}</span>
@@ -357,7 +357,7 @@ export function CanvasSyncDraftMenu({ projectId }: { projectId?: string }) {
                     .then((items) => {
                         if (getActiveUserScope() === scope) setDrafts(items.reverse());
                     })
-                    .catch(() => message.error("读取本地草稿失败"))
+                    .catch(() => message.error("Failed to read local draft"))
                     .finally(() => setLoading(false));
             }}
             menu={{
@@ -368,12 +368,12 @@ export function CanvasSyncDraftMenu({ projectId }: { projectId?: string }) {
                           onClick: () => {
                               if (getActiveUserScope() !== draftScope) {
                                   setDrafts([]);
-                                  message.error("账号已切换，请重新打开本地草稿");
+                                  message.error("The account has been switched, please reopen the local draft");
                                   return;
                               }
                               setExporting(true);
                               let skippedCount = 0;
-                              void exportCanvasProjects([draft.project], `${draft.project.title}-本地草稿`, {
+                              void exportCanvasProjects([draft.project], `${draft.project.title}- local draft`, {
                                   includeLocalDrawings: false,
                                   folders: useCanvasStore.getState().folders,
                                   allowMissingMedia: true,
@@ -381,19 +381,19 @@ export function CanvasSyncDraftMenu({ projectId }: { projectId?: string }) {
                               })
                                   .then((result) => {
                                       if (result === "saved") {
-                                          if (skippedCount > 0) message.warning(`已导出草稿，已自动跳过 ${skippedCount} 个缺失或无法读取的素材`);
-                                          else message.success("草稿已下载，可从画布列表导入为新画布");
+                                          if (skippedCount > 0) message.warning(`Draft has been exported and automatically skipped${skippedCount} missing or unreadable assets`);
+                                          else message.success("The draft is downloaded and can be imported as a new canvas from the canvas list");
                                       }
                                   })
-                                  .catch(() => message.error("草稿下载失败，请重试"))
+                                  .catch(() => message.error("Draft download failed, please try again"))
                                   .finally(() => setExporting(false));
                           },
                       }))
-                    : [{ key: "empty", label: loading ? "正在读取草稿…" : "暂无本地草稿", disabled: true }],
+                    : [{ key: "empty", label: loading ? "Reading draft…" : "No local draft yet", disabled: true }],
             }}
         >
             <Button size={projectId ? "small" : "middle"} loading={exporting}>
-                本地草稿
+                                local draft
             </Button>
         </Dropdown>
     );

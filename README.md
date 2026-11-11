@@ -3,10 +3,10 @@
 This repository is an independent copy of [glanderness/BeefTV](https://github.com/glanderness/BeefTV) at tag **v2.2.1** (`c01e37b2436d68cc0c28fbaabfad23c341bf15ea`), published by Vinod K Vijayan for private and non-commercial community use.
 
 - It is **not** affiliated with, maintained by, or endorsed by BeefTV or @beefnoode.
-- The application UI in this tree is still the upstream **Chinese** interface. Upstream hardcodes Ant Design `zh_CN` and has no English locale. A mechanical translation of the 2,900+ files that contain Chinese would break tests, error matching, and agent prompts, so it was not applied.
+- The application UI in this tree is an **English machine translation** of the upstream Chinese interface. Ant Design now uses `en_US`, and user-visible strings in `web/src` were translated. Comments, model-protocol text, and most backend messages are still Chinese. A few strings could not be translated because they are schemas or character classes. This is not a reviewed localization.
 - Windows installers, when the Actions workflow succeeds, are attached to this repository's Releases and are unsigned. They are not the official downloads at `updates.beefapi.com`.
 - Covered material stays under the [BeefTV Source Available License 1.0](LICENSE). Historical MIT portions remain MIT. See `NOTICE` and `THIRD_PARTY_NOTICES.md`.
-- Change in this copy: this banner, and `.github/workflows/windows-independent-build.yml`, which builds `windows/amd64` on a Windows runner and uploads the installer here. The official updater, R2, and COS publish steps are not used.
+- Changes in this copy: this banner, an English machine translation of the desktop UI, and `.github/workflows/windows-independent-build.yml`, which builds `windows/amd64` on a Windows runner and uploads the installer here. The official updater, R2, and COS publish steps are not used.
 
 The upstream README follows.
 

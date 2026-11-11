@@ -19,7 +19,7 @@ export function TaskVideoThumbnail({ src }: { src: string }) {
                 objectUrl = URL.createObjectURL(result.poster);
                 setPoster({ source: src, url: objectUrl });
             }).catch((error) => {
-                if (!controller.signal.aborted) console.warn("任务视频首帧提取失败", error instanceof Error ? error.name : "UnknownError");
+                if (!controller.signal.aborted) console.warn("Failed to extract the first frame of task video", error instanceof Error ? error.name : "UnknownError");
             });
         };
         const observer = new IntersectionObserver((entries) => {
@@ -36,6 +36,6 @@ export function TaskVideoThumbnail({ src }: { src: string }) {
         };
     }, [src]);
     return <span ref={container} className="block h-full w-full">
-        {poster?.source === src ? <MediaPreview src={poster.url} kind="image" className="h-full w-full object-cover" /> : <span className="task-video-poster-placeholder"><Video /><small>视频预览</small></span>}
+        {poster?.source === src ? <MediaPreview src={poster.url} kind="image" className="h-full w-full object-cover" /> : <span className="task-video-poster-placeholder"><Video /><small>Video preview</small></span>}
     </span>;
 }

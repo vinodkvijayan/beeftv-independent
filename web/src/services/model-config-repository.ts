@@ -45,7 +45,7 @@ export function createModelConfigRepository(dependencies: ModelConfigRepositoryD
             state = { status: "idle", revision: result.revision, dirty: unsaved, error: "" };
             return { ...result, supersededByLocalEdit: unsaved };
         } catch (error) {
-            publish({ status: "error", error: error instanceof Error ? error.message : "读取模型配置失败" });
+            publish({ status: "error", error: error instanceof Error ? error.message : "Failed to read model configuration" });
             throw error;
         } finally {
             hydrated = true;
@@ -59,7 +59,7 @@ export function createModelConfigRepository(dependencies: ModelConfigRepositoryD
         const write = async (config: AiConfig, revision: number) => {
             const result = await dependencies.write(config, revision);
             if (!result.saved || !Number.isSafeInteger(result.revision) || result.revision < revision) {
-                throw new Error("模型配置保存未得到确认，请重试");
+                throw new Error("Model configuration save not confirmed, please try again");
             }
             return result;
         };
@@ -82,7 +82,7 @@ export function createModelConfigRepository(dependencies: ModelConfigRepositoryD
                         error = retryError;
                     }
                 }
-                publish({ status: "error", dirty: true, error: error instanceof Error ? error.message : "保存模型配置失败" });
+                publish({ status: "error", dirty: true, error: error instanceof Error ? error.message : "Failed to save model configuration" });
                 return;
             }
         }

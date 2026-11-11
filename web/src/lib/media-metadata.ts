@@ -29,7 +29,7 @@ export async function probeMediaMetadata(file: File): Promise<MediaMetadata | un
     el.muted = true;
     try {
         const metadata = await new Promise<MediaMetadata>((resolve, reject) => {
-            timeoutId = window.setTimeout(() => reject(new Error("媒体元数据读取超时")), PROBE_TIMEOUT_MS);
+            timeoutId = window.setTimeout(() => reject(new Error("Media metadata read timeout")), PROBE_TIMEOUT_MS);
             el.onloadedmetadata = () => {
                 const durationSeconds = el.duration;
                 resolve({ durationMs: Number.isFinite(durationSeconds) && durationSeconds > 0 ? Math.round(durationSeconds * 1000) : undefined, width: "videoWidth" in el && typeof el.videoWidth === "number" ? el.videoWidth || undefined : undefined, height: "videoHeight" in el && typeof el.videoHeight === "number" ? el.videoHeight || undefined : undefined });

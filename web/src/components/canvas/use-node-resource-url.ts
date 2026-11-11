@@ -41,7 +41,7 @@ export function useNodeResourceUrl(node: CanvasNodeData, eager: boolean, preview
         recordDiagnosticEvent({
             level: code === "CANVAS_IMAGE_RELOAD" ? "info" : "error",
             category: "runtime", code,
-            message: `${code === "CANVAS_IMAGE_DECODE_FAILED" ? "画布图片解码失败" : code === "CANVAS_IMAGE_READ_FAILED" ? "画布图片读取失败" : "重新读取画布图片"} node=${safeNodeId}`,
+            message: `${code === "CANVAS_IMAGE_DECODE_FAILED" ? "Canvas image decoding failed" : code === "CANVAS_IMAGE_READ_FAILED" ? "Failed to read canvas image" : "Reread canvas image"} node=${safeNodeId}`,
             taskId: node.metadata?.taskId,
             route: resourceId && /^[A-Za-z0-9_-]{1,96}$/.test(resourceId) ? `/resources/${resourceId}/file` : undefined,
         });

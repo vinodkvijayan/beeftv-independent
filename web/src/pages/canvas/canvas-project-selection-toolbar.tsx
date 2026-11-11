@@ -56,7 +56,7 @@ export function CanvasProjectSelectionToolbar({ anchorRef, containerRef, count, 
 
     return (
         <CanvasSelectionToolbar anchorRef={anchorRef} containerRef={containerRef} count={count}>
-            <FloatingDock items={items} size="compact" className="canvas-floating-dock" style={canvasDockStyle(theme)} ariaLabel="多选节点布局工具" />
+            <FloatingDock items={items} size="compact" className="canvas-floating-dock" style={canvasDockStyle(theme)} ariaLabel="Multiple selection node layout tool" />
         </CanvasSelectionToolbar>
     );
 }

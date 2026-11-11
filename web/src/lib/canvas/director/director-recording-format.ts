@@ -10,8 +10,8 @@ export function waitForDirectorDecodedFrame(video: HTMLVideoElement, timeoutMs =
             video.removeEventListener("error", onError);
         };
         const onReady = () => { cleanup(); resolve(); };
-        const onError = () => { cleanup(); reject(new Error("白膜视频无法解码，请重试或检查系统视频格式支持")); };
-        const timer = setTimeout(() => { cleanup(); reject(new Error("白膜视频首帧解码超时，请重试")); }, timeoutMs);
+        const onError = () => { cleanup(); reject(new Error("The white film video cannot be decoded, please try again or check the system video format support")); };
+        const timer = setTimeout(() => { cleanup(); reject(new Error("The decoding of the first frame of the white film video timed out, please try again.")); }, timeoutMs);
         video.addEventListener("loadeddata", onReady, { once: true });
         video.addEventListener("error", onError, { once: true });
     });

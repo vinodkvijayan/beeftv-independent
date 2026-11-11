@@ -16,11 +16,11 @@ export function AssetStorageUsage() {
     const meter = accountStorageMeter(usage);
 
     return (
-        <section className={`assets-storage-usage${meter.full ? " is-full" : ""}${usage?.usedBytes ? " has-usage" : ""}`} aria-label={localMode ? "本地文件容量" : "账号文件容量"} aria-busy={query.isPending} title={localMode ? "统计浏览器本地保存的素材文件" : "包含素材文件和创作会话附件"}>
+        <section className={`assets-storage-usage${meter.full ? " is-full" : ""}${usage?.usedBytes ? " has-usage" : ""}`} aria-label={localMode ? "local file capacity" : "Account file capacity"} aria-busy={query.isPending} title={localMode ? "Statistics of material files saved locally in the browser" : "Contains footage files and authoring session attachments"}>
             <span className="assets-storage-usage-icon" aria-hidden="true">
                 <HardDrive />
             </span>
-            <span className="assets-storage-usage-title">{localMode ? "本地存储" : "账号容量"}</span>
+            <span className="assets-storage-usage-title">{localMode ? "local storage" : "Account capacity"}</span>
             {usage ? (
                 <>
                     <span className="assets-storage-usage-value">
@@ -29,11 +29,11 @@ export function AssetStorageUsage() {
                     <span
                         className="assets-storage-usage-track"
                         role="progressbar"
-                        aria-label="账号文件容量使用进度"
+                        aria-label="Account file capacity usage progress"
                         aria-valuemin={0}
                         aria-valuemax={usage.totalBytes}
                         aria-valuenow={Math.min(usage.usedBytes, usage.totalBytes)}
-                        aria-valuetext={`已使用 ${formatStorageBytes(usage.usedBytes)}，总容量 ${formatStorageBytes(usage.totalBytes)}`}
+                        aria-valuetext={`Already used${formatStorageBytes(usage.usedBytes)}, total capacity${formatStorageBytes(usage.totalBytes)}`}
                     >
                         <span style={{ width: `${meter.percent}%` }} />
                     </span>
@@ -41,13 +41,13 @@ export function AssetStorageUsage() {
                 </>
             ) : query.isError ? (
                 <span className="assets-storage-usage-status">
-                    容量统计暂时不可用。
+                                        Capacity statistics are temporarily unavailable.
                     <button type="button" onClick={() => void query.refetch()}>
-                        重试
+                                                Try again
                     </button>
                 </span>
             ) : (
-                <span className="assets-storage-usage-status">正在统计已用容量…</span>
+                <span className="assets-storage-usage-status">Counting used capacity...</span>
             )}
         </section>
     );

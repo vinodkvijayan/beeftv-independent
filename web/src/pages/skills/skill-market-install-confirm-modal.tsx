@@ -47,14 +47,14 @@ export function SkillMarketInstallConfirmModal({
     const isUpdate = Boolean(request?.isUpdate);
     const canConfirm = Boolean(request && riskAccepted);
     const metaParts = [
-        request?.versionLabel ? `版本 ${request.versionLabel}` : "",
-        request?.sourceRepo ? `仓库 ${request.sourceRepo}` : `作者 ${request?.author || "未提供"}`,
+        request?.versionLabel ? `version${request.versionLabel}` : "",
+        request?.sourceRepo ? `warehouse${request.sourceRepo}` : `Author${request?.author || "Not provided"}`,
     ].filter(Boolean);
 
     return (
         <Modal
             className="workspace-modal workspace-modal-wide"
-            title={isUpdate ? "确认更新技能" : "确认安装技能"}
+            title={isUpdate ? "Confirm updated skills" : "Confirm installation skills"}
             open={open && Boolean(request)}
             centered
             footer={null}
@@ -73,7 +73,7 @@ export function SkillMarketInstallConfirmModal({
                                     </div>
                                 ) : null}
                             </div>
-                            <Tag>{request.sourceLabel || "技能市场"}</Tag>
+                            <Tag>{request.sourceLabel || "skills market"}</Tag>
                         </div>
                         {request.description ? (
                             <p className="mt-2 text-xs leading-relaxed text-foreground/75">{request.description}</p>
@@ -83,10 +83,10 @@ export function SkillMarketInstallConfirmModal({
                     <div className="flex flex-col gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
                         <div className="flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
                             <AlertTriangle className="size-4 shrink-0" />
-                            <span>这是第三方技能，BeefTV 没有审核过它的内容</span>
+                            <span>This is a third-party skill and BeefTV has not reviewed its content</span>
                         </div>
                         <p className="m-0 leading-relaxed text-foreground/85">
-                            {isUpdate ? "更新后" : "安装后"}，助手会读取技能说明和附带文件，并按说明调用画布工具或已配置的付费模型，费用从你的账户扣。请只{isUpdate ? "更新" : "安装"}你信任的技能。
+                            {isUpdate ? "After update" : "After installation"}, the assistant will read the skill description and accompanying files, and call the canvas tool or configured paid model according to the instructions, and the fee will be deducted from your account. please only{isUpdate ? "update" : "Installation"}Skills you trust.
                         </p>
                     </div>
 
@@ -97,14 +97,14 @@ export function SkillMarketInstallConfirmModal({
                             onChange={(e) => setRiskAccepted(e.target.checked)}
                         >
                             <span className="text-xs font-medium text-foreground">
-                                我了解风险，确认{isUpdate ? "更新" : "安装"}
+                                                                I understand the risks, confirm{isUpdate ? "update" : "Installation"}
                             </span>
                         </Checkbox>
                     </div>
 
                     <div className="flex justify-end gap-2 pt-1">
                         <Button onClick={onCancel} disabled={loading}>
-                            取消
+                                                        Cancel
                         </Button>
                         <Button
                             data-testid="skill-market-install-submit"
@@ -116,7 +116,7 @@ export function SkillMarketInstallConfirmModal({
                                 void onConfirm(request);
                             }}
                         >
-                            {isUpdate ? "确认更新" : "确认安装"}
+                            {isUpdate ? "Confirm update" : "Confirm installation"}
                         </Button>
                     </div>
                 </div>

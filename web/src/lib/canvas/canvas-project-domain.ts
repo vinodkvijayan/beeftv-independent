@@ -20,7 +20,7 @@ export function createCanvasNode(type: CanvasNodeTypeId, position: Position, met
     const builtinSpec = type in NODE_DEFAULT_SIZE ? getNodeSpec(type as CanvasNodeType) : undefined;
     const pluginDefinition = getNodeDefinition(type);
     const spec = builtinSpec || (pluginDefinition ? { width: pluginDefinition.defaultSize.width, height: pluginDefinition.defaultSize.height, title: pluginDefinition.defaultTitle, metadata: pluginDefinition.defaultMetadata } : undefined);
-    if (!spec) throw new Error(`未注册的画布节点类型：${type}`);
+    if (!spec) throw new Error(`Unregistered canvas node type:${type}`);
     const id = `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const now = new Date().toISOString();
 
@@ -106,17 +106,17 @@ export function cinematicStoryboardColumns(columns?: StoryboardColumn[]): Storyb
 // 章节分镜走的是自定义 prompt，缺这段约束时模型会按自然语言习惯返回 Markdown 表格，解析阶段拿不到 rows。
 export function storyboardRowsOutputContract(requirement: string) {
     return [
-        "【受保护输出契约】",
-        "- 只返回一个 JSON 对象，不要 Markdown、表格、代码块、注释或任何解释文字。",
-        `- 顶层固定为 {"title": string, "rows": object[]}，rows 至少 1 项。${requirement}`,
-        "- rows 每项对应一个镜头，按剧情顺序排列；字段缺失时填空字符串或空数组，不要省略字段：",
-        "  shotNumber（整数，从 1 递增）、durationSeconds（整数，1-60）、plotDescription（本镜可见的剧情与关键动作）、",
-        "  dialogue（本镜实际念出的台词或简短旁白，超长必须拆镜）、characters（本镜出现的角色名数组）、",
-        "  narrativeIntent、viewerPOV、performanceBlocking、shotSize（景别）、emotion、lightingAndAtmosphere、",
-        "  audioEffects、camera、motion、timeBeats、imageGenerationPrompt（首帧画面提示词）、",
-        "  videoMotionPrompt（运镜与结尾状态）、continuityOut、negativePrompt、",
-        "  mustHave（数组，最多 3 项）、optionalDetails（数组）。",
-        "- 镜头数量以完整覆盖剧情因果、人物关系和关键台词为准，不要为压缩数量删减关键情节。",
+        "【Protected Output Contract】",
+        "- Return only a JSON object, no Markdown, tables, code blocks, comments or any explanatory text.",
+        `- The top level is fixed to {"title": string, "rows": object[]}, and rows must contain at least 1 item.${requirement}`,
+        "- Each row of rows corresponds to a shot, arranged in plot order; fill in the blank string or empty array when the field is missing, and do not omit the field:",
+        "  shotNumber (integer, increasing from 1), durationSeconds (integer, 1-60), plotDescription (plot and key actions visible in this mirror),",
+        "  dialogue (the lines or short narration actually spoken by this scene, if it is too long, the scene must be removed), characters (the array of character names that appear in this scene),",
+        "  narrativeIntent, viewerPOV, performanceBlocking, shotSize (scenery), emotion, lightingAndAtmosphere,",
+        "  audioEffects, camera, motion, timeBeats, imageGenerationPrompt (first frame prompt word),",
+        "  videoMotionPrompt (movement and ending status), continuityOut, negativePrompt,",
+        "  mustHave(array, up to 3 items), optionalDetails(array).",
+        "- The number of shots should be based on the complete coverage of plot cause and effect, character relationships and key lines. Do not delete key plots to reduce the number.",
     ].join("\n");
 }
 
@@ -144,7 +144,7 @@ function parseStoryboardRowsPayload(raw: string): { title?: string; rows?: Array
 
 export function storyboardRowsFromTask(task: GenerationTask) {
     const result = parseStoryboardRowsPayload(task.resultJson || "{}");
-    if (!Array.isArray(result.rows) || !result.rows.length) throw new Error("分镜任务没有返回镜头行");
+    if (!Array.isArray(result.rows) || !result.rows.length) throw new Error("Storyboard task does not return shot rows");
     return {
         title: result.title?.trim(),
         rows: result.rows.map((row, index) => {
@@ -272,7 +272,7 @@ export function attachNodeToStoryboardRow(nodes: CanvasNodeData[], connection: P
 
     return nodes.map((node) => {
         if (row && node.id === linkedNode.id && scriptNodeId === connection.fromNodeId && node.type === CanvasNodeType.Video) {
-            return { ...node, title: `镜头 ${row.shotNumber} · 视频`, metadata: { ...node.metadata, prompt: videoPrompt, composerContent: videoComposerContent, ...storyboardPromptTemplateMetadata(row, "video"), workflowKind: "shot" as const, workflowTitle: `镜头 ${row.shotNumber} 视频`, shotIndex: row.shotNumber, generationMode: "video" as const, videoEditOperation: node.metadata?.videoEditOperation || "text_to_video", seconds: String(row.durationSeconds) } };
+            return { ...node, title: `lens${row.shotNumber} · Video`, metadata: { ...node.metadata, prompt: videoPrompt, composerContent: videoComposerContent, ...storyboardPromptTemplateMetadata(row, "video"), workflowKind: "shot" as const, workflowTitle: `lens${row.shotNumber} video`, shotIndex: row.shotNumber, generationMode: "video" as const, videoEditOperation: node.metadata?.videoEditOperation || "text_to_video", seconds: String(row.durationSeconds) } };
         }
         if (node.id !== scriptNodeId || node.type !== CanvasNodeType.Script) return node;
         const storyboard = node.metadata?.storyboard;
@@ -303,7 +303,7 @@ export function storyboardRowFromHandle(nodes: CanvasNodeData[], nodeId: string,
 export function expandStoryboardTextMentions(prompt: string, references: CanvasResourceReference[]) {
     let expanded = prompt;
     references.filter((reference) => reference.active && reference.kind === "text" && reference.text?.trim()).forEach((reference) => {
-        const replacement = `【项目设定：${reference.title}】\n${reference.text!.trim()}`;
+        const replacement = `[Project settings:${reference.title}】\n${reference.text!.trim()}`;
         for (const token of [canvasResourceMentionToken(reference), `@${reference.label}`, reference.nodeId ? canvasNodeMentionToken(reference.nodeId) : ""]) {
             if (!token) continue;
             if (expanded.includes(token)) expanded = expanded.split(token).join(replacement);
@@ -523,11 +523,11 @@ export function removeCanvasNodes(nodes: CanvasNodeData[], requestedIds: Set<str
 }
 
 export function buildAngleLabel(params: CanvasImageAngleParams) {
-    const horizontal = params.horizontalAngle === 0 ? "正面视角" : params.horizontalAngle > 0 ? `向右旋转 ${params.horizontalAngle} 度` : `向左旋转 ${Math.abs(params.horizontalAngle)} 度`;
-    const pitch = params.pitchAngle === 0 ? "水平视角" : params.pitchAngle > 0 ? `俯视 ${params.pitchAngle} 度` : `仰视 ${Math.abs(params.pitchAngle)} 度`;
-    return `AI 多角度：${horizontal}，${pitch}，镜头距离 ${params.cameraDistance.toFixed(1)}，${params.wideAngle ? "广角" : "标准"}镜头`;
+    const horizontal = params.horizontalAngle === 0 ? "front view" : params.horizontalAngle > 0 ? `Rotate right${params.horizontalAngle} degree` : `Rotate left${Math.abs(params.horizontalAngle)} degree`;
+    const pitch = params.pitchAngle === 0 ? "Horizontal viewing angle" : params.pitchAngle > 0 ? `looking down${params.pitchAngle} degree` : `look up${Math.abs(params.pitchAngle)} degree`;
+    return `AI multiple perspectives:${horizontal}，${pitch}, lens distance${params.cameraDistance.toFixed(1)}，${params.wideAngle ? "wide angle" : "Standard"}lens`;
 }
 
 export function buildAnglePrompt(params: CanvasImageAngleParams) {
-    return `基于参考图重新生成同一主体的新视角，保持主体、颜色、材质和画面风格一致，不要只做透视变形。${buildAngleLabel(params)}。`;
+    return `Regenerate a new perspective of the same subject based on the reference image. Keep the subject, color, material, and picture style consistent. Don’t just do perspective deformation.${buildAngleLabel(params)}。`;
 }

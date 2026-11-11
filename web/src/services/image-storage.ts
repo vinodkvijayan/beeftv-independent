@@ -53,7 +53,7 @@ export async function uploadImage(input: string | Blob, onProgress?: (uploadedBy
     const blob = typeof input === "string"
         ? await (async () => {
               const response = await fetch(input, { credentials: isResourceUrl(input) ? "include" : "same-origin" });
-              if (!response.ok) throw new Error("图片读取失败");
+              if (!response.ok) throw new Error("Image reading failed");
               return response.blob();
           })()
         : input;
@@ -61,9 +61,9 @@ export async function uploadImage(input: string | Blob, onProgress?: (uploadedBy
     try {
         const meta = await readImageMeta(previewUrl);
         if (usesBrowserLocalResourceStore()) {
-            const progress = startOperation(input instanceof File ? input.name : "保存图片", { totalBytes: blob.size, detail: "正在保存图片到本机" });
-            try { await store.setItem(storageKey, blob); progress.done("图片已保存到本机"); }
-            catch (error) { progress.fail("图片保存未完成，请检查本机存储空间"); throw error; }
+            const progress = startOperation(input instanceof File ? input.name : "save image", { totalBytes: blob.size, detail: "Saving pictures to local machine" });
+            try { await store.setItem(storageKey, blob); progress.done("The picture has been saved to this computer"); }
+            catch (error) { progress.fail("The picture saving is not completed, please check the local storage space"); throw error; }
             objectUrls.set(storageKey, previewUrl);
             return { url: previewUrl, storageKey, width: meta.width, height: meta.height, bytes: blob.size, mimeType: blob.type || meta.mimeType };
         }
@@ -89,7 +89,7 @@ export async function uploadImage(input: string | Blob, onProgress?: (uploadedBy
         } catch (error) {
             // 鉴权失效、越权、体积超限这类失败重传也是同样结果，不能退化成"稍后自动同步"。
             if (error instanceof ResourceUploadError && error.permanent) throw error;
-            remoteUploadError = error instanceof Error ? error.message : "图片直传失败";
+            remoteUploadError = error instanceof Error ? error.message : "Picture direct transfer failed";
         }
         // 本地服务暂时不可用时退回浏览器本地缓存，确保当前创作不中断。
         await store.setItem(storageKey, blob);
@@ -172,7 +172,7 @@ export async function imageToDataUrl(image: { url?: string; dataUrl?: string; st
         if (url.startsWith("blob:")) throw new LocalImageUnavailableError(url);
         throw error;
     }
-    if (!response.ok) throw new Error(`图片读取失败（HTTP ${response.status}）`);
+    if (!response.ok) throw new Error(`Image reading failed (HTTP${response.status}）`);
     const blob = await response.blob();
     return blobToDataUrl(await normalizeImageBlob(blob, image.name || url));
 }
@@ -210,7 +210,7 @@ function blobToDataUrl(blob: Blob) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result || ""));
-        reader.onerror = () => reject(new Error("读取图片失败"));
+        reader.onerror = () => reject(new Error("Failed to read image"));
         reader.readAsDataURL(blob);
     });
 }
@@ -219,7 +219,7 @@ async function normalizeImageBlob(blob: Blob, sourceName = "") {
     if (blob.type.startsWith("image/")) return blob;
     const bytes = new Uint8Array(await blob.slice(0, 32).arrayBuffer());
     const mimeType = detectImageMimeType(bytes) || imageMimeTypeFromName(sourceName);
-    if (!mimeType) throw new Error("无法识别参考图片格式，请重新上传 PNG、JPEG、WebP 或 GIF 图片");
+    if (!mimeType) throw new Error("The reference image format is not recognized, please re-upload the PNG, JPEG, WebP or GIF image");
     return blob.slice(0, blob.size, mimeType);
 }
 

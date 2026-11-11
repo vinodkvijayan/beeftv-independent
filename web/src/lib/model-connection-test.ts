@@ -5,9 +5,9 @@ import type { ModelProtocol } from "@/lib/model-protocols";
 import { upgradeBuiltinModelProfile } from "@/lib/builtin-service-presets";
 
 export async function testChannelModelConnection(channel: ModelChannel, model: string, capability: ModelCapability, protocol: ModelProtocol, runTask = runBackendGenerationTask) {
-    if (!channel.baseUrl.trim()) throw new Error("请先填写 Base URL");
+    if (!channel.baseUrl.trim()) throw new Error("Please fill in the Base URL first");
     if (!channelHasGenerationCredential(channel, model)) {
-        throw new Error(isBuiltinBeefTVChannel(channel) ? "请先连接 BeefTV" : "请先填写 API Key");
+        throw new Error(isBuiltinBeefTVChannel(channel) ? "Please connect to BeefTV first" : "Please fill in the API Key first");
     }
     const selectedModel = encodeChannelModel(channel.id, model);
     const rawProfile = channel.modelProfiles?.find((item) => item.model === model);
@@ -68,7 +68,7 @@ export async function testChannelModelConnection(channel: ModelChannel, model: s
     const customTestVideoUrl =
         typeof modelProfile?.defaultOptions?.testVideoUrl === "string" ? modelProfile.defaultOptions.testVideoUrl.trim() : "";
     if (needsReferenceVideo && !customTestVideoUrl) {
-        throw new Error("该参考视频模型需要先在模型配置中提供测试参考视频地址（defaultOptions.testVideoUrl）");
+        throw new Error("The reference video model needs to provide the test reference video address (defaultOptions.testVideoUrl) in the model configuration first.");
     }
     const referenceVideos = needsReferenceVideo
         ? [{ id: "connection-test-video", name: "test.mp4", type: "video/mp4", url: customTestVideoUrl, durationMs: 4000, width: 1280, height: 720 }]
@@ -82,9 +82,9 @@ export async function testChannelModelConnection(channel: ModelChannel, model: s
 export function modelConnectionResultDetail(result: BackendGenerationResult, capability: ModelCapability) {
     const media = capability === "image" ? result.images?.[0] : capability === "video" ? result.video : result.audio;
     if (capability === "text" ? !result.text?.trim() : !(media?.storageKey || media?.dataUrl || media?.url)) {
-        throw new Error("任务已结束，但没有返回可用结果。请在任务中心查看详情。");
+        throw new Error("The task ended but no usable results were returned. See details in the Mission Center.");
     }
-    return capability === "text" ? "已收到文本响应" : `已完成${{ image: "图片", video: "视频", audio: "音频" }[capability]}生成，可在任务中心查看结果`;
+    return capability === "text" ? "Text response received" : `Completed${{ image: "pictures", video: "video", audio: "Audio" }[capability]}Generated, the results can be viewed in the task center`;
 }
 
 function resolutionRank(value: string) {

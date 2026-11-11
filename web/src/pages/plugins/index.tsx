@@ -42,16 +42,16 @@ import { PluginUpdateButton } from "./plugin-update-button";
 import "./plugins.css";
 
 const categoryLabels: Record<string, string> = {
-    provider: "模型渠道",
-    "canvas-node": "画布节点",
-    workflow: "工作流",
+    provider: "model channel",
+    "canvas-node": "canvas node",
+    workflow: "Workflow",
 };
 
 const surfaceLabels: Record<string, string> = {
-    node: "画布节点",
-    fullscreen: "全屏工作台",
-    hybrid: "混合接入",
-    "asset-source": "素材库",
+    node: "canvas node",
+    fullscreen: "Full screen workbench",
+    hybrid: "Hybrid access",
+    "asset-source": "Material library",
 };
 
 const permissionLabels = PLUGIN_PERMISSION_LABELS;
@@ -59,7 +59,7 @@ const permissionLabels = PLUGIN_PERMISSION_LABELS;
 // 随应用发布的接口（各家模型的请求格式）是内置能力，在模型服务里选择，不在插件列出。
 // 用户上传的接口包是他们装的插件；被停用的内置接口也放这里，免得停用后再也找不回来。
 const interfaceSectionMeta = [
-    { key: "interface", label: "接口插件", description: "提供模型接口的插件", icon: Cable },
+    { key: "interface", label: "Interface plug-in", description: "Plug-ins that provide model interfaces", icon: Cable },
 ] as const;
 
 export default function PluginsPage() {
@@ -117,7 +117,7 @@ export default function PluginsPage() {
         } catch (error) {
             // 读取失败不清空列表：同时发出的另一次读取可能已经成功。
             if (!localRuntime) {
-                message.error(error instanceof Error ? error.message : "读取插件失败");
+                message.error(error instanceof Error ? error.message : "Failed to read plugin");
             }
         } finally {
             setBackendPluginsLoading(false);
@@ -163,7 +163,7 @@ export default function PluginsPage() {
         () =>
             [
                 ...visibleProtocolSectionMeta.map((section) => ({ ...section, plugins: filteredPlugins.filter((plugin) => pluginMatchesCategory(plugin.manifest, section.key)) })),
-                { key: "other", label: "应用插件", description: "画布、素材与工作流扩展", icon: PlugZap, plugins: filteredPlugins.filter((plugin) => pluginMatchesCategory(plugin.manifest, "other")) },
+                { key: "other", label: "Apply plugin", description: "Canvas, assets and workflow extensions", icon: PlugZap, plugins: filteredPlugins.filter((plugin) => pluginMatchesCategory(plugin.manifest, "other")) },
             ]
                 .filter((section) => categoryFilter === "all" || section.key === categoryFilter)
                 // 没装接口插件时不摆一个空分组。
@@ -219,18 +219,18 @@ export default function PluginsPage() {
             const remote = backendPluginById.get(plugin.manifest.id);
             if (localRuntime && !remote && !(plugin.manifest.id in pluginStates)) {
                 setEnabled(plugin.manifest.id, enabled);
-                message.success(`${plugin.manifest.name}${enabled ? "已启用" : "已停用"}`);
+                message.success(`${plugin.manifest.name}${enabled ? "Enabled" : "Deactivated"}`);
                 return;
             }
             await setPluginActivation(plugin.manifest.id, enabled, remote?.management.activationScope);
-            message.success(`${plugin.manifest.name}${enabled ? "已启用" : "已停用"}`);
+            message.success(`${plugin.manifest.name}${enabled ? "Enabled" : "Deactivated"}`);
         } catch (error) {
             if (localRuntime) {
                 setEnabled(plugin.manifest.id, enabled);
-                message.success(`${plugin.manifest.name}${enabled ? "已启用" : "已停用"}`);
+                message.success(`${plugin.manifest.name}${enabled ? "Enabled" : "Deactivated"}`);
                 return;
             }
-            message.error(error instanceof Error ? error.message : "更新插件状态失败");
+            message.error(error instanceof Error ? error.message : "Failed to update plugin status");
         }
     };
 
@@ -241,10 +241,10 @@ export default function PluginsPage() {
             deactivateClientPlugin(installed.manifest.id);
             setInstallModalOpen(false);
             setInstallPendingRequest(null);
-            message.success(`已安装插件「${installed.manifest.name}」`);
+            message.success(`Plug-in installed"${installed.manifest.name}」`);
             await reloadBackendPlugins();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "安装插件失败");
+            message.error(error instanceof Error ? error.message : "Failed to install plugin");
         } finally {
             setInstalling(false);
         }
@@ -257,13 +257,13 @@ export default function PluginsPage() {
             deactivateClientPlugin(updated.manifest.id);
             message.success(
                 isLocalFolderSource(updated.packageSpec)
-                    ? `已从文件夹重新加载插件「${updated.manifest.name}」`
-                    : `插件「${updated.manifest.name}」已更新到 v${updated.manifest.version}`,
+                    ? `Plugin reloaded from folder "${updated.manifest.name}」`
+                    : `Plug-in "${updated.manifest.name}"Updated to v${updated.manifest.version}`,
             );
             await reloadBackendPlugins();
             return true;
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新插件失败");
+            message.error(error instanceof Error ? error.message : "Update plugin failed");
             return false;
         } finally {
             setUpdatingPluginId(null);
@@ -283,7 +283,7 @@ export default function PluginsPage() {
     const handleUpdateConfirm = async (request: PluginInstallConfirmRequest) => {
         const target = backendPlugins.find((plugin) => plugin.packageSpec === request.source);
         if (!target) {
-            message.error("这个插件已经不在了，刷新后再试");
+            message.error("This plug-in is no longer available, please refresh and try again.");
             return;
         }
         setInstalling(true);
@@ -302,10 +302,10 @@ export default function PluginsPage() {
             }
             deactivateClientPlugin(plugin.manifest.id);
             removePlugin(plugin.manifest.id);
-            message.success(`已卸载插件「${plugin.manifest.name}」`);
+            message.success(`Plug-in has been uninstalled"${plugin.manifest.name}」`);
             await reloadBackendPlugins();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "卸载插件失败");
+            message.error(error instanceof Error ? error.message : "Failed to uninstall plugin");
         }
     };
 
@@ -320,19 +320,19 @@ export default function PluginsPage() {
         <WorkspacePage className="collection-page plugins-page" scroll={false}>
             <div ref={scrollContainerRef} className="app-workspace-scroll h-full min-h-0 overflow-y-auto">
                 <div className="plugins-page-layout">
-                    <CollectionHeader title="插件" navigationLabel="插件分类" value={categoryFilter} onChange={selectCategory}
+                    <CollectionHeader title="plug-in" navigationLabel="Plug-in classification" value={categoryFilter} onChange={selectCategory}
                         tabs={[
-                            { value: "all", label: "全部", count: categoryCounts.all },
+                            { value: "all", label: "All", count: categoryCounts.all },
                             ...visibleProtocolSectionMeta.filter(section => (categoryCounts[section.key] || 0) > 0 || categoryFilter === section.key).map(section => ({ value: section.key, label: section.label, count: categoryCounts[section.key] || 0 })),
-                            { value: "other", label: "应用插件", count: categoryCounts.other },
+                            { value: "other", label: "Apply plugin", count: categoryCounts.other },
                             ...pluginCenterSections.map(entry => ({ value: `slot:${entry.pluginId}:${entry.payload.id}`, label: entry.payload.label })),
                         ]}
-                        search={activeCustomSection ? undefined : { value: search, onChange: setSearch, placeholder: "搜索插件名称、描述或作者" }}
-                        actions={<button type="button" className="assets-header-compact-button" aria-label="刷新插件" title="刷新插件" disabled={backendPluginsLoading} onClick={() => void reloadBackendPlugins()}><RefreshCw className={backendPluginsLoading ? "size-4 animate-spin" : "size-4"} /></button>}
-                        primaryAction={<button type="button" className="collection-header-create" onClick={() => { setInstallPendingRequest(null); setInstallModalOpen(true); }}>安装</button>}
+                        search={activeCustomSection ? undefined : { value: search, onChange: setSearch, placeholder: "Search plugin name, description or author" }}
+                        actions={<button type="button" className="assets-header-compact-button" aria-label="refresh plugin" title="refresh plugin" disabled={backendPluginsLoading} onClick={() => void reloadBackendPlugins()}><RefreshCw className={backendPluginsLoading ? "size-4 animate-spin" : "size-4"} /></button>}
+                        primaryAction={<button type="button" className="collection-header-create" onClick={() => { setInstallPendingRequest(null); setInstallModalOpen(true); }}>Installation</button>}
                         trailing={activeCustomSection ? null : <div className="plugins-header-filters">
-                            <Select value={statusFilter} options={[{ value: "all", label: "全部状态" }, { value: "enabled", label: "已启用" }, { value: "disabled", label: "已停用" }]} onChange={setStatusFilter} aria-label="按状态筛选" />
-                            <Select value={originFilter} options={[{ value: "all", label: "全部来源" }, ...Object.entries(PLUGIN_ORIGIN_LABELS).map(([value, label]) => ({ value, label }))]} onChange={setOriginFilter} aria-label="按来源筛选" />
+                            <Select value={statusFilter} options={[{ value: "all", label: "All status" }, { value: "enabled", label: "Enabled" }, { value: "disabled", label: "Deactivated" }]} onChange={setStatusFilter} aria-label="Filter by status" />
+                            <Select value={originFilter} options={[{ value: "all", label: "All sources" }, ...Object.entries(PLUGIN_ORIGIN_LABELS).map(([value, label]) => ({ value, label }))]} onChange={setOriginFilter} aria-label="Filter by source" />
                         </div>}
                     />
                     <div className="plugins-page-content">
@@ -387,8 +387,8 @@ export default function PluginsPage() {
                                                                 name={plugin.manifest.name}
                                                                 description={plugin.manifest.description}
                                                                 sourceLabel={sourceLabel}
-                                                                status={!state?.platformAvailable && state?.blockedReason ? state.blockedReason : enabled ? "已启用" : "已停用"}
-                                                                openLabel={`查看${plugin.manifest.name}文档`}
+                                                                status={!state?.platformAvailable && state?.blockedReason ? state.blockedReason : enabled ? "Enabled" : "Deactivated"}
+                                                                openLabel={`View${plugin.manifest.name}Documentation`}
                                                                 onOpen={(event) => {
                                                                         const openedByKeyboard = event.detail === 0;
                                                                         setDetailsRestoreFocus(openedByKeyboard);
@@ -399,7 +399,7 @@ export default function PluginsPage() {
                                                                     <Switch
                                                                         disabled={!canToggle}
                                                                         checked={enabled}
-                                                                        aria-label={`${plugin.manifest.name}，当前${enabled ? "已启用，点击停用" : "已停用，点击启用"}`}
+                                                                        aria-label={`${plugin.manifest.name}, currently${enabled ? "Enabled, click to deactivate" : "Disabled, click to enable"}`}
                                                                         title={!canToggle ? state?.blockedReason : undefined}
                                                                         onChange={(checked) => void togglePlugin(plugin, checked)}
                                                                     />
@@ -420,7 +420,7 @@ export default function PluginsPage() {
                                                                             aria-haspopup="dialog"
                                                                             onClick={() => setSettingsPluginId(plugin.manifest.id)}
                                                                         >
-                                                                            设置
+                                                                                                                                                        settings
                                                                         </Button>
                                                                     ) : null}
                                                                     {canUninstall ? (
@@ -430,7 +430,7 @@ export default function PluginsPage() {
                                                                             icon={<Trash2 className="size-4" />}
                                                                             onClick={() => void handleUninstallPlugin(plugin)}
                                                                         >
-                                                                            卸载
+                                                                                                                                                        Uninstall
                                                                         </Button>
                                                                     ) : null}
                                                                 </>}
@@ -447,7 +447,7 @@ export default function PluginsPage() {
                                                 </div>
                                             ) : (
                                                 <div className="plugin-section-empty-hint">
-                                                    <span>暂无该类型的插件</span>
+                                                    <span>There is currently no plug-in of this type</span>
                                                 </div>
                                             )}
                                         </section>
@@ -458,8 +458,8 @@ export default function PluginsPage() {
                             <EmptyState
                                 className="min-h-[260px] rounded-[var(--plugins-card-radius)] bg-foreground/[0.03]"
                                 icon={SlidersHorizontal}
-                                title="没有匹配的插件"
-                                description="试试清空搜索词，或放宽筛选条件。"
+                                title="No matching plugin"
+                                description="Try clearing the search terms, or broadening the filter criteria."
                                 action={
                                     <Button
                                         onClick={() => {
@@ -469,7 +469,7 @@ export default function PluginsPage() {
                                             setOriginFilter("all");
                                         }}
                                     >
-                                        清除筛选
+                                                                                Clear filters
                                     </Button>
                                 }
                             />
@@ -477,7 +477,7 @@ export default function PluginsPage() {
 
                         <Modal
                             className="workspace-modal workspace-modal-wide plugin-settings-modal"
-                            title={settingsPlugin ? `${settingsPlugin.manifest.name} 设置` : null}
+                            title={settingsPlugin ? `${settingsPlugin.manifest.name} settings` : null}
                             open={Boolean(settingsPlugin)}
                             centered
                             footer={null}
@@ -489,7 +489,7 @@ export default function PluginsPage() {
                                 <div className="plugin-settings-panel plugin-settings-modal-panel">
                                     <div className="plugin-settings-heading">
                                         <div>
-                                            <p>只展示这个插件实际支持的配置项。</p>
+                                            <p>Only the configuration items actually supported by this plug-in are displayed.</p>
                                         </div>
                                         <span className="plugin-source-label">{PLUGIN_ORIGIN_LABELS[pluginOrigin(settingsPlugin)]}</span>
                                     </div>
@@ -519,8 +519,8 @@ export default function PluginsPage() {
                                         />
                                     ) : settingsPlugin.manifest.id === PROMPT_OPTIMIZER_PLUGIN_ID ? (
                                         <div className="rounded-[var(--r-md)] border border-border/60 bg-muted/25 px-3 py-3 text-[var(--fs-body)] leading-6 text-foreground/70">
-                                            <p>在创作页或图片、视频节点的提示词编辑器中使用“优化”按钮，即可让当前文本模型整理提示词。</p>
-                                            <p className="mt-2 text-[var(--fs-micro)] text-foreground/50">插件不会自动覆盖原提示词，只有点击“采用”后才会回填到当前输入框。</p>
+                                            <p>Use the "Optimize" button in the prompt word editor of the creation page or picture or video node to let the current text model organize the prompt words.</p>
+                                            <p className="mt-2 text-[var(--fs-micro)] text-foreground/50">The plug-in will not automatically overwrite the original prompt word and will backfill it into the current input box only after clicking "Adopt".</p>
                                         </div>
                                     ) : settingsPlugin.manifest.configuration?.fields?.length ? (
                                         <PluginFieldsConfigForm
@@ -528,26 +528,26 @@ export default function PluginsPage() {
                                             initialValues={settingsInstallation?.config || {}}
                                             onSave={(values) => {
                                                 updateConfig(settingsPlugin.manifest.id, values as Record<string, string | number | boolean>);
-                                                message.success(`${settingsPlugin.manifest.name}配置已保存`);
+                                                message.success(`${settingsPlugin.manifest.name}Configuration saved`);
                                             }}
                                         />
                                     ) : (
                                         <div className="plugin-settings-empty">
-                                            {`贡献能力：${
+                                            {`Contribution ability:${
                                                 contributionKindsFor(settingsPlugin.manifest)
                                                     .map((kind) => categoryLabels[kind] || kind)
-                                                    .join("、") || "未声明"
-                                            }。当前接入位置和权限会根据插件清单自动生效。`}
+                                                    .join("、") || "Not declared"
+                                            }. The current access location and permissions will automatically take effect based on the plug-in list.`}
                                         </div>
                                     )}
 
                                     <div className="plugin-permissions">
                                         <div>
-                                            <span>接入位置</span>
-                                            {(settingsPlugin.manifest.surfaces || []).map((surface) => surfaceLabels[surface] ?? surface).join("、") || "由贡献点决定"}
+                                            <span>access location</span>
+                                            {(settingsPlugin.manifest.surfaces || []).map((surface) => surfaceLabels[surface] ?? surface).join("、") || "Determined by contribution points"}
                                         </div>
                                         <div>
-                                            <span>插件能力</span>
+                                            <span>Plug-in capabilities</span>
                                             {settingsPlugin.manifest.permissions.map((permission) => permissionLabels[permission] ?? permission).join("、")}
                                         </div>
                                     </div>

@@ -31,7 +31,7 @@ export function compileBoundMediaReferences<T extends ReferenceContext>(context:
     const occurrences = Array.from(context.prompt.matchAll(/@\[(?:node|asset):[^\]]+\]/gu));
     const mentions = occurrences.map((match) => {
         const binding = bindings.get(match[0]);
-        if (!binding) throw new Error(`引用 ${match[0]} 没有对应的素材，请重新选择后再生成`);
+        if (!binding) throw new Error(`Quote${match[0]} There is no corresponding material, please select again and generate again.`);
         return binding;
     });
     const reorder = <R extends { id: string }>(items: R[], kind: BoundMediaMention["kind"]): R[] => {
@@ -40,7 +40,7 @@ export function compileBoundMediaReferences<T extends ReferenceContext>(context:
         const ids = [...new Set(mentions.filter((mention) => mention.kind === kind).map((mention) => mention.referenceId))];
         return [...ids.map((id) => {
             const item = byId.get(id);
-            if (!item) throw new Error("引用的素材已不可用，请重新选择后再生成");
+            if (!item) throw new Error("The referenced material is no longer available, please select it again and generate it again.");
             return item;
         }), ...items.filter((item) => !ids.includes(item.id))];
     };
@@ -50,10 +50,10 @@ export function compileBoundMediaReferences<T extends ReferenceContext>(context:
     const labels = new Map<string, string>();
     const boundImageSlots = new Map<string, number>();
     const arrays = { image: referenceImages, video: referenceVideos, audio: referenceAudios };
-    const names = { image: "图片", video: "视频", audio: "音频" };
+    const names = { image: "pictures", video: "video", audio: "Audio" };
     mentions.forEach((binding) => {
         const index = arrays[binding.kind].findIndex((item) => item.id === binding.referenceId);
-        if (index < 0) throw new Error("引用的素材已不可用，请重新选择后再生成");
+        if (index < 0) throw new Error("The referenced material is no longer available, please select it again and generate it again.");
         labels.set(binding.token, `@${names[binding.kind]}${index + 1}`);
         if (binding.kind === "image") boundImageSlots.set(binding.token.slice(1), index + 1);
     });
@@ -61,7 +61,7 @@ export function compileBoundMediaReferences<T extends ReferenceContext>(context:
     // Check the original table's explicit bindings against the final upload order.
     // Saved labels/names remain useful here; synthetic file names cannot replace them.
     assertCanvasImageReferenceTable(context.prompt, referenceImages.map((image, index) => tableReferencesById.get(image.id) || {
-        title: image.name, label: `图片${index + 1}`,
+        title: image.name, label: `pictures${index + 1}`,
     }), boundImageSlots);
     return {
         ...context,
@@ -73,16 +73,16 @@ export function compileBoundMediaReferences<T extends ReferenceContext>(context:
 export function renderCharacterReferenceBindings(bindings: CharacterReferenceBinding[], context: ReferenceContext) {
     const labels = (ids: string[], items: { id: string }[], kind: string) => ids.map((id) => {
         const index = items.findIndex((item) => item.id === id);
-        if (index < 0) throw new Error("角色参考素材已不可用，请重新选择后再生成");
+        if (index < 0) throw new Error("The character reference material is no longer available, please select again and generate again.");
         return `@${kind}${index + 1}`;
     });
-    return `【角色与参考素材】\n${bindings.map((binding) => {
-        const images = labels(binding.imageIds, context.referenceImages, "图片");
-        const audios = labels(binding.audioIds, context.referenceAudios, "音频");
+    return `[Characters and Reference Materials]${bindings.map((binding) => {
+        const images = labels(binding.imageIds, context.referenceImages, "pictures");
+        const audios = labels(binding.audioIds, context.referenceAudios, "Audio");
         return [
-            `@角色${binding.role} 与「${binding.name}」指同一角色。`,
-            images.length && `该角色外观参考 ${images.join("、")}，这些图片均属于同一角色。`,
-            audios.length && `该角色音色参考 ${audios.join("、")}。`,
+            `@role${binding.role} with "${binding.name}” refers to the same role.`,
+            images.length && `Appearance reference for this character${images.join("、")}, these pictures all belong to the same character.`,
+            audios.length && `The character’s voice reference${audios.join("、")}。`,
         ].filter(Boolean).join("");
     }).join("\n")}`;
 }

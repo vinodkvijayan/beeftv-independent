@@ -120,8 +120,8 @@ type CanvasRun = {
     turnStatus: Record<string, AssistantTurnStatus>;
 };
 
-const ASSISTANT_STOPPED_BEFORE_SEND_TEXT = "已停下，这条消息没有发出。";
-const ASSISTANT_STOPPED_UNPROCESSED_TEXT = "已停下，这条消息没有被处理。";
+const ASSISTANT_STOPPED_BEFORE_SEND_TEXT = "Stopped, this message was not sent.";
+const ASSISTANT_STOPPED_UNPROCESSED_TEXT = "Stopped, this message has not been processed.";
 
 /**
  * 进行中那一轮在思考展开状态里的键：回合结算后把用户的选择转到真实 turnId 上。
@@ -319,7 +319,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
                 run.supplements = active.supplementInputs?.length ? active.supplementInputs.map(input => ({ text: input.message, attachments: input.attachments, skills: input.skills, status: "accepted" })) : (active.supplements || []).map(text => ({ text, status: "accepted" }));
                 run.recovery = { sessionId: nextSession, turnId: active.turnId, knownTurnIds: history.turns.map(turn => turn.turnId), text: active.userText, selectedNodeIds: active.selectedNodeIds || [] };
                 run.requestId = active.requestId ?? null;
-                run.lifecycleNotice = assistantLifecycleText(active.lifecycle) || "这次创作仍在继续，正在读取最新结果。";
+                run.lifecycleNotice = assistantLifecycleText(active.lifecycle) || "This creation is still going on and the latest results are being read.";
                 run.error = null;
             }
             run.sessions = sessionList.sessions;
@@ -344,7 +344,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
             if (request === run.historyRequest) {
                 run.historyHostUnavailable = error instanceof ApiError && (error.reason === "host_unreachable" || error.reason === "model_not_configured");
                 run.historyError = run.turns.length || run.pendingUserText || run.pendingAttachments.length || run.streamed || run.reasoning.length
-                    ? "没能读取对话，已有内容仍然保留。请重新读取。" : "没能读取对话。请重新读取。";
+                    ? "Failed to read the conversation, existing content is still retained. Please read again." : "Failed to read conversation. Please read again.";
             }
             return false;
         } finally {
@@ -430,17 +430,17 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
                 await saveCanvasForAssistant(targetCanvas);
                 await flushModelConfig();
                 const persistence = getModelConfigPersistenceState();
-                if (persistence.dirty || persistence.status === "error") throw new Error("助手模型还没保存成功，请稍后重试");
+                if (persistence.dirty || persistence.status === "error") throw new Error("The assistant model has not been saved successfully, please try again later.");
             }
             controller.signal.throwIfAborted();
             const ready = await waitForAssistant(controller.signal);
             setStatus(ready);
-            if (!run.historyLoaded && !await loadHistory(targetCanvas)) throw new Error("对话还没读回来，请重新读取后再发送");
+            if (!run.historyLoaded && !await loadHistory(targetCanvas)) throw new Error("The conversation has not been read back, please read it again before sending.");
             if (!run.sessionId) run.sessionId = await createAssistantSession(targetCanvas);
             controller.signal.throwIfAborted();
             run.recovery = { sessionId: run.sessionId, knownTurnIds: run.turns.map((turn) => turn.turnId), text: message, selectedNodeIds: selectedSnapshot };
             run.dispatched = true;
-            if (run.turns.at(-1)?.errorReason === "turn_interrupted") recordDiagnosticEvent({ category: "task", level: "info", code: "assistant_continue_requested", reason: "manual_followup", message: "用户在助手中断后发送了新的处理请求", requestId, canvasId: targetCanvas, assistantSessionId: run.sessionId || undefined, assistantTurnId: run.turns.at(-1)?.turnId });
+            if (run.turns.at(-1)?.errorReason === "turn_interrupted") recordDiagnosticEvent({ category: "task", level: "info", code: "assistant_continue_requested", reason: "manual_followup", message: "The user sent a new processing request after the assistant was interrupted", requestId, canvasId: targetCanvas, assistantSessionId: run.sessionId || undefined, assistantTurnId: run.turns.at(-1)?.turnId });
             await streamAgentChat(targetCanvas, message, {
                 onSession: (sessionId) => {
                     const current = runFor(targetCanvas);
@@ -490,7 +490,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
                         proposalsInvalidated: end.proposalsInvalidated,
                         outputs: end.outputs || [],
                         plan: end.plan ?? null,
-                        error: end.error ? agentAssistantFailureText(end.errorReason ?? undefined, "这一轮没有全部完成，请核对已经落地的改动。") : null,
+                        error: end.error ? agentAssistantFailureText(end.errorReason ?? undefined, "Not all of this round has been completed, please check the changes that have been implemented.") : null,
                         errorReason: end.errorReason,
                         cancelled: Boolean(end.cancelled),
                         supplements: end.supplements || current.supplements.filter(item => item.status === "accepted").map(item => item.text),
@@ -503,7 +503,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
                     // 进行中就被用户展开过：结算后把展开状态转到这条回合上，不折回。
                     if (current.reasoningOpen[ASSISTANT_LIVE_TURN_KEY]) current.reasoningOpen[turnId] = true;
                     delete current.reasoningOpen[ASSISTANT_LIVE_TURN_KEY];
-                    recordDiagnosticEvent({ category: "task", level: turn.error ? "warning" : "info", code: "assistant_turn_settled", reason: turn.errorReason || undefined, message: "助手执行回执已记录", requestId, canvasId: targetCanvas, assistantSessionId: end.sessionId || current.sessionId || undefined, assistantTurnId: turn.turnId });
+                    recordDiagnosticEvent({ category: "task", level: turn.error ? "warning" : "info", code: "assistant_turn_settled", reason: turn.errorReason || undefined, message: "Assistant execution receipt has been recorded", requestId, canvasId: targetCanvas, assistantSessionId: end.sessionId || current.sessionId || undefined, assistantTurnId: turn.turnId });
                     emitPluginEvent("assistant.turnCompleted", { canvasId: targetCanvas ?? undefined, sessionId: end.sessionId || current.sessionId || undefined, turnId: turn.turnId, status: turn.cancelled ? "cancelled" : turn.error ? "failed" : "completed" });
                     current.plan = end.plan ?? null;
                     current.recovery = null;
@@ -557,7 +557,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
             // 停止和断线都先保留已显示的内容；只在读取到本轮回执后替换。
             current.lifecycleNotice = null;
             current.error = aborted ? null : current.dispatched
-                ? "这一轮未能确认完成，可能已有改动。请先查看画布并重新读取对话，再决定下一步。"
+                ? "This round has not been confirmed to be completed and may have been changed. Please review the canvas and reread the conversation before deciding what to do next."
                 : streamError instanceof Error ? streamError.message : String(streamError);
             if (current.dispatched) {
                 onCanvasChangedRef.current?.(targetCanvas, []);
@@ -659,7 +659,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
             run.historyError = null;
             void loadHistory(targetCanvas);
         } catch {
-            run.error = "没能新建对话，当前对话仍然保留。请重试。";
+            run.error = "Failed to create a new conversation, the current conversation remains. Please try again.";
         } finally {
             run.sessionBusy = false;
             rerenderIfActive(targetCanvas);
@@ -690,7 +690,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
                 run.pendingContinuationId = null;
             }
         } catch {
-            run.error = "没能切换对话，当前对话仍然保留。请重试。";
+            run.error = "Failed to switch conversations, current conversation remains. Please try again.";
         } finally {
             run.sessionBusy = false;
             rerenderIfActive(targetCanvas);
@@ -730,7 +730,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
             }
             return true;
         } catch {
-            run.error = "没能删除对话，当前对话仍然保留。请重试。";
+            run.error = "Failed to delete the conversation, the current conversation remains. Please try again.";
             return false;
         } finally {
             run.sessionBusy = false;
@@ -813,7 +813,7 @@ export function useCanvasAssistant({ canvasId, onCanvasChanged }: Options) {
             rerenderIfActive(targetCanvas);
             await loadHistory(targetCanvas, current.sessionId ?? undefined);
         } catch (error) {
-            const msg = error instanceof Error ? error.message : "脚本运行失败，请稍后重试。";
+            const msg = error instanceof Error ? error.message : "The script failed to run, please try again later.";
             setScriptProposalFeedback((prev) => ({ ...prev, [proposal.proposalId]: msg }));
         } finally {
             setRunningScriptProposalIds((prev) => {

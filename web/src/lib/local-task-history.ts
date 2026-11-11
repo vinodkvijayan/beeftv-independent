@@ -28,7 +28,7 @@ export function localTaskHistoryFromProjects(projects: CanvasProject[]): Generat
                 status,
                 progress: metadata?.taskProgress ?? (status === "succeeded" ? 100 : status === "running" ? 50 : undefined),
                 stage: metadata?.taskStage,
-                prompt: metadata?.prompt || node.title || "未命名本地任务",
+                prompt: metadata?.prompt || node.title || "Unnamed local task",
                 model: metadata?.model,
                 provider: metadata?.taskProvider || "local",
                 previewUrl,

@@ -33,7 +33,7 @@ export function ModelPicker({
     className,
     popoverClassName,
     fullWidth = false,
-    placeholder = "选择模型",
+    placeholder = "Select model",
     onMissingConfig,
     variant = "creation",
     requirements,
@@ -54,7 +54,7 @@ export function ModelPicker({
         const channelGroups = config.channels
             .map((channel) => ({
                 key: channel.id,
-                label: channel.name || "未命名渠道",
+                label: channel.name || "unnamed channel",
                 models: groupModelsByDisplayName(
                     config,
                     options.filter((model) => resolveModelChannel(config, model).id === channel.id),
@@ -77,7 +77,7 @@ export function ModelPicker({
     const creationVariant = variant === "creation";
     const triggerLabel = current
         ? (creationVariant ? pickerModelDisplayName(config, current, showConfiguredModelName) : pickerModelOptionLabel(config, current, showConfiguredModelName))
-        : portrait ? `${seedancePortraitLabel(storedCurrent)}（不可用）` : placeholder;
+        : portrait ? `${seedancePortraitLabel(storedCurrent)}(not available)` : placeholder;
 
     useLayoutEffect(() => {
         const trigger = triggerRef.current;
@@ -179,7 +179,7 @@ export function ModelPicker({
         >
             {optionGroups.length ? (
                 activeGroupKey === null ? (
-                    <div className="canvas-model-picker-brands" aria-label="选择模型品牌">
+                    <div className="canvas-model-picker-brands" aria-label="Select model brand">
                         {optionGroups.map((group) => {
                             return <button key={group.key} type="button" className="canvas-model-picker-brand" aria-expanded={false} onClick={() => toggleGroup(group)}>
                                 <span className="canvas-model-picker-brand-copy"><strong>{group.label}</strong></span>
@@ -188,7 +188,7 @@ export function ModelPicker({
                         })}
                     </div>
                 ) : <div className="canvas-model-picker-two-pane">
-                    <div className="canvas-model-picker-brand-rail" aria-label="模型品牌">
+                    <div className="canvas-model-picker-brand-rail" aria-label="model brand">
                         {optionGroups.map((group) => {
                             return <button key={group.key} type="button" className={cn("canvas-model-picker-brand", activeGroupKey === group.key && "is-active")} aria-expanded={activeGroupKey === group.key} onClick={() => toggleGroup(group)}>
                                 <span className="canvas-model-picker-brand-copy"><strong>{group.label}</strong></span>
@@ -202,7 +202,7 @@ export function ModelPicker({
                                 const selected = modelGroup.models.includes(current);
                                 const model = compatibleModelInGroup(config, modelGroup.models, selectionRequirements, selected ? current : undefined);
                                 const displayModel = model || (selected ? current : modelGroup.models[0]);
-                                const disabledReason = model ? "" : modelCompatibilityError(config, modelGroup.models[0], selectionRequirements) || "当前输入不符合该模型能力";
+                                const disabledReason = model ? "" : modelCompatibilityError(config, modelGroup.models[0], selectionRequirements) || "The current input does not meet the model's capabilities";
                                 return (
                                     <button
                                         key={modelGroup.key}
@@ -276,11 +276,11 @@ export function ModelPicker({
             </Popover>
             {portrait || priceLines.length > 0 ? <Popover trigger="click" placement="topLeft" content={
                 <div className="max-w-[min(26rem,calc(100vw-3rem))] text-xs leading-relaxed" role="note">
-                    {priceLines.length ? <><p>视频参考单价</p>{priceLines.map((line) => <p key={line}>{line}</p>)}<p>实际费用见生成账单。素材仍需通过审核。</p></> : <p>价格暂不可用，请刷新模型列表后再生成。</p>}
+                    {priceLines.length ? <><p>Video reference unit price</p>{priceLines.map((line) => <p key={line}>{line}</p>)}<p>Actual charges are shown in the generated invoice. Materials still need to be reviewed.</p></> : <p>The price is temporarily unavailable, please refresh the model list before generating it again.</p>}
                 </div>
             }>
-                <button type="button" className="shrink-0 rounded px-1 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ color: theme.node.muted }} aria-label="视频参考单价" title={priceLines.join("\n") || "价格暂不可用，请刷新模型列表后再生成。"}>
-                    {priceLines.length ? "价格" : "价格暂不可用"}
+                <button type="button" className="shrink-0 rounded px-1 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ color: theme.node.muted }} aria-label="Video reference unit price" title={priceLines.join("\n") || "The price is temporarily unavailable, please refresh the model list before generating it again."}>
+                    {priceLines.length ? "price" : "Price is not available yet"}
                 </button>
             </Popover> : null}
         </div>
@@ -288,9 +288,9 @@ export function ModelPicker({
 }
 
 function emptyModelLabel(config: AiConfig, capability?: ModelCapability) {
-    const label = capability === "image" ? "生图" : capability === "video" ? "视频" : capability === "text" ? "文本" : capability === "audio" ? "音频" : "";
-    if (capability && config.models.length) return `暂无支持当前输入的${label}模型`;
-    return config.models.length ? `暂无匹配的${label}模型` : "当前没有可用模型，请联系管理员或检查模型配置";
+    const label = capability === "image" ? "raw picture" : capability === "video" ? "video" : capability === "text" ? "text" : capability === "audio" ? "Audio" : "";
+    if (capability && config.models.length) return `There is currently no support for the current input${label}model`;
+    return config.models.length ? `No matching yet${label}model` : "There are currently no models available, please contact the administrator or check the model configuration";
 }
 
 function ModelLabel({

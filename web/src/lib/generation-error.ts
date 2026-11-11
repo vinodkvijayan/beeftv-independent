@@ -142,7 +142,7 @@ export function explainGenerationError(error: unknown, context: GenerationFailur
     return {
         category: classified.category,
         httpStatus: classified.status,
-        summary: ["local_storage", "local_disk_full"].includes(classified.category) || Boolean(resourceStorageFailureMessage(rawSummary)) ? copy.reason : sanitizedSummary.includes("[已隐藏]") || sanitizedSummary.includes("[路径已隐藏]") || /[{}]/.test(sanitizedSummary) || /(?<![A-Za-z0-9._-])\/+(?!v\d+\/)[A-Za-z0-9._-]+\/[A-Za-z0-9._/-]+/.test(sanitizedSummary) ? "" : sanitizedSummary,
+        summary: ["local_storage", "local_disk_full"].includes(classified.category) || Boolean(resourceStorageFailureMessage(rawSummary)) ? copy.reason : sanitizedSummary.includes("[hidden]") || sanitizedSummary.includes("[path hidden]") || /[{}]/.test(sanitizedSummary) || /(?<![A-Za-z0-9._-])\/+(?!v\d+\/)[A-Za-z0-9._-]+\/[A-Za-z0-9._/-]+/.test(sanitizedSummary) ? "" : sanitizedSummary,
         reason: copy.reason,
         action: copy.action,
         message: message || DEFAULT_GENERATION_ERROR_MESSAGE,
@@ -281,7 +281,7 @@ function normalizeComparableText(value: string) {
 function cleanUpstreamCandidate(raw: string | undefined, explanation: GenerationFailureExplanation): string {
     if (!raw || resourceStorageFailureMessage(raw) || /<\/?[a-z!][^>]*>/i.test(raw)) return "";
     const sanitized = sanitizeProviderText(providerPayloadMessage(raw));
-    if (sanitized.includes("[已隐藏]") || sanitized.includes("[路径已隐藏]") || /[{}]/.test(sanitized) || /(?<![A-Za-z0-9._-])\/+(?!v\d+\/)[A-Za-z0-9._-]+\/[A-Za-z0-9._/-]+/.test(sanitized)) return "";
+    if (sanitized.includes("[hidden]") || sanitized.includes("[path hidden]") || /[{}]/.test(sanitized) || /(?<![A-Za-z0-9._-])\/+(?!v\d+\/)[A-Za-z0-9._-]+\/[A-Za-z0-9._/-]+/.test(sanitized)) return "";
     const cleaned = sanitized
         .replace(/\{\s*\[已隐藏\]/g, "")
         .replace(/\[已隐藏\]/g, "")
@@ -327,7 +327,7 @@ export function formatUpstreamFailureDetail(explanation: GenerationFailureExplan
             !isGenericProviderCode(rawCode) &&
             !detail.toLowerCase().includes(rawCode.toLowerCase()),
     );
-    return `上游返回：${detail}${showCode ? ` (${rawCode})` : ""}`;
+    return `Upstream return:${detail}${showCode ? ` (${rawCode})` : ""}`;
 }
 
 export function formatGenerationDiagnostics(explanation: GenerationFailureExplanation, context: GenerationFailureContext = {}) {
@@ -337,61 +337,61 @@ export function formatGenerationDiagnostics(explanation: GenerationFailureExplan
     const model = sanitizeProviderCode(evidence?.input?.model || context.model || "");
     const createdAt = context.createdAt && /^\d{4}-\d{2}-\d{2}[T ][\d:.+Z-]{5,35}$/.test(context.createdAt) ? context.createdAt : "";
     const lines = [
-        "排查信息版本：3",
+        "Troubleshooting information version: 3",
         ...supportDiagnosticIdentity(context, { appVersion: import.meta.env.VITE_APP_VERSION, buildCommit: import.meta.env.VITE_BUILD_COMMIT }),
-        `原因：${sanitizeProviderText(explanation.reason)}`,
-        explanation.action ? `下一步：${sanitizeProviderText(explanation.action)}` : "",
-        `类别：${explanation.category}`,
-        explanation.category === "local_credential" ? `失败阶段：读取本地算力凭据${explanation.summary?.includes("尚未提交生成") ? "（尚未提交生成）" : ""}` : "",
-        `错误来源：${explanation.category === "local_credential" ? "本地算力连接" : explanation.category === "local_disk_full" ? "本地磁盘写入" : explanation.category === "local_storage" ? "本地任务存储" : ({ local_validation: "本地参数校验", local_network: "本地网络", upstream_http: "上游 HTTP 响应", upstream_response: "上游业务响应", local_result: "本地结果处理", local_response: "本地响应大小限制", reference_upload: "参考素材上传", client_result: "画布应用结果", unknown: "未记录" } as Record<string, string>)[evidence?.source || "unknown"] || "未记录"}`,
-        `错误摘要：${sanitizeProviderText(evidence?.summary || context.errorSummary || explanation.summary || "") || "未记录"}`,
-        evidence && ["upstream_http", "upstream_response", "reference_upload"].includes(evidence.source) && sanitizeProviderCode(evidence.providerCode || "") ? `${evidence.source === "reference_upload" ? "存储返回代码" : "上游代码"}：${sanitizeProviderCode(evidence.providerCode || "")}` : "",
-        evidence?.httpStatus && Number.isInteger(evidence.httpStatus) && evidence.httpStatus >= 100 && evidence.httpStatus <= 599 ? `HTTP 状态：${evidence.httpStatus}` : "",
-        !evidence?.httpStatus && explanation.httpStatus ? `HTTP 状态：${explanation.httpStatus}` : "",
-        sanitizeProviderCode(evidence?.param || "") ? `参数：${sanitizeProviderCode(evidence?.param || "")}` : "",
-        sanitizeProviderText(evidence?.stage || context.stage || "") ? `失败阶段：${sanitizeProviderText(evidence?.stage || context.stage || "")}` : "",
-        taskId ? `任务 ID：${taskId}` : "",
-        `请求 ID：${requestId || "未记录"}`,
-        sanitizeDebugId(evidence?.providerTaskId) ? `上游任务 ID：${sanitizeDebugId(evidence?.providerTaskId)}` : "",
-        sanitizeDebugId(context.providerRequestId) ? `服务端关联 ID：${sanitizeDebugId(context.providerRequestId)}` : "",
-        model ? `模型：${model}` : "",
-        evidence?.version ? `运行版本：${diagnosticToken(evidence.version)} (${diagnosticToken(evidence.platform || "")})` : "",
-        evidence?.executionResult ? `生成执行：${evidence.executionResult === "completed" ? "完成" : evidence.executionResult === "pending" ? "等待回查" : evidence.executionResult === "failed" ? "未完成" : "未知"}` : "",
+        `Reason:${sanitizeProviderText(explanation.reason)}`,
+        explanation.action ? `Next step:${sanitizeProviderText(explanation.action)}` : "",
+        `Category:${explanation.category}`,
+        explanation.category === "local_credential" ? `Failure stage: reading local computing power credentials${explanation.summary?.includes("The build has not been submitted yet") ? "(Not yet submitted for generation)" : ""}` : "",
+        `Error source:${explanation.category === "local_credential" ? "Local computing power connection" : explanation.category === "local_disk_full" ? "local disk write" : explanation.category === "local_storage" ? "Local task storage" : ({ local_validation: "Local parameter verification", local_network: "local network", upstream_http: "Upstream HTTP response", upstream_response: "Upstream business response", local_result: "local result processing", local_response: "Local response size limit", reference_upload: "Reference material upload", client_result: "Canvas application results", unknown: "Not recorded" } as Record<string, string>)[evidence?.source || "unknown"] || "Not recorded"}`,
+        `Error summary:${sanitizeProviderText(evidence?.summary || context.errorSummary || explanation.summary || "") || "Not recorded"}`,
+        evidence && ["upstream_http", "upstream_response", "reference_upload"].includes(evidence.source) && sanitizeProviderCode(evidence.providerCode || "") ? `${evidence.source === "reference_upload" ? "Store return code" : "upstream code"}：${sanitizeProviderCode(evidence.providerCode || "")}` : "",
+        evidence?.httpStatus && Number.isInteger(evidence.httpStatus) && evidence.httpStatus >= 100 && evidence.httpStatus <= 599 ? `HTTP status:${evidence.httpStatus}` : "",
+        !evidence?.httpStatus && explanation.httpStatus ? `HTTP status:${explanation.httpStatus}` : "",
+        sanitizeProviderCode(evidence?.param || "") ? `Parameters:${sanitizeProviderCode(evidence?.param || "")}` : "",
+        sanitizeProviderText(evidence?.stage || context.stage || "") ? `Failure stage:${sanitizeProviderText(evidence?.stage || context.stage || "")}` : "",
+        taskId ? `Task ID:${taskId}` : "",
+        `Request ID:${requestId || "Not recorded"}`,
+        sanitizeDebugId(evidence?.providerTaskId) ? `Upstream task ID:${sanitizeDebugId(evidence?.providerTaskId)}` : "",
+        sanitizeDebugId(context.providerRequestId) ? `Server association ID:${sanitizeDebugId(context.providerRequestId)}` : "",
+        model ? `Model:${model}` : "",
+        evidence?.version ? `Running version:${diagnosticToken(evidence.version)} (${diagnosticToken(evidence.platform || "")})` : "",
+        evidence?.executionResult ? `Generate execution:${evidence.executionResult === "completed" ? "Done" : evidence.executionResult === "pending" ? "Waiting for review" : evidence.executionResult === "failed" ? "Not completed" : "unknown"}` : "",
         ...formatExecutionEvidence(evidence),
-        createdAt ? `任务创建时间：${createdAt}` : "",
-        ...[["错误记录时间", evidence?.capturedAt], ["任务结束时间", context.completedAt], ["任务更新时间", context.updatedAt]].flatMap(([label, value]) => value && /^\d{4}-\d{2}-\d{2}[T ][\d:.+Z-]{5,35}$/.test(value) ? [`${label}：${value}`] : []),
+        createdAt ? `Task creation time:${createdAt}` : "",
+        ...[["Error logging time", evidence?.capturedAt], ["Task end time", context.completedAt], ["Task update time", context.updatedAt]].flatMap(([label, value]) => value && /^\d{4}-\d{2}-\d{2}[T ][\d:.+Z-]{5,35}$/.test(value) ? [`${label}：${value}`] : []),
     ].filter(Boolean);
     return lines.join("\n");
 }
 
 function formatExecutionEvidence(evidence?: GenerationFailureDiagnostics): string[] {
     const lines: string[] = [];
-    const number = (n: number | undefined) => Number.isSafeInteger(n) && n! >= 0 ? String(n) : "未知";
+    const number = (n: number | undefined) => Number.isSafeInteger(n) && n! >= 0 ? String(n) : "unknown";
     const input = evidence?.input;
     if (input) {
-        lines.push(`任务配置（协议可能转换或省略）：协议=${diagnosticToken(input.protocol)}，模型=${diagnosticToken(input.model)}，尺寸=${diagnosticToken(input.size)}，质量=${diagnosticToken(input.quality)}，数量=${diagnosticToken(input.count)}`);
-        lines.push(`输入统计：提示词 ${number(input.promptChars)} 字；图片/视频/音频 ${number(input.imageCount)}/${number(input.videoCount)}/${number(input.audioCount)}`);
-        if (input.imageLimitsRecorded) lines.push(`本地参考图限制：最多 ${number(input.maxImages)} 张，单图字节上限=${number(input.maxImageBytes)}（字节上限为 0 表示未设置大小限制）`);
-        input.images?.slice(0, 16).forEach((media, i) => lines.push(`参考图 ${i + 1}：${number(media.width)}×${number(media.height)}，${number(media.bytes)} 字节`));
+        lines.push(`Task configuration (protocol may be converted or omitted): protocol=${diagnosticToken(input.protocol)}, model =${diagnosticToken(input.model)}, size=${diagnosticToken(input.size)}, quality =${diagnosticToken(input.quality)}, quantity =${diagnosticToken(input.count)}`);
+        lines.push(`Enter statistics: prompt word${number(input.promptChars)} Words; pictures/video/audio${number(input.imageCount)}/${number(input.videoCount)}/${number(input.audioCount)}`);
+        if (input.imageLimitsRecorded) lines.push(`Local reference map limit: max.${number(input.maxImages)} Zhang, the upper limit of single image bytes=${number(input.maxImageBytes)}(A byte limit of 0 means no size limit is set)`);
+        input.images?.slice(0, 16).forEach((media, i) => lines.push(`Reference picture${i + 1}：${number(media.width)}×${number(media.height)}，${number(media.bytes)} Bytes`));
     }
-    const outcomes: Record<string, string> = { response_received: "收到响应（业务结果另判）", transport_error: "传输或读取失败", not_dispatched: "请求未发送", http_error: "HTTP 错误", cancelled: "取消", timeout: "超时", business_error: "业务错误", response_limit: "本地响应大小限制" };
-    const phases: Record<string, string> = { dns: "DNS 解析", connect: "建立连接", tls: "TLS 握手", request: "发送请求", response_wait: "等待响应", response: "读取响应" };
-    const routes: Record<string, string> = { direct: "直连", proxy: "代理" };
-    const preparationOperations: Record<string, string> = { reference_create: "申请素材上传", reference_put: "上传素材文件", reference_complete: "确认素材上传" };
+    const outcomes: Record<string, string> = { response_received: "Response received (business results will be determined separately)", transport_error: "Transfer or read failed", not_dispatched: "Request not sent", http_error: "HTTP error", cancelled: "Cancel", timeout: "timeout", business_error: "business error", response_limit: "Local response size limit" };
+    const phases: Record<string, string> = { dns: "DNS resolution", connect: "Establish connection", tls: "TLS handshake", request: "Send request", response_wait: "Waiting for response", response: "Read response" };
+    const routes: Record<string, string> = { direct: "direct connection", proxy: "agent" };
+    const preparationOperations: Record<string, string> = { reference_create: "Application material upload", reference_put: "Upload material files", reference_complete: "Confirm material upload" };
     evidence?.requests?.slice(0, 8).forEach((request, i) => {
-        lines.push(`请求 ${i + 1}：${preparationOperations[request.operation] || sanitizeProviderCode(request.operation)}；${outcomes[request.outcome] || "未知"}；已发起=${request.dispatched === true ? "是" : "否"}；HTTP=${number(request.httpStatus)}；ID=${sanitizeDebugId(request.requestId) || "未记录"}；耗时=${number(request.durationMs)}ms`);
-        lines.push(`请求 ${i + 1} 字节：请求体大小=${number(request.requestBytes)}（不代表已发送）；响应声明=${number(request.declaredResponseBytes)}；已读=${number(request.receivedBytes)}；响应上限=${number(request.responseLimitBytes)}`);
-        if (phases[request.transportPhase || ""]) lines.push(`请求 ${i + 1} 连接：${routes[request.transportRoute || ""] || "未记录"}；阶段=${phases[request.transportPhase!]}`);
-        if (/^\d{4}-\d{2}-\d{2}[T ][\d:.+Z-]{5,35}$/.test(request.startedAt)) lines.push(`请求 ${i + 1} 时间：${request.startedAt}`);
-        if (sanitizeProviderCode(request.providerCode || "")) lines.push(`请求 ${i + 1} 上游代码：${sanitizeProviderCode(request.providerCode || "")}`);
-        if (request.summary) lines.push(`请求 ${i + 1} 摘要：${sanitizeProviderText(request.summary)}`);
+        lines.push(`Request${i + 1}：${preparationOperations[request.operation] || sanitizeProviderCode(request.operation)}；${outcomes[request.outcome] || "unknown"};Initiated=${request.dispatched === true ? "Yes" : "No"}；HTTP=${number(request.httpStatus)}；ID=${sanitizeDebugId(request.requestId) || "Not recorded"}; Time consuming =${number(request.durationMs)}ms`);
+        lines.push(`Request${i + 1} Bytes: request body size =${number(request.requestBytes)}(does not mean sent); response statement =${number(request.declaredResponseBytes)};Read=${number(request.receivedBytes)};Response upper limit =${number(request.responseLimitBytes)}`);
+        if (phases[request.transportPhase || ""]) lines.push(`Request${i + 1} Connection:${routes[request.transportRoute || ""] || "Not recorded"}; stage =${phases[request.transportPhase!]}`);
+        if (/^\d{4}-\d{2}-\d{2}[T ][\d:.+Z-]{5,35}$/.test(request.startedAt)) lines.push(`Request${i + 1} Time:${request.startedAt}`);
+        if (sanitizeProviderCode(request.providerCode || "")) lines.push(`Request${i + 1} Upstream code:${sanitizeProviderCode(request.providerCode || "")}`);
+        if (request.summary) lines.push(`Request${i + 1} Summary:${sanitizeProviderText(request.summary)}`);
     });
-    if (evidence?.omittedRequests) lines.push(`中间请求省略：${number(evidence.omittedRequests)}`);
+    if (evidence?.omittedRequests) lines.push(`Intermediate requests are omitted:${number(evidence.omittedRequests)}`);
     return lines;
 }
 
 function diagnosticToken(value?: string): string {
-    return value && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$/.test(value) && !value.includes("://") && !/(?:bearer|api[_-]?key|secret|token|sk-|^[a-z]:[\\/]|\/+(?:Users|home|private|tmp|var|Volumes|mnt|media|run|root|opt|srv|etc|data|app|workspace|usr|proc|sys|dev|lib|bin|sbin)\/)/i.test(value) ? value : "未记录";
+    return value && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$/.test(value) && !value.includes("://") && !/(?:bearer|api[_-]?key|secret|token|sk-|^[a-z]:[\\/]|\/+(?:Users|home|private|tmp|var|Volumes|mnt|media|run|root|opt|srv|etc|data|app|workspace|usr|proc|sys|dev|lib|bin|sbin)\/)/i.test(value) ? value : "Not recorded";
 }
 
 export function isGenerationErrorCode(code: string) {
@@ -419,7 +419,7 @@ function classifyUnknown(error: unknown, context: GenerationFailureContext): Cla
         if (record.reason === "local_disk_full") return { category: "local_disk_full", status: numericStatus(record.status), fromCode: true, retryable: false };
         if (record.reason === "local_storage_failed") return { category: "local_storage", ...LOCAL_TASK_ADMISSION_FAILURE, fromCode: true, retryable: false };
         if (record.name === "ApiError" && record.reason === "quota_exceeded") {
-            return { category: "quota_limit", reason: sanitizeProviderText(String(record.message || "工作区用量已达到上限")), action: "请清理不需要的任务记录或素材后重试", fromCode: true, retryable: false };
+            return { category: "quota_limit", reason: sanitizeProviderText(String(record.message || "Workspace usage has reached the upper limit")), action: "Please clear unnecessary task records or materials and try again", fromCode: true, retryable: false };
         }
         if (record.reason === "stale_revision" || record.code === "canvas_conflict") {
             return { category: "canvas_conflict", fromCode: true, retryable: false };
@@ -516,19 +516,19 @@ function classifyHttp(status: number | undefined, body: unknown): Classified {
         if (status === 524) {
             classified.category = "timeout";
             classified.uncertain = true;
-            classified.reason = "模型服务响应超时，请求可能仍在服务端执行";
-            classified.action = "请先查询原任务或到供应商核对状态，不要立即重新提交";
+            classified.reason = "The model service response timed out and the request may still be executed on the server.";
+            classified.action = "Please check the original task or go to the supplier to check the status first. Do not resubmit immediately.";
         }
     }
     if (status === 524 && (classified.category === "unknown" || classified.category === "timeout" || classified.category === "provider_unavailable" || classified.category === "malformed_response")) {
         classified.category = "timeout";
         classified.uncertain = true;
-        classified.reason = "模型服务响应超时，请求可能仍在服务端执行";
-        classified.action = "请先查询原任务或到供应商核对状态，不要立即重新提交";
+        classified.reason = "The model service response timed out and the request may still be executed on the server.";
+        classified.action = "Please check the original task or go to the supplier to check the status first. Do not resubmit immediately.";
     }
     if (status === 413 && classified.category === "input_too_large" && !classified.reason) {
-        classified.reason = "整次请求的数据量超过接口上限";
-        classified.action = "请减少参考素材，或改用可公开访问的素材链接后再提交";
+        classified.reason = "The amount of data requested exceeds the upper limit of the interface";
+        classified.action = "Please reduce the number of reference materials or use publicly accessible material links before submitting.";
     }
     classified.status = status;
     classified.retryable = retryableCategory(classified.category) && !classified.uncertain;
@@ -560,7 +560,7 @@ function classifyText(raw: string): Classified {
     if (mediaCopy) {
         const debug = text.match(/。排查编号：([^。]+)。?$/)?.[1] || "";
         return {
-            category: mediaCopy.reason.includes("过大") ? "input_too_large" : "invalid_params",
+            category: mediaCopy.reason.includes("Too big") ? "input_too_large" : "invalid_params",
             ...mediaCopy,
             fromCode: true,
             requestId: sanitizeDebugId(debug.match(/(?:^| · )请求 ([A-Za-z0-9._:-]{6,127})$/)?.[1]),
@@ -696,7 +696,7 @@ function specialize(classified: Classified, fields: ExtractedFields): Classified
     const audioOrDuration = referenceAudioCopy(fields.message, normalizeCode(fields.code) === "invalid_reference_audio") || referenceDurationCopy(fields.message);
     if (audioOrDuration) return { ...classified, category: "invalid_params", ...audioOrDuration, fromCode: true, retryable: false };
     const mediaCopy = ["unknown", "invalid_params", "input_too_large", "input_inaccessible"].includes(classified.category) ? referenceMediaConstraintCopy(fields.message) : undefined;
-    if (mediaCopy) return { ...classified, category: mediaCopy.reason.includes("过大") ? "input_too_large" : "invalid_params", ...mediaCopy, fromCode: true, retryable: false };
+    if (mediaCopy) return { ...classified, category: mediaCopy.reason.includes("Too big") ? "input_too_large" : "invalid_params", ...mediaCopy, fromCode: true, retryable: false };
     if (classified.category === "invalid_params") {
         const refined = categoryFromProviderMessage(fields.message);
         if (refined === "context_too_long" || refined === "input_inaccessible" || refined === "input_too_large" || refined === "model_missing") classified.category = refined;
@@ -706,29 +706,29 @@ function specialize(classified: Classified, fields: ExtractedFields): Classified
     if (classified.category === "invalid_params") {
         const duration = fields.message.match(/duration\s+(?:must|should)\s+be\s+between\s+(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)?\s+and\s+(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)\b/i);
         if (duration && Number(duration[1]) <= Number(duration[2])) {
-            const reference = fields.message.includes("素材") || /reference|audio/i.test(fields.message);
-            classified.reason = reference ? "参考素材时长不符合模型要求" : "视频时长不符合模型要求";
-            classified.action = reference ? `请检查每段参考音频和视频，将不符合要求的素材调整为 ${duration[1]}–${duration[2]} 秒后重新提交` : `请将时长调整为 ${duration[1]}–${duration[2]} 秒后重试`;
+            const reference = fields.message.includes("Material") || /reference|audio/i.test(fields.message);
+            classified.reason = reference ? "The duration of the reference material does not meet the model requirements" : "The video length does not meet the model requirements";
+            classified.action = reference ? `Please check each reference audio and video and adjust the material that does not meet the requirements to${duration[1]}–${duration[2]} Resubmit after seconds` : `Please adjust the duration to${duration[1]}–${duration[2]} Try again in seconds`;
         }
         const height = fields.message.match(/height\s+(?:must|should)\s+be\s+between\s+(\d+)\s*(?:px|pixels?)?\s+and\s+(\d+)\s*(?:px|pixels?)/i);
         if (height) {
-            classified.reason = "参考素材高度不符合模型要求";
-            classified.action = `请将高度调整为 ${height[1]}–${height[2]} 像素后重新提交`;
+            classified.reason = "The height of the reference material does not meet the model requirements";
+            classified.action = `Please adjust the height to${height[1]}–${height[2]} Resubmit after pixel`;
         }
         const width = fields.message.match(/width\s+(?:must|should)\s+be\s+between\s+(\d+)\s*(?:px|pixels?)?\s+and\s+(\d+)\s*(?:px|pixels?)/i);
         if (width && !height) {
-            classified.reason = "参考素材宽度不符合模型要求";
-            classified.action = `请将宽度调整为 ${width[1]}–${width[2]} 像素后重新提交`;
+            classified.reason = "The width of the reference material does not meet the model requirements";
+            classified.action = `Please adjust the width to${width[1]}–${width[2]} Resubmit after pixel`;
         }
         const aspect = fields.message.match(/aspect(?:\s*ratio)?\s+(?:must|should)\s+be\s+between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)/i);
         if (aspect) {
-            classified.reason = "参考素材宽高比不符合模型要求";
-            classified.action = `请将宽高比调整为 ${aspect[1]}–${aspect[2]} 后重新提交`;
+            classified.reason = "The aspect ratio of the reference material does not meet the model requirements";
+            classified.action = `Please adjust the aspect ratio to${aspect[1]}–${aspect[2]} resubmit`;
         }
         const pixels = fields.message.match(/(?:pixel(?:s)?(?:\s+count)?|total\s+pixels)\s+(?:must|should)\s+be\s+between\s+(\d+)\s+and\s+(\d+)/i);
         if (pixels) {
-            classified.reason = "参考素材像素总量不符合模型要求";
-            classified.action = `请将参考素材的宽×高调整到 ${pixels[1]}–${pixels[2]} 像素；修改生成分辨率不会改变参考素材`;
+            classified.reason = "The total number of pixels in the reference material does not meet the model requirements.";
+            classified.action = `Please adjust the width × height of the reference material to${pixels[1]}–${pixels[2]} Pixels; modifying the generated resolution does not change the reference material`;
         }
     }
     if (classified.category === "input_too_large") {
@@ -736,17 +736,17 @@ function specialize(classified: Classified, fields: ExtractedFields): Classified
             normalizeCode(fields.code) === "video_request_body_too_large" ||
             /(?:request\s+(?:body|entity|payload)|payload)\s+(?:is\s+)?too\s+large|(?:request|payload).{0,24}(?:exceeds?|larger than)/i.test(fields.message)
         ) {
-            classified.reason = "整次请求的数据量超过接口上限";
-            classified.action = "请减少参考素材，或改用可公开访问的素材链接后再提交";
+            classified.reason = "The amount of data requested exceeds the upper limit of the interface";
+            classified.action = "Please reduce the number of reference materials or use publicly accessible material links before submitting.";
         } else if (/(?:file|image|video|audio)\s+too\s+large/i.test(fields.message)) {
-            classified.reason = "单个参考文件过大";
-            classified.action = "请压缩或更换该素材后再提交";
+            classified.reason = "Single reference file is too large";
+            classified.action = "Please compress or replace the material before submitting it";
         }
     }
     if (((normalized.includes("thinking") || normalized.includes("reasoning")) && normalized.includes("tool_choice")) || (normalized.includes("tool_choice") && (normalized.includes("not support") || normalized.includes("unsupported")))) {
         classified.category = "invalid_params";
-        classified.reason = "当前模型为思考或推理模式，不支持强制工具调用";
-        classified.action = "请改用自动工具选择或更换非思考模式模型";
+        classified.reason = "The current model is in thinking or reasoning mode and does not support forced tool calls.";
+        classified.action = "Please use automatic tools to select or replace non-thinking mode models instead";
     }
     if (classified.reason) classified.fromCode = true;
     if (classified.category === "invalid_params" && !classified.reason) {
@@ -761,9 +761,9 @@ function specialize(classified: Classified, fields: ExtractedFields): Classified
 }
 
 const REFERENCE_PREPARATION_COPY: Record<string, CategoryCopy> = {
-    image_reference_upload_failed: { reason: "参考图片上传失败，本次尚未开始生成", action: "请稍后重试" },
-    reference_media_upload_failed: { reason: "参考素材上传失败，本次尚未开始生成", action: "请检查对象存储配置和公开读取权限后重试" },
-    reference_preupload_failed: { reason: "参考素材上传失败，本次尚未开始生成", action: "请检查网络或稍后重试" },
+    image_reference_upload_failed: { reason: "The reference image upload failed and the generation has not started yet.", action: "Please try again later" },
+    reference_media_upload_failed: { reason: "The reference material upload failed and the generation has not started yet.", action: "Please check the object storage configuration and public read permissions and try again" },
+    reference_preupload_failed: { reason: "The reference material upload failed and the generation has not started yet.", action: "Please check the network or try again later" },
 };
 
 function persistedReferencePreparation(raw: string): Classified | undefined {
@@ -787,11 +787,11 @@ function confirmedReferencePreparation(classified: Classified) {
 function resourceStorageFailureMessage(value: string) {
     if (!value) return "";
     if (isLocalRuntimeMode() && /(?:参考(?:图片|媒体)上传失败|OSS 上传失败|对象存储|腾讯云 COS|七牛云)/i.test(value)) {
-        return "本地参考素材保存失败，请检查本地资源目录后重试。";
+        return "The local reference material failed to save, please check the local resource directory and try again.";
     }
-    if (/\bUserDisable\b/i.test(value)) return "对象存储账号已停用，请检查或更换对象存储配置。";
+    if (/\bUserDisable\b/i.test(value)) return "The object storage account has been deactivated. Please check or change the object storage configuration.";
     if (/(?:参考(?:图片|媒体)上传失败|OSS 上传失败|对象存储|腾讯云 COS|七牛云)/i.test(value)) {
-        return "参考素材上传到对象存储失败，请检查对象存储配置后重试。";
+        return "The reference material failed to be uploaded to object storage. Please check the object storage configuration and try again.";
     }
     return "";
 }

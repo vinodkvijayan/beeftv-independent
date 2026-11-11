@@ -37,12 +37,12 @@ type AssistantRow = {
 };
 
 const rows: Array<CapabilityRow | AssistantRow> = [
-    { kind: "capability", id: "image", capability: "image", modelKey: "imageModel", title: "默认生图模型", icon: Image },
-    { kind: "capability", id: "video", capability: "video", modelKey: "videoModel", title: "默认视频模型", icon: Film },
-    { kind: "capability", id: "text", capability: "text", modelKey: "textModel", title: "默认文本模型", icon: MessageSquareText },
-    { kind: "assistant", id: "assistant", modelKey: "assistantModel", title: "助手模型", icon: Bot },
-    { kind: "media-review", id: "multimodal", modelKey: "mediaReviewModel", title: "默认多模态模型", icon: ScanEye },
-    { kind: "capability", id: "audio", capability: "audio", modelKey: "audioModel", title: "默认音频模型", icon: AudioLines },
+    { kind: "capability", id: "image", capability: "image", modelKey: "imageModel", title: "Default graph model", icon: Image },
+    { kind: "capability", id: "video", capability: "video", modelKey: "videoModel", title: "Default video model", icon: Film },
+    { kind: "capability", id: "text", capability: "text", modelKey: "textModel", title: "Default text model", icon: MessageSquareText },
+    { kind: "assistant", id: "assistant", modelKey: "assistantModel", title: "helper model", icon: Bot },
+    { kind: "media-review", id: "multimodal", modelKey: "mediaReviewModel", title: "Default multimodal model", icon: ScanEye },
+    { kind: "capability", id: "audio", capability: "audio", modelKey: "audioModel", title: "Default audio model", icon: AudioLines },
 ];
 
 export function ModelDefaultGrid({ config, onChange, onOpenChannels }: { config: AiConfig; onChange: (key: DefaultModelKey, model: string) => void; onOpenChannels?: () => void }) {
@@ -68,11 +68,11 @@ export function ModelDefaultGrid({ config, onChange, onOpenChannels }: { config:
                     const model = group.models.includes(selected) ? selected : group.models[0];
                     const label = modelDisplayName(config, model);
                     const modelChannel = resolveModelChannel(config, model);
-                    const channel = isBuiltinBeefTVChannel(modelChannel) ? "BeefTV" : modelChannel.name || "未命名渠道";
+                    const channel = isBuiltinBeefTVChannel(modelChannel) ? "BeefTV" : modelChannel.name || "unnamed channel";
                     return { value: model, label, searchLabel: `${label} ${channel}`, channel };
                 });
-                if (isAssistant) options.unshift({ value: "", label: "跟随默认文本模型", searchLabel: "跟随默认文本模型", channel: "" });
-                if (isMediaReview) options.unshift({ value: "", label: "不使用独立多模态模型", searchLabel: "不使用独立多模态模型", channel: "" });
+                if (isAssistant) options.unshift({ value: "", label: "Follow the default text model", searchLabel: "Follow the default text model", channel: "" });
+                if (isMediaReview) options.unshift({ value: "", label: "Not using independent multimodal models", searchLabel: "Not using independent multimodal models", channel: "" });
                 const unavailable = isAssistant || isMediaReview ? Boolean(config[row.modelKey] && !selected) : Boolean(selected && !options.some((option) => option.value === selected));
                 const value = unavailable ? undefined : (isAssistant || isMediaReview) && !config[row.modelKey] ? "" : options.some((option) => option.value === selected) ? selected : undefined;
                 const Icon = row.icon;
@@ -92,7 +92,7 @@ export function ModelDefaultGrid({ config, onChange, onOpenChannels }: { config:
                                 data-model-picker-id={row.id}
                                 value={value}
                                 options={options}
-                                placeholder={unavailable ? "已选模型不可用，请重新选择" : options.length ? "选择模型" : "暂无可用模型"}
+                                placeholder={unavailable ? "The selected model is unavailable, please select again" : options.length ? "Select model" : "No models available yet"}
                                 disabled={!options.length}
                                 showSearch={{ optionFilterProp: "searchLabel" }}
                                 listHeight={256}
@@ -110,7 +110,7 @@ export function ModelDefaultGrid({ config, onChange, onOpenChannels }: { config:
                                     onChange(row.modelKey, model);
                                 }}
                             />
-                            {!options.length && localMode && onOpenChannels ? <Button type="link" size="small" onClick={onOpenChannels}>添加模型渠道</Button> : null}
+                            {!options.length && localMode && onOpenChannels ? <Button type="link" size="small" onClick={onOpenChannels}>Add model channel</Button> : null}
                         </div>
                     </section>
                 );

@@ -51,7 +51,7 @@ export async function listWorkspaceAssetFolders() {
 
 export async function createWorkspaceAssetFolder(name: string) {
     const trimmed = name.trim();
-    if (!trimmed) throw new Error("请输入分类名称");
+    if (!trimmed) throw new Error("Please enter the category name");
     if (!usesWorkspaceAssetFolderApi()) {
         const folders = await readLocalFolders(getActiveUserScope());
         const now = new Date().toISOString();
@@ -65,8 +65,8 @@ export async function createWorkspaceAssetFolder(name: string) {
 export async function renameWorkspaceAssetFolder(id: string, name: string) {
     const folderId = id.trim();
     const trimmed = name.trim();
-    if (!folderId) throw new Error("素材分类 ID 不能为空");
-    if (!trimmed) throw new Error("请输入分类名称");
+    if (!folderId) throw new Error("Material classification ID cannot be empty");
+    if (!trimmed) throw new Error("Please enter the category name");
     if (!usesWorkspaceAssetFolderApi()) {
         const folders = await readLocalFolders(getActiveUserScope());
         const now = new Date().toISOString();
@@ -79,7 +79,7 @@ export async function renameWorkspaceAssetFolder(id: string, name: string) {
 
 export async function deleteWorkspaceAssetFolder(id: string) {
     const folderId = id.trim();
-    if (!folderId) throw new Error("素材分类 ID 不能为空");
+    if (!folderId) throw new Error("Material classification ID cannot be empty");
     if (!usesWorkspaceAssetFolderApi()) {
         const folders = await readLocalFolders(getActiveUserScope());
         await writeLocalFolders(getActiveUserScope(), folders.filter((folder) => folder.id !== folderId));

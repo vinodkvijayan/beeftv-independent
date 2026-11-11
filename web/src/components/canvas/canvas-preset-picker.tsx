@@ -61,7 +61,7 @@ export function CanvasPresetPicker({
                 {
                     id: `skill:${reference.skill.skillId}`,
                     name: reference.skill.skillName,
-                    description: reference.skill.description || reference.skill.instruction || "已加入技能",
+                    description: reference.skill.description || reference.skill.instruction || "Skills added",
                     prompt: `@${reference.skill.skillName} `,
                     modes: ["text", "image", "video", "audio"],
                     source: "skill",
@@ -81,14 +81,14 @@ export function CanvasPresetPicker({
                 allowClear
                 size="small"
                 prefix={<Search className="size-3.5" />}
-                placeholder="搜索预设或已加入技能"
+                placeholder="Search for presets or added skills"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
             />
             {trimmedCurrentPrompt ? (
                 <button
                     type="button"
-                    aria-label="保存当前提示词为预设"
+                    aria-label="Save current prompt word as default"
                     className="mt-1 flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs font-medium transition-colors"
                     style={{ background: theme.accent.primarySoft, color: theme.accent.primary }}
                     onClick={() => {
@@ -101,7 +101,7 @@ export function CanvasPresetPicker({
                     }}
                 >
                     <Plus className="size-3.5 shrink-0" />
-                    <span className="truncate">＋ 保存当前提示词为预设</span>
+                    <span className="truncate">+ Save the current prompt word as default</span>
                 </button>
             ) : null}
             <div className="thin-scrollbar mt-1 max-h-72 space-y-0.5 overflow-y-auto">
@@ -123,7 +123,7 @@ export function CanvasPresetPicker({
                                     <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: theme.node.text }}>
                                         <span className="truncate">{preset.name}</span>
                                         <span className="shrink-0 text-[var(--fs-micro)] font-medium" style={{ color: theme.accent.primary }}>
-                                            {preset.custom ? "我的预设" : preset.source === "skill" ? "技能" : "预设"}
+                                            {preset.custom ? "my default" : preset.source === "skill" ? "Skills" : "Default"}
                                         </span>
                                     </span>
                                     <span className="mt-0.5 block truncate text-[var(--fs-tiny)] leading-4" style={{ color: theme.node.muted }}>
@@ -134,8 +134,8 @@ export function CanvasPresetPicker({
                             {preset.custom ? (
                                 <button
                                     type="button"
-                                    aria-label={`删除预设 ${preset.name}`}
-                                    title="删除预设"
+                                    aria-label={`Delete preset${preset.name}`}
+                                    title="Delete preset"
                                     className="mr-1.5 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100"
                                     style={{ color: theme.node.muted }}
                                     onClick={(event) => {
@@ -150,7 +150,7 @@ export function CanvasPresetPicker({
                     ))
                 ) : (
                     <div className="py-8 text-center text-xs" style={{ color: theme.node.muted }}>
-                        没有匹配的预设
+                                                No matching preset
                     </div>
                 )}
             </div>
@@ -171,12 +171,12 @@ export function CanvasPresetPicker({
                 type="button"
                 className={`canvas-preset-picker-trigger ${appearance === "quiet" ? "canvas-node-composer-header-action" : ""} inline-flex shrink-0 items-center justify-center gap-1 rounded-lg transition focus-visible:outline-none ${compact ? "size-6" : dense ? "h-6 px-1.5" : "h-7 px-2"}`}
                 style={appearance === "quiet" ? undefined : { background: theme.accent.primarySoft, color: theme.accent.primary }}
-                title={appearance === "quiet" ? "预设" : "打开提示词预设"}
-                aria-label={appearance === "quiet" ? "预设" : "打开提示词预设"}
+                title={appearance === "quiet" ? "Default" : "Open prompt word preset"}
+                aria-label={appearance === "quiet" ? "Default" : "Open prompt word preset"}
                 aria-expanded={actualOpen}
             >
                 {appearance === "quiet" ? <LayoutTemplate className="size-3" /> : <WandSparkles className={dense ? "size-3" : "size-3.5"} />}
-                {compact ? null : <span className="text-[var(--fs-tiny)] font-medium">预设</span>}
+                {compact ? null : <span className="text-[var(--fs-tiny)] font-medium">Default</span>}
             </button>
         </Popover>
     );

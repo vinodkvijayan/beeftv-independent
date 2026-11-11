@@ -158,7 +158,7 @@ function InfiniteCanvasPage() {
     const canvasProjects = useMemo(
         () => workspaceCanvases.map((project, index) => ({
             id: project.id,
-            title: project.canvasTitle?.trim() || `画布 ${index + 1}`,
+            title: project.canvasTitle?.trim() || `canvas${index + 1}`,
         })),
         [workspaceCanvases],
     );
@@ -391,10 +391,10 @@ function InfiniteCanvasPage() {
     // 修复素材关联仍遵守当前画布版本，不能替用户确认覆盖云端的新内容。
     const confirmForceSaveCanvas = useCallback(() => {
         modal.confirm({
-            title: "修复素材关联并保存？",
-            content: "核对画布媒体与素材库的关联，补齐缺失素材后保存。若云端已有新版本，会保留本地草稿并提示加载最新版。",
-            okText: "修复并保存",
-            cancelText: "取消",
+            title: "Repair material association and save?",
+            content: "Check the association between the canvas media and the material library, fill in the missing materials and save them. If there is a new version in the cloud, the local draft will be retained and prompted to load the latest version.",
+            okText: "Repair and save",
+            cancelText: "Cancel",
             onOk: () => forceSaveCanvasProject(),
         });
     }, [forceSaveCanvasProject, modal]);
@@ -694,7 +694,7 @@ function InfiniteCanvasPage() {
     const createUpscaleProcessingNode = useCallback((source: CanvasNodeData) => {
         if (!source.metadata?.content && !source.metadata?.storageKey) {
             if (source.metadata?.workflowOperation?.id.endsWith(".ai-upscale")) void recoverAIUpscale(source).catch(error => message.error(generationErrorMessage(error)));
-            else message.warning("请先选择可读取的图片或视频");
+            else message.warning("Please select a readable image or video first");
             return;
         }
         const plan = planUpscaleProcessingNode(nodesRef.current, connectionsRef.current, source, selectedNodeIdsRef.current);
@@ -871,7 +871,7 @@ function InfiniteCanvasPage() {
     const nodeEditor = useCanvasNodeEditor({
         pageUi,
         canvasId: projectId,
-        canvasTitle: currentProject?.title || "未命名画布",
+        canvasTitle: currentProject?.title || "Unnamed canvas",
         domainProjectId: linkedProjectId,
         nodesRef,
         setNodes,
@@ -899,7 +899,7 @@ function InfiniteCanvasPage() {
     const handleProjectFolderInsert = useCallback(
         (folderId: string) => {
             const folder = linkedProjectQuery.data?.assetFolders.find((item) => item.id === folderId);
-            if (!folder || !linkedProjectId) throw new Error("素材文件夹已不存在，请刷新后重试");
+            if (!folder || !linkedProjectId) throw new Error("The material folder no longer exists, please refresh and try again");
             const { style, theme } = linkedFolderPresentation(folder);
             createFolder(projectAssetInsertPosition, { id: folder.id, projectId: linkedProjectId, title: folder.name, style, theme, createdAt: folder.createdAt });
         },
@@ -1044,7 +1044,7 @@ function InfiniteCanvasPage() {
     const clearCanvas = useCallback(() => {
         const drawingIds = nodesRef.current.flatMap((node) => (node.type === CanvasNodeType.Drawing && node.metadata?.drawingId ? [node.metadata.drawingId] : []));
         if (drawingIds.length) {
-            void Promise.all(drawingIds.map((drawingId) => removeCanvasDrawing(projectId, drawingId))).catch(() => message.warning("画布已清空，但部分本地绘图缓存清理失败"));
+            void Promise.all(drawingIds.map((drawingId) => removeCanvasDrawing(projectId, drawingId))).catch(() => message.warning("Canvas cleared, but part of local drawing cache cleanup failed"));
         }
         setNodes([]);
         setConnections([]);
@@ -1169,7 +1169,7 @@ function InfiniteCanvasPage() {
                 const processor = nodesRef.current.find(item => item.id === node.metadata?.generatedFromProcessingNodeId);
                 if (node.metadata.taskId) void recoverAIUpscale(node).catch(error => message.error(generationErrorMessage(error)));
                 else if (processor) void startUpscaleBatch(processor).catch(error => message.error(generationErrorMessage(error)));
-                else message.info("请在超分处理节点中查询原批次，暂勿重复提交");
+                else message.info("Please query the original batch in the super processing node and do not submit again.");
                 return;
             }
             const plan = canvasNodeRetryPlan(node, nodesRef.current);
@@ -1182,7 +1182,7 @@ function InfiniteCanvasPage() {
                 return;
             }
             if (plan.kind === "script-empty") {
-                message.warning("分镜脚本缺少剧情内容，无法重试");
+                message.warning("The storyboard is missing plot content and cannot be retried.");
                 return;
             }
             if (plan.kind === "script") {
@@ -1190,11 +1190,11 @@ function InfiniteCanvasPage() {
                 return;
             }
             if (plan.kind === "image-batch-empty") {
-                message.info("当前批次没有需要重试的失败图片");
+                message.info("There are no failed images in the current batch that need to be retried.");
                 return;
             }
             if (plan.kind === "image-batch-root") {
-                message.info(`正在重试 ${plan.children.length} 个失败图片`);
+                message.info(`Retrying${plan.children.length} failure pictures`);
                 retryImageBatchChildren(node.id, plan.children);
                 return;
             }
@@ -1213,7 +1213,7 @@ function InfiniteCanvasPage() {
             const available = new Set(nodesRef.current.map((node) => node.id));
             const targets = nodeIds.filter((id) => available.has(id));
             if (!targets.length) {
-                message.info("这些节点已经不在画布上了");
+                message.info("These nodes are no longer on the canvas");
                 return;
             }
             const selection = new Set(targets);
@@ -1236,7 +1236,7 @@ function InfiniteCanvasPage() {
                 const task = activeTasksRef.current.find((item) => item.id === taskId) ?? (await queryGenerationTask(taskId));
                 cancelCanvasTask(task);
             } catch (error) {
-                message.error(error instanceof Error ? error.message : "读取任务失败");
+                message.error(error instanceof Error ? error.message : "Read task failed");
             }
         },
         [cancelCanvasTask, finishGenerationRequest, message, setNodes, setRunningNodeId, startGenerationRequest],
@@ -1258,7 +1258,7 @@ function InfiniteCanvasPage() {
     const locateProjectStyleNode = useCallback(() => {
         const styleNode = nodesRef.current.find((node) => node.type === CanvasNodeType.Text && node.metadata?.workflowKind === "styleboard");
         if (!styleNode) {
-            message.info("项目画风节点正在同步，请稍后再试");
+            message.info("The project style node is being synchronized, please try again later.");
             return;
         }
         focusCanvasNode(styleNode.id);
@@ -1269,7 +1269,7 @@ function InfiniteCanvasPage() {
             setFrameDialogNodeId(selectedVideo.id);
             return;
         }
-        message.info("请先选中一个视频节点，再打开逐帧拉片");
+        message.info("Please select a video node first, and then turn on the frame-by-frame pull");
     }, [message, nodesRef, selectedNodeIds, setFrameDialogNodeId]);
     const freeformCreateCommands = useCanvasCreateCommands({
         workspaceMode,
@@ -1304,7 +1304,7 @@ function InfiniteCanvasPage() {
             <CanvasFreeformEmptyState commands={freeformCreateCommands} onOpenAssistant={internalAssistantEnabled ? openAssistant : undefined} />
         ) : emptyStateKind === "linked" ? (
             <CanvasLinkedProjectEmptyState
-                projectName={linkedProjectQuery.data?.project.name || workspaceProject?.title || "项目画布"}
+                projectName={linkedProjectQuery.data?.project.name || workspaceProject?.title || "project canvas"}
                 hasChapter={Boolean(linkedProjectQuery.data?.units.length)}
                 onAddFirstChapter={() => {
                     const first = linkedProjectQuery.data?.units.slice().sort((left, right) => left.position - right.position)[0];
@@ -1326,16 +1326,16 @@ function InfiniteCanvasPage() {
         return (
             <main className="flex h-full flex-col items-center justify-center gap-4">
                 <p role="alert">{loadError}</p>
-                <Button onClick={retryLoad}>重新加载</Button>
-                <Link to="/canvas">返回画布库</Link>
+                <Button onClick={retryLoad}>reload</Button>
+                <Link to="/canvas">Return to canvas library</Link>
             </main>
         );
     if (!projectLoaded) return <CanvasRefreshShell />;
 
     return (
         <>
-            {projectMenu.deletingCanvas ? <CanvasDeleteConfirmation title="删除画布？"
-                description={`将删除「${projectMenu.deletingCanvasTitle}」，里面的节点和连线也会一起移除。`}
+            {projectMenu.deletingCanvas ? <CanvasDeleteConfirmation title="Delete canvas?"
+                description={`will delete "${projectMenu.deletingCanvasTitle}”, the nodes and connections inside will also be removed together.`}
                 onCancel={projectMenu.cancelDeleteCanvas} onConfirm={projectMenu.confirmDeleteCanvas} /> : null}
             <a
                 href="#canvas-main"
@@ -1345,7 +1345,7 @@ function InfiniteCanvasPage() {
                 }}
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[var(--z-toast)] focus:rounded-md focus:border focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg"
             >
-                跳转到画布主内容
+                                Jump to main canvas content
             </a>
             <main ref={canvasMainRef} id="canvas-main" data-canvas-readonly={readOnly ? "true" : "false"} data-libtv-readonly-dense={searchParams.get("fixture") === "libtv-readonly-dense" ? "true" : "false"} tabIndex={-1} className="flex h-full min-h-0 overflow-hidden outline-none" style={{ background: resolvedCanvasAppearance.background, color: theme.node.text }}>
                 {!focusMode && !versions.preview && shortDramaEnabled && currentProject?.projectId ? (
@@ -1365,7 +1365,7 @@ function InfiniteCanvasPage() {
                                             setScriptEditorNodeId(script.id);
                                             focusCanvasNode(script.id);
                                         } else {
-                                            message.info("当前画布还没有脚本节点，请先从添加节点中创建脚本");
+                                            message.info("There is no script node in the current canvas. Please create a script from Add Node first.");
                                         }
                                     } else {
                                         setWorkspaceView(view);
@@ -1383,7 +1383,7 @@ function InfiniteCanvasPage() {
                                 onToggleAssistant={internalAssistantEnabled ? toggleAssistant : undefined}
                                 // LibTV 的画布工作区使用“未命名工作区”作为首屏默认标题；
                                 // 项目库仍保留“未命名项目”，因此只在画布顶栏做显示层映射。
-                                title={workspaceProject?.title === "未命名项目" || !workspaceProject?.title ? "未命名工作区" : workspaceProject.title}
+                                title={workspaceProject?.title === "Unnamed project" || !workspaceProject?.title ? "Unnamed workspace" : workspaceProject.title}
                                 titleDraft={projectMenu.titleDraft}
                                 isTitleEditing={projectMenu.titleEditing}
                                 onTitleDraftChange={projectMenu.setTitleDraft}
@@ -1741,7 +1741,7 @@ function InfiniteCanvasPage() {
                                 }}
                             >
                                 <ArrowLeftRight className="size-3 text-blue-400" />
-                                <span>松开替换</span>
+                                <span>loosen replace</span>
                                 <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-200">@{connectionReplaceHover.referenceLabel}</span>
                             </div>
                         ) : null}
@@ -1956,7 +1956,7 @@ function InfiniteCanvasPage() {
                         assistant={assistant}
                         continuation={assistantContinuation}
                         nodes={nodes}
-                        canvasTitle={workspaceProject?.title === "未命名项目" || !workspaceProject?.title ? "未命名工作区" : workspaceProject.title}
+                        canvasTitle={workspaceProject?.title === "Unnamed project" || !workspaceProject?.title ? "Unnamed workspace" : workspaceProject.title}
                         dockable={assistantDockable}
                         readOnly={readOnly}
                         selectedNodeIds={assistantSelectedNodeIds}

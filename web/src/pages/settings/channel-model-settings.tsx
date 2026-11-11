@@ -52,7 +52,7 @@ export function ChannelModelSettings({
     useEffect(() => {
         let active = true;
         void fetchPluginProviderCatalog("user.custom-channel").then((items) => { if (active) setAvailableProtocols(items); })
-            .catch((error) => { if (active) setProtocolError(error instanceof Error ? error.message : "接口列表读取失败"); })
+            .catch((error) => { if (active) setProtocolError(error instanceof Error ? error.message : "Interface list read failed"); })
             .finally(() => { if (active) setProtocolLoading(false); });
         return () => { active = false; };
     }, []);
@@ -70,9 +70,9 @@ export function ChannelModelSettings({
 
     if (!channel.models.length) return (
         <div className="mt-4">
-            <div className="text-xs font-medium">模型能力</div>
+            <div className="text-xs font-medium">Model capabilities</div>
             <p className="mt-2 text-xs leading-5 text-foreground/58">
-                先在上方「模型列表」输入模型名并按回车，再为模型选择能力。
+                                First enter the model name in the "Model List" above and press Enter, then select capabilities for the model.
             </p>
         </div>
     );
@@ -161,9 +161,9 @@ export function ChannelModelSettings({
         try {
             const detail = await testChannelModelConnection(channel, model, capability, protocol);
             record(channel, model, { success: true, detail });
-            message.success(`模型测试通过：${detail}`);
+            message.success(`Model test passed:${detail}`);
         } catch (error) {
-            const detail = error instanceof Error ? error.message : "模型测试失败";
+            const detail = error instanceof Error ? error.message : "Model test failed";
             record(channel, model, { success: false, detail });
             message.error(detail);
         } finally {
@@ -178,11 +178,11 @@ export function ChannelModelSettings({
     const activeCapability = activeModelProfile?.capability || modelProtocolCapability(activeProtocol, availableProtocols) || activeInferredCapability;
     const signatureHint = signatureCredentialHint(modelProtocolDefinition(activeProtocol, availableProtocols)?.authType);
     const testDisabledReason = !activeProtocol
-        ? "请先在「基本信息」中选择接口格式"
+        ? "Please select the interface format in \"Basic Information\" first"
         : protocolError
-          ? `接口列表读取失败：${protocolError}`
+          ? `Interface list read failed:${protocolError}`
           : protocolLoading
-            ? "正在读取接口列表..."
+            ? "Reading interface list..."
             : undefined;
     const rows = channel.models.map((rawModel) => {
         const model = modelOptionName(rawModel);
@@ -200,10 +200,10 @@ export function ChannelModelSettings({
         <div className="mt-4">
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                    <div className="text-xs font-medium">模型能力</div>
-                    <div className="mt-0.5 text-[var(--fs-tiny)] text-foreground/42">按服务商要求调整参数，也可以生成一次来验证连接。</div>
+                    <div className="text-xs font-medium">Model capabilities</div>
+                    <div className="mt-0.5 text-[var(--fs-tiny)] text-foreground/42">Adjust the parameters according to the service provider's requirements, or generate it once to verify the connection.</div>
                 </div>
-                <span className="text-[var(--fs-tiny)] text-foreground/35">{channel.models.length} 个模型</span>
+                <span className="text-[var(--fs-tiny)] text-foreground/35">{channel.models.length}  models</span>
             </div>
             <div className="space-y-2">
                 {rows.map(({ model, protocol, capability, displayName }) => {
@@ -223,12 +223,12 @@ export function ChannelModelSettings({
                                         {capabilityLabel(capability)}
                                     </Tag>
                                     <span className="truncate font-mono text-[var(--fs-tiny)] text-foreground/40" title={requestPath}>
-                                        {requestPath || "还没选接口格式"}
+                                        {requestPath || "The interface format has not been selected yet"}
                                     </span>
                                 </div>
                             </div>
                             <Button type="text" size="small" icon={<ChevronRight className="size-4" />} iconPosition="end" onClick={() => { setEditorTab("protocol"); setInterfaceOpen(false); setActiveModel(model); }}>
-                                配置使用
+                                                                Configure using
                             </Button>
                         </div>
                     );
@@ -237,40 +237,40 @@ export function ChannelModelSettings({
             <ModelEditorModal
                 open={Boolean(activeModel)}
                 busy={Boolean(testingModel) || detecting}
-                title="编辑模型使用配置"
+                title="Edit model usage configuration"
                 subtitle={activeModel || ""}
                 activeKey={editorTab}
                 onTabChange={setEditorTab}
                 onClose={() => setActiveModel(null)}
                 footer={
                     <div className="model-editor-footer">
-                        <span className="text-xs text-foreground/50">{draft ? "完成后，点击「保存并使用」保存更改" : "更改实时保存到本地工作区"}</span>
+                        <span className="text-xs text-foreground/50">{draft ? "When finished, click Save and Use to save your changes" : "Changes are saved to the local workspace in real time"}</span>
                         <div className="model-editor-footer-actions">
-                            <Popconfirm title="生成一次测试结果？" description="会向当前服务商提交真实生成任务，费用由服务商收取。结果可在任务中心查看。" okText="开始生成" cancelText="取消" disabled={Boolean(testDisabledReason) || detecting} onConfirm={() => { if (activeModel && activeProtocol) void testModel(activeModel, activeCapability, activeProtocol); }}>
+                            <Popconfirm title="Generate test results once?" description="The real generation task will be submitted to the current service provider, and the fee will be charged by the service provider. Results can be viewed in the task center." okText="Start generating" cancelText="Cancel" disabled={Boolean(testDisabledReason) || detecting} onConfirm={() => { if (activeModel && activeProtocol) void testModel(activeModel, activeCapability, activeProtocol); }}>
                             <Tooltip title={testDisabledReason}>
                                 <Button
                                     icon={<FlaskConical className="size-4" />}
                                     loading={Boolean(testingModel)}
                                     disabled={Boolean(testDisabledReason) || detecting}
                                 >
-                                    生成测试
+                                                                        Generate tests
                                 </Button>
                             </Tooltip>
                             </Popconfirm>
-                            <Button disabled={Boolean(testingModel) || detecting} onClick={() => setActiveModel(null)}>完成</Button>
+                            <Button disabled={Boolean(testingModel) || detecting} onClick={() => setActiveModel(null)}>Done</Button>
                         </div>
                     </div>
                 }
                 items={activeModel ? [
                     {
                         key: "protocol",
-                        label: "基本信息",
+                        label: "Basic information",
                         children: <div className="space-y-4" inert={Boolean(testingModel)}>
                             <section className="space-y-2">
-                                <div className="text-xs font-medium">模型能力</div>
+                                <div className="text-xs font-medium">Model capabilities</div>
                                 <Segmented<ModelCapabilityChoice>
                                     block
-                                    options={[{ label: "文本", value: "text" }, { label: "图片", value: "image" }, { label: "视频", value: "video" }, { label: "音频", value: "audio" }]}
+                                    options={[{ label: "text", value: "text" }, { label: "pictures", value: "image" }, { label: "video", value: "video" }, { label: "Audio", value: "audio" }]}
                                     value={activeCapability}
                                     onChange={(nextCapability) => {
                                         const nextProtocol = availableProtocols.find((item) => item.value === activeProtocol && item.capability === nextCapability && item.enabled !== false)?.value || (nextCapability === "video" ? resolveChannelProtocol("video") : defaultProtocolForCapability(nextCapability, availableProtocols));
@@ -289,18 +289,18 @@ export function ChannelModelSettings({
                                 {activeProtocol && !interfaceOpen ? (
                                     <div className="flex min-w-0 items-center justify-between gap-3">
                                         <div className="min-w-0">
-                                            <div className="text-xs font-medium">接口格式</div>
+                                            <div className="text-xs font-medium">Interface format</div>
                                             <div className="mt-0.5 truncate text-xs text-foreground/58" title={modelProtocolDefinition(activeProtocol, availableProtocols)?.create}>
                                                 {modelProtocolDefinition(activeProtocol, availableProtocols)?.label || activeProtocol}
                                             </div>
-                                            {activeRequestUrl ? <div className="mt-1 text-[var(--fs-tiny)] text-foreground/45 [overflow-wrap:anywhere]">请求地址：<span className="font-mono"><UrlText url={activeRequestUrl} /></span></div> : null}
+                                            {activeRequestUrl ? <div className="mt-1 text-[var(--fs-tiny)] text-foreground/45 [overflow-wrap:anywhere]">Request address:<span className="font-mono"><UrlText url={activeRequestUrl} /></span></div> : null}
                                         </div>
-                                        <Button size="small" onClick={() => setInterfaceOpen(true)}>更改</Button>
+                                        <Button size="small" onClick={() => setInterfaceOpen(true)}>change</Button>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="text-xs font-medium">接口格式</div>
-                                        <p className="text-xs leading-5 text-foreground/58">服务商文档里写的请求方式。常见服务选 OpenAI Chat Completions 即可。</p>
+                                        <div className="text-xs font-medium">Interface format</div>
+                                        <p className="text-xs leading-5 text-foreground/58">The request method written in the service provider's documentation. For common services, choose OpenAI Chat Completions.</p>
                                         <ModelProtocolBrowser
                                             loading={protocolLoading}
                                             error={protocolError}
@@ -349,7 +349,7 @@ export function ChannelModelSettings({
                     },
                     {
                         key: "capabilities",
-                        label: "能力与参数",
+                        label: "Capabilities and Parameters",
                         children: <div inert={Boolean(testingModel)}>
                             {activeCapability === "image" || activeCapability === "video" ? (
                                 <ModelCapabilityEditor
@@ -359,7 +359,7 @@ export function ChannelModelSettings({
                                     protocol={activeProtocol}
                                     onChange={(capabilityConfig) => updateProfile(activeModel, { capabilityConfig, capabilitySource: "user" })}
                                 />
-                            ) : <p className="text-xs text-foreground/50">当前模型类型无需额外配置引用与参数。</p>}
+                            ) : <p className="text-xs text-foreground/50">The current model type does not require additional configuration of references and parameters.</p>}
                         </div>,
                     },
                 ] : []}
@@ -371,5 +371,5 @@ export function ChannelModelSettings({
 }
 
 function capabilityLabel(value: ModelProfile["capability"]) {
-    return { text: "文本", image: "图片", video: "视频", audio: "音频", "": "待配置" }[value] || "待配置";
+    return { text: "text", image: "pictures", video: "video", audio: "Audio", "": "To be configured" }[value] || "To be configured";
 }

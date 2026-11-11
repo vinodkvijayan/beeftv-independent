@@ -10,7 +10,7 @@ import { CanvasGenerationTargetSaveError } from "./canvas-generation-errors";
 
 export function isCanvasMediaAssetGuardError(error: unknown) {
     const message = error instanceof Error ? error.message : error && typeof error === "object" && "message" in error && typeof (error as { message?: unknown }).message === "string" ? (error as { message: string }).message : "";
-    return message.includes("画布媒体尚未进入素材库") || message.includes("画布媒体与素材库记录不一致");
+    return message.includes("Canvas media has not yet entered the material library") || message.includes("Canvas media and material library records are inconsistent");
 }
 
 function propagateBatchRootAssetIds(nodes: CanvasNodeData[]) {
@@ -296,7 +296,7 @@ export async function persistCanvasGenerationTarget(input: {
     };
     assertCurrent();
     const project = useCanvasStore.getState().openProject(input.projectId);
-    if (!project?.nodes.some((node) => node.id === input.nodeId)) throw new CanvasGenerationTargetSaveError(undefined, "生成节点已不存在，未开始生成");
+    if (!project?.nodes.some((node) => node.id === input.nodeId)) throw new CanvasGenerationTargetSaveError(undefined, "The generation node no longer exists and generation has not started.");
     if (input.clientOperationId) {
         project.nodes = project.nodes.map((node) => node.id === input.nodeId ? { ...node, metadata: { ...node.metadata, taskClientOperationId: input.clientOperationId, generationSubmissionState: "submitting" } } : node);
         useCanvasStore.getState().updateProject(project.id, { nodes: project.nodes });
@@ -316,7 +316,7 @@ export async function persistCanvasGenerationTarget(input: {
                 if (!healed.current) throw new DOMException("The canvas operation was abandoned", "AbortError");
                 assertCurrent();
                 const current = useCanvasStore.getState().openProject(input.projectId);
-                if (!current) throw new CanvasGenerationTargetSaveError(undefined, "生成节点已不存在，未开始生成");
+                if (!current) throw new CanvasGenerationTargetSaveError(undefined, "The generation node no longer exists and generation has not started.");
                 await persist(
                     input.projectId,
                     {
@@ -338,6 +338,6 @@ export async function persistCanvasGenerationTarget(input: {
     if (!current?.nodes.some((node) => node.id === input.nodeId)) {
         // 保存期间的删除也必须提交；旧快照的回执不能让节点在下次打开时重现。
         if (current) await persist(input.projectId, { nodes: current.nodes, connections: current.connections });
-        throw new CanvasGenerationTargetSaveError(undefined, "生成节点已不存在，未开始生成");
+        throw new CanvasGenerationTargetSaveError(undefined, "The generation node no longer exists and generation has not started.");
     }
 }

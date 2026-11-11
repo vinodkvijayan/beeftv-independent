@@ -14,7 +14,7 @@ export const CanvasDrawingExcalidrawEditor = forwardRef<CanvasDrawingEditorHandl
     useImperativeHandle(ref, () => ({
         createSave: async () => {
             const api = apiRef.current;
-            if (!api) throw new Error("Excalidraw 编辑器尚未准备完成");
+            if (!api) throw new Error("Excalidraw editor is not ready yet");
             const elements = api.getSceneElementsIncludingDeleted();
             const appState = api.getAppState();
             const files = api.getFiles();
@@ -50,7 +50,7 @@ export const CanvasDrawingExcalidrawEditor = forwardRef<CanvasDrawingEditorHandl
     return (
         <Excalidraw
                 initialData={initialData}
-                langCode="zh-CN"
+                langCode="en-US"
                 theme={colorScheme}
                 autoFocus
                 excalidrawAPI={(api) => {

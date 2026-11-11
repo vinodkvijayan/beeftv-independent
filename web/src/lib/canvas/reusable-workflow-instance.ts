@@ -9,23 +9,23 @@ export type WorkflowInstanceAction = "start" | "retry" | "cancel";
 
 export function workflowSlotTitle(node: WorkflowNode, definition: WorkflowDefinition): string {
     const title = node.title.trim();
-    if (workflowOperationId(node) === "video.depth") return "深度捕捉结果";
-    if (node.role === "input" && node.mediaType === "video" && /深度/.test(title)) return "深度参考";
-    if (node.role === "input" && node.mediaType === "video" && /剪辑片段|动作|motion/i.test(title)) return "动作参考";
+    if (workflowOperationId(node) === "video.depth") return "Depth capture results";
+    if (node.role === "input" && node.mediaType === "video" && /深度/.test(title)) return "Deep reference";
+    if (node.role === "input" && node.mediaType === "video" && /剪辑片段|动作|motion/i.test(title)) return "Action reference";
     // Existing templates used raw prompts and filenames as titles. New short labels are kept verbatim.
     if (title.length <= 24 && !/\.(mp4|mov|png|jpe?g|webp|mp3)(?:\s|$)|帮我|生成一个|生成一张/.test(title)) return title;
-    if (isWorkflowOperation(node)) return definition.outputNodeIds.includes(node.id) ? "处理结果" : "处理步骤";
-    if (/三视图/.test(title)) return "人物三视图";
-    if (/人物|角色|人像|女生|男生|女孩|男孩/.test(title)) return "人物参考";
-    if (node.mediaType === "video" && definition.edges.some(edge => edge.fromNodeId === node.id && definition.nodes.some(item => item.id === edge.toNodeId && item.role === "depth"))) return "动作参考";
-    return ({ image: "图片参考", video: "视频参考", audio: "声音参考", text: "提示词" })[node.mediaType];
+    if (isWorkflowOperation(node)) return definition.outputNodeIds.includes(node.id) ? "Processing results" : "Processing steps";
+    if (/三视图/.test(title)) return "Three views of characters";
+    if (/人物|角色|人像|女生|男生|女孩|男孩/.test(title)) return "Character reference";
+    if (node.mediaType === "video" && definition.edges.some(edge => edge.fromNodeId === node.id && definition.nodes.some(item => item.id === edge.toNodeId && item.role === "depth"))) return "Action reference";
+    return ({ image: "Picture reference", video: "Video reference", audio: "sound reference", text: "prompt word" })[node.mediaType];
 }
 
 function workflowLevels(definition: WorkflowDefinition) {
     const depth = new Map<string, number>();
     const level = (id: string, seen = new Set<string>()): number => {
         if (depth.has(id)) return depth.get(id)!;
-        if (seen.has(id)) throw new Error("工作流存在循环依赖");
+        if (seen.has(id)) throw new Error("Workflow has circular dependencies");
         const next = new Set([...seen, id]);
         const parents = definition.edges.filter(edge => edge.toNodeId === id);
         const value = parents.length ? Math.max(...parents.map(edge => level(edge.fromNodeId, next))) + 1 : 0;
@@ -117,13 +117,13 @@ export function normalizeWorkflowContainers(nodes: CanvasNodeData[]): CanvasNode
 
 export function workflowInstanceInputs(control: CanvasNodeData, nodes: CanvasNodeData[]): Record<string, WorkflowValue> {
     const definition = control.metadata?.reusableWorkflow?.definition;
-    if (!definition) throw new Error("工作流实例不存在");
+    if (!definition) throw new Error("Workflow instance does not exist");
     return Object.fromEntries(definition.nodes.filter(node => node.role === "input").map(source => {
         const slot = nodes.find(node => node.metadata?.workflowSlot?.instanceId === control.id && node.metadata.workflowSlot.nodeId === source.id);
-        if (!slot) throw new Error(`输入节点「${workflowSlotTitle(source, definition)}」已删除，请重新添加工作流`);
+        if (!slot) throw new Error(`Input node "${workflowSlotTitle(source, definition)}"Deleted, please add the workflow again.`);
         const value = source.mediaType === "text" ? { text: slot.metadata?.content || "" } : { resourceId: canvasNodeResourceId(slot) };
-        if (source.mediaType === "text" && !value.text?.trim()) throw new Error(`请先填写「${slot.title}」`);
-        if (source.mediaType !== "text" && !value.resourceId) throw new Error(`请先添加「${slot.title}」`);
+        if (source.mediaType === "text" && !value.text?.trim()) throw new Error(`Please fill in the "${slot.title}」`);
+        if (source.mediaType !== "text" && !value.resourceId) throw new Error(`Please add "${slot.title}」`);
         return [source.id, value];
     }));
 }
@@ -175,9 +175,9 @@ export function createWorkflowResultNode(source: CanvasNodeData, point: Position
 }
 
 export function upgradeWorkflowInstance(control: CanvasNodeData, nodes: CanvasNodeData[], connections: CanvasConnection[], workflow: CanvasWorkflow) {
-    if (workflowInstanceLocked(control)) throw new Error("请等待当前工作流结束后再更新");
+    if (workflowInstanceLocked(control)) throw new Error("Please wait until the current workflow ends before updating");
     const frame = nodes.find(node => node.id === control.parentId && node.type === CanvasNodeType.Workflow);
-    if (!frame) throw new Error("工作流容器已不存在，请从模板重新添加");
+    if (!frame) throw new Error("The workflow container no longer exists, please add it again from the template");
     const previous = nodes.filter(node => node.parentId === frame.id);
     const next = createWorkflowInstance(workflow, frame.position);
     const ids = new Map<string, string>([[next.frame.id, frame.id], [next.control.id, control.id]]);

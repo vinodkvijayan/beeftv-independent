@@ -10,7 +10,7 @@ export function canvasNodeDiagnosticContext(node: CanvasNodeData) {
 export function recordCanvasVideoDiagnostic(node: CanvasNodeData, phase: "load_requested" | "metadata_loaded" | "first_frame" | "playback_failed" | "source_failed" | "load_stalled", video?: HTMLVideoElement | null) {
     recordDiagnosticEvent({
         ...canvasNodeDiagnosticContext(node), category: "runtime", level: phase.endsWith("failed") ? "error" : phase === "load_stalled" ? "warning" : "info",
-        code: `canvas_video_${phase}`, message: `画布视频：${phase}`,
+        code: `canvas_video_${phase}`, message: `Canvas video:${phase}`,
         media: { phase, readyState: video?.readyState, networkState: video?.networkState, errorCode: video?.error?.code, width: video?.videoWidth, height: video?.videoHeight },
     });
 }

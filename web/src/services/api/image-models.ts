@@ -66,7 +66,7 @@ export async function fetchImageModels(config: Pick<AiConfig, "baseUrl" | "apiKe
         const catalog = await fetchOpenAIModelCatalog(config);
         return catalog.map((model) => model.id).sort((a, b) => a.localeCompare(b));
     } catch (error) {
-        throw new Error(readAxiosError(error, "读取模型失败"));
+        throw new Error(readAxiosError(error, "Failed to read model"));
     }
 }
 
@@ -114,6 +114,6 @@ export async function fetchChannelModels(channel: ModelChannel, viaBackend = fal
         // Running generation-error classification again turns a precise 502
         // auth/unsupported-catalog message into a generic unavailable message.
         if (error instanceof ApiError || error instanceof BeefTVConnectionChangedError || (error instanceof DOMException && error.name === "AbortError")) throw error;
-        throw new Error(readAxiosError(error, "读取模型失败"));
+        throw new Error(readAxiosError(error, "Failed to read model"));
     }
 }

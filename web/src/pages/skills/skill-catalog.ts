@@ -1,24 +1,24 @@
 import type { Skill, SkillCategory } from "@/services/api/skills";
 
 export const fallbackSkillCategories: SkillCategory[] = [
-    { value: "drama", label: "短剧影视" },
-    { value: "ecommerce", label: "电商营销" },
-    { value: "creative", label: "创意设计" },
-    { value: "social", label: "社媒内容" },
-    { value: "others", label: "其他" },
+    { value: "drama", label: "Short drama film and television" },
+    { value: "ecommerce", label: "E-commerce marketing" },
+    { value: "creative", label: "creative design" },
+    { value: "social", label: "social media content" },
+    { value: "others", label: "Others" },
 ];
 
 export function skillOrigin(skill: Pick<Skill, "sourceType" | "isOwner">) {
-    if (skill.sourceType === "builtin" && !skill.isOwner) return { label: "官方", hint: "官方维护的原版，创建私人副本后可编辑。" };
-    if (skill.sourceType === "market") return { label: "市场", hint: "通过技能市场安装，可检查更新、查看历史版本或创建私人副本。" };
-    if (skill.sourceType === "plugin") return { label: "插件", hint: "通过 BeefTV 插件安装的技能。" };
-    if (skill.isOwner) return { label: "我的", hint: "当前本地副本由你管理，可编辑、投稿和删除。" };
-    return { label: "已安装", hint: "通过 BeefTV 安装的技能。" };
+    if (skill.sourceType === "builtin" && !skill.isOwner) return { label: "official", hint: "The original version is officially maintained and can be edited after creating a private copy." };
+    if (skill.sourceType === "market") return { label: "market", hint: "Install through the Skills Market to check for updates, view version history, or create a private copy." };
+    if (skill.sourceType === "plugin") return { label: "plug-in", hint: "Skills installed via the BeefTV plug-in." };
+    if (skill.isOwner) return { label: "mine", hint: "The current local copy is managed by you and can be edited, contributed and deleted." };
+    return { label: "Installed", hint: "Skills installed via BeefTV." };
 }
 
 export function skillCategoryLabel(value: string, categories: SkillCategory[] = fallbackSkillCategories) {
     const list = categories.length ? categories : fallbackSkillCategories;
-    return list.find((item) => item.value === value)?.label || "其他";
+    return list.find((item) => item.value === value)?.label || "Others";
 }
 
 export function groupSkills(skills: Skill[], categories: SkillCategory[]) {
@@ -29,11 +29,11 @@ export function groupSkills(skills: Skill[], categories: SkillCategory[]) {
 }
 
 export function formatSkillCount(value: number) {
-    return new Intl.NumberFormat("zh-CN", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+    return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
 export function formatSkillDate(value: string) {
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "未知时间";
-    return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric" }).format(date);
+    if (Number.isNaN(date.getTime())) return "unknown time";
+    return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }).format(date);
 }

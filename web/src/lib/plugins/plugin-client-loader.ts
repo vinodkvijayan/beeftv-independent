@@ -59,7 +59,7 @@ const CLIENT_ENTRY_TIMEOUT_MS = 15_000;
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, pluginId: string): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => {
-            reject(new Error(`插件 "${pluginId}" 客户端入口激活超时（>${timeoutMs}ms）`));
+            reject(new Error(`Plug-in"${pluginId}"Client portal activation timeout (>${timeoutMs}ms）`));
         }, timeoutMs);
         promise.then(
             (val) => {

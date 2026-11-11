@@ -30,11 +30,11 @@ export type DirectorTemplate = {
 
 /** 展示顺序即用户看到的顺序：空场景在最前，其余按上手复杂度递增。 */
 export const DIRECTOR_TEMPLATES: DirectorTemplate[] = [
-    { id: "empty", name: "空场景", description: "只有摄影机和三点布光，没有任何演员或道具。", summary: "摄影机 + 布光" },
-    { id: "monologue", name: "单人对白", description: "一名演员居中，中近景机位，适合独白与特写。", summary: "1 演员 · 中近景" },
-    { id: "dialogue", name: "双人对话", description: "两名演员面对面分立左右，过肩机位起手。", summary: "2 演员 · 对话机位" },
-    { id: "blocking", name: "人物走位", description: "三名演员分散站位，广角机位便于安排走动路线。", summary: "3 演员 · 广角" },
-    { id: "product", name: "产品/道具镜头", description: "产品置于中心，背景板与侧面道具就位，长焦特写。", summary: "产品 + 背景板 · 长焦" },
+    { id: "empty", name: "empty scene", description: "Just a camera and three-point lighting, no actors or props.", summary: "Camera + Lighting" },
+    { id: "monologue", name: "single dialogue", description: "An actor is in the center, and the camera is in a medium-close shot, suitable for monologues and close-ups.", summary: "1 Actor · Medium and close shot" },
+    { id: "dialogue", name: "two-person dialogue", description: "The two actors face each other, left and right, and start from an over-the-shoulder position.", summary: "2 actors · dialogue camera" },
+    { id: "blocking", name: "Character movement", description: "The three actors stand in separate positions, and the wide-angle camera position makes it easy to arrange walking routes.", summary: "3 actors · wide angle" },
+    { id: "product", name: "Product/Prop Shots", description: "The product is placed in the center, with the background board and side props in place, and a telephoto close-up.", summary: "Products + Backgrounds · Telephoto" },
 ];
 
 type TemplateBlueprint = {
@@ -48,7 +48,7 @@ type TemplateBlueprint = {
  * 五个模板共用同一套光位，避免模板之间打光风格漂移。
  */
 function threePointRig(): DirectorLight[] {
-    return [createDirectorLight("directional", "主光", [4, 6, 4], 2.4), createDirectorLight("directional", "轮廓光", [-4, 3, -2], 1.1), createDirectorLight("ambient", "环境光", [0, 0, 0], 0.65)];
+    return [createDirectorLight("directional", "key light", [4, 6, 4], 2.4), createDirectorLight("directional", "rim light", [-4, 3, -2], 1.1), createDirectorLight("ambient", "ambient light", [0, 0, 0], 0.65)];
 }
 
 /** 按模板意图摆机位。focalLength 与 fov 一起写，保证两者自洽。 */
@@ -73,50 +73,50 @@ function facing(actor: DirectorObject, yaw: number): DirectorObject {
 function buildBlueprint(id: DirectorTemplateId): TemplateBlueprint {
     if (id === "monologue") {
         return {
-            objects: [createDirectorActor("演员 1", [0, 0, 0], DIRECTOR_ACTOR_COLORS[0])],
-            camera: templateCamera({ name: "主摄影机", position: [1.5, 1.65, 3.1], target: [0, 1.15, 0], focalLength: 50, focusDistance: 3.4, aperture: 2.2 }),
-            shot: { name: "镜头 1", duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" },
+            objects: [createDirectorActor("actor 1", [0, 0, 0], DIRECTOR_ACTOR_COLORS[0])],
+            camera: templateCamera({ name: "main camera", position: [1.5, 1.65, 3.1], target: [0, 1.15, 0], focalLength: 50, focusDistance: 3.4, aperture: 2.2 }),
+            shot: { name: "Shot 1", duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" },
         };
     }
 
     if (id === "dialogue") {
         // dx = 1.6 >= (0.8 + 0.8) / 2 + 0.25 = 1.05，两名演员必然不重叠。
         return {
-            objects: [facing(createDirectorActor("演员 1", [-0.8, 0, 0.3], DIRECTOR_ACTOR_COLORS[0]), Math.PI / 2), facing(createDirectorActor("演员 2", [0.8, 0, -0.3], DIRECTOR_ACTOR_COLORS[2]), -Math.PI / 2)],
-            camera: templateCamera({ name: "主摄影机", position: [2.9, 1.7, 3.4], target: [0, 1.1, 0], focalLength: 40, focusDistance: 4.2, aperture: 2.8 }),
-            shot: { name: "镜头 1", duration: 6, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" },
+            objects: [facing(createDirectorActor("actor 1", [-0.8, 0, 0.3], DIRECTOR_ACTOR_COLORS[0]), Math.PI / 2), facing(createDirectorActor("Actor 2", [0.8, 0, -0.3], DIRECTOR_ACTOR_COLORS[2]), -Math.PI / 2)],
+            camera: templateCamera({ name: "main camera", position: [2.9, 1.7, 3.4], target: [0, 1.1, 0], focalLength: 40, focusDistance: 4.2, aperture: 2.8 }),
+            shot: { name: "Shot 1", duration: 6, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" },
         };
     }
 
     if (id === "blocking") {
         // 三名演员两两 dx >= 1.8，全部大于 1.05 阈值。
         return {
-            objects: [createDirectorActor("演员 1", [-1.8, 0, 0.6], DIRECTOR_ACTOR_COLORS[0]), createDirectorActor("演员 2", [0, 0, -0.4], DIRECTOR_ACTOR_COLORS[2]), createDirectorActor("演员 3", [1.8, 0, 0.8], DIRECTOR_ACTOR_COLORS[3])],
-            camera: templateCamera({ name: "主摄影机", position: [0.6, 3.1, 7.4], target: [0, 1, 0], focalLength: 28, focusDistance: 7.6, aperture: 4 }),
-            shot: { name: "镜头 1", duration: 8, fps: 24, shotSize: "wide", cameraMove: "static", prompt: "" },
+            objects: [createDirectorActor("actor 1", [-1.8, 0, 0.6], DIRECTOR_ACTOR_COLORS[0]), createDirectorActor("Actor 2", [0, 0, -0.4], DIRECTOR_ACTOR_COLORS[2]), createDirectorActor("Actor 3", [1.8, 0, 0.8], DIRECTOR_ACTOR_COLORS[3])],
+            camera: templateCamera({ name: "main camera", position: [0.6, 3.1, 7.4], target: [0, 1, 0], focalLength: 28, focusDistance: 7.6, aperture: 4 }),
+            shot: { name: "Shot 1", duration: 8, fps: 24, shotSize: "wide", cameraMove: "static", prompt: "" },
         };
     }
 
     if (id === "product") {
         // 产品镜头没有演员。背景板靠 dz=1.35 拉开，侧面道具靠 dx=1.15 拉开。
-        const product = createDirectorObject("box", "产品主体", [0, 0.5, 0], "#b8c0ca");
-        const backdrop = createDirectorObject("plane", "背景板", [0, 1.4, -1.35], "#e8ebef");
-        const prop = createDirectorObject("cylinder", "侧面道具", [1.15, 0.4, 0.5], "#8795a5");
+        const product = createDirectorObject("box", "Product body", [0, 0.5, 0], "#b8c0ca");
+        const backdrop = createDirectorObject("plane", "background board", [0, 1.4, -1.35], "#e8ebef");
+        const prop = createDirectorObject("cylinder", "side props", [1.15, 0.4, 0.5], "#8795a5");
         return {
             objects: [
                 { ...product, transform: { ...product.transform, scale: [0.9, 0.9, 0.9] } },
                 { ...backdrop, transform: { ...backdrop.transform, scale: [3.2, 2, 1] } },
                 { ...prop, transform: { ...prop.transform, scale: [0.5, 0.8, 0.5] } },
             ],
-            camera: templateCamera({ name: "主摄影机", position: [1.1, 1.05, 2.35], target: [0, 0.55, 0], focalLength: 85, focusDistance: 2.6, aperture: 2.8 }),
-            shot: { name: "镜头 1", duration: 4, fps: 24, shotSize: "close_up", cameraMove: "push_in", prompt: "" },
+            camera: templateCamera({ name: "main camera", position: [1.1, 1.05, 2.35], target: [0, 0.55, 0], focalLength: 85, focusDistance: 2.6, aperture: 2.8 }),
+            shot: { name: "Shot 1", duration: 4, fps: 24, shotSize: "close_up", cameraMove: "push_in", prompt: "" },
         };
     }
 
     return {
         objects: [],
-        camera: templateCamera({ name: "主摄影机", position: [4.8, 2.7, 6.8], target: [0, 1, 0], focalLength: 35, focusDistance: 5, aperture: 2.8 }),
-        shot: { name: "镜头 1", duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" },
+        camera: templateCamera({ name: "main camera", position: [4.8, 2.7, 6.8], target: [0, 1, 0], focalLength: 35, focusDistance: 5, aperture: 2.8 }),
+        shot: { name: "Shot 1", duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" },
     };
 }
 
@@ -124,7 +124,7 @@ function buildBlueprint(id: DirectorTemplateId): TemplateBlueprint {
  * 按模板生成全新场景。
  * 未知 id 回落到空场景 —— 宁可少给内容，也不要偷偷塞回默认演员。
  */
-export function createDirectorSceneFromTemplate(templateId: DirectorTemplateId, title = "未命名场景"): DirectorScene {
+export function createDirectorSceneFromTemplate(templateId: DirectorTemplateId, title = "unnamed scene"): DirectorScene {
     const blueprint = buildBlueprint(templateId);
     const now = new Date().toISOString();
     const shotId = nanoid();

@@ -32,7 +32,7 @@ export function listCanvasWorkflowCapabilities(operations: WorkflowOperation[]):
     return operations.filter(operation => firstRelease.has(operation.id)).map(operation => ({
         id: `operation.${operation.id}`, name: names.get(operation.id) || operation.name,
         icon: listNodeDefinitions().find(node => node.type === operation.outputType)?.icon,
-        group: operation.id.startsWith("video.") ? "视频处理" : "图片处理",
+        group: operation.id.startsWith("video.") ? "video processing" : "Image processing",
         mode: operation.unavailableReason ? "unavailable" : "direct",
         operation: {...operation, name:names.get(operation.id) || operation.name}, outputType: operation.outputType, reason:operation.unavailableReason,
     }));

@@ -1,6 +1,6 @@
-export const capabilityOptions = [{ value: "beeftv.canvas", label: "BeefTV 画布工具" }, { value: "model.image", label: "图片理解模型" }, { value: "model.video", label: "视频理解模型" }, { value: "model.audio", label: "音频理解模型" }];
+export const capabilityOptions = [{ value: "beeftv.canvas", label: "BeefTV Canvas Tool" }, { value: "model.image", label: "Image understanding model" }, { value: "model.video", label: "Video understanding model" }, { value: "model.audio", label: "Audio understanding model" }];
 export function requirementLabel(value: string) {
-    return capabilityOptions.find(item => item.value === value)?.label || `未确认的能力：${value}`;
+    return capabilityOptions.find(item => item.value === value)?.label || `Unconfirmed capabilities:${value}`;
 }
 export function unsupportedRequirements(values: string[]) {
     return values.filter(value => !capabilityOptions.some(option => option.value === value));
@@ -24,7 +24,7 @@ export function releaseUnsupportedReasons(
         if (!reasons.some(reason => reason.includes(req))) addReason(label);
     }
     if ((release.compatibility?.status === "unsupported" || itemCompatibility?.status === "unsupported") && reasons.length === 0) {
-        addReason("当前环境暂不支持此版本");
+        addReason("The current environment does not support this version yet");
     }
     return reasons;
 }
@@ -42,7 +42,7 @@ export function canInstallMarketRelease(options: {
         && options.unsupportedReasons.length === 0;
 }
 export function publicationStatus(status: string) {
-    return ({ draft: "草稿", ready_to_submit: "等待确认发布", awaiting_upload_confirmation: "等待确认上传", uploading: "上传结果待核对", needs_preview: "需要刷新预览", awaiting_submit_confirmation: "等待确认发布", rejected: "需要修改", withdrawn: "已撤回", published: "已发布" } as Record<string, string>)[status] || "状态待刷新";
+    return ({ draft: "draft", ready_to_submit: "Awaiting confirmation of release", awaiting_upload_confirmation: "Waiting for confirmation of upload", uploading: "Upload results to be verified", needs_preview: "Need to refresh preview", awaiting_submit_confirmation: "Awaiting confirmation of release", rejected: "Need to modify", withdrawn: "Withdrawn", published: "Published" } as Record<string, string>)[status] || "Status to be refreshed";
 }
 export function canSubmitPublication(plan: { status: string; preview?: unknown }, confirmed: boolean) {
     return confirmed && plan.status === "awaiting_submit_confirmation" && Boolean(plan.preview);

@@ -141,16 +141,16 @@ export async function buildGenerationTaskNodeResult(node: CanvasNodeData, task: 
         const image = result.images?.[node.metadata?.taskOutputIndex ?? 0];
         const imageSource = image?.dataUrl || image?.url || "";
         const reuseImageKey = reuseGeneratedMediaStorageKey(image?.storageKey, imageSource);
-        if (!imageSource && !reuseImageKey) throw new Error("后端任务没有返回图片");
-        if (node.metadata?.emotionEdit && !image?.dataUrl) throw new Error("后端任务没有返回图片");
+        if (!imageSource && !reuseImageKey) throw new Error("Backend task does not return images");
+        if (node.metadata?.emotionEdit && !image?.dataUrl) throw new Error("Backend task does not return images");
         let resultDataUrl = image?.dataUrl || imageSource;
         const emotionEdit = node.metadata?.emotionEdit;
         if (emotionEdit) {
-            if (!emotionEdit.editRegion) throw new Error("情绪编辑任务缺少局部合成区域，已拒绝使用整图重绘结果");
+            if (!emotionEdit.editRegion) throw new Error("The emotion editing task lacks a local synthesis area and has refused to use the whole image to redraw the result.");
             const sourceNode = nodes.find((item) => item.id === emotionEdit.sourceNodeId);
-            if (!sourceNode?.metadata?.content) throw new Error("情绪编辑源图片已删除，无法恢复局部合成结果");
+            if (!sourceNode?.metadata?.content) throw new Error("The source image for emotion editing has been deleted and the partial synthesis result cannot be restored.");
             const sourceDataUrl = await resolveImageUrl(sourceNode.metadata.storageKey, sourceNode.metadata.content);
-            if (!sourceDataUrl) throw new Error("无法读取情绪编辑源图片，未使用整图重绘结果");
+            if (!sourceDataUrl) throw new Error("Unable to read the emotion editing source image, the entire image is not used to redraw the result");
             resultDataUrl = await compositeEmotionImage(sourceDataUrl, resultDataUrl, emotionEdit.editRegion, emotionEdit.faceBox);
         }
         const uploaded =
@@ -179,7 +179,7 @@ export async function buildGenerationTaskNodeResult(node: CanvasNodeData, task: 
     if (mode === "video") {
         const videoSource = result.video?.dataUrl || result.video?.url || "";
         const reuseVideoKey = reuseGeneratedMediaStorageKey(result.video?.storageKey, videoSource);
-        if (!videoSource && !reuseVideoKey) throw new Error("后端任务没有返回视频");
+        if (!videoSource && !reuseVideoKey) throw new Error("Backend task not returning video");
         const video = reuseVideoKey
             ? {
                   url: await mediaIO.resolveMediaUrl(reuseVideoKey, videoSource),
@@ -221,14 +221,14 @@ export async function buildGenerationTaskNodeResult(node: CanvasNodeData, task: 
     if (mode === "audio") {
         const audioSource = result.audio?.dataUrl || result.audio?.url || "";
         const reuseAudioKey = reuseGeneratedMediaStorageKey(result.audio?.storageKey, audioSource);
-        if (!audioSource && !reuseAudioKey) throw new Error("后端任务没有返回音频");
+        if (!audioSource && !reuseAudioKey) throw new Error("Backend task is not returning audio");
         const audio = reuseAudioKey
             ? { url: await mediaIO.resolveMediaUrl(reuseAudioKey, audioSource), storageKey: reuseAudioKey, durationMs: result.audio?.durationMs, bytes: result.audio?.bytes || 0, mimeType: result.audio?.mimeType || "audio/mpeg" }
             : await mediaIO.storeGeneratedAudio(await mediaIO.fetchBlob(audioSource), result.audio?.format || "mp3");
         return { ...node, type: CanvasNodeType.Audio, metadata: applyGeneratedMediaResultMetadata(node, audioMetadata(audio), { prompt, ...completedTaskMetadata(task) }) };
     }
 
-    if (!result.text) throw new Error("后端任务没有返回文本");
+    if (!result.text) throw new Error("Backend task returns no text");
     return {
         ...node,
         type: CanvasNodeType.Text,
@@ -271,7 +271,7 @@ export async function applyMaterializedGenerationTaskResultToNodes(nodes: Canvas
         return { nodes, updated: true, nodeId: node.id, node };
     }
     const asset = useAssetStore.getState().assets.find((candidate) => candidate.id === output.materializedAssetId);
-    if (!asset) throw new Error("生成任务输出素材不存在");
+    if (!asset) throw new Error("Generate task output material does not exist");
     const result = parseBackendGenerationResult(task);
     if (asset.kind === "image") {
         const images = [...(result.images || [])];
@@ -289,7 +289,7 @@ export async function applyMaterializedGenerationTaskResultToNodes(nodes: Canvas
     } else if (asset.kind === "audio") {
         result.audio = { dataUrl: asset.data.url, ...asset.data };
     } else {
-        throw new Error("生成任务输出素材类型不支持画布节点");
+        throw new Error("The generation task output material type does not support canvas nodes.");
     }
     const indexedNode = { ...node, metadata: { ...node.metadata, taskOutputIndex: output.outputIndex } };
     const updatedNode = await buildGenerationTaskNodeResult(indexedNode, { ...task, resultJson: JSON.stringify(result) }, nodes);

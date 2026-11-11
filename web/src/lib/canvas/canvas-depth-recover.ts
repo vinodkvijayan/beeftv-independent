@@ -43,7 +43,7 @@ export async function attachOwnedDepthCaptureResult(input: DepthTarget & { task:
 export async function recoverOwnedDepthCaptureNode(input: DepthTarget, bind = bindBackendCanvasGenerationResult): Promise<void> {
     const taskId = input.node.metadata?.taskId;
     if (!taskId) {
-        updateDepthTarget(input, node => ({ ...node, metadata: { ...node.metadata, status: "error", errorDetails: "深度任务未成功提交，请重新生成" } }));
+        updateDepthTarget(input, node => ({ ...node, metadata: { ...node.metadata, status: "error", errorDetails: "The depth task was not successfully submitted, please regenerate it." } }));
         return;
     }
     let latestTask: GenerationTask | undefined;

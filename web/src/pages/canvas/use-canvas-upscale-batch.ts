@@ -37,11 +37,11 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
         const capturedLifetime = lifetime.current;
         let expectedBatchId = nodesRef.current.find(n => n.id === processor.id)?.metadata?.upscaleBatch?.id;
         const assertCurrent = () => {
-            if (!mounted.current || lifetime.current !== capturedLifetime) throw new Error("画布已关闭，停止提交超分任务");
-            if (liveProject.current !== projectId) throw new Error("画布已切换，停止提交超分任务");
+            if (!mounted.current || lifetime.current !== capturedLifetime) throw new Error("The canvas has been closed and submission of over-score tasks has been stopped.");
+            if (liveProject.current !== projectId) throw new Error("The canvas has been switched and submission of over-score tasks has been stopped.");
             const live = nodesRef.current.find(n => n.id === processor.id);
-            if (!live) throw new Error("超分节点已删除，停止提交任务");
-            if (live.metadata?.upscaleBatch?.id !== expectedBatchId) throw new Error("超分批次已更换，停止提交旧批次");
+            if (!live) throw new Error("The super-score node has been deleted and task submission has stopped.");
+            if (live.metadata?.upscaleBatch?.id !== expectedBatchId) throw new Error("The super batch has been replaced. Stop submitting old batches.");
         };
         const patch = (transform: (nodes: CanvasNodeData[]) => CanvasNodeData[]) => {
             assertCurrent();
@@ -52,19 +52,19 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
         const save = async () => { assertCurrent(); await flushCanvasStorePersistence(); assertCurrent(); };
         const confirm = async (items: CanvasUpscaleBatchItem[]) => {
             const waiting = items.filter(item => item.status === "waiting");
-            if (!waiting.length) throw new Error(items.find(item => item.error)?.error || "没有可提交的素材");
+            if (!waiting.length) throw new Error(items.find(item => item.error)?.error || "No material to submit");
             const reservation = waiting.reduce((sum, item) => sum + (item.reservation || 0), 0);
-            if (!waiting.every(item => Number.isFinite(item.reservation) && item.reservation! > 0)) throw new Error("超分费用尚未确认，请重新获取");
+            if (!waiting.every(item => Number.isFinite(item.reservation) && item.reservation! > 0)) throw new Error("The over-score fee has not yet been confirmed, please obtain it again.");
             const accepted = await new Promise<boolean>(resolve => modal.confirm({
-                title: "确认开始超分？", content: `共 ${waiting.length} 个素材，先扣 ¥${reservation.toFixed(2)}。账单核对完成后按实际费用结算，多扣的退回。`,
-                okText: "确认超分", cancelText: "取消", onOk: () => resolve(true), onCancel: () => resolve(false),
+                title: "Are you sure you want to start overscoring?", content: `total${waiting.length} materials, first deduct ¥${reservation.toFixed(2)}. After the bill verification is completed, the actual expenses will be settled, and any excess deductions will be refunded.`,
+                okText: "Confirm over score", cancelText: "Cancel", onOk: () => resolve(true), onCancel: () => resolve(false),
             }));
             assertCurrent();
             return accepted;
         };
         try {
             const current = nodesRef.current.find(n => n.id === processor.id);
-            if (!current) throw new Error("超分节点已删除");
+            if (!current) throw new Error("Super score node has been deleted");
             let batch = current.metadata?.upscaleBatch;
             let rejectedRetryBlocked = false;
             // Only retry proven pre-admission failures once every paid sibling
@@ -95,7 +95,7 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                         const params = upscaleParamsForNode(settings, structuredClone(source), await prepareResource(source));
                         assertCurrent(); const quote = await estimateUpscale(params); assertCurrent();
                         item.params = params; item.status = "waiting"; item.error = undefined; item.reservation = quote.reservation; item.quotedAt = Date.now();
-                    } catch (cause) { assertCurrent(); item.error = cause instanceof Error ? cause.message : "素材预检失败"; }
+                    } catch (cause) { assertCurrent(); item.error = cause instanceof Error ? cause.message : "Material preflight failed"; }
                 }
                 // An unexpected receipt restores observation first; defer retries
                 // until the next explicit click so no checkpoint races its bind.
@@ -105,7 +105,7 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                     patch(nodes => nodes.map(n => {
                         if (n.id === current.id) return { ...n, metadata: { ...n.metadata, upscaleBatch: retried } };
                         const item = retried.items.find(i => i.outputNodeId === n.id && i.status === "waiting");
-                        return item ? { ...n, metadata: { ...n.metadata, status: "loading", taskType: `canvas_${item.mediaType}`, generationSubmissionState: undefined, errorDetails: undefined, processingLabel: "等待超分提交", workflowOperation: { id: `${item.mediaType}.ai-upscale`, version: 1, config: { ...item.params }, inputs: [{ nodeId: item.sourceNodeId, port: item.mediaType }, { nodeId: current.id, port: "processor" }] } } } : n;
+                        return item ? { ...n, metadata: { ...n.metadata, status: "loading", taskType: `canvas_${item.mediaType}`, generationSubmissionState: undefined, errorDetails: undefined, processingLabel: "Waiting for super score submission", workflowOperation: { id: `${item.mediaType}.ai-upscale`, version: 1, config: { ...item.params }, inputs: [{ nodeId: item.sourceNodeId, port: item.mediaType }, { nodeId: current.id, port: "processor" }] } } } : n;
                     }));
                     await save();
                     await syncLocalCanvasSnapshot(projectId, { nodes: nodesRef.current, connections: connectionsRef.current });
@@ -123,9 +123,9 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                 rejectedRetryBlocked = true;
             }
             if (!batch || (batch.items.length > 0 && deriveUpscaleBatchState(batch, nodesRef.current).succeeded === batch.items.length)) {
-                if (!useConfigStore.getState().config.channels.some(channel => channel.enabled !== false && isBuiltinBeefTVChannel(channel) && channelHasGenerationCredential(channel))) throw new Error("暂无可用超分模型，请连接 BeefTV 内置的官方算力");
+                if (!useConfigStore.getState().config.channels.some(channel => channel.enabled !== false && isBuiltinBeefTVChannel(channel) && channelHasGenerationCredential(channel))) throw new Error("There is currently no super-resolution model available. Please connect to the official computing power built into BeefTV.");
                 const inputs = structuredClone(getUpscaleInputNodes(processor.id, nodesRef.current, connectionsRef.current));
-                if (!inputs.length) throw new Error("请连接可读取的图片或视频");
+                if (!inputs.length) throw new Error("Please connect a readable picture or video");
                 const defaults = createDefaultUpscaleSettings();
                 const stored = current.metadata?.upscale;
                 const passed = processor.metadata?.upscale;
@@ -133,17 +133,17 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                     image: { ...defaults.image, ...stored?.image, ...passed?.image },
                     video: { ...defaults.video, ...stored?.video, ...passed?.video },
                 });
-                if (!settings.channelId) throw new Error("请选择超分渠道");
+                if (!settings.channelId) throw new Error("Please select a super score channel");
                 const items: CanvasUpscaleBatchItem[] = [];
                 // Complete all resource and estimate checks before any paid request.
                 for (const source of inputs) {
-                    const item: CanvasUpscaleBatchItem = { sourceNodeId: source.id, sourceTitle: source.title || "素材", mediaType: source.type === CanvasNodeType.Video ? "video" : "image", outputNodeId: nanoid(), clientOperationId: nanoid(), status: "waiting" };
+                    const item: CanvasUpscaleBatchItem = { sourceNodeId: source.id, sourceTitle: source.title || "Material", mediaType: source.type === CanvasNodeType.Video ? "video" : "image", outputNodeId: nanoid(), clientOperationId: nanoid(), status: "waiting" };
                     try {
                         item.params = upscaleParamsForNode(settings, source, await prepareResource(source));
                         assertCurrent(); const quote = await estimateUpscale(item.params); assertCurrent();
                         item.reservation = quote.reservation; item.quotedAt = Date.now();
                     } catch (cause) {
-                        assertCurrent(); item.status = "rejected"; item.error = cause instanceof Error ? cause.message : "素材预检失败";
+                        assertCurrent(); item.status = "rejected"; item.error = cause instanceof Error ? cause.message : "Material preflight failed";
                     }
                     items.push(item);
                 }
@@ -158,8 +158,8 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                     const empty = emptyIndex >= 0 ? reusable.splice(emptyIndex, 1)[0] : undefined;
                     if (empty) item.outputNodeId = empty.id;
                     const size = empty?.metadata?.manualSize ? { width: empty.width, height: empty.height } : fitNodeSize(source.metadata?.naturalWidth || source.width, source.metadata?.naturalHeight || source.height);
-                    outputs.push({ ...empty, id: item.outputNodeId, type: source.type, title: `${item.sourceTitle} · AI超分`, position: empty?.position ?? getUpscaleOutputPosition(current, 0, [...nodesRef.current, ...outputs], size), ...size,
-                        metadata: { ...empty?.metadata, ...mediaResultMetadata("derived", { status: item.status === "rejected" ? "error" : "loading", taskType: `canvas_${item.mediaType}`, generationSubmissionState: item.status === "rejected" ? "rejected" : undefined, errorDetails: item.error, processingLabel: "等待超分提交", generatedFromNodeId: source.id, generatedFromProcessingNodeId: current.id, generationMode: item.mediaType, taskClientOperationId: item.clientOperationId,
+                    outputs.push({ ...empty, id: item.outputNodeId, type: source.type, title: `${item.sourceTitle} · AI super score`, position: empty?.position ?? getUpscaleOutputPosition(current, 0, [...nodesRef.current, ...outputs], size), ...size,
+                        metadata: { ...empty?.metadata, ...mediaResultMetadata("derived", { status: item.status === "rejected" ? "error" : "loading", taskType: `canvas_${item.mediaType}`, generationSubmissionState: item.status === "rejected" ? "rejected" : undefined, errorDetails: item.error, processingLabel: "Waiting for super score submission", generatedFromNodeId: source.id, generatedFromProcessingNodeId: current.id, generationMode: item.mediaType, taskClientOperationId: item.clientOperationId,
                             workflowOperation: { id: `${item.mediaType}.ai-upscale`, version: 1, config: { ...item.params }, inputs: [{ nodeId: source.id, port: item.mediaType }, { nodeId: current.id, port: "processor" }] } }) } });
                 }
                 const frozen = batch;
@@ -207,7 +207,7 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                     assertCurrent();
                 } catch (cause) {
                     assertCurrent();
-                    update(item, { status: "waiting", error: cause instanceof Error ? cause.message : "原任务查询失败，尚未提交，可继续查询原操作" });
+                    update(item, { status: "waiting", error: cause instanceof Error ? cause.message : "The original task query failed and has not yet been submitted. You can continue to query the original operation." });
                     continue;
                 }
                 if (existing) {
@@ -215,14 +215,14 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                     bindTask?.(existing, item.outputNodeId); observeTask(existing, item.outputNodeId);
                     continue;
                 }
-                if (!item.params) { update(item, { status: "rejected", error: "缺少已冻结的提交参数，请重新配置新批次" }); continue; }
+                if (!item.params) { update(item, { status: "rejected", error: "Missing frozen submission parameters, please reconfigure new batch" }); continue; }
                 if (!item.quotedAt || Date.now() - item.quotedAt > 60_000) {
-                    update(item, { status: "rejected", error: "费用预估已过期，请重新确认费用" });
+                    update(item, { status: "rejected", error: "The cost estimate has expired, please reconfirm the cost" });
                     await save();
                     continue;
                 }
                 if (!useConfigStore.getState().config.channels.some(channel => channel.enabled !== false && isBuiltinBeefTVChannel(channel) && channelHasGenerationCredential(channel))) {
-                    update(item, { status: "rejected", error: "暂无可用超分模型，请连接 BeefTV 内置的官方算力" });
+                    update(item, { status: "rejected", error: "There is currently no super-resolution model available. Please connect to the official computing power built into BeefTV." });
                     await save();
                     continue;
                 }
@@ -237,12 +237,12 @@ export function useCanvasUpscaleBatch({pageUi,  projectId, nodesRef, connections
                     patch(nodes => nodes.map(n => n.id === item.outputNodeId ? { ...n, metadata: { ...n.metadata, taskId: task.id, taskStatus: task.status, generationSubmissionState: "accepted" } } : n));
                     bindTask?.(task, item.outputNodeId); observeTask(task, item.outputNodeId);
                 } catch (cause) {
-                    assertCurrent(); update(item, { status: "unknown", error: cause instanceof Error ? cause.message : "提交回执待确认" });
-                    patch(nodes => nodes.map(n => n.id === item.outputNodeId ? { ...n, metadata: { ...n.metadata, taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "submission_unknown" }, errorDetails: "提交状态待确认，请查询原任务，暂勿重复提交" } } : n));
+                    assertCurrent(); update(item, { status: "unknown", error: cause instanceof Error ? cause.message : "Submit receipt pending confirmation" });
+                    patch(nodes => nodes.map(n => n.id === item.outputNodeId ? { ...n, metadata: { ...n.metadata, taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "submission_unknown" }, errorDetails: "The submission status needs to be confirmed. Please check the original task and do not submit again." } } : n));
                 }
                 await save();
             }
-            if (rejectedRetryBlocked) throw new Error("等待其他项完成后重试未提交项");
+            if (rejectedRetryBlocked) throw new Error("Wait for other items to complete before retrying uncommitted items");
         } finally { locks.current.delete(processor.id); }
     }, [pageUi, projectId, nodesRef, connectionsRef, setNodes, setConnections, prepareResource, observeTask, bindTask, modal]);
     return { startUpscaleBatch, resumeUpscaleBatch: startUpscaleBatch };

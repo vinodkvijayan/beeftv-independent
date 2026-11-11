@@ -50,22 +50,22 @@ export function assertCanvasGenerationHistoryTaskForInsert(
     const detailId = detail.id?.trim() ?? "";
     const detailProjectId = detail.projectId?.trim() ?? "";
     if (!expectedId || !detailId || detailId !== expectedId) {
-        throw new Error("该任务没有可插入的生成结果");
+        throw new Error("This task has no pluggable build results");
     }
     if (!projectId || !detailProjectId || detailProjectId !== projectId) {
-        throw new Error("生成任务不属于当前画布");
+        throw new Error("The build task does not belong to the current canvas");
     }
     if (detail.status === "failed" || detail.status === "cancelled") {
-        throw new Error(detail.error || (detail.status === "cancelled" ? "任务已取消" : "任务失败"));
+        throw new Error(detail.error || (detail.status === "cancelled" ? "Task canceled" : "Task failed"));
     }
     if (detail.status !== "succeeded") {
-        throw new Error(detail.error || "该任务没有可插入的生成结果");
+        throw new Error(detail.error || "This task has no pluggable build results");
     }
     if (!INSERTABLE_HISTORY_MODES.has(generationTaskMode(detail))) {
-        throw new Error("该任务没有可插入的生成结果");
+        throw new Error("This task has no pluggable build results");
     }
     if (!historyDetailHasInsertableMedia(detail)) {
-        throw new Error("该任务没有可插入的生成结果");
+        throw new Error("This task has no pluggable build results");
     }
     return detail;
 }

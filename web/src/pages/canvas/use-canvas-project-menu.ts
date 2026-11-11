@@ -38,7 +38,7 @@ export function useCanvasProjectMenu({ projectId, currentProject, canvasProjects
         const now = new Date().toISOString();
         const id = importCanvasProject({
             ...currentProject,
-            title: `${currentProject.title || "未命名画布"} 副本`,
+            title: `${currentProject.title || "Unnamed canvas"} copy`,
             revision: 0,
             remoteContentHash: undefined,
             createdAt: now,
@@ -56,28 +56,28 @@ export function useCanvasProjectMenu({ projectId, currentProject, canvasProjects
     const renameCanvas = useCallback(async (canvasId: string, canvasTitle: string) => {
         updateProject(canvasId, { canvasTitle });
         await flushCanvasStorePersistence();
-        message.success("画布已重命名");
+        message.success("Canvas renamed");
     }, [message, updateProject]);
 
     const duplicateCanvas = useCallback(async (canvasId: string) => {
         const source = useCanvasStore.getState().openProject(canvasId);
         if (!source) {
-            message.error("画布不存在或已被删除");
+            message.error("Canvas does not exist or has been deleted");
             return;
         }
         const sourceSnapshot = canvasId === projectId ? { ...source, ...readLiveContent() } : source;
-        const fallbackTitle = canvasProjects.find((canvas) => canvas.id === canvasId)?.title || "画布";
+        const fallbackTitle = canvasProjects.find((canvas) => canvas.id === canvasId)?.title || "canvas";
         const now = new Date().toISOString();
         importCanvasProject({
             ...sourceSnapshot,
-            canvasTitle: `${sourceSnapshot.canvasTitle?.trim() || fallbackTitle} 副本`,
+            canvasTitle: `${sourceSnapshot.canvasTitle?.trim() || fallbackTitle} copy`,
             revision: 0,
             remoteContentHash: undefined,
             createdAt: now,
             updatedAt: now,
         }, canvasWorkspaceProjectId(sourceSnapshot));
         await flushCanvasStorePersistence();
-        message.success("画布副本已创建");
+        message.success("Canvas copy created");
     }, [canvasProjects, importCanvasProject, message, projectId, readLiveContent]);
 
     const requestDeleteCanvas = useCallback((id: string) => setDeletingCanvas({ id }), []);
@@ -86,12 +86,12 @@ export function useCanvasProjectMenu({ projectId, currentProject, canvasProjects
         if (!deletingCanvas) return;
         if (deletingCanvas.id === projectId) await deleteCurrentProject();
         else await deleteWorkspaceCanvasProjects([deletingCanvas.id]);
-        message.success("画布已删除");
+        message.success("Canvas deleted");
     }, [deleteCurrentProject, deletingCanvas, message, projectId]);
-    const deletingCanvasTitle = deletingCanvas ? canvasProjects.find((canvas) => canvas.id === deletingCanvas.id)?.title || "该画布" : "";
+    const deletingCanvasTitle = deletingCanvas ? canvasProjects.find((canvas) => canvas.id === deletingCanvas.id)?.title || "the canvas" : "";
 
     const startTitleEditing = useCallback(() => {
-        setTitleDraft(workspaceTitle || "未命名工作区");
+        setTitleDraft(workspaceTitle || "Unnamed workspace");
         setTitleEditing(true);
     }, [workspaceTitle]);
 

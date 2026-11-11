@@ -23,7 +23,7 @@ export async function requestStreamingResponse(config: AiConfig, body: Record<st
         signal: options?.signal,
         credentials: request.credentials,
     });
-    if (!response.ok) throw new Error(await readFetchError(response, "请求失败"));
+    if (!response.ok) throw new Error(await readFetchError(response, "Request failed"));
     if (!response.body) {
         const payload = (await response.json()) as ResponseApiPayload;
         validateResponsePayload(payload);
@@ -56,10 +56,10 @@ export async function requestStreamingChatCompletion(config: AiConfig, body: Rec
         signal: options?.signal,
         credentials: request.credentials,
     });
-    if (!response.ok) throw new Error(await readFetchError(response, "请求失败"));
+    if (!response.ok) throw new Error(await readFetchError(response, "Request failed"));
     const contentType = response.headers.get("content-type") || "";
     if (!response.body || !contentType.includes("text/event-stream")) {
-        const result = parseChatCompletionPayload(await readJsonPayload<ChatCompletionPayload>(response, "请求失败"));
+        const result = parseChatCompletionPayload(await readJsonPayload<ChatCompletionPayload>(response, "Request failed"));
         if (result.reasoning) options?.onReasoning?.(result.reasoning);
         return result;
     }
@@ -91,9 +91,9 @@ export async function requestStreamingClaude(config: AiConfig, body: Record<stri
         signal: options?.signal,
         credentials: request.credentials,
     });
-    if (!response.ok) throw new Error(await readFetchError(response, "Claude 请求失败"));
+    if (!response.ok) throw new Error(await readFetchError(response, "Claude's request failed"));
     if (!response.body || !(response.headers.get("content-type") || "").includes("text/event-stream")) {
-        const payload = (await readJsonPayload<Record<string, unknown>>(response, "Claude 请求失败")) as Record<string, unknown>;
+        const payload = (await readJsonPayload<Record<string, unknown>>(response, "Claude's request failed")) as Record<string, unknown>;
         return parseClaudeResult(payload);
     }
     const reader = response.body.getReader();
@@ -111,8 +111,8 @@ export async function requestStreamingClaude(config: AiConfig, body: Record<stri
             const raw = frame.match(/^data:\s*(.+)$/m)?.[1]?.trim() || "";
             if (!raw || raw === "[DONE]") continue;
             let payload: Record<string, unknown>;
-            try { payload = JSON.parse(raw) as Record<string, unknown>; } catch { throw new Error("Claude 流式响应格式无效"); }
-            if (event === "error" || payload.type === "error") throw new Error(String((payload.error as Record<string, unknown> | undefined)?.message || "Claude 上游返回失败"));
+            try { payload = JSON.parse(raw) as Record<string, unknown>; } catch { throw new Error("Claude streaming response format is invalid"); }
+            if (event === "error" || payload.type === "error") throw new Error(String((payload.error as Record<string, unknown> | undefined)?.message || "Claude upstream return failure"));
             if (payload.type === "content_block_start") {
                 const contentBlock = payload.content_block as Record<string, unknown> | undefined;
                 if (contentBlock?.type === "tool_use") {
@@ -144,7 +144,7 @@ function parseClaudeResult(payload: Record<string, unknown>): ToolResponseResult
         if (block.type === "text") text += String(block.text || "");
         if (block.type === "tool_use") toolCalls.push({ id: String(block.id || ""), type: "function", function: { name: String(block.name || ""), arguments: JSON.stringify(block.input || {}) } });
     }
-    if (!text && !toolCalls.length) throw new Error("Claude 接口没有返回内容");
+    if (!text && !toolCalls.length) throw new Error("Claude interface returns no content");
     return { content: text, toolCalls };
 }
 
@@ -157,7 +157,7 @@ export async function requestGeminiStreamingResponse(config: AiConfig, body: Rec
         signal: options?.signal,
         credentials: request.credentials,
     });
-    if (!response.ok) throw new Error(await readFetchError(response, "请求失败"));
+    if (!response.ok) throw new Error(await readFetchError(response, "Request failed"));
     if (!response.body) {
         const payload = (await response.json()) as GeminiPayload;
         const result = parseGeminiToolResponse(payload);

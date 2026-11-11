@@ -34,7 +34,7 @@ export function parseSkillDraft(text: string): Partial<SkillDraft> {
         }
     }
     // 回退：首行作为名称，正文作为简介与指令，用户随后可自由编辑
-    const firstLine = trimmed.split(/\r?\n/)[0]?.trim().slice(0, 30) || "未命名技能";
+    const firstLine = trimmed.split(/\r?\n/)[0]?.trim().slice(0, 30) || "Unnamed skill";
     return {
         skillName: firstLine,
         description: trimmed.slice(0, MAX_DESCRIPTION_LENGTH),
@@ -46,7 +46,7 @@ export async function generateSkillDraft(idea: string, config: AiConfig, signal?
     const generationConfig = buildGenerationConfig(config, undefined, "text");
     const result = await runBackendGenerationTask({
         mode: "text",
-        prompt: promptTemplateTaskPlaceholder("技能草稿"),
+        prompt: promptTemplateTaskPlaceholder("skills draft"),
         config: generationConfig,
         metadata: {
             source: "skill-draft",

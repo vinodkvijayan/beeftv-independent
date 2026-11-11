@@ -126,7 +126,7 @@ function mergeIncomingChatSessions(project: CanvasProject, base: CanvasAssistant
     if (sameJson(live, base)) return incoming;
     const document = (chatSessions: CanvasAssistantSession[]): CanvasProject => ({ ...project, nodes: [], connections: [], chatSessions });
     const merged = rebaseCanvasDocumentThreeWay({ base: document(base), local: document(live), remote: document(incoming) });
-    if (merged.conflict) throw new Error("助手会话在别处也改过，已保留本地会话");
+    if (merged.conflict) throw new Error("The assistant session has been changed elsewhere, and the local session has been retained");
     return merged.project.chatSessions || [];
 }
 
@@ -352,7 +352,7 @@ export function useCanvasProjectLifecycle({
             // write this stale graph over the server: surface the newer version
             // and pause submits until the user picks it.
             traceCanvasGraph("editor.refresh.conflict", { previous: base, incoming, live: { id: projectId, nodes: live.nodes, connections: live.connections } });
-            console.warn("画布外部改动与本地编辑冲突，已保留本地编辑", { id: projectId, error });
+            console.warn("Changes outside the canvas conflict with local editing, local editing has been retained", { id: projectId, error });
             holdExternalCanvasRevisionForEditor(incoming);
             return false;
         }
@@ -391,7 +391,7 @@ export function useCanvasProjectLifecycle({
             // Both sides changed the same content: the store keeps the editor
             // content as the local draft, the newer version is held and submits pause.
             traceCanvasGraph("editor.write.conflict", { previous: base, incoming: stored, live: { id: projectId, nodes: live.nodes, connections: live.connections } });
-            console.warn("本地画布已在别处改动，与编辑器里的修改冲突，已保留编辑器内容", { id: projectId, error });
+            console.warn("The local canvas has been modified elsewhere, which conflicts with the modifications in the editor. The editor content has been retained.", { id: projectId, error });
             holdExternalCanvasRevisionForEditor(stored);
             return { next: snapshot, merged: false };
         }
@@ -512,7 +512,7 @@ export function useCanvasProjectLifecycle({
                     });
                 })
                 .catch(() => {
-                    if (!cancelled) message.warning("部分助手会话素材恢复失败，已使用项目记录继续打开");
+                    if (!cancelled) message.warning("Some assistant session materials failed to be restored, and the project record has been used to continue opening.");
                 });
         };
         void load()
@@ -538,8 +538,8 @@ export function useCanvasProjectLifecycle({
                     pendingReloadRef.current = null;
                     pendingReload?.reject(error);
                 }
-                const detail = error instanceof Error ? error.message : (localMode ? "读取本地画布失败，请重试" : "读取画布失败，请重试");
-                if (projectSyncProgress(projectId)?.phase !== "conflict") useSyncProgressStore.getState().setProjectProgress(projectId, { phase: "error", message: localMode ? detail : (error instanceof Error ? error.message : "读取云端版本失败") });
+                const detail = error instanceof Error ? error.message : (localMode ? "Failed to read local canvas, please try again" : "Failed to read canvas, please try again");
+                if (projectSyncProgress(projectId)?.phase !== "conflict") useSyncProgressStore.getState().setProjectProgress(projectId, { phase: "error", message: localMode ? detail : (error instanceof Error ? error.message : "Failed to read cloud version") });
                 if (keepEditor) message.error(detail);
                 else setLoadError(detail);
             });
@@ -670,7 +670,7 @@ export function useCanvasProjectLifecycle({
                 if (localMode) await syncLocalCanvasProjectToBackend(projectId);
             })().catch((error) => {
                 if (isCanvasSubmitControlError(error)) return;
-                console.error("离开画布时保存失败", { projectId, reason, error });
+                console.error("Saving failed when leaving canvas", { projectId, reason, error });
             });
         };
         const handlePageHide = () => flushOnLeave("pagehide");
@@ -690,16 +690,16 @@ export function useCanvasProjectLifecycle({
         const workspaceProjectId = currentProject ? canvasWorkspaceProjectId(currentProject) : undefined;
         const domainProjectId = currentProject?.projectId;
         if (localMode) {
-            void createWorkspaceCanvasProject("未命名画布", domainProjectId, undefined, workspaceProjectId)
+            void createWorkspaceCanvasProject("Unnamed canvas", domainProjectId, undefined, workspaceProjectId)
                 .then(({ id }) => navigate(`/canvas/${id}`))
-                .catch((error) => message.error(error instanceof Error ? `新建画布失败：${error.message}` : "新建画布失败，请稍后重试"));
+                .catch((error) => message.error(error instanceof Error ? `Failed to create new canvas:${error.message}` : "Failed to create new canvas, please try again later"));
             return;
         }
-        void createWorkspaceCanvasProject("未命名画布", domainProjectId, undefined, workspaceProjectId).then(({ id, syncError }) => {
+        void createWorkspaceCanvasProject("Unnamed canvas", domainProjectId, undefined, workspaceProjectId).then(({ id, syncError }) => {
             // 本地/访客模式下没有远端同步会话，这是预期状态，不应在画布中央弹出错误 toast。
-            if (syncError && !isExpectedLocalOnlySyncError(syncError)) message.warning(syncError instanceof Error ? `画布已在本地创建，云端同步失败：${syncError.message}` : "画布已在本地创建，云端同步失败");
+            if (syncError && !isExpectedLocalOnlySyncError(syncError)) message.warning(syncError instanceof Error ? `The canvas has been created locally, but cloud synchronization failed:${syncError.message}` : "The canvas has been created locally, but cloud synchronization failed.");
             navigate(`/canvas/${id}`);
-        }).catch((error) => message.error(error instanceof Error ? `新建画布失败：${error.message}` : "新建画布失败，请稍后重试"));
+        }).catch((error) => message.error(error instanceof Error ? `Failed to create new canvas:${error.message}` : "Failed to create new canvas, please try again later"));
     }, [currentProject, localMode, message, navigate]);
 
     const deleteCurrentProject = useCallback(async () => {
@@ -712,7 +712,7 @@ export function useCanvasProjectLifecycle({
         await deleteWorkspaceCanvasProjects([projectId]);
         if (drawingIds.length) {
             void Promise.all(drawingIds.map((drawingId) => removeCanvasDrawing(projectId, drawingId)))
-                .catch(() => { message.warning("画布已删除，但部分本地绘图缓存清理失败"); });
+                .catch(() => { message.warning("Canvas deleted, but partial local drawing cache cleanup failed"); });
         }
         cleanupAssetImages();
         navigate(nextCanvas ? `/canvas/${nextCanvas.id}` : "/canvas");
@@ -755,7 +755,7 @@ export function useCanvasProjectLifecycle({
     const reloadLatestCanvasProject = useCallback(async () => {
         await persistLocalEdits();
         return new Promise<void>((resolve, reject) => {
-            pendingReloadRef.current?.reject(new Error("已有新的加载请求"));
+            pendingReloadRef.current?.reject(new Error("There has been a new load request"));
             loadLatestRef.current = true;
             pendingReloadRef.current = { resolve, reject };
             setLoadAttempt((value) => value + 1);
@@ -765,7 +765,7 @@ export function useCanvasProjectLifecycle({
     const restoreCanvasProjectVersion = useCallback(async (snapshotId: string, revision: number) => {
         await persistLocalEdits();
         return new Promise<void>((resolve, reject) => {
-            historyRestoreRef.current?.reject(new Error("已有新的恢复请求"));
+            historyRestoreRef.current?.reject(new Error("There is a new restore request"));
             historyRestoreRef.current = { snapshotId, revision, resolve, reject };
             setLoadAttempt((value) => value + 1);
         });
@@ -775,19 +775,19 @@ export function useCanvasProjectLifecycle({
         try {
             await persistLocalEdits();
         } catch {
-            message.error("画布保存失败，请稍后重试");
+            message.error("Canvas saving failed, please try again later");
             return false;
         }
         if (!hasRemoteUserDataSyncSession()) {
-            message.success("画布已保存到本地");
+            message.success("The canvas has been saved locally");
             return true;
         }
         try {
             await saveRemoteUserDataNow(projectId);
-            message.success("画布已保存到云端");
+            message.success("Canvas saved to cloud");
         } catch (error) {
-            const detail = error instanceof Error ? error.message : "未知错误";
-            if (!isExpectedLocalOnlySyncError(error)) message.warning(`本地画布布局已保存，云端同步失败：${detail}`);
+            const detail = error instanceof Error ? error.message : "unknown error";
+            if (!isExpectedLocalOnlySyncError(error)) message.warning(`The local canvas layout has been saved, but the cloud synchronization failed:${detail}`);
             // Imports can retain their durable local result; sharing requires cloud success.
             return options.requireRemote === false;
         }
@@ -795,12 +795,12 @@ export function useCanvasProjectLifecycle({
     }, [message, persistLocalEdits, projectId]);
 
     const forceSaveCanvasProject = useCallback(async (): Promise<boolean> => {
-        try { await persistLocalEdits(); } catch { message.error("本地保存失败，请重试"); return false; }
+        try { await persistLocalEdits(); } catch { message.error("Local save failed, please try again"); return false; }
         try {
             const result = await forceOverwriteRemoteCanvasSync();
-            message.success(result.reboundNodes > 0 ? `已保存，并修复 ${result.reboundNodes} 处媒体与素材的绑定` : "素材关联已核对，画布已保存");
+            message.success(result.reboundNodes > 0 ? `Saved and fixed${result.reboundNodes} Binding media and materials` : "The material association has been checked and the canvas has been saved.");
         } catch (error) {
-            message.error(`修复并保存失败：${error instanceof Error ? error.message : "未知错误"}`);
+            message.error(`Repair and save failed:${error instanceof Error ? error.message : "unknown error"}`);
             return false;
         }
         return true;

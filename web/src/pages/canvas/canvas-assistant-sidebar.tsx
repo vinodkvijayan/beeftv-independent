@@ -39,12 +39,12 @@ type Props = {
     continuation?: { pending: boolean; notice: string; stop: () => Promise<void>; refresh: () => void };
 };
 
-const PLAN_STATUS_TEXT: Record<AssistantPlan["items"][number]["status"], string> = { todo: "待做", doing: "进行中", done: "已完成", needs_user: "等待确认", blocked: "需要处理" };
+const PLAN_STATUS_TEXT: Record<AssistantPlan["items"][number]["status"], string> = { todo: "To be done", doing: "In progress", done: "Completed", needs_user: "Waiting for confirmation", blocked: "Need to be processed" };
 
 export function CanvasAssistantPlan({ plan }: { plan: AssistantPlan | null | undefined }) {
     if (!plan?.items.length) return null;
-    return <details className="canvas-assistant-card canvas-assistant-plan" open aria-label="当前制作计划">
-        <summary>步骤进度 · {plan.items.filter(item => item.status === "done").length}/{plan.items.length}</summary>
+    return <details className="canvas-assistant-card canvas-assistant-plan" open aria-label="Current production schedule">
+        <summary>Step progress ·{plan.items.filter(item => item.status === "done").length}/{plan.items.length}</summary>
         {plan.goal ? <p>{plan.goal}</p> : null}
         <ol>{plan.items.map(item => <li key={item.id}>
             <span>{item.title}</span><span className="canvas-assistant-meta">{PLAN_STATUS_TEXT[item.status]}</span>
@@ -91,7 +91,7 @@ export function CanvasAssistantSidebar(props: Props) {
             if (saved) { setDraft(saved.text || ""); setAttachments(saved.attachments || []); setSelectedSkills(saved.skills || []); setResultSelection(saved.resultSelection ?? null); }
             setDraftLoaded(true);
             setLoadedDraftIdentity(draftIdentity);
-        }).catch(() => { if (generation === inputGeneration.current) { setInputError("暂时无法读取未发送的素材，请重新添加。"); setDraftLoaded(true); } });
+        }).catch(() => { if (generation === inputGeneration.current) { setInputError("Unsent material cannot be read at the moment, please add it again."); setDraftLoaded(true); } });
     }, [assistant.canvasId, draftIdentity, draftReadAttempt]);
 
     useEffect(() => {
@@ -99,7 +99,7 @@ export function CanvasAssistantSidebar(props: Props) {
         const generation = inputGeneration.current;
         const version = ++draftWriteVersion.current;
         void saveAssistantInputDraft(assistant.canvasId, { text: draft, attachments, skills: selectedSkills, resultSelection })
-            .catch(() => { if (generation === inputGeneration.current && version === draftWriteVersion.current) setInputError("未发送内容暂时无法保存，请保持窗口打开。"); });
+            .catch(() => { if (generation === inputGeneration.current && version === draftWriteVersion.current) setInputError("Unsent content cannot be saved temporarily, please keep the window open."); });
     }, [assistant.canvasId, attachments, draft, draftIdentity, draftLoaded, loadedDraftIdentity, selectedSkills, resultSelection]);
 
     const upload = useCallback(async (id: string, file: File) => {
@@ -113,13 +113,13 @@ export function CanvasAssistantSidebar(props: Props) {
             setAttachments(items => [...items, attachment]); setUploads(items => items.filter(item => item.id !== id));
         } catch (error) {
             if (generation !== inputGeneration.current) return;
-            setUploads(items => items.map(item => item.id === id ? { ...item, busy: false, error: error instanceof Error ? error.message : "上传没有完成" } : item));
+            setUploads(items => items.map(item => item.id === id ? { ...item, busy: false, error: error instanceof Error ? error.message : "Upload not completed" } : item));
         }
     }, []);
 
     const addFiles = useCallback((files: File[]) => {
         if (readOnly || !draftLoaded || loadedDraftIdentity !== draftIdentity) return;
-        if (attachmentCount.current + files.length > 8) { setInputError("一次最多添加 8 份参考素材"); return; }
+        if (attachmentCount.current + files.length > 8) { setInputError("Add up to 8 reference materials at a time"); return; }
         setInputError("");
         attachmentCount.current += files.length;
         const entries = files.map(file => ({ id: createClientId(), file, busy: true }));
@@ -130,7 +130,7 @@ export function CanvasAssistantSidebar(props: Props) {
     const loadSkills = useCallback(async () => {
         setSkillsLoading(true); setSkillsError("");
         try { const data = await listAddedSkills(); setAvailableSkills(data.skills.filter(skill => skill.status === 1 && skill.isAdded)); }
-        catch { setSkillsError("没有读到已安装技能，请重试。"); }
+        catch { setSkillsError("No installed skills were read, please try again."); }
         finally { setSkillsLoading(false); }
     }, []);
 
@@ -159,7 +159,7 @@ export function CanvasAssistantSidebar(props: Props) {
     const notice = assistant.status && !assistant.status.available && assistant.status.reason !== "host_starting" ? assistantStatusNotice(assistant.status.reason) : null;
     const inputReady = draftLoaded && loadedDraftIdentity === draftIdentity;
     const composerDisabled = readOnly || !inputReady;
-    const composerReason = readOnly ? "这个画布是只读的，不能让助手改动。" : !draftLoaded ? "正在读取未发送内容…" : loadedDraftIdentity !== draftIdentity ? "未能读取草稿，请重新读取后继续。" : undefined;
+    const composerReason = readOnly ? "This canvas is read-only and cannot be changed by the assistant." : !draftLoaded ? "Reading unsent content…" : loadedDraftIdentity !== draftIdentity ? "Failed to read draft, please read again to continue." : undefined;
     const attachedIds = [...new Set([...(selectionAttached ? selectedNodeIds : []), ...resultNodeIds])];
     const prepareResultCheck = useCallback((nodeIds: string[]) => {
         if (!inputReady || readOnly || assistant.streaming || assistant.sessionBusy || !assistant.sessionId) return;
@@ -196,8 +196,8 @@ export function CanvasAssistantSidebar(props: Props) {
 
     const sessionItems = assistant.sessions.length
         ? assistant.sessions.map((item) => {
-              const displayTitle = item.title || "还没有内容的对话";
-              const deleteTitle = item.title || "新对话";
+              const displayTitle = item.title || "Conversation with no content yet";
+              const deleteTitle = item.title || "new conversation";
               return {
                   key: item.sessionId,
                   label: (
@@ -206,8 +206,8 @@ export function CanvasAssistantSidebar(props: Props) {
                           <button
                               type="button"
                               className="inline-flex size-6 shrink-0 items-center justify-center rounded text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-                              aria-label={`删除会话 ${deleteTitle}`}
-                              title="删除对话"
+                              aria-label={`Delete session${deleteTitle}`}
+                              title="Delete conversation"
                               onClick={(event) => {
                                   event.preventDefault();
                                   event.stopPropagation();
@@ -221,7 +221,7 @@ export function CanvasAssistantSidebar(props: Props) {
                   onClick: () => void assistant.activateSession(item.sessionId),
               };
           })
-        : [{ key: "empty", label: "还没有别的对话", disabled: true }];
+        : [{ key: "empty", label: "No other conversations yet", disabled: true }];
 
     const sidePanelEntries = usePluginSlot("canvas.sidePanel");
     const [activeSidePanelId, setActiveSidePanelId] = useState<string>("assistant");
@@ -236,19 +236,19 @@ export function CanvasAssistantSidebar(props: Props) {
                     {assistant.streaming ? (
                         <span className="canvas-assistant-live-badge" aria-hidden="true">
                             <span className="canvas-assistant-live-dot" />
-                            工作中
+                                                        at work
                         </span>
                     ) : null}
                 </div>
-                <Link to="/skills" className="canvas-assistant-meta" aria-label="打开技能市场和我的投稿">技能</Link>
-                <Tooltip title="新对话">
-                    <Button type="text" size="small" aria-label="新对话" disabled={assistant.streaming || assistant.sessionBusy} icon={<MessageSquarePlus className="size-4" />} onClick={() => void assistant.startNewSession()} />
+                <Link to="/skills" className="canvas-assistant-meta" aria-label="Open the skills market and my submission">Skills</Link>
+                <Tooltip title="new conversation">
+                    <Button type="text" size="small" aria-label="new conversation" disabled={assistant.streaming || assistant.sessionBusy} icon={<MessageSquarePlus className="size-4" />} onClick={() => void assistant.startNewSession()} />
                 </Tooltip>
                 <Dropdown trigger={["click"]} placement="bottomRight" menu={{ items: sessionItems, selectedKeys: assistant.sessionId ? [assistant.sessionId] : [] }}>
-                    <Button type="text" size="small" aria-label="历史对话" disabled={assistant.streaming || assistant.sessionBusy} icon={<History className="size-4" />} />
+                    <Button type="text" size="small" aria-label="historical dialogue" disabled={assistant.streaming || assistant.sessionBusy} icon={<History className="size-4" />} />
                 </Dropdown>
-                <Tooltip title="关闭 Agent">
-                    <Button type="text" size="small" aria-label="关闭 Agent" icon={<X className="size-4" />} onClick={() => assistant.setOpen(false)} />
+                <Tooltip title="Close Agent">
+                    <Button type="text" size="small" aria-label="Close Agent" icon={<X className="size-4" />} onClick={() => assistant.setOpen(false)} />
                 </Tooltip>
             </header>
 
@@ -259,7 +259,7 @@ export function CanvasAssistantSidebar(props: Props) {
                         className={`rounded-md px-2 py-1 font-medium ${!activePluginPanel ? "bg-[var(--muted)] text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
                         onClick={() => setActiveSidePanelId("assistant")}
                     >
-                        创作助手
+                                                Creation Assistant
                     </button>
                     {sidePanelEntries.map((entry) => (
                         <button
@@ -293,13 +293,13 @@ export function CanvasAssistantSidebar(props: Props) {
             ) : null}
 
             <div ref={logRef} className="canvas-assistant-log" onScroll={() => { const node = logRef.current; if (node) followLatestRef.current = node.scrollHeight - node.scrollTop - node.clientHeight < 48; }}>
-                {assistant.historyError ? <div className="canvas-assistant-notice" role="status"><span>{assistant.historyError}</span><Button size="small" onClick={() => void assistant.reloadHistory()}>重新读取</Button></div> : !assistant.historyLoaded && assistant.status?.reason !== "model_not_configured" ? <p className="canvas-assistant-meta" role="status">正在读取对话…</p> : null}
+                {assistant.historyError ? <div className="canvas-assistant-notice" role="status"><span>{assistant.historyError}</span><Button size="small" onClick={() => void assistant.reloadHistory()}>reread</Button></div> : !assistant.historyLoaded && assistant.status?.reason !== "model_not_configured" ? <p className="canvas-assistant-meta" role="status">Reading conversation...</p> : null}
                 {assistant.historyLoaded && turnCount === 0 && !assistant.pendingUserText && !assistant.pendingAttachments.length ? (
                     <div className="canvas-assistant-empty">
-                        <h3>想在这张画布上做什么？</h3>
+                        <h3>What do you want to do on this canvas?</h3>
                         {ASSISTANT_STARTER_PROMPTS.slice(0, 3).map((prompt, index) => (
                             <button key={prompt} type="button" className="canvas-assistant-starter" onClick={() => setDraft(prompt)}>
-                                <span>{["拆分分镜", "完善选中镜头", "整理画布"][index]}</span><ArrowUpRight size={14} aria-hidden="true" />
+                                <span>{["split storyboard", "Perfect selected shot", "tidy canvas"][index]}</span><ArrowUpRight size={14} aria-hidden="true" />
                             </button>
                         ))}
                     </div>
@@ -333,19 +333,19 @@ export function CanvasAssistantSidebar(props: Props) {
 
                 <CanvasAssistantPlan plan={assistant.plan} />
                 <AssistantPublicationEntry canvasId={assistant.canvasId} turnCount={assistant.turns.length} running={assistant.streaming} />
-                {props.continuation?.notice ? <div className="canvas-assistant-card" aria-label="自动继续状态">
+                {props.continuation?.notice ? <div className="canvas-assistant-card" aria-label="auto-continue status">
                     <span role="status">{props.continuation.notice}</span>
                     <div className="canvas-assistant-card-actions">
-                        {props.continuation.pending ? <Button size="small" onClick={() => void props.continuation?.stop()}>停止自动继续</Button> : null}
-                        <Button size="small" onClick={props.continuation.refresh}>重新读取</Button>
+                        {props.continuation.pending ? <Button size="small" onClick={() => void props.continuation?.stop()}>Stop auto-continue</Button> : null}
+                        <Button size="small" onClick={props.continuation.refresh}>reread</Button>
                     </div>
-                </div> : assistant.plan?.items.some(item => item.status !== "done") ? <p className="canvas-assistant-meta">确认过的素材会自动制作并继续原计划；需要新增素材时，会先向你确认。</p> : null}
+                </div> : assistant.plan?.items.some(item => item.status !== "done") ? <p className="canvas-assistant-meta">Confirmed materials will be automatically produced and the original plan will be continued; when new materials need to be added, we will confirm with you first.</p> : null}
 
                 {assistant.pendingUserText || assistant.pendingAttachments.length ? (
                     <div className="canvas-assistant-turn">
                         <CanvasAssistantUserMessage text={assistant.pendingUserText || ""} selectedCount={assistant.pendingSelectedNodeIds.length} continuationId={assistant.pendingContinuationId} />
                         <CanvasAssistantAttachments attachments={assistant.pendingAttachments} />
-                        {assistant.awaitingReceipt ? <p className="canvas-assistant-meta" role="status">正在读取这次处理的最终结果，已有内容仍然保留。</p> : null}
+                        {assistant.awaitingReceipt ? <p className="canvas-assistant-meta" role="status">The final result of this processing is being read, and the existing content is still retained.</p> : null}
                         {assistant.pendingSkills.map(skill => <span className="canvas-assistant-chip" key={skill.skillId}>{assistantSkillLabel(skill)}</span>)}
                         {/* 正在生成的思考与下面的正文分开显示，默认折叠。 */}
                         <AssistantReasoning segments={assistant.reasoning} open={assistant.reasoningOpen[ASSISTANT_LIVE_TURN_KEY] === true} onOpenChange={(open) => assistant.setReasoningOpen(ASSISTANT_LIVE_TURN_KEY, open)} />
@@ -353,7 +353,7 @@ export function CanvasAssistantSidebar(props: Props) {
                         {assistant.supplements.map((item, index) => <div key={index} className="canvas-assistant-supplement">
                             <CanvasAssistantUserMessage text={item.text} selectedCount={0} />
                             <CanvasAssistantAttachments attachments={item.attachments || []} />
-                            <p className="canvas-assistant-meta" role="status">{item.status === "accepted" ? "助手已收到补充要求。" : item.status === "sending" ? "正在发送补充要求…" : "未能确认收到补充要求。请查看最新回复后再决定是否发送。"}</p>
+                            <p className="canvas-assistant-meta" role="status">{item.status === "accepted" ? "The assistant has received the supplemental request." : item.status === "sending" ? "Sending additional request..." : "Unable to confirm receipt of supplementary request. Please check the latest reply before deciding whether to send it."}</p>
                         </div>)}
                         {assistant.streaming ? (
                             <>
@@ -363,9 +363,9 @@ export function CanvasAssistantSidebar(props: Props) {
                                         <span />
                                         <span />
                                     </span>
-                                    <span className="canvas-assistant-working-text">{assistant.lifecycleNotice || "助手正在处理…"}</span>
+                                    <span className="canvas-assistant-working-text">{assistant.lifecycleNotice || "The assistant is processing..."}</span>
                                 </div>
-                                {slowStreamingHint ? <p className="canvas-assistant-meta" role="status">思考耗时较长，若开启了系统代理或 VPN 请检查网络连通性，也可点击下方停止后重试。</p> : null}
+                                {slowStreamingHint ? <p className="canvas-assistant-meta" role="status">Thinking takes a long time. If the system proxy or VPN is turned on, please check the network connectivity. You can also click below to stop and try again.</p> : null}
                             </>
                         ) : null}
                     </div>
@@ -373,16 +373,16 @@ export function CanvasAssistantSidebar(props: Props) {
 
                 {!assistant.pendingUserText && !assistant.pendingAttachments.length ? assistant.supplements.filter(item => item.status !== "accepted").map((item, index) => <div key={`unconfirmed:${index}`} className="canvas-assistant-supplement">
                     <CanvasAssistantUserMessage text={item.text} selectedCount={0} />
-                    <p className="canvas-assistant-meta" role="status">{item.status === "sending" ? "正在确认补充要求是否收到…" : "未能确认收到补充要求。请查看最新回复后再决定是否发送。"}</p>
+                    <p className="canvas-assistant-meta" role="status">{item.status === "sending" ? "Confirming whether the supplementary request has been received..." : "Unable to confirm receipt of supplementary request. Please check the latest reply before deciding whether to send it."}</p>
                 </div>) : null}
 
                 {assistant.error ? (
                     <div className="canvas-assistant-card">
                         <span>{assistant.error}</span>
                         <div className="canvas-assistant-card-actions">
-                            {assistant.canRetry ? <Button size="small" onClick={assistant.retryLast}>重试</Button> : null}
-                            {!assistant.canRetry && !assistant.historyError ? <Button size="small" onClick={() => void assistant.reloadHistory()}>重新读取</Button> : null}
-                            <Button size="small" type="text" onClick={assistant.dismissError}>知道了</Button>
+                            {assistant.canRetry ? <Button size="small" onClick={assistant.retryLast}>Try again</Button> : null}
+                            {!assistant.canRetry && !assistant.historyError ? <Button size="small" onClick={() => void assistant.reloadHistory()}>reread</Button> : null}
+                            <Button size="small" type="text" onClick={assistant.dismissError}>Got it</Button>
                         </div>
                     </div>
                 ) : null}
@@ -413,20 +413,20 @@ export function CanvasAssistantSidebar(props: Props) {
                 onOpenSkills={() => { setSkillsOpen(value => !value); setReferencePickerOpen(false); void loadSkills(); }}
                 inputContent={<>
                     <CanvasAssistantAttachments attachments={inputReady ? attachments : []} onChange={(index, value) => setAttachments(items => items.map((item, i) => i === index ? value : item))} onRemove={index => setAttachments(items => items.filter((_, i) => i !== index))} />
-                    {(inputReady ? uploads : []).map(item => <div key={item.id} className="canvas-assistant-notice" role="status"><span>{item.file.name} · {item.busy ? "正在保存素材…" : item.error}</span>
-                        {!item.busy ? <><Button size="small" onClick={() => void upload(item.id, item.file)}>重试上传</Button><Button size="small" onClick={() => setUploads(items => items.filter(value => value.id !== item.id))}>移除</Button></> : null}</div>)}
+                    {(inputReady ? uploads : []).map(item => <div key={item.id} className="canvas-assistant-notice" role="status"><span>{item.file.name} · {item.busy ? "Saving footage…" : item.error}</span>
+                        {!item.busy ? <><Button size="small" onClick={() => void upload(item.id, item.file)}>Retry upload</Button><Button size="small" onClick={() => setUploads(items => items.filter(value => value.id !== item.id))}>Remove</Button></> : null}</div>)}
                     {inputError ? <p className="canvas-assistant-meta" role="status">{inputError}</p> : null}
-                    {draftLoaded && loadedDraftIdentity !== draftIdentity ? <Button size="small" onClick={() => setDraftReadAttempt(value => value + 1)}>重新读取草稿</Button> : null}
-                    {(inputReady ? selectedSkills : []).map(skill => <span className="canvas-assistant-chip" key={skill.skillId}>技能：{skill.skillName || skill.skillId} · {skill.version || skill.versionId}<button aria-label={`移除技能 ${skill.skillName || skill.skillId}`} onClick={() => setSelectedSkills(items => items.filter(item => item.skillId !== skill.skillId))}><X size={12} /></button></span>)}
-                    {skillsOpen && inputReady ? <div className="canvas-assistant-picker" aria-label="已安装技能">{skillsLoading ? <span>正在读取技能…</span> : skillsError ? <><span role="status">{skillsError}</span><Button size="small" onClick={() => void loadSkills()}>重新读取</Button></> : availableSkills.length ? availableSkills.map(skill => <button key={skill.skillId} type="button" aria-pressed={selectedSkills.some(item => item.skillId === skill.skillId)} onClick={() => setSelectedSkills(items => items.some(item => item.skillId === skill.skillId) ? items.filter(item => item.skillId !== skill.skillId) : [...items, { skillId: skill.skillId, versionId: skill.versionId, contentHash: skill.contentHash, skillName: skill.skillName, version: skill.version }])}>{skill.skillName} · {skill.version}</button>) : <span>还没有已安装的技能。</span>}<Button size="small" disabled={readOnly} onClick={() => { setSkillInstallGeneration(inputGeneration.current); setSkillInstallOpen(true); }}>安装技能</Button></div> : null}
-                    {referencePickerOpen && inputReady ? <div className="canvas-assistant-picker" aria-label="画布参考素材">{mediaReferences.length ? mediaReferences.map(reference => <button type="button" key={reference.id} onClick={() => { try { if (attachmentCount.current >= 8) throw new Error("一次最多添加 8 份参考素材"); const item = attachmentFromCanvasReference(reference); attachmentCount.current++; setAttachments(items => [...items, item]); setReferencePickerOpen(false); } catch (error) { setInputError(error instanceof Error ? error.message : "无法添加素材"); } }}>{reference.title || reference.label}</button>) : <span className="canvas-assistant-meta">当前画布暂无可用素材</span>}</div> : null}
+                    {draftLoaded && loadedDraftIdentity !== draftIdentity ? <Button size="small" onClick={() => setDraftReadAttempt(value => value + 1)}>Reread draft</Button> : null}
+                    {(inputReady ? selectedSkills : []).map(skill => <span className="canvas-assistant-chip" key={skill.skillId}>Skills:{skill.skillName || skill.skillId} · {skill.version || skill.versionId}<button aria-label={`Remove skills${skill.skillName || skill.skillId}`} onClick={() => setSelectedSkills(items => items.filter(item => item.skillId !== skill.skillId))}><X size={12} /></button></span>)}
+                    {skillsOpen && inputReady ? <div className="canvas-assistant-picker" aria-label="Installed skills">{skillsLoading ? <span>Loading skills...</span> : skillsError ? <><span role="status">{skillsError}</span><Button size="small" onClick={() => void loadSkills()}>reread</Button></> : availableSkills.length ? availableSkills.map(skill => <button key={skill.skillId} type="button" aria-pressed={selectedSkills.some(item => item.skillId === skill.skillId)} onClick={() => setSelectedSkills(items => items.some(item => item.skillId === skill.skillId) ? items.filter(item => item.skillId !== skill.skillId) : [...items, { skillId: skill.skillId, versionId: skill.versionId, contentHash: skill.contentHash, skillName: skill.skillName, version: skill.version }])}>{skill.skillName} · {skill.version}</button>) : <span>There are no skills installed yet.</span>}<Button size="small" disabled={readOnly} onClick={() => { setSkillInstallGeneration(inputGeneration.current); setSkillInstallOpen(true); }}>Installation skills</Button></div> : null}
+                    {referencePickerOpen && inputReady ? <div className="canvas-assistant-picker" aria-label="Canvas reference material">{mediaReferences.length ? mediaReferences.map(reference => <button type="button" key={reference.id} onClick={() => { try { if (attachmentCount.current >= 8) throw new Error("Add up to 8 reference materials at a time"); const item = attachmentFromCanvasReference(reference); attachmentCount.current++; setAttachments(items => [...items, item]); setReferencePickerOpen(false); } catch (error) { setInputError(error instanceof Error ? error.message : "Unable to add material"); } }}>{reference.title || reference.label}</button>) : <span className="canvas-assistant-meta">There is no material available for the current canvas.</span>}</div> : null}
                 </>}
             />
             <SkillInstallModal open={skillInstallOpen} onClose={() => setSkillInstallOpen(false)} onInstalled={skill => {
                 if (skillInstallGeneration !== inputGeneration.current) return;
                 setSkillInstallOpen(false);
                 if (!skill.versionId || !/^[a-f0-9]{64}$/i.test(skill.contentHash)) {
-                    setInputError("技能已安装，但没有读到可用版本，请重新读取技能。");
+                    setInputError("The skill has been installed, but the available version has not been read. Please read the skill again.");
                     void loadSkills();
                     return;
                 }
@@ -461,7 +461,7 @@ export function CanvasAssistantSidebar(props: Props) {
             <button
                 type="button"
                 className="canvas-assistant-resize"
-                aria-label="调整 Agent 宽度"
+                aria-label="Adjust Agent width"
                 onPointerDown={startResize}
                 onKeyDown={(event) => {
                     if (event.key === "ArrowLeft") assistant.setWidth(Math.min(ASSISTANT_MAX_WIDTH, assistant.width + 16));

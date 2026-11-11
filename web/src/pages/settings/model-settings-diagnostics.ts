@@ -25,7 +25,7 @@ type PendingPress = { title: string; startedAt: number; opened: boolean };
 let pendingPress: PendingPress | undefined;
 
 export function describeDiagnosticElement(element: Element | null | undefined) {
-    if (!element) return "无";
+    if (!element) return "None";
     const tag = element.tagName.toLowerCase();
     const raw = typeof element.className === "string" ? element.className : element.getAttribute("class") || "";
     const classes = raw.split(/\s+/).filter((name) => name.startsWith("ant-") || name.startsWith("model-") || name.startsWith("settings-")).slice(0, 3);
@@ -41,11 +41,11 @@ function visibleOverlayCount(doc: Document, selector: string) {
 
 function surroundings(doc: Document) {
     const reducedMotion = doc.defaultView?.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    return `弹窗 ${visibleOverlayCount(doc, ".ant-modal-wrap")} 个，焦点 ${describeDiagnosticElement(doc.activeElement)}，减少动态效果 ${reducedMotion === undefined ? "未知" : reducedMotion ? "开启" : "关闭"}`;
+    return `Pop-up window${visibleOverlayCount(doc, ".ant-modal-wrap")} individual, focus${describeDiagnosticElement(doc.activeElement)}, reduce dynamic effects${reducedMotion === undefined ? "unknown" : reducedMotion ? "turn on" : "Close"}`;
 }
 
 function snapshotText(snapshot: ModelPickerSnapshot) {
-    return `选项 ${snapshot.optionCount} 个，${snapshot.unavailable ? "已选模型不可用" : snapshot.hasValue ? "已有选择" : "未选择"}，${snapshot.disabled ? "已禁用" : "可用"}，选项计算 ${Math.round(snapshot.buildMs)}ms`;
+    return `Options${snapshot.optionCount} one,${snapshot.unavailable ? "The selected model is not available" : snapshot.hasValue ? "Already selected" : "Not selected"}，${snapshot.disabled ? "Disabled" : "Available"}, option calculation${Math.round(snapshot.buildMs)}ms`;
 }
 
 export function recordModelPickerPress(snapshot: ModelPickerSnapshot, point: { x: number; y: number }, doc: Document = document) {
@@ -55,7 +55,7 @@ export function recordModelPickerPress(snapshot: ModelPickerSnapshot, point: { x
         level: "info",
         category: "action",
         code: "MODEL_PICKER_PRESS",
-        message: `${snapshot.title} 被点击：${snapshotText(snapshot)}，${surroundings(doc)}`,
+        message: `${snapshot.title} was clicked:${snapshotText(snapshot)}，${surroundings(doc)}`,
     });
     window.setTimeout(() => {
         if (press.opened || pendingPress !== press) return;
@@ -64,7 +64,7 @@ export function recordModelPickerPress(snapshot: ModelPickerSnapshot, point: { x
             level: "warning",
             category: "action",
             code: "MODEL_PICKER_NOT_OPENED",
-            message: `${snapshot.title} 点击后 ${OPEN_CHECK_DELAY_MS}ms 仍未展开：点击位置当前元素 ${describeDiagnosticElement(hit)}，${surroundings(doc)}`,
+            message: `${snapshot.title} after click${OPEN_CHECK_DELAY_MS}ms is still not expanded: click on the current element${describeDiagnosticElement(hit)}，${surroundings(doc)}`,
         });
     }, OPEN_CHECK_DELAY_MS);
 }
@@ -74,7 +74,7 @@ export function recordModelPickerOpenChange(snapshot: ModelPickerSnapshot, open:
     openChecks.delete(snapshot.pickerId);
     const press = pendingPress?.title === snapshot.title ? pendingPress : undefined;
     if (!open) {
-        recordDiagnosticEvent({ level: "info", category: "action", code: "MODEL_PICKER_CLOSE", message: `${snapshot.title} 已收起，${surroundings(doc)}` });
+        recordDiagnosticEvent({ level: "info", category: "action", code: "MODEL_PICKER_CLOSE", message: `${snapshot.title} Collected,${surroundings(doc)}` });
         return;
     }
     if (press) press.opened = true;
@@ -94,7 +94,7 @@ export function recordModelPickerOpenChange(snapshot: ModelPickerSnapshot, open:
                 level: visible && !misaligned ? "info" : "warning",
                 category: "action",
                 code: !visible ? "MODEL_PICKER_POPUP_HIDDEN" : misaligned ? "MODEL_PICKER_POPUP_MISALIGNED" : "MODEL_PICKER_OPEN",
-                message: `${snapshot.title} 展开：${snapshotText(snapshot)}，${describePopup(doc, popup)}${triggerRect && gap !== undefined ? `，选择框位于 (${Math.round(triggerRect.left)}, ${Math.round(triggerRect.top)})，菜单间距 ${Math.round(gap)}px${misaligned ? "，菜单位置偏离选择框" : ""}` : ""}，${surroundings(doc)}`,
+                message: `${snapshot.title} Expand:${snapshotText(snapshot)}，${describePopup(doc, popup)}${triggerRect && gap !== undefined ? `, the selection box is located at (${Math.round(triggerRect.left)}, ${Math.round(triggerRect.top)}), menu spacing${Math.round(gap)}px${misaligned ? ", the menu position deviates from the selection box" : ""}` : ""}，${surroundings(doc)}`,
                 durationMs: delay,
             });
         },
@@ -104,7 +104,7 @@ export function recordModelPickerOpenChange(snapshot: ModelPickerSnapshot, open:
 }
 
 export function recordModelPickerChange(snapshot: ModelPickerSnapshot) {
-    recordDiagnosticEvent({ level: "info", category: "action", code: "MODEL_PICKER_CHANGE", message: `${snapshot.title} 已选择新模型` });
+    recordDiagnosticEvent({ level: "info", category: "action", code: "MODEL_PICKER_CHANGE", message: `${snapshot.title} New model selected` });
 }
 
 function popupVisible(doc: Document, popup: HTMLElement) {
@@ -119,7 +119,7 @@ function popupInViewport(doc: Document, rect: DOMRect) {
 }
 
 function describePopup(doc: Document, popup: HTMLElement | undefined) {
-    if (!popup) return "弹层未渲染";
+    if (!popup) return "The elastic layer is not rendered";
     const rect = popup.getBoundingClientRect();
     const style = doc.defaultView?.getComputedStyle(popup);
     const items = popup.querySelectorAll(".ant-select-item-option").length;
@@ -130,8 +130,8 @@ function describePopup(doc: Document, popup: HTMLElement | undefined) {
     const top = Math.max(0, rect.top);
     const bottom = Math.min(view?.innerHeight ?? rect.bottom, rect.bottom);
     const center = inViewport ? doc.elementFromPoint((left + right) / 2, top + Math.min((bottom - top) / 2, 16)) : null;
-    const covered = !inViewport ? "窗口外，无法检测遮挡" : !center ? "无法检测遮挡" : !popup.contains(center) ? `被 ${describeDiagnosticElement(center)} 遮挡` : "未被遮挡";
-    return `弹层 ${Math.round(rect.width)}×${Math.round(rect.height)} 位于 (${Math.round(rect.left)}, ${Math.round(rect.top)})，${inViewport ? "在窗口内" : "在窗口外"}，透明度 ${style?.opacity ?? "?"}，层级 ${style?.zIndex ?? "?"}，已渲染选项 ${items} 个，${covered}`;
+    const covered = !inViewport ? "Outside the window, occlusion cannot be detected" : !center ? "Unable to detect occlusion" : !popup.contains(center) ? `Be${describeDiagnosticElement(center)} occlusion` : "not obscured";
+    return `elastic layer${Math.round(rect.width)}×${Math.round(rect.height)} Located at (${Math.round(rect.left)}, ${Math.round(rect.top)})，${inViewport ? "within window" : "outside the window"}, transparency${style?.opacity ?? "?"}, level${style?.zIndex ?? "?"}, rendered options${items} one,${covered}`;
 }
 
 // A layer left above the pickers (a stuck mask, tooltip or popover) takes the
@@ -149,7 +149,7 @@ export function watchModelPickerBlockers(root: HTMLElement, doc: Document = docu
                 level: "warning",
                 category: "action",
                 code: "MODEL_PICKER_BLOCKED",
-                message: `${picker.getAttribute("aria-label") || picker.querySelector("[aria-label]")?.getAttribute("aria-label") || "模型选择框"} 的点击被 ${describeDiagnosticElement(target)} 接走，${surroundings(doc)}`,
+                message: `${picker.getAttribute("aria-label") || picker.querySelector("[aria-label]")?.getAttribute("aria-label") || "Model selection box"} of clicks${describeDiagnosticElement(target)} Pick it up,${surroundings(doc)}`,
             });
             return;
         }
@@ -161,7 +161,7 @@ export function watchModelPickerBlockers(root: HTMLElement, doc: Document = docu
 // "Deleting a channel does nothing" reports: record whether the confirm opened,
 // whether 删除 was confirmed, and whether the channel actually left the list.
 export function recordChannelDeleteConfirmOpen(open: boolean) {
-    recordDiagnosticEvent({ level: "info", category: "action", code: open ? "CHANNEL_DELETE_CONFIRM_OPEN" : "CHANNEL_DELETE_CONFIRM_CLOSE", message: open ? "删除渠道确认框已打开" : "删除渠道确认框已关闭" });
+    recordDiagnosticEvent({ level: "info", category: "action", code: open ? "CHANNEL_DELETE_CONFIRM_OPEN" : "CHANNEL_DELETE_CONFIRM_CLOSE", message: open ? "Delete channel confirmation box is open" : "Delete channel confirmation box has been closed" });
 }
 
 export function recordChannelDelete(result: { scope?: string; before: number; after: number }) {
@@ -170,6 +170,6 @@ export function recordChannelDelete(result: { scope?: string; before: number; af
         level: removed === 1 ? "info" : "warning",
         category: "action",
         code: removed === 1 ? "CHANNEL_DELETED" : "CHANNEL_DELETE_NOOP",
-        message: `确认删除渠道：作用范围 ${result.scope || "个人"}，渠道数 ${result.before} → ${result.after}`,
+        message: `Confirm deletion channel: Scope${result.scope || "personal"}, number of channels${result.before} → ${result.after}`,
     });
 }

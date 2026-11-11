@@ -30,11 +30,11 @@ type SyncProgressStore = {
  */
 export function syncBeforeUnloadMessage(progress: SyncProjectProgress[], localMode = isLocalWorkspaceMode()) {
     if (!progress.length) return "";
-    const localOnly = progress.every((item) => item.message?.includes("本地"));
+    const localOnly = progress.every((item) => item.message?.includes("Local"));
     // Legacy source contract: localOnly ? "画布正在保存到本地，请勿关闭页面。" : "画布正在同步至云端，请勿关闭页面。"
     return (localMode || localOnly)
-        ? "画布正在保存到本地，请勿关闭页面。"
-        : "画布正在同步至云端，请勿关闭页面。";
+        ? "The canvas is being saved locally, please do not close the page."
+        : "The canvas is being synced to the cloud, please do not close the page.";
 }
 
 export function projectSyncProgress(projectId: string, scope = getActiveUserScope()) {

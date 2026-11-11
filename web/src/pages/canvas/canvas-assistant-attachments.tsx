@@ -29,8 +29,8 @@ function AttachmentPreview({ attachment }: { attachment: AssistantAttachment }) 
     }, [attachment.kind, identity, retry, storageKey]);
     const current = preview?.identity === identity ? preview : null;
     const url = attachment.kind === "video" ? video.url : current?.url || peekCachedResourceObjectUrl(storageKey);
-    if (current?.error || video.error) return <span className="canvas-assistant-meta" role="status">预览暂时无法显示<Button size="small" onClick={() => attachment.kind === "video" ? video.retry() : setRetry(value => value + 1)}>重读预览</Button></span>;
-    if (!url) return <span className="canvas-assistant-meta" role="status">正在读取预览…</span>;
+    if (current?.error || video.error) return <span className="canvas-assistant-meta" role="status">The preview cannot be displayed temporarily<Button size="small" onClick={() => attachment.kind === "video" ? video.retry() : setRetry(value => value + 1)}>Reread preview</Button></span>;
+    if (!url) return <span className="canvas-assistant-meta" role="status">Loading preview…</span>;
     const onError = () => setPreview({ identity, url: "", error: true });
     return attachment.kind === "image" ? <img src={url} alt={attachment.name} loading="lazy" onError={onError} />
         : attachment.kind === "video" ? <video src={url} aria-label={attachment.name} controls preload="metadata" onError={() => { if (!video.requestCompatible()) video.fail(); }} /> : <audio src={url} aria-label={attachment.name} controls preload="metadata" onError={onError} />;
@@ -45,16 +45,16 @@ export function CanvasAssistantAttachments({ attachments, onChange, onRemove }: 
         const error = attachmentRangeError(attachment);
         return <div className="canvas-assistant-attachment" key={`${attachment.resourceId}:${index}`}>
             <div className="canvas-assistant-attachment-heading"><span title={attachment.name}>{attachment.name}</span>
-                {onRemove ? <Button type="text" size="small" aria-label={`移除 ${attachment.name}`} icon={<X size={14} />} onClick={() => onRemove(index)} /> : null}</div>
+                {onRemove ? <Button type="text" size="small" aria-label={`Remove${attachment.name}`} icon={<X size={14} />} onClick={() => onRemove(index)} /> : null}</div>
             <AttachmentPreview attachment={attachment} />
-            <span className="canvas-assistant-meta">{attachment.bytes > 0 ? `${(attachment.bytes / 1024).toFixed(0)} KB` : "已保存素材"}{attachment.durationMs ? ` · ${(attachment.durationMs / 1000).toFixed(1)} 秒` : ""}</span>
-            {onChange ? <Select size="small" aria-label={`${attachment.name} 的用途`} value={attachment.purpose} options={assistantAttachmentPurposes(attachment.kind)}
+            <span className="canvas-assistant-meta">{attachment.bytes > 0 ? `${(attachment.bytes / 1024).toFixed(0)} KB` : "Saved footage"}{attachment.durationMs ? ` · ${(attachment.durationMs / 1000).toFixed(1)} seconds` : ""}</span>
+            {onChange ? <Select size="small" aria-label={`${attachment.name} purpose`} value={attachment.purpose} options={assistantAttachmentPurposes(attachment.kind)}
                 labelRender={({ value }) => ASSISTANT_ATTACHMENT_PURPOSES.find(item => item.value === value)?.label || value}
-                onChange={purpose => onChange(index, { ...attachment, purpose })} /> : <span className="canvas-assistant-meta">{ASSISTANT_ATTACHMENT_PURPOSES.find(item => item.value === attachment.purpose)?.label || "仅分析"}</span>}
+                onChange={purpose => onChange(index, { ...attachment, purpose })} /> : <span className="canvas-assistant-meta">{ASSISTANT_ATTACHMENT_PURPOSES.find(item => item.value === attachment.purpose)?.label || "Analyze only"}</span>}
             {attachment.kind !== "image" && onChange ? <div className="canvas-assistant-attachment-range">
-                <InputNumber size="small" min={0} changeOnBlur={false} aria-label={`${attachment.name} 起始秒`} placeholder="起始秒" value={attachment.start} onChange={start => onChange(index, { ...attachment, start: start ?? undefined })} />
-                <span>—</span><InputNumber size="small" min={0} changeOnBlur={false} aria-label={`${attachment.name} 结束秒`} placeholder="结束秒" value={attachment.end} onChange={end => onChange(index, { ...attachment, end: end ?? undefined })} />
-            </div> : attachment.start !== undefined || attachment.end !== undefined ? <span className="canvas-assistant-meta">{attachment.start ?? 0} — {attachment.end} 秒</span> : null}
+                <InputNumber size="small" min={0} changeOnBlur={false} aria-label={`${attachment.name} Starting seconds`} placeholder="Starting seconds" value={attachment.start} onChange={start => onChange(index, { ...attachment, start: start ?? undefined })} />
+                <span>—</span><InputNumber size="small" min={0} changeOnBlur={false} aria-label={`${attachment.name} end seconds`} placeholder="end seconds" value={attachment.end} onChange={end => onChange(index, { ...attachment, end: end ?? undefined })} />
+            </div> : attachment.start !== undefined || attachment.end !== undefined ? <span className="canvas-assistant-meta">{attachment.start ?? 0} — {attachment.end}  seconds</span> : null}
             {error ? <span className="canvas-assistant-meta" role="status">{error}</span> : null}
         </div>;
     })}</div>;

@@ -35,8 +35,8 @@ export function CanvasNodeSplitDialog({ dataUrl, open, onClose, onConfirm }: { d
         <Modal title={null} open={open && Boolean(dataUrl)} onCancel={onClose} footer={null} width={780} centered destroyOnHidden>
             <div className="space-y-5">
                 <div>
-                    <h2 className="text-xl font-semibold">宫格切分</h2>
-                    <p className="mt-1 text-sm opacity-60">生成 {total} 个图片子节点，并按原图网格排列到画布右侧</p>
+                    <h2 className="text-xl font-semibold">Palace division</h2>
+                    <p className="mt-1 text-sm opacity-60">generate{total}  image sub-nodes and arrange them to the right side of the canvas according to the original image grid.</p>
                 </div>
                 <div className="grid gap-6 md:grid-cols-[minmax(260px,1fr)_280px]">
                     <div className="rounded-xl border p-4">
@@ -47,25 +47,25 @@ export function CanvasNodeSplitDialog({ dataUrl, open, onClose, onConfirm }: { d
                             </div>
                         </div>
                         <div className="mt-3 flex items-center justify-between text-sm">
-                            <span className="opacity-60">原图</span>
-                            <span className="font-semibold">{image ? `${image.width} x ${image.height} px` : "读取中"}</span>
+                            <span className="opacity-60">Original picture</span>
+                            <span className="font-semibold">{image ? `${image.width} x ${image.height} px` : "Reading"}</span>
                         </div>
                     </div>
                     <div className="space-y-5 py-2">
-                        <NumberField label="行数" value={params.rows} onChange={(value) => update("rows", value)} />
-                        <NumberField label="列数" value={params.columns} onChange={(value) => update("columns", value)} />
+                        <NumberField label="Number of lines" value={params.rows} onChange={(value) => update("rows", value)} />
+                        <NumberField label="Number of columns" value={params.columns} onChange={(value) => update("columns", value)} />
                         <div className="rounded-xl border px-4 py-3 text-sm">
                             <div className="flex items-center justify-between">
-                                <span className="opacity-60">子节点</span>
-                                <span className="font-semibold">{total} 个</span>
+                                <span className="opacity-60">child node</span>
+                                <span className="font-semibold">{total}  a</span>
                             </div>
                             <div className="mt-2 flex items-center justify-between">
-                                <span className="opacity-60">单块约</span>
-                                <span className="font-semibold">{pieceSize ? `${pieceSize.width} x ${pieceSize.height}` : "未知"}</span>
+                                <span className="opacity-60">Single block approx.</span>
+                                <span className="font-semibold">{pieceSize ? `${pieceSize.width} x ${pieceSize.height}` : "unknown"}</span>
                             </div>
                         </div>
                         <Button type="primary" size="large" className="w-full" icon={<Grid2x2 className="size-4" />} onClick={() => onConfirm(params)}>
-                            生成子节点
+                                                        Generate child nodes
                         </Button>
                     </div>
                 </div>

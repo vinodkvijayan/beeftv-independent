@@ -100,10 +100,10 @@ export function useCanvasVideoTools({
         const connection = { id: nanoid(), fromNodeId: node.id, toNodeId: childId };
         const size = fitNodeSize(normalizedCrop.width, normalizedCrop.height, VIDEO_NODE_MAX_SIZE.width, VIDEO_NODE_MAX_SIZE.height);
         const pendingChild: CanvasNodeData = {
-            id: childId, type: CanvasNodeType.Video, title: `${node.title || "视频"} · 裁切`,
+            id: childId, type: CanvasNodeType.Video, title: `${node.title || "video"} · Cut`,
             position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height,
             metadata: mediaResultMetadata("derived", {
-                status: NODE_STATUS_LOADING, processingLabel: "正在裁切视频", prompt: `从「${node.title || "视频"}」裁切画面`,
+                status: NODE_STATUS_LOADING, processingLabel: "Cropping video", prompt: `From "${node.title || "video"}"Crop screen`,
                 videoCrop: normalizedCrop, videoCropSourceNodeId: node.id,
                 workflowOperation: { id: "video.crop", version: 1, config: { x: normalizedCrop.x / sourceDimensions.width, y: normalizedCrop.y / sourceDimensions.height, width: normalizedCrop.width / sourceDimensions.width, height: normalizedCrop.height / sourceDimensions.height }, inputs: [{ nodeId: node.id, port: "video" }] },
             }),
@@ -130,7 +130,7 @@ export function useCanvasVideoTools({
             await operation.wait(persistMediaNodes([completedChild], [connection], {}));
         } catch (error) {
             if (!operation.isCurrent()) return;
-            const details = error instanceof Error ? error.message : "视频画面裁切失败";
+            const details = error instanceof Error ? error.message : "Video screen cropping failed";
             setNodes((current) => current.map((item) => item.id === childId ? {
                 ...item, metadata: { ...item.metadata, status: NODE_STATUS_ERROR, errorDetails: details },
             } : item));
@@ -167,7 +167,7 @@ export function useCanvasVideoTools({
             if (target?.metadata?.taskId === task.id) await attachOwnedDepthCaptureResult({ node: target, task, session, nodesRef, setNodes });
         } catch (error) {
             if (isLocalExecutorSessionStop(error)) return;
-            const details = error instanceof Error ? error.message : "深度动作捕捉失败";
+            const details = error instanceof Error ? error.message : "Depth motion capture failed";
             const intent = localExecutorIntentAfterError({ clientOperationId, submittedTaskId, frozenInputKey }, error);
             const uncertain = isUncertainLocalExecutorSubmit(error, submittedTaskId);
             setNodes((current) => current.map((item) => item.id === targetNodeId && item.metadata?.taskClientOperationId === clientOperationId ? {
@@ -188,7 +188,7 @@ export function useCanvasVideoTools({
     const depthCaptureNode = useCallback(async (node: CanvasNodeData) => {
         const resourceId = ownedResourceIdFromMediaRef(node.metadata?.storageKey, node.metadata?.content);
         if (!resourceId) {
-            message.error("请先等待视频保存到本地资源库，再进行深度动作捕捉");
+            message.error("Please wait for the video to be saved to the local resource library before performing in-depth motion capture.");
             return;
         }
         try {
@@ -201,11 +201,11 @@ export function useCanvasVideoTools({
         const childId = nanoid();
         const connection = { id: nanoid(), fromNodeId: node.id, toNodeId: childId };
         const pendingChild: CanvasNodeData = {
-            id: childId, type: CanvasNodeType.Video, title: `${node.title || "视频"} · 深度动作捕捉`,
+            id: childId, type: CanvasNodeType.Video, title: `${node.title || "video"} · Deep motion capture`,
             position: { x: node.position.x + node.width + 96, y: node.position.y }, width: node.width, height: node.height,
             metadata: mediaResultMetadata("derived", {
-                status: NODE_STATUS_LOADING, processingLabel: "检查深度处理组件", taskStage: "检查深度处理组件", taskProgress: 0,
-                prompt: `从「${node.title || "视频"}」生成深度动作参考`, depthSourceNodeId: node.id,
+                status: NODE_STATUS_LOADING, processingLabel: "Check out depth processing components", taskStage: "Check out depth processing components", taskProgress: 0,
+                prompt: `From "${node.title || "video"}》Generate deep action reference`, depthSourceNodeId: node.id,
                 taskClientOperationId: clientOperationId, taskClientOperationInput: frozenInputKey,
             }),
         };
@@ -241,7 +241,7 @@ export function useCanvasVideoTools({
         const sourceNode = sourceNodeId ? nodesRef.current.find((item) => item.id === sourceNodeId) : undefined;
         const resourceId = sourceNode ? ownedResourceIdFromMediaRef(sourceNode.metadata?.storageKey, sourceNode.metadata?.content) : undefined;
         if (!sourceNode || !resourceId) {
-            const details = "原始视频已丢失，无法重新生成深度动作参考";
+            const details = "The original video has been lost and the deep motion reference cannot be regenerated";
             setNodes((current) => current.map((item) => item.id === node.id ? { ...item, metadata: { ...item.metadata, status: NODE_STATUS_ERROR, errorDetails: details } } : item));
             message.error(details);
             return;
@@ -259,7 +259,7 @@ export function useCanvasVideoTools({
         nodesRef.current = nodesRef.current.map((item) => item.id === node.id ? {
             ...item,
             metadata: {
-                ...item.metadata, status: NODE_STATUS_LOADING, processingLabel: "检查深度处理组件", taskStage: "检查深度处理组件",
+                ...item.metadata, status: NODE_STATUS_LOADING, processingLabel: "Check out depth processing components", taskStage: "Check out depth processing components",
                 taskProgress: 0, taskStatus: "queued", taskId: undefined, taskClientOperationId: clientOperationId,
                 taskClientOperationInput: frozenInputKey, taskClientOperationTerminal: undefined, errorDetails: undefined,
             },
@@ -286,14 +286,14 @@ export function useCanvasVideoTools({
         const resourceId = ownedResourceIdFromMediaRef(node.metadata?.storageKey, content);
         const effectiveStorageKey = node.metadata?.storageKey || (resourceId ? resourceStorageKey(resourceId) : "");
         if ((!content && !effectiveStorageKey) || extractingVideoFramesNodeIdRef.current || !params.timesMs.length) return;
-        const progress = startUploadStatus("关键帧截取", "读取视频资源", params.timesMs.length + 2);
+        const progress = startUploadStatus("Key frame interception", "Read video resources", params.timesMs.length + 2);
         extractingVideoFramesNodeIdRef.current = node.id;
         setExtractingVideoFramesNodeId(node.id);
         setFrameDialogNodeId(null);
         try {
             const storedBlob = effectiveStorageKey ? await operation.wait(getMediaBlob(effectiveStorageKey).catch(() => null)) : null;
             const resolvedUrl = storedBlob ? "" : await operation.wait(resolveMediaUrl(effectiveStorageKey, content || "").catch(() => content || ""));
-            operation.run(() => progress.update("定位并绘制所选画面", 2));
+            operation.run(() => progress.update("Position and draw the selected frame", 2));
             let captured: Awaited<ReturnType<typeof captureVideoFrames>>;
             try {
                 captured = await operation.wait(captureVideoFrames(storedBlob || resolvedUrl, params.timesMs));
@@ -308,15 +308,15 @@ export function useCanvasVideoTools({
             for (let index = 0; index < captured.frames.length; index += 1) {
                 const frame = captured.frames[index];
                 try {
-                    operation.run(() => progress.update(`保存画面（${index + 1}/${captured.frames.length}）`, index + 3));
+                    operation.run(() => progress.update(`save screen (${index + 1}/${captured.frames.length}）`, index + 3));
                     uploadedFrames.push({ timeMs: frame.timeMs, image: await operation.wait(uploadImage(frame.blob)) });
                 } catch (error) {
                     if (!operation.isCurrent()) return;
-                    uploadFailures.push(error instanceof Error ? error.message : "画面图片上传失败");
+                    uploadFailures.push(error instanceof Error ? error.message : "Screen image upload failed");
                 }
             }
             const frameNodes = buildVideoFrameNodes(node, uploadedFrames, nodesRef.current);
-            if (!frameNodes.length) throw new Error(uploadFailures[0] || "画面图片保存失败");
+            if (!frameNodes.length) throw new Error(uploadFailures[0] || "Screen image failed to save");
             const links = frameNodes.map((frameNode) => ({ id: nanoid(), fromNodeId: node.id, toNodeId: frameNode.id }));
             const nextNodes = [...nodesRef.current, ...frameNodes];
             const nextConnections = [...connectionsRef.current, ...links];
@@ -330,12 +330,12 @@ export function useCanvasVideoTools({
             pageUi.getState().setSelectedConnectionId(null);
             await operation.wait(persistMediaNodes(frameNodes, links, {}));
             const failedCount = captured.failures.length + uploadFailures.length;
-            operation.run(() => progress.done(failedCount ? `已截取 ${frameNodes.length} 个关键帧，${failedCount} 个失败` : `已截取 ${frameNodes.length} 个关键帧并创建独立图片节点`));
-            if (failedCount) message.warning(`${failedCount} 个时间点提取失败，其余画面已创建`);
-            else message.success(`已截取 ${frameNodes.length} 个关键帧，新图片节点已生成在视频右侧`);
+            operation.run(() => progress.done(failedCount ? `intercepted${frameNodes.length} keyframes,${failedCount} a failure` : `intercepted${frameNodes.length} keyframes and create independent image nodes`));
+            if (failedCount) message.warning(`${failedCount} The extraction of time points failed, and the remaining pictures have been created.`);
+            else message.success(`intercepted${frameNodes.length} keyframes, a new image node has been generated on the right side of the video`);
         } catch (error) {
             if (!operation.isCurrent()) return;
-            const details = error instanceof Error ? error.message : "视频画面提取失败";
+            const details = error instanceof Error ? error.message : "Video screen extraction failed";
             operation.run(() => progress.fail(details));
             message.error(details);
         } finally {
@@ -349,7 +349,7 @@ export function useCanvasVideoTools({
     // 视频节点工具栏的三个快捷取帧动作直接执行，不再打开批量选帧弹窗。
     const extractVideoFrameAt = useCallback((node: CanvasNodeData, preset: "current" | "first" | "last" = "current") => {
         if (!node.metadata?.content && !node.metadata?.storageKey) {
-            message.warning("视频节点为空，无法进行关键帧截取");
+            message.warning("The video node is empty and keyframe capture cannot be performed.");
             return;
         }
         const video = document.querySelector<HTMLVideoElement>(`[data-node-id="${CSS.escape(node.id)}"] video`);
@@ -362,19 +362,19 @@ export function useCanvasVideoTools({
             void (async () => {
                 const operation = beginMediaOperation();
                 if (!operation.isCurrent() || extractingVideoFramesNodeIdRef.current) return;
-                const progress = startUploadStatus("截取无损尾帧", "读取上游尾帧", 3);
+                const progress = startUploadStatus("Capture lossless last frame", "Read upstream last frame", 3);
                 extractingVideoFramesNodeIdRef.current = node.id;
                 setExtractingVideoFramesNodeId(node.id);
                 try {
                     let uploaded: Awaited<ReturnType<typeof uploadImage>>;
                     try {
                         const resolved = await operation.wait(resolveImageUrl(node.metadata?.lastFrameStorageKey, node.metadata?.lastFrameUrl || ""));
-                        if (!resolved) throw new Error("上游尾帧读取失败");
-                        operation.run(() => progress.update("保存无损尾帧画面", 2));
+                        if (!resolved) throw new Error("Failed to read upstream last frame");
+                        operation.run(() => progress.update("Save lossless last frame image", 2));
                         uploaded = await operation.wait(uploadImage(resolved));
                     } catch {
                         if (!operation.isCurrent()) return;
-                        operation.run(() => progress.done("改用视频画面解码提取尾帧"));
+                        operation.run(() => progress.done("Use video picture decoding to extract the last frame instead"));
                         extractingVideoFramesNodeIdRef.current = null;
                         setExtractingVideoFramesNodeId(null);
                         await extractVideoFrames(node, { timesMs: [timeMs] });
@@ -383,7 +383,7 @@ export function useCanvasVideoTools({
                     const fallbackDurationMs = Number(node.metadata?.seconds) > 0 ? Math.round(Number(node.metadata?.seconds) * 1000) : 0;
                     const displayTimeMs = durationMs > 0 ? timeMs : fallbackDurationMs > 0 ? Math.max(0, fallbackDurationMs - 1) : 0;
                     const frameNodes = buildVideoFrameNodes(node, [{ timeMs: displayTimeMs, image: uploaded }], nodesRef.current);
-                    if (!frameNodes.length) throw new Error("无损尾帧节点创建失败");
+                    if (!frameNodes.length) throw new Error("Lossless last frame node creation failed");
                     const links = frameNodes.map((frameNode) => ({ id: nanoid(), fromNodeId: node.id, toNodeId: frameNode.id }));
                     const nextNodes = [...nodesRef.current, ...frameNodes];
                     const nextConnections = [...connectionsRef.current, ...links];
@@ -396,11 +396,11 @@ export function useCanvasVideoTools({
                     pageUi.getState().setSelectedNodeIds(selection);
                     pageUi.getState().setSelectedConnectionId(null);
                     await operation.wait(persistMediaNodes(frameNodes, links, {}));
-                    operation.run(() => progress.done("已提取上游无损尾帧并创建独立图片节点"));
-                    message.success("已提取上游无损尾帧，新图片节点已生成在视频右侧");
+                    operation.run(() => progress.done("The upstream lossless last frame has been extracted and an independent picture node has been created"));
+                    message.success("The upstream lossless last frame has been extracted, and the new image node has been generated on the right side of the video");
                 } catch (error) {
                     if (!operation.isCurrent()) return;
-                    const details = error instanceof Error ? error.message : "无损尾帧提取失败";
+                    const details = error instanceof Error ? error.message : "Lossless last frame extraction failed";
                     operation.run(() => progress.fail(details));
                     message.error(details);
                 } finally {
@@ -417,7 +417,7 @@ export function useCanvasVideoTools({
 
     const openInlineVideoTrim = useCallback((node: CanvasNodeData) => {
         if (!node.metadata?.content) {
-            message.warning("视频节点为空，无法剪辑");
+            message.warning("The video node is empty and cannot be edited.");
             return;
         }
         if (inlineTrimRunningRef.current) return;
@@ -432,7 +432,7 @@ export function useCanvasVideoTools({
 
     const openVideoCrop = useCallback((node: CanvasNodeData) => {
         if (!node.metadata?.content) {
-            message.warning("视频节点为空，无法裁切");
+            message.warning("The video node is empty and cannot be cropped");
             return;
         }
         pageUi.getState().setHoveredNodeId(null);
@@ -455,24 +455,24 @@ export function useCanvasVideoTools({
         const range = normalizeInlineVideoTrimRange(requestedRange, sourceDurationMs);
         inlineTrimRunningRef.current = true;
         setInlineTrimRunning(true);
-        const progress = startUploadStatus("剪辑视频", "加载 FFmpeg", 4);
+        const progress = startUploadStatus("Edit video", "Load FFmpeg", 4);
         try {
             const output = await operation.wait(trimVideoSegment(
                 { url: node.metadata.content, storageKey: node.metadata.storageKey },
                 range,
                 sourceDurationMs,
-                (status) => operation.run(() => progress.update(status.phase === "loading" ? "加载 FFmpeg" : status.phase === "reading" ? "读取视频资源" : "正在裁切片段 · " + Math.round(status.progress) + "%", status.phase === "encoding" ? 3 : 2)),
+                (status) => operation.run(() => progress.update(status.phase === "loading" ? "Load FFmpeg" : status.phase === "reading" ? "Read video resources" : "Trimming clip ·" + Math.round(status.progress) + "%", status.phase === "encoding" ? 3 : 2)),
             ));
-            operation.run(() => progress.update("保存剪辑结果", 4));
+            operation.run(() => progress.update("Save clipping results", 4));
             const uploaded = await operation.wait(uploadMediaFile(output, "video"));
             const existingTrimCount = nodesRef.current.filter((item) => item.metadata?.videoTrimSourceNodeId === node.id).length;
             const child: CanvasNodeData = {
-                id: nanoid(), type: CanvasNodeType.Video, title: `${node.title || "视频"} · 剪辑片段`,
+                id: nanoid(), type: CanvasNodeType.Video, title: `${node.title || "video"} · Clips`,
                 position: { x: node.position.x + node.width + 96, y: node.position.y + existingTrimCount * 48 },
                 width: node.width, height: node.height,
                 metadata: mediaResultMetadata("derived", {
                     ...applyInlineVideoTrimMetadata(node.metadata || {}, videoMetadata(uploaded), range),
-                    status: NODE_STATUS_SUCCESS, prompt: `从「${node.title || "视频"}」剪辑 ${((range.endMs - range.startMs) / 1000).toFixed(2)} 秒片段`,
+                    status: NODE_STATUS_SUCCESS, prompt: `From "${node.title || "video"}"Clip${((range.endMs - range.startMs) / 1000).toFixed(2)} seconds clip`,
                     videoTrimSourceNodeId: node.id,
                     workflowOperation: { id: "video.trim", version: 1, config: { startSeconds: range.startMs / 1000, endSeconds: range.endMs / 1000 }, inputs: [{ nodeId: node.id, port: "video" }] },
                 }),
@@ -490,11 +490,11 @@ export function useCanvasVideoTools({
             pageUi.getState().setDialogNodeId(null);
             await operation.wait(persistMediaNodes([child], [], {}));
             setInlineTrimNodeId(null);
-            operation.run(() => progress.done(`已生成 ${((range.endMs - range.startMs) / 1000).toFixed(2)} 秒剪辑视频`));
-            message.success("已生成新的剪辑视频，原视频已保留");
+            operation.run(() => progress.done(`Generated${((range.endMs - range.startMs) / 1000).toFixed(2)} Edit video in seconds`));
+            message.success("A new edited video has been generated, and the original video has been retained");
         } catch (error) {
             if (!operation.isCurrent()) return;
-            const details = error instanceof Error ? error.message : "视频剪辑失败";
+            const details = error instanceof Error ? error.message : "Video editing failed";
             operation.run(() => progress.fail(details));
             message.error(details);
         } finally {
@@ -509,32 +509,32 @@ export function useCanvasVideoTools({
     const runExtractVideoAudio = useCallback(async (node: CanvasNodeData, params: { startMs: number; endMs: number }) => {
         const operation = beginMediaOperation();
         if (!operation.isCurrent()) return;
-        const progress = startUploadStatus("音视频分离", "生成无声视频与音轨", 6);
+        const progress = startUploadStatus("Audio and video separation", "Generate silent video and audio tracks", 6);
         try {
             const source = { url: node.metadata?.content, storageKey: node.metadata?.storageKey };
             const range = { startMs: params.startMs, endMs: params.endMs };
             const audio = await operation.wait(extractVideoAudio(source, range, node.metadata?.durationMs, (status) => {
-                operation.run(() => progress.update(status.phase === "loading" ? "加载 FFmpeg" : status.phase === "reading" ? "检查视频音轨" : "正在提取音轨 · " + Math.round(status.progress) + "%", status.phase === "encoding" ? 2 : 1));
+                operation.run(() => progress.update(status.phase === "loading" ? "Load FFmpeg" : status.phase === "reading" ? "Check video audio track" : "Extracting audio tracks ·" + Math.round(status.progress) + "%", status.phase === "encoding" ? 2 : 1));
             }));
-            operation.run(() => progress.update("正在生成无声视频", 3));
+            operation.run(() => progress.update("Generating silent video", 3));
             const mutedVideo = await operation.wait(removeAudioFromVideo(source, range, node.metadata?.durationMs, (status) => {
-                operation.run(() => progress.update(status.phase === "reading" ? "读取视频资源" : "正在生成无声视频 · " + Math.round(status.progress) + "%", status.phase === "encoding" ? 4 : 3));
+                operation.run(() => progress.update(status.phase === "reading" ? "Read video resources" : "Generating silent video ·" + Math.round(status.progress) + "%", status.phase === "encoding" ? 4 : 3));
             }));
-            operation.run(() => progress.update("保存两个独立结果", 5));
+            operation.run(() => progress.update("Save two independent results", 5));
             const [uploadedVideo, uploadedAudio] = await operation.wait(Promise.all([uploadMediaFile(mutedVideo, "video"), uploadMediaFile(audio, "audio")]));
             const videoSpec = NODE_DEFAULT_SIZE[CanvasNodeType.Video];
             const audioSpec = NODE_DEFAULT_SIZE[CanvasNodeType.Audio];
             const outputX = node.position.x + node.width + 96;
             const silentVideo = createCanvasNode(CanvasNodeType.Video, { x: outputX + videoSpec.width / 2, y: node.position.y + videoSpec.height / 2 }, mediaResultMetadata("derived", {
-                ...videoMetadata(uploadedVideo), prompt: `从「${node.title || "视频"}」移除声音`, status: NODE_STATUS_SUCCESS,
+                ...videoMetadata(uploadedVideo), prompt: `From "${node.title || "video"}"Remove sound`, status: NODE_STATUS_SUCCESS,
                 videoAudioSourceNodeId: node.id, videoHasAudio: false,
             }));
-            silentVideo.title = `${node.title || "视频"} · 无声视频`;
+            silentVideo.title = `${node.title || "video"} · Silent video`;
             const audioNode = createCanvasNode(CanvasNodeType.Audio, { x: outputX + audioSpec.width / 2, y: node.position.y + videoSpec.height + 96 + audioSpec.height / 2 }, mediaResultMetadata("derived", {
-                ...audioMetadata(uploadedAudio), prompt: `从「${node.title || "视频"}」提取的声音`, status: NODE_STATUS_SUCCESS,
+                ...audioMetadata(uploadedAudio), prompt: `From "${node.title || "video"}"Extracted sound`, status: NODE_STATUS_SUCCESS,
                 audioExtractSourceNodeId: node.id, audioExtractStartMs: params.startMs, audioExtractEndMs: params.endMs,
             }));
-            audioNode.title = `${node.title || "视频"} · 音轨`;
+            audioNode.title = `${node.title || "video"} · Audio track`;
             const outputs = [silentVideo, audioNode];
             const outputIds = new Set(outputs.map((item) => item.id));
             const links = outputs.map((item) => ({ id: nanoid(), fromNodeId: node.id, toNodeId: item.id }));
@@ -545,15 +545,15 @@ export function useCanvasVideoTools({
             pageUi.getState().setSelectedNodeIds(outputIds);
             pageUi.getState().setSelectedConnectionId(null);
             const savedAssets = await operation.wait(persistMediaNodes(outputs, links, {}));
-            if (outputs.some((output) => !savedAssets.get(output.id))) throw new Error("分离结果尚未确认保存，请重试；不要将当前节点视为已保存的成品");
-            operation.run(() => progress.done("已生成并保存无声视频和独立音轨"));
-            message.success("已生成并保存无声视频和独立音轨，原视频已保留");
+            if (outputs.some((output) => !savedAssets.get(output.id))) throw new Error("The separation result has not been confirmed and saved, please try again; do not regard the current node as a saved finished product");
+            operation.run(() => progress.done("Silent video and independent audio track generated and saved"));
+            message.success("Silent video and independent audio track have been generated and saved, and the original video has been retained");
         } catch (error) {
             if (!operation.isCurrent()) return;
-            const details = error instanceof Error ? error.message : "音频提取失败";
+            const details = error instanceof Error ? error.message : "Audio extraction failed";
             setNodes((current) => current.map((item) => item.id === node.id ? { ...item, metadata: { ...item.metadata, mediaOperationError: details } } : item));
             operation.run(() => progress.fail(details));
-            modal.error({ title: "音视频分离未完成", content: details, okText: "知道了" });
+            modal.error({ title: "Audio and video separation is not completed", content: details, okText: "Got it" });
         }
     }, [beginMediaOperation, pageUi, projectId, connectionsRef, message, modal, nodesRef, persistMediaNodes, setConnections, setNodes, startUploadStatus]);
 
@@ -562,7 +562,7 @@ export function useCanvasVideoTools({
         const operation = beginMediaOperation();
         if (!operation.isCurrent()) return;
         if (!node.metadata?.content) {
-            message.warning("视频节点为空，无法进行音视频分离");
+            message.warning("The video node is empty and audio and video cannot be separated.");
             return;
         }
         if (segmentRunningRef.current) return;
@@ -575,7 +575,7 @@ export function useCanvasVideoTools({
         if (!durationMs || durationMs <= 0) {
             segmentRunningRef.current = false;
             setSegmentRunningMode(null);
-            message.warning("视频时长尚未就绪，无法分离整段音频，请稍后重试");
+            message.warning("The video length is not ready yet and the entire audio cannot be separated. Please try again later.");
             return;
         }
         return runExtractVideoAudio(node, { startMs: 0, endMs: durationMs }).finally(() => {
@@ -599,7 +599,7 @@ export function useCanvasVideoTools({
                 return leftShot - rightShot || left.position.y - right.position.y || left.position.x - right.position.x;
             });
         if (videos.length < 2) {
-            message.warning("请至少选择两个已有视频");
+            message.warning("Please select at least two existing videos");
             return;
         }
         mergeVideoRunningRef.current = true;
@@ -612,11 +612,11 @@ export function useCanvasVideoTools({
             const left = Math.max(...videos.map((node) => node.position.x + node.width)) + 120;
             const top = Math.min(...videos.map((node) => node.position.y));
             const mergedNode = createCanvasNode(CanvasNodeType.Video, { x: left + size.width / 2, y: top + size.height / 2 }, mediaResultMetadata("derived", {
-                ...videoMetadata(uploaded), prompt: `按选中顺序合并 ${videos.length} 段视频`,
-                workflowKind: "final", workflowTitle: "合并成片", videoEditOperation: "concat",
+                ...videoMetadata(uploaded), prompt: `Merge in selected order${videos.length} video`,
+                workflowKind: "final", workflowTitle: "Merge into pieces", videoEditOperation: "concat",
                 videoMergeSourceNodeIds: videos.map((node) => node.id), status: NODE_STATUS_SUCCESS,
             }));
-            mergedNode.title = `合并成片 · ${videos.length} 段`;
+            mergedNode.title = `Merge into a piece ·${videos.length} segment`;
             mergedNode.width = size.width;
             mergedNode.height = size.height;
             mergedNode.position = { x: left, y: top };
@@ -635,10 +635,10 @@ export function useCanvasVideoTools({
             setMergeVideoProgress({ phase: "binding", progress: 98 });
             await operation.wait(persistMediaNodes([mergedNode], [], {}));
             setMergeVideoProgress({ phase: "done", progress: 100 });
-            message.success(`已合并 ${videos.length} 段视频，成片节点已添加`);
+            message.success(`Merged${videos.length} A video, the video node has been added`);
         } catch (error) {
             if (!operation.isCurrent()) return;
-            message.error(error instanceof Error ? error.message : "视频合并失败");
+            message.error(error instanceof Error ? error.message : "Video merge failed");
         } finally {
             if (operation.isCurrent()) {
                 mergeVideoRunningRef.current = false;

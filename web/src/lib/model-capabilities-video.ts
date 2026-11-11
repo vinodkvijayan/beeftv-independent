@@ -592,9 +592,9 @@ export function videoResolutionRequest(profile: VideoCapabilityConfig, value: st
             if (requestedHeight !== undefined || ratioDir) {
                 const defaultMatch = profile.defaultResolution.trim().match(/^(\d+)p(.+)$/i);
                 const targetHeight = requestedHeight ?? (defaultMatch ? Number(defaultMatch[1]) : directional[0]!.height);
-                const defaultDir = defaultMatch ? defaultMatch[2].trim().toLowerCase() : "竖";
+                const defaultDir = defaultMatch ? defaultMatch[2].trim().toLowerCase() : "Portrait";
                 const primaryDir = ratioDir || defaultDir;
-                const dirs = Array.from(new Set([primaryDir, defaultDir, "竖", "横", "(1:1)", ...directional.map((entry) => entry.dir)]));
+                const dirs = Array.from(new Set([primaryDir, defaultDir, "Portrait", "Landscape", "(1:1)", ...directional.map((entry) => entry.dir)]));
                 const uniqueHeights = Array.from(new Set(directional.map((entry) => entry.height))).sort(
                     (left, right) => Math.abs(left - targetHeight) - Math.abs(right - targetHeight) || right - left,
                 );
@@ -628,16 +628,16 @@ function resolveRequestedVideoTierHeight(requested: string, directional: Array<{
 function parseVideoOrientationSuffix(rawRatio: string): string | undefined {
     const normalized = rawRatio.trim().toLowerCase();
     if (!normalized) return undefined;
-    if (normalized === "横" || normalized === "landscape") return "横";
-    if (normalized === "竖" || normalized === "portrait") return "竖";
+    if (normalized === "Landscape" || normalized === "landscape") return "Landscape";
+    if (normalized === "Portrait" || normalized === "portrait") return "Portrait";
     if (normalized === "(1:1)" || normalized === "square") return "(1:1)";
     const parts = normalized.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/);
-    if (!parts) return "竖";
+    if (!parts) return "Portrait";
     const width = Number(parts[1]);
     const height = Number(parts[2]);
     if (!(width > 0 && height > 0)) return undefined;
     if (Math.abs(width - height) < 1e-6) return "(1:1)";
-    return width > height ? "横" : "竖";
+    return width > height ? "Landscape" : "Portrait";
 }
 
 function normalizeRangeDuration(profile: VideoCapabilityConfig, value: number) {
@@ -656,13 +656,13 @@ export function videoDurationRequirement(duration: VideoCapabilityConfig["durati
     if (duration.selection === "enum") {
         const manual = (duration.values || []).filter((value) => value !== -1).map((value) => String(value));
         const parts: string[] = [];
-        if ((duration.values || []).includes(-1)) parts.push("自动");
-        if (manual.length) parts.push(`${manual.join("、")} 秒`);
-        return parts.length ? parts.join(" 或 ") : "";
+        if ((duration.values || []).includes(-1)) parts.push("automatic");
+        if (manual.length) parts.push(`${manual.join("、")} seconds`);
+        return parts.length ? parts.join(" or") : "";
     }
     const min = duration.continuous ? duration.fractionalMin ?? duration.min ?? 1 : duration.min || 1;
     const max = duration.max || min;
-    return `${min}–${max} 秒`;
+    return `${min}–${max} seconds`;
 }
 
 export function videoDurationOptions(profile: VideoCapabilityConfig) {

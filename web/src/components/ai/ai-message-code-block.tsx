@@ -154,9 +154,9 @@ export function AiMessageCodeBlock({ children, className, isStreaming = false, .
         <div className="ai-message-codeblock">
             <div className="ai-message-codeblock-header">
                 <span className="ai-message-codeblock-lang">{language || "code"}</span>
-                <button type="button" className="ai-message-codeblock-copy" aria-label={copied ? "已复制" : "复制代码"} onClick={handleCopy}>
+                <button type="button" className="ai-message-codeblock-copy" aria-label={copied ? "Copied" : "Copy code"} onClick={handleCopy}>
                     {copied ? <Check /> : <Copy />}
-                    <span>{copied ? "已复制" : "复制"}</span>
+                    <span>{copied ? "Copied" : "Copy"}</span>
                 </button>
             </div>
             {highlightHtml ? (

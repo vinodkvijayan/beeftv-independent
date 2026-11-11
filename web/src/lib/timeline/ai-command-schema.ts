@@ -27,7 +27,7 @@ function extractFirstJsonObject(text: string): string {
     const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
     const candidate = fenced ? fenced[1] : text;
     const start = candidate.indexOf("{");
-    if (start < 0) throw new AiCommandPlanError("输出中未找到 JSON 对象（需要 { commands: [...] }）");
+    if (start < 0) throw new AiCommandPlanError("JSON object not found in output (requires { commands: [...] })");
     // 从首个 { 起逐字符数括号，找配对的收尾 }（字符串内括号不计）。
     let depth = 0;
     let inString = false;
@@ -53,26 +53,26 @@ function extractFirstJsonObject(text: string): string {
             if (depth === 0) return candidate.slice(start, i + 1);
         }
     }
-    throw new AiCommandPlanError("JSON 对象未闭合（缺少收尾 }）");
+    throw new AiCommandPlanError("JSON object is not closed (missing closing })");
 }
 
 function assertPlanShape(raw: unknown): asserts raw is AiCommandPlan {
-    if (typeof raw !== "object" || raw === null) throw new AiCommandPlanError("输出必须是 JSON 对象");
+    if (typeof raw !== "object" || raw === null) throw new AiCommandPlanError("Output must be a JSON object");
     const plan = raw as Record<string, unknown>;
     if (plan.reasoning !== undefined && typeof plan.reasoning !== "string") {
-        throw new AiCommandPlanError("reasoning 必须是字符串");
+        throw new AiCommandPlanError("reasoning must be a string");
     }
-    if (!Array.isArray(plan.commands)) throw new AiCommandPlanError("缺少 commands 数组");
+    if (!Array.isArray(plan.commands)) throw new AiCommandPlanError("missing commands array");
     if (plan.commands.length > AI_EDITING_MAX_COMMANDS) {
-        throw new AiCommandPlanError(`commands 超过 ${AI_EDITING_MAX_COMMANDS} 条上限`);
+        throw new AiCommandPlanError(`commands exceed${AI_EDITING_MAX_COMMANDS} bar upper limit`);
     }
     // commands 为空数组 = 只读问答 / 无可用命令，合法终态
     plan.commands.forEach((cmd, i) => {
-        if (typeof cmd !== "object" || cmd === null) throw new AiCommandPlanError(`commands[${i}] 必须是对象`);
+        if (typeof cmd !== "object" || cmd === null) throw new AiCommandPlanError(`commands[${i}] must be an object`);
         const c = cmd as Record<string, unknown>;
-        if (typeof c.op !== "string" || c.op.length === 0) throw new AiCommandPlanError(`commands[${i}].op 必须是非空字符串`);
+        if (typeof c.op !== "string" || c.op.length === 0) throw new AiCommandPlanError(`commands[${i}].op must be a non-empty string`);
         if (typeof c.payload !== "object" || c.payload === null || Array.isArray(c.payload)) {
-            throw new AiCommandPlanError(`commands[${i}].op=${c.op} 缺少对象 payload`);
+            throw new AiCommandPlanError(`commands[${i}].op=${c.op} Missing object payload`);
         }
     });
 }
@@ -87,7 +87,7 @@ export function parseAiCommandPlan(text: string): AiCommandPlan {
         raw = JSON.parse(extractFirstJsonObject(text));
     } catch (error) {
         if (error instanceof AiCommandPlanError) throw error;
-        throw new AiCommandPlanError(`JSON 解析失败：${(error as Error).message}`);
+        throw new AiCommandPlanError(`JSON parsing failed:${(error as Error).message}`);
     }
     assertPlanShape(raw);
     return raw;
@@ -130,77 +130,77 @@ export const AI_EDITING_OP_CATALOG: ReadonlyArray<{
 }> = [
     {
         op: "addClip",
-        desc: "新增媒体/文本片段到已存在轨道",
+        desc: "Add media/text clips to existing tracks",
         payload: "{ clip: { id(新唯一), kind: video|audio|image|text, trackId(必须存在), nodeId(源素材), startMs≥0, durationMs>0, title?, volume?, fadeInMs?, fadeOutMs? } }",
     },
     {
         op: "moveClip",
-        desc: "移动片段（时间点/跨轨）",
+        desc: "Move clips (point in time/across tracks)",
         payload: "{ id, startMs≥0, trackId?(可选, 必须存在) }",
     },
     {
         op: "trimClip",
-        desc: "裁剪片段（时间线位置/时长/源内起点）",
+        desc: "Trim clip (timeline position/duration/in-source starting point)",
         payload: "{ id, startMs?(≥0), durationMs?(>0 且≤sourceDurationMs), sourceStartMs?(≥0, 与 durationMs 之和≤sourceDurationMs) }",
     },
     {
         op: "splitClip",
-        desc: "在片段内部切一刀成两段",
+        desc: "Cut a knife inside the segment into two pieces",
         payload: "{ id, splitAtMs(严格大于 startMs 且小于 startMs+durationMs) }",
     },
     {
         op: "removeClip",
-        desc: "删除片段",
+        desc: "Delete segment",
         payload: "{ id }",
     },
     {
         op: "setClipProperty",
-        desc: "修改片段属性（白名单）",
-        payload: "{ id, patch: { title? | text? | volume? | fadeInMs? | fadeOutMs? | subtitleEntryIndex? }（至少一项） }",
+        desc: "Modify fragment properties (whitelist)",
+        payload: "{ id, patch: { title? | text? | volume? | fadeInMs? | fadeOutMs? | subtitleEntryIndex? } (at least one item) }",
     },
     {
         op: "addSubtitle",
-        desc: "新增字幕片段",
+        desc: "Add subtitle snippet",
         payload: "{ clip: { kind: subtitle, trackId(字幕轨), id/nodeId/startMs/durationMs/text } }",
     },
     {
         op: "removeSubtitle",
-        desc: "删除字幕片段",
+        desc: "Delete subtitle segment",
         payload: "{ id }",
     },
     {
         op: "rebuildSubtitleClips",
-        desc: "按节点字幕条目重建字幕片段",
+        desc: "Reconstruct subtitle fragments by node subtitle entries",
         payload: "{ nodeId, entries: [{ index≥0(唯一), startMs≥0, endMs>startMs, text }], trackId?(字幕轨) }",
     },
     {
         op: "addTrack",
-        desc: "新增轨道（id/label 由系统生成，勿传）",
+        desc: "Add a new track (id/label is generated by the system, do not pass it)",
         payload: "{ kind: video|image|text|audio|subtitle }",
     },
     {
         op: "removeTrack",
-        desc: "删除整条轨道及片段（每种轨道至少保留一条）",
+        desc: "Delete entire tracks and regions (leave at least one of each type of track)",
         payload: "{ trackId }",
     },
     {
         op: "setTrackFlag",
-        desc: "轨道开关",
+        desc: "track switch",
         payload: "{ trackId, flag: visible|muted, value: boolean }",
     },
 ];
 
 /** LLM 输出结构说明（追加到系统提示词，约束其为纯 JSON）。 */
-export const AI_EDITING_OUTPUT_FORMAT = `输出要求：
-- 只输出一个 JSON 对象，不要任何解释文字或 markdown。
-- 结构：{ "reasoning": "一句话说明意图", "commands": [ { "op": "命令名", "payload": { ... } } ] }
-- commands：能执行时 1-8 条；用户只是提问或无法用现有命令完成时为空数组 []，此时 reasoning 直接回答用户。
-- payload 字段严格按命令契约；时间一律毫秒；文本用简体中文。
-- 所有 id（clip/track/nodeId）必须来自上面时间线摘要，禁止编造。`;
+export const AI_EDITING_OUTPUT_FORMAT = `Output requirements:
+- Output only a JSON object without any explanatory text or markdown.
+- Structure: { "reasoning": "One sentence to explain the intention", "commands": [ { "op": "Command name", "payload": { ... } } ] }
+- commands: 1-8 items when they can be executed; an empty array [] when the user just asks a question or cannot complete it with existing commands, in which case reasoning directly answers the user.
+- The payload field strictly follows the command contract; the time is always milliseconds; the text is in Simplified Chinese.
+- All IDs (clip/track/nodeId) must come from the timeline summary above, fabrication is prohibited.`;
 
 /** 示例（示意完整 JSON 输出，加入 system prompt）。 */
-const AI_EDITING_OUTPUT_EXAMPLE = `示例：
-{ "reasoning": "把第一个视频片段移到第 5 秒", "commands": [ { "op": "moveClip", "payload": { "id": "clip-a", "startMs": 5000 } } ] }`;
+const AI_EDITING_OUTPUT_EXAMPLE = `Example:
+{ "reasoning": "Move the first video clip to 5 seconds", "commands": [ { "op": "moveClip", "payload": { "id": "clip-a", "startMs": 5000 } } ] }`;
 
 /** 组装 AI 编辑系统提示词：时间线摘要、可用 op 契约和输出约束必须来自同一份注册表。 */
 export function buildAiEditingSystemPrompt(timelineSummary: string): string {
@@ -208,13 +208,13 @@ export function buildAiEditingSystemPrompt(timelineSummary: string): string {
         (entry) => `- ${entry.op}：${entry.desc}。payload：${entry.payload}`,
     ).join("\n");
     return [
-        "你是 BeefTV 视频剪辑工作台的 AI 剪辑助手。根据用户指令对时间线输出受约束的编辑命令 JSON。",
-        "时间线当前状态：",
+        "You are the AI editing assistant of BeefTV Video Editing Workbench. Outputs JSON of constrained editing commands to the timeline based on user instructions.",
+        "Timeline current status:",
         timelineSummary,
-        "可用命令契约（与编辑器同源，非法命令会被整批拒绝）：",
+        "Available command contracts (same source as the editor, illegal commands will be rejected in batches):",
         catalogLines,
         AI_EDITING_OUTPUT_FORMAT,
         AI_EDITING_OUTPUT_EXAMPLE,
-        "若用户指令无法用现有命令完成（如要转场、滤镜、模板），输出 commands: [] 并在 reasoning 说明缺什么能力。",
+        "If user instructions cannot be completed with existing commands (such as transitions, filters, templates), output commands: [] and explain what capabilities are missing in reasoning.",
     ].join("\n");
 }

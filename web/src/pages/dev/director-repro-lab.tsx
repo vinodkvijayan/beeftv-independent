@@ -22,8 +22,8 @@ const generatePanoramaFixture: typeof generateDirectorPanorama = async ({ file, 
     await new Promise((resolve) => window.setTimeout(resolve, 300));
     const svg = panoramaFixtureSvg;
     const url = panoramaFixtureUrl;
-    const name = `AI 全景图 · ${file.name}`;
-    const id = useAssetStore.getState().addAsset({ kind: "image", title: name, coverUrl: url, tags: ["全景图", "AI生成"], source: "导演台复现台", data: { dataUrl: url, width: 800, height: 400, bytes: svg.length, mimeType: "image/svg+xml" }, metadata: { source: "director-panorama-fixture", sceneId } });
+    const name = `AI Panorama ·${file.name}`;
+    const id = useAssetStore.getState().addAsset({ kind: "image", title: name, coverUrl: url, tags: ["Panorama", "AI generated"], source: "Director's stage reproduction stage", data: { dataUrl: url, width: 800, height: 400, bytes: svg.length, mimeType: "image/svg+xml" }, metadata: { source: "director-panorama-fixture", sceneId } });
     return { id, name, url, storageKey: "", width: 800, height: 400 };
 };
 
@@ -34,9 +34,9 @@ async function readDirectorVideoSize(blob: Blob): Promise<string> {
     try {
         video.src = url;
         return await new Promise<string>((resolve, reject) => {
-            const timeout = window.setTimeout(() => reject(new Error("白膜视频元数据读取超时")), 4000);
+            const timeout = window.setTimeout(() => reject(new Error("White film video metadata read timeout")), 4000);
             video.onloadedmetadata = () => { window.clearTimeout(timeout); resolve(`${video.videoWidth}×${video.videoHeight} · ${blob.size} B`); };
-            video.onerror = () => { window.clearTimeout(timeout); reject(new Error("白膜视频无法解码")); };
+            video.onerror = () => { window.clearTimeout(timeout); reject(new Error("White film video cannot be decoded")); };
         });
     } finally {
         video.removeAttribute("src");
@@ -84,7 +84,7 @@ export default function DirectorReproLab() {
         const bitmap = await createImageBitmap(output.beauty);
         const beauty = `${bitmap.width}×${bitmap.height} · ${output.beauty.size} B`;
         bitmap.close();
-        const clayVideo = output.clayVideo ? await readDirectorVideoSize(output.clayVideo) : "无";
+        const clayVideo = output.clayVideo ? await readDirectorVideoSize(output.clayVideo) : "None";
         setLastOutput({ beauty, clayVideo });
         setAppliedCount((count) => count + 1);
     }, []);
@@ -108,31 +108,31 @@ export default function DirectorReproLab() {
     return (
         <div className="min-h-dvh overflow-y-auto p-5" style={{ background: "var(--bg)", color: "var(--fg)" }}>
             <header className="mb-4 flex flex-wrap items-center gap-3">
-                <h1 className="text-lg font-semibold">导演台 P0 复现台</h1>
-                <StatusBadge tone={directorReproSceneIsOffline(scene) ? "error" : "success"} data-testid="offline-tag" label={directorReproSceneIsOffline(scene) ? "fixture 无网络资产" : "已注入模型资产"} />
+                <h1 className="text-lg font-semibold">Director's desk P0 Replay desk</h1>
+                <StatusBadge tone={directorReproSceneIsOffline(scene) ? "error" : "success"} data-testid="offline-tag" label={directorReproSceneIsOffline(scene) ? "fixture no network assets" : "Model assets injected"} />
                 <span className="text-[var(--fs-tiny)] opacity-70" data-testid="object-count">
-                    对象数 {scene.objects.length}
+                                        Number of objects{scene.objects.length}
                 </span>
                 <span className="ml-auto flex flex-wrap items-center gap-2">
                     <Button size="small" data-testid="inject-local-model" onClick={() => injectModel("local")}>
-                        注入本地模型
+                                                Inject local model
                     </Button>
                     <Button size="small" data-testid="inject-missing-model" onClick={() => injectModel("missing")}>
-                        注入缺失模型
+                                                Inject missing model
                     </Button>
-                    <Button size="small" data-testid="inject-panorama" onClick={() => setScene((current) => ({ ...current, panorama: { url: panoramaFixtureUrl, name: "本地双色全景", rotation: current.panoramaRotation ?? 0 } }))}>
-                        注入本地全景
+                    <Button size="small" data-testid="inject-panorama" onClick={() => setScene((current) => ({ ...current, panorama: { url: panoramaFixtureUrl, name: "Local two-color panorama", rotation: current.panoramaRotation ?? 0 } }))}>
+                                                Inject local panorama
                     </Button>
-                    <span className="text-[var(--fs-tiny)] opacity-70">强制保存失败</span>
+                    <span className="text-[var(--fs-tiny)] opacity-70">Force save failed</span>
                     <Switch checked={forceSaveFailure} onChange={setForceSaveFailure} data-testid="force-save-failure" />
                     <Button size="small" data-testid="toggle-workbench" onClick={() => setWorkbenchOpen((open) => !open)}>
-                        {workbenchOpen ? "关闭导演台" : "打开导演台"}
+                        {workbenchOpen ? "Close director's desk" : "Open the director's desk"}
                     </Button>
                     <Button size="small" data-testid="refresh-events" onClick={refreshEvents}>
-                        刷新事件
+                                                refresh event
                     </Button>
                     <Button size="small" data-testid="reset-lab" onClick={reset}>
-                        重置
+                                                reset
                     </Button>
                 </span>
             </header>
@@ -161,36 +161,36 @@ function readDirectorEvents(): DirectorEventRow[] {
 function EnvironmentSnapshot({ snapshot, appliedCount, lastOutput, flushCount, sceneRevisionHint }: { snapshot: DirectorReproSnapshot; appliedCount: number; lastOutput: DirectorOutputSummary | null; flushCount: number; sceneRevisionHint: string }) {
     const { runtime, webgl } = snapshot;
     const rows: Array<[string, string]> = [
-        ["应用版本", runtime.appVersion],
-        ["构建提交", runtime.buildCommit],
-        ["浏览器", runtime.browser || "(不可用)"],
-        ["操作系统", runtime.os || "(不可用)"],
-        ["时区", runtime.timezone || "(不可用)"],
+        ["Application version", runtime.appVersion],
+        ["Build commit", runtime.buildCommit],
+        ["Browser", runtime.browser || "(not available)"],
+        ["operating system", runtime.os || "(not available)"],
+        ["time zone", runtime.timezone || "(not available)"],
         ["DPR", String(runtime.devicePixelRatio)],
-        ["本地 onApply 次数", String(appliedCount)],
-        ["最近构图 PNG", lastOutput?.beauty || "无"],
-        ["最近白膜视频", lastOutput?.clayVideo || "无"],
-        ["本地 onFlush 次数", String(flushCount)],
-        ["场景 updatedAt", sceneRevisionHint],
+        ["Local onApply times", String(appliedCount)],
+        ["Recent composition PNG", lastOutput?.beauty || "None"],
+        ["Recent white film video", lastOutput?.clayVideo || "None"],
+        ["Local onFlush times", String(flushCount)],
+        ["Scene updatedAt", sceneRevisionHint],
     ];
 
     if (webgl.available) {
         rows.push(
-            ["WebGL 版本", webgl.version || "(空)"],
-            ["WebGL vendor", webgl.vendor || "(空)"],
-            ["WebGL renderer", webgl.renderer || "(空)"],
-            ["最大纹理尺寸", String(webgl.maxTextureSize)],
-            ["最大 renderbuffer", String(webgl.maxRenderbufferSize)],
-            ["最大视口", webgl.maxViewportWidth + "×" + webgl.maxViewportHeight],
+            ["WebGL version", webgl.version || "(empty)"],
+            ["WebGL vendor", webgl.vendor || "(empty)"],
+            ["WebGL renderer", webgl.renderer || "(empty)"],
+            ["Maximum texture size", String(webgl.maxTextureSize)],
+            ["max renderbuffer", String(webgl.maxRenderbufferSize)],
+            ["Maximum viewport", webgl.maxViewportWidth + "×" + webgl.maxViewportHeight],
         );
     } else {
-        rows.push(["WebGL", webgl.reason === "unsupported" ? "不支持（已稳定降级）" : "上下文创建失败（已稳定降级）"]);
+        rows.push(["WebGL", webgl.reason === "unsupported" ? "Not supported (stable downgraded)" : "Context creation failed (stable downgrade)"]);
     }
 
     return (
         <section className="mb-4">
-            <h2 className="mb-2 text-[var(--fs-label)] font-semibold opacity-75">环境快照</h2>
-            <p className="mb-2 text-[var(--fs-tiny)] opacity-60">仅本地展示，不上报；字符串已限长并剥离 URL query/hash 与凭证片段。</p>
+            <h2 className="mb-2 text-[var(--fs-label)] font-semibold opacity-75">Environment snapshot</h2>
+            <p className="mb-2 text-[var(--fs-tiny)] opacity-60">Only displayed locally, not reported; the length of the string has been limited and URL query/hash and credential fragments have been stripped.</p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-1 md:grid-cols-3">
                 {rows.map(([label, value]) => (
                     <div key={label} className="flex min-w-0 gap-2 text-[var(--fs-tiny)]">
@@ -208,8 +208,8 @@ function EnvironmentSnapshot({ snapshot, appliedCount, lastOutput, flushCount, s
 function DiagnosticEventList({ events }: { events: DirectorEventRow[] }) {
     return (
         <section className="mb-4">
-            <h2 className="mb-2 text-[var(--fs-label)] font-semibold opacity-75">结构化事件（{events.length}）</h2>
-            <p className="mb-2 text-[var(--fs-tiny)] opacity-60">来自统一 client-diagnostics 缓冲区，只筛选 DIRECTOR_ 稳定码；不含 stack、URL 与业务正文。</p>
+            <h2 className="mb-2 text-[var(--fs-label)] font-semibold opacity-75">Structured events ({events.length}）</h2>
+            <p className="mb-2 text-[var(--fs-tiny)] opacity-60">From the unified client-diagnostics buffer, only DIRECTOR_ stable codes are filtered; stack, URL and business text are not included.</p>
             {events.length ? (
                 <Table
                     size="small"
@@ -218,14 +218,14 @@ function DiagnosticEventList({ events }: { events: DirectorEventRow[] }) {
                     pagination={false}
                     scroll={{ y: 220 }}
                     columns={[
-                        { title: "时间", dataIndex: "timestamp", width: 200, render: (value: string) => <span className="font-mono text-[var(--fs-tiny)]">{value}</span> },
-                        { title: "级别", dataIndex: "level", width: 96, render: (value: string) => <StatusBadge size="sm" tone={value === "error" ? "error" : value === "warning" ? "warning" : "neutral"} label={value} /> },
-                        { title: "稳定码", dataIndex: "code", render: (value: string) => <span className="font-mono text-[var(--fs-tiny)]">{value}</span> },
-                        { title: "消息", dataIndex: "message" },
+                        { title: "time", dataIndex: "timestamp", width: 200, render: (value: string) => <span className="font-mono text-[var(--fs-tiny)]">{value}</span> },
+                        { title: "Level", dataIndex: "level", width: 96, render: (value: string) => <StatusBadge size="sm" tone={value === "error" ? "error" : value === "warning" ? "warning" : "neutral"} label={value} /> },
+                        { title: "stable code", dataIndex: "code", render: (value: string) => <span className="font-mono text-[var(--fs-tiny)]">{value}</span> },
+                        { title: "news", dataIndex: "message" },
                     ]}
                 />
             ) : (
-                <p className="text-[var(--fs-tiny)] opacity-55">暂无导演台事件。触发下方矩阵中的失败场景后点击「刷新事件」。</p>
+                <p className="text-[var(--fs-tiny)] opacity-55">There are no direct events at the moment. Click "Refresh Event" after triggering the failure scenario in the matrix below.</p>
             )}
         </section>
     );
@@ -234,17 +234,17 @@ function DiagnosticEventList({ events }: { events: DirectorEventRow[] }) {
 function ReproMatrix() {
     return (
         <section className="mb-4">
-            <h2 className="mb-2 text-[var(--fs-label)] font-semibold opacity-75">P0 手工复现矩阵（{DIRECTOR_REPRO_MATRIX.length}）</h2>
+            <h2 className="mb-2 text-[var(--fs-label)] font-semibold opacity-75">P0 manual reproduction matrix ({DIRECTOR_REPRO_MATRIX.length}）</h2>
             <Table
                 size="small"
                 rowKey="id"
                 dataSource={[...DIRECTOR_REPRO_MATRIX]}
                 pagination={false}
                 columns={[
-                    { title: "分组", dataIndex: "group", width: 108 },
-                    { title: "场景", dataIndex: "title", width: 190 },
-                    { title: "操作", dataIndex: "steps" },
-                    { title: "预期", dataIndex: "expected" },
+                    { title: "Group", dataIndex: "group", width: 108 },
+                    { title: "scene", dataIndex: "title", width: 190 },
+                    { title: "Operation", dataIndex: "steps" },
+                    { title: "expected", dataIndex: "expected" },
                 ]}
             />
         </section>

@@ -79,17 +79,17 @@ export async function archiveMediaIdempotencyKey(blob: Blob): Promise<string> {
 }
 
 export function assertRestoredCanvasMatches(intended: Partial<CanvasProject> & Pick<CanvasProject, "id" | "nodes">, saved: CanvasProject, storage: "browser" | "backend" = "browser") {
-    if (!saved?.id || saved.id !== intended.id) throw new Error("画布未保存到工作区");
-    if ((saved.folderId || "") !== (intended.folderId || "")) throw new Error("画布文件夹未保存到工作区");
+    if (!saved?.id || saved.id !== intended.id) throw new Error("Canvas not saved to workspace");
+    if ((saved.folderId || "") !== (intended.folderId || "")) throw new Error("Canvas folder not saved to workspace");
     const intendedTimeline = timelineStorageKeys(intended.timeline);
     const savedTimeline = timelineStorageKeys(saved.timeline);
-    if (intendedTimeline.join("\n") !== savedTimeline.join("\n")) throw new Error("画布时间线未保存到工作区");
+    if (intendedTimeline.join("\n") !== savedTimeline.join("\n")) throw new Error("Canvas timeline not saved to workspace");
     const intendedKeys = collectStorageKeys({ nodes: intended.nodes, timeline: intended.timeline }).sort();
     const savedKeys = collectStorageKeys({ nodes: saved.nodes, timeline: saved.timeline }).sort();
-    if (intendedKeys.join("\n") !== savedKeys.join("\n")) throw new Error("画布媒体未保存到工作区");
+    if (intendedKeys.join("\n") !== savedKeys.join("\n")) throw new Error("Canvas media not saved to workspace");
     const intendedAssets = mediaAssetIds(intended.nodes, intended.timeline);
     const savedAssets = mediaAssetIds(saved.nodes, saved.timeline);
-    if (intendedAssets.join("\n") !== savedAssets.join("\n")) throw new Error("画布素材引用未保存到工作区");
+    if (intendedAssets.join("\n") !== savedAssets.join("\n")) throw new Error("Canvas material reference not saved to workspace");
     // Compare every submitted document field, including new editor features.
     // Only server-owned timestamps and synchronization metadata may differ.
     for (const [key, value] of Object.entries(intended)) {
@@ -99,7 +99,7 @@ export function assertRestoredCanvasMatches(intended: Partial<CanvasProject> & P
         if (storage === "backend" && key === "viewport") continue;
         const actual = saved[key as keyof CanvasProject];
         if (value === undefined && (actual === undefined || actual === null || actual === "")) continue;
-        if (canonicalize(value) !== canonicalize(actual)) throw new Error("画布内容未完整保存到工作区");
+        if (canonicalize(value) !== canonicalize(actual)) throw new Error("The canvas content is not completely saved to the workspace");
     }
 }
 
@@ -142,11 +142,11 @@ export function createCanvasArchiveRestoreHost(overrides: Partial<CanvasArchiveR
         updateProject: (id, patch) => store().updateProject(id, patch),
         persistProject: async (id) => {
             const live = store().openProject(id);
-            if (!live) throw new Error("画布未保存到工作区");
+            if (!live) throw new Error("Canvas not saved to workspace");
             if (!usesCanonicalBackend) {
                 await flushCanvasStorePersistence();
                 const cached = store().openProject(id);
-                if (!cached) throw new Error("画布未保存到工作区");
+                if (!cached) throw new Error("Canvas not saved to workspace");
                 assertRestoredCanvasMatches(live, cached);
                 return;
             }
@@ -155,10 +155,10 @@ export function createCanvasArchiveRestoreHost(overrides: Partial<CanvasArchiveR
             try {
                 saved = await readLocalCanvasProjectFromBackend(id);
             } catch (error) {
-                throw new Error("画布未保存到工作区");
+                throw new Error("Canvas not saved to workspace");
             }
             assertRestoredCanvasMatches(live, saved, "backend");
-            if ((saved.revision ?? 0) < 1) throw new Error("画布未保存到工作区");
+            if ((saved.revision ?? 0) < 1) throw new Error("Canvas not saved to workspace");
         },
         deleteProjects: async (ids) => {
             const unique = [...new Set(ids.filter(Boolean))];
@@ -189,7 +189,7 @@ export function createCanvasArchiveRestoreHost(overrides: Partial<CanvasArchiveR
         bindMediaAsset: async (options) => {
             const result = await ensureCanvasNodeAsset({ ...options, source: "canvas-upload" });
             if (result.created) createdAssets.add(result.assetId);
-            if (!result.confirmed) throw new Error("素材文件尚未保存到工作区，导入未完成");
+            if (!result.confirmed) throw new Error("The material file has not been saved to the workspace and the import is not completed.");
             return result.assetId;
         },
         saveDrawing: (projectId, drawingId, engine, snapshot, previous, preview, render) =>
@@ -197,7 +197,7 @@ export function createCanvasArchiveRestoreHost(overrides: Partial<CanvasArchiveR
         loadDrawing: async (projectId, drawingId) => {
             const saved = await loadCanvasDrawing(projectId, drawingId);
             if (usesCanonicalBackend && saved && saved.origin !== "canonical") {
-                throw new Error("画板尚未保存到工作区，导入未完成");
+                throw new Error("The artboard has not been saved to the workspace and the import is not completed.");
             }
             return saved ? { drawingId, revision: saved.revision, snapshot: saved.snapshot, previewResourceId: saved.previewResourceId, renderResourceId: saved.renderResourceId } : null;
         },
@@ -207,13 +207,13 @@ export function createCanvasArchiveRestoreHost(overrides: Partial<CanvasArchiveR
 }
 
 export async function restoreCanvasArchive(input: Blob | OpenCanvasArchive, host: Partial<CanvasArchiveRestoreHost> = {}): Promise<CanvasArchiveRestoreResult> {
-    const progress = startOperation("导入画布备份", { detail: "正在解压并检查备份", totalBytes: input instanceof Blob ? input.size : undefined });
+    const progress = startOperation("Import canvas backup", { detail: "Extracting and checking backup", totalBytes: input instanceof Blob ? input.size : undefined });
     try {
-        const result = await restoreCanvasArchiveContents(input, host, (completedFiles, totalFiles) => progress.update({ phase: "processing", detail: "正在恢复媒体并保存画布", completedFiles, totalFiles }));
-        progress.done("画布与媒体已恢复并保存");
+        const result = await restoreCanvasArchiveContents(input, host, (completedFiles, totalFiles) => progress.update({ phase: "processing", detail: "Recovering media and saving canvas", completedFiles, totalFiles }));
+        progress.done("Canvas and media restored and saved");
         return result;
     } catch (error) {
-        progress.fail("画布导入未完成，请查看错误后重试");
+        progress.fail("Canvas import is not completed, please check the error and try again");
         throw error;
     }
 }
@@ -244,7 +244,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
             folderIdMap.set(folder.id, id);
             if (folder.coverPath && restoreHost.restoreFolderCover) {
                 const cover = archive.files.get(confinedArchivePath(folder.coverPath));
-                if (!cover) throw new Error(`压缩包缺少文件夹封面：${folder.name}`);
+                if (!cover) throw new Error(`The compressed package is missing the folder cover:${folder.name}`);
                 await restoreHost.restoreFolderCover(id, cover.slice(0, cover.size, folder.coverMimeType || cover.type || "image/png"));
             } else if (folder.coverDataUrl?.startsWith("data:image/") && restoreHost.restoreFolderCover) {
                 const response = await fetch(folder.coverDataUrl);
@@ -258,7 +258,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
                 total: item.files.length,
                 completed: 0,
                 phase: localPersistence ? "saving" : "uploading",
-                message: localPersistence ? "正在保存本地媒体" : "正在上传媒体",
+                message: localPersistence ? "Saving local media" : "Uploading media",
             });
             const storageKeyMap = await restoreArchiveMedia(item.files, archive.files, restoreHost, resourceIds, (completed) => {
                 onProgress(restoredMedia + completed, totalMedia);
@@ -267,7 +267,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
                     total: item.files.length,
                     completed,
                     phase: localPersistence ? "saving" : "uploading",
-                    message: localPersistence ? "正在保存本地媒体" : "正在上传媒体",
+                    message: localPersistence ? "Saving local media" : "Uploading media",
                 });
             });
             restoredMedia += item.files.length;
@@ -279,7 +279,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
                 ...normalizeLocalCanvasProject(item.project),
                 projectId: undefined,
                 folderId: item.project.folderId ? folderIdMap.get(item.project.folderId) : undefined,
-                title: item.project.title || "导入画布",
+                title: item.project.title || "Import canvas",
                 nodes: remappedNodes,
                 timeline: remappedTimeline,
                 directorScenes,
@@ -292,7 +292,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
                 total: item.files.length,
                 completed: item.files.length,
                 phase: "saving",
-                message: localPersistence ? "正在保存本地画布" : "正在保存画布",
+                message: localPersistence ? "Saving local canvas" : "Saving canvas",
             });
             const bound = await bindRestoredMedia(importedProjectId, remappedNodes, remappedTimeline, restoreHost);
             restoreHost.updateProject(importedProjectId, bound.timeline ? { nodes: bound.nodes, timeline: bound.timeline } : { nodes: bound.nodes });
@@ -306,7 +306,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
                     total: item.files.length,
                     completed: item.files.length,
                     phase: "error",
-                    message: error instanceof Error ? error.message : "画布导入未完成",
+                    message: error instanceof Error ? error.message : "Canvas import not completed",
                 });
                 throw error;
             } finally {
@@ -324,7 +324,7 @@ async function restoreCanvasArchiveContents(input: Blob | OpenCanvasArchive, hos
         try {
             await cleanupCanvasArchiveAttempt(restoreHost, { folderIds, projectIds, resourceIds });
         } catch (cleanupError) {
-            throw new AggregateError([error, cleanupError], `${error instanceof Error ? error.message : "导入未完成"}；部分导入内容未能清理，请检查工作区后重试`);
+            throw new AggregateError([error, cleanupError], `${error instanceof Error ? error.message : "Import not completed"}; Some imported content could not be cleaned, please check the workspace and try again.`);
         }
         throw error;
     } finally {
@@ -338,10 +338,10 @@ async function verifyRestoredDrawings(projectId: string, documents: CanvasDrawin
     if (!host.loadDrawing) return;
     for (const document of documents.filter((item) => !item.engine || item.engine === "excalidraw")) {
         const saved = await host.loadDrawing(projectId, document.drawingId);
-        if (!saved || saved.drawingId !== document.drawingId || (saved.revision || 0) < 1) throw new Error("画板未保存到工作区");
-        if (canonicalize(saved.snapshot) !== canonicalize(document.snapshot)) throw new Error("画板未保存到工作区");
-        if (host.usesCanonicalBackend && document.previewPath && !saved.previewResourceId) throw new Error("画板预览未保存到工作区");
-        if (host.usesCanonicalBackend && document.generationRender && !saved.renderResourceId) throw new Error("画板生成图未保存到工作区");
+        if (!saved || saved.drawingId !== document.drawingId || (saved.revision || 0) < 1) throw new Error("Artboard not saved to workspace");
+        if (canonicalize(saved.snapshot) !== canonicalize(document.snapshot)) throw new Error("Artboard not saved to workspace");
+        if (host.usesCanonicalBackend && document.previewPath && !saved.previewResourceId) throw new Error("Artboard preview not saved to workspace");
+        if (host.usesCanonicalBackend && document.generationRender && !saved.renderResourceId) throw new Error("The drawing generated by the artboard is not saved to the workspace");
     }
 }
 
@@ -365,7 +365,7 @@ async function restoreArchiveMedia(
             const fileItem = files[current];
             try {
                 const blob = zip.get(fileItem.path) || zip.get(confinedArchivePath(fileItem.path));
-                if (!blob) throw new Error(`压缩包缺少媒体文件：${fileItem.path}`);
+                if (!blob) throw new Error(`The compressed package is missing media files:${fileItem.path}`);
                 const mime = fileItem.mimeType || blob.type || "application/octet-stream";
                 const typedBlob = blob.type ? blob : blob.slice(0, blob.size, mime);
                 const mapped = await host.uploadMedia(typedBlob, mediaKind(fileItem.storageKey, mime), {

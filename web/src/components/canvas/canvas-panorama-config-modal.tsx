@@ -47,16 +47,16 @@ function buildPanoramaPrompt(sourceMode: PanoramaSourceMode, projection: Panoram
     const base = userPrompt.trim();
 
     const common = [
-        "最终图像必须适合导入全景查看器，作为包裹场景的环境球内壁或水平环绕背景使用",
-        "画面中不要出现摄影师、相机、镜头、三脚架、头显或任何拍摄设备",
-        "不要分屏拼贴，不要多宫格，不要画中画，不要插入小图，只保留一个连续环境",
-        "不要水印，不要文字，不要界面元素，不要边框，不要明显拼接线或接缝",
-        "除非用户另有说明，保持真实摄影质感、电影级光影和自然空间纵深",
+        "The final image must be suitable for import into the panorama viewer, for use as the inner wall of an environment sphere wrapping the scene or as a horizontal wraparound background",
+        "Do not include photographers, cameras, lenses, tripods, headsets, or any other filming equipment.",
+        "No split-screen collage, no multiple grids, no picture-in-picture, no inserting small pictures, just keep one continuous environment",
+        "No watermarks, no text, no interface elements, no borders, no obvious splicing lines or seams",
+        "Unless otherwise specified by the user, maintain authentic photographic textures, cinematic light and shadow, and natural spatial depth.",
     ].join(", ");
 
     const ratio = projection === "spherical" ? "2:1" : "4:1";
 
-    const fallbackText = `生成一张可用于全景查看器的完整沉浸式全景图，画面必须是比例${ratio}的等距柱状投影结构，宽度是高度的${projection === "spherical" ? "2倍" : "4倍"}，结合导入图片的主体、材质、色彩和风格，并根据文字描述补全四周环境、天空或天花板、地面或地板，让左右边缘自然衔接。${common}`;
+    const fallbackText = `Generates a fully immersive panorama that can be used in the panorama viewer, the frame must be in scale${ratio}is an equirectangular projection structure, the width is the height${projection === "spherical" ? "2 times" : "4 times"}, combine the main body, material, color and style of the imported picture, and complete the surrounding environment, sky or ceiling, ground or floor according to the text description, allowing the left and right edges to connect naturally.${common}`;
 
     if (!base) {
         return fallbackText;
@@ -102,7 +102,7 @@ const PanoramaSetupForm = memo(
                 if (node.type !== CanvasNodeType.Image && node.type !== CanvasNodeType.Video) return;
                 const raw = node.metadata?.content;
                 if (!raw) return;
-                const label = (node.title || "").trim() || `图${list.length + 1}`;
+                const label = (node.title || "").trim() || `Figure${list.length + 1}`;
                 list.push({
                     id: node.id,
                     url: raw,
@@ -121,7 +121,7 @@ const PanoramaSetupForm = memo(
                 {
                     id: "selected-preview",
                     url: previewImageUrl,
-                    label: "当前图片",
+                    label: "Current picture",
                     color: PANORAMA_COLORS[0],
                 },
                 ...canvasReferences,
@@ -157,7 +157,7 @@ const PanoramaSetupForm = memo(
             return allReferences.filter((item) => `${item.label} ${item.id}`.toLowerCase().includes(query));
         }, [allReferences, assetQuery]);
 
-        const defaultAiPrompt = "生成一张可用于全景查看器的完整沉浸式全景图，画面必须是比例2比1的等距柱状投影结构，宽度是高度的2倍，结合导入图片的主体、材质、色彩和风格，并根据文字描述补全四周环境、天空或天花板、地面或地板，让左右边缘自然衔接";
+        const defaultAiPrompt = "Generate a complete immersive panorama that can be used in the panorama viewer. The picture must be an equidistant columnar projection structure with a ratio of 2:1, and the width is twice the height. Combine the subject, material, color and style of the imported picture, and complete the surrounding environment, sky or ceiling, ground or floor according to the text description, so that the left and right edges naturally connect";
         const effectivePrompt = sourceMode === "image" ? prompt.trim() : prompt.trim() || defaultAiPrompt;
         const composed = sourceMode === "image" ? effectivePrompt : buildPanoramaPrompt(sourceMode, projection, effectivePrompt);
         const directReference = selectedReferences[0] ?? null;
@@ -237,7 +237,7 @@ const PanoramaSetupForm = memo(
                     {!failed && !loaded && <div className="absolute inset-0 animate-pulse bg-foreground/5" />}
                     {failed && (
                         <div className="absolute inset-0 grid place-items-center">
-                            <span className="px-2 text-center text-[11px] leading-4 text-foreground/40">加载失败</span>
+                            <span className="px-2 text-center text-[11px] leading-4 text-foreground/40">Loading failed</span>
                         </div>
                     )}
                 </div>
@@ -251,12 +251,12 @@ const PanoramaSetupForm = memo(
                 {renderImageSurface(image, "aspect-[4/3] rounded-[var(--r-md)]")}
                 <span className="pointer-events-none absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
                     <span className="size-1 rounded-full" style={{ backgroundColor: image.color }} />
-                    {sourceMode === "image" ? "源图" : `${index + 1}`}
+                    {sourceMode === "image" ? "Source image" : `${index + 1}`}
                 </span>
                 <button
                     type="button"
                     onClick={() => setSelectedIds((current) => current.filter((id) => id !== image.id))}
-                    aria-label={`移除${image.label}`}
+                    aria-label={`Remove${image.label}`}
                     className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
                 >
                     <X className="size-3" />
@@ -271,7 +271,7 @@ const PanoramaSetupForm = memo(
                 className={`flex shrink-0 flex-col items-center justify-center gap-1.5 rounded-[var(--r-md)] bg-foreground/5 text-[10px] font-medium text-foreground/45 transition-colors hover:bg-foreground/10 hover:text-foreground/65 ${thumbSizeClass} aspect-[4/3]`}
             >
                 <Plus className="size-4" strokeWidth={1.8} />
-                <span>添加</span>
+                <span>add</span>
             </button>
         );
 
@@ -283,8 +283,8 @@ const PanoramaSetupForm = memo(
                             <Globe className="size-3.5" strokeWidth={1.8} />
                         </span>
                         <div className="min-w-0">
-                            <h2 className="text-[13px] font-semibold leading-tight">全景图生成</h2>
-                            <p className="text-[10px] text-foreground/45">AI 补全环境或直接转换</p>
+                            <h2 className="text-[13px] font-semibold leading-tight">Panorama generation</h2>
+                            <p className="text-[10px] text-foreground/45">AI completion environment or direct conversion</p>
                         </div>
                     </header>
 
@@ -292,7 +292,7 @@ const PanoramaSetupForm = memo(
                         <div className="space-y-3">
                             {/* 生成方式 */}
                             <div>
-                                <div className="mb-1.5 text-[11px] font-semibold text-foreground">生成方式</div>
+                                <div className="mb-1.5 text-[11px] font-semibold text-foreground">Generation method</div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
                                         type="button"
@@ -306,8 +306,8 @@ const PanoramaSetupForm = memo(
                                     >
                                         <Sparkles className="size-4 shrink-0" />
                                         <div className="min-w-0">
-                                            <div className="text-[11px] font-semibold">AI 生成</div>
-                                            <div className="text-[9px] leading-tight opacity-75">补全环境</div>
+                                            <div className="text-[11px] font-semibold">AI generated</div>
+                                            <div className="text-[9px] leading-tight opacity-75">Completion environment</div>
                                         </div>
                                     </button>
                                     <button
@@ -322,8 +322,8 @@ const PanoramaSetupForm = memo(
                                     >
                                         <ImageIcon className="size-4 shrink-0" />
                                         <div className="min-w-0">
-                                            <div className="text-[11px] font-semibold">图片直出</div>
-                                            <div className="text-[9px] leading-tight opacity-75">直接转换</div>
+                                            <div className="text-[11px] font-semibold">Pictures come out directly</div>
+                                            <div className="text-[9px] leading-tight opacity-75">direct conversion</div>
                                         </div>
                                     </button>
                                 </div>
@@ -332,9 +332,9 @@ const PanoramaSetupForm = memo(
                             {/* 参考图 / 源图 */}
                             <div>
                                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                                    <div className="text-[11px] font-semibold text-foreground">{sourceMode === "image" ? "全景源图" : "参考图"}</div>
+                                    <div className="text-[11px] font-semibold text-foreground">{sourceMode === "image" ? "Panoramic source image" : "Reference picture"}</div>
                                     <Button size="small" type="text" icon={<Plus className="size-3.5" />} onClick={openAssetPicker} className="!h-6 !px-2 !text-[10px]">
-                                        {sourceMode === "image" && selectedReferences.length > 0 ? "替换" : "添加"}
+                                        {sourceMode === "image" && selectedReferences.length > 0 ? "replace" : "add"}
                                     </Button>
                                 </div>
                                 <div className="flex flex-wrap gap-1.5">
@@ -347,11 +347,11 @@ const PanoramaSetupForm = memo(
                             {/* 场景描述 */}
                             {sourceMode === "ai" && (
                                 <div>
-                                    <div className="mb-1.5 text-[11px] font-semibold text-foreground">场景描述</div>
+                                    <div className="mb-1.5 text-[11px] font-semibold text-foreground">scene description</div>
                                     <Input.TextArea
                                         value={prompt}
                                         onChange={(event) => setPrompt(event.target.value)}
-                                        placeholder="例如：黄昏的海边木屋，能看到天空、地面和四周环境"
+                                        placeholder="For example: a wooden house on the beach at dusk, you can see the sky, the ground and the surrounding environment"
                                         autoSize={{ minRows: 2, maxRows: 4 }}
                                     />
                                 </div>
@@ -359,12 +359,12 @@ const PanoramaSetupForm = memo(
 
                             {/* 全景类型 */}
                             <div>
-                                <div className="mb-1.5 text-[11px] font-semibold text-foreground">全景类型</div>
+                                <div className="mb-1.5 text-[11px] font-semibold text-foreground">Panorama type</div>
                                 <div className="grid grid-cols-2 gap-2">
                                     {(
                                         [
-                                            { value: "spherical" as const, icon: Globe, title: "球形全景", desc: "720° 沉浸式", ratio: "2:1" },
-                                            { value: "cylindrical" as const, icon: Compass, title: "环绕全景", desc: "360° 街景", ratio: "4:1" },
+                                            { value: "spherical" as const, icon: Globe, title: "spherical panorama", desc: "720° immersive", ratio: "2:1" },
+                                            { value: "cylindrical" as const, icon: Compass, title: "Surround panorama", desc: "360° street view", ratio: "4:1" },
                                         ] as const
                                     ).map((option) => {
                                         const selected = projection === option.value;
@@ -397,18 +397,18 @@ const PanoramaSetupForm = memo(
 
                             {/* 高级选项 */}
                             <div>
-                                <div className="mb-1.5 text-[11px] font-semibold text-foreground">高级选项</div>
+                                <div className="mb-1.5 text-[11px] font-semibold text-foreground">Advanced options</div>
                                 <div className="space-y-1.5">
                                     <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] bg-foreground/5 px-2.5 py-1.5">
                                         <div className="min-w-0">
-                                            <div className="text-[11px] font-semibold text-foreground">智能比例</div>
-                                            <div className="text-[9px] leading-tight text-foreground/50">模型不支持时自动裁切</div>
+                                            <div className="text-[11px] font-semibold text-foreground">Smart proportions</div>
+                                            <div className="text-[9px] leading-tight text-foreground/50">Automatically crop when the model does not support it</div>
                                         </div>
                                         <Switch size="small" checked={smartBase} onChange={setSmartBase} />
                                     </div>
                                     {sourceMode === "ai" && (
                                         <Button size="small" type="text" icon={<Copy className="size-3.5" />} onClick={() => onCopyPrompt?.(composed)} className="!h-6 !px-2 !text-[10px]">
-                                            复制完整提示词
+                                                                                        Copy the complete prompt word
                                         </Button>
                                     )}
                                 </div>
@@ -418,14 +418,14 @@ const PanoramaSetupForm = memo(
 
                     <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-border px-5 py-2.5">
                         <span className={`truncate text-[10px] ${canSubmit ? "text-foreground/45" : "text-amber-500"}`}>
-                            {sourceMode === "image" ? (directReference ? "已选源图" : "请选择源图") : selectedReferences.length > 0 ? `${selectedReferences.length} 张参考图` : "无参考图"}
+                            {sourceMode === "image" ? (directReference ? "Selected source image" : "Please select source image") : selectedReferences.length > 0 ? `${selectedReferences.length} Reference picture` : "No reference picture"}
                         </span>
                         <div className="flex shrink-0 items-center gap-2">
                             <Button size="small" onClick={onCancel}>
-                                取消
+                                                                Cancel
                             </Button>
                             <Button size="small" type="primary" icon={sourceMode === "image" ? <ImageIcon className="size-3.5" /> : <Sparkles className="size-3.5" />} disabled={!canSubmit} onClick={handleSubmit}>
-                                {sourceMode === "image" ? "创建全景图" : "生成全景图"}
+                                {sourceMode === "image" ? "Create a panorama" : "Generate panorama"}
                             </Button>
                         </div>
                     </footer>
@@ -437,26 +437,26 @@ const PanoramaSetupForm = memo(
                         <div className="flex max-h-full w-[500px] max-w-full flex-col overflow-hidden rounded-[var(--r-lg)] border border-border bg-background shadow-2xl">
                             <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-3">
                                 <div className="min-w-0">
-                                    <div className="text-sm font-semibold text-foreground">{sourceMode === "image" ? "选择源图" : "选择参考图"}</div>
+                                    <div className="text-sm font-semibold text-foreground">{sourceMode === "image" ? "Select source image" : "Select reference image"}</div>
                                     <div className="mt-0.5 text-[11px] text-foreground/45">
-                                        {sourceMode === "image" ? "只选一张作为全景源" : `已选 ${draftSelectedIds.length} 张`}
+                                        {sourceMode === "image" ? "Select only one as the panorama source" : `Selected${draftSelectedIds.length} Zhang`}
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => setIsAssetPickerOpen(false)}
-                                    aria-label="关闭"
+                                    aria-label="Close"
                                     className="grid size-6 shrink-0 place-items-center rounded-[var(--r-md)] text-foreground/45 transition-colors hover:bg-foreground/5 hover:text-foreground"
                                 >
                                     <X className="size-4" />
                                 </button>
                             </div>
                             <div className="border-b border-border px-5 py-2">
-                                <Input size="small" allowClear value={assetQuery} onChange={(event) => setAssetQuery(event.target.value)} placeholder="搜索图片名称" prefix={<Search className="size-3.5 text-foreground/35" />} />
+                                <Input size="small" allowClear value={assetQuery} onChange={(event) => setAssetQuery(event.target.value)} placeholder="Search image name" prefix={<Search className="size-3.5 text-foreground/35" />} />
                             </div>
                             <div className="ui-scrollbar min-h-0 flex-1 overflow-y-auto p-4">
                                 {filteredReferences.length === 0 ? (
-                                    <div className="rounded-[var(--r-md)] bg-foreground/5 px-4 py-8 text-center text-[11px] text-foreground/45">没有匹配的图片</div>
+                                    <div className="rounded-[var(--r-md)] bg-foreground/5 px-4 py-8 text-center text-[11px] text-foreground/45">No matching images</div>
                                 ) : (
                                     <div className="grid grid-cols-5 gap-2">
                                         {filteredReferences.map((image) => {
@@ -485,10 +485,10 @@ const PanoramaSetupForm = memo(
                             </div>
                             <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
                                 <Button size="small" onClick={() => setIsAssetPickerOpen(false)}>
-                                    取消
+                                                                        Cancel
                                 </Button>
                                 <Button size="small" type="primary" disabled={sourceMode === "image" && draftSelectedIds.length === 0} onClick={confirmAssetPicker}>
-                                    {sourceMode === "image" ? "使用此图" : `加入 ${draftSelectedIds.length}`}
+                                    {sourceMode === "image" ? "use this diagram" : `Join${draftSelectedIds.length}`}
                                 </Button>
                             </div>
                         </div>

@@ -20,8 +20,8 @@ export function summarizeCanvasContext(nodes: CanvasNodeData[], selectedNodeIds:
     return {
         nodeCount: nodes.length,
         selectedCount: selectedNodes.length,
-        chapterLabel: chapterTitles.length === 1 ? chapterTitles[0] : chapterTitles.length > 1 ? `${chapterTitles.length} 个章节` : "",
-        shotLabel: shotIndexes.length === 1 ? `镜头 ${shotIndexes[0] + 1}` : shotIndexes.length > 1 ? `${shotIndexes.length} 个镜头` : "",
+        chapterLabel: chapterTitles.length === 1 ? chapterTitles[0] : chapterTitles.length > 1 ? `${chapterTitles.length} chapters` : "",
+        shotLabel: shotIndexes.length === 1 ? `lens${shotIndexes[0] + 1}` : shotIndexes.length > 1 ? `${shotIndexes.length} shot` : "",
     };
 }
 

@@ -46,7 +46,7 @@ export async function uploadMediaFile(input: Blob, prefix = "file", onProgress?:
                 captured = await captureVideoPoster(previewUrl);
             } catch (error) {
                 // 封面和轨道信息属于展示增强：失败不阻断原文件上传，但必须留下可诊断信号。
-                console.warn("读取视频封面与媒体信息失败，继续上传原文件", { mimeType: blob.type, bytes: blob.size, error });
+                console.warn("Failed to read the video cover and media information, continue to upload the original file", { mimeType: blob.type, bytes: blob.size, error });
             }
         }
 
@@ -57,7 +57,7 @@ export async function uploadMediaFile(input: Blob, prefix = "file", onProgress?:
             try {
                 parsedHasAudio = await detectVideoAudioTrackFromBlob(blob);
             } catch (error) {
-                console.warn("解析视频音轨失败，继续上传但不写入音轨结论", { mimeType: blob.type, bytes: blob.size, error });
+                console.warn("Failed to parse video audio track, continue uploading but do not write audio track conclusion", { mimeType: blob.type, bytes: blob.size, error });
             }
         }
         const resolvedHasAudio = parsedHasAudio ?? (captured?.hasAudio === false ? undefined : captured?.hasAudio);
@@ -69,7 +69,7 @@ export async function uploadMediaFile(input: Blob, prefix = "file", onProgress?:
             try {
                 meta = await readAudioMeta(previewUrl);
             } catch (error) {
-                console.warn("读取音频时长失败，继续上传原文件", { mimeType: blob.type, bytes: blob.size, error });
+                console.warn("Failed to read the audio duration, continue to upload the original file", { mimeType: blob.type, bytes: blob.size, error });
                 meta = {};
             }
         } else {
@@ -82,14 +82,14 @@ export async function uploadMediaFile(input: Blob, prefix = "file", onProgress?:
                 poster = await uploadImage(captured.poster);
             } catch (error) {
                 // 预览图失败不应把已经可用的视频降级成本地文件；视频本体仍按强校验上传。
-                console.warn("上传视频预览图失败，继续保存视频本体", { mimeType: blob.type, bytes: blob.size, error });
+                console.warn("Failed to upload video preview, continue to save the video itself", { mimeType: blob.type, bytes: blob.size, error });
             }
         }
 
         if (usesBrowserLocalResourceStore()) {
-            const progress = startOperation(input instanceof File ? input.name : "保存媒体文件", { totalBytes: blob.size, detail: "正在保存媒体文件到本机" });
-            try { await saveLocalMedia(storageKey, blob, previewUrl); progress.done("媒体文件已保存到本机"); }
-            catch (error) { progress.fail("媒体保存未完成，请检查本机存储空间"); throw error; }
+            const progress = startOperation(input instanceof File ? input.name : "Save media files", { totalBytes: blob.size, detail: "Saving media files to local machine" });
+            try { await saveLocalMedia(storageKey, blob, previewUrl); progress.done("Media files have been saved to this computer"); }
+            catch (error) { progress.fail("Media saving is not completed, please check the local storage space"); throw error; }
             retainPreviewUrl = true;
             return { url: previewUrl, storageKey, bytes: blob.size, mimeType: blob.type || "application/octet-stream", ...meta, preview: poster };
         }
@@ -104,7 +104,7 @@ export async function uploadMediaFile(input: Blob, prefix = "file", onProgress?:
                 await primeResourceBlobCache(resourceStorageKey(resource.id), blob);
             } catch (error) {
                 // 缓存只影响后续读取性能，服务端资源已经成功落盘，不得把缓存失败误报为上传失败。
-                console.warn("预热媒体缓存失败，服务端资源已保存", { resourceId: resource.id, error });
+                console.warn("Failed to warm up media cache, server resources have been saved", { resourceId: resource.id, error });
             }
             return {
                 url: resource.publicUrl || resourceFileUrl(resource.id),
@@ -120,7 +120,7 @@ export async function uploadMediaFile(input: Blob, prefix = "file", onProgress?:
         } catch (error) {
             // 与图片上传同一套判定：永久性失败必须当场暴露，不能混进“稍后自动同步”。
             if (error instanceof ResourceUploadError && error.permanent) throw error;
-            remoteUploadError = error instanceof Error ? error.message : "媒体直传失败";
+            remoteUploadError = error instanceof Error ? error.message : "Media direct transmission failed";
         }
 
         // 本地资源服务暂时不可用时退回浏览器本地缓存，保持当前编辑可用。

@@ -36,6 +36,6 @@ export const refreshPublication = (planId: string) => http.post<PublishPlan>(`${
 // These two calls are used only by user confirmation controls, never by the model tool surface.
 export const uploadPublication = (plan: PublishPlan) => http.post<PublishPlan>(`${root}/publish-plans/${id(plan.planId)}/upload`, { confirmed: true, archiveSha256: plan.archiveSha256 });
 export const submitPublication = (plan: PublishPlan) => {
-    if (!plan.preview || plan.status !== "awaiting_submit_confirmation") return Promise.reject(new Error("请先刷新并检查公开预览"));
+    if (!plan.preview || plan.status !== "awaiting_submit_confirmation") return Promise.reject(new Error("Please refresh and check the public preview first"));
     return http.post<PublishPlan>(`${root}/publish-plans/${id(plan.planId)}/submit`, { confirmed: true, revision: plan.preview.revision, previewDigest: plan.preview.previewDigest });
 };

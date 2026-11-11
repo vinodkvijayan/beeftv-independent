@@ -15,5 +15,5 @@ export async function waitForAssistant(signal: AbortSignal, readStatus = getAgen
             signal.addEventListener("abort", abort, { once: true });
         });
     }
-    throw new Error("连接暂时未就绪，你的消息还在，请稍后重试");
+    throw new Error("The connection is not ready yet. Your message is still there. Please try again later.");
 }

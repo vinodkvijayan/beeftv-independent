@@ -17,7 +17,7 @@ export type DirectorLibraryPersistResult = {
 };
 
 function throwIfAborted(signal?: AbortSignal) {
-    if (signal?.aborted) throw new DOMException("导演台会话已结束", "AbortError");
+    if (signal?.aborted) throw new DOMException("Director's desk session has ended", "AbortError");
 }
 
 function storageKeyOf(asset: NewAsset) {
@@ -77,7 +77,7 @@ export async function persistDirectorLibraryAsset(input: {
 
     const assetId = useAssetStore.getState().addAsset(input.asset);
     const asset = useAssetStore.getState().assets.find((item) => item.id === assetId);
-    if (!asset) throw new Error("素材写入本地失败");
+    if (!asset) throw new Error("Failed to write material locally");
     let confirmed = canonical;
     try {
         await persistWorkspaceAssetLink({ asset, signal, source: "uploaded" });

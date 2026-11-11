@@ -45,19 +45,19 @@ export function createDirectorReproScene(): DirectorScene {
     return {
         id: FIXTURE_SCENE_ID,
         version: 1,
-        title: "P0 复现场景",
+        title: "P0 recurrence scene",
         background: "#060608",
         environmentIntensity: 0.7,
         gridVisible: true,
         objects: [
-            fixtureObject({ id: "repro-box-1", name: "立方体 A", primitive: "box", position: [0, 0.5, 0], color: "#8795a5" }),
-            fixtureObject({ id: "repro-sphere-1", name: "球体 B", primitive: "sphere", position: [2.2, 0.5, 0], color: "#6f8fb8" }),
-            fixtureObject({ id: "repro-cylinder-1", name: "圆柱 C", primitive: "cylinder", position: [-2.2, 0.5, 0], color: "#b8926f" }),
+            fixtureObject({ id: "repro-box-1", name: "Cube A", primitive: "box", position: [0, 0.5, 0], color: "#8795a5" }),
+            fixtureObject({ id: "repro-sphere-1", name: "Sphere B", primitive: "sphere", position: [2.2, 0.5, 0], color: "#6f8fb8" }),
+            fixtureObject({ id: "repro-cylinder-1", name: "Cylindrical C", primitive: "cylinder", position: [-2.2, 0.5, 0], color: "#b8926f" }),
         ],
         cameras: [
             {
                 id: FIXTURE_CAMERA_ID,
-                name: "主摄影机",
+                name: "main camera",
                 transform: { position: [4.8, 2.7, 6.8], rotation: [0, 0, 0], scale: [1, 1, 1] },
                 target: [0, 1, 0],
                 focalLength: 35,
@@ -72,7 +72,7 @@ export function createDirectorReproScene(): DirectorScene {
         lights: [
             {
                 id: "repro-light-1",
-                name: "主光",
+                name: "key light",
                 type: "directional",
                 color: "#ffffff",
                 intensity: 2.4,
@@ -83,7 +83,7 @@ export function createDirectorReproScene(): DirectorScene {
         shots: [
             {
                 id: FIXTURE_SHOT_ID,
-                name: "镜头 1",
+                name: "Shot 1",
                 cameraId: FIXTURE_CAMERA_ID,
                 shotSize: "medium",
                 cameraMove: "static",
@@ -106,7 +106,7 @@ export function createDirectorReproActorScene(): DirectorScene {
     const scene = createDirectorReproScene();
     const actor: DirectorObject = {
         id: "repro-actor-1",
-        name: "演员 1",
+        name: "actor 1",
         kind: "actor",
         transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
         color: "#4f8ef7",
@@ -122,9 +122,9 @@ export function createDirectorReproActorScene(): DirectorScene {
     };
     return {
         ...scene,
-        title: "人物视觉对照场景",
+        title: "Character visual comparison scene",
         objects: [actor],
-        cameras: scene.cameras.map((camera) => ({ ...camera, name: "机位1", transform: { ...camera.transform, position: [0, 2.2, 10] }, target: [0, 1.2, 0] })),
+        cameras: scene.cameras.map((camera) => ({ ...camera, name: "Seat 1", transform: { ...camera.transform, position: [0, 2.2, 10] }, target: [0, 1.2, 0] })),
     };
 }
 
@@ -135,16 +135,16 @@ export function createDirectorReproQuaterniusCompareScene(): DirectorScene {
     const quaternius: DirectorObject = {
         ...original,
         id: "repro-quaternius-male",
-        name: "Quaternius 免费男性",
+        name: "Quaternius Free Male",
         url: DIRECTOR_QUATERNIUS_MALE_URL,
         mimeType: "model/gltf-binary",
         transform: { ...original.transform, position: [1.1, 0, 0] },
     };
     return {
         ...scene,
-        title: "Quaternius 男女模型对照",
+        title: "Quaternius male and female model comparison",
         objects: [
-            { ...original, name: "Quaternius 免费女性", actorPreset: "standard_female", url: DIRECTOR_QUATERNIUS_FEMALE_URL, mimeType: "model/gltf-binary", transform: { ...original.transform, position: [-1.1, 0, 0] } },
+            { ...original, name: "Quaternius free women", actorPreset: "standard_female", url: DIRECTOR_QUATERNIUS_FEMALE_URL, mimeType: "model/gltf-binary", transform: { ...original.transform, position: [-1.1, 0, 0] } },
             quaternius,
         ],
         cameras: scene.cameras.map((camera) => ({ ...camera, transform: { ...camera.transform, position: [0, 2.4, 6.4] }, target: [0, 1, 0] })),
@@ -160,7 +160,7 @@ export function createDirectorReproActorPresetScene(): DirectorScene {
     }));
     return {
         ...scene,
-        title: "人物预设对照场景",
+        title: "Character default comparison scene",
         objects: actors,
         cameras: scene.cameras.map((camera) => ({ ...camera, transform: { ...camera.transform, position: [0, 3.2, 10] }, target: [0, 0.9, 0] })),
     };
@@ -181,21 +181,21 @@ export type DirectorReproCase = {
 };
 
 export const DIRECTOR_REPRO_MATRIX: readonly DirectorReproCase[] = [
-    { id: "empty-click", group: "选择语义", title: "空白单击", steps: "在视口空白处单击。", expected: "取消选择，不产生历史记录，状态栏不变为未保存。" },
-    { id: "right-click", group: "选择语义", title: "右击", steps: "在对象上右击，再在空白处右击。", expected: "不改变选择、不开始手势、不写入历史。" },
-    { id: "switch-object", group: "选择语义", title: "切换对象", steps: "拖动对象 A 后不松手切换选中 B（或先松手再选 B）。", expected: "旧手势先被终结，B 不消费 A 的 base。" },
-    { id: "release-outside", group: "手势终结", title: "视口外释放", steps: "在视口内按下并拖动，移出视口后松开鼠标。", expected: "手势以 commit 终结一次，不留下悬挂预览。" },
-    { id: "blur", group: "手势终结", title: "窗口 blur", steps: "拖动过程中切换到其它窗口。", expected: "手势终结，草稿状态一致，不重复镜像。" },
-    { id: "escape", group: "手势终结", title: "Escape 取消", steps: "拖动过程中按 Escape。", expected: "恢复到手势前快照，且被取消的值绝不发布。" },
-    { id: "playing", group: "时间轴", title: "播放中操作", steps: "点击播放，播放中尝试选择与拖动。", expected: "播放不被打断成错误状态；改动语义与暂停时一致。" },
-    { id: "non-zero-time", group: "时间轴", title: "非 0 秒操作", steps: "把播放头拖到非 0 且非帧格整数位置后拖动对象。", expected: "增量以 raw playhead 为起点，不产生漂移。" },
-    { id: "autokey-on", group: "时间轴", title: "Auto Key 开", steps: "打开 Auto Key，在非 0 秒拖动对象。", expected: "在吸附后的目的时间写入关键帧。" },
-    { id: "autokey-off", group: "时间轴", title: "Auto Key 关", steps: "关闭 Auto Key，在非 0 秒拖动对象。", expected: "只改基础 transform，不产生关键帧。" },
-    { id: "add-move-delete-undo", group: "编辑链路", title: "连续新增/移动/删除/Undo", steps: "连续新增三个对象，各移动一次，删除中间一个，然后连续 Undo 到初始。", expected: "每步都可逆，Undo 后位置与选择状态自洽，不出现重叠或丢失。" },
-    { id: "delete-while-loading", group: "模型", title: "模型加载中删除", steps: "点击「注入本地模型」，立即打开工作台，在模型仍在加载时于左侧列表删除它。", expected: "晚到的加载结果被丢弃并释放，不留孤儿资源、不报错。" },
-    { id: "model-load-failed", group: "模型", title: "模型加载失败", steps: "点击「注入缺失模型」，打开工作台等待加载失败。", expected: "退回占位人偶，右上出现可操作「重试加载」，诊断记录 DIRECTOR_MODEL_LOAD_FAILED。" },
-    { id: "save-failed", group: "保存", title: "保存失败", steps: "让保存 flush 抛错后观察头部状态与重试。", expected: "状态为错误，草稿保留时提示可恢复，重试可再次尝试。" },
-    { id: "close-recovery", group: "保存", title: "关闭与草稿恢复", steps: "保存失败后关闭；重开同一场景。", expected: "关闭走 prepareClose 决策；重开时提示恢复或放弃，放弃后不再重复提示。" },
+    { id: "empty-click", group: "choice semantics", title: "Blank click", steps: "Click in an empty area of the viewport.", expected: "Cancel the selection, no history record will be generated, and the status bar will not change to Unsaved." },
+    { id: "right-click", group: "choice semantics", title: "right click", steps: "Right-click on the object, then right-click in an empty space.", expected: "No selections are changed, no gestures are started, no history is written." },
+    { id: "switch-object", group: "choice semantics", title: "Switch object", steps: "Drag object A and then switch to select B without letting go (or release first and then select B).", expected: "The old gesture is terminated first, and B does not consume A's base." },
+    { id: "release-outside", group: "end of gesture", title: "release outside viewport", steps: "Press and drag within the viewport, then release the mouse after moving out of the viewport.", expected: "The gesture ends once with commit, leaving no hanging preview." },
+    { id: "blur", group: "end of gesture", title: "window blur", steps: "Switch to other windows during dragging.", expected: "The gesture is terminated, the draft status is consistent, and there is no repeated mirroring." },
+    { id: "escape", group: "end of gesture", title: "Cancel", steps: "Press Escape while dragging.", expected: "Reverts to the pre-gesture snapshot, and the canceled values are never published." },
+    { id: "playing", group: "timeline", title: "Operation during playback", steps: "Click play and try selecting and dragging during playback.", expected: "Playback is not interrupted into an error state; the change semantics are the same as when paused." },
+    { id: "non-zero-time", group: "timeline", title: "Non-0 second operation", steps: "Drag the playhead to a non-0 and non-frame integer position and then drag the object.", expected: "The increment starts from the raw playhead and does not cause drift." },
+    { id: "autokey-on", group: "timeline", title: "Auto Key on", steps: "Turn on Auto Key and drag the object at a time other than 0 seconds.", expected: "Write keyframes at the destination time after snapping." },
+    { id: "autokey-off", group: "timeline", title: "Auto Key Off", steps: "Turn off Auto Key and drag objects at non-0 seconds.", expected: "Only the basic transform is changed, no keyframes are generated." },
+    { id: "add-move-delete-undo", group: "Edit link", title: "Continuously add/move/delete/Undo", steps: "Add three objects in a row, move each object once, delete the middle one, and then continuously Undo to the initial state.", expected: "Each step is reversible, and the position after Undo is self-consistent with the selection state, without overlap or loss." },
+    { id: "delete-while-loading", group: "model", title: "Deleted during model loading", steps: "Click \"Inject Local Model\" to immediately open the workbench and delete the model from the list on the left while it is still loading.", expected: "Late loading results are discarded and released, leaving no orphan resources or reporting errors." },
+    { id: "model-load-failed", group: "model", title: "Model loading failed", steps: "Click \"Inject Missing Model\" to open the workbench and wait for the loading failure.", expected: "Return the placeholder puppet, the operable \"Retry Loading\" appears on the upper right, and the diagnostic record DIRECTOR_MODEL_LOAD_FAILED." },
+    { id: "save-failed", group: "Save", title: "Save failed", steps: "Let the save flush throw an error and observe the header status and try again.", expected: "The status is error, and the prompt can be restored when the draft is retained. You can try again by trying again." },
+    { id: "close-recovery", group: "Save", title: "Closing and draft recovery", steps: "Close after failed saving; reopen the same scene.", expected: "Close the prepareClose decision; when reopening, you will be prompted to resume or give up. After giving up, you will not be prompted again." },
 ];
 
 /** 注入变体：本地可达 glTF，或确定性不可达地址。 */
@@ -228,8 +228,8 @@ const MODEL_MIME_TYPES: Record<DirectorReproModelVariant, string> = {
 };
 
 const MODEL_NAMES: Record<DirectorReproModelVariant, string> = {
-    local: "本地模型 repro triangle",
-    missing: "缺失模型（预期失败）",
+    local: "Local model repro triangle",
+    missing: "Missing model (expected failure)",
 };
 
 /**
@@ -266,7 +266,7 @@ export function injectDirectorReproModel(scene: DirectorScene, variant: Director
 export function injectDirectorReproAnimatedPerson(scene: DirectorScene): DirectorScene {
     const id = "repro-animated-person";
     const model = createDirectorModel({
-        name: "离线动画人物",
+        name: "Offline animated characters",
         assetId: id,
         storageKey: undefined,
         url: DIRECTOR_REPRO_ANIMATED_PERSON_URL,

@@ -2,7 +2,7 @@ import type { PluginManifest, PluginManifestV2, RegisteredPlugin } from "@/lib/p
 import { isOfficialApplicationPluginId } from "@/lib/plugins/official-applications";
 import { MEDIA_CONVERSION_PLUGIN_ID } from "@/lib/plugins/builtin/media-conversion";
 
-export const PLUGIN_ORIGIN_LABELS = { official: "官方", custom: "自定义", thirdParty: "第三方" };
+export const PLUGIN_ORIGIN_LABELS = { official: "official", custom: "Customize", thirdParty: "third party" };
 
 export function pluginOrigin(plugin: RegisteredPlugin): keyof typeof PLUGIN_ORIGIN_LABELS {
     if (plugin.source === "uploaded" || plugin.source === "local") return "custom";
@@ -12,28 +12,28 @@ export function pluginOrigin(plugin: RegisteredPlugin): keyof typeof PLUGIN_ORIG
 }
 
 export const PLUGIN_PERMISSION_LABELS: Record<string, string> = {
-    "canvas.read": "读取画布",
-    "canvas.write": "修改画布",
-    "asset.read": "读取素材",
-    "asset.search": "搜索素材",
-    "asset.import": "导入素材",
-    "asset.upload": "上传素材",
-    "generation.run": "调用生成",
-    "ai.text": "调用已配置的文本/视觉理解模型",
-    "media.read": "读取输入媒体",
-    "usage.read": "读取用量",
-    "external.open": "打开外部详情",
-    "ui.slot": "挂载界面扩展位",
-    "settings.write": "写入插件模型渠道设置",
-    "timeline.read": "读取时间线",
-    "timeline.command": "修改时间线",
-    "export.run": "导出",
+    "canvas.read": "Read canvas",
+    "canvas.write": "Modify canvas",
+    "asset.read": "Read material",
+    "asset.search": "Search for material",
+    "asset.import": "Import material",
+    "asset.upload": "Upload material",
+    "generation.run": "call generate",
+    "ai.text": "Call the configured text/visual understanding model",
+    "media.read": "Read input media",
+    "usage.read": "Read usage",
+    "external.open": "Open external details",
+    "ui.slot": "Mount interface extension bit",
+    "settings.write": "Write plugin model channel settings",
+    "timeline.read": "Read timeline",
+    "timeline.command": "Edit timeline",
+    "export.run": "Export",
 };
 
 export function getPluginDocumentation(manifest: PluginManifest | PluginManifestV2) {
     if (manifest.documentation?.trim()) return manifest.documentation.trim();
 
     return manifest.contributes.providers?.length
-        ? "此插件未提供接入说明，请联系插件作者获取。"
-        : "此插件未提供单独的使用说明。";
+        ? "This plug-in does not provide access instructions, please contact the plug-in author to obtain it."
+        : "This plugin does not provide separate instructions for use.";
 }

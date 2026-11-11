@@ -31,47 +31,47 @@ export const DEFAULT_PORTRAIT_TEXTURE_SETTINGS: PortraitTextureSettings = {
 export const PORTRAIT_TEXTURE_GROUPS: readonly PortraitTextureGroup[] = [
     {
         key: "personSceneFusion",
-        label: "人景融合",
+        label: "Fusion of people and scenery",
         options: [
-            { value: "light", label: "轻度对齐", prompt: "轻度对齐人物与场景，仅修正明显边缘和空间关系" },
-            { value: "natural", label: "自然融合", prompt: "自然融合人物与场景，统一边缘、色调和空间关系" },
-            { value: "deep", label: "深度融合", prompt: "深度融合人物与场景，细致统一边缘、环境色和空间层次" },
+            { value: "light", label: "light alignment", prompt: "Lightly align characters and scenes, only correcting obvious edges and spatial relationships" },
+            { value: "natural", label: "natural blend", prompt: "Naturally integrate characters and scenes, unifying edges, tones and spatial relationships" },
+            { value: "deep", label: "Deep integration", prompt: "Deeply integrate characters and scenes, and carefully unify edges, environment colors and spatial levels." },
         ],
     },
     {
         key: "lightingFusion",
-        label: "光影融合",
+        label: "Fusion of light and shadow",
         options: [
-            { value: "soft", label: "柔和补光", prompt: "使用柔和补光，减弱生硬阴影并保留自然明暗" },
-            { value: "natural", label: "自然匹配", prompt: "让人物光向、色温与场景光线自然匹配" },
-            { value: "atmosphere", label: "氛围强化", prompt: "强化环境光与氛围光，保持光影方向合理" },
+            { value: "soft", label: "Soft fill light", prompt: "Use soft fill light to soften harsh shadows and preserve natural light and dark" },
+            { value: "natural", label: "natural match", prompt: "Let the character's light direction, color temperature and scene light naturally match" },
+            { value: "atmosphere", label: "atmosphere strengthening", prompt: "Strengthen ambient light and ambient light, and keep the direction of light and shadow reasonable." },
         ],
     },
     {
         key: "skin",
-        label: "皮肤",
+        label: "skin",
         options: [
-            { value: "clear", label: "清透修饰", prompt: "清透修饰皮肤，适度均匀肤色且不过度磨皮" },
-            { value: "natural", label: "自然肤质", prompt: "保留自然肤质、毛孔和真实肤色过渡" },
-            { value: "real", label: "真实肌理", prompt: "强化真实皮肤肌理和细微质感，避免塑料感" },
+            { value: "clear", label: "Clear touch up", prompt: "Clear and modify the skin, moderately even skin tone without excessive skin polishing" },
+            { value: "natural", label: "natural skin", prompt: "Preserve natural skin texture, pores and true skin tone transition" },
+            { value: "real", label: "Real texture", prompt: "Enhance real skin texture and subtle texture to avoid plastic feel" },
         ],
     },
     {
         key: "texture",
-        label: "纹理",
+        label: "texture",
         options: [
-            { value: "soft", label: "柔和纹理", prompt: "使用柔和细腻的整体纹理，减少粗糙噪点" },
-            { value: "natural", label: "自然纹理", prompt: "保持服装、头发、皮肤和场景材质的自然纹理" },
-            { value: "grain", label: "颗粒质感", prompt: "增加克制的颗粒质感和材质层次" },
+            { value: "soft", label: "soft texture", prompt: "Use soft and delicate overall texture to reduce rough noise" },
+            { value: "natural", label: "natural texture", prompt: "Maintain the natural texture of clothing, hair, skin, and scene materials" },
+            { value: "grain", label: "Grainy texture", prompt: "Add restrained grain texture and material levels" },
         ],
     },
     {
         key: "sharpness",
-        label: "锐度",
+        label: "sharpness",
         options: [
-            { value: "soft", label: "柔焦", prompt: "使用轻柔焦效果，保持主体轮廓可辨" },
-            { value: "standard", label: "标准清晰", prompt: "保持标准清晰度，细节自然且不过度锐化" },
-            { value: "high", label: "高清锐化", prompt: "提升关键细节清晰度，避免锐化光晕和噪点" },
+            { value: "soft", label: "soft focus", prompt: "Use a soft focus effect to keep the outline of your subject visible" },
+            { value: "standard", label: "Clear standards", prompt: "Maintain standard definition, with natural details and not over-sharpening" },
+            { value: "high", label: "HD sharpening", prompt: "Improve clarity of key details and avoid sharp halos and noise" },
         ],
     },
 ] as const;
@@ -91,14 +91,14 @@ export function buildPortraitTexturePrompt(userPrompt: string, value: unknown) {
     const settings = normalizePortraitTextureSettings(value);
     const instructions = PORTRAIT_TEXTURE_GROUPS.map((group) => {
         const selected = group.options.find((option) => option.value === settings[group.key]);
-        return `${group.label}（${selected?.label || "默认"}）：${selected?.prompt || "保持自然"}`;
+        return `${group.label}（${selected?.label || "Default"}）：${selected?.prompt || "keep it natural"}`;
     });
 
     return [
         userPrompt.trim(),
-        "请基于参考图片进行人物质感调节，只优化下列视觉属性：",
+        "Please adjust the character texture based on the reference image, and only optimize the following visual attributes:",
         ...instructions.map((instruction) => `- ${instruction}`),
-        "必须保持原人物身份、五官、发型、服装、姿势、构图、场景和画面比例；不得新增或删除主体，不得添加文字、水印或标志。",
+        "The original character's identity, facial features, hairstyle, clothing, posture, composition, scene and picture proportions must be maintained; no new subjects may be added or deleted, and no text, watermarks or logos may be added.",
     ].filter(Boolean).join("\n");
 }
 

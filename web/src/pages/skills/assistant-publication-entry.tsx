@@ -13,5 +13,5 @@ export function AssistantPublicationEntry({ canvasId, turnCount, running }: { ca
         return () => { cancelled = true; };
     }, [canvasId, turnCount, running]);
     if (!plans.length) return null;
-    return <div className="canvas-assistant-card" aria-label="技能投稿待确认"><p>助手已准备技能草稿。请检查文件，再分别确认上传和发布。</p>{plans.map(plan => <p key={plan.planId}><Link to={`/skills?tab=publish&planId=${encodeURIComponent(plan.planId)}`}>检查“{plan.metadata.name}”投稿</Link></p>)}</div>;
+    return <div className="canvas-assistant-card" aria-label="Skill submission to be confirmed"><p>The assistant has prepared a skill draft. Please check the files and confirm uploading and publishing separately.</p>{plans.map(plan => <p key={plan.planId}><Link to={`/skills?tab=publish&planId=${encodeURIComponent(plan.planId)}`}>Check "{plan.metadata.name}"Contribute</Link></p>)}</div>;
 }

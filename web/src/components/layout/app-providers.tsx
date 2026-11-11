@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { App, ConfigProvider } from "antd";
-import zhCN from "antd/locale/zh_CN";
+import enUS from "antd/locale/en_US";
 
 import { WorkspaceBootstrapHydrator } from "@/components/workspace/workspace-bootstrap-hydrator";
 import { FullScreenLoader } from "@/components/ui/aceternity/full-screen-loader";
@@ -21,7 +21,7 @@ const ClientRootInit = lazy(() => import("@/components/layout/client-root-init")
 function ClientRootBoundary({ children }: { children: ReactNode }) {
     const authenticated = useUserStore((state) => Boolean(state.user));
     if (!authenticated) return children;
-    return <Suspense fallback={<FullScreenLoader label="正在准备创作环境" detail="连接本地能力与模型配置" />}><ClientRootInit>{children}</ClientRootInit></Suspense>;
+    return <Suspense fallback={<FullScreenLoader label="Preparing the creative environment" detail="Connect local capabilities and model configurations" />}><ClientRootInit>{children}</ClientRootInit></Suspense>;
 }
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -43,7 +43,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     const isolateDevRepro = import.meta.env.DEV && typeof window !== "undefined" && ["/dev/director-repro", "/dev/assistant-panel"].includes(appPathname());
 
     return (
-        <ConfigProvider locale={zhCN} theme={getAntThemeConfig(dark, appearance.activeSkin)} modal={{ centered: true }}>
+        <ConfigProvider locale={enUS} theme={getAntThemeConfig(dark, appearance.activeSkin)} modal={{ centered: true }}>
             <App message={{ duration: 3, maxCount: 3 }} notification={{ duration: 4.5, maxCount: 3, placement: "topRight" }}>
                 <QueryClientProvider client={appQueryClient}>
                     {isolateDevRepro ? (

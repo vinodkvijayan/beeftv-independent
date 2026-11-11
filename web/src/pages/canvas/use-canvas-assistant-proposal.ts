@@ -88,11 +88,11 @@ export function useCanvasAssistantProposal({
                     if (!lifetime.matches(owner, projectIdRef.current)) return;
                     markHandledRef.current(proposalId);
                     onContinuationArmed?.();
-                    setAssistantProposalFeedback(current => ({ ...current, [proposalId]: "正在按已确认方案制作，素材保存后会自动继续。" }));
+                    setAssistantProposalFeedback(current => ({ ...current, [proposalId]: "Production is in progress according to the confirmed plan and will automatically continue after the material is saved." }));
                 })().catch(error => {
                     if (!lifetime.matches(owner, projectIdRef.current)) return;
                     if (error instanceof AssistantProposalBlockedError && (error.reason === "canvas_saving" || error.reason === "canvas_conflict")) recordAssistantProposalCanvasRejection(owner.canvasId);
-                    setAssistantProposalFeedback(current => ({ ...current, [proposalId]: error instanceof AssistantProposalBlockedError ? error.message : "暂未确认制作是否开始，请重试查询同一方案，不会重复提交已接受的素材。" }));
+                    setAssistantProposalFeedback(current => ({ ...current, [proposalId]: error instanceof AssistantProposalBlockedError ? error.message : "It has not been confirmed whether production has started. Please try again to query the same plan. Accepted materials will not be re-submitted." }));
                 }).finally(() => {
                     claimsRef.current.delete(proposalId);
                     setRunningProposalIds(current => { const next = new Set(current); next.delete(proposalId); return next; });

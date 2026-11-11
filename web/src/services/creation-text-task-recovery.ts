@@ -38,14 +38,14 @@ export function recoverCreationTextTask(message: RecoverableCreationTextMessage,
     if (succeeded) {
         try {
             const text = parseBackendGenerationResult(succeeded).text;
-            if (!text?.trim()) throw new Error("后端任务没有返回文本");
+            if (!text?.trim()) throw new Error("Backend task returns no text");
             return { status: "done", content: text, error: undefined, generationErrorSummary: undefined, generationErrorCode: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskIds: nextTaskIds };
         } catch (error) {
             const explained = explainGenerationError(error);
             return {
                 status: "error",
-                content: "生成失败",
-                error: error instanceof Error ? error.message : "文本任务结果格式错误",
+                content: "Build failed",
+                error: error instanceof Error ? error.message : "Text task result format is wrong",
                 generationErrorSummary: explained.summary,
                 generationErrorCode: generationErrorCode(error),
                 ...(explained.providerCode ? { generationProviderCode: explained.providerCode } : {}),
@@ -55,14 +55,14 @@ export function recoverCreationTextTask(message: RecoverableCreationTextMessage,
         }
     }
     if (matches.every((task) => task.status === "cancelled")) {
-        return { status: "cancelled", content: "已停止", error: undefined, generationErrorSummary: undefined, generationErrorCode: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskIds: nextTaskIds };
+        return { status: "cancelled", content: "Stopped", error: undefined, generationErrorSummary: undefined, generationErrorCode: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskIds: nextTaskIds };
     }
     const failed = matches.find((task) => task.status === "failed");
-    const errorMessage = failed?.error || "文本任务已失败";
+    const errorMessage = failed?.error || "Text task failed";
     const explained = explainGenerationError(failed?.errorCode ? { code: failed.errorCode, message: errorMessage } : errorMessage);
     return {
         status: "error",
-        content: "生成失败",
+        content: "Build failed",
         error: errorMessage,
         generationErrorSummary: explained.summary,
         generationErrorCode: failed?.errorCode || generationErrorCode(errorMessage),

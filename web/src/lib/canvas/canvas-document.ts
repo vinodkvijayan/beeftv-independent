@@ -3,10 +3,10 @@ const chineseChapterNumber = "[零〇○一二两三四五六七八九十百千�
 const englishChapterNumber = "(?:\\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)";
 const chapterTitleSuffix = "(?:\\s*[-—–:：·.]\\s*.*|\\s+.*)?";
 const chapterHeadingPatterns = [
-    new RegExp(`^(?:正文\\s*)?第\\s*${chineseChapterNumber}\\s*[章节卷回部篇集季幕]${chapterTitleSuffix}$`, "i"),
-    new RegExp(`^(?:卷|篇|部|集|季|幕)\\s*${chineseChapterNumber}${chapterTitleSuffix}$`, "i"),
-    new RegExp(`^(?:序|序幕|序章|序言|前言|前记|楔子|引子|引言|开篇|终章|尾声|后记)${chapterTitleSuffix}$`, "i"),
-    new RegExp(`^(?:番外(?:篇)?|附录)(?:\\s*(?:第\\s*)?${chineseChapterNumber}\\s*[章节回篇]?)?${chapterTitleSuffix}$`, "i"),
+    new RegExp(`^(?:Text\\s*)?No.\\s*${chineseChapterNumber}\\s*[Chapter Rewind Episode Season Ending]${chapterTitleSuffix}$`, "i"),
+    new RegExp(`^(?:Volume|Part|Part|Collection|Season|Chapter)\\s*${chineseChapterNumber}${chapterTitleSuffix}$`, "i"),
+    new RegExp(`^(?:Preface|Prologue|Prologue|Preface|Preface|Preface|Wedge|Introduction|Introduction|Opening|Final Chapter|Epilogue|Postscript)${chapterTitleSuffix}$`, "i"),
+    new RegExp(`^(?:Extra (?:Part)?|Appendix)(?:\\s*(?:Article\\s*)?${chineseChapterNumber}\\s*[Chapter Return]?)?${chapterTitleSuffix}$`, "i"),
     new RegExp(`^(?:chapter|book|part|volume)\\s+${englishChapterNumber}\\b${chapterTitleSuffix}$`, "i"),
     new RegExp(`^(?:prologue|preface|introduction|epilogue|afterword|appendix)${chapterTitleSuffix}$`, "i"),
 ];
@@ -47,7 +47,7 @@ export function decodeNovelText(buffer: ArrayBuffer) {
 
 export function splitTextIntoChapters(text: string) {
     const normalized = text.replace(/\r\n?/g, "\n").trim();
-    if (!normalized) return [{ title: "第 1 章", plainText: "" }];
+    if (!normalized) return [{ title: "Chapter 1", plainText: "" }];
     const lines = normalized.split("\n");
     const sections: Array<{ title: string; lines: string[] }> = [];
     let current: { title: string; lines: string[] } | null = null;
@@ -64,7 +64,7 @@ export function splitTextIntoChapters(text: string) {
         else preface.push(line);
     }
     if (current) sections.push(current);
-    if (!sections.length) return [{ title: "第 1 章", plainText: normalized }];
-    if (preface.some((line) => line.trim())) sections.unshift({ title: "序章", lines: preface });
+    if (!sections.length) return [{ title: "Chapter 1", plainText: normalized }];
+    if (preface.some((line) => line.trim())) sections.unshift({ title: "Prologue", lines: preface });
     return sections.map((section): ImportedNovelChapter => ({ title: section.title, plainText: section.lines.join("\n").trim() }));
 }

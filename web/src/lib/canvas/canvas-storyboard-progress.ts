@@ -102,10 +102,10 @@ function summarizeFinalStage(nodes: CanvasNodeData[], enabled: boolean): Storybo
 }
 
 export function pipelineStatusLabel(stage: StoryboardPipelineStage) {
-    if (!stage.total) return "待开始";
-    if (stage.success >= stage.total) return "已完成";
-    if (stage.loading) return `${stage.success}/${stage.total} · 进行中`;
-    if (stage.failed) return `${stage.success}/${stage.total} · 失败 ${stage.failed}`;
-    if (stage.created) return `${stage.success}/${stage.total} · 已创建 ${stage.created}`;
+    if (!stage.total) return "To be started";
+    if (stage.success >= stage.total) return "Completed";
+    if (stage.loading) return `${stage.success}/${stage.total} · In progress`;
+    if (stage.failed) return `${stage.success}/${stage.total} · Failure${stage.failed}`;
+    if (stage.created) return `${stage.success}/${stage.total} · Created${stage.created}`;
     return `0/${stage.total}`;
 }

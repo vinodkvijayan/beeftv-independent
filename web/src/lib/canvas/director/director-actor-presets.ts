@@ -3,12 +3,12 @@ import { resolveDirectorBuiltInActorUrl } from "@/lib/canvas/director/director-a
 import type { DirectorActorPresetId, DirectorObject, DirectorVec3 } from "@/types/director";
 
 export const DIRECTOR_ACTOR_PRESET_OPTIONS: ReadonlyArray<{ id: DirectorActorPresetId; label: string }> = [
-    { id: "standard_male", label: "标准男性" },
-    { id: "standard_female", label: "标准女性" },
-    { id: "geometric", label: "几何模型" },
+    { id: "standard_male", label: "Standard male" },
+    { id: "standard_female", label: "Standard women" },
+    { id: "geometric", label: "Geometric model" },
 ];
 
-export const DIRECTOR_ACTOR_CROWD_LABEL = "群众 (3x3)";
+export const DIRECTOR_ACTOR_CROWD_LABEL = "Crowd (3x3)";
 
 export type DirectorActorShape = {
     scale: DirectorVec3;
@@ -46,15 +46,15 @@ export function resolveDirectorActorShape(preset: DirectorActorPresetId): Direct
 
 // Legacy labels remain available for scenes created before the simplified preset menu.
 const LABEL_BY_PRESET: Record<DirectorActorPresetId, string> = {
-    standard_male: "标准男性",
-    standard_female: "标准女性",
-    athletic: "健硕",
-    slim: "纤细",
-    teen: "少年",
-    child: "儿童",
-    broad: "宽厚",
-    chibi: "二头身",
-    geometric: "几何模型",
+    standard_male: "Standard male",
+    standard_female: "Standard women",
+    athletic: "strong",
+    slim: "slender",
+    teen: "boy",
+    child: "children",
+    broad: "Generosity",
+    chibi: "biceps",
+    geometric: "Geometric model",
 };
 
 /** Keep rounded capsule limbs inside their skeleton endpoints, including short neck/forearm segments. */
@@ -90,6 +90,6 @@ export function createDirectorActorCrowd(group = 1, rows = 3, columns = 3, spaci
         const row = Math.floor(index / safeColumns);
         const column = index % safeColumns;
         const position: DirectorVec3 = [(column - (safeColumns - 1) / 2) * safeSpacing, 0, (row - (safeRows - 1) / 2) * safeSpacing];
-        return createDirectorActorPreset("standard_male", `群众 ${group}-${index + 1}`, position);
+        return createDirectorActorPreset("standard_male", `masses${group}-${index + 1}`, position);
     });
 }

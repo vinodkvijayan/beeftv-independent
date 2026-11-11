@@ -7,7 +7,7 @@ import type { TimelineClip } from "@/types/timeline";
 export function getTimelineClipTitle(clip: TimelineClip, nodes: CanvasNodeData[]): string {
     return clip.title?.trim() || clip.directMedia?.title?.trim()
         || nodes.find(node => node.id === clip.nodeId)?.title?.trim()
-        || ({ video: "视频片段", audio: "音频片段", image: "图片片段", subtitle: "字幕", text: "文字" }[clip.kind]);
+        || ({ video: "video clip", audio: "audio clip", image: "Picture fragment", subtitle: "subtitles", text: "text" }[clip.kind]);
 }
 
 /**
@@ -15,10 +15,10 @@ export function getTimelineClipTitle(clip: TimelineClip, nodes: CanvasNodeData[]
  * 否则用户会以为播放头下方没有剪辑。
  */
 export function getTimelinePreviewPlaceholder(input: { hasClip: boolean; hasSource: boolean; hasVideoUrl: boolean; failed: boolean }): string {
-    if (!input.hasClip) return "该位置无视频片段";
+    if (!input.hasClip) return "There is no video clip at this location";
     if (input.hasVideoUrl) return "";
-    if (input.failed || !input.hasSource) return "视频暂不可用";
-    return "正在准备视频";
+    if (input.failed || !input.hasSource) return "Video is not available yet";
+    return "Preparing video";
 }
 
 export const BASE_TIMELINE_PX_PER_SECOND = 96;

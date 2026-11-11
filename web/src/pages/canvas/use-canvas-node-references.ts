@@ -46,9 +46,9 @@ export function useCanvasNodeReferences({ projectId, document, pageUi, uploads }
             const operation = createCanvasMediaOperation(lifetime, projectId, () => canvasIdRef.current, () => mountedRef.current);
             void replaceNodeMedia(oldReference.nodeId, file).then((success: boolean) => {
                 if (operation.isCurrent() && success) {
-                    message.success("参考图片已替换");
+                    message.success("Reference picture has been replaced");
                 }
-            }).catch(error => { if (operation.isCurrent()) void message.error(error instanceof Error ? error.message : "参考图片替换失败"); });
+            }).catch(error => { if (operation.isCurrent()) void message.error(error instanceof Error ? error.message : "Reference picture replacement failed"); });
         },
         [message, replaceNodeMedia, lifetime, projectId, mountedRef],
     );
@@ -127,7 +127,7 @@ export function useCanvasNodeReferences({ projectId, document, pageUi, uploads }
             setConnections(linked.connections);
             return linked.reference;
         } catch (cause) {
-            message.warning(cause instanceof Error ? cause.message : "节点引用失败");
+            message.warning(cause instanceof Error ? cause.message : "Node reference failed");
             return undefined;
         }
     }, [connectionsRef, message, nodesRef, setConnections, setNodes]);
@@ -142,7 +142,7 @@ export function useCanvasNodeReferences({ projectId, document, pageUi, uploads }
             setConnections(linked.connections);
             return linked.reference;
         } catch (cause) {
-            message.warning(cause instanceof Error ? cause.message : "点选连线引用失败");
+            message.warning(cause instanceof Error ? cause.message : "Click connection reference failed");
             return undefined;
         }
     }, [connectionsRef, message, nodesRef, setConnections, setNodes]);

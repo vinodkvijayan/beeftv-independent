@@ -21,13 +21,13 @@ export function BeefTVConnectionActions({
     const state = connection?.state || "disconnected";
     const buttonClass = "h-10 sm:h-8";
     if (state === "connecting") {
-        return <Button className={buttonClass} size="small" loading disabled>正在连接</Button>;
+        return <Button className={buttonClass} size="small" loading disabled>Connecting</Button>;
     }
     if (state === "pending") {
         return (
             <>
                 <Button className={buttonClass} size="small" loading={busy} onClick={onCancel}>
-                    取消
+                                        Cancel
                 </Button>
             </>
         );
@@ -36,10 +36,10 @@ export function BeefTVConnectionActions({
         return (
             <>
                 <Button className={buttonClass} size="small" onClick={onWallet}>
-                    打开 BeefTV 账户
+                                        Open BeefTV account
                 </Button>
                 <Button className={buttonClass} size="small" loading={busy} onClick={onDisconnect}>
-                    断开连接
+                                        Disconnect
                 </Button>
             </>
         );
@@ -48,10 +48,10 @@ export function BeefTVConnectionActions({
         return (
             <>
                 <Button className={buttonClass} size="small" type="primary" loading={busy} onClick={onRetry}>
-                    重新连接
+                                        Reconnect
                 </Button>
                 <Button className={buttonClass} size="small" loading={busy} onClick={onDisconnect}>
-                    断开连接
+                                        Disconnect
                 </Button>
             </>
         );
@@ -59,13 +59,13 @@ export function BeefTVConnectionActions({
     if (state === "expired" || state === "revoked" || state === "rejected" || state === "store_error" || state === "connection_error" || state === "cancelled") {
         return (
             <Button data-onboarding="official-connect" className={buttonClass} size="small" type="primary" loading={busy} onClick={onRetry}>
-                重新连接
+                                Reconnect
             </Button>
         );
     }
     return (
         <Button data-onboarding="official-connect" className={buttonClass} size="small" type="primary" loading={busy} onClick={onConnect}>
-            连接 BeefTV
+                        Connect to BeefTV
         </Button>
     );
 }

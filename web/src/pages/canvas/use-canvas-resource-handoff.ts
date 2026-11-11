@@ -98,14 +98,14 @@ export function useCanvasResourceHandoff({
                     setNodes((current) => applyArchivedCanvasNodeAssets(current, archivedByNodeId));
                     void refetchLinkedProject();
                     if (results.some((result) => !result?.confirmed)) {
-                        message.warning("部分素材文件尚未保存到工作区，未完成归档，修改已保留在本机");
+                        message.warning("Some material files have not been saved to the workspace, the archiving has not been completed, and the modifications have been retained on the local computer.");
                     } else {
-                        message.success(`已归档到“${folderTitle}”`);
+                        message.success(`Filed under "${folderTitle}”`);
                     }
                 },
             }).catch((error) => {
                 if (!lifetime.matches(owner, projectIdRef.current)) return;
-                message.error(error instanceof Error ? error.message : "素材归档失败");
+                message.error(error instanceof Error ? error.message : "Failed to archive footage");
             });
         },
         [lifetime, linkedProjectId, message, projectId, refetchLinkedProject, setNodes],
@@ -128,7 +128,7 @@ export function useCanvasResourceHandoff({
             prompt: profile.prompt,
             status: NODE_STATUS_SUCCESS,
             workflowKind: "styleboard" as const,
-            workflowTitle: "项目画风",
+            workflowTitle: "Project style",
             workflowDescription: profile.description,
             stylePresetId: profile.presetId,
             styleProfileJson: serializeStyleProfile(profile),
@@ -137,11 +137,11 @@ export function useCanvasResourceHandoff({
         };
         if (current) {
             if (current.metadata?.stylePresetId === profile.presetId && current.metadata?.content === profile.prompt && current.metadata?.styleProfileJson === nextMetadata.styleProfileJson && current.metadata?.locked) return;
-            setNodes((currentNodes) => currentNodes.map((node) => (node.id === current.id ? { ...node, title: `项目画风 · ${profile.title}`, metadata: { ...node.metadata, ...nextMetadata } } : node)));
+            setNodes((currentNodes) => currentNodes.map((node) => (node.id === current.id ? { ...node, title: `Project style ·${profile.title}`, metadata: { ...node.metadata, ...nextMetadata } } : node)));
             return;
         }
         const node = createCanvasNode(CanvasNodeType.Text, getCanvasCenter(), nextMetadata);
-        node.title = `项目画风 · ${profile.title}`;
+        node.title = `Project style ·${profile.title}`;
         node.width = 420;
         node.height = 240;
         setNodes((currentNodes) => [...currentNodes, node]);
@@ -168,7 +168,7 @@ export function useCanvasResourceHandoff({
 
     useEffect(() => {
         if (!projectLoaded || searchParams.get("mode") !== "handoff") return;
-        void loadAssetsForUse(canvasAssetHandoffIds(searchParams)).catch((error) => message.error(error instanceof Error ? error.message : "转入素材读取失败"));
+        void loadAssetsForUse(canvasAssetHandoffIds(searchParams)).catch((error) => message.error(error instanceof Error ? error.message : "Failed to read imported material"));
     }, [projectLoaded, searchParams, message]);
 
     const requestHandoffRetry = useCallback(() => {
@@ -265,7 +265,7 @@ export function useCanvasResourceHandoff({
                         message.error({
                             key: `canvas-handoff:${projectId}`,
                             content: createElement("span", null, CANVAS_HANDOFF_PERSIST_FAILED_MESSAGE, " ",
-                                createElement(Button, { type: "link", size: "small", onClick: requestHandoffRetry }, "重试")),
+                                createElement(Button, { type: "link", size: "small", onClick: requestHandoffRetry }, "Try again")),
                             duration: 0,
                         });
                     },
@@ -279,7 +279,7 @@ export function useCanvasResourceHandoff({
                     failedAttemptRef.current = "";
                 }
                 if (result === "committed" && createdNodes.length && lifetime.matches(owner, projectIdRef.current)) {
-                    message.success(`已引入 ${createdNodes.length} 项项目资产`);
+                    message.success(`has been introduced${createdNodes.length} project assets`);
                 }
             } catch (error) {
                 resetIfCurrentAttempt();
@@ -288,7 +288,7 @@ export function useCanvasResourceHandoff({
                     return;
                 }
                 if (!mountedRef.current) return;
-                message.error(error instanceof Error ? error.message : "项目资产引入失败");
+                message.error(error instanceof Error ? error.message : "Project asset introduction failed");
             }
         })();
     }, [assets, assetsHydrated, consumeForeignHandoff, createHandoffNodes, getCanvasCenter, handoffRetryNonce, lifetime, message, mountedRef, nodesRef, projectId, projectLoaded, requestHandoffRetry, searchParams, setNodes, setSearchParams, userScope]);
@@ -319,7 +319,7 @@ export function useCanvasResourceHandoff({
                 }
                 setNodes((current) => canvasGenerationTaskNodes(current, targetNodeId, task));
                 if (task.status === "failed" || task.status === "cancelled") {
-                    message.info(canRecoverTaskOutcome(readTaskOutcome(task)) ? "原任务还在确认中，有结果后会自动放回画布" : "原任务没有成功，请按节点提示处理");
+                    message.info(canRecoverTaskOutcome(readTaskOutcome(task)) ? "The original task is still being confirmed and will be automatically put back on the canvas once the results are available." : "The original task was not successful, please follow the node prompts.");
                 }
             };
             try {
@@ -358,8 +358,8 @@ export function useCanvasResourceHandoff({
                 if (latest?.status !== "succeeded") {
                     // 没拿到原任务的新结论（查询失败，或原任务仍在执行但暂时查不到进度）：节点恢复成点击前的样子，稍后可以再点继续取回。
                     setNodes((current) => current.map((item) => (item.id === targetNodeId ? { ...item, metadata: node.metadata } : item)));
-                    if (latest) message.warning("暂时查不到原任务的进度，请稍后再点继续取回");
-                    else message.error(failure.errorDetails || "继续取回失败，请稍后重试");
+                    if (latest) message.warning("The progress of the original task cannot be found at the moment. Please click again later to retrieve it.");
+                    else message.error(failure.errorDetails || "Continued retrieval failed, please try again later.");
                     return;
                 }
                 // 原任务已成功、本机取回或保存结果失败：结果仍在，保留继续取回。
@@ -381,7 +381,7 @@ export function useCanvasResourceHandoff({
                             : item,
                     ),
                 );
-                message.error(failure.errorDetails || "继续取回失败，请稍后重试");
+                message.error(failure.errorDetails || "Continued retrieval failed, please try again later.");
             } finally {
                 finishGenerationRequest(targetNodeId, controller);
             }

@@ -24,103 +24,102 @@ function EagleSettingsSlotWrapper(props: PluginAppSettingsProps) {
 export const EAGLE_PLUGIN_ID = "eagle-asset-connector";
 export const EAGLE_DEFAULT_BASE_URL = "http://127.0.0.1:41595";
 
-const eaglePluginDocumentation = `# Eagle 素材库
+const eaglePluginDocumentation = `#Eagle Library
 
-Eagle 插件把桌面 Eagle 资料库接入站点素材面板。浏览器不会直接访问 Eagle：所有读取、搜索、下载和写入请求先到站点后端，再由后端访问管理员配置的 Eagle Local API 地址。
+The Eagle plug-in connects the desktop Eagle database to the site material panel. The browser does not access Eagle directly: all read, search, download, and write requests first go to the site backend, which then accesses the Eagle Local API address configured by the administrator.
 
-## 使用前准备
+## Preparation before use
 
-1. 安装并启动 Eagle 桌面客户端，打开要使用的资料库。
-2. 确认 Eagle Local API 可用；默认地址为 \`${EAGLE_DEFAULT_BASE_URL}\`。
-3. 以管理员身份进入插件设置，填写 Base URL 并读取文件夹。
-4. 保存配置后，在素材库选择 Eagle 来源，即可浏览和导入素材。
+1. Install and start the Eagle desktop client and open the database you want to use.
+2. Confirm that Eagle Local API is available; the default address is \`${EAGLE_DEFAULT_BASE_URL}\`.
+3. Enter the plugin settings as an administrator, fill in the Base URL and read the folder.
+4. After saving the configuration, select the Eagle source in the material library to browse and import materials.
 
-> Eagle 必须保持运行。关闭客户端、切换资料库或修改本地 API 端口后，站点会收到连接失败，不能用空列表掩盖。
+> Eagle must keep running. After closing the client, switching repositories, or modifying the local API port, the site will receive a connection failure that cannot be masked with an empty list.
 
-## 站点后端接口
+## Site backend interface
 
-| 操作 | 站点接口 | 用途 |
+| Operations | Site Interface | Purpose |
 | --- | --- | --- |
-| 读取资料库 | \`GET /api/plugins/eagle/library?baseUrl=...\` | 获取 Eagle 版本、资料库名称和文件夹树 |
-| 列出素材 | \`GET /api/plugins/eagle/items\` | 按文件夹、关键词和分页读取素材 |
-| 缩略图 | \`GET /api/plugins/eagle/items/{id}/thumbnail\` | 代理 Eagle 缩略图 |
-| 原文件 | \`GET /api/plugins/eagle/items/{id}/file\` | 下载并导入站点资源存储 |
-| 写入素材 | \`POST /api/plugins/eagle/items?baseUrl=...\` | 把图片、视频或音频写回 Eagle |
-| 创建文件夹 | \`POST /api/plugins/eagle/folders?baseUrl=...\` | 在 Eagle 中创建目录 |
+| Read the library | \`GET /api/plugins/eagle/library?baseUrl=...\` | Get the Eagle version, library name and folder tree |
+| List materials | \`GET /api/plugins/eagle/items\` | Read materials by folder, keyword and page |
+| Thumbnail | \`GET /api/plugins/eagle/items/{id}/thumbnail\` | Agent Eagle Thumbnail |
+| Original file | \`GET /api/plugins/eagle/items/{id}/file\` | Download and import into site resource storage |
+| Write material | \`POST /api/plugins/eagle/items?baseUrl=...\` | Write images, videos or audio back to Eagle |
+| Create a folder | \`POST /api/plugins/eagle/folders?baseUrl=...\` | Create a directory in Eagle |
 
-这些是站点内部登录态 API，使用 Cookie 鉴权；不要把它们当作 Eagle 官方接口直接调用。
+These are site-internal login APIs that use cookie authentication; do not call them directly as Eagle official interfaces.
 
-## 浏览与搜索
+## Browse and search
 
-插件读取 Eagle 文件夹树并生成完整层级路径。素材列表支持 \`folderId\`、\`keyword\`、\`limit\`、\`offset\`。文件夹列表在当前插件实例内缓存；创建文件夹后会失效并重新读取。切换 Eagle 资料库时应重新打开插件设置确认目录。
+The plugin reads the Eagle folder tree and generates the full hierarchical path. The material list supports \`folderId\`, \`keyword\`, \`limit\`, \`offset\`. The folder list is cached within the current plugin instance; it is invalidated and re-read after a folder is created. When switching Eagle databases, you should reopen the plug-in settings confirmation directory.
 
-## 导入到站点
+## Import to site
 
-导入时，后端代理下载 Eagle 原文件，前端再写入站点自己的图片或媒体存储。图片保留可识别的宽高和 MIME；视频、音频和其他模型文件保留字节数、扩展名、Eagle item ID、文件夹和来源元数据。
+When importing, the back-end agent downloads the original Eagle file, and the front-end writes it to the site's own image or media storage. Images retain recognizable width, height, and MIME; video, audio, and other model files retain byte count, extension, Eagle item ID, folder, and source metadata.
 
-| Eagle 内容 | 站点结果 | 当前限制 |
+| Eagle Content | Site Results | Current Limitations |
 | --- | --- | --- |
-| 图片 | 图片素材 | 使用原图，不把缩略图当成品 |
-| 视频 | 视频素材 | 元数据缺宽高时使用 1280×720 展示兜底，不改写原文件 |
-| 音频 | 音频素材 | 时长以浏览器媒体探测结果为准 |
-| 其他文件 | 模型素材 | 仅作为文件资源保存 |
-| 文本/实体 | 不支持 | 导入会明确报错 |
+| Pictures | Picture materials | Use original images, do not regard thumbnails as finished products |
+| Video | Video material | When the metadata lacks width and height, use 1280×720 to display the bottom line without rewriting the original file |
+| Audio | Audio material | Duration is subject to browser media detection results |
+| Other files | Model materials | Save only as file resources |
+| Text/Entity | Not supported | The import will clearly report an error |
 
-## 写回 Eagle
+## Write back to Eagle
 
-插件可把站点图片、视频或音频转换为 data URL，再调用 Eagle 添加素材。已有本地 Blob 优先直接读取；只有没有本地副本时才下载远程生成地址。默认单个手动上传文件不超过 96 MB，且 MIME 必须以 \`image/\`、\`video/\` 或 \`audio/\` 开头。
+The plug-in can convert site images, videos or audios into data URLs, and then call Eagle to add the materials. Existing local blobs are read directly first; the remote generated address is downloaded only if there is no local copy. By default, a single manually uploaded file does not exceed 96 MB, and the MIME must start with \`image/\`, \`video/\` or \`audio/\`.
 
-启用“自动上传生成结果”后，生成资产可以写入配置的目标文件夹。自动写回失败必须显示为写回失败，不应把“站点已保存”误报为“Eagle 已保存”。
+When "Automatically upload build results" is enabled, generated assets can be written to the configured target folder. Automatic writeback failures must be displayed as writeback failures and "Site Saved" should not be misreported as "Eagle Saved".
 
-## 配置字段
+## Configuration fields
 
-| 字段 | 说明 | 默认值 |
+| Field | Description | Default Value |
 | --- | --- | --- |
-| \`baseUrl\` | Eagle Local API 地址，只允许明确的 HTTP(S) 地址 | \`${EAGLE_DEFAULT_BASE_URL}\` |
-| \`autoUploadGenerated\` | 是否把支持的生成结果自动写回 Eagle | 开启 |
-| \`generatedFolderId\` | 自动写回目标文件夹 ID | 空，使用 Eagle 默认位置 |
+| \`baseUrl\` | Eagle Local API address, only explicit HTTP(S) addresses are allowed | \`${EAGLE_DEFAULT_BASE_URL}\` |
+| \`autoUploadGenerated\` | Whether to automatically write supported generation results back to Eagle | Enable |
+| \`generatedFolderId\` | Automatically write back the target folder ID | Empty, use Eagle default location |
 
-## 安全边界
+## Security Boundary
 
-- Eagle 通常运行在本机。后端必须继续执行私网目标校验，只允许管理员明确配置的本机服务，不能把该代理变成任意 URL 抓取器。
-- \`baseUrl\` 只保存服务地址，不包含 Token、Cookie 或查询密钥。
-- 原文件和 data URL 不进入日志、localStorage 或错误上报。
-- 多用户部署中，服务器的 \`127.0.0.1\` 指服务器自身，不是访问者电脑；请使用 Eagle 官方可访问的客户端连接方式，不能假装直连可用。
+- Eagle usually runs on local machine. The backend must continue to perform private network target validation, only allow native services explicitly configured by the administrator, and cannot turn the proxy into an arbitrary URL scraper.
+- \`baseUrl\` only saves the service address and does not contain Token, Cookie or query key.
+- The original file and data URL will not be entered into logs, localStorage or error reporting.
+- In multi-user deployment, the server's \`127.0.0.1\` refers to the server itself, not the visitor's computer; please use Eagle's official accessible client connection method and cannot pretend that direct connection is available.
 
-## 常见问题
+## FAQ
 
-| 现象 | 检查项 |
+| Phenomenon | Check items |
 | --- | --- |
-| 无法读取资料库 | Eagle 是否运行、Base URL/端口、后端能否访问该主机 |
-| 文件夹为空 | Eagle 当前打开的资料库、筛选条件、文件夹层级 |
-| 有缩略图但导入失败 | 原文件是否仍存在、文件权限、后端响应状态 |
-| 写回失败 | 文件大小/MIME、目标文件夹是否存在、远程生成链接是否过期 |
-| 部署服务器连接不到本机 Eagle | 网络拓扑不成立，需要本地桥接而不是更换前端 URL |
+| Unable to read the database | Whether Eagle is running, Base URL/port, and whether the backend can access the host |
+| The folder is empty | Eagle’s currently opened database, filter conditions, and folder level |
+| There are thumbnails but the import failed | Whether the original file still exists, file permissions, and backend response status |
+| Writeback failed | File size/MIME, whether the target folder exists, whether the remote generated link has expired |
+| The deployment server cannot connect to the local Eagle | The network topology is not established and local bridging is required instead of changing the front-end URL |
 
-## 官方资料
+## Official information
 
 - [Eagle API Documentation](https://api.eagle.cool/)
-- [Eagle 产品与下载](https://eagle.cool/)
-`;
+- [Eagle Products and Downloads](https://eagle.cool/)`;
 
 export const eagleAssetPlugin: RegisteredPlugin = {
     manifest: {
         id: EAGLE_PLUGIN_ID,
-        name: "Eagle 素材库",
+        name: "Eagle Library",
         version: "0.3.0",
         publishedAt: "2026-08-21",
         updatedAt: "2026-08-22",
         apiVersion: "beeftv.plugin/v1",
-        description: "把 Eagle 作为站点的外部素材来源，直接浏览原始文件夹并读写 Eagle 文件。",
+        description: "Use Eagle as an external source for your site, browse raw folders and read and write Eagle files directly.",
         documentation: eaglePluginDocumentation,
-        author: "开源社区",
+        author: "Open source community",
         permissions: ["asset.read", "asset.search", "asset.upload", "external.open"],
         trusted: true,
         configuration: {
             fields: [
                 { name: "baseUrl", type: "url", label: "Eagle Base URL", required: true, default: EAGLE_DEFAULT_BASE_URL },
-                { name: "autoUploadGenerated", type: "boolean", label: "自动上传生成结果", default: true },
-                { name: "generatedFolderId", type: "string", label: "生成结果文件夹" },
+                { name: "autoUploadGenerated", type: "boolean", label: "Automatically upload generated results", default: true },
+                { name: "generatedFolderId", type: "string", label: "Generate results folder" },
             ],
         },
         contributes: {},
@@ -132,23 +131,23 @@ export const eagleAssetPlugin: RegisteredPlugin = {
     setup(host) {
         const disposePage = host.contribute("app.page", {
             path: "",
-            title: "Eagle 素材库",
+            title: "Eagle Library",
             component: EaglePageSlotWrapper,
         });
         const disposeSidebar = host.contribute("app.sidebar", {
             id: EAGLE_PLUGIN_ID,
-            label: "Eagle 素材库",
+            label: "Eagle Library",
             path: "/p/eagle-asset-connector",
             order: 50,
         });
         const disposeSettings = host.contribute("app.settings", {
-            title: "Eagle 素材库设置",
+            title: "Eagle library settings",
             component: EagleSettingsSlotWrapper,
         });
         const disposeAssetSource = host.contribute("assets.source", {
             id: EAGLE_PLUGIN_ID,
-            name: "Eagle 素材库",
-            description: "把 Eagle 作为站点的外部素材来源，直接浏览原始文件夹并读写 Eagle 文件。",
+            name: "Eagle Library",
+            description: "Use Eagle as an external source for your site, browse raw folders and read and write Eagle files directly.",
             provider: {
                 listFolders: (signal) => {
                     const baseUrl = host.config.get<string>("baseUrl", EAGLE_DEFAULT_BASE_URL) || EAGLE_DEFAULT_BASE_URL;
@@ -193,7 +192,7 @@ export function createEagleAssetSource(baseUrl = EAGLE_DEFAULT_BASE_URL): AssetS
     let folderCache: EagleFolder[] | null = null;
 
     const getFolders = async (signal?: AbortSignal) => {
-        if (signal?.aborted) throw new DOMException("请求已取消", "AbortError");
+        if (signal?.aborted) throw new DOMException("Request canceled", "AbortError");
         if (!folderCache) folderCache = (await getEagleLibrary(baseUrl)).library.folders;
         return folderCache;
     };
@@ -218,7 +217,7 @@ export function createEagleAssetSource(baseUrl = EAGLE_DEFAULT_BASE_URL): AssetS
 
 async function importEagleAsset(item: ExternalAssetItem, baseUrl: string, signal?: AbortSignal): Promise<Asset> {
     const kind = item.kind;
-    if (kind === "text" || kind === "entity") throw new Error("当前 Eagle 导入暂不支持文本或实体素材");
+    if (kind === "text" || kind === "entity") throw new Error("Currently, Eagle import does not support text or entity materials.");
     const blob = await downloadEagleItem(item.id, baseUrl, signal);
     const now = new Date().toISOString();
     const metadata = {
@@ -235,25 +234,25 @@ async function importEagleAsset(item: ExternalAssetItem, baseUrl: string, signal
     if (kind === "image") {
         const uploaded = await uploadImage(blob);
         return {
-            id: nanoid(), kind, title: item.title, coverUrl: uploaded.url, tags: item.tags || [], source: "Eagle 素材库", createdAt: now, updatedAt: now, metadata,
+            id: nanoid(), kind, title: item.title, coverUrl: uploaded.url, tags: item.tags || [], source: "Eagle Library", createdAt: now, updatedAt: now, metadata,
             data: { dataUrl: uploaded.url, storageKey: uploaded.storageKey, width: item.width || uploaded.width, height: item.height || uploaded.height, bytes: uploaded.bytes, mimeType: uploaded.mimeType },
         };
     }
     const uploaded = await uploadMediaFile(blob, `eagle-${kind}`);
     if (kind === "video") {
         return {
-            id: nanoid(), kind, title: item.title, coverUrl: "", tags: item.tags || [], source: "Eagle 素材库", createdAt: now, updatedAt: now, metadata,
+            id: nanoid(), kind, title: item.title, coverUrl: "", tags: item.tags || [], source: "Eagle Library", createdAt: now, updatedAt: now, metadata,
             data: { url: uploaded.url, storageKey: uploaded.storageKey, width: item.width || uploaded.width || 1280, height: item.height || uploaded.height || 720, bytes: uploaded.bytes, mimeType: uploaded.mimeType },
         };
     }
     if (kind === "audio") {
         return {
-            id: nanoid(), kind, title: item.title, coverUrl: "", tags: item.tags || [], source: "Eagle 素材库", createdAt: now, updatedAt: now, metadata,
+            id: nanoid(), kind, title: item.title, coverUrl: "", tags: item.tags || [], source: "Eagle Library", createdAt: now, updatedAt: now, metadata,
             data: { url: uploaded.url, storageKey: uploaded.storageKey, durationMs: uploaded.durationMs, bytes: uploaded.bytes, mimeType: uploaded.mimeType },
         };
     }
     return {
-        id: nanoid(), kind: "model", title: item.title, coverUrl: "", tags: item.tags || [], source: "Eagle 素材库", createdAt: now, updatedAt: now, metadata,
+        id: nanoid(), kind: "model", title: item.title, coverUrl: "", tags: item.tags || [], source: "Eagle Library", createdAt: now, updatedAt: now, metadata,
         data: { url: uploaded.url, storageKey: uploaded.storageKey, bytes: uploaded.bytes, mimeType: uploaded.mimeType, fileName: item.title },
     };
 }
@@ -261,7 +260,7 @@ async function importEagleAsset(item: ExternalAssetItem, baseUrl: string, signal
 type EagleWritableAsset = Extract<Asset, { kind: "image" | "video" | "audio" }>;
 
 async function uploadEagleAsset(asset: Asset, baseUrl: string, folderId?: string, signal?: AbortSignal): Promise<ExternalAssetItem> {
-    if (!isEagleWritableAsset(asset)) throw new Error("当前仅支持将图片、视频或音频写回 Eagle");
+    if (!isEagleWritableAsset(asset)) throw new Error("Currently only supports writing images, videos or audio back to Eagle");
     const dataUrl = await assetToDataUrl(asset, signal);
     const result = await addEagleItem(baseUrl, {
         url: dataUrl,
@@ -285,15 +284,15 @@ async function assetToDataUrl(asset: EagleWritableAsset, signal?: AbortSignal) {
     const stored = asset.data.storageKey ? await getMediaBlob(asset.data.storageKey) : null;
     if (stored) return fileToDataUrl(withMimeType(stored, asset.data.mimeType), signal);
     const url = asset.data.url;
-    if (!url) throw new Error("生成结果没有可写入 Eagle 的媒体地址");
+    if (!url) throw new Error("The generated result has no media address writable to Eagle");
     if (url.startsWith("data:")) return url;
     const response = await fetch(url, { credentials: "include", signal });
-    if (!response.ok) throw new Error("读取生成媒体失败，无法写入 Eagle");
+    if (!response.ok) throw new Error("Failed to read build media and cannot write to Eagle");
     return fileToDataUrl(withMimeType(await response.blob(), asset.data.mimeType), signal);
 }
 
 function eagleAssetName(asset: EagleWritableAsset) {
-    const title = asset.title.trim() || (asset.kind === "image" ? "生成图片" : asset.kind === "video" ? "生成视频" : "生成音频");
+    const title = asset.title.trim() || (asset.kind === "image" ? "Generate pictures" : asset.kind === "video" ? "Generate video" : "Generate audio");
     if (/\.[a-z0-9]{2,8}$/i.test(title)) return title;
     const extension = asset.kind === "image" ? extensionFromMime(asset.data.mimeType, "png") : asset.kind === "video" ? extensionFromMime(asset.data.mimeType, "mp4") : extensionFromMime(asset.data.mimeType, "mp3");
     return title + "." + extension;
@@ -316,8 +315,8 @@ function withMimeType(blob: Blob, mimeType: string) {
     return mimeType && blob.type !== mimeType ? blob.slice(0, blob.size, mimeType) : blob;
 }
 async function uploadEagleFile(file: File, baseUrl: string, folderId?: string, signal?: AbortSignal): Promise<ExternalAssetItem> {
-    if (file.size > 96 * 1024 * 1024) throw new Error("单个文件不能超过 96 MB");
-    if (!isEagleMediaType(file.type)) throw new Error("Eagle 写入目前支持图片、视频和音频文件");
+    if (file.size > 96 * 1024 * 1024) throw new Error("A single file cannot exceed 96 MB");
+    if (!isEagleMediaType(file.type)) throw new Error("Eagle writing currently supports image, video and audio files");
     const dataUrl = await fileToDataUrl(file, signal);
     const result = await addEagleItem(baseUrl, {
         url: dataUrl,
@@ -351,19 +350,19 @@ function fileToDataUrl(file: Blob, signal?: AbortSignal): Promise<string> {
         const abort = () => {
             reader.abort();
             cleanup();
-            reject(new DOMException("请求已取消", "AbortError"));
+            reject(new DOMException("Request canceled", "AbortError"));
         };
         reader.onload = () => {
             cleanup();
             if (typeof reader.result !== "string") {
-                reject(new Error("无法读取待写入的文件"));
+                reject(new Error("Unable to read file to be written"));
                 return;
             }
             resolve(reader.result);
         };
         reader.onerror = () => {
             cleanup();
-            reject(new Error("无法读取待写入的文件"));
+            reject(new Error("Unable to read file to be written"));
         };
         if (signal?.aborted) {
             abort();

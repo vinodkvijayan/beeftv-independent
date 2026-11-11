@@ -31,7 +31,7 @@ export function parseGeneratedStory(answer: string): GeneratedShortDramaOutline 
 
 export function storyTitleFromAnswer(answer: string) {
     const line = answer.split(/\r?\n/).find((item) => item.trim());
-    return line ? line.trim().slice(0, 24) : "AI 生成短剧";
+    return line ? line.trim().slice(0, 24) : "AI generated short drama";
 }
 
 export function shortDramaOutlineVariables(input: {

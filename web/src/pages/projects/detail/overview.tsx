@@ -21,24 +21,24 @@ export default function ProjectOverviewView({ detail, overview }: ProjectDetailV
     const secondaryActions = actions.slice(1);
     const unitStages = overview.units.map((item) => ({
         unit: item.unit,
-        content: stageCell(item.unit.wordCount > 0, item.unit.wordCount > 0 ? `${formatCompactCount(item.unit.wordCount)} 字` : "待补充"),
-        assets: stageCell(item.candidateCount === 0 && item.shotCount > 0, item.candidateCount ? `${item.candidateCount} 待确认` : item.shotCount ? "已确认" : "待拆分", item.candidateCount > 0),
-        storyboard: stageCell(item.shotCount > 0, item.shotCount ? `${item.shotCount} 镜` : "待生成"),
-        canvas: stageCell(item.canvasCount > 0, item.canvasCount ? `${item.canvasCount} 张` : "未关联"),
+        content: stageCell(item.unit.wordCount > 0, item.unit.wordCount > 0 ? `${formatCompactCount(item.unit.wordCount)} word` : "To be added"),
+        assets: stageCell(item.candidateCount === 0 && item.shotCount > 0, item.candidateCount ? `${item.candidateCount} To be confirmed` : item.shotCount ? "Confirmed" : "To be split", item.candidateCount > 0),
+        storyboard: stageCell(item.shotCount > 0, item.shotCount ? `${item.shotCount} mirror` : "To be generated"),
+        canvas: stageCell(item.canvasCount > 0, item.canvasCount ? `${item.canvasCount} Zhang` : "Not associated"),
     }));
     const productionSteps = [
-        { id: "story", icon: BookOpenText, label: "剧情章节", description: "导入或编写正文，确认每章叙事目标", metric: `${metrics.unitCount} 章 · ${formatCompactCount(metrics.totalWordCount)} 字`, href: `/projects/${project.id}/chapters`, complete: metrics.unitCount > 0 },
-        { id: "assets", icon: UsersRound, label: "角色与资产", description: "确认角色、场景、道具和项目画风", metric: `${metrics.assetCount} 项资产`, href: `/projects/${project.id}/assets`, complete: metrics.assetCount > 0 },
-        { id: "storyboard", icon: Clapperboard, label: "分镜脚本与画面", description: "拆分镜头并确认构图、对白和时长", metric: `${metrics.shotCount} 镜 · ${metrics.readyStoryboardCount} 张图`, href: workflowHref("storyboard"), complete: metrics.shotCount > 0 },
-        { id: "previz", icon: PlaySquare, label: "动作预演", description: "检查表演节拍、运镜和连续性", metric: `${metrics.readyPrevizCount}/${metrics.shotCount || 0} 镜`, href: workflowHref("previz"), complete: metrics.shotCount > 0 && metrics.readyPrevizCount === metrics.shotCount },
-        { id: "video", icon: Film, label: "镜头视频", description: "逐镜生成、筛选版本并锁定成片", metric: `${metrics.readyVideoCount}/${metrics.shotCount || 0} 镜`, href: workflowHref("video"), complete: metrics.shotCount > 0 && metrics.readyVideoCount === metrics.shotCount },
-        { id: "editor", icon: Scissors, label: "剪辑成片", description: "在时间线中编排镜头、添加字幕并输出成片", metric: metrics.renderSucceededCount > 0 ? `已输出 ${metrics.renderSucceededCount} 个成片` : metrics.shotCount > 0 && metrics.readyVideoCount === metrics.shotCount ? "可以开始剪辑" : `还差 ${Math.max(0, metrics.shotCount - metrics.readyVideoCount)} 镜`, href: `/projects/${project.id}/editor`, complete: metrics.renderSucceededCount > 0 },
-        { id: "delivery", icon: PackageCheck, label: "交付与打包", description: "检查缺失镜头并整理最终产物", metric: metrics.readyVideoCount && metrics.readyVideoCount === metrics.shotCount ? "可以交付" : `还差 ${Math.max(0, metrics.shotCount - metrics.readyVideoCount)} 镜`, href: workflowHref("delivery"), complete: metrics.shotCount > 0 && metrics.readyVideoCount === metrics.shotCount },
+        { id: "story", icon: BookOpenText, label: "plot chapter", description: "Import or write the text to confirm the narrative goal of each chapter", metric: `${metrics.unitCount} Chapter ·${formatCompactCount(metrics.totalWordCount)} word`, href: `/projects/${project.id}/chapters`, complete: metrics.unitCount > 0 },
+        { id: "assets", icon: UsersRound, label: "Roles and Assets", description: "Confirm characters, scenes, props and project style", metric: `${metrics.assetCount} assets`, href: `/projects/${project.id}/assets`, complete: metrics.assetCount > 0 },
+        { id: "storyboard", icon: Clapperboard, label: "Storyboard script and screen", description: "Split shots and confirm composition, dialogue and duration", metric: `${metrics.shotCount} mirror ·${metrics.readyStoryboardCount} Picture`, href: workflowHref("storyboard"), complete: metrics.shotCount > 0 },
+        { id: "previz", icon: PlaySquare, label: "action rehearsal", description: "Check performance beats, camerawork and continuity", metric: `${metrics.readyPrevizCount}/${metrics.shotCount || 0} mirror`, href: workflowHref("previz"), complete: metrics.shotCount > 0 && metrics.readyPrevizCount === metrics.shotCount },
+        { id: "video", icon: Film, label: "Lens video", description: "Generate, screen versions shot by shot and lock the finished film", metric: `${metrics.readyVideoCount}/${metrics.shotCount || 0} mirror`, href: workflowHref("video"), complete: metrics.shotCount > 0 && metrics.readyVideoCount === metrics.shotCount },
+        { id: "editor", icon: Scissors, label: "Edited into a film", description: "Arrange shots in the timeline, add subtitles, and export the finished film", metric: metrics.renderSucceededCount > 0 ? `Output${metrics.renderSucceededCount} into pieces` : metrics.shotCount > 0 && metrics.readyVideoCount === metrics.shotCount ? "Can start editing" : `Not good enough${Math.max(0, metrics.shotCount - metrics.readyVideoCount)} mirror`, href: `/projects/${project.id}/editor`, complete: metrics.renderSucceededCount > 0 },
+        { id: "delivery", icon: PackageCheck, label: "Delivery and packaging", description: "Check for missing footage and tidy up the final product", metric: metrics.readyVideoCount && metrics.readyVideoCount === metrics.shotCount ? "can be delivered" : `Not good enough${Math.max(0, metrics.shotCount - metrics.readyVideoCount)} mirror`, href: workflowHref("delivery"), complete: metrics.shotCount > 0 && metrics.readyVideoCount === metrics.shotCount },
     ];
     const gaps = [
-        metrics.unitCount === 0 ? "还没有剧情章节" : metrics.unitsWithoutText ? `${metrics.unitsWithoutText} 章还没有正文` : "章节正文已就绪",
-        metrics.pendingCandidateCount ? `${metrics.pendingCandidateCount} 项资产等待确认` : metrics.assetCount ? "项目资产已建立" : "还没有角色与资产",
-        metrics.shotCount ? metrics.readyVideoCount === metrics.shotCount ? "所有镜头视频已生成" : `${metrics.shotCount - metrics.readyVideoCount} 个镜头尚未生成视频` : "还没有分镜镜头",
+        metrics.unitCount === 0 ? "There are no plot chapters yet" : metrics.unitsWithoutText ? `${metrics.unitsWithoutText} Chapter has no text yet` : "Chapter text is ready",
+        metrics.pendingCandidateCount ? `${metrics.pendingCandidateCount} assets awaiting confirmation` : metrics.assetCount ? "Project assets have been created" : "No characters and assets yet",
+        metrics.shotCount ? metrics.readyVideoCount === metrics.shotCount ? "All footage videos have been generated" : `${metrics.shotCount - metrics.readyVideoCount} Shots have not generated video yet` : "No storyboards yet",
     ];
 
     return (
@@ -47,10 +47,10 @@ export default function ProjectOverviewView({ detail, overview }: ProjectDetailV
                 <div className="grid lg:grid-cols-[minmax(0,1fr)_308px]">
                     <div className="project-overview-primary">
                         <div className="project-overview-eyebrow">
-                            <span>当前任务</span>
+                            <span>current task</span>
                             <span className="project-overview-eyebrow-divider" aria-hidden>/</span>
                             <span className="project-overview-eyebrow-stage">{stage.label}</span>
-                            {attentionCount ? <span className="project-overview-eyebrow-badge">{attentionCount} 项待处理</span> : null}
+                            {attentionCount ? <span className="project-overview-eyebrow-badge">{attentionCount}  Items pending</span> : null}
                         </div>
                         <h2 className="project-overview-title">{primaryAction.title}</h2>
                         <p className="project-overview-description">{primaryAction.description}</p>
@@ -60,28 +60,28 @@ export default function ProjectOverviewView({ detail, overview }: ProjectDetailV
                             <Link to={primaryAction.href} className="project-overview-cta-primary">
                                 <span className="truncate">{primaryAction.actionLabel}</span><ArrowRight className="size-4 shrink-0" />
                             </Link>
-                            {secondaryActions[0] ? <Link to={secondaryActions[0].href} className="project-overview-cta-secondary">继续下一步<ArrowRight className="size-3.5" /></Link> : null}
+                            {secondaryActions[0] ? <Link to={secondaryActions[0].href} className="project-overview-cta-secondary">Continue to the next step<ArrowRight className="size-3.5" /></Link> : null}
                         </div>
                     </div>
 
-                    <aside className="project-overview-status" aria-label="项目进度">
+                    <aside className="project-overview-status" aria-label="Project progress">
                         <div className="project-overview-progress">
                             <div className="project-overview-progress-head">
-                                <span className="project-overview-status-label">章节进度</span>
+                                <span className="project-overview-status-label">Chapter progress</span>
                                 <span className="project-overview-progress-percent">{completion}%</span>
                             </div>
                             <div className="project-overview-progress-count">{completedUnits}<span>/ {metrics.unitCount}</span></div>
-                            <div className="project-overview-progress-track" aria-label={`章节完成度 ${completion}%`}><div style={{ width: `${completion}%` }} /></div>
+                            <div className="project-overview-progress-track" aria-label={`Chapter completion${completion}%`}><div style={{ width: `${completion}%` }} /></div>
                         </div>
                         <dl className="project-overview-facts">
-                            <ProjectFact label="当前阶段" value={stage.label} />
-                            <ProjectFact label="分镜镜头" value={`${metrics.shotCount} 个`} />
-                            <ProjectFact label="项目画布" value={`${metrics.canvasCount} 张`} />
-                            <ProjectFact label="需要处理" value={`${attentionCount} 项`} attention={attentionCount > 0} />
+                            <ProjectFact label="current stage" value={stage.label} />
+                            <ProjectFact label="Storyboard shot" value={`${metrics.shotCount} a`} />
+                            <ProjectFact label="project canvas" value={`${metrics.canvasCount} Zhang`} />
+                            <ProjectFact label="Need to be processed" value={`${attentionCount} item`} attention={attentionCount > 0} />
                         </dl>
                         {secondaryActions.length ? (
                             <div className="project-overview-next">
-                                <span className="project-overview-status-label">随后处理</span>
+                                <span className="project-overview-status-label">subsequently processed</span>
                                 <div className="mt-2 space-y-0.5">{secondaryActions.map((action) => <SecondaryAction key={action.id} action={action} />)}</div>
                             </div>
                         ) : null}
@@ -90,20 +90,20 @@ export default function ProjectOverviewView({ detail, overview }: ProjectDetailV
             </section>
 
             <section className="project-standard-flow">
-                <div className="project-standard-flow-head"><div><span>标准制作流程</span><h2>从章节到可交付镜头</h2><p>先确认故事与资产，再逐镜完成画面、动作和视频。每个步骤都可直接进入对应工作区。</p></div><Link to={primaryAction.href}>继续当前任务<ArrowRight /></Link></div>
+                <div className="project-standard-flow-head"><div><span>Standard production process</span><h2>From chapters to deliverable footage</h2><p>First confirm the story and assets, and then complete the scenes, actions and videos shot by shot. Each step can directly enter the corresponding workspace.</p></div><Link to={primaryAction.href}>Continue current task<ArrowRight /></Link></div>
                 <div className="project-standard-flow-track">
                     {productionSteps.map((step, index) => { const Icon = step.icon; return <Link key={step.id} to={step.href} className={step.complete ? "is-complete" : ""}><span className="project-standard-flow-index">{step.complete ? <CheckCircle2 /> : index + 1}</span><span className="project-standard-flow-icon"><Icon /></span><strong>{step.label}</strong><p>{step.description}</p><em>{step.metric}</em><ArrowRight className="project-standard-flow-arrow" /></Link>; })}
                 </div>
-                <div className="project-standard-flow-footer"><div><strong>当前制作检查</strong>{gaps.map((gap, index) => <span key={gap}><i className={index === 2 && metrics.readyVideoCount !== metrics.shotCount ? "is-attention" : ""} />{gap}</span>)}</div><div><strong>快速入口</strong><Link to={`/projects/${project.id}/chapters`}>整理章节</Link><Link to={`/projects/${project.id}/assets`}>确认资产</Link><Link to={workflowHref("video")}>继续镜头制作</Link></div></div>
+                <div className="project-standard-flow-footer"><div><strong>Current production check</strong>{gaps.map((gap, index) => <span key={gap}><i className={index === 2 && metrics.readyVideoCount !== metrics.shotCount ? "is-attention" : ""} />{gap}</span>)}</div><div><strong>Quick entry</strong><Link to={`/projects/${project.id}/chapters`}>Organize chapters</Link><Link to={`/projects/${project.id}/assets`}>Confirm assets</Link><Link to={workflowHref("video")}>Continue lens production</Link></div></div>
             </section>
 
             <section>
                 <div className="project-pipeline-head">
                     <div className="min-w-0">
-                        <h2 className="project-pipeline-title">章节进度</h2>
-                        <p className="project-pipeline-hint">从内容确认到项目画布，每章只显示当前真实状态。</p>
+                        <h2 className="project-pipeline-title">Chapter progress</h2>
+                        <p className="project-pipeline-hint">From content confirmation to project canvas, each chapter only shows the current true status.</p>
                     </div>
-                    <Link to={`/projects/${project.id}/chapters`} className="project-pipeline-more">查看全部章节<ArrowRight className="size-3.5" /></Link>
+                    <Link to={`/projects/${project.id}/chapters`} className="project-pipeline-more">View all chapters<ArrowRight className="size-3.5" /></Link>
                 </div>
 
                 {unitStages.length ? (
@@ -112,21 +112,21 @@ export default function ProjectOverviewView({ detail, overview }: ProjectDetailV
                             <Link key={item.unit.id} to={`/projects/${project.id}/chapters/${item.unit.id}`} className="project-pipeline-row group">
                                 <span className="project-pipeline-chapter">
                                     <span className="project-pipeline-index">{String(item.unit.position + 1).padStart(2, "0")}</span>
-                                    <span className="min-w-0"><span className="project-pipeline-chapter-title">{item.unit.title}</span><span className="project-pipeline-chapter-time">更新于 {formatTime(item.unit.updatedAt)}</span></span>
+                                    <span className="min-w-0"><span className="project-pipeline-chapter-title">{item.unit.title}</span><span className="project-pipeline-chapter-time">updated on{formatTime(item.unit.updatedAt)}</span></span>
                                 </span>
                                 <StagePipeline content={item.content} assets={item.assets} storyboard={item.storyboard} canvas={item.canvas} />
                                 <ArrowRight className="project-pipeline-arrow size-4" />
                             </Link>
                         ))}
                     </div>
-                ) : <div className="project-pipeline-surface p-2"><WorkspaceState icon="projects" compact title="还没有剧情章节" description="添加章节后，这里会显示内容、资产、分镜和画布的制作进度。" /></div>}
+                ) : <div className="project-pipeline-surface p-2"><WorkspaceState icon="projects" compact title="There are no plot chapters yet" description="After adding a chapter, the progress of content, assets, storyboards, and canvases will be displayed here." /></div>}
             </section>
         </div>
     );
 }
 
 function formatCompactCount(value: number) {
-    return value >= 10_000 ? `${Math.round(value / 1_000) / 10} 万` : value.toLocaleString("zh-CN");
+    return value >= 10_000 ? `${Math.round(value / 1_000) / 10} million` : value.toLocaleString("en-US");
 }
 
 function ProjectFact({ label, value, attention = false }: { label: string; value: string; attention?: boolean }) {
@@ -139,7 +139,7 @@ function SecondaryAction({ action }: { action: ProjectWorkbenchAction }) {
 }
 
 function StagePipeline({ content, assets, storyboard, canvas }: { content: ProjectStageCell; assets: ProjectStageCell; storyboard: ProjectStageCell; canvas: ProjectStageCell }) {
-    const stages = [{ label: "内容", cell: content }, { label: "资产", cell: assets }, { label: "分镜", cell: storyboard }, { label: "画布", cell: canvas }];
+    const stages = [{ label: "content", cell: content }, { label: "assets", cell: assets }, { label: "Storyboard", cell: storyboard }, { label: "canvas", cell: canvas }];
     return (
         <span className="project-pipeline-stages">
             {stages.map(({ label, cell }) => <StageStep key={label} label={label} cell={cell} />)}
@@ -158,37 +158,37 @@ function StageStep({ label, cell }: { label: string; cell: ProjectStageCell }) {
 }
 
 function overviewStage(metrics: ProjectOverviewMetrics) {
-    if (!metrics.unitCount) return { label: "准备故事", detail: "添加或导入剧情章节" };
-    if (metrics.pendingCandidateCount) return { label: "资产确认", detail: `${metrics.pendingCandidateCount} 项待确认` };
-    if (!metrics.shotCount || metrics.unitsWithoutShots) return { label: "分镜准备", detail: `${metrics.unitsWithoutShots || metrics.unitCount} 章待生成分镜` };
-    if (metrics.readyVideoCount < metrics.shotCount) return { label: "镜头制作", detail: `${metrics.readyVideoCount}/${metrics.shotCount} 镜视频就绪` };
-    return { label: "检查交付", detail: "镜头视频已准备完成" };
+    if (!metrics.unitCount) return { label: "prepare story", detail: "Add or import plot chapters" };
+    if (metrics.pendingCandidateCount) return { label: "Asset confirmation", detail: `${metrics.pendingCandidateCount} Item to be confirmed` };
+    if (!metrics.shotCount || metrics.unitsWithoutShots) return { label: "Storyboard preparation", detail: `${metrics.unitsWithoutShots || metrics.unitCount} Storyboards to be generated` };
+    if (metrics.readyVideoCount < metrics.shotCount) return { label: "Lens production", detail: `${metrics.readyVideoCount}/${metrics.shotCount} Mirror video ready` };
+    return { label: "Check delivery", detail: "Lens video is ready" };
 }
 
 function overviewActions(projectId: string, metrics: ProjectOverviewMetrics, firstUnitId?: string): ProjectWorkbenchAction[] {
     const projectRoot = `/projects/${projectId}`;
     const workflowHref = firstUnitId ? `${projectRoot}/workflow/${firstUnitId}/video` : `${projectRoot}/chapters`;
     if (!metrics.unitCount) {
-        return [{ id: "add-story", title: "添加第一个剧情章节", description: "导入小说、粘贴文本，或从空白章节开始。", href: `${projectRoot}/chapters`, actionLabel: "添加章节", tone: "default" }];
+        return [{ id: "add-story", title: "Add the first plot chapter", description: "Import a novel, paste text, or start with a blank chapter.", href: `${projectRoot}/chapters`, actionLabel: "Add chapter", tone: "default" }];
     }
     const actions: ProjectWorkbenchAction[] = [];
     if (metrics.unitsWithoutText) {
-        actions.push({ id: "complete-story", title: `补充 ${metrics.unitsWithoutText} 章正文`, description: "先完善章节内容，后续角色识别与分镜拆分才能获得稳定输入。", href: `${projectRoot}/chapters`, actionLabel: "整理章节", tone: "attention" });
+        actions.push({ id: "complete-story", title: `supplement${metrics.unitsWithoutText} Zhang Zhengwen`, description: "Improve the chapter content first, and then follow up with character recognition and storyboarding to get stable input.", href: `${projectRoot}/chapters`, actionLabel: "Organize chapters", tone: "attention" });
     }
     if (metrics.pendingCandidateCount) {
-        actions.push({ id: "confirm-assets", title: `确认 ${metrics.pendingCandidateCount} 个资产候选`, description: "确认角色、场景与道具后，镜头可以稳定引用项目资产。", href: `${projectRoot}/assets`, actionLabel: "去确认", tone: "attention" });
+        actions.push({ id: "confirm-assets", title: `Confirm${metrics.pendingCandidateCount} asset candidates`, description: "After confirming the characters, scenes, and props, the shots can stably reference the project assets.", href: `${projectRoot}/assets`, actionLabel: "to confirm", tone: "attention" });
     }
     if (!metrics.shotCount || metrics.unitsWithoutShots) {
-        actions.push({ id: "create-storyboards", title: `为 ${metrics.unitsWithoutShots || metrics.unitCount} 章建立分镜`, description: "按章节生成镜头草稿，再逐镜调整画面、对白和时长。", href: firstUnitId ? `${projectRoot}/chapters/${firstUnitId}` : `${projectRoot}/chapters`, actionLabel: "建立分镜", tone: "default" });
+        actions.push({ id: "create-storyboards", title: `for${metrics.unitsWithoutShots || metrics.unitCount} Chapter creation storyboard`, description: "Generate shot drafts by chapter, and then adjust the picture, dialogue and duration shot by shot.", href: firstUnitId ? `${projectRoot}/chapters/${firstUnitId}` : `${projectRoot}/chapters`, actionLabel: "Create storyboards", tone: "default" });
     }
     if (metrics.shotCount && metrics.readyVideoCount < metrics.shotCount) {
-        actions.push({ id: "continue-video", title: `继续制作 ${metrics.shotCount - metrics.readyVideoCount} 个镜头视频`, description: "检查镜头提示词与参考资产，逐镜生成并选择最终版本。", href: workflowHref, actionLabel: "继续制作", tone: metrics.staleArtifactCount ? "attention" : "default" });
+        actions.push({ id: "continue-video", title: `continue making${metrics.shotCount - metrics.readyVideoCount} lens video`, description: "Check shot cues and reference assets to generate and select the final version shot by shot.", href: workflowHref, actionLabel: "continue making", tone: metrics.staleArtifactCount ? "attention" : "default" });
     }
     if (!metrics.canvasCount) {
-        actions.push({ id: "create-canvas", title: "建立第一张项目画布", description: "把章节、分镜和参考资产放进同一个制作空间。", href: `${projectRoot}/canvases`, actionLabel: "查看画布", tone: "default" });
+        actions.push({ id: "create-canvas", title: "Create the first project canvas", description: "Bring chapters, storyboards, and reference assets into the same production space.", href: `${projectRoot}/canvases`, actionLabel: "view canvas", tone: "default" });
     }
     if (!actions.length) {
-        actions.push({ id: "review-delivery", title: "检查镜头并准备交付", description: "所有镜头视频已就绪，可检查版本、连续性和缺失项。", href: workflowHref, actionLabel: "检查交付", tone: "default" });
+        actions.push({ id: "review-delivery", title: "Check shots and prepare for delivery", description: "All footage videos are ready to check for versions, continuity and missing items.", href: workflowHref, actionLabel: "Check delivery", tone: "default" });
     }
     return actions;
 }

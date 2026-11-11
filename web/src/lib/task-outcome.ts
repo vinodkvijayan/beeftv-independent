@@ -126,7 +126,7 @@ export function readTaskOutcome(source?: TaskOutcome | TaskOutcomeSource | null)
     const errorCode = typeof record.errorCode === "string" ? record.errorCode.trim() : "";
 
     if (status === "queued" || status === "running") {
-        if (stage === "正在取回生成结果") {
+        if (stage === "Retrieving generated results") {
             return { phase: "fetching", regenerate: "blocked", reason: "result_fetching" };
         }
         return { phase: "running", regenerate: "blocked", reason: "task_running" };
@@ -182,7 +182,7 @@ export function readNodeTaskOutcome(metadata?: CanvasNodeOutcomeMetadata | null)
         return { phase: "ready", regenerate: "allowed", reason: "result_ready" };
     }
     if (metadata.status === "loading" || metadata.taskStatus === "queued" || metadata.taskStatus === "running") {
-        if (metadata.taskStatus === "succeeded" || metadata.taskStage === "正在取回生成结果") {
+        if (metadata.taskStatus === "succeeded" || metadata.taskStage === "Retrieving generated results") {
             return { phase: "fetching", regenerate: "blocked", reason: "result_fetching" };
         }
         return { phase: "running", regenerate: "blocked", reason: "task_running" };
@@ -319,16 +319,16 @@ function formatClockTime(timestampMs: number): string {
 
 export function formatReconcileDeadlineCopy(reconcileDeadline?: string, nowMs = Date.now()): string {
     if (!reconcileDeadline?.trim()) {
-        return "BeefTV 正在核对上次提交，请稍候";
+        return "BeefTV is checking the last submission, please wait.";
     }
     const deadlineMs = Date.parse(reconcileDeadline);
     if (Number.isNaN(deadlineMs)) {
-        return "BeefTV 正在核对上次提交，请稍候";
+        return "BeefTV is checking the last submission, please wait.";
     }
     if (deadlineMs <= nowMs) {
-        return "BeefTV 正在核对，已超过预计时间，可联系客服";
+        return "BeefTV is checking. It has exceeded the estimated time. Please contact customer service.";
     }
-    return `BeefTV 正在核对上次提交，预计 ${formatClockTime(deadlineMs)} 前有结论`;
+    return `BeefTV is checking the last submission and expects${formatClockTime(deadlineMs)} There is a conclusion before`;
 }
 
 /**
@@ -338,18 +338,18 @@ export function formatReconcileDeadlineCopy(reconcileDeadline?: string, nowMs = 
 export function taskOutcomeCopy(outcome?: TaskOutcome | null, nowMs = Date.now()): TaskOutcomeCopy {
     if (!outcome) {
         return {
-            badge: "生成失败",
-            reason: "上次生成未完成，可以直接重新生成",
-            action: "可以直接重新生成",
-            message: "上次生成未完成，可以直接重新生成。",
+            badge: "Build failed",
+            reason: "The last generation was not completed and can be regenerated directly.",
+            action: "Can be regenerated directly",
+            message: "The last generation was not completed and can be regenerated directly.",
         };
     }
 
     if (outcome.reason === "settlement_pending" || outcome.reason === "billing_pending" || outcome.reason === "reconcile_pending") {
         const reason = formatReconcileDeadlineCopy(outcome.reconcileDeadline, nowMs);
-        const action = "核对完成前请勿重新生成";
+        const action = "Do not regenerate before verification is completed";
         return {
-            badge: "正在核对",
+            badge: "Checking",
             reason,
             action,
             message: `${reason}。${action}。`,
@@ -358,47 +358,47 @@ export function taskOutcomeCopy(outcome?: TaskOutcome | null, nowMs = Date.now()
 
     switch (outcome.phase) {
         case "running": {
-            const reason = "任务正在生成中";
-            const action = "请等待当前任务完成";
+            const reason = "Task is being generated";
+            const action = "Please wait for the current task to be completed";
             return {
-                badge: "生成中",
+                badge: "Generating",
                 reason,
                 action,
                 message: `${reason}，${action}。`,
             };
         }
         case "fetching": {
-            const reason = "生成已完成，正在取回结果";
-            const action = "系统正在自动保存，无需重新生成";
+            const reason = "Generation completed, retrieving results";
+            const action = "The system is saving automatically, no need to regenerate";
             return {
-                badge: "正在取回结果",
+                badge: "Retrieving results",
                 reason,
                 action,
                 message: `${reason}，${action}。`,
             };
         }
         case "ready": {
-            const reason = "生成结果已就绪";
-            const action = "可直接查看或重新生成新版本";
+            const reason = "The result is ready";
+            const action = "You can directly view or regenerate a new version";
             return {
-                badge: "已完成",
+                badge: "Completed",
                 reason,
                 action,
                 message: `${reason}，${action}。`,
             };
         }
         case "retrievable": {
-            let reason = "上次生成结果已保留，系统正在自动取回";
+            let reason = "The last generated result has been retained and is being retrieved automatically by the system.";
             if (outcome.reason === "image_recovery_pending") {
-                reason = "正在查询并取回上次生成的图片结果";
+                reason = "Querying and retrieving the last generated image results";
             } else if (outcome.reason === "provider_result_pending") {
-                reason = "上次任务仍在处理，系统正在自动取回结果";
+                reason = "The last task is still being processed and the system is automatically retrieving the results.";
             } else if (outcome.reason === "evidence_unavailable") {
-                reason = "正在核实并取回上次生成结果";
+                reason = "Verifying and retrieving last generated results";
             }
-            const action = "请等待取回完成，不要重复生成";
+            const action = "Please wait for the retrieval to be completed and do not generate it again.";
             return {
-                badge: "正在取回结果",
+                badge: "Retrieving results",
                 reason,
                 action,
                 message: `${reason}，${action}。`,
@@ -407,10 +407,10 @@ export function taskOutcomeCopy(outcome?: TaskOutcome | null, nowMs = Date.now()
         case "failed": {
             if (outcome.regenerate === "blocked") {
                 if (outcome.reason === "result_target_unavailable") {
-                    const reason = "生成结果已保存在生成历史，当前目标节点已变更";
-                    const action = "请从生成历史查看结果，请勿重复生成";
+                    const reason = "The generation results have been saved in the generation history, and the current target node has been changed.";
+                    const action = "Please check the results from the generation history, do not generate again";
                     return {
-                        badge: "结果已保存",
+                        badge: "Results saved",
                         reason,
                         action,
                         message: `${reason}。${action}。`,
@@ -418,10 +418,10 @@ export function taskOutcomeCopy(outcome?: TaskOutcome | null, nowMs = Date.now()
                 }
                 const reason = outcome.reconcileDeadline
                     ? formatReconcileDeadlineCopy(outcome.reconcileDeadline, nowMs)
-                    : "BeefTV 正在核对上次提交，请稍候";
-                const action = "核对完成前请勿重新生成";
+                    : "BeefTV is checking the last submission, please wait.";
+                const action = "Do not regenerate before verification is completed";
                 return {
-                    badge: "正在核对",
+                    badge: "Checking",
                     reason,
                     action,
                     message: `${reason}。${action}。`,
@@ -429,62 +429,62 @@ export function taskOutcomeCopy(outcome?: TaskOutcome | null, nowMs = Date.now()
             }
             if (outcome.regenerate === "confirm") {
                 if (outcome.reason === "charged_result_unrecoverable") {
-                    const reason = "上次已扣费，但结果拿不回，重新生成会再扣一次";
-                    const action = "确认后将创建新任务重新生成";
+                    const reason = "The fee was deducted last time, but the result cannot be retrieved. It will be deducted again if it is regenerated.";
+                    const action = "After confirmation, a new task will be created and regenerated.";
                     return {
-                        badge: "结果无法取回",
+                        badge: "The result cannot be retrieved",
                         reason,
                         action,
                         message: `${reason}。${action}。`,
-                        confirmTitle: "确认重新生成？",
-                        confirmContent: "上次已扣费，但结果拿不回，重新生成会再扣一次。",
+                        confirmTitle: "Confirm to regenerate?",
+                        confirmContent: "The fee was deducted last time, but the result cannot be recovered. If it is regenerated, it will be deducted again.",
                     };
                 }
                 if (outcome.reason === "input_rejected") {
-                    const reason = "提示词、参考素材或参数未通过校验";
-                    const action = "请调整输入后重新生成；继续提交可能会再次产生费用";
+                    const reason = "Prompt word, reference material or parameter failed verification";
+                    const action = "Please adjust the input and regenerate; continuing to submit may incur charges again";
                     return {
-                        badge: "需调整输入",
+                        badge: "Need to adjust input",
                         reason,
                         action,
                         message: `${reason}。${action}。`,
-                        confirmTitle: "确认重新生成？",
-                        confirmContent: "上次输入未通过校验，重新生成可能会再扣一次。建议先修改提示词或参考素材。",
+                        confirmTitle: "Confirm to regenerate?",
+                        confirmContent: "The last input did not pass verification, and regeneration may result in another deduction. It is recommended to modify the prompt words or reference materials first.",
                     };
                 }
                 if (outcome.reason === "result_unrecoverable") {
-                    const reason = "无法确认上次是否已扣费，可先到模型服务后台查看使用记录";
-                    const action = "重新生成可能会再扣一次，确认后创建新任务";
+                    const reason = "If you cannot confirm whether the fee was deducted last time, you can first go to the model service background to check the usage records.";
+                    const action = "Regeneration may result in another deduction. Create a new task after confirmation.";
                     return {
-                        badge: "结果无法取回",
+                        badge: "The result cannot be retrieved",
                         reason,
                         action,
                         message: `${reason}。${action}。`,
-                        confirmTitle: "确认重新生成？",
-                        confirmContent: "无法确认上次是否已扣费，可先到模型服务后台查看使用记录。重新生成可能会再扣一次。",
+                        confirmTitle: "Confirm to regenerate?",
+                        confirmContent: "If you cannot confirm whether the fee was deducted last time, you can first go to the model service background to check the usage records. Regeneration may result in another deduction.",
                     };
                 }
-                const reason = "这个渠道无法确认上次是否已扣费，重新生成可能会再扣一次";
-                const action = "确认后可重新生成";
+                const reason = "This channel cannot confirm whether the fee was deducted last time. Regenerating may result in another deduction.";
+                const action = "Can be regenerated after confirmation";
                 return {
-                    badge: "生成未完成",
+                    badge: "Build not completed",
                     reason,
                     action,
                     message: `${reason}。${action}。`,
-                    confirmTitle: "确认重新生成？",
-                    confirmContent: "这个渠道无法确认上次是否已扣费，重新生成可能会再扣一次。",
+                    confirmTitle: "Confirm to regenerate?",
+                    confirmContent: "This channel cannot confirm whether the fee was deducted last time, and it may be deducted again if it is regenerated.",
                 };
             }
             // regenerate === "allowed"
-            let reason = "上次生成未完成，可以直接重新生成";
+            let reason = "The last generation was not completed and can be regenerated directly.";
             if (outcome.reason === "refunded") {
-                reason = "上次生成未完成，费用已退回，可以直接重新生成";
+                reason = "The last generation was not completed and the fee has been refunded. You can directly regenerate it.";
             } else if (outcome.reason === "not_charged" || outcome.reason === "request_not_sent") {
-                reason = "上次请求未扣费，可以直接重新生成";
+                reason = "The last request was not deducted and can be regenerated directly.";
             }
-            const action = "可以直接重新生成";
+            const action = "Can be regenerated directly";
             return {
-                badge: "生成失败",
+                badge: "Build failed",
                 reason,
                 action,
                 message: `${reason}。`,

@@ -75,7 +75,7 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
                     });
                 }
             })
-            .catch(() => { if (alive.current) setError("无法读取模型能力，请关闭后重试"); })
+            .catch(() => { if (alive.current) setError("Unable to read model capabilities, please close and try again"); })
             .finally(() => { if (alive.current) setProtocolLoading(false); });
         return () => { alive.current = false; catalogRequest.current?.abort(); };
     }, []);
@@ -121,7 +121,7 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
         }) }));
         setCatalog(next);
         setCatalogRead(true);
-        setNotice(result.models.length ? `已读取 ${result.models.length} 个模型，勾选你要使用的模型；列表里没有的模型可以在下面直接填 ID 添加。` : "服务没有返回模型，在下面填写模型 ID 再点「添加」。");
+        setNotice(result.models.length ? `Read${result.models.length} model, check the model you want to use; models not in the list can be added directly by filling in the ID below.` : "The service did not return the model. Fill in the model ID below and click \"Add\".");
         setStep(1);
     };
     const fetchModels = async () => {
@@ -138,11 +138,11 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
             if (alive.current && !request.signal.aborted) applyCatalog(result);
         } catch (failure) {
             if (alive.current && !request.signal.aborted) {
-                setError(getTransportFailureKind(failure) === "timeout" ? "读取模型目录超时，请检查地址和网络后重试" : failure instanceof Error ? failure.message : "读取模型失败");
+                setError(getTransportFailureKind(failure) === "timeout" ? "Reading the model directory timed out, please check the address and network and try again." : failure instanceof Error ? failure.message : "Failed to read model");
                 // 第二步没有「手动添加模型」按钮，只有下方的模型 ID 输入框；提示要跟着当前步骤走。
                 setNotice(servicePresetFor(draft) === "ark"
-                    ? `火山方舟不提供 OpenAI 格式的模型目录，${step === 0 ? "点「手动添加模型」" : "在下面填写模型 ID"}手动填写。`
-                    : `读不到模型目录时仍可手动添加模型 ID，${step === 0 ? "点「手动添加模型」" : "在下面填写"}继续；生成仍需要正确的服务地址、凭证和接口格式。`);
+                    ? `Volcano Ark does not provide a model directory in OpenAI format.${step === 0 ? "Click \"Add Model Manually\"" : "Fill in the model ID below"}Fill in manually.`
+                    : `When the model directory cannot be read, you can still add the model ID manually.${step === 0 ? "Click \"Add Model Manually\"" : "fill in below"}Continue; generation still requires the correct service address, credentials, and interface format.`);
             }
         } finally { if (alive.current) setBusy(false); }
     };
@@ -171,7 +171,7 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
         setCatalog((current) => current.some((item) => item.id === id) ? current.map((item) => item.id === id ? nextItem : item) : [...current, nextItem]);
         setDraft((current) => ({ ...current, modelProfiles: [...(current.modelProfiles || []).filter((p) => p.model !== id), profile] }));
         if (draft.models.includes(id) && !profile.protocol) {
-            setNotice("请在高级模型设置中，为这个模型选择服务商要求的接口格式。");
+            setNotice("Please select the interface format required by the service provider for this model in the advanced model settings.");
             setEditingCapabilities(true);
         }
         setError("");
@@ -181,7 +181,7 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
         const profile = withSiblingProtocol(draft, serviceModelProfile(draft, item, protocols));
         setDraft((current) => ({ ...current, models: enabled ? [...new Set([...current.models, id])] : current.models.filter((model) => model !== id), modelProfiles: [...(current.modelProfiles || []).filter((p) => p.model !== id), profile] }));
         if (enabled && !profile.protocol) {
-            setNotice("请在高级模型设置中，按服务商文档选择接口格式。视频接口的地址和格式可能不同。");
+            setNotice("Please select the interface format according to the service provider's documentation in the advanced model settings. The address and format of the video interface may be different.");
             setEditingCapabilities(true);
         }
         setError("");
@@ -189,14 +189,14 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
     const addManual = () => {
         const id = manualName.trim();
         if (!id) return;
-        if (!manualCapability) { setError("请先选择模型类型，再点「添加」"); return; }
+        if (!manualCapability) { setError("Please select the model type first, then click \"Add\""); return; }
         const existingItem = catalog.find((candidate) => candidate.id === id);
         const existingCapability = existingItem ? serviceModelProfile(draft, existingItem, protocols).capability : undefined;
-        if (draft.models.includes(id) && existingCapability === manualCapability) { setError("这个模型已在列表中"); return; }
+        if (draft.models.includes(id) && existingCapability === manualCapability) { setError("This model is already in the list"); return; }
         const nextItem: ChannelModelCatalogItem = { ...(existingItem || { id }), modelType: manualCapability };
         const profile = withSiblingProtocol(draft, serviceModelProfile(draft, nextItem, protocols, manualCapability));
         if (!profile.protocol) {
-            setNotice("请在高级模型设置中，为这个模型选择服务商要求的接口格式。");
+            setNotice("Please select the interface format required by the service provider for this model in the advanced model settings.");
             setEditingCapabilities(true);
         }
         setCatalog((current) => current.some((item) => item.id === id) ? current.map((item) => item.id === id ? nextItem : item) : [...current, nextItem]);
@@ -207,11 +207,11 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
     };
     const save = async () => {
         if (!validateConnection()) { setStep(0); return; }
-        if (!draft.models.length) { setError("请至少选择或添加一个模型"); return; }
+        if (!draft.models.length) { setError("Please select or add at least one model"); return; }
         const profiles = isTopazUpscaleChannel(draft) ? draft.modelProfiles || [] : draft.models.map((id) => withSiblingProtocol(draft, serviceModelProfile(draft, catalog.find((item) => item.id === id) || { id }, protocols)));
         const missing = profiles.find((profile) => !profile.protocol);
         if (missing) {
-            setError(`${missing.model} 还需要选择接口格式，请打开高级模型设置`);
+            setError(`${missing.model} You also need to select the interface format, please open the advanced model settings`);
             setEditingCapabilities(true);
             setFocusModel((current) => ({ model: missing.model, token: (current?.token || 0) + 1 }));
             return;
@@ -223,24 +223,24 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
         setSaving(true);
         setError("");
         try {
-            await onSave({ ...draft, name: draft.name.trim() || "我的模型服务", baseUrl: draft.baseUrl.trim().replace(/\/+$/, ""), apiKey: draft.apiKey.trim(), secretKey: draft.secretKey?.trim(), modelProfiles: profiles });
+            await onSave({ ...draft, name: draft.name.trim() || "My model service", baseUrl: draft.baseUrl.trim().replace(/\/+$/, ""), apiKey: draft.apiKey.trim(), secretKey: draft.secretKey?.trim(), modelProfiles: profiles });
             onClose();
-        } catch (failure) { setError(failure instanceof Error ? failure.message : "保存失败，请重试"); }
+        } catch (failure) { setError(failure instanceof Error ? failure.message : "Save failed, please try again"); }
         finally { if (alive.current) { setBusy(false); setSaving(false); } }
     };
     const visibleModels = catalog.filter((item) => {
         const profile = serviceModelProfile(draft, item, protocols);
         return `${item.id} ${seedancePortraitLabel(item.id) || item.displayName || ""}`.toLowerCase().includes(query.toLowerCase()) && (filter === "all" || profile.capability === filter);
     });
-    if (isTopazUpscaleChannel(draft)) return <AppModal open centered width={520} title="fal · Topaz 专用超分" footer={null} closable={!saving} keyboard={!saving} mask={{ closable: false }} onCancel={onClose}>
+    if (isTopazUpscaleChannel(draft)) return <AppModal open centered width={520} title="fal · Topaz exclusive super score" footer={null} closable={!saving} keyboard={!saving} mask={{ closable: false }} onCancel={onClose}>
         <Form layout="vertical" requiredMark={false} disabled={saving} className="pt-2" onFinish={() => void save()}>
-            <p className="mb-4 text-sm text-foreground/65">从图片或视频节点上方的「AI超分」使用。</p>
-            <Form.Item label="渠道名称"><Input aria-label="渠道名称" value={draft.name} onChange={event => patch({ name: event.target.value })} /></Form.Item>
-            <Form.Item label="API Key"><Input.Password prefix={<KeyRound size={15} />} aria-label="API Key" autoComplete="new-password" placeholder={draft.hasApiKey ? "已保存密钥；填写以替换" : "粘贴 fal API Key"} value={draft.apiKey} onChange={event => patch({ apiKey: event.target.value })} /></Form.Item>
-            <Form.Item label="服务地址"><Input aria-label="服务地址" value={draft.baseUrl} onChange={event => patch({ baseUrl: event.target.value })} /></Form.Item>
-            <p className="mb-4 text-sm text-foreground/65">已配置 {draft.models.length} 个超分接口</p>
+            <p className="mb-4 text-sm text-foreground/65">Use it from "AI Super Score" above the image or video node.</p>
+            <Form.Item label="Channel name"><Input aria-label="Channel name" value={draft.name} onChange={event => patch({ name: event.target.value })} /></Form.Item>
+            <Form.Item label="API Key"><Input.Password prefix={<KeyRound size={15} />} aria-label="API Key" autoComplete="new-password" placeholder={draft.hasApiKey ? "Key saved; fill in to replace" : "Paste fal API Key"} value={draft.apiKey} onChange={event => patch({ apiKey: event.target.value })} /></Form.Item>
+            <Form.Item label="Service address"><Input aria-label="Service address" value={draft.baseUrl} onChange={event => patch({ baseUrl: event.target.value })} /></Form.Item>
+            <p className="mb-4 text-sm text-foreground/65">configured{draft.models.length}  super-resolution interface</p>
             {error ? <Alert className="mb-4" type="error" title={error} /> : null}
-            <div className="flex justify-end gap-2"><Button onClick={onClose}>取消</Button><Button type="primary" htmlType="submit" loading={saving}>保存</Button></div>
+            <div className="flex justify-end gap-2"><Button onClick={onClose}>Cancel</Button><Button type="primary" htmlType="submit" loading={saving}>Save</Button></div>
         </Form>
     </AppModal>;
     const selectedPreset = MODEL_SERVICE_PRESETS.find((item) => item.id === presetId)!;
@@ -251,21 +251,21 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
     const vendorsOpen = moreVendors || Boolean(vendor);
     const builtinReady = !isBuiltinPresetService(presetId) || builtinProtocolsAvailable(presetId, protocols);
     const builtinPluginWarning = isBuiltinPresetService(presetId) && !protocolLoading && !builtinReady
-        ? `请先在左侧「插件」中心启用 ${selectedPreset.name} 插件，再使用预置模型与协议。`
+        ? `Please enable it first in the "Plugins" center on the left${selectedPreset.name} Plug-ins, then use pre-built models and protocols.`
         : "";
 
     return <AppModal open centered width={1000} flush footer={null} title={null} closable={!saving} keyboard={!saving} mask={{ closable: false }} onCancel={() => { catalogRequest.current?.abort(); onClose(); }} rootClassName="model-service-modal">
         <div className="model-service-header">
-            <h2>{initial ? `管理 ${initial.name}` : "连接你的模型服务"}</h2>
-            <ol className="model-service-steps" aria-label="接入步骤">
-                <li aria-current={step === 0 ? "step" : undefined}><span>{step > 0 ? <Check size={13} /> : "1"}</span>连接服务</li>
-                <li aria-current={step === 1 ? "step" : undefined}><span>2</span>选择模型</li>
+            <h2>{initial ? `management${initial.name}` : "Connect your model service"}</h2>
+            <ol className="model-service-steps" aria-label="Access steps">
+                <li aria-current={step === 0 ? "step" : undefined}><span>{step > 0 ? <Check size={13} /> : "1"}</span>connection service</li>
+                <li aria-current={step === 1 ? "step" : undefined}><span>2</span>Select model</li>
             </ol>
         </div>
         <div className="model-service-body" aria-busy={busy} inert={busy}>
             {step === 0 ? <div className="model-service-connection">
-                <aside className="model-service-providers" aria-label="选择服务商">
-                    <p className="model-service-label">选择服务商</p>
+                <aside className="model-service-providers" aria-label="Choose a service provider">
+                    <p className="model-service-label">Choose a service provider</p>
                     {MODEL_SERVICE_PRESETS.map((preset) => {
                         const selected = !pluginService && !vendor && presetId === preset.id;
                         return <button key={preset.id} type="button" disabled={busy || Boolean(initial)} aria-pressed={selected} className="model-service-provider" onClick={() => choosePreset(preset.id)}>
@@ -278,12 +278,12 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
                         const selected = pluginService?.value === service.value;
                         return <button key={service.value} type="button" disabled={busy || Boolean(initial)} aria-pressed={selected} className="model-service-provider" onClick={() => choosePluginService(service)}>
                             <ModelLogo size={24} />
-                            <span><strong>{service.label}</strong><small>插件提供</small></span>
+                            <span><strong>{service.label}</strong><small>Plug-in provided</small></span>
                             {selected && <Check size={15} />}
                         </button>;
                     })}
                     {vendorList.length > 0 && <div className="model-service-vendors">
-                        <button type="button" className="model-service-more" aria-expanded={vendorsOpen} disabled={Boolean(initial) && !vendor} onClick={() => setMoreVendors(!vendorsOpen)}>更多服务商<ChevronDown size={14} /></button>
+                        <button type="button" className="model-service-more" aria-expanded={vendorsOpen} disabled={Boolean(initial) && !vendor} onClick={() => setMoreVendors(!vendorsOpen)}>More service providers<ChevronDown size={14} /></button>
                         {vendorsOpen && <div className="model-service-vendor-list">
                             {vendorList.map((preset) => {
                                 const selected = vendor?.id === preset.id;
@@ -293,36 +293,36 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
                             })}
                         </div>}
                     </div>}
-                    <div className="model-service-note"><ShieldCheck size={16} /><p>密钥保存在这台设备上。<br />生成费用由服务商结算。</p></div>
+                    <div className="model-service-note"><ShieldCheck size={16} /><p>The key is saved on this device.<br />The generation fee is settled by the service provider.</p></div>
                 </aside>
                 <Form layout="vertical" requiredMark={false} className="model-service-fields" disabled={busy} onFinish={() => void fetchModels()}>
-                    <div className="model-service-form-title">{vendor ? <><ModelLogo size={28} /><div><h3>{vendor.label}</h3><p>填写 API Key 后读取模型。</p></div></> : pluginService ? <><ModelLogo size={28} /><div><h3>{pluginService.label}</h3><p>由插件接入。填好连接信息后，读取或手动添加这个服务能用的模型。</p></div></> : <><ModelLogo icon={selectedPreset.icon} size={28} /><div><h3>{selectedPreset.name}</h3>{presetId === "compatible" && <p>用户可以自行添加第三方模型服务，但是 BeefTV 无法确保所有第三方模型服务的兼容性</p>}{isBuiltinPresetService(presetId) && <p>已预置 {presetModelCount(presetId)} 款{builtinPresetDescription(presetId)}模型及协议，填写 API Key 后可直接「一键保存并启用」，或点「读取模型」拉取在线目录</p>}</div></>}</div>
-                    <Form.Item label="连接名称"><Input aria-label="连接名称" placeholder="例如：我的创作账号" value={draft.name} onChange={(event) => patch({ name: event.target.value })} /></Form.Item>
+                    <div className="model-service-form-title">{vendor ? <><ModelLogo size={28} /><div><h3>{vendor.label}</h3><p>Fill in the API Key and read the model.</p></div></> : pluginService ? <><ModelLogo size={28} /><div><h3>{pluginService.label}</h3><p>Accessed by plug-in. After filling in the connection information, read or manually add the models that can be used by this service.</p></div></> : <><ModelLogo icon={selectedPreset.icon} size={28} /><div><h3>{selectedPreset.name}</h3>{presetId === "compatible" && <p>Users can add third-party model services by themselves, but BeefTV cannot ensure the compatibility of all third-party model services</p>}{isBuiltinPresetService(presetId) && <p>Preset{presetModelCount(presetId)}  money{builtinPresetDescription(presetId)}Model and protocol, after filling in the API Key, you can directly "save and activate with one click", or click "Read Model" to pull the online catalog</p>}</div></>}</div>
+                    <Form.Item label="connection name"><Input aria-label="connection name" placeholder="For example: My creative account" value={draft.name} onChange={(event) => patch({ name: event.target.value })} /></Form.Item>
                     <Form.Item label={credential.apiKeyLabel} help={credential.apiKeyHelp}><Input.Password prefix={<KeyRound size={15} />} aria-label={credential.apiKeyLabel} autoComplete="new-password" placeholder={credential.apiKeyPlaceholder} value={draft.apiKey} onChange={(event) => patch({ apiKey: event.target.value })} /></Form.Item>
-                    <Form.Item label="服务地址"><Input aria-label="服务地址" inputMode="url" placeholder="https://api.example.com/v1" value={draft.baseUrl} onChange={(event) => patch({ baseUrl: event.target.value })} /></Form.Item>
+                    <Form.Item label="Service address"><Input aria-label="Service address" inputMode="url" placeholder="https://api.example.com/v1" value={draft.baseUrl} onChange={(event) => patch({ baseUrl: event.target.value })} /></Form.Item>
                     {!pluginService && <ChannelRequestAddressBlocks channel={draft} />}
-                    <button type="button" className="model-service-advanced" aria-expanded={advanced} onClick={() => setAdvanced(!advanced)}><Settings2 size={15} />高级设置<ChevronDown size={14} /></button>
+                    <button type="button" className="model-service-advanced" aria-expanded={advanced} onClick={() => setAdvanced(!advanced)}><Settings2 size={15} />Advanced settings<ChevronDown size={14} /></button>
                     {advanced && <div className="model-service-advanced-fields">
-                        <Form.Item label="素材服务地址（可选）" help="公网素材域名使用 HTTPS。本机、局域网或 CGNAT 可填写 HTTP，并可带端口。留空时只接受与 API 同主机的素材。"><Input aria-label="素材服务地址" inputMode="url" placeholder="https://assets.example.com" value={draft.referenceAssetOrigin || ""} onChange={(event) => patch({ referenceAssetOrigin: event.target.value })} /></Form.Item>
-                        {!pluginService && <Form.Item label="目录接口格式"><Select aria-label="目录接口格式" value={draft.apiFormat} options={[{ value: "openai", label: "OpenAI 兼容" }, { value: "gemini", label: "Gemini 原生" }]} onChange={(apiFormat) => patch({ apiFormat })} /></Form.Item>}
-                        <Form.Item label={credential.secretKeyRequired ? `${credential.secretKeyLabel} · 必填` : "Secret Key（按需填写）"} help={credential.secretKeyHelp}><Input.Password aria-label={credential.secretKeyLabel} autoComplete="new-password" placeholder={credential.secretKeyRequired ? "粘贴 Secret Key" : ""} value={draft.secretKey} onChange={(event) => patch({ secretKey: event.target.value })} /></Form.Item>
+                        <Form.Item label="Material service address (optional)" help="The public network material domain name uses HTTPS. Local area network or CGNAT can fill in HTTP and can have a port. When left blank only accepts assets from the same host as the API."><Input aria-label="Material service address" inputMode="url" placeholder="https://assets.example.com" value={draft.referenceAssetOrigin || ""} onChange={(event) => patch({ referenceAssetOrigin: event.target.value })} /></Form.Item>
+                        {!pluginService && <Form.Item label="Directory interface format"><Select aria-label="Directory interface format" value={draft.apiFormat} options={[{ value: "openai", label: "OpenAI compatible" }, { value: "gemini", label: "Gemini native" }]} onChange={(apiFormat) => patch({ apiFormat })} /></Form.Item>}
+                        <Form.Item label={credential.secretKeyRequired ? `${credential.secretKeyLabel} · Required` : "Secret Key (fill in as required)"} help={credential.secretKeyHelp}><Input.Password aria-label={credential.secretKeyLabel} autoComplete="new-password" placeholder={credential.secretKeyRequired ? "Paste Secret Key" : ""} value={draft.secretKey} onChange={(event) => patch({ secretKey: event.target.value })} /></Form.Item>
                         <ChannelHeadersEditor value={draft.headers} onChange={(headers) => patch({ headers })} />
                     </div>}
                 </Form>
             </div> : <div className="model-service-models">
-                <div className="model-service-catalog-header"><div><h3>选择你要使用的模型</h3><p>{draft.name || "我的模型服务"} · {catalogRead ? "目录已读取" : "支持手动添加模型"}</p></div><Button icon={<Search size={14} />} loading={busy} disabled={protocolLoading} onClick={() => void fetchModels()}>读取模型</Button></div>
-                <Input aria-label="搜索模型" prefix={<Search size={16} />} placeholder="搜索模型名称" value={query} onChange={(event) => setQuery(event.target.value)} allowClear />
-                <div className="model-service-filter"><Segmented value={filter} onChange={(value) => setFilter(String(value))} options={[{ label: "全部", value: "all" }, ...Object.entries(CAPABILITY_LABELS).map(([value, label]) => ({ value, label }))]} /><span>已选 {draft.models.length} 个</span></div>
+                <div className="model-service-catalog-header"><div><h3>Choose the model you want to use</h3><p>{draft.name || "My model service"} · {catalogRead ? "directory read" : "Supports manual addition of models"}</p></div><Button icon={<Search size={14} />} loading={busy} disabled={protocolLoading} onClick={() => void fetchModels()}>Read model</Button></div>
+                <Input aria-label="Search model" prefix={<Search size={16} />} placeholder="Search model name" value={query} onChange={(event) => setQuery(event.target.value)} allowClear />
+                <div className="model-service-filter"><Segmented value={filter} onChange={(value) => setFilter(String(value))} options={[{ label: "All", value: "all" }, ...Object.entries(CAPABILITY_LABELS).map(([value, label]) => ({ value, label }))]} /><span>Selected{draft.models.length}  a</span></div>
                 <div className="model-service-catalog">
                     {protocolLoading ? <Spin /> : visibleModels.length ? visibleModels.map((item) => {
                         const profile = serviceModelProfile(draft, item, protocols);
                         const receipt = currentModelConnectionReceipt(receipts, draft, item.id);
                         const displayName = seedancePortraitLabel(item.id) || item.displayName || item.id;
-                        return <label key={item.id} className="model-service-model"><Checkbox disabled={busy} checked={draft.models.includes(item.id)} onChange={(event) => toggleModel(item.id, event.target.checked)} /><span><strong>{displayName}</strong>{displayName !== item.id && <small>{item.id}</small>}</span><span className="model-service-kind-wrap" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}><Select aria-label={`${displayName} 模型类型`} className="model-service-kind" size="small" variant="borderless" popupMatchSelectWidth={false} classNames={{ popup: { root: "model-service-type-select-popup" } }} disabled={busy} value={profile.capability} options={Object.entries(CAPABILITY_LABELS).map(([value, label]) => ({ value, label }))} onChange={(nextCapability) => changeModelCapability(item.id, nextCapability)} /></span><small title={receipt?.detail}>{receipt ? receipt.success ? "测试通过" : "测试失败" : "未测试"}</small></label>;
-                    }) : <div className="model-service-empty"><Search size={23} /><strong>{query ? "没有找到匹配的模型" : "添加你的第一个模型"}</strong><p>{query ? "换个关键词，或在下方手动添加。" : "读取服务商的模型目录，或填写准确的模型 ID。"}</p></div>}
+                        return <label key={item.id} className="model-service-model"><Checkbox disabled={busy} checked={draft.models.includes(item.id)} onChange={(event) => toggleModel(item.id, event.target.checked)} /><span><strong>{displayName}</strong>{displayName !== item.id && <small>{item.id}</small>}</span><span className="model-service-kind-wrap" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}><Select aria-label={`${displayName} Model type`} className="model-service-kind" size="small" variant="borderless" popupMatchSelectWidth={false} classNames={{ popup: { root: "model-service-type-select-popup" } }} disabled={busy} value={profile.capability} options={Object.entries(CAPABILITY_LABELS).map(([value, label]) => ({ value, label }))} onChange={(nextCapability) => changeModelCapability(item.id, nextCapability)} /></span><small title={receipt?.detail}>{receipt ? receipt.success ? "Test passed" : "test failed" : "Not tested"}</small></label>;
+                    }) : <div className="model-service-empty"><Search size={23} /><strong>{query ? "No matching model found" : "Add your first model"}</strong><p>{query ? "Change a keyword, or add it manually below." : "Read the service provider's model catalog, or fill in the exact model ID."}</p></div>}
                 </div>
-                <div className="model-service-manual"><Input aria-label="模型 ID" placeholder="手动输入模型 ID" value={manualName} disabled={busy} onChange={(event) => setManualName(event.target.value)} onPressEnter={addManual} /><Select aria-label="模型类型" placeholder="选择类型" value={manualCapability} disabled={busy} popupMatchSelectWidth={false} classNames={{ popup: { root: "model-service-type-select-popup" } }} onChange={setManualCapability} options={Object.entries(CAPABILITY_LABELS).map(([value, label]) => ({ value, label }))} /><Button disabled={busy || protocolLoading || !manualName.trim()} onClick={addManual}>添加</Button></div>
-                {draft.models.length > 0 && <><button type="button" className="model-service-advanced" aria-expanded={editingCapabilities} onClick={() => setEditingCapabilities(!editingCapabilities)}><Settings2 size={15} />高级模型设置与测试<ChevronDown size={14} /></button>{editingCapabilities && <ChannelModelSettings draft channel={draft} focusModel={focusModel} onChange={(modelProfiles) => setDraft((current) => ({ ...current, modelProfiles }))} />}</>}
+                <div className="model-service-manual"><Input aria-label="Model ID" placeholder="Manually enter model ID" value={manualName} disabled={busy} onChange={(event) => setManualName(event.target.value)} onPressEnter={addManual} /><Select aria-label="Model type" placeholder="Select type" value={manualCapability} disabled={busy} popupMatchSelectWidth={false} classNames={{ popup: { root: "model-service-type-select-popup" } }} onChange={setManualCapability} options={Object.entries(CAPABILITY_LABELS).map(([value, label]) => ({ value, label }))} /><Button disabled={busy || protocolLoading || !manualName.trim()} onClick={addManual}>add</Button></div>
+                {draft.models.length > 0 && <><button type="button" className="model-service-advanced" aria-expanded={editingCapabilities} onClick={() => setEditingCapabilities(!editingCapabilities)}><Settings2 size={15} />Advanced model setup and testing<ChevronDown size={14} /></button>{editingCapabilities && <ChannelModelSettings draft channel={draft} focusModel={focusModel} onChange={(modelProfiles) => setDraft((current) => ({ ...current, modelProfiles }))} />}</>}
             </div>}
         </div>
         {/* 提示放在滚动区外面：表单长的时候，滚到底部才看到的错误等于没提示。 */}
@@ -332,8 +332,8 @@ export function ModelServiceEditor({ initial, onClose, onSave }: { initial?: Mod
             {builtinPluginWarning && <Alert type="warning" showIcon title={builtinPluginWarning} />}
             {notice && <Alert type="info" showIcon title={notice} />}
         </div>}
-        <div className="model-service-footer">{step === 1 && <span>保存后，可在创作页选择这些模型</span>}<div>
-            {step === 0 ? <><Button disabled={busy} onClick={() => { if (validateConnection(false)) { setNotice(""); setStep(1); } }}>{isBuiltinPresetService(presetId) ? `查看预置模型 (${draft.models.length})` : "手动添加模型"}</Button>{isBuiltinPresetService(presetId) && <Button disabled={busy || protocolLoading || !draft.models.length || !builtinReady} icon={<Check size={15} />} onClick={() => void save()}>一键保存并启用</Button>}<Button type="primary" loading={busy} disabled={protocolLoading} onClick={() => void fetchModels()}>读取模型</Button></> : <><Button disabled={busy} icon={<ArrowLeft size={15} />} onClick={() => { setStep(0); setError(""); }}>连接信息</Button><Button type="primary" loading={busy} disabled={!draft.models.length || protocolLoading} icon={<Check size={15} />} onClick={() => void save()}>保存并使用</Button></>}
+        <div className="model-service-footer">{step === 1 && <span>After saving, these models can be selected on the creation page</span>}<div>
+            {step === 0 ? <><Button disabled={busy} onClick={() => { if (validateConnection(false)) { setNotice(""); setStep(1); } }}>{isBuiltinPresetService(presetId) ? `View pre-built models (${draft.models.length})` : "Add model manually"}</Button>{isBuiltinPresetService(presetId) && <Button disabled={busy || protocolLoading || !draft.models.length || !builtinReady} icon={<Check size={15} />} onClick={() => void save()}>Save and activate with one click</Button>}<Button type="primary" loading={busy} disabled={protocolLoading} onClick={() => void fetchModels()}>Read model</Button></> : <><Button disabled={busy} icon={<ArrowLeft size={15} />} onClick={() => { setStep(0); setError(""); }}>connection information</Button><Button type="primary" loading={busy} disabled={!draft.models.length || protocolLoading} icon={<Check size={15} />} onClick={() => void save()}>Save and use</Button></>}
         </div></div>
     </AppModal>;
 }

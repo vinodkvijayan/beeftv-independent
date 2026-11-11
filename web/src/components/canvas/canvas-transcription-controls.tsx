@@ -62,9 +62,9 @@ export function CanvasTranscriptionControls({
             const result = await getTranscriptionModels();
             if (!mountedRef.current || request !== requestRef.current) return;
             setModels(result.map((item) => ({ value: item.id, label: `${item.displayName || item.id} · BeefTV` })));
-            if (!result.length) setStatus("当前连接没有可用的云端转写模型");
+            if (!result.length) setStatus("There is no cloud transcription model available for the current connection");
         } catch (error) {
-            if (mountedRef.current && request === requestRef.current && !(error instanceof BeefTVConnectionChangedError)) setStatus(error instanceof Error ? error.message : "读取转写模型失败");
+            if (mountedRef.current && request === requestRef.current && !(error instanceof BeefTVConnectionChangedError)) setStatus(error instanceof Error ? error.message : "Failed to read transcription model");
         } finally {
             if (mountedRef.current && request === requestRef.current) setLoading(false);
         }
@@ -75,7 +75,7 @@ export function CanvasTranscriptionControls({
         busyRef.current = true;
         setRunning(true);
         onRunningChange(true);
-        setStatus("排队中…");
+        setStatus("Queuing up…");
         const controller = new AbortController();
         controllerRef.current = controller;
         const session = beginLocalExecutorSession(projectId, { controller, getLiveProjectId: () => projectRef.current });
@@ -94,22 +94,22 @@ export function CanvasTranscriptionControls({
                     intentRef.current = localExecutorIntentAfterSubmit(clientOperationId, task, intent);
                 },
                 onTaskUpdate: (task) => {
-                    if (mountedRef.current) setStatus(task.stage || "正在转写…");
+                    if (mountedRef.current) setStatus(task.stage || "Transcribing…");
                 },
             });
             intentRef.current = localExecutorIntentAfterSubmit(clientOperationId, task, intent);
             await attachLocalExecutorResult(session, () => {
                 const entries = result.segments.filter((segment) => segment.text.trim() && segment.endMs > segment.startMs).map((segment, index) => ({ ...segment, index: index + 1 }));
                 if (!entries.length) {
-                    setStatus("没有识别出可用字幕");
+                    setStatus("No available subtitles recognized");
                     return;
                 }
                 onResult(entries);
-                setStatus(`已识别 ${entries.length} 条字幕，可编辑后保存或导出 SRT`);
+                setStatus(`Recognized${entries.length} Subtitles can be edited and saved or exported as SRT`);
             });
         } catch (error) {
             intentRef.current = localExecutorIntentAfterError(intentRef.current || intent, error);
-            if (mountedRef.current && !isLocalExecutorSessionStop(error)) setStatus(error instanceof Error ? error.message : "转写失败");
+            if (mountedRef.current && !isLocalExecutorSessionStop(error)) setStatus(error instanceof Error ? error.message : "Transcription failed");
         } finally {
             busyRef.current = false;
             if (mountedRef.current) {
@@ -122,21 +122,21 @@ export function CanvasTranscriptionControls({
     return (
         <div className="media-editor-transcription flex flex-col gap-2" style={{ borderColor: "var(--workspace-border)" }}>
             <div className="flex flex-wrap items-center gap-2">
-                <Select aria-label="转写模型" size="small" className="min-w-[200px] flex-1" value={model} onChange={setModel} disabled={disabled || loading} options={[{ value: "", label: "本地 whisper.cpp" }, ...models]} />
+                <Select aria-label="Transcription model" size="small" className="min-w-[200px] flex-1" value={model} onChange={setModel} disabled={disabled || loading} options={[{ value: "", label: "local whisper.cpp" }, ...models]} />
                 <Button size="small" disabled={disabled} loading={loading} onClick={() => void refresh()}>
-                    刷新转写模型
+                                        Refresh the transcription model
                 </Button>
                 <Button size="small" disabled={disabled || !resourceId || loading} loading={running} onClick={() => void transcribe()}>
-                    自动转写字幕
+                                        Automatically transcribe subtitles
                 </Button>
             </div>
-            <p className="text-xs opacity-60">{!resourceId ? "素材上传完成后即可自动转写。" : model ? "音频将上传到云端识别，并按所选模型计费；转写结果会替换当前字幕草稿。" : "使用本地 whisper.cpp 识别，音视频不出本机；转写结果会替换当前字幕草稿。"}</p>
+            <p className="text-xs opacity-60">{!resourceId ? "Once the material is uploaded, it can be automatically transcribed." : model ? "The audio will be uploaded to the cloud for recognition and billed according to the selected model; the transcription results will replace the current subtitle draft." : "Using local whisper.cpp recognition, the audio and video will not be exported from the device; the transcription result will replace the current subtitle draft."}</p>
             {status && (
                 <p role="status" className="text-xs">
                     {status}
                 </p>
             )}
-            {running && <p className="text-xs opacity-60">关闭窗口后，转写任务仍会继续，可在任务中心查看。</p>}
+            {running && <p className="text-xs opacity-60">After closing the window, the transcription task will still continue and can be viewed in the task center.</p>}
         </div>
     );
 }

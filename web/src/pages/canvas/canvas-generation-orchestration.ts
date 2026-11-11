@@ -113,8 +113,8 @@ export function createImageNodeFromTextSource(input: {
             y: sourceNode.position.y + sourceNode.height / 2,
         },
         {
-            prompt: "@文本1",
-            composerContent: "@文本1",
+            prompt: "@text1",
+            composerContent: "@text1",
             model: input.config.imageModel || input.config.model,
             size: input.config.size,
             quality: input.config.quality,
@@ -122,7 +122,7 @@ export function createImageNodeFromTextSource(input: {
             count: getGenerationCount(input.config.canvasImageCount || input.config.count || ""),
         },
     );
-    imageNode.title = "图片生成";
+    imageNode.title = "Image generation";
     const connection = { id: input.connectionId || nanoid(), fromNodeId: sourceNode.id, toNodeId: imageNode.id };
     const nextNodes = input.nodes.map((item) => (item.id === sourceNode.id ? { ...item, metadata: { ...item.metadata, content: prompt, richText: undefined, prompt, status: NODE_STATUS_SUCCESS } } : item)).concat(imageNode);
     return { ok: true, imageNode, connection, nextNodes, nextConnections: [...input.connections, connection] };
@@ -182,12 +182,12 @@ export async function insertCanvasGenerationHistoryTask(input: {
             model: input.task.model,
             ...(count > 1 ? { taskOutputIndex: index } : {}),
         });
-        node.title = mode === "video" ? "历史视频" : mode === "audio" ? "历史音频" : "历史图片";
+        node.title = mode === "video" ? "historical video" : mode === "audio" ? "Historical audio" : "historical pictures";
         const output = input.task.outputs?.find((output) => output.outputIndex === index && output.materializedAssetId);
         const applied = output && !input.applyResult
             ? await applyMaterializedGenerationTaskResultToNodes([node], input.task, output, `history:${input.task.id}:${node.id}:${index}`, node.id)
             : await (input.applyResult || applyGenerationTaskResultToNodes)([node], input.task, node.id);
-        if (!applied.node) throw new Error("生成结果无法定位到画布节点");
+        if (!applied.node) throw new Error("The generated result cannot be positioned to the canvas node");
         if (input.canContinueWrite && !input.canContinueWrite()) return { node: applied.node, nextNodes: [], abandoned: true };
         const bound = await bindMissingCanvasResourceAssets([applied.node], input.assets, async (item) => {
             if (input.canContinueWrite && !input.canContinueWrite()) throw new CanvasOwnerAbandonedError();
@@ -195,7 +195,7 @@ export async function insertCanvasGenerationHistoryTask(input: {
         });
         const inserted = bound[0];
         if (!inserted || canvasNodesMissingResourceAssetBinding(bound).length) {
-            throw new Error("生成结果尚未进入素材库，无法插入画布");
+            throw new Error("The generated results have not yet entered the material library and cannot be inserted into the canvas.");
         }
         if (input.canContinueWrite && !input.canContinueWrite()) return { node: inserted, nextNodes: [], abandoned: true };
         insertedNodes.push(inserted);

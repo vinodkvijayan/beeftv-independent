@@ -36,7 +36,7 @@ const MENU_MARGIN = 8;
 const MENU_ITEM_HEIGHT = 28;
 const CONTROL_TEXT_STYLE: CSSProperties = { fontFamily: "inherit", fontSize: 11, fontWeight: 400, letterSpacing: 0, lineHeight: 1 };
 
-export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChange, referenceMode = "frames", referenceSummary, middleFrameSupported = false, endFrameSupported = true, referenceLabel = "工作流参考" }: CanvasVideoPromptToolsProps) {
+export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChange, referenceMode = "frames", referenceSummary, middleFrameSupported = false, endFrameSupported = true, referenceLabel = "Workflow reference" }: CanvasVideoPromptToolsProps) {
     const theme = canvasThemes[useActiveTheme()];
     const startFrame = metadata?.videoStartFrameNodeId || EMPTY_FRAME_VALUE;
     const endFrame = metadata?.videoEndFrameNodeId || EMPTY_FRAME_VALUE;
@@ -48,7 +48,7 @@ export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChang
 
     if (referenceMode === "all") {
         const summary = referenceSummary
-            ? [referenceSummary.imageCount ? `${referenceSummary.imageCount} 图` : "", referenceSummary.videoCount ? `${referenceSummary.videoCount} 视频` : "", referenceSummary.audioCount ? `${referenceSummary.audioCount} 音频` : ""]
+            ? [referenceSummary.imageCount ? `${referenceSummary.imageCount} Figure` : "", referenceSummary.videoCount ? `${referenceSummary.videoCount} video` : "", referenceSummary.audioCount ? `${referenceSummary.audioCount} Audio` : ""]
                   .filter(Boolean)
                   .join(" · ")
             : "";
@@ -57,13 +57,13 @@ export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChang
                 className="flex min-h-8 min-w-0 items-center gap-2 rounded-md px-2 py-1.5"
                 data-canvas-no-zoom
                 style={{ background: theme.toolbar.itemHover, color: theme.node.text }}
-                title={referenceLabel === "参考生成" ? "当前为全模态参考模式，已连接的参考图将作为整体参考传入，不区分首尾帧" : "已连接的图片、视频和音频会按工作流字段映射传入"}
+                title={referenceLabel === "Reference generation" ? "Currently in full-modal reference mode, the connected reference image will be passed in as an overall reference, without distinguishing between the first and last frames." : "Connected images, videos, and audio are passed in according to the workflow field mapping"}
                 onMouseDown={(event) => event.stopPropagation()}
                 onPointerDown={(event) => event.stopPropagation()}
             >
                 <ImageIcon className="size-3.5 shrink-0 opacity-80" />
                 <span className="shrink-0 text-[var(--fs-tiny)] font-medium">{referenceLabel}</span>
-                <span className="min-w-0 truncate text-[var(--fs-micro)] opacity-65">{summary || "尚未连接媒体"}</span>
+                <span className="min-w-0 truncate text-[var(--fs-micro)] opacity-65">{summary || "Media not connected yet"}</span>
             </div>
         );
     }
@@ -72,15 +72,15 @@ export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChang
 
     return (
         <div className="grid min-w-0 grid-cols-2 items-center gap-1" data-canvas-no-zoom onMouseDown={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
-            <FrameMenu label="首帧" value={startFrame} options={frameOptions} theme={theme} onChange={(value) => setFrame("videoStartFrameNodeId", value)} />
-            {endFrameSupported ? <FrameMenu label="尾帧" value={endFrame} options={frameOptions} theme={theme} onChange={(value) => setFrame("videoEndFrameNodeId", value)} /> : null}
+            <FrameMenu label="first frame" value={startFrame} options={frameOptions} theme={theme} onChange={(value) => setFrame("videoStartFrameNodeId", value)} />
+            {endFrameSupported ? <FrameMenu label="last frame" value={endFrame} options={frameOptions} theme={theme} onChange={(value) => setFrame("videoEndFrameNodeId", value)} /> : null}
             {middleFrameSupported ? (
                 <>
-                    <FrameMenu label="中间帧" value={metadata?.videoMiddleFrameNodeId || EMPTY_FRAME_VALUE} options={frameOptions} theme={theme} onChange={(v) => onMetadataChange(v === EMPTY_FRAME_VALUE ? { videoMiddleFrameNodeId: undefined, videoMiddleFrameTime: undefined } : { videoMiddleFrameNodeId: v })} />
+                    <FrameMenu label="intermediate frame" value={metadata?.videoMiddleFrameNodeId || EMPTY_FRAME_VALUE} options={frameOptions} theme={theme} onChange={(v) => onMetadataChange(v === EMPTY_FRAME_VALUE ? { videoMiddleFrameNodeId: undefined, videoMiddleFrameTime: undefined } : { videoMiddleFrameNodeId: v })} />
                     <label className="flex min-w-0 items-center gap-1 text-[var(--fs-micro)]">
-                        <span className="shrink-0 whitespace-nowrap">时间（秒）</span>
+                        <span className="shrink-0 whitespace-nowrap">time (seconds)</span>
                         <input
-                            aria-label="中间帧时间（秒）"
+                            aria-label="Intermediate frame time (seconds)"
                             className="min-w-0 w-0 flex-1 rounded border px-1"
                             style={{ color: theme.node.text, background: theme.toolbar.itemHover, borderColor: theme.toolbar.border }}
                             type="number"
@@ -90,7 +90,7 @@ export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChang
                             onChange={(e) => onMetadataChange({ videoMiddleFrameTime: e.target.value === "" ? undefined : Number(e.target.value) })}
                         />
                     </label>
-                    <span className="col-span-2 text-[var(--fs-micro)] opacity-65">中间帧须同时选择首尾帧，仅支持 480P 和 768P。</span>
+                    <span className="col-span-2 text-[var(--fs-micro)] opacity-65">The middle frame must select both the first and last frames. Only 480P and 768P are supported.</span>
                 </>
             ) : null}
         </div>
@@ -99,7 +99,7 @@ export function CanvasVideoPromptTools({ metadata, frameOptions, onMetadataChang
 
 function FrameMenu({ label, value, options, theme, onChange }: { label: string; value: string; options: VideoFrameOption[]; theme: CanvasTheme; onChange: (value: string) => void }) {
     const selected = options.find((item) => item.nodeId === value);
-    const items = [{ value: EMPTY_FRAME_VALUE, label: "不指定" }, ...options.map((option) => ({ value: option.nodeId, label: `${option.label} · ${option.title}`, previewUrl: option.previewUrl }))];
+    const items = [{ value: EMPTY_FRAME_VALUE, label: "Not specified" }, ...options.map((option) => ({ value: option.nodeId, label: `${option.label} · ${option.title}`, previewUrl: option.previewUrl }))];
     return <CompactMenuButton theme={theme} title={label} label={selected?.label || label} icon={<ImageIcon className="size-3.5 shrink-0 opacity-90" />} value={value} items={items} menuWidth={220} maxMenuHeight={208} onSelect={onChange} />;
 }
 

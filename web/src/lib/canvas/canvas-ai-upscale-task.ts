@@ -35,11 +35,11 @@ export function upscaleObservationFailureMetadata(task: Pick<GenerationTask, "id
         taskStatus: task.status,
         status: terminal ? "error" : "loading",
         ...(terminal ? {
-            errorDetails: task.status === "succeeded" ? `云端已完成，结果暂未载入。请从任务详情取回结果，或重新打开画布恢复。${errorDetails}` : `请先在任务详情核对原任务与扣费状态，暂勿重复提交。${errorDetails}`,
+            errorDetails: task.status === "succeeded" ? `The cloud has been completed and the results have not been loaded yet. Please retrieve the results from the task details or reopen the canvas to restore.${errorDetails}` : `Please check the original task and deduction status in the task details first, and do not submit again.${errorDetails}`,
         } : {
-            processingLabel: "超分任务状态待确认",
-            taskStage: "状态同步中断，请重新打开画布查询",
-            errorDetails: "暂时无法同步进度，云端任务可能仍在处理。请重新打开画布查询，暂勿重复提交。",
+            processingLabel: "Super score mission status to be confirmed",
+            taskStage: "Status synchronization interrupted, please reopen canvas query",
+            errorDetails: "The progress cannot be synchronized at the moment, and the cloud task may still be processed. Please reopen the canvas query and do not submit again.",
         }),
     };
 }

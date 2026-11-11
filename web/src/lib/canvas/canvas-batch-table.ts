@@ -2,8 +2,8 @@ import { nanoid } from "nanoid";
 
 import type { CanvasBatchOperation, CanvasBatchReferenceColumn, CanvasBatchRow, CanvasBatchTableData, CanvasConnection, CanvasNodeData } from "@/types/canvas";
 
-export const TRY_ON_BATCH_PROMPT = "参考图1是人物原图，参考图2是目标服装。保持人物身份、五官、姿态和背景不变，将人物服装替换为参考图2中的款式。准确还原服装版型、颜色、材质、纹理和装饰细节，穿着关系自然，光影与原图一致。";
-export const CREATIVE_BATCH_PROMPT = "基于参考图创作一张新的商业图片，保留主体身份和关键产品细节，画面构图完整，光影自然。";
+export const TRY_ON_BATCH_PROMPT = "Reference picture 1 is the original picture of the character, and reference picture 2 is the target costume. Keep the character's identity, facial features, posture and background unchanged, and replace the character's clothing with the style in Figure 2. Accurately restore the clothing style, color, material, texture and decorative details, the wearing relationship is natural, and the light and shadow are consistent with the original image.";
+export const CREATIVE_BATCH_PROMPT = "Create a new commercial picture based on the reference picture, retaining the identity of the subject and key product details, with complete composition and natural light and shadow.";
 export const BATCH_REFERENCE_HANDLE_PREFIX = "batch-reference:";
 /** 两行工具栏（操作栏 44 + 全局提示词 36 + 分隔 1）之后，对准表头中线。 */
 export const BATCH_REFERENCE_HANDLE_TOP = 102;
@@ -20,9 +20,9 @@ export function promoteLegacyBatchTableSize(node: CanvasNodeData): CanvasNodeDat
 
 export function defaultBatchReferenceColumns(): CanvasBatchReferenceColumn[] {
     return [
-        { id: "reference-1", label: "参考图 1" },
-        { id: "reference-2", label: "参考图 2" },
-        { id: "reference-3", label: "参考图 3" },
+        { id: "reference-1", label: "Reference Figure 1" },
+        { id: "reference-2", label: "Reference Figure 2" },
+        { id: "reference-3", label: "Reference Figure 3" },
     ];
 }
 
@@ -37,7 +37,7 @@ export function batchReferenceHandleId(columnId: string) {
 }
 
 export function batchReferenceMentionToken(index: number) {
-    return `@参考图${index + 1}`;
+    return `@reference picture${index + 1}`;
 }
 
 export function batchReferenceColumnId(handleId?: string) {
@@ -71,7 +71,7 @@ export function batchReferenceHandleAtY(node: CanvasNodeData, worldY: number, hi
 export function removeLastBatchReferenceColumn(table: CanvasBatchTableData): CanvasBatchTableData | null {
     const columns = batchReferenceColumns(table);
     if (columns.length <= MIN_BATCH_REFERENCE_COLUMNS) return null;
-    const nextColumns = columns.slice(0, -1).map((column, index) => ({ ...column, label: `参考图 ${index + 1}` }));
+    const nextColumns = columns.slice(0, -1).map((column, index) => ({ ...column, label: `Reference picture${index + 1}` }));
     return {
         ...table,
         referenceColumns: nextColumns,
@@ -89,7 +89,7 @@ export function reorderBatchReferenceColumns(table: CanvasBatchTableData, fromCo
     nextColumns.splice(toIndex, 0, moved);
     return {
         ...table,
-        referenceColumns: nextColumns.map((column, index) => ({ ...column, label: `参考图 ${index + 1}` })),
+        referenceColumns: nextColumns.map((column, index) => ({ ...column, label: `Reference picture${index + 1}` })),
         rows: table.rows.map((row) => ({
             ...row,
             inputNodeIds: nextColumns.map((column) => {

@@ -91,10 +91,10 @@ export function buildAutoDownloadFileName(input: {
 }): string {
     const fallbackTitle =
         input.mediaType === "video"
-            ? "生成视频"
+            ? "Generate video"
             : input.mediaType === "audio"
-              ? "生成音频"
-              : "生成图片";
+              ? "Generate audio"
+              : "Generate pictures";
     const rawTitle = (input.title?.trim() || fallbackTitle).replace(/[\\/]+/g, "_");
     const baseTitle = sanitizeDownloadFileName(rawTitle, fallbackTitle).replace(/\.[a-z0-9]{1,8}$/i, "");
     const ext = mediaFileExtension(input.mimeType, input.url) || defaultExtensionForMediaType(input.mediaType);
@@ -113,7 +113,7 @@ function unmarkTaskAutoDownloaded(taskId: string): void {
 
 async function silentBrowserAutoDownload(options: { fileName: string; resourceId?: string; browserUrl?: string }): Promise<"saved"> {
     const browserUrl = options.browserUrl?.trim();
-    if (!browserUrl) throw new Error("没有可自动下载的文件地址");
+    if (!browserUrl) throw new Error("There is no file address that can be automatically downloaded");
     saveAs(browserUrl, sanitizeDownloadFileName(options.fileName));
     return "saved";
 }

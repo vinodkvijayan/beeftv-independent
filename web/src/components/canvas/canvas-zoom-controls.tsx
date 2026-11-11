@@ -77,7 +77,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
             return;
         }
         const root = rootRef.current;
-        const button = root?.querySelector<HTMLButtonElement>('button[aria-label="缩放画布"]');
+        const button = root?.querySelector<HTMLButtonElement>('button[aria-label="Zoom canvas"]');
         if (!root || !button) return;
         const updateAnchor = () => {
             const rootRect = root.getBoundingClientRect();
@@ -131,14 +131,14 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
     }
 
     const items: FloatingDockEntry[] = [
-        { id: "zoom-connections", label: showConnections ? "隐藏节点连线" : "显示节点连线", icon: <Link2 />, active: showConnections, onClick: onToggleConnections },
-        { id: "zoom-minimap", label: "切换小地图", icon: <Map />, active: isMiniMapOpen, onClick: onToggleMiniMap },
-        { id: "zoom-snap-grid", label: "网格吸附", icon: <Grid3X3 />, active: snapToGrid, onClick: () => onSnapToGridChange(!snapToGrid) },
-        { id: "zoom-fit", label: "适合屏幕", icon: <Focus />, onClick: onFitContent },
-        ...(onAutoArrange ? [{ id: "zoom-auto-arrange", label: "自动整理节点", icon: <LayoutTemplate />, onClick: onAutoArrange }] : []),
+        { id: "zoom-connections", label: showConnections ? "Hidden node connections" : "Show node connections", icon: <Link2 />, active: showConnections, onClick: onToggleConnections },
+        { id: "zoom-minimap", label: "Switch minimap", icon: <Map />, active: isMiniMapOpen, onClick: onToggleMiniMap },
+        { id: "zoom-snap-grid", label: "Grid adsorption", icon: <Grid3X3 />, active: snapToGrid, onClick: () => onSnapToGridChange(!snapToGrid) },
+        { id: "zoom-fit", label: "Fit to screen", icon: <Focus />, onClick: onFitContent },
+        ...(onAutoArrange ? [{ id: "zoom-auto-arrange", label: "Automatically organize nodes", icon: <LayoutTemplate />, onClick: onAutoArrange }] : []),
         {
             id: "zoom-precision",
-            label: "缩放画布",
+            label: "Zoom canvas",
             wide: true,
             quiet: true,
             expands: true,
@@ -158,7 +158,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                         exit={{ opacity: 0, y: 9, scale: 0.96 }}
                         transition={aceternityMotion.spring.panel}
                         role="dialog"
-                        aria-label="缩放画布"
+                        aria-label="Zoom canvas"
                         className="canvas-zoom-menu aceternity-floating-panel absolute bottom-[var(--canvas-dock-popover-offset)] left-0 overflow-hidden border backdrop-blur-2xl"
                         style={{ left: precisionAnchorX ?? undefined, x: precisionAnchorX === null ? 0 : -ZOOM_MENU_HALF_WIDTH, background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.node.text, boxShadow: `0 28px 80px ${theme.spatial.shadow}` }}
                     >
@@ -168,7 +168,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                                 type="text"
                                 inputMode="decimal"
                                 defaultValue={Math.round(scale * 100)}
-                                aria-label="输入画布缩放百分比"
+                                aria-label="Enter the canvas zoom percentage"
                                 autoComplete="off"
                                 spellCheck={false}
                                 onFocus={(event) => event.currentTarget.select()}
@@ -190,13 +190,13 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
 
                         <div className="canvas-zoom-menu-actions">
                             <button type="button" onClick={() => runMenuAction(() => commitScale(liveScaleRef.current + ZOOM_STEP))}>
-                                <span>放大</span><span className="canvas-zoom-shortcut" aria-hidden><kbd>⌘</kbd><span>＋</span></span>
+                                <span>Zoom in</span><span className="canvas-zoom-shortcut" aria-hidden><kbd>⌘</kbd><span>＋</span></span>
                             </button>
                             <button type="button" onClick={() => runMenuAction(() => commitScale(liveScaleRef.current - ZOOM_STEP))}>
-                                <span>缩小</span><span className="canvas-zoom-shortcut" aria-hidden><kbd>⌘</kbd><span>−</span></span>
+                                <span>zoom out</span><span className="canvas-zoom-shortcut" aria-hidden><kbd>⌘</kbd><span>−</span></span>
                             </button>
                             <button type="button" onClick={() => runMenuAction(onFitContent)}>
-                                <span>适合屏幕</span><span className="canvas-zoom-shortcut" aria-hidden><kbd>⌘</kbd><span>0</span></span>
+                                <span>Fit to screen</span><span className="canvas-zoom-shortcut" aria-hidden><kbd>⌘</kbd><span>0</span></span>
                             </button>
                         </div>
 
@@ -205,7 +205,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                         <div className="canvas-zoom-menu-presets">
                             {QUICK_ZOOM_LEVELS.map((level) => (
                                 <button key={level} type="button" onClick={() => runMenuAction(() => commitScale(level))}>
-                                    缩放至{Math.round(level * 100)}%
+                                                                        Zoom to{Math.round(level * 100)}%
                                 </button>
                             ))}
                         </div>
@@ -220,7 +220,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                     ...canvasDockStyle(theme),
                     ...(desktopCompactDock ? { background: "transparent", borderColor: "transparent", boxShadow: "none" } : {}),
                 }}
-                ariaLabel="画布视图控制"
+                ariaLabel="Canvas view control"
                 embedded={desktopCompactDock}
             />
         </div>

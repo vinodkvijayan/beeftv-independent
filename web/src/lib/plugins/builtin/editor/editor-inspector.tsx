@@ -15,8 +15,8 @@ export function EditorInspector() {
         return (
             <div className="flex h-full flex-col bg-[var(--director-sequencer-surface)]">
                 <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
-                    <p className="text-xs text-[var(--director-dock-fg)]/60">未选中片段</p>
-                    <p className="max-w-[180px] text-[11px] leading-relaxed text-[var(--director-dock-fg)]/45">在时间线中点击片段后，可在此编辑属性</p>
+                    <p className="text-xs text-[var(--director-dock-fg)]/60">Unselected clip</p>
+                    <p className="max-w-[180px] text-[11px] leading-relaxed text-[var(--director-dock-fg)]/45">After clicking on a clip in the timeline, you can edit its properties here</p>
                 </div>
             </div>
         );
@@ -25,24 +25,24 @@ export function EditorInspector() {
     return (
         <div className="flex h-full flex-col bg-[var(--director-sequencer-surface)]">
             <div className="director-scroll min-h-0 flex-1 overflow-y-auto px-3 py-3">
-                <SectionTitle>片段</SectionTitle>
+                <SectionTitle>fragment</SectionTitle>
                 <ClipSummary clip={clip} />
-                <SectionTitle>基本</SectionTitle>
+                <SectionTitle>Basic</SectionTitle>
                 <PropertyField
-                    label="名称"
+                    label="Name"
                     value={clip.title ?? clip.nodeId ?? clip.id}
                     onChange={(value) => dispatch({ op: "setClipProperty", payload: { id: clip.id, patch: { title: value } } })}
                 />
                 {clip.kind === "subtitle" && (
                     <PropertyField
-                        label="字幕文本"
+                        label="subtitle text"
                         value={clip.text ?? ""}
                         onChange={(value) => dispatch({ op: "setClipProperty", payload: { id: clip.id, patch: { text: value } } })}
                     />
                 )}
                 {clip.kind === "audio" && (
                     <PropertyField
-                        label="音量"
+                        label="Volume"
                         type="range"
                         min={0}
                         max={1}
@@ -54,9 +54,9 @@ export function EditorInspector() {
                 )}
                 {(clip.kind === "video" || clip.kind === "audio") && (
                     <>
-                        <SectionTitle>转场</SectionTitle>
+                        <SectionTitle>Transition</SectionTitle>
                         <PropertyField
-                            label="淡入"
+                            label="fade in"
                             type="range"
                             min={0}
                             max={2000}
@@ -66,7 +66,7 @@ export function EditorInspector() {
                             onChange={(value) => dispatch({ op: "setClipProperty", payload: { id: clip.id, patch: { fadeInMs: Number(value) } } })}
                         />
                         <PropertyField
-                            label="淡出"
+                            label="fade out"
                             type="range"
                             min={0}
                             max={2000}
@@ -84,7 +84,7 @@ export function EditorInspector() {
                     onClick={() => selectClip(null)}
                     className="w-full rounded-md border border-[var(--director-sequencer-border)] py-1.5 text-xs text-[var(--director-dock-fg)] hover:bg-[var(--director-control-hover)]"
                 >
-                    清除选中
+                                        Clear selection
                 </button>
             </div>
         </div>
@@ -101,11 +101,11 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function ClipSummary({ clip }: { clip: TimelineClip }) {
     const kindLabel: Record<TimelineClip["kind"], string> = {
-        video: "视频",
-        audio: "音频",
-        subtitle: "字幕",
-        text: "文本",
-        image: "图片",
+        video: "video",
+        audio: "Audio",
+        subtitle: "subtitles",
+        text: "text",
+        image: "pictures",
     };
     return (
         <div>
@@ -115,19 +115,19 @@ function ClipSummary({ clip }: { clip: TimelineClip }) {
             </div>
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">起点</dt>
+                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">starting point</dt>
                     <dd className="tabular-nums text-[var(--director-dock-fg)]/80">{formatTimelineTime(clip.startMs)}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">时长</dt>
+                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">duration</dt>
                     <dd className="tabular-nums text-[var(--director-dock-fg)]/80">{formatTimelineTime(clip.durationMs)}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">源起点</dt>
+                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">Source starting point</dt>
                     <dd className="tabular-nums text-[var(--director-dock-fg)]/80">{formatTimelineTime(clip.sourceStartMs ?? 0)}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">结束</dt>
+                    <dt className="shrink-0 text-[var(--director-dock-fg)]/45">end</dt>
                     <dd className="tabular-nums text-[var(--director-dock-fg)]/80">{formatTimelineTime(clip.startMs + clip.durationMs)}</dd>
                 </div>
             </dl>

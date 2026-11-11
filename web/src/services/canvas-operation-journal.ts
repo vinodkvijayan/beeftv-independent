@@ -85,7 +85,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 function asNonNegativeInteger(value: unknown, label: string): number {
     if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
-        throw new CanvasJournalError(`画布提交日记 ${label} 无效`);
+        throw new CanvasJournalError(`Canvas Submission Diary${label} Invalid`);
     }
     return value;
 }
@@ -93,27 +93,27 @@ function asNonNegativeInteger(value: unknown, label: string): number {
 function parseConfirmedSnapshot(value: unknown, canvasId: string): CanvasProject | null {
     if (value == null) return null;
     if (!isPlainObject(value) || typeof value.id !== "string" || value.id !== canvasId) {
-        throw new CanvasJournalError("画布提交日记快照无效");
+        throw new CanvasJournalError("Canvas commit journal snapshot is invalid");
     }
     return value as unknown as CanvasProject;
 }
 
 function parseInFlight(value: unknown, canvasId: string): CanvasInFlightCommit | null {
     if (value == null) return null;
-    if (!isPlainObject(value)) throw new CanvasJournalError("画布提交日记在途操作无效");
+    if (!isPlainObject(value)) throw new CanvasJournalError("Canvas submission journal operation is invalid in transit");
     const operationId = value.operationId;
     if (typeof operationId !== "string" || !operationId) {
-        throw new CanvasJournalError("画布提交日记 operationId 无效");
+        throw new CanvasJournalError("Canvas submission journal operationId is invalid");
     }
     const expectedRevision = asNonNegativeInteger(value.expectedRevision, "expectedRevision");
-    if (!isPlainObject(value.payload)) throw new CanvasJournalError("画布提交日记 payload 无效");
+    if (!isPlainObject(value.payload)) throw new CanvasJournalError("Canvas submission journal payload is invalid");
     const payload = value.payload;
-    if (payload.canvasId !== canvasId) throw new CanvasJournalError("画布提交日记 payload 作用域不匹配");
+    if (payload.canvasId !== canvasId) throw new CanvasJournalError("Canvas commit journal payload scope mismatch");
     const payloadExpected = asNonNegativeInteger(payload.expectedRevision, "payload.expectedRevision");
     if (payloadExpected !== expectedRevision) {
-        throw new CanvasJournalError("画布提交日记 payload revision 不一致");
+        throw new CanvasJournalError("Canvas commit journal payload revision inconsistent");
     }
-    if (!isPlainObject(payload.document)) throw new CanvasJournalError("画布提交日记 payload 文档无效");
+    if (!isPlainObject(payload.document)) throw new CanvasJournalError("Canvas submission journal payload document is invalid");
     return {
         operationId,
         expectedRevision,
@@ -127,21 +127,21 @@ function parseInFlight(value: unknown, canvasId: string): CanvasInFlightCommit |
 
 function parsePendingProjection(value: unknown, canvasId: string): CanvasPendingProjection | null {
     if (value == null) return null;
-    if (!isPlainObject(value)) throw new CanvasJournalError("画布投影恢复状态无效");
+    if (!isPlainObject(value)) throw new CanvasJournalError("Canvas projection recovery state is invalid");
     if (typeof value.identity !== "string" || !value.identity) {
-        throw new CanvasJournalError("画布投影 identity 无效");
+        throw new CanvasJournalError("Canvas projection identity is invalid");
     }
     const revision = asNonNegativeInteger(value.revision, "pendingProjection.revision");
     const base = parseConfirmedSnapshot(value.base, canvasId);
     const remote = parseConfirmedSnapshot(value.remote, canvasId);
-    if (!base || !remote) throw new CanvasJournalError("画布投影恢复快照无效");
+    if (!base || !remote) throw new CanvasJournalError("Canvas projection recovery snapshot is invalid");
     return { identity: value.identity, revision, base, remote };
 }
 
 function parseCanvasOperationJournal(raw: unknown, scope: string, canvasId: string): CanvasOperationJournal {
-    if (!isPlainObject(raw)) throw new CanvasJournalError("画布提交日记损坏");
+    if (!isPlainObject(raw)) throw new CanvasJournalError("Canvas commit journal corrupted");
     if (raw.userScope !== scope || raw.canvasId !== canvasId) {
-        throw new CanvasJournalError("画布提交日记作用域不匹配");
+        throw new CanvasJournalError("Canvas commit journal scope mismatch");
     }
     return {
         userScope: scope,
@@ -169,7 +169,7 @@ async function readJournalUnlocked(canvasId: string, scope: string): Promise<Can
     try {
         raw = await localForageStorageForScope(scope).getItem(journalName(canvasId));
     } catch (error) {
-        throw new CanvasJournalError("画布提交日记读取失败", { cause: error });
+        throw new CanvasJournalError("Canvas commit journal read failed", { cause: error });
     }
     if (raw == null || raw === "") {
         const journal = emptyJournal(scope, canvasId);
@@ -180,7 +180,7 @@ async function readJournalUnlocked(canvasId: string, scope: string): Promise<Can
     try {
         parsed = JSON.parse(raw);
     } catch (error) {
-        throw new CanvasJournalError("画布提交日记无法解析", { cause: error });
+        throw new CanvasJournalError("Canvas commit journal cannot be parsed", { cause: error });
     }
     const journal = parseCanvasOperationJournal(parsed, scope, canvasId);
     memory.set(key, journal);

@@ -12,7 +12,7 @@ export const UPSCALE_RECOVER_TIMEOUT_MS = 60_000;
 
 export const getUpscaleCapabilities = () => http.get<UpscaleCapabilities>("/media-upscale/capabilities");
 export const estimateUpscale = (params: UpscaleParams) => http.post<UpscaleEstimate>("/media-upscale/estimate", params, { timeout: UPSCALE_ESTIMATE_TIMEOUT_MS }).then(quote => {
-    if (quote.currency !== "CNY" || !Number.isFinite(quote.reservation) || quote.reservation <= 0 || quote.generationSubmitted !== false) throw new Error("超分费用未能确认，请重新获取");
+    if (quote.currency !== "CNY" || !Number.isFinite(quote.reservation) || quote.reservation <= 0 || quote.generationSubmitted !== false) throw new Error("The excess fee cannot be confirmed, please obtain it again.");
     return quote;
 });
 export function createUpscaleTask(params: UpscaleParams & { clientOperationId: string; projectId: string; nodeId: string }) {

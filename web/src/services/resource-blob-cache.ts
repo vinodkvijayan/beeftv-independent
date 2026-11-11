@@ -68,7 +68,7 @@ export async function cacheResourceImagePreviewObjectUrl(storageKey: string, max
         if (reload && previous) URL.revokeObjectURL(previous);
         return url;
     }).catch((error) => {
-        console.warn("图片预览生成失败，保留原图显示", { resourceId: target.resourceId, error });
+        console.warn("Image preview generation failed, retain the original image display", { resourceId: target.resourceId, error });
         return cacheResourceObjectUrl(storageKey);
     }).finally(() => inFlight.delete(requestKey));
     inFlight.set(requestKey, task);
@@ -132,7 +132,7 @@ export function scheduleResourceBlobCache(storageKey: string, delayMs = 4_000) {
         })
             .catch((error) => {
                 // 这是播放后的后台缓存优化，不应让播放器失败；但下载/持久化异常必须可观测。
-                console.warn("后台缓存资源 Blob 失败", { storageKey, error });
+                console.warn("Backend cache resource blob failed", { storageKey, error });
                 return "";
             })
             .finally(() => scheduled.delete(requestKey));
@@ -206,7 +206,7 @@ function enqueuePersist(target: ResourceCacheMeta, blob: Blob) {
     // IndexedDB 缓存是读性能优化，不得反向判定服务端资源上传失败；但失败必须可观测，
     // 并把队列恢复为 fulfilled，避免一个坏条目永久阻断后续缓存写入。
     const observed = task.catch((error) => {
-        console.warn("媒体缓存持久化失败，当前会话仍可继续读取", { resourceId: target.resourceId, version: target.version, error });
+        console.warn("Media cache persistence failed, the current session can still continue to read", { resourceId: target.resourceId, version: target.version, error });
     });
     persistQueue = observed;
     return observed;
@@ -243,7 +243,7 @@ async function persistBlob(target: ResourceCacheMeta, blob: Blob) {
             const cleanupResults = await Promise.allSettled([blobStore.removeItem(target.key), metaStore.removeItem(target.key)]);
             const cleanupError = cleanupResults.find((result): result is PromiseRejectedResult => result.status === "rejected")?.reason;
             if (cleanupError) {
-                console.error("媒体缓存写入失败后的清理也失败", {
+                console.error("Cleanup after media cache write failure also fails", {
                     resourceId: target.resourceId,
                     version: target.version,
                     firstError,
@@ -276,7 +276,7 @@ function readPersistedBlob(target: ResourceCacheMeta) {
     const pending = persistedReads.get(requestKey);
     if (pending) return pending;
     const read = blobStore.getItem<Blob>(target.key).catch((error) => {
-        console.warn("媒体缓存读取失败，重新下载资源", { resourceId: target.resourceId, error });
+        console.warn("Failed to read media cache, re-download resources", { resourceId: target.resourceId, error });
         return null;
     }).finally(() => persistedReads.delete(requestKey));
     persistedReads.set(requestKey, read);
@@ -320,7 +320,7 @@ function touchCacheMetaSafely(target: ResourceCacheMeta) {
         // 访问时间只服务于缓存淘汰，不影响资源读取；失败可降级，但不能无痕吞掉。
         if (cacheMetaTouchWarnings.has(target.key)) return;
         cacheMetaTouchWarnings.add(target.key);
-        console.warn("更新资源缓存访问时间失败", { storageKey: target.key, error });
+        console.warn("Failed to update resource cache access time", { storageKey: target.key, error });
     });
 }
 

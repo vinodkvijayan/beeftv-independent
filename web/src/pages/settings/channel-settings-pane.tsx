@@ -114,8 +114,8 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
         updateChannels(channels, baseConfig);
         await flushModelConfig();
         const saved = getModelConfigPersistenceState();
-        if (saved.status === "error" || saved.dirty) throw new Error(saved.error || "模型服务尚未保存，请重试");
-        message.success("模型服务已保存，可在创作页选择模型");
+        if (saved.status === "error" || saved.dirty) throw new Error(saved.error || "The model service has not been saved, please try again");
+        message.success("The model service has been saved. You can select the model on the creation page.");
     };
 
     const closeChannelEditor = () => {
@@ -128,7 +128,7 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
         const latest = useConfigStore.getState().config;
         const channel = latest.channels.find((item) => item.id === id);
         if (channel && (channel.scope === "system" || isBuiltinBeefTVChannel(channel))) {
-            message.warning("系统渠道由管理员维护");
+            message.warning("System channels are maintained by administrators");
             return;
         }
         deleting.current.add(id);
@@ -139,13 +139,13 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
             await commitModelConfig(next);
             await flushModelConfig();
             const saved = getModelConfigPersistenceState();
-            if (saved.status === "error" || saved.dirty) throw new Error(saved.error || "删除尚未保存");
+            if (saved.status === "error" || saved.dirty) throw new Error(saved.error || "Delete not saved");
             setDeleteFailures((items) => { const next = { ...items }; delete next[id]; return next; });
             recordChannelDelete({ scope: channel?.scope, before: latest.channels.length, after: next.channels.length });
-            message.success("渠道已删除并保存");
+            message.success("Channel deleted and saved");
         } catch (error) {
-            const detail = error instanceof Error ? error.message : "保存失败";
-            setDeleteFailures((items) => ({ ...items, [id]: `${channel?.name || "渠道"}删除尚未保存：${detail}。请重试，重新加载可能恢复原渠道。` }));
+            const detail = error instanceof Error ? error.message : "Save failed";
+            setDeleteFailures((items) => ({ ...items, [id]: `${channel?.name || "channel"}Delete not yet saved:${detail}. Please try again, reloading may restore the original channel.` }));
         } finally {
             deleting.current.delete(id);
         }
@@ -159,7 +159,7 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
         if (isTopazUpscaleChannel(channel)) return;
         const connectionError = channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null);
         if (connectionError) {
-            message.error(`${channel.name || "当前渠道"}：${connectionError}`);
+            message.error(`${channel.name || "current channel"}：${connectionError}`);
             return;
         }
         setChannelLoading(channel.id, true);
@@ -168,14 +168,14 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
             const result = await fetchChannelModels(channel, true, request.signal);
             if (!requests.current.current(channel.id, request)) return;
             if (!result.models.length) {
-                message.warning(`${channel.name || "当前渠道"}未返回模型，已保留现有手工模型`);
+                message.warning(`${channel.name || "current channel"}No model returned, existing handmade model retained`);
                 return;
             }
             const latestConfig = useConfigStore.getState().config;
             const latestChannel = latestConfig.channels.find((item) => item.id === channel.id);
             if (!latestChannel) return;
             if (channelConnectionSignature(latestChannel) !== channelConnectionSignature(channel)) {
-                message.warning(`${latestChannel.name || "当前渠道"}的连接配置已改变，已忽略旧的拉取结果`);
+                message.warning(`${latestChannel.name || "current channel"}The connection configuration has changed and old pull results have been ignored`);
                 return;
             }
             if (localMode && isBuiltinBeefTVChannel(latestChannel)) {
@@ -192,7 +192,7 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                 );
             }
             await flushModelConfig();
-            message.success(`${latestChannel.name || "当前渠道"}模型列表已更新`);
+            message.success(`${latestChannel.name || "current channel"}Model list updated`);
         } catch (error) {
             if (requests.current.current(channel.id, request)) message.error(channelModelFetchErrorMessage(error));
         } finally {
@@ -206,8 +206,8 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
         const runnable = catalogChannels.filter((channel) => !channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null));
         const skipped = catalogChannels.filter((channel) => channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null));
         if (!runnable.length) {
-            const detail = skipped.map((channel) => `${channel.name || "未命名渠道"}：${channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null)}`).join("；");
-            message.error(detail || "没有可拉取的个人模型渠道，请先填写有效 Base URL 和 API Key");
+            const detail = skipped.map((channel) => `${channel.name || "unnamed channel"}：${channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null)}`).join("；");
+            message.error(detail || "There is no personal model channel to pull, please fill in the valid Base URL and API Key first");
             return;
         }
         setChannelLoading("all", true);
@@ -252,16 +252,16 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                     config: mergeManagedBeefTVCatalog(updated, server.config),
                 }).config) : updated);
                 await flushModelConfig();
-                message.success(`已更新 ${successful.length} 个渠道的模型`);
+                message.success(`updated${successful.length} channel model`);
             }
             const warnings = [
-                ...failed.map((item) => `${item.channel.name || "未命名渠道"}：${item.error || "未返回模型"}`),
-                ...stale.map((item) => `${item.channel.name || "未命名渠道"}：连接配置已改变，已忽略旧结果`),
-                ...skipped.map((channel) => `${channel.name || "未命名渠道"}：${channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null)}`),
+                ...failed.map((item) => `${item.channel.name || "unnamed channel"}：${item.error || "No model returned"}`),
+                ...stale.map((item) => `${item.channel.name || "unnamed channel"}: The connection configuration has changed and old results have been ignored`),
+                ...skipped.map((channel) => `${channel.name || "unnamed channel"}：${channelConnectionError(channel, isBuiltinBeefTVChannel(channel) ? beefConnection : null)}`),
             ];
-            if (warnings.length) message.warning(`${warnings.join("；")}。未更新的渠道已保留原有模型列表`);
+            if (warnings.length) message.warning(`${warnings.join("；")}. Channels that have not been updated have retained the original model list`);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "批量读取模型失败，原有模型列表未改动");
+            message.error(error instanceof Error ? error.message : "Batch reading of models failed, the original model list has not been changed");
         } finally {
             for (const [id, request] of batch) requests.current.finish(id, request);
             setChannelLoading("all", false);
@@ -270,17 +270,17 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
 
     return (
         <Form layout="vertical" requiredMark={false}>
-            {Object.entries(deleteFailures).map(([id, detail]) => <Alert key={id} type="error" showIcon title={detail} action={<Button onClick={() => void deleteChannel(id)}>重试删除</Button>} />)}
+            {Object.entries(deleteFailures).map(([id, detail]) => <Alert key={id} type="error" showIcon title={detail} action={<Button onClick={() => void deleteChannel(id)}>Retry deletion</Button>} />)}
             <PageHeader
-                title={localMode ? "本地模型渠道" : "个人渠道"}
+                title={localMode ? "local model channel" : "personal channel"}
                 actions={(
                     <div className="settings-pane-header-actions flex w-full gap-2 sm:w-auto sm:shrink-0">
-                    {onOpenDiagnostics ? <Button className="h-10 flex-1 sm:h-8 sm:flex-none" icon={<Bug className="size-4" />} onClick={onOpenDiagnostics}>问题诊断</Button> : null}
+                    {onOpenDiagnostics ? <Button className="h-10 flex-1 sm:h-8 sm:flex-none" icon={<Bug className="size-4" />} onClick={onOpenDiagnostics}>Problem diagnosis</Button> : null}
                     <Button className="h-10 flex-1 sm:h-8 sm:flex-none" icon={<RefreshCw className="size-4" />} loading={loadingChannelIds.includes("all")} disabled={loadingChannelIds.some((id) => id !== "all") || !userChannels.some(channel => !isTopazUpscaleChannel(channel))} onClick={() => void refreshAllModels()}>
-                        拉取全部渠道模型
+                                                Pull all channel models
                     </Button>
                     <Button type="primary" className="h-10 flex-1 sm:h-8 sm:flex-none" icon={<Plus className="size-4" />} onClick={addChannel}>
-                        添加模型服务
+                                                Add model service
                     </Button>
                     </div>
                 )}
@@ -298,24 +298,24 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                     <div className="min-w-0 flex-1 basis-52">
                                         <h3 id={`channel-${channel.id}-title`} className="flex items-center gap-2 text-sm font-semibold">
                                             {builtinBeefTV ? <img src={beefTVAppIcon} alt="" className="size-5 shrink-0 object-contain" draggable={false} /> : <ModelLogo icon={MODEL_SERVICE_PRESETS.find((preset) => preset.id === servicePresetFor(channel))?.icon} size={20} />}
-                                            {builtinBeefTV ? "BeefTV" : channel.name || "未命名渠道"}
+                                            {builtinBeefTV ? "BeefTV" : channel.name || "unnamed channel"}
                                         </h3>
                                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-foreground/55">
                                             {builtinBeefTV ? (
                                                 <>
-                                                    <span>已保存 {channel.models.length} 个模型</span>
-                                                    <span>BeefTV 官方算力渠道，一键连接、开箱即用</span>
+                                                    <span>saved{channel.models.length}  models</span>
+                                                    <span>BeefTV official computing power channel, one-click connection, ready to use out of the box</span>
                                                 </>
                                             ) : (
-                                                <span>{pluginChannel ? "插件提供" : channelProtocolLabel(channel)} · 已保存 {channel.models.length} 个模型</span>
+                                                <span>{pluginChannel ? "Plug-in provided" : channelProtocolLabel(channel)}  · Saved{channel.models.length}  models</span>
                                             )}
                                             <ChannelStatus channel={channel} persistence={persistence} connection={builtinBeefTV ? beefConnection : null} />
                                         </div>
-                                        {topazUpscale ? <p className="mt-1 text-xs text-foreground/55">从图片或视频节点上方的「AI超分」使用</p> : null}
+                                        {topazUpscale ? <p className="mt-1 text-xs text-foreground/55">Use "AI Super Score" above the image or video node</p> : null}
                                         {!builtinBeefTV && !topazUpscale && !pluginChannel && <ChannelRequestAddressLines channel={channel} />}
                                     </div>
                                     <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto sm:shrink-0">
-                                        {builtinBeefTV && catalogSyncFailed ? <Button loading={beefBusy} onClick={() => void retryCatalog()}>重试更新模型列表</Button> : null}
+                                        {builtinBeefTV && catalogSyncFailed ? <Button loading={beefBusy} onClick={() => void retryCatalog()}>Retry updating model list</Button> : null}
                                         {builtinBeefTV ? (
                                             <BeefTVConnectionActions
                                                 connection={beefConnection}
@@ -336,7 +336,7 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                             disabled={loadingChannelIds.includes("all") || (builtinBeefTV && beefConnection?.state !== "connected")}
                                             onClick={() => void refreshChannelModels(channel)}
                                         >
-                                            拉取模型
+                                                                                        Pull model
                                         </Button>
                                         ) : null}
                                         <Button
@@ -349,14 +349,14 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                                 setEditingChannelId(channel.id);
                                             }}
                                         >
-                                            编辑
+                                                                                        Edit
                                         </Button>
                                         {!builtinBeefTV ? (
-                                            <Popconfirm classNames={{ root: "model-channel-delete-confirm" }} title="删除个人模型渠道？" description="该渠道关联的模型选择会同时移除。" okText="删除" cancelText="取消" okButtonProps={{ danger: true }} onOpenChange={recordChannelDeleteConfirmOpen} onConfirm={() => deleteChannel(channel.id)}>
+                                            <Popconfirm classNames={{ root: "model-channel-delete-confirm" }} title="Delete personal model channel?" description="The model selections associated with the channel are also removed." okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }} onOpenChange={recordChannelDeleteConfirmOpen} onConfirm={() => deleteChannel(channel.id)}>
                                                     <Button
-                                                        title="删除渠道"
+                                                        title="Delete channel"
                                                         className="size-10 p-0 sm:size-8"
-                                                        aria-label={`删除渠道 ${channel.name || "未命名渠道"}`}
+                                                        aria-label={`Delete channel${channel.name || "unnamed channel"}`}
                                                         size="small"
                                                         type="text"
                                                         danger
@@ -369,17 +369,17 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                 {editing && (
                                     <ModelEditorModal
                                         open
-                                        title={channel.id === newChannelId ? "新增自定义渠道" : "编辑自定义渠道"}
+                                        title={channel.id === newChannelId ? "Add custom channels" : "Edit custom channels"}
                                         subtitle={channel.name}
                                         onClose={closeChannelEditor}
                                         footer={
                                             <div className="model-editor-footer">
-                                                <span className="text-xs text-foreground/50">{localMode ? "更改实时保存到本地工作区" : "更改实时保存到云端渠道配置"}</span>
+                                                <span className="text-xs text-foreground/50">{localMode ? "Changes are saved to the local workspace in real time" : "Changes are saved to the cloud channel configuration in real time"}</span>
                                                 <div className="model-editor-footer-actions">
                                                     <Button loading={loadingChannelIds.includes(channel.id)} onClick={() => void refreshChannelModels(channel)}>
-                                                        拉取模型
+                                                        Pull model
                                                     </Button>
-                                                    <Button onClick={closeChannelEditor}>完成</Button>
+                                                    <Button onClick={closeChannelEditor}>Done</Button>
                                                 </div>
                                             </div>
                                         }
@@ -387,21 +387,21 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                         <div className="model-editor-panel">
                                             <section className="model-editor-section">
                                                 <div>
-                                                    <h2>连接信息</h2>
-                                                    <p className="mt-1 text-xs text-foreground/50">用于拉取模型目录并向当前渠道发起请求。</p>
+                                                    <h2>connection information</h2>
+                                                    <p className="mt-1 text-xs text-foreground/50">Used to pull the model directory and make a request to the current channel.</p>
                                                 </div>
                                                 <div className="model-editor-connection-fields grid gap-3 sm:grid-cols-2">
-                                                    <Form.Item label="渠道名称" htmlFor={`channel-${channel.id}-name`} className="mb-0 sm:col-span-1">
+                                                    <Form.Item label="Channel name" htmlFor={`channel-${channel.id}-name`} className="mb-0 sm:col-span-1">
                                                         <Input
                                                             id={`channel-${channel.id}-name`}
                                                             value={channel.name}
                                                             disabled={builtinBeefTV}
-                                                            placeholder="例如：我的 NewAPI"
+                                                            placeholder="For example: My NewAPI"
                                                             onChange={(event) => updateChannel(channel.id, { name: event.target.value })}
-                                                            onBlur={(event) => updateChannel(channel.id, { name: event.target.value.trim() || "未命名渠道" })}
+                                                            onBlur={(event) => updateChannel(channel.id, { name: event.target.value.trim() || "unnamed channel" })}
                                                         />
                                                     </Form.Item>
-                                                    <Form.Item label="目录连接类型" className="mb-0 sm:col-span-1" extra={builtinBeefTV ? "应用内置适配" : "仅影响模型目录拉取。"}>
+                                                    <Form.Item label="Directory connection type" className="mb-0 sm:col-span-1" extra={builtinBeefTV ? "In-app adaptation" : "Only affects model directory pulls."}>
                                                         <Segmented<UserChannelConnection>
                                                             block
                                                             disabled={builtinBeefTV}
@@ -419,15 +419,15 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                                             inputMode="url"
                                                             value={channel.baseUrl}
                                                             disabled={builtinBeefTV}
-                                                            placeholder={localMode ? "填写本地服务 Base URL" : "填写云端渠道 Base URL"}
+                                                            placeholder={localMode ? "Fill in the local service Base URL" : "Fill in the cloud channel Base URL"}
                                                             onChange={(event) => updateChannel(channel.id, { baseUrl: event.target.value })}
                                                             onBlur={(event) => updateChannel(channel.id, { baseUrl: event.target.value.trim().replace(/\/+$/u, "") })}
                                                         />
                                                     </Form.Item>
                                                     {builtinBeefTV ? (
-                                                        <Form.Item label="账号连接" className="mb-0 sm:col-span-2">
+                                                        <Form.Item label="Account connection" className="mb-0 sm:col-span-2">
                                                             <p className="m-0 text-sm leading-6 text-foreground/80">{beefTVConnectionLabel(beefConnection)}</p>
-                                                            {beefConnection?.balance === "zero" ? <p className="mt-1 text-xs leading-5 text-foreground/55">余额为 0 时仍可查看模型。生成时会提示余额不足。</p> : null}
+                                                            {beefConnection?.balance === "zero" ? <p className="mt-1 text-xs leading-5 text-foreground/55">The model can still be viewed when the balance is 0. An insufficient balance will be prompted when generating.</p> : null}
                                                         </Form.Item>
                                                     ) : (
                                                         <>
@@ -436,17 +436,17 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                                                     id={`channel-${channel.id}-api-key`}
                                                                     autoComplete="new-password"
                                                                     value={channel.apiKey}
-                                                                    placeholder={channel.apiFormat === "gemini" ? "填写 Gemini API Key" : "填写当前渠道 API Key"}
+                                                                    placeholder={channel.apiFormat === "gemini" ? "Fill in the Gemini API Key" : "Fill in the current channel API Key"}
                                                                     onChange={(event) => updateChannel(channel.id, { apiKey: event.target.value })}
                                                                     onBlur={(event) => updateChannel(channel.id, { apiKey: event.target.value.trim() })}
                                                                 />
                                                             </Form.Item>
-                                                            <Form.Item label="Secret Key（可选）" htmlFor={`channel-${channel.id}-secret-key`} className="mb-0 sm:col-span-1" extra="即梦等 AK/SK 协议需要；其他协议留空。">
+                                                            <Form.Item label="Secret Key (optional)" htmlFor={`channel-${channel.id}-secret-key`} className="mb-0 sm:col-span-1" extra="Required for AK/SK protocols such as Dream; leave blank for other protocols.">
                                                                 <Input.Password
                                                                     id={`channel-${channel.id}-secret-key`}
                                                                     autoComplete="new-password"
                                                                     value={channel.secretKey || ""}
-                                                                    placeholder="填写 Secret Key"
+                                                                    placeholder="Fill in Secret Key"
                                                                     onChange={(event) => updateChannel(channel.id, { secretKey: event.target.value })}
                                                                     onBlur={(event) => updateChannel(channel.id, { secretKey: event.target.value.trim() })}
                                                                 />
@@ -460,10 +460,10 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                             </section>
                                             <section className="model-editor-section">
                                                 <div>
-                                                    <h2>模型与能力</h2>
-                                                    <p className="mt-1 text-xs text-foreground/50">维护渠道模型，并在单个模型中配置能力、接口格式和定价。</p>
+                                                    <h2>Models and Capabilities</h2>
+                                                    <p className="mt-1 text-xs text-foreground/50">Maintain channel models and configure capabilities, interface formats, and pricing in a single model.</p>
                                                 </div>
-                                                <Form.Item label="模型列表" htmlFor={`channel-${channel.id}-models`} className="mb-0">
+                                                <Form.Item label="Model list" htmlFor={`channel-${channel.id}-models`} className="mb-0">
                                                     <Select
                                                         id={`channel-${channel.id}-models`}
                                                         mode="tags"
@@ -471,7 +471,7 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                                                         allowClear
                                                         maxTagCount="responsive"
                                                         tokenSeparators={[",", "\n"]}
-                                                        placeholder="输入模型名，或点击拉取模型"
+                                                        placeholder="Enter the model name or click to pull the model"
                                                         value={channel.models}
                                                         onChange={(models) => updateChannel(channel.id, { models: uniqueModels(models) })}
                                                     />
@@ -489,10 +489,10 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
                 <WorkspaceState
                     icon="settings"
                     compact
-                    title="连接你的第一个模型服务"
+                    title="Connect your first model service"
                     action={
                         <Button icon={<Plus className="size-4" />} onClick={addChannel}>
-                            添加模型服务
+                                                        Add model service
                         </Button>
                     }
                 />
@@ -503,7 +503,7 @@ export function ChannelSettingsPane({ onOpenDiagnostics, onOpenModels }: Channel
 }
 
 export function channelValidationError(channel: ModelChannel, connection?: BeefTVConnectionSummary | null) {
-    return channelConnectionError(channel, connection) || validateChannelHeaders(channel.headers) || (!channel.models.length ? "请添加至少一个模型" : "");
+    return channelConnectionError(channel, connection) || validateChannelHeaders(channel.headers) || (!channel.models.length ? "Please add at least one model" : "");
 }
 
 export function isChannelReady(channel: ModelChannel) {
@@ -527,7 +527,7 @@ function ChannelStatus({ channel, persistence, connection }: { channel: ModelCha
     const failed = tested.filter((result) => result && !result.success).length;
     const error = channelValidationError(channel, connection);
     const label = modelConfigChannelStatusLabel(channel, persistence, connection);
-    const testLabel = failed ? `${failed} 个模型测试失败` : passed ? `${passed}/${channel.models.length} 个模型测试通过` : label;
+    const testLabel = failed ? `${failed} model tests failed` : passed ? `${passed}/${channel.models.length} model test passed` : label;
     return (
         <span className={`settings-channel-status ${error || failed ? "is-warning" : "is-ready"}`}>
             <i aria-hidden="true" />
@@ -541,14 +541,14 @@ export function modelConfigChannelStatusLabel(channel: ModelChannel, persistence
     if (isBuiltinBeefTVChannel(channel)) {
         if (connection?.state === "connected") return beefTVConnectionLabel(connection);
         if (connection?.state && connection.state !== "disconnected") return beefTVConnectionLabel(connection);
-        if (channelHasManagedBeefTVCredential(channel)) return "待确认连接";
-        return "未连接";
+        if (channelHasManagedBeefTVCredential(channel)) return "Pending connection confirmation";
+        return "Not connected";
     }
-    if (!channelHasGenerationCredential(channel) && !channelAllowsEmptyAPIKey(channel)) return "待配置";
-    if (persistence.status === "saving") return "保存中";
-    if (persistence.status === "error") return "保存失败";
-    if (persistence.status === "saved") return "已保存 · 尚未测试";
-    return "尚未测试";
+    if (!channelHasGenerationCredential(channel) && !channelAllowsEmptyAPIKey(channel)) return "To be configured";
+    if (persistence.status === "saving") return "Saving";
+    if (persistence.status === "error") return "Save failed";
+    if (persistence.status === "saved") return "Saved · Not tested yet";
+    return "Not tested yet";
 }
 
 
@@ -557,7 +557,7 @@ export function modelConfigChannelPresentation(channel: ModelChannel) {
     return {
         builtin,
         deletable: !builtin,
-        adapterLabel: builtin ? "应用内置适配" : "",
+        adapterLabel: builtin ? "In-app adaptation" : "",
     };
 }
 
@@ -567,10 +567,10 @@ function uniqueModels(models: string[]) {
 }
 
 function channelModelFetchErrorMessage(error: unknown) {
-    if (getTransportFailureKind(error) === "timeout") return "读取模型目录超时，请检查地址和网络后重试；也可以手动添加模型 ID";
-    const detail = error instanceof Error ? error.message : "读取模型失败";
-    if (detail.includes("不允许访问本机") || detail.includes("不允许访问保留地址")) return `${detail}；可信私网服务需由部署管理员配置 CANVAS_ALLOWED_PRIVATE_UPSTREAM_HOSTS`;
-    return `${detail}；也可以直接在模型列表中手动输入模型名`;
+    if (getTransportFailureKind(error) === "timeout") return "Reading the model directory timed out, please check the address and network and try again; you can also add the model ID manually.";
+    const detail = error instanceof Error ? error.message : "Failed to read model";
+    if (detail.includes("Access to this machine is not allowed") || detail.includes("Access to reserved addresses is not allowed")) return `${detail}; The trusted private network service needs to be configured by the deployment administrator CANVAS_ALLOWED_PRIVATE_UPSTREAM_HOSTS`;
+    return `${detail};You can also manually enter the model name directly in the model list`;
 }
 
 function channelConnectionMode(channel: ModelChannel): UserChannelConnection {
@@ -579,19 +579,19 @@ function channelConnectionMode(channel: ModelChannel): UserChannelConnection {
 
 function channelConnectionError(channel: ModelChannel, connection?: BeefTVConnectionSummary | null) {
     const baseUrl = channel.baseUrl.trim();
-    if (!baseUrl) return "请填写 Base URL";
+    if (!baseUrl) return "Please fill in the Base URL";
     try {
         const parsed = new URL(baseUrl);
-        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "Base URL 只支持 HTTP 或 HTTPS";
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "Base URL only supports HTTP or HTTPS";
     } catch {
-        return "Base URL 格式不正确";
+        return "Base URL format is incorrect";
     }
     if (isBuiltinBeefTVChannel(channel)) {
         if (connection?.state === "connected" || channelHasManagedBeefTVCredential(channel)) return "";
-        return "请先连接 BeefTV";
+        return "Please connect to BeefTV first";
     }
-    if (!channelHasGenerationCredential(channel) && !channelAllowsEmptyAPIKey(channel)) return "请填写 API Key / Access Key";
-    if (requiresSecretKey(channel) && !channel.secretKey?.trim()) return "当前协议需要填写 Secret Key";
+    if (!channelHasGenerationCredential(channel) && !channelAllowsEmptyAPIKey(channel)) return "Please fill in API Key / Access Key";
+    if (requiresSecretKey(channel) && !channel.secretKey?.trim()) return "The current agreement requires filling in the Secret Key";
     return "";
 }
 
@@ -600,8 +600,8 @@ function channelConnectionSignature(channel: ModelChannel) {
 }
 
 function channelProtocolLabel(channel: ModelChannel) {
-    if (isTopazUpscaleChannel(channel)) return "fal · Topaz 专用超分";
-    return channelConnectionMode(channel) === "gemini" ? "Gemini 原生" : "OpenAI 兼容";
+    if (isTopazUpscaleChannel(channel)) return "fal · Topaz exclusive super score";
+    return channelConnectionMode(channel) === "gemini" ? "Gemini native" : "OpenAI compatible";
 }
 
 function isKnownDefaultBaseUrl(value: string) {

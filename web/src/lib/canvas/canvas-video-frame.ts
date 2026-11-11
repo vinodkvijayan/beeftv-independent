@@ -77,7 +77,7 @@ export async function waitForPresentedVideoFrame(video: HTMLVideoElement, timeou
                 video.addEventListener("ended", onEnded, { once: true });
             }
             const timer = globalThis.setTimeout(() => {
-                finish(new Error("视频画面解码超时"));
+                finish(new Error("Video picture decoding timeout"));
             }, timeoutMs);
             handle = video.requestVideoFrameCallback(() => finish());
         });
@@ -119,20 +119,20 @@ export async function captureVideoFrames(source: Blob | string, timesMs: number[
     }
 
     try {
-        const loaded = waitForVideoEvent(video, "loadeddata", "视频读取超时或编码不受浏览器支持");
+        const loaded = waitForVideoEvent(video, "loadeddata", "Video read timeout or encoding is not supported by the browser");
         video.src = objectUrl;
         video.load();
         await loaded;
 
-        if (!Number.isFinite(video.duration) || video.duration <= 0) throw new Error("无法确定视频时长");
-        if (!video.videoWidth || !video.videoHeight) throw new Error("无法读取视频画面尺寸");
+        if (!Number.isFinite(video.duration) || video.duration <= 0) throw new Error("Unable to determine video length");
+        if (!video.videoWidth || !video.videoHeight) throw new Error("Unable to read video frame size");
         const normalizedTimes = normalizeVideoFrameTimes(timesMs, video.duration * 1000);
-        if (!normalizedTimes.length) throw new Error("请至少选择一个有效时间点");
+        if (!normalizedTimes.length) throw new Error("Please select at least one valid time point");
         const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const context = canvas.getContext("2d");
-        if (!context) throw new Error("浏览器无法创建图片画布");
+        if (!context) throw new Error("Browser cannot create image canvas");
         const frames: CapturedVideoFrame[] = [];
         const failures: VideoFrameCaptureFailure[] = [];
         for (const timeMs of normalizedTimes) {
@@ -154,7 +154,7 @@ export async function captureVideoFrames(source: Blob | string, timesMs: number[
                 }
                 try {
                     if (Math.abs(video.currentTime - targetSeconds) > 0.0005) {
-                        const seeked = waitForVideoEvent(video, "seeked", `无法定位到 ${formatVideoFrameTime(timeMs)}`);
+                        const seeked = waitForVideoEvent(video, "seeked", `Unable to locate${formatVideoFrameTime(timeMs)}`);
                         video.currentTime = targetSeconds;
                         await seeked;
                     }
@@ -169,10 +169,10 @@ export async function captureVideoFrames(source: Blob | string, timesMs: number[
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 frames.push({ timeMs, blob: await canvasToPngBlob(canvas), width: canvas.width, height: canvas.height });
             } catch (error) {
-                failures.push({ timeMs, error: error instanceof Error ? error.message : "画面提取失败" });
+                failures.push({ timeMs, error: error instanceof Error ? error.message : "Screen extraction failed" });
             }
         }
-        if (!frames.length) throw new Error(failures[0]?.error || "画面提取失败");
+        if (!frames.length) throw new Error(failures[0]?.error || "Screen extraction failed");
         return { frames, failures };
     } finally {
         video.pause();
@@ -220,7 +220,7 @@ async function readVideoBlob(source: Blob | string) {
         if (!response.ok) throw new Error(String(response.status));
         return await response.blob();
     } catch {
-        throw new Error("无法读取视频文件，请重新上传视频后再提取画面");
+        throw new Error("Unable to read the video file, please re-upload the video and then extract the screen");
     }
 }
 
@@ -255,5 +255,5 @@ function waitForVideoEvent(video: HTMLVideoElement, eventName: "loadeddata" | "s
 }
 
 function canvasToPngBlob(canvas: HTMLCanvasElement) {
-    return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("画面图片编码失败"))), "image/png"));
+    return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Screen image encoding failed"))), "image/png"));
 }

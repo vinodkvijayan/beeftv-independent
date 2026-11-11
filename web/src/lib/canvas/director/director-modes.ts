@@ -34,10 +34,10 @@ const CAPABILITIES: Record<DirectorMode, DirectorModeCapabilities> = {
 };
 
 export const DIRECTOR_MODES: Array<{ mode: DirectorMode; label: string; hint: string }> = [
-    { mode: "layout", label: "摆场", hint: "摆放演员、道具与灯光" },
-    { mode: "pose", label: "姿态", hint: "调整选中演员的骨骼与姿势" },
-    { mode: "animate", label: "动画", hint: "时间轴、关键帧与 Auto Key" },
-    { mode: "camera", label: "摄影机", hint: "机位、对齐视图与运镜" },
+    { mode: "layout", label: "Put on a show", hint: "Place actors, props and lights" },
+    { mode: "pose", label: "posture", hint: "Adjust the bones and posture of the selected actor" },
+    { mode: "animate", label: "animation", hint: "Timeline, Keyframes, and Auto Key" },
+    { mode: "camera", label: "camera", hint: "Camera position, alignment view and camera movement" },
 ];
 
 export const DIRECTOR_DEFAULT_MODE: DirectorMode = "layout";

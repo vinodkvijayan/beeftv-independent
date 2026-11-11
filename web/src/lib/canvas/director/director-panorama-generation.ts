@@ -10,7 +10,7 @@ import { useAssetStore, type ImageAsset } from "@/stores/use-asset-store";
 import type { AiConfig } from "@/stores/use-config-store";
 import type { ReferenceImage } from "@/types/image";
 
-export const DIRECTOR_PANORAMA_PROMPT = "以参考图中的主体、材质和光影为基础，将环境扩展成完整的 360 度等距柱状全景图。输出 2:1 比例的连续单幅画面，左右边缘自然无缝衔接，保持真实空间尺度；不要拼贴、边框、文字、水印或拍摄设备。";
+export const DIRECTOR_PANORAMA_PROMPT = "Using the subjects, materials, and lighting from the reference image as a basis, expand the environment into a complete 360-degree isometric panorama. Output a continuous single picture with a 2:1 ratio, with the left and right edges connected naturally and seamlessly, maintaining the true spatial scale; no collage, borders, text, watermarks or shooting equipment.";
 
 type DirectorPanoramaGenerationInput = { file: File; config: AiConfig; sceneId: string; projectId?: string; signal?: AbortSignal; onTaskUpdate?: (task: GenerationTask) => void };
 type DirectorPanoramaGenerationDependencies = {
@@ -44,7 +44,7 @@ const defaultRecoveryDependencies: DirectorPanoramaRecoveryDependencies = { ...d
 
 function panoramaSessionGuard(signal?: AbortSignal) {
     return () => {
-        if (signal?.aborted) throw new DOMException("生成会话已结束", "AbortError");
+        if (signal?.aborted) throw new DOMException("Build session ended", "AbortError");
     };
 }
 
@@ -53,11 +53,11 @@ async function panoramaFromTask(task: GenerationTask, sceneId: string, dependenc
     const materialized = await dependencies.materialize(task, signal);
     assertCurrent();
     const assetId = materialized.outputs?.find((output) => output.mediaType === "image")?.materializedAssetId;
-    if (!assetId) throw new Error("图片任务完成，但没有返回全景图");
+    if (!assetId) throw new Error("Image task completed, but panorama not returned");
     const asset = dependencies.findAsset(assetId);
-    if (!asset) throw new Error("全景图结果无法读取，请到任务中心检查输出资源");
+    if (!asset) throw new Error("The panorama result cannot be read. Please go to the task center to check the output resources.");
     if (asset.metadata?.source !== "director-panorama-ai") {
-        dependencies.updateAsset(assetId, { title: name || "AI 全景图", tags: ["全景图", "AI生成"], source: "导演台", metadata: { ...asset.metadata, source: "director-panorama-ai", sceneId, taskId: task.id } });
+        dependencies.updateAsset(assetId, { title: name || "AI Panorama", tags: ["Panorama", "AI generated"], source: "Director's desk", metadata: { ...asset.metadata, source: "director-panorama-ai", sceneId, taskId: task.id } });
     }
     return { id: assetId, name: name || asset.title, url: asset.data.dataUrl, storageKey: asset.data.storageKey || "", width: asset.data.width, height: asset.data.height };
 }
@@ -70,17 +70,17 @@ export async function generateDirectorPanorama(input: DirectorPanoramaGeneration
         const signal = consumer.signal;
         const assertCurrent = panoramaSessionGuard(signal);
         assertCurrent();
-        if (!file.type.startsWith("image/")) throw new Error("请选择图片文件");
+        if (!file.type.startsWith("image/")) throw new Error("Please select image file");
         const model = dependencies.selectModel(config);
-        if (!model) throw new Error("请先在模型设置中选择可用的图片模型");
-        if (modelCapabilityConfigFor(config, model).image?.references.maxImages === 0) throw new Error("当前图片模型不支持参考图，请选择支持图生图的模型");
+        if (!model) throw new Error("Please select an available image model in the model settings first");
+        if (modelCapabilityConfigFor(config, model).image?.references.maxImages === 0) throw new Error("The current image model does not support reference images. Please select a model that supports reference images.");
         const source = await dependencies.upload(file);
         assertCurrent();
         const reference: ReferenceImage = { id: nanoid(), name: file.name, type: source.mimeType, dataUrl: source.url, storageKey: source.storageKey, width: source.width, height: source.height, bytes: source.bytes };
         const task = await dependencies.submit({ projectId, mode: "image", prompt: DIRECTOR_PANORAMA_PROMPT, config: { ...config, model, size: directorPanoramaSize(config, model), count: "1" }, referenceImages: [reference], metadata: { source: "director-panorama", sceneId }, signal, onTaskUpdate });
         assertCurrent();
         const completed = await dependencies.wait(task.id, { initialTask: task, signal, onTaskUpdate });
-        return await panoramaFromTask(completed, sceneId, dependencies, assertCurrent, `AI 全景图 · ${file.name}`, signal);
+        return await panoramaFromTask(completed, sceneId, dependencies, assertCurrent, `AI Panorama ·${file.name}`, signal);
     } finally {
         consumer.release();
     }
@@ -106,7 +106,7 @@ export async function recoverDirectorPanoramaTasks(projectId: string, sceneId: s
                 await panoramaFromTask(completed, sceneId, dependencies, assertCurrent, undefined, signal);
                 return true;
             } catch (error) {
-                if (!signal?.aborted) console.warn("导演台全景图任务恢复失败", summary.id, error);
+                if (!signal?.aborted) console.warn("Director's desk panorama task recovery failed", summary.id, error);
                 return false;
             }
         }));

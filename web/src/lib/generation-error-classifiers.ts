@@ -45,46 +45,46 @@ export type GenerationErrorCategory = (typeof GENERATION_ERROR_CATEGORIES)[numbe
 export type CategoryCopy = { reason: string; action: string };
 
 export const LOCAL_TASK_ADMISSION_FAILURE: CategoryCopy = {
-    reason: "本地任务保存失败，尚未提交生成",
-    action: "请重启应用后重试；若仍失败，请保留排查信息并联系支持",
+    reason: "The local task failed to save and the generation has not yet been submitted.",
+    action: "Please restart the application and try again; if it still fails, please retain the troubleshooting information and contact support",
 };
 
 export const CATEGORY_COPY: Record<GenerationErrorCategory, CategoryCopy> = {
-    auth: { reason: "模型服务鉴权失败", action: "请检查 API Key 后重试" },
-    permission: { reason: "当前渠道没有使用该模型的权限", action: "请更换模型或检查渠道权限" },
-    quota_user: { reason: "当前账号可用额度不足", action: "请检查账号余额，补充额度或调整令牌、套餐额度后重试" },
-    quota_upstream: { reason: "模型供应商拒绝了计费或额度相关请求", action: "请到供应商核对账单与额度后，再决定是否重试" },
-    quota_unknown: { reason: "模型服务拒绝了计费或额度相关请求", action: "请到当前渠道或模型供应商核对账单与额度后，再决定是否重试" },
-    quota_limit: { reason: "模型调用已达到设置的用量上限", action: "请检查当前渠道的用量或预算限制，调整后再试" },
-    moderation_input: { reason: "提示词或参考素材未通过内容安全审核", action: "请调整提示词或参考素材后重新生成" },
-    moderation_reference: { reason: "参考素材未通过内容安全审核", action: "请检查并更换参考素材后重新生成" },
-    moderation_output: { reason: "生成结果未通过内容安全审核", action: "请调整提示词或参考素材后重新生成" },
-    invalid_params: { reason: "模型不接受当前参数", action: "请检查模型、尺寸、时长、格式或数量后重试" },
-    local_storage: { reason: "本地数据库无法读写", action: "请重启应用；若仍失败，请保留排查信息并联系支持，不要重复生成" },
-    local_disk_full: { reason: "本地磁盘空间不足，无法保存数据", action: "请清理 BeefTV 数据目录所在磁盘；已有生成结果请优先取回原任务，不要重复生成" },
-    local_credential: { reason: "本地算力凭据读取失败", action: "请检查工作区数据目录并重新连接算力账号；不要删除工作区密钥" },
-    canvas_conflict: { reason: "生成结果已保留，画布尚未更新", action: "请点击「继续取回」，不要重新生成" },
-    result_apply_failed: { reason: "生成结果已保留，还没放回画布", action: "请点击「继续取回」，不要重新生成" },
-    result_target_unavailable: { reason: "生成结果已保存，无法放回原节点", action: "从「生成历史」取回，无需重新生成" },
-    context_too_long: { reason: "输入内容超出模型长度限制", action: "请缩短提示词或减少参考内容后重试" },
-    input_inaccessible: { reason: "参考素材无法读取", action: "请检查素材后重试" },
-    input_too_large: { reason: "参考素材过大", action: "请压缩或更换素材后重试" },
-    model_missing: { reason: "当前模型或接口不可用", action: "请检查模型名称和渠道配置" },
-    throttled: { reason: "请求过于频繁", action: "请稍后再试" },
-    concurrency: { reason: "同时进行的生成过多", action: "请等待已有任务完成后再试" },
-    provider_unavailable: { reason: "模型服务暂时不可用", action: "请稍后重试" },
-    network: { reason: "网络连接失败", action: "请检查网络并核对原任务状态后，再决定是否重新生成" },
-    request_not_sent: { reason: "未能连接服务，本次请求尚未提交", action: "请检查网络或代理后重试" },
-    timeout: { reason: "模型服务响应超时", action: "请稍后查询原任务，不要立即重新提交" },
-    submission_uncertain: { reason: "提交结果尚未确认，上游任务可能仍在执行", action: "请先查询原任务状态，不要立即重新提交" },
-    async_failed: { reason: "生成任务没有完成", action: "请查看详情后决定是否重试" },
-    cancelled: { reason: "任务已取消", action: "可按原输入重新提交" },
-    partial_success: { reason: "部分结果已生成，其余失败", action: "请查看已有结果后再决定是否补做" },
-    download_failed: { reason: "生成结果还没取回", action: "点击「继续取回」可继续下载原结果，不会重新生成" },
-    delivery_failed: { reason: "视频已生成，但暂时无法取回", action: "请联系支持恢复成片，恢复后点击「取回结果」；无需重新付费生成" },
-    results_missing: { reason: "任务结束但没有可用结果", action: "请查看详情后再决定是否重试" },
-    malformed_response: { reason: "模型服务返回了无法解析的内容", action: "请查看详情并核对原任务状态后，再决定是否重新生成" },
-    unknown: { reason: "生成失败", action: "请查看详情后再决定是否重试" },
+    auth: { reason: "Model service authentication failed", action: "Please check the API Key and try again" },
+    permission: { reason: "The current channel does not have permission to use this model", action: "Please change the model or check the channel permissions" },
+    quota_user: { reason: "The available balance of the current account is insufficient", action: "Please check the account balance, replenish the quota or adjust the token or package quota and try again" },
+    quota_upstream: { reason: "The model supplier rejected the billing or credit related request", action: "Please check the bill and credit limit with your supplier before deciding whether to try again." },
+    quota_unknown: { reason: "The model service rejected billing or quota-related requests.", action: "Please go to the current channel or model supplier to check the bill and limit before deciding whether to try again." },
+    quota_limit: { reason: "The model call has reached the set usage limit", action: "Please check the usage or budget limit of the current channel, adjust it and try again" },
+    moderation_input: { reason: "The prompt word or reference material did not pass the content security review", action: "Please adjust the prompt words or reference materials and regenerate" },
+    moderation_reference: { reason: "The reference material failed the content security review", action: "Please check and replace the reference material before regenerating" },
+    moderation_output: { reason: "The generated results failed content security review", action: "Please adjust the prompt words or reference materials and regenerate" },
+    invalid_params: { reason: "Model does not accept current parameters", action: "Please check the model, size, duration, format or quantity and try again" },
+    local_storage: { reason: "The local database cannot be read or written", action: "Please restart the application; if it still fails, please retain the troubleshooting information and contact support, and do not generate it again." },
+    local_disk_full: { reason: "Insufficient local disk space to save data", action: "Please clean the disk where the BeefTV data directory is located; if there are already generated results, please retrieve the original task first and do not generate it again." },
+    local_credential: { reason: "Failed to read local computing power credentials", action: "Please check the workspace data directory and reconnect the computing account; do not delete the workspace key" },
+    canvas_conflict: { reason: "The build results have been retained and the canvas has not been updated yet", action: "Please click \"Continue to retrieve\" and do not regenerate" },
+    result_apply_failed: { reason: "The generated results have been retained and have not been put back into the canvas.", action: "Please click \"Continue to retrieve\" and do not regenerate" },
+    result_target_unavailable: { reason: "The generated results have been saved and cannot be put back into the original node.", action: "Retrieved from \"Generation History\", no need to regenerate" },
+    context_too_long: { reason: "The input content exceeds the model length limit", action: "Please shorten the prompt words or reduce the reference content and try again" },
+    input_inaccessible: { reason: "Reference material cannot be read", action: "Please check the material and try again" },
+    input_too_large: { reason: "Reference material is too large", action: "Please compress or replace the material and try again" },
+    model_missing: { reason: "The current model or interface is not available", action: "Please check the model name and channel configuration" },
+    throttled: { reason: "Requests are too frequent", action: "Please try again later" },
+    concurrency: { reason: "Too many simultaneous builds", action: "Please wait until existing tasks are completed before trying again" },
+    provider_unavailable: { reason: "Model service is temporarily unavailable", action: "Please try again later" },
+    network: { reason: "Network connection failed", action: "Please check the network and verify the status of the original task before deciding whether to regenerate it." },
+    request_not_sent: { reason: "Failed to connect to the service, this request has not been submitted yet", action: "Please check the network or proxy and try again" },
+    timeout: { reason: "Model service response timed out", action: "Please check the original task later and do not resubmit it immediately" },
+    submission_uncertain: { reason: "The submission result has not yet been confirmed, and the upstream tasks may still be executed.", action: "Please check the original task status first and do not resubmit immediately" },
+    async_failed: { reason: "Build task not completed", action: "Please check the details and decide whether to try again" },
+    cancelled: { reason: "Task canceled", action: "You can resubmit according to the original input" },
+    partial_success: { reason: "Some results were generated, the rest failed", action: "Please check the existing results before deciding whether to do it again" },
+    download_failed: { reason: "The generated results have not been retrieved yet", action: "Click \"Continue Retrieval\" to continue downloading the original results and will not regenerate them." },
+    delivery_failed: { reason: "The video has been generated but cannot be retrieved at the moment", action: "Please contact support to restore the film, and click \"Retrieve Results\" after restoration; there is no need to pay again to generate it." },
+    results_missing: { reason: "Task ended but no results available", action: "Please review the details before deciding whether to try again" },
+    malformed_response: { reason: "The model service returned unresolved content", action: "Please check the details and check the status of the original task before deciding whether to regenerate it." },
+    unknown: { reason: "Build failed", action: "Please review the details before deciding whether to try again" },
 };
 
 const PROVIDER_CODE_CATEGORIES: Record<string, GenerationErrorCategory> = {
@@ -219,8 +219,8 @@ const PROVIDER_CODE_CATEGORIES: Record<string, GenerationErrorCategory> = {
     provider_reference_invalid: "input_inaccessible",
 };
 
-export const DEFAULT_GENERATION_ERROR_MESSAGE = "生成失败。请查看详情后再决定是否重试。";
-export const CONTENT_MODERATION_MESSAGE = "提示词未通过内容安全审核。请修改提示词或参考图后重新生成。";
+export const DEFAULT_GENERATION_ERROR_MESSAGE = "Build failed. Please review the details before trying again.";
+export const CONTENT_MODERATION_MESSAGE = "The prompt word failed content security review. Please modify the prompt word or reference picture and regenerate.";
 
 export const HTML_BODY = /^\s*(?:<!doctype|<html|<head|<body)/i;
 export const LOCAL_DATABASE_ERROR = /(?:^|:\s*)(?:table\s+[a-z0-9_]+\s+has no column named\s+[a-z0-9_]+|no such (?:column|table):\s*[a-z0-9_.]+|(?:UNIQUE|NOT NULL|CHECK) constraint failed:\s*\S+|FOREIGN KEY constraint failed|database (?:is locked|is malformed)|database disk image is malformed|attempt to write a readonly database|disk I\/O error)(?:\b|$)/i;
@@ -228,7 +228,7 @@ const HTTP_STATUS = /(?:HTTP\s+|status(?:[_\s]+code)?\s*[:：=]?\s*)(\d{3})\b/i;
 const WRAPPED_HTTP_STATUS = /Request failed with status code\s+(\d{3})/i;
 const URL_PATTERN = /(?:https?:\/\/|file:\/\/|data:[a-z0-9.+-]+\/[^;]+;base64,)[^\s"'<>]+/gi;
 const SECRET_PATTERN = /(?:[a-z0-9_-]*(?:api[_-]?key|access[_-]?key(?:[_-]?id)?|secret[_-]?key|client[_-]?secret|private[_-]?key|api[_-]?secret|access[_-]?token|refresh[_-]?token)|authorization|bearer|sk-[A-Za-z0-9_-]{8,}|eyJ[A-Za-z0-9_-]{20,})[^\s,;]*/gi;
-const PROMPT_KEY = String.raw`(?:(?:choices|messages|message|delta|parts|input|prompt|contents?|system[_-]?instruction)(?:(?:\.\d+|\[\d+\]|\.[a-z0-9_]+)+)?|(?:(?:user|system)[_-]?)?prompt(?:[_-]?text)?|input(?:[_-]?text)?|query|content|text|提示词|输入内容)`;
+const PROMPT_KEY = String.raw`(?:(?:choices|messages|message|delta|parts|input|prompt|contents?|system[_-]?instruction)(?:(?:.d+|[d+]|.[a -z0-9_]+)+)?|(?:(?:user|system)[_-]?)?prompt(?:[_-]?text)?|input(?:[_-]?text)?|query|content|text|prompt word|input content)`;
 const PROMPT_ECHO = new RegExp(String.raw`(["']?${PROMPT_KEY}["']?\s*[=:：]\s*)(?:"[^"]{0,400}"|'[^']{0,400}'|\S{1,400})`, "gi");
 // (?<![\s\S]) means "start of text". A literal ^ inside the leading optional group
 // makes older WebKit (desktop WebView on older macOS/Linux) try only position 0, so
@@ -270,41 +270,41 @@ export function referenceDurationCopy(text: string): CategoryCopy | undefined {
     if (audio) return audio;
     // 当前提示写法：说清哪一项、现在多少、要改到多少，动作由后端给出。
     const actionable = text.match(/^((?:第 \d+ 段)?(?:参考)?(?:音频|视频)(?:「[^」]*」)?)时长为 (\d+(?:\.\d+)?) 秒[，。]需要改到 ([^；;]+)[；;](.+?)。?$/);
-    if (actionable) return { reason: `${actionable[1]}时长为 ${actionable[2]} 秒`, action: `需要改到 ${actionable[3]}；${actionable[4]}` };
+    if (actionable) return { reason: `${actionable[1]}The duration is${actionable[2]} seconds`, action: `Need to change to${actionable[3]}；${actionable[4]}` };
     // 旧版本已存进对话记录里的写法，继续按原样解释。
     const numbered = text.match(/^第 (\d+) 段参考(音频|视频)时长为 (\d+(?:\.\d+)?) 秒[，。]需要 (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?) 秒/);
-    if (numbered) return { reason: `第 ${numbered[1]} 段参考${numbered[2]}时长为 ${numbered[3]} 秒`, action: `需要 ${numbered[4]}–${numbered[5]} 秒；请裁剪或更换这段素材后再提交` };
+    if (numbered) return { reason: `No.${numbered[1]} Section reference${numbered[2]}The duration is${numbered[3]} seconds`, action: `need${numbered[4]}–${numbered[5]} seconds; please crop or replace this material before submitting` };
     // 输出时长不在模型范围内：写出现在的值和可选时长。
     const output = text.match(/^输出时长为 ([\d.]+) 秒[，。]当前模型只支持 ([^；;]+)[；;](.+?)。?$/);
-    if (output) return { reason: `输出时长为 ${output[1]} 秒`, action: `当前模型只支持 ${output[2]}；${output[3]}` };
+    if (output) return { reason: `The output duration is${output[1]} seconds`, action: `The current model only supports${output[2]}；${output[3]}` };
     const missing = text.match(/^第 (\d+) 段参考(音频|视频)的时长无法读取/);
-    if (missing) return { reason: `第 ${missing[1]} 段参考${missing[2]}的时长无法读取`, action: "请重新导入素材后再提交" };
+    if (missing) return { reason: `No.${missing[1]} Section reference${missing[2]}The duration cannot be read`, action: "Please re-import the material before submitting" };
 }
 
 export function referenceAudioCopy(text: string, invalidAudio = false): CategoryCopy | undefined {
     const duration = text.match(/^reference audio (\d+) is (\d+(?:\.\d+)?) seconds; use audio between (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?) seconds/i);
-    if (duration) return { reason: `第 ${duration[1]} 段参考音频时长为 ${duration[2]} 秒`, action: `需要 ${duration[3]}–${duration[4]} 秒；请裁剪或更换这段素材后再提交` };
+    if (duration) return { reason: `No.${duration[1]} The length of the reference audio segment is${duration[2]} seconds`, action: `need${duration[3]}–${duration[4]} seconds; please crop or replace this material before submitting` };
     const total =
         text.match(/^reference audio is (\d+(?:\.\d+)?) seconds in total; this model accepts at most (\d+(?:\.\d+)?) seconds of reference audio/i) || text.match(/^参考音频总时长为 (\d+(?:\.\d+)?) 秒[。，](?:该|当前)模型最多支持 (\d+(?:\.\d+)?) 秒/);
-    if (total) return { reason: `参考音频总时长为 ${total[1]} 秒`, action: `该模型最多支持 ${total[2]} 秒参考音频；请裁剪或减少参考音频后再提交` };
+    if (total) return { reason: `The total duration of the reference audio is${total[1]} seconds`, action: `This model supports up to${total[2]} seconds reference audio; please crop or reduce the reference audio before submitting` };
     const numbered = text.match(/^reference audio (\d+)(?::| requires| exceeds)/i);
-    const label = numbered ? `第 ${numbered[1]} 段参考音频` : "参考音频";
+    const label = numbered ? `No.${numbered[1]} segment reference audio` : "Reference audio";
     const issue =
         invalidAudio || numbered
             ? /15 MiB|byte limit|at most.*MiB/i.test(text)
-                ? "文件过大"
+                ? "File too large"
                 : /duration could not be measured|invalid.*audio|unsupported|readable audio track/i.test(text)
-                  ? "的格式或时长无法读取"
+                  ? "The format or duration cannot be read"
                   : /download|HTTPS URL|URL.*(?:policy|allowed)|redirect|readable within/i.test(text)
-                    ? "无法下载"
-                    : "不符合模型要求"
+                    ? "Unable to download"
+                    : "Does not meet model requirements"
             : "";
     if (!issue) return;
     const actions: Record<string, string> = {
-        无法下载: "请重新上传音频，确认素材链接可公开访问后再提交",
-        的格式或时长无法读取: "请将音频重新导出为 MP3 或 WAV，确认文件完整且含有音轨后再上传",
-        文件过大: "请压缩或更换音频，确保文件不超过模型的大小限制后再提交",
-        不符合模型要求: "请检查参考音频的时长、格式和大小，调整后再提交",
+        无法下载: "Please re-upload the audio and confirm that the material link is publicly accessible before submitting.",
+        的格式或时长无法读取: "Please re-export the audio as MP3 or WAV and make sure the file is complete and contains audio tracks before uploading",
+        文件过大: "Please compress or replace the audio to ensure that the file does not exceed the model size limit before submitting.",
+        不符合模型要求: "Please check the duration, format and size of the reference audio and adjust it before submitting.",
     };
     return { reason: `${label}${issue}`, action: actions[issue] };
 }
@@ -404,47 +404,47 @@ export function categoryFromProviderCode(...values: string[]): GenerationErrorCa
 }
 
 export function referenceMediaConstraintCopy(text: string): CategoryCopy | undefined {
-    text = stripGatewayRequestIdSuffix(text.split("。排查编号：", 1)[0].trim()).text;
-    if (text.startsWith("当前渠道需要在线素材链接：")) {
+    text = stripGatewayRequestIdSuffix(text.split(". Check number:", 1)[0].trim()).text;
+    if (text.startsWith("The current channel requires online material links:")) {
         const [reason, ...action] = text.split("。");
         return { reason, action: action.join("。") };
     }
     const modelReferenceLimit = text.match(/^(当前模型(?:暂不支持参考(?:图片|图|视频|音频)|(?:最多支持|至少需要) \d+ (?:张|个|段)?参考(?:图片|图|视频|音频)|不支持仅使用参考音频))[，。](请[^\n]+?)[。.]?$/);
     if (modelReferenceLimit) return { reason: modelReferenceLimit[1], action: modelReferenceLimit[2] };
     const unreadableFps = text.match(/^(第 \d+ 个参考视频帧率无法读取)/);
-    if (unreadableFps) return {reason:unreadableFps[1],action:"请重新导出 MP4/MOV 视频后上传，确保文件完整且包含有效的视频轨"};
+    if (unreadableFps) return {reason:unreadableFps[1],action:"Please re-export the MP4/MOV video before uploading, making sure the file is complete and contains a valid video track"};
     const measuredFps = text.match(/^(第 \d+ 个参考视频平均帧率为 \d+(?:\.\d+)? FPS)[，。](?:需要 |请将参考视频重新导出为 )(\d+)–(\d+) FPS/);
-    if (measuredFps) return { reason: measuredFps[1], action: `请将参考视频重新导出为 ${measuredFps[2]}–${measuredFps[3]} FPS 后再提交` };
+    if (measuredFps) return { reason: measuredFps[1], action: `Please re-export the reference video as${measuredFps[2]}–${measuredFps[3]} Submit after FPS` };
     const fps = text.match(/^(?:素材转换失败:\s*)?(?:frame rate|framerate|fps) must be between (\d+(?:\.\d+)?)\s*(?:fps)? and (\d+(?:\.\d+)?)[.\s]*$/i);
-    if (fps) return { reason: "参考视频帧率不符合要求", action: `请将参考视频重新导出为 ${fps[1]}–${fps[2]} FPS 后再提交` };
-    if (/^(?:素材转换失败:\s*)?(?:unsupported (?:video |audio )?codec|(?:video |audio )?codec (?:is )?not supported)[.\s]*$/i.test(text)) return { reason: "参考素材编码不受当前模型支持", action: "请将视频重新导出为常见的 H.264 MP4，音频重新导出为 MP3 或 WAV 后替换素材；只修改文件后缀无效" };
-    if (/^asset (?:is )?(?:not ready|still processing)[.\s]*$/i.test(text)) return { reason: "参考素材仍在处理中", action: "请在素材库确认处理完成后再生成，不要重复上传或反复提交" };
-    if (/^asset (?:access denied|permission denied|forbidden)[.\s]*$/i.test(text)) return { reason: "无权访问参考素材", action: "请使用上传该素材的账号与渠道，或重新上传原文件；检查素材权限，无需修改提示词" };
+    if (fps) return { reason: "The frame rate of the reference video does not meet the requirements", action: `Please re-export the reference video as${fps[1]}–${fps[2]} Submit after FPS` };
+    if (/^(?:素材转换失败:\s*)?(?:unsupported (?:video |audio )?codec|(?:video |audio )?codec (?:is )?not supported)[.\s]*$/i.test(text)) return { reason: "Reference material encoding is not supported by the current model", action: "Please re-export the video to the common H.264 MP4 and the audio to MP3 or WAV before replacing the material; just modifying the file suffix will not work." };
+    if (/^asset (?:is )?(?:not ready|still processing)[.\s]*$/i.test(text)) return { reason: "Reference material is still being processed", action: "Please confirm and process the material library before generating it again. Do not upload or submit repeatedly." };
+    if (/^asset (?:access denied|permission denied|forbidden)[.\s]*$/i.test(text)) return { reason: "No access to reference material", action: "Please use the account and channel that uploaded the material, or re-upload the original file; check the material permissions, no need to modify the prompt word" };
     const single = text.match(/^(第 \d+ (?:张|个|段)参考(?:图|视频|音频)(?:宽度|高度|宽高比|时长)为 \d+(?:\.\d+)?(?: 像素| 秒)?)[，。]需要 ((?:至少|不超过) \d+(?:\.\d+)?(?: 像素| 秒)?)/);
-    if (single) return { reason: single[1], action: `需要 ${single[2]}；${single[1].includes("时长") ? "请裁剪或更换这段素材后再提交" : "请调整尺寸或更换后再提交"}` };
+    if (single) return { reason: single[1], action: `need${single[2]}；${single[1].includes("duration") ? "Please crop or replace this material before submitting" : "Please adjust the size or replace before submitting"}` };
     const size = text.match(/^第 (\d+) (张|个|段)参考(图|视频|音频)(宽度|高度)为 (\d+) 像素[，。]需要 (\d+)–(\d+) 像素/);
-    if (size) return { reason: `第 ${size[1]} ${size[2]}参考${size[3]}${size[4]}为 ${size[5]} 像素`, action: `需要 ${size[6]}–${size[7]} 像素；请调整尺寸或更换后再提交` };
+    if (size) return { reason: `No.${size[1]} ${size[2]}Reference${size[3]}${size[4]}for${size[5]} Pixel`, action: `need${size[6]}–${size[7]} Pixels; please adjust the size or replace before submitting` };
     const aspect = text.match(/^第 (\d+) (张|个|段)参考(图|视频|音频)宽高比为 (\d+(?:\.\d+)?)[，。]需要 (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?)/);
-    if (aspect) return { reason: `第 ${aspect[1]} ${aspect[2]}参考${aspect[3]}宽高比为 ${aspect[4]}`, action: `需要 ${aspect[5]}–${aspect[6]}；请调整尺寸或更换后再提交` };
+    if (aspect) return { reason: `No.${aspect[1]} ${aspect[2]}Reference${aspect[3]}The aspect ratio is${aspect[4]}`, action: `need${aspect[5]}–${aspect[6]};Please adjust the size or replace before submitting.` };
     const videoDuration = text.match(/^(第 \d+ 个参考视频时长为 \d+(?:\.\d+)? 秒)，需要 (\d+)–(\d+) 秒/);
-    if (videoDuration) return { reason: videoDuration[1], action: `请将这段参考视频裁剪或更换为 ${videoDuration[2]}–${videoDuration[3]} 秒` };
+    if (videoDuration) return { reason: videoDuration[1], action: `Please crop or replace this reference video with${videoDuration[2]}–${videoDuration[3]} seconds` };
     const videoRead = text.match(/^第 (\d+) 个参考视频[：:]?(?:参考视频)?(?:尺寸|时长)?(?:下载失败|无法读取|无法完整读取|数据无法读取|分段读取失败|在读取期间发生变化|时长无法读取|尺寸无法读取)/);
-    if (videoRead) return { reason: `第 ${videoRead[1]} 个参考视频无法读取`, action: "请检查素材链接，或重新导出 MP4/MOV 文件后导入" };
+    if (videoRead) return { reason: `No.${videoRead[1]} reference videos cannot be read`, action: "Please check the material link, or re-export the MP4/MOV file and import it" };
     const videoFormat = text.match(/^第 (\d+) 个参考视频[：:]?(?:参考视频)?需使用/);
-    if (videoFormat) return { reason: `第 ${videoFormat[1]} 个参考视频格式或地址不支持`, action: "请导入 MP4/MOV 文件，或使用可公开访问的 HTTP/HTTPS 视频链接" };
+    if (videoFormat) return { reason: `No.${videoFormat[1]} The reference video format or address is not supported`, action: "Please import an MP4/MOV file or use a publicly accessible HTTP/HTTPS video link" };
     const videoBytes = text.match(/^第 (\d+) 个参考视频[：:]?(?:参考视频)?文件不能超过 (\d+)MB/);
-    if (videoBytes) return { reason: `第 ${videoBytes[1]} 个参考视频文件过大`, action: `请压缩至 ${videoBytes[2]}MB 以内或更换素材` };
+    if (videoBytes) return { reason: `No.${videoBytes[1]} Reference video file is too large`, action: `Please compress to${videoBytes[2]}Within MB or change the material` };
     const videoSize = text.match(/^(第 \d+ 个参考视频尺寸为 \d+×\d+)，需要宽高均在 (\d+)–(\d+) 像素之间/);
-    if (videoSize) return { reason: videoSize[1], action: `请将这段参考视频的宽和高均调整到 ${videoSize[2]}–${videoSize[3]} 像素` };
+    if (videoSize) return { reason: videoSize[1], action: `Please adjust the width and height of this reference video to${videoSize[2]}–${videoSize[3]} Pixel` };
     const pixelDetail = text.match(/^(第 \d+ (?:张|个|段)参考(?:图|视频|音频)像素总量为 \d+（\d+×\d+）)[，。]需要 ([^；]+) 像素/);
-    if (pixelDetail) return { reason: pixelDetail[1], action: `需要 ${pixelDetail[2]} 像素；请调整这份素材的尺寸或更换原文件，修改生成分辨率不会改变参考素材` };
+    if (pixelDetail) return { reason: pixelDetail[1], action: `need${pixelDetail[2]} Pixels; please adjust the size of this material or replace the original file. Modifying the generated resolution will not change the reference material.` };
     const unknownSize = text.match(/^(第 \d+ 个参考视频尺寸无法读取)/);
-    if (unknownSize) return { reason: unknownSize[1], action: "请重新导出 MP4/MOV 后导入" };
+    if (unknownSize) return { reason: unknownSize[1], action: "Please re-export MP4/MOV and then import" };
     const pixels = text.match(/^第 (\d+) (张|个|段)参考(图|视频|音频)像素总量/);
-    if (pixels) return { reason: `第 ${pixels[1]} ${pixels[2]}参考${pixels[3]}像素总量不符合当前模型要求`, action: "请调整尺寸或更换后再提交" };
+    if (pixels) return { reason: `No.${pixels[1]} ${pixels[2]}Reference${pixels[3]}The total number of pixels does not meet the current model requirements`, action: "Please adjust the size or replace before submitting" };
     const file = text.match(/^第 (\d+) (张|个|段)参考(图|视频|音频)文件过大[，。]当前模型单文件上限为 ([^；;]+)/);
-    if (file) return { reason: `第 ${file[1]} ${file[2]}参考${file[3]}文件过大`, action: `当前模型单文件上限为 ${file[4]}；请压缩或更换后再提交` };
-    if (text.startsWith("整次请求的参考素材合计过大")) return { reason: "整次请求的参考素材合计过大", action: "请减少素材后再提交" };
+    if (file) return { reason: `No.${file[1]} ${file[2]}Reference${file[3]}File too large`, action: `The current upper limit of a single model file is${file[4]};Please compress or replace before submitting.` };
+    if (text.startsWith("The total number of reference materials requested is too large")) return { reason: "The total number of reference materials requested is too large", action: "Please reduce the number of materials before submitting" };
 }
 
 export function categoryFromProviderMessage(raw: string): GenerationErrorCategory | "" {
@@ -462,16 +462,16 @@ export function categoryFromProviderMessage(raw: string): GenerationErrorCategor
     const moderationCopy = moderationErrorCopy("", normalized);
     if (moderationCopy) return moderationCopy.category;
     if (containsContentSafety(normalized)) return moderationCategoryFromMessage(normalized);
-    if (normalized.startsWith("当前账号额度不足")) return "quota_user";
-    if (normalized.includes("insufficient_quota") || ((normalized.includes("quota") || normalized.includes("balance") || normalized.includes("额度") || normalized.includes("余额") || normalized.includes("欠费")) && !normalized.includes("rate")))
+    if (normalized.startsWith("The current account balance is insufficient")) return "quota_user";
+    if (normalized.includes("insufficient_quota") || ((normalized.includes("quota") || normalized.includes("balance") || normalized.includes("Quota") || normalized.includes("Balance") || normalized.includes("Arrears")) && !normalized.includes("rate")))
         return normalized.includes("arrearage") || normalized.includes("billing_hard_limit") ? "quota_upstream" : "quota_unknown";
-    if (normalized.includes("rate limit") || normalized.includes("too many requests") || normalized.includes("throttl") || normalized.includes("频繁")) return "throttled";
-    if (normalized.includes("context length") || normalized.includes("too many tokens") || normalized.includes("max_tokens") || (normalized.includes("长度") && (normalized.includes("最大") || normalized.includes("超出")))) return "context_too_long";
-    if (normalized.includes("model_not_found") || normalized.includes("model not found") || normalized.includes("模型不存在") || normalized.includes("405 method not allowed") || normalized.includes("method not allowed") || normalized.includes("http 405") || normalized.includes("status 405")) return "model_missing";
-    if (normalized.includes("invalid api key") || normalized.includes("incorrect api key") || normalized.includes("authentication") || normalized.includes("unauthorized") || normalized.includes("鉴权失败")) return "auth";
+    if (normalized.includes("rate limit") || normalized.includes("too many requests") || normalized.includes("throttl") || normalized.includes("Frequently")) return "throttled";
+    if (normalized.includes("context length") || normalized.includes("too many tokens") || normalized.includes("max_tokens") || (normalized.includes("length") && (normalized.includes("maximum") || normalized.includes("beyond")))) return "context_too_long";
+    if (normalized.includes("model_not_found") || normalized.includes("model not found") || normalized.includes("Model does not exist") || normalized.includes("405 method not allowed") || normalized.includes("method not allowed") || normalized.includes("http 405") || normalized.includes("status 405")) return "model_missing";
+    if (normalized.includes("invalid api key") || normalized.includes("incorrect api key") || normalized.includes("authentication") || normalized.includes("unauthorized") || normalized.includes("Authentication failed")) return "auth";
     if (normalized.includes("permission") && (normalized.includes("denied") || normalized.includes("model") || normalized.includes("access"))) return "permission";
-    if (normalized.includes("url error") || normalized.includes("failed to download") || normalized.includes("cannot fetch") || normalized.includes("invalid image url") || normalized.includes("无法读取")) return "input_inaccessible";
-    if (normalized.includes("too large") || normalized.includes("payload too large") || normalized.includes("过大") || /(?:request|payload).{0,24}(?:exceeds?|larger than)/i.test(normalized))
+    if (normalized.includes("url error") || normalized.includes("failed to download") || normalized.includes("cannot fetch") || normalized.includes("invalid image url") || normalized.includes("Unable to read")) return "input_inaccessible";
+    if (normalized.includes("too large") || normalized.includes("payload too large") || normalized.includes("Too big") || /(?:request|payload).{0,24}(?:exceeds?|larger than)/i.test(normalized))
         return "input_too_large";
     if (normalized.includes("invalid") || normalized.includes("parameter") || normalized.includes("argument")) return "invalid_params";
     return "";
@@ -533,8 +533,8 @@ export function explanationCopy(classified: Classified): CategoryCopy {
 }
 
 export function debugIdLine(taskId?: string, requestId?: string) {
-    const parts = [sanitizeDebugId(taskId) ? `任务 ${sanitizeDebugId(taskId)}` : "", sanitizeDebugId(requestId) ? `请求 ${sanitizeDebugId(requestId)}` : ""].filter(Boolean);
-    return parts.length ? `排查编号：${parts.join(" · ")}` : "";
+    const parts = [sanitizeDebugId(taskId) ? `Task${sanitizeDebugId(taskId)}` : "", sanitizeDebugId(requestId) ? `Request${sanitizeDebugId(requestId)}` : ""].filter(Boolean);
+    return parts.length ? `Check number:${parts.join(" · ")}` : "";
 }
 
 export function joinSentences(...parts: Array<string | undefined>): string {
@@ -561,9 +561,9 @@ export function sanitizeProviderText(value: string) {
     text = text.replace(URL_PATTERN, "");
     // Unstructured messages may echo whole headers or prompts; discard the suffix,
     // since a whitespace-based token matcher cannot know where a secret ends.
-    text = text.replace(CREDENTIAL_TAIL, "").replace(UNSTRUCTURED_PROMPT_TAIL, "[已隐藏]");
-    text = text.replace(/(?:file:\/\/[^\r\n"'<>]+|(?<![a-z])[a-z]:[\\/][^\r\n:"'<>]+|\\\\[^\r\n:"'<>]+|(?<![A-Za-z0-9._-])\/+(?:Users|home|private|tmp|var|Volumes|mnt|media|run|root|opt|srv|etc|data|app|workspace|usr|proc|sys|dev|lib|bin|sbin)\/[^\r\n:"'<>]+)/gi, "[路径已隐藏]");
-    text = text.replace(SIGNED_QUERY, "").replace(SECRET_PATTERN, "").replace(PROMPT_ECHO, "$1[已隐藏]");
+    text = text.replace(CREDENTIAL_TAIL, "").replace(UNSTRUCTURED_PROMPT_TAIL, "[hidden]");
+    text = text.replace(/(?:file:\/\/[^\r\n"'<>]+|(?<![a-z])[a-z]:[\\/][^\r\n:"'<>]+|\\\\[^\r\n:"'<>]+|(?<![A-Za-z0-9._-])\/+(?:Users|home|private|tmp|var|Volumes|mnt|media|run|root|opt|srv|etc|data|app|workspace|usr|proc|sys|dev|lib|bin|sbin)\/[^\r\n:"'<>]+)/gi, "[path hidden]");
+    text = text.replace(SIGNED_QUERY, "").replace(SECRET_PATTERN, "").replace(PROMPT_ECHO, "$1[hidden]");
     text = text.replace(/\s+/g, " ").trim();
     if (text.startsWith("{") || text.startsWith("[") || text.startsWith("<")) return "";
     return text.slice(0, 240);
@@ -617,24 +617,24 @@ export function isMalformedText(value: string) {
 }
 
 export function isDownloadText(value: string) {
-    return value.includes("视频结果下载失败") || (value.includes("下载失败") && value.includes("结果"));
+    return value.includes("Video result download failed") || (value.includes("Download failed") && value.includes("result"));
 }
 
 export function isCancelledText(value: string) {
-    return value.includes("任务已取消") || value.includes("请求已取消") || /context canceled/i.test(value);
+    return value.includes("Task canceled") || value.includes("Request canceled") || /context canceled/i.test(value);
 }
 
 export function isResultsMissingText(value: string) {
-    return value.includes("没有返回图片") || value.includes("没有返回视频") || value.includes("没有可用结果") || value.includes("接口没有返回");
+    return value.includes("No pictures returned") || value.includes("No video returned") || value.includes("No results available") || value.includes("The interface did not return");
 }
 
 export function isCanvasSaveConflictText(text: string) {
     return (
-        text.includes("云端画布已有更新") ||
-        text.includes("已停止覆盖") ||
-        text.includes("画布有版本冲突") ||
-        text.includes("生成结果已保留，但画布有版本冲突") ||
-        text.includes("画布有未处理的外部改动") ||
+        text.includes("Cloud Canvas has been updated") ||
+        text.includes("Coverage has stopped") ||
+        text.includes("Canvas has version conflict") ||
+        text.includes("Build results preserved, but canvas has version conflict") ||
+        text.includes("The canvas has unhandled external changes") ||
         text.startsWith(CATEGORY_COPY.canvas_conflict.reason)
     );
 }
@@ -642,18 +642,18 @@ export function isCanvasSaveConflictText(text: string) {
 const LOCAL_PATH_PATTERN = /(?:file:\/\/[^\r\n"'<>]+|(?<![a-z])[a-z]:[\\/][^\r\n:"'<>]+|\\\\[^\r\n:"'<>]+|(?<![A-Za-z0-9._-])\/+(?:Users|home|private|tmp|var|Volumes|mnt|media|run|root|opt|srv|etc|data|app|workspace|usr|proc|sys|dev|lib|bin|sbin)\/[^\r\n:"'<>]+)/i;
 const GENERIC_CHINESE_WRAPPERS = new Set([
     "",
-    "请求失败",
-    "操作失败",
-    "生成失败",
-    "任务失败",
-    "已停止",
-    "调用失败",
-    "未知错误",
-    "参数错误",
-    "请求参数错误",
-    "参数无效",
-    "无效参数",
-    "模型服务请求失败",
+    "Request failed",
+    "Operation failed",
+    "Build failed",
+    "Task failed",
+    "Stopped",
+    "call failed",
+    "unknown error",
+    "Parameter error",
+    "Request parameter error",
+    "Invalid parameter",
+    "Invalid parameter",
+    "Model service request failed",
     `${CATEGORY_COPY.unknown.reason}。${CATEGORY_COPY.unknown.action}`,
 ]);
 
@@ -684,9 +684,9 @@ export function userFacingChineseCopy(raw: string): CategoryCopy | undefined {
     ) {
         return undefined;
     }
-    trimmed = stripGatewayRequestIdSuffix(trimmed.split("。排查编号：", 1)[0].trim()).text;
+    trimmed = stripGatewayRequestIdSuffix(trimmed.split(". Check number:", 1)[0].trim()).text;
     let clean = sanitizeProviderText(trimmed);
-    if (!clean || clean.includes("[已隐藏]") || clean.includes("[路径已隐藏]") || !/[\u4e00-\u9fff]/.test(clean)) return undefined;
+    if (!clean || clean.includes("[hidden]") || clean.includes("[path hidden]") || !/[\u4e00-\u9fff]/.test(clean)) return undefined;
     clean = clean.replace(/。+$/u, "").trim();
     if (GENERIC_CHINESE_WRAPPERS.has(clean)) return undefined;
     if (isNetworkText(clean) || isDownloadText(clean) || isCancelledText(clean) || isResultsMissingText(clean)) return undefined;
@@ -696,9 +696,9 @@ export function userFacingChineseCopy(raw: string): CategoryCopy | undefined {
     if (sentenceIdx > 0 && clean.slice(sentenceIdx + 1).trim()) {
         return { reason: clean.slice(0, sentenceIdx).trim(), action: clean.slice(sentenceIdx + 1).trim() };
     }
-    for (const sep of ["，请", "；请"] as const) {
+    for (const sep of [", please", ";please"] as const) {
         const idx = clean.indexOf(sep);
-        if (idx > 0) return { reason: clean.slice(0, idx).trim(), action: `请${clean.slice(idx + sep.length).trim()}` };
+        if (idx > 0) return { reason: clean.slice(0, idx).trim(), action: `please${clean.slice(idx + sep.length).trim()}` };
     }
     return { reason: clean, action: "" };
 }

@@ -39,7 +39,7 @@ type UseCanvasGenerationOptions = {
 const NODE_STATUS_LOADING = "loading" as const;
 const NODE_STATUS_SUCCESS = "success" as const;
 const NODE_STATUS_ERROR = "error" as const;
-const INTERRUPTED_GENERATION_DETAILS = "页面刷新后本地生成已中断，请重新生成。";
+const INTERRUPTED_GENERATION_DETAILS = "The local generation has been interrupted after the page is refreshed, please generate again.";
 
 function recoveryTaskIdentity(node: CanvasNodeData) {
     return node.metadata?.taskId || node.metadata?.agentGenerationContinuation?.taskId || "";
@@ -114,10 +114,10 @@ export async function recoverCanvasGenerationTaskNode(input: {
     if (!isCurrentProject()) return;
     const consumeContinuation = input.consumeContinuation ?? consumeCanvasGenerationContinuation;
     try {
-        if (input.completed.projectId && input.completed.projectId !== input.projectId) throw new Error("生成任务不属于当前画布");
+        if (input.completed.projectId && input.completed.projectId !== input.projectId) throw new Error("The build task does not belong to the current canvas");
         if (!isCurrentProject()) return;
         if (input.completed.status === "failed" || input.completed.status === "cancelled") {
-            throw new Error(input.completed.error || (input.completed.status === "cancelled" ? "任务已取消" : "任务失败"));
+            throw new Error(input.completed.error || (input.completed.status === "cancelled" ? "Task canceled" : "Task failed"));
         }
         if (!input.continuationOnly) {
             if (!isCurrentProject()) return;
@@ -274,7 +274,7 @@ export function useCanvasGeneration({ projectId, domainProjectId, projectLoaded,
                 if (canRecoverTaskOutcome(outcome) && isCurrentCanvas()) {
                     setNodes((current) => current.map((node) => (node.id === nodeId ? { ...node, metadata: { ...node.metadata, taskOutcome: outcome } } : node)));
                 }
-                throw new Error(task.error || (task.status === "cancelled" ? "任务已取消" : "任务失败"));
+                throw new Error(task.error || (task.status === "cancelled" ? "Task canceled" : "Task failed"));
             }
             let saving: ReturnType<typeof startOperation> | undefined;
             try {
@@ -292,7 +292,7 @@ export function useCanvasGeneration({ projectId, domainProjectId, projectLoaded,
                         saving?.dismiss();
                         saving = undefined;
                         if (phase !== "saving" || !isCurrentCanvas()) return;
-                        saving = startOperation("保存生成结果", { target: { projectId: capturedCanvasId, nodeId, taskId: task.id }, detail: "正在保存视频并更新画布" });
+                        saving = startOperation("Save generated results", { target: { projectId: capturedCanvasId, nodeId, taskId: task.id }, detail: "Saving video and updating canvas" });
                         saving.update({ phase: "processing" });
                     } : undefined,
                 });
@@ -335,16 +335,16 @@ export function useCanvasGeneration({ projectId, domainProjectId, projectLoaded,
             queryClient.setQueryData(["task-details", projectId, task.id], (current: { task: GenerationTask; logs: unknown[] } | undefined) => ({ task: recoveredTask, logs: current?.logs ?? [] }));
             if (recoveredTask.status === "succeeded" || readTaskOutcome(recoveredTask)?.phase === "ready") {
                 const node = nodesRef.current.find((item) => item.metadata?.taskId === task.id);
-                if (!node) throw new Error("视频已取回，请在生成历史中查看");
+                if (!node) throw new Error("The video has been retrieved, please check it in the generation history");
                 await applyGenerationTaskResult(node.id, recoveredTask);
                 if (signal.aborted) return;
-                message.success("视频已取回并放回画布，未重新生成");
+                message.success("The video was retrieved and put back into the canvas, not regenerated");
             } else {
-                message.info("原任务仍在处理中，请稍后再取回结果");
+                message.info("The original task is still being processed, please retrieve the results later.");
             }
             void queryClient.invalidateQueries({ queryKey: ["task-details", projectId, task.id] });
         } catch (error) {
-            if (!signal.aborted) message.error(error instanceof Error ? error.message : "暂时无法取回结果，请稍后再试");
+            if (!signal.aborted) message.error(error instanceof Error ? error.message : "Unable to retrieve results at the moment, please try again later");
         } finally {
             if (retrievalRef.current === retrieval) {
                 retrievalRef.current = null;
@@ -468,14 +468,14 @@ export function useCanvasGeneration({ projectId, domainProjectId, projectLoaded,
                                                                 // 查询失败不能证明上次提交被拒绝；保留「待确认」，再次点击只会查原任务。
                                                                 generationSubmissionState: "unknown" as const,
                                                                 taskOutcome: { phase: "retrievable" as const, regenerate: "blocked" as const, reason: "submission_unknown" },
-                                                                taskStage: "提交结果待确认",
-                                                                errorDetails: "尚未查到上次提交的任务，请稍后重新打开画布查询，暂勿重新生成",
+                                                                taskStage: "Submit results to be confirmed",
+                                                                errorDetails: "The last submitted task has not been found yet. Please reopen the canvas query later and do not regenerate it yet.",
                                                             }
                                                           : {
                                                                 generationSubmissionState: undefined,
                                                                 taskOutcome: { phase: "failed" as const, regenerate: "allowed" as const, reason: "not_charged" },
                                                                 taskStage: undefined,
-                                                                errorDetails: "上次提交没有找到，可以重新生成",
+                                                                errorDetails: "The last submission was not found and can be regenerated.",
                                                             }
                                                       : { errorDetails: ["submitting", "unknown"].includes(item.metadata?.generationSubmissionState || "") ? MISSING_GENERATION_TASK_IDENTITY_DETAILS : INTERRUPTED_GENERATION_DETAILS }),
                                               },
@@ -573,7 +573,7 @@ export function useCanvasGeneration({ projectId, domainProjectId, projectLoaded,
                                         primaryImageId: undefined,
                                     }),
                               status: primary ? NODE_STATUS_SUCCESS : loading ? NODE_STATUS_LOADING : NODE_STATUS_ERROR,
-                              errorDetails: primary ? undefined : failed?.metadata?.errorDetails || "全部图片生成失败",
+                              errorDetails: primary ? undefined : failed?.metadata?.errorDetails || "All images failed to be generated",
                           };
                           const nextNode: CanvasNodeData = { ...node, metadata: nextMetadata };
                           const primaryResourceId = primary ? canvasNodeResourceId(primary) : "";
@@ -703,7 +703,7 @@ export function useCanvasGeneration({ projectId, domainProjectId, projectLoaded,
                 if (error instanceof Error && error.name === "AbortError") return;
                 message.warning({
                     key: `canvas-asset-sync:${projectId}`,
-                    content: error instanceof Error ? `生成结果已保留，但项目资产同步失败：${error.message}` : "生成结果已保留，但项目资产同步失败",
+                    content: error instanceof Error ? `Build results are preserved, but project asset synchronization fails:${error.message}` : "Build results are preserved, but project asset synchronization fails",
                     duration: 4,
                 });
             });

@@ -16,7 +16,7 @@ export function registerNodeDefinitions(defs: CanvasNodeDefinition[], ownerId = 
     const ids = new Set<string>();
     for (const def of defs) {
         const owner = ownerByType.get(def.type);
-        if (ids.has(def.type) || (owner && owner !== ownerId)) throw new Error(`节点类型重复或归属冲突：${def.type}`);
+        if (ids.has(def.type) || (owner && owner !== ownerId)) throw new Error(`Duplicate node type or ownership conflict:${def.type}`);
         ids.add(def.type);
     }
     for (const def of defs) {
@@ -61,14 +61,14 @@ export function listCreatableNodeDefinitions() {
 
 /** UI 短标签 */
 export function getNodeLabel(type: CanvasNodeTypeId) {
-    return definitions.get(type)?.label || "未知节点";
+    return definitions.get(type)?.label || "unknown node";
 }
 
 /** 列表/搜索标签，缺省派生自 label */
 export function getNodeListLabel(type: CanvasNodeTypeId) {
     const def = definitions.get(type);
-    if (!def) return "未知节点";
-    return def.listLabel || `${def.label}节点`;
+    if (!def) return "unknown node";
+    return def.listLabel || `${def.label}node`;
 }
 
 export function getNodeIcon(type: CanvasNodeTypeId) {

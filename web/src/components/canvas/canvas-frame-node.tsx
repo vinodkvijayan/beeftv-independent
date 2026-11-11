@@ -75,7 +75,7 @@ export const CanvasFrameNode = React.memo(function CanvasFrameNode({
     useEffect(() => setTitle(data.title), [data.title]);
 
     const commitTitle = () => {
-        const next = title.trim() || (folder ? "未命名文件夹" : "未命名背板");
+        const next = title.trim() || (folder ? "unnamed folder" : "Unnamed backplane");
         setTitle(next);
         setEditing(false);
         onTitleChange(data.id, next);
@@ -161,7 +161,7 @@ export const CanvasFrameNode = React.memo(function CanvasFrameNode({
         () => (folder && collapsed && !linkedFolder ? collectDownloadableMediaNodes(childNodes, childNodes.map((node) => node.id)) : []),
         [childNodes, collapsed, folder, linkedFolder],
     );
-    const compactFrameTitle = scale < 0.5 && (data.metadata?.fixture === "libtv-storyboard" || workflowLabel === "分镜")
+    const compactFrameTitle = scale < 0.5 && (data.metadata?.fixture === "libtv-storyboard" || workflowLabel === "Storyboard")
         ? data.title.split("｜", 1)[0]
         : data.title;
 
@@ -180,7 +180,7 @@ export const CanvasFrameNode = React.memo(function CanvasFrameNode({
                         type="button"
                         className="grid size-8 shrink-0 place-items-center rounded-md transition-colors hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 dark:hover:bg-white/10"
                         style={{ outlineColor: theme.frame.activeStroke }}
-                        aria-label={collapsed ? "展开背板" : "折叠背板"}
+                        aria-label={collapsed ? "Unfold the back panel" : "Folding back panel"}
                         onMouseDown={(event) => event.stopPropagation()}
                         onClick={(event) => {
                             event.stopPropagation();
@@ -245,7 +245,7 @@ export const CanvasFrameNode = React.memo(function CanvasFrameNode({
             data-canvas-child-count={String(childNodes.length)}
             role={folder && collapsed ? "group" : undefined}
             tabIndex={folder && collapsed ? 0 : undefined}
-            aria-label={folder && collapsed ? `${data.title}，文件夹，${childNodes.length} 项内容。按回车打开` : undefined}
+            aria-label={folder && collapsed ? `${data.title}, folder,${childNodes.length} item content. Press enter to open` : undefined}
             className={`absolute z-0 select-none${folder && collapsed ? " canvas-folder-node" : ""} ${dragOffset ? "cursor-grabbing" : "cursor-default"}`}
             style={{ transform: `translate(${data.position.x + (dragOffset?.x || 0)}px, ${data.position.y + (dragOffset?.y || 0)}px)`, width: data.width, height: data.height, contain: "layout style" }}
             onMouseDown={(event) => onMouseDown(event, data.id)}
@@ -297,38 +297,38 @@ export const CanvasFrameNode = React.memo(function CanvasFrameNode({
                     <button
                         type="button"
                         className="flex h-7 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition hover:bg-white/10"
-                        title="打开文件夹浏览内容"
+                        title="Open a folder and browse its contents"
                         onClick={() => onToggleCollapsed(data.id)}
                     >
                         <FolderOpen className="size-3.5" />
-                        <span>打开</span>
+                        <span>Open</span>
                     </button>
                     {!linkedFolder && childNodes.length > 0 && onUnpackFolder ? (
                         <button
                             type="button"
                             className="flex h-7 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition hover:bg-white/10"
-                            title="解散文件夹并将内部节点排回画布"
+                            title="Disband the folder and arrange the internal nodes back to the canvas"
                             onClick={() => onUnpackFolder(data.id)}
                         >
                             <Layers3 className="size-3.5" />
-                            <span>解散</span>
+                            <span>Disband</span>
                         </button>
                     ) : null}
                     {!linkedFolder && downloadableFolderNodes.length > 0 ? (
                         <button
                             type="button"
                             className="flex h-7 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition hover:bg-white/10"
-                            title="批量下载文件夹内媒体素材"
+                            title="Download media materials in folders in batches"
                             onClick={() => {
                                 void batchDownloadCanvasMediaNodes(downloadableFolderNodes).then(({ downloaded, failed }) => {
-                                    if (failed === 0) message.success(`已批量下载 ${downloaded} 个素材`);
-                                    else if (downloaded > 0) message.warning(`已下载 ${downloaded} 个素材，${failed} 个下载失败`);
-                                    else message.warning("素材下载失败，请稍后重试");
+                                    if (failed === 0) message.success(`Downloaded in batches${downloaded} materials`);
+                                    else if (downloaded > 0) message.warning(`Downloaded${downloaded} material,${failed} downloads failed`);
+                                    else message.warning("Material download failed, please try again later");
                                 });
                             }}
                         >
                             <Download className="size-3.5" />
-                            <span>下载</span>
+                            <span>Download</span>
                         </button>
                     ) : null}
                 </div>
@@ -384,10 +384,10 @@ export const CanvasFrameNode = React.memo(function CanvasFrameNode({
 });
 
 function frameWorkflowLabel(kind?: NonNullable<CanvasNodeData["metadata"]>["workflowKind"]) {
-    if (kind === "storyboard") return "分镜";
-    if (kind === "reference_set") return "引用";
-    if (kind === "character") return "角色";
-    if (kind === "styleboard") return "画风";
+    if (kind === "storyboard") return "Storyboard";
+    if (kind === "reference_set") return "Quote";
+    if (kind === "character") return "role";
+    if (kind === "styleboard") return "style of painting";
     return undefined;
 }
 
@@ -425,11 +425,11 @@ function FramePreview({ nodes, frame, theme }: { nodes: CanvasNodeData[]; frame:
                         {videoPreview ? <img src={videoPreview} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" draggable={false} /> : null}
                         {node.type === CanvasNodeType.Video && !videoPreview ? <Video className="m-auto size-4 h-full opacity-40" /> : null}
                         {node.type === CanvasNodeType.Text ? <div className="line-clamp-3 p-1 text-[var(--fs-nano)] leading-[9px]" style={{ color: theme.node.text }}>{node.metadata?.content || node.title}</div> : null}
-                        {node.type === CanvasNodeType.Script ? <div className="p-1 text-[var(--fs-nano)] leading-[9px]" style={{ color: theme.node.text }}>分镜脚本 · {node.metadata?.storyboard?.rows.length || 0} 镜</div> : null}
+                        {node.type === CanvasNodeType.Script ? <div className="p-1 text-[var(--fs-nano)] leading-[9px]" style={{ color: theme.node.text }}>Storyboard ·{node.metadata?.storyboard?.rows.length || 0}  mirror</div> : null}
                     </div>;
                 })
             ) : (
-                <div className="grid h-full place-items-center text-[var(--fs-label)]" style={{ color: theme.node.faint }}>空背板</div>
+                <div className="grid h-full place-items-center text-[var(--fs-label)]" style={{ color: theme.node.faint }}>Empty backplane</div>
             )}
         </div>
     );
@@ -446,7 +446,7 @@ function ResizeHandle({ corner, scale, theme, onMouseDown }: { corner: ResizeCor
     return (
         <button
             type="button"
-            aria-label="调整背板尺寸"
+            aria-label="Adjust back panel size"
             className="pointer-events-auto absolute z-20 rounded-sm shadow-sm"
             style={{
                 top: fromTop ? offset : undefined,

@@ -38,7 +38,7 @@ export interface CalloutProps extends Omit<HTMLAttributes<HTMLDivElement>, "titl
     closeLabel?: string;
 }
 
-export function Callout({ tone = "default", title, icon, action, onClose, closeLabel = "关闭", className, children, ...props }: CalloutProps) {
+export function Callout({ tone = "default", title, icon, action, onClose, closeLabel = "Close", className, children, ...props }: CalloutProps) {
     const resolved = tone === "default" ? "info" : tone;
     const Icon = icon ?? calloutIconByTone[resolved];
     return (

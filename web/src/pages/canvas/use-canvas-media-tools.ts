@@ -136,9 +136,9 @@ export function useCanvasMediaTools({
         let blob = key ? await (video ? getMediaBlob(key) : getImageBlob(key)) : null;
         if (!blob) {
             const url = video ? await resolveMediaUrl(key, node.metadata?.content) : await resolveImageUrl(key, node.metadata?.content);
-            if (!url) throw new Error("无法读取原素材");
+            if (!url) throw new Error("Unable to read original material");
             const response = await fetch(url);
-            if (!response.ok) throw new Error("读取原素材失败");
+            if (!response.ok) throw new Error("Failed to read original material");
             blob = await response.blob();
         }
         const resource = await uploadResourceFile(blob, video ? "video" : "image", { width: node.metadata?.naturalWidth, height: node.metadata?.naturalHeight });
@@ -173,13 +173,13 @@ export function useCanvasMediaTools({
 
     const recoverAIUpscale = useCallback(async (node: CanvasNodeData) => {
         const taskId = node.metadata?.taskId;
-        if (!taskId) throw new Error("找不到原超分任务");
+        if (!taskId) throw new Error("The original super score mission cannot be found");
         const original = await queryGenerationTask(taskId, {});
-        if (!isAIUpscaleTask(original)) throw new Error("该任务不是超分任务");
+        if (!isAIUpscaleTask(original)) throw new Error("This task is not a super task");
         const task = original.status === "failed" ? await recoverUpscaleTask(taskId) : original;
         if (projectIdRef.current !== projectId) return;
         bindGenerationTask(node.id, task);
-        setNodes(current => current.map(item => item.id === node.id ? { ...item, metadata: { ...item.metadata, status: "loading", errorDetails: undefined, processingLabel: "取回原超分任务结果" } } : item));
+        setNodes(current => current.map(item => item.id === node.id ? { ...item, metadata: { ...item.metadata, status: "loading", errorDetails: undefined, processingLabel: "Retrieve the original super score task results" } } : item));
         observeAIUpscale(task, node.id);
     }, [bindGenerationTask, observeAIUpscale, projectId, setNodes]);
 
@@ -193,7 +193,7 @@ export function useCanvasMediaTools({
         const childNode: CanvasNodeData = {
             id: childId,
             type: CanvasNodeType.Panorama,
-            title: `${node.title || "图片"} · 全景`,
+            title: `${node.title || "pictures"} · Panorama`,
             position: { x: node.position.x + node.width + 96, y: node.position.y },
             width: panoramaSpec.width,
             height: panoramaSpec.height,
@@ -221,7 +221,7 @@ export function useCanvasMediaTools({
         // 全景节点是纯查看器，创建后不弹提示词面板。
         pageUi.getState().setDialogNodeId(null);
         setPanoramaConfigNodeId(null);
-        message.success(config.sourceMode === "image" ? "已创建全景查看节点" : "已创建全景生成节点");
+        message.success(config.sourceMode === "image" ? "Panorama view node created" : "Panorama generation node created");
     }, [pageUi, projectId, message, setConnections, setNodes]);
 
     const addPanoramaCaptureNode = useCallback(async (node: CanvasNodeData, dataUrl: string, title: string) => {
@@ -244,7 +244,7 @@ export function useCanvasMediaTools({
             setNodes((current) => [...current, childNode]);
             setConnections((current) => [...current, { id: nanoid(), fromNodeId: node.id, toNodeId: childNode.id }]);
             await operation.wait(persistMediaNodes([childNode], [], {}));
-            message.success(`已导出「${title}」`);
+            message.success(`Exported "${title}」`);
         } catch (error) {
             if (operation.isCurrent()) throw error;
         }

@@ -26,21 +26,21 @@ export type MediaConversionNodeState = {
 };
 
 export const MEDIA_CONVERSION_OPERATION_LABELS: Record<MediaConversionOperation, string> = {
-    grayscale: "灰度图",
-    "edge-canny": "Canny 边缘",
-    lineart: "AI 线稿",
-    depth: "深度图",
-    pose: "姿态骨架",
-    cutout: "透明抠图",
+    grayscale: "Grayscale image",
+    "edge-canny": "Canny edge",
+    lineart: "AI line drawing",
+    depth: "Depth map",
+    pose: "posture skeleton",
+    cutout: "Transparent cutout",
 };
 
 export const MEDIA_CONVERSION_OPERATION_DESCRIPTIONS: Record<MediaConversionOperation, string> = {
-    grayscale: "普通图像算法，适合先检查明暗层次",
-    "edge-canny": "普通图像算法，提取清晰轮廓",
-    lineart: "本地 ControlNet Aux 线稿预处理，首次运行需要加载模型",
-    depth: "本地 Depth Anything V2 Small，首次运行需要加载模型",
-    pose: "本地 OpenPose 人体骨架预处理，未检测到人物时会跳过",
-    cutout: "需要安装并验证本地抠图模型",
+    grayscale: "Ordinary image algorithm, suitable for checking light and dark levels first",
+    "edge-canny": "Ordinary image algorithm to extract clear contours",
+    lineart: "Local ControlNet Aux line art preprocessing, the model needs to be loaded for the first run",
+    depth: "Local Depth Anything V2 Small, the model needs to be loaded for the first run",
+    pose: "Local OpenPose human skeleton preprocessing, skipped when no character is detected",
+    cutout: "Need to install and verify the local cutout model",
 };
 
 export function createDefaultMediaConversionState(): MediaConversionNodeState {

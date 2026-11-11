@@ -54,9 +54,9 @@ export function updateCreationConversationSnapshot<T extends { id: string }>(con
 
 // 对话、生成任务与素材是独立持久状态；删除历史记录不能在这里级联清理任务或资源。
 export function removeCreationConversationSnapshot<T extends { id: string }>(conversations: T[], conversationId: string) {
-    if (!conversationId) throw new Error("缺少要删除的创作对话 ID");
+    if (!conversationId) throw new Error("Missing authoring session ID to delete");
     const next = conversations.filter((conversation) => conversation.id !== conversationId);
-    if (next.length === conversations.length) throw new Error("要删除的创作对话不存在");
+    if (next.length === conversations.length) throw new Error("The creative session to be deleted does not exist");
     return next;
 }
 
@@ -121,7 +121,7 @@ function persistableDocument(conversation: StoredCreationConversation): Creation
     const { revision: _revision, pending: _pending, conflictRemote: _conflictRemote, ...rest } = conversation;
     const stripped = stripEphemeralMedia(rest) as Record<string, unknown>;
     const title = typeof stripped.title === "string" ? stripped.title.trim() : "";
-    stripped.title = title || "新创作";
+    stripped.title = title || "new creation";
     return stripped as CreationConversationDocument;
 }
 
@@ -269,13 +269,13 @@ function stripEphemeralMedia(value: unknown, key = ""): unknown {
 }
 
 function persistAttachment(value: unknown) {
-    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("附件必须是对象");
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Attachment must be an object");
     const attachment = value as Record<string, unknown>;
     const storageKey = stringField(attachment.storageKey) || stringField(attachment.storage_key);
     const out: Record<string, unknown> = {};
     for (const [childKey, item] of Object.entries(attachment)) {
         if (typeof item === "string" && isMediaURLKey(childKey) && isTempMediaBlob(item)) {
-            if (!storageKey) throw new Error("附件没有可恢复的存储引用");
+            if (!storageKey) throw new Error("Attachment has no recoverable storage reference");
             continue;
         }
         const cleaned = stripEphemeralMedia(item, childKey);
@@ -329,9 +329,9 @@ async function readLegacyArray(scope: string): Promise<StoredCreationConversatio
     try {
         parsed = JSON.parse(value);
     } catch {
-        throw new Error("创作对话持久状态无效");
+        throw new Error("Authoring dialog persistent state is invalid");
     }
-    if (!Array.isArray(parsed)) throw new Error("创作对话持久状态无效");
+    if (!Array.isArray(parsed)) throw new Error("Authoring dialog persistent state is invalid");
     return parsed as StoredCreationConversation[];
 }
 
@@ -353,7 +353,7 @@ async function readJSON<T>(scope: string, key: string, fallback: T): Promise<T> 
     try {
         return JSON.parse(value) as T;
     } catch {
-        throw new Error("创作对话本地状态无效");
+        throw new Error("Authoring dialog local state is invalid");
     }
 }
 
@@ -663,7 +663,7 @@ export async function saveCreationConversations<T extends StoredCreationConversa
 ) {
     const resolveIds = new Set(options?.resolveConflictIds || []);
     const jobs = conversations.map((conversation) => {
-        if (!conversation?.id) throw new Error("缺少要保存的创作对话 ID");
+        if (!conversation?.id) throw new Error("Missing authoring session ID to save");
         const cloned = cloneConversation(conversation);
         const key = scopeKey(scope, cloned.id);
         const generation = nextGeneration(key);
@@ -704,8 +704,8 @@ export async function adoptServerConfirmedConversationDocument(
 ) {
     const scope = getActiveUserScope();
     const id = conversationId.trim();
-    if (!id) throw new Error("缺少要采纳的创作对话 ID");
-    if (!Number.isInteger(revision) || revision < 1) throw new Error("对话版本无效");
+    if (!id) throw new Error("Missing authoring session ID to adopt");
+    if (!Number.isInteger(revision) || revision < 1) throw new Error("Conversation version is invalid");
     const canonical = cloneConversation({ ...document, id });
     let adopted: StoredCreationConversation | undefined;
 
@@ -759,7 +759,7 @@ export async function adoptServerConfirmedConversationDocument(
         }
     });
 
-    if (!adopted) throw new Error("这次生成结果没能写进对话。请再试一次。");
+    if (!adopted) throw new Error("This time the generated results were not included in the conversation. Please try again.");
     return adopted;
 }
 
@@ -810,7 +810,7 @@ export async function hasParkedCreationConversationDraft(id: string, scope = get
 }
 
 export async function deleteCreationConversation(conversationId: string, scope = getActiveUserScope()) {
-    if (!conversationId) throw new Error("缺少要删除的创作对话 ID");
+    if (!conversationId) throw new Error("Missing authoring session ID to delete");
     return enqueue(scope, conversationId, async () => {
         const expectedRevision = committed.get(scopeKey(scope, conversationId))?.revision ?? 0;
         try {

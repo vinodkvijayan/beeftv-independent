@@ -33,7 +33,7 @@ export function useCanvasImport({ projectId, document, saveCanvasProject }: Opti
                 connectionsRef.current = previous.connections;
                 setNodes(previous.nodes);
                 setConnections(previous.connections);
-                throw new Error(`画布保存失败，已撤销本次 ${sourceLabel} 导入`);
+                throw new Error(`Canvas save failed, this time has been cancelled.${sourceLabel} import`);
             }
         },
         [saveCanvasProject, setConnections, setNodes, nodesRef, connectionsRef, lifetime, projectId, mountedRef],

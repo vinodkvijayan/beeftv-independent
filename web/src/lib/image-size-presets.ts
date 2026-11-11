@@ -18,10 +18,10 @@ const standardSizes: Record<string, string[]> = {
 
 export function imagePresetForRatio(tier: ImageResolutionTier, input: string): ImageResolutionOption {
     const match = input.trim().match(/^(\d{1,5})\s*[:：]\s*(\d{1,5})$/);
-    if (!match) throw new Error("请输入宽高比，例如 16:9");
+    if (!match) throw new Error("Please enter an aspect ratio, for example 16:9");
     let w = Number(match[1]),
         h = Number(match[2]);
-    if (!w || !h || Math.max(w, h) / Math.min(w, h) > 3) throw new Error("宽高比必须为正数，且不超过 3:1");
+    if (!w || !h || Math.max(w, h) / Math.min(w, h) > 3) throw new Error("Aspect ratio must be positive and no more than 3:1");
     let a = w,
         b = h;
     while (b) [a, b] = [b, a % b];
@@ -33,7 +33,7 @@ export function imagePresetForRatio(tier: ImageResolutionTier, input: string): I
             return width * h === height * w;
         }) || `${w}:${h}`;
     const index = IMAGE_RESOLUTIONS.indexOf(tier);
-    if (index < 0) throw new Error("分辨率仅支持 1K、2K、4K");
+    if (index < 0) throw new Error("Resolution only supports 1K, 2K, 4K");
     const standard = standardSizes[ratio]?.[index];
     const pixels = [1_048_576, 4_194_304, 8_294_400][index];
     let width = Math.round(Math.sqrt((pixels * w) / h) / 16) * 16;

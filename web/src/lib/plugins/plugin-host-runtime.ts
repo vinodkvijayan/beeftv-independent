@@ -135,7 +135,7 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
                         Boolean(rawParams.document && typeof rawParams.document === "object");
                     const isNotFound =
                         (typeof (err as { status?: number })?.status === "number" && (err as { status: number }).status === 404) ||
-                        String((err as Error)?.message || "").includes("画布不存在");
+                        String((err as Error)?.message || "").includes("Canvas does not exist");
                     if (!isInitialCommit || !isNotFound) throw err;
                     const created = await http.put<{
                         project?: { id?: string; revision?: number; title?: string; updatedAt?: string };
@@ -168,7 +168,7 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
             list: () => {
                 const perms = Array.isArray(resolvedManifest.permissions) ? resolvedManifest.permissions : [];
                 if (!perms.includes("settings.write") || !resolvedManifest.trusted) {
-                    throw new Error(`插件 ${pluginId} 缺少可信 settings.write 权限，无法读取模型渠道列表`);
+                    throw new Error(`plug-in${pluginId} Unable to read model channel list due to lack of trusted settings.write permission`);
                 }
                 return (useConfigStore.getState().config.channels ?? []).map((item) => ({
                     ...item,
@@ -181,7 +181,7 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
             upsert: async (rawChannel) => {
                 const perms = Array.isArray(resolvedManifest.permissions) ? resolvedManifest.permissions : [];
                 if (!perms.includes("settings.write") || !resolvedManifest.trusted) {
-                    throw new Error(`插件 ${pluginId} 缺少可信 settings.write 权限，无法修改模型渠道`);
+                    throw new Error(`plug-in${pluginId} Lack of trusted settings.write permission, unable to modify model channels`);
                 }
                 const incoming = rawChannel as unknown as Partial<ModelChannel>;
                 const targetId = String(incoming.id || "").trim();
@@ -193,11 +193,11 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
                         targetId === `${allowedPrefix}-channel` ||
                         targetId.startsWith(`${pluginId}:`));
                 if (!isPluginOwnedId) {
-                    throw new Error(`插件 ${pluginId} 仅允许写入自身命名空间下的模型渠道`);
+                    throw new Error(`plug-in${pluginId} Only allowed to write to model channels under its own namespace`);
                 }
                 const baseUrl = String(incoming.baseUrl || "").trim();
                 if (!/^https?:\/\//i.test(baseUrl)) {
-                    throw new Error("渠道接口地址必须以 http:// 或 https:// 开头");
+                    throw new Error("Channel interface address must start with http:// or https://");
                 }
                 const buildNextConfig = async () => {
                     const { servicePresetFor } = await import("@/lib/model-service-presets");
@@ -205,7 +205,7 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
                     const existing = latest.channels.find((item) => item.id === targetId)
                         || latest.channels.find((item) => item.scope !== "system" && !item.pinned && !item.credentialRef && servicePresetFor(item) === allowedPrefix);
                     if (existing?.scope === "system" || existing?.pinned || existing?.credentialRef) {
-                        throw new Error("不允许覆盖系统内置或受管凭证渠道");
+                        throw new Error("Overriding system built-in or managed credential channels is not allowed");
                     }
                     const effectiveId = existing?.id || targetId;
                     const nextApiKey = typeof incoming.apiKey === "string" && incoming.apiKey.trim()
@@ -237,7 +237,7 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
                 await flushModelConfig();
                 const persistence = getModelConfigPersistenceState();
                 if (persistence.status === "error") {
-                    throw new Error(persistence.error || "保存模型配置失败");
+                    throw new Error(persistence.error || "Failed to save model configuration");
                 }
                 const refreshed = await buildNextConfig();
                 useConfigStore.getState().replaceConfig(refreshed.nextConfig);
@@ -252,7 +252,7 @@ export function createBeefTVPluginHost(pluginId: string, manifest?: PluginManife
             fetchCatalog: async (params) => {
                 const perms = Array.isArray(resolvedManifest.permissions) ? resolvedManifest.permissions : [];
                 if (!perms.includes("settings.write") || !resolvedManifest.trusted) {
-                    throw new Error(`插件 ${pluginId} 缺少可信 settings.write 权限，无法探测模型目录`);
+                    throw new Error(`plug-in${pluginId} Missing trusted settings.write permission, unable to detect model directory`);
                 }
                 const res = await http.post<{ models?: Array<string | { id?: string }> }>("/ai/models", {
                     baseUrl: params.baseUrl,

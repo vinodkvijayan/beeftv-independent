@@ -51,7 +51,7 @@ export function TextProtocolDetection({ channel, model, current, protocols, disa
                 protocol: item.value,
                 label: item.label,
                 ok: outcome.status === "fulfilled",
-                detail: outcome.status === "rejected" ? (outcome.reason instanceof Error ? outcome.reason.message : "请求没有成功") : "",
+                detail: outcome.status === "rejected" ? (outcome.reason instanceof Error ? outcome.reason.message : "The request was unsuccessful") : "",
             };
         }));
         setRunning(false);
@@ -61,33 +61,33 @@ export function TextProtocolDetection({ channel, model, current, protocols, disa
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-xs leading-5 text-foreground/58">不确定选哪种，可以每种各试一次。</p>
+                <p className="text-xs leading-5 text-foreground/58">If you are not sure which one to choose, you can try each one.</p>
                 <Popconfirm
-                    title="检测哪种接口格式能用？"
-                    description={<>会发 {candidates.length} 次简短请求，费用由服务商收取。<br />记录在任务中心。</>}
-                    okText="开始检测"
-                    cancelText="取消"
+                    title="Which interface format can be used to detect?"
+                    description={<>Will make{candidates.length}  A brief request, the fee will be charged by the service provider.<br />Recorded in the mission center.</>}
+                    okText="Start testing"
+                    cancelText="Cancel"
                     disabled={disabled || running}
                     onConfirm={() => void run()}
                 >
-                    <Button size="small" loading={running} disabled={disabled}>检测</Button>
+                    <Button size="small" loading={running} disabled={disabled}>Detection</Button>
                 </Popconfirm>
             </div>
             {results ? (
-                <ul className="space-y-1.5" aria-label="接口格式检测结果">
+                <ul className="space-y-1.5" aria-label="Interface format detection results">
                     {results.map((result) => (
                         <li key={result.protocol} className="flex min-w-0 items-center justify-between gap-3 rounded-md bg-foreground/[.035] px-3 py-2">
                             <div className="min-w-0">
                                 <div className="text-xs">
                                     {result.label}
-                                    <span className={result.ok ? "ml-2 text-[var(--status-success)]" : "ml-2 text-foreground/50"}>{result.ok ? "能用" : "不能用"}</span>
+                                    <span className={result.ok ? "ml-2 text-[var(--status-success)]" : "ml-2 text-foreground/50"}>{result.ok ? "Can be used" : "Cannot be used"}</span>
                                 </div>
                                 {result.detail ? <div className="mt-0.5 truncate text-[var(--fs-tiny)] text-foreground/45" title={result.detail}>{result.detail}</div> : null}
                             </div>
                             {result.ok ? (
                                 result.protocol === current
-                                    ? <span className="shrink-0 text-[var(--fs-tiny)] text-foreground/45">正在使用</span>
-                                    : <Button size="small" className="shrink-0" onClick={() => onSelect(result.protocol)}>改用</Button>
+                                    ? <span className="shrink-0 text-[var(--fs-tiny)] text-foreground/45">in use</span>
+                                    : <Button size="small" className="shrink-0" onClick={() => onSelect(result.protocol)}>Use instead</Button>
                             ) : null}
                         </li>
                     ))}

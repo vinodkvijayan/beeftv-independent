@@ -16,7 +16,7 @@ export function DeleteButton({ label, description, onConfirm }: { label: string;
         setPending(true);
         setError("");
         try { await onConfirm(); setOpen(false); }
-        catch (cause) { setError(cause instanceof Error ? cause.message : "删除失败，请重试"); }
+        catch (cause) { setError(cause instanceof Error ? cause.message : "Deletion failed, please try again"); }
         finally { busy.current = false; setPending(false); }
     };
     return <span className="product-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }} onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); close(); } }}>
@@ -26,8 +26,8 @@ export function DeleteButton({ label, description, onConfirm }: { label: string;
                 <p>{description}</p>
                 {error ? <p role="alert" className="product-delete-error">{error}</p> : null}
                 <div className="product-delete-confirm-actions">
-                    <Button autoFocus icon={<X />} disabled={pending} onClick={close}>取消</Button>
-                    <Button danger type="primary" icon={<Check />} loading={pending} onClick={() => void confirm()}>确认删除</Button>
+                    <Button autoFocus icon={<X />} disabled={pending} onClick={close}>Cancel</Button>
+                    <Button danger type="primary" icon={<Check />} loading={pending} onClick={() => void confirm()}>Confirm deletion</Button>
                 </div>
             </div>
         }>

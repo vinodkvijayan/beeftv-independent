@@ -16,7 +16,7 @@ export function directorAsyncSession(signal: AbortSignal): DirectorAsyncSession 
         signal,
         current,
         assertCurrent: () => {
-            if (signal.aborted) throw new DOMException("导演台会话已结束", "AbortError");
+            if (signal.aborted) throw new DOMException("Director's desk session has ended", "AbortError");
         },
     };
 }

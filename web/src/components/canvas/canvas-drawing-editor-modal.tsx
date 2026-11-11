@@ -43,16 +43,16 @@ export function CanvasDrawingEditorModal({ open, projectId, node, onClose, onSav
         currentRef.current = null;
         void loadCanvasDrawing(projectId, node.metadata.drawingId).then((saved) => {
             if (cancelled) return;
-            if (saved && saved.engine !== engine) throw new Error(`绘图节点标记为 ${drawingEngineLabel(engine)}，但文档属于 ${drawingEngineLabel(saved.engine)}`);
+            if (saved && saved.engine !== engine) throw new Error(`Drawing nodes are labeled${drawingEngineLabel(engine)}, but the document belongs to${drawingEngineLabel(saved.engine)}`);
             currentRef.current = saved;
             setSnapshot(saved?.snapshot || null);
-            setDraftHint(saved?.canonicalMissing ? "工作区里没有这份绘图，草稿已留在本机" : saved?.origin === "draft" ? "有未保存的修改" : "");
+            setDraftHint(saved?.canonicalMissing ? "This drawing does not exist in the workspace, the draft has been left on this machine" : saved?.origin === "draft" ? "There are unsaved changes" : "");
             setLoaded(true);
         }).catch((error) => {
             if (cancelled) return;
-            const detail = error instanceof Error ? error.message : "绘图文档无法读取";
+            const detail = error instanceof Error ? error.message : "Drawing document cannot be read";
             setLoadError(detail);
-            message.error(`绘图加载失败：${detail}`);
+            message.error(`Plot loading failed:${detail}`);
         });
         return () => { cancelled = true; };
     }, [engine, message, node?.metadata?.drawingId, open, projectId]);
@@ -64,11 +64,11 @@ export function CanvasDrawingEditorModal({ open, projectId, node, onClose, onSav
             const draft = await editorRef.current.createSave();
             const saved = await saveCanvasDrawing(projectId, node.metadata.drawingId, engine, draft.snapshot, currentRef.current, draft.preview, draft.render);
             currentRef.current = saved;
-            setDraftHint(saved.canonicalMissing ? "工作区里没有这份绘图，草稿已留在本机" : "");
+            setDraftHint(saved.canonicalMissing ? "This drawing does not exist in the workspace, the draft has been left on this machine" : "");
             onSaved(node.id, saved);
             return true;
         } catch (error) {
-            message.error(error instanceof Error ? `绘图保存失败：${error.message}` : "绘图保存失败");
+            message.error(error instanceof Error ? `Failed to save drawing:${error.message}` : "Drawing save failed");
             return false;
         } finally {
             setSaving(false);
@@ -84,18 +84,18 @@ export function CanvasDrawingEditorModal({ open, projectId, node, onClose, onSav
         <AppModal flush open={open} onCancel={() => void handleClose()} footer={null} closable={false} destroyOnHidden width="100vw" centered className="canvas-drawing-editor-modal">
             <div className="flex h-[min(92dvh,980px)] flex-col">
                 <div className="flex h-12 shrink-0 items-center justify-between border-b px-4" style={{ background: "var(--background)", borderColor: "var(--border)" }}>
-                    <div className="flex min-w-0 items-center gap-2"><Maximize2 className="size-4 opacity-55" /><span className="truncate text-sm font-semibold">{node?.title || "绘图"}</span><span className="text-[var(--fs-label)] opacity-45">{drawingEngineLabel(engine)} · {ready ? "已加载" : "正在加载"}</span>{draftHint ? <span className="truncate text-[var(--fs-label)] text-amber-700 dark:text-amber-300">{draftHint}</span> : null}</div>
+                    <div className="flex min-w-0 items-center gap-2"><Maximize2 className="size-4 opacity-55" /><span className="truncate text-sm font-semibold">{node?.title || "Drawing"}</span><span className="text-[var(--fs-label)] opacity-45">{drawingEngineLabel(engine)} · {ready ? "Loaded" : "Loading"}</span>{draftHint ? <span className="truncate text-[var(--fs-label)] text-amber-700 dark:text-amber-300">{draftHint}</span> : null}</div>
                     <div className="flex items-center gap-2">
-                        <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition hover:bg-black/5 disabled:opacity-45 dark:hover:bg-white/10" disabled={!ready || saving} onClick={() => void handleSave()}><Check className="size-3.5" />{saving ? "保存中" : "保存绘图"}</button>
-                        <button type="button" className="grid size-8 place-items-center rounded-md border transition hover:bg-black/5 dark:hover:bg-white/10" aria-label="关闭绘图编辑器" onClick={() => void handleClose()}><X className="size-4" /></button>
+                        <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition hover:bg-black/5 disabled:opacity-45 dark:hover:bg-white/10" disabled={!ready || saving} onClick={() => void handleSave()}><Check className="size-3.5" />{saving ? "Saving" : "save drawing"}</button>
+                        <button type="button" className="grid size-8 place-items-center rounded-md border transition hover:bg-black/5 dark:hover:bg-white/10" aria-label="Close drawing editor" onClick={() => void handleClose()}><X className="size-4" /></button>
                     </div>
                 </div>
                 <div className="relative min-h-0 flex-1">
-                    {loadError ? <EditorState title="绘图无法打开" detail={loadError} /> : loaded ? (
-                        <Suspense fallback={<EditorState title="正在载入绘图工具" />}>
+                    {loadError ? <EditorState title="Drawing cannot be opened" detail={loadError} /> : loaded ? (
+                        <Suspense fallback={<EditorState title="Loading drawing tools" />}>
                             <CanvasDrawingExcalidrawEditor ref={editorRef} snapshot={snapshot} colorScheme={colorScheme} onReady={() => setReady(true)} />
                         </Suspense>
-                    ) : <EditorState title="正在准备绘图画布" />}
+                    ) : <EditorState title="Preparing canvas for drawing" />}
                 </div>
             </div>
         </AppModal>

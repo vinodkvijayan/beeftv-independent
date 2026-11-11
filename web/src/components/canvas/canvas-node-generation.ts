@@ -76,8 +76,8 @@ export function buildNodeGenerationContext(nodeId: string, nodes: CanvasNodeData
     const pendingConversion = findPendingMediaConversionInput(nodeId, nodes, connections);
     if (pendingConversion) {
         const status = pendingConversion.metadata?.mediaConversion?.status;
-        const reason = status === "stale" ? "输入或方式已变化" : status === "processing" ? "仍在处理中" : "尚未完成本地转换";
-        throw new Error(`转换节点「${pendingConversion.title || pendingConversion.id}」${reason}，完成后才能执行下游生成`);
+        const reason = status === "stale" ? "The input or method has changed" : status === "processing" ? "Still processing" : "Local conversion not completed yet";
+        throw new Error(`Conversion node${pendingConversion.title || pendingConversion.id}」${reason}, downstream generation can only be executed after completion`);
     }
     const connectedInputs = withArkAssetReferenceInputs(buildNodeGenerationInputs(nodeId, nodes, connections), nodes, assets);
     const sourceNode = nodes.find((node) => node.id === nodeId);
@@ -372,7 +372,7 @@ function nodeGenerationMentionInputs(nodeId: string, nodes: CanvasNodeData[], co
 function assertResolvableGenerationMentions(prompt: string, inputs: NodeGenerationInput[]) {
     const { unresolved } = inspectGenerationMentions(prompt, inputs);
     if (!unresolved.length) return;
-    throw new Error(`提示词中的 ${unresolved.join("、")} 没有对应的画布资源，请重新选择引用后再生成`);
+    throw new Error(`in prompt words${unresolved.join("、")} There is no corresponding canvas resource, please select the reference again and generate it again.`);
 }
 
 function inspectGenerationMentions(prompt: string, inputs: NodeGenerationInput[]) {
@@ -510,23 +510,23 @@ function getConnectedStoryboardRows(nodeId: string, nodes: CanvasNodeData[], con
         seen.add(inputId);
         const characters = (row.characters || []).map((character) => [character.characterName, character.characterDescription].filter(Boolean).join("：")).filter(Boolean).join("、");
         const text = [
-            `【分镜 ${row.shotNumber}】`,
-            `时长：${row.durationSeconds} 秒`,
-            row.plotDescription && `画面描述：${row.plotDescription}`,
-            row.dialogue && `台词/旁白：${row.dialogue}`,
-            characters && `角色：${characters}`,
-            row.shotSize && `景别：${row.shotSize}`,
-            row.emotion && `情绪：${row.emotion}`,
-            row.lightingAndAtmosphere && `光影氛围：${row.lightingAndAtmosphere}`,
-            row.audioEffects && `音效：${row.audioEffects}`,
-            row.camera && `镜头设计：${row.camera}`,
-            row.motion && `运镜：${row.motion}`,
-            row.timeBeats && `时间节拍：${row.timeBeats}`,
-            row.imageGenerationPrompt && `图片提示词：${row.imageGenerationPrompt}`,
-            row.videoMotionPrompt && `视频提示词：${row.videoMotionPrompt}`,
-            row.negativePrompt && `负面要求：${row.negativePrompt}`,
+            `【Storyboard${row.shotNumber}】`,
+            `Duration:${row.durationSeconds} seconds`,
+            row.plotDescription && `Screen description:${row.plotDescription}`,
+            row.dialogue && `Lines/narration:${row.dialogue}`,
+            characters && `Role:${characters}`,
+            row.shotSize && `Scenery:${row.shotSize}`,
+            row.emotion && `Emotions:${row.emotion}`,
+            row.lightingAndAtmosphere && `Light and shadow atmosphere:${row.lightingAndAtmosphere}`,
+            row.audioEffects && `Sound effects:${row.audioEffects}`,
+            row.camera && `Lens design:${row.camera}`,
+            row.motion && `Mirror movement:${row.motion}`,
+            row.timeBeats && `Time beat:${row.timeBeats}`,
+            row.imageGenerationPrompt && `Picture prompt words:${row.imageGenerationPrompt}`,
+            row.videoMotionPrompt && `Video prompt words:${row.videoMotionPrompt}`,
+            row.negativePrompt && `Negative requirements:${row.negativePrompt}`,
         ].filter(Boolean).join("\n");
-        return [{ nodeId: inputId, type: "text", title: `${scriptNode.title} · 镜头 ${row.shotNumber}`, text, alwaysIncludeText: true }];
+        return [{ nodeId: inputId, type: "text", title: `${scriptNode.title} · Lens${row.shotNumber}`, text, alwaysIncludeText: true }];
     });
 }
 
@@ -563,7 +563,7 @@ export async function hydrateNodeGenerationContext(context: NodeGenerationContex
         }),
     );
     if (!context.characterReferences.length) return { ...context, referenceImages };
-    if (!domainProjectId) throw new Error("角色引用未关联短剧项目，无法解析角色版本");
+    if (!domainProjectId) throw new Error("The character reference is not associated with the short drama project and the character version cannot be parsed.");
     const { getProjectCharacter } = await import("@/services/api/projects");
     const { getResource, resourceFileUrl, resourceStorageKey } = await import("@/services/api/resources");
     const details = await Promise.all(context.characterReferences.map((reference) => getProjectCharacter(domainProjectId, reference.assetId)));
@@ -600,7 +600,7 @@ export async function hydrateNodeGenerationContext(context: NodeGenerationContex
             voiceAge: voiceAge || undefined,
             timbre: timbre || undefined,
             deliveryInstructions: deliveryInstructions || undefined,
-            instructions: [language && `语言与口音：${language}`, voiceAge && `声音年龄感：${voiceAge}`, timbre && `音色气质：${timbre}`, deliveryInstructions].filter(Boolean).join("；"),
+            instructions: [language && `Language and accent:${language}`, voiceAge && `Voice age:${voiceAge}`, timbre && `Tone and temperament:${timbre}`, deliveryInstructions].filter(Boolean).join("；"),
         }];
     });
     const shouldIncludeCharacterImages =
@@ -633,14 +633,14 @@ export async function hydrateNodeGenerationContext(context: NodeGenerationContex
         });
     }
     const maxAudios = referenceLimits?.maxAudios ?? 3;
-    if (context.referenceAudios.length + voiceSamples.length > maxAudios) throw new Error(`当前模型参考音频容量不足：已连接 ${context.referenceAudios.length} 个音频，角色声音样本还需要 ${voiceSamples.length} 个名额`);
+    if (context.referenceAudios.length + voiceSamples.length > maxAudios) throw new Error(`Current model reference audio capacity is insufficient: connected${context.referenceAudios.length} Audio, character voice samples are also needed${voiceSamples.length} quota`);
     const characterVoiceAudios = await Promise.all(voiceSamples.map(async (voice) => {
         const resource = await getResource(voice.sampleResourceId!);
         const extension = audioFileExtension(resource.mimeType, resource.objectKey);
         return resolveReferenceMediaDuration({
             id: `character-voice-${voice.assetId}`,
             sourceNodeId: context.characterReferences.find((reference) => reference.assetId === voice.assetId)?.nodeId,
-            name: `${voice.characterName}-声音样本.${extension}`,
+            name: `${voice.characterName}-Sound samples.${extension}`,
             type: resource.mimeType || "audio/mpeg",
             url: resourceFileUrl(voice.sampleResourceId!),
             storageKey: resourceStorageKey(voice.sampleResourceId!),
@@ -703,11 +703,11 @@ function preferredCharacterRepresentation(representations: Array<{ id: string; r
 
 function compileResolvedVoicePrompt(voice: ResolvedCharacterVoice) {
     return [
-        `【角色声音：${voice.characterName}】`,
-        voice.language && `语言与口音：${voice.language}`,
-        voice.voiceAge && `声音年龄感：${voice.voiceAge}`,
-        voice.timbre && `音色气质：${voice.timbre}`,
-        voice.deliveryInstructions && `表演与朗读要求：${voice.deliveryInstructions}`,
+        `[Character voice:${voice.characterName}】`,
+        voice.language && `Language and accent:${voice.language}`,
+        voice.voiceAge && `Voice age:${voice.voiceAge}`,
+        voice.timbre && `Tone and temperament:${voice.timbre}`,
+        voice.deliveryInstructions && `Performance and reading requirements:${voice.deliveryInstructions}`,
     ].filter(Boolean).join("\n");
 }
 
@@ -719,30 +719,30 @@ function readSkillInput(node: CanvasNodeData) {
     const skill = node.metadata?.skillSnapshot;
     if (!skill) return node.metadata?.content || "";
     return [
-        `【技能：${skill.name}】`,
-        skill.description ? `用途：${skill.description}` : "",
-        `执行模板：\n${skill.template}`,
-        skill.outputContract ? `输出约束：\n${skill.outputContract}` : "",
-        "请严格执行该技能，只输出结果，不要输出解释性套话。",
+        `[Skills:${skill.name}】`,
+        skill.description ? `Purpose:${skill.description}` : "",
+        `Execution template:${skill.template}`,
+        skill.outputContract ? `Output constraints:${skill.outputContract}` : "",
+        "Please strictly implement this skill and only output results, not explanatory clichés.",
     ]
         .filter(Boolean)
         .join("\n\n");
 }
 
 function generationLabel(type: NodeGenerationInput["type"] | "drawing", index: number) {
-    if (type === "character") return `角色${index + 1}`;
-    if (type === "drawing") return `绘图${index + 1}`;
+    if (type === "character") return `role${index + 1}`;
+    if (type === "drawing") return `Drawing${index + 1}`;
     if (type === "image") return imageReferenceLabel(index);
     if (type === "video") return seedanceReferenceLabel("video", index);
     if (type === "audio") return seedanceReferenceLabel("audio", index);
-    return `文本${index + 1}`;
+    return `text${index + 1}`;
 }
 
 function readReferenceImage(node: CanvasNodeData, nodes: CanvasNodeData[], connections: CanvasConnection[]): ReferenceImage | null {
     if (node.type === CanvasNodeType.Drawing && node.metadata?.drawingId) {
         return {
             id: node.id,
-            name: node.title || `绘图-${node.id}`,
+            name: node.title || `Drawing-${node.id}`,
             type: "image/png",
             dataUrl: "",
             source: {
@@ -766,11 +766,11 @@ function readReferenceImage(node: CanvasNodeData, nodes: CanvasNodeData[], conne
         // 未调色时直接透传源图，省掉一次渲染与上传（也就不占文件容量）。
         if (!grade || isNeutralColorGrade(grade)) {
             const passthrough = nodeReferenceImage(source);
-            return passthrough ? { ...passthrough, id: node.id, name: node.title || `调色-${node.id}` } : null;
+            return passthrough ? { ...passthrough, id: node.id, name: node.title || `Color correction-${node.id}` } : null;
         }
         return {
             id: node.id,
-            name: node.title || `调色-${node.id}`,
+            name: node.title || `Color correction-${node.id}`,
             type: "image/png",
             dataUrl: "",
             source: { kind: "colorgrade", url, grade },

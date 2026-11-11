@@ -12,17 +12,17 @@ export function CanvasDeleteProjectsDialog() {
     const setDeleteIds = useCanvasUiStore((state) => state.setDeleteProjectIds);
     const removeSelectedIds = useCanvasUiStore((state) => state.removeSelectedProjectIds);
     const cleanupImages = useAssetStore((state) => state.cleanupImages);
-    const deletionLabel = isLocalWorkspaceMode() ? "本地画布" : "画布";
+    const deletionLabel = isLocalWorkspaceMode() ? "local canvas" : "canvas";
     const confirm = async () => {
         const selected = [...useCanvasUiStore.getState().deleteProjectIds];
         if (!selected.length) return;
         await deleteWorkspaceCanvasProjects(selected);
         void cleanupImages();
         removeSelectedIds(selected);
-        message.success(`已删除 ${selected.length} 个${deletionLabel}`);
+        message.success(`Deleted${selected.length} a${deletionLabel}`);
     };
     if (!ids.length) return null;
-    return <CanvasDeleteConfirmation title={`删除${deletionLabel}？`}
-        description={`将删除 ${ids.length} 个${deletionLabel}，里面的节点和连线也会一起移除。`}
+    return <CanvasDeleteConfirmation title={`Delete${deletionLabel}？`}
+        description={`will be deleted${ids.length} a${deletionLabel}, the nodes and connections inside will also be removed together.`}
         onCancel={() => setDeleteIds([])} onConfirm={confirm} />;
 }

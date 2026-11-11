@@ -107,7 +107,7 @@ export function useCanvasImageTools({
     const createImageReversePromptNodes = useCallback((node: CanvasNodeData) => {
         const isVideo = node.type === CanvasNodeType.Video;
         if ((node.type !== CanvasNodeType.Image && !isVideo) || (!node.metadata?.content && !node.metadata?.storageKey)) {
-            message.warning(isVideo ? "视频节点为空，无法反推提示词" : "图片节点为空，无法反推提示词");
+            message.warning(isVideo ? "The video node is empty and the prompt word cannot be reversed." : "The picture node is empty and the prompt word cannot be reversed.");
             return;
         }
         const reverseInstruction = isVideo ? VIDEO_PROMPT_REVERSE : IMAGE_PROMPT_REVERSE;
@@ -117,14 +117,14 @@ export function useCanvasImageTools({
         const centerY = node.position.y + node.height / 2;
         const textNode = {
             ...createCanvasNode(CanvasNodeType.Text, { x: node.position.x + node.width + gap + textSpec.width / 2, y: centerY }, { content: reverseInstruction, prompt: reverseInstruction, status: NODE_STATUS_SUCCESS, fontSize: 14 }),
-            title: isVideo ? "视频反推提示词" : "反推提示词",
+            title: isVideo ? "Video reverse push prompt words" : "Reverse prompt word",
         };
         const resultNode = {
             ...createCanvasNode(CanvasNodeType.Text, { x: textNode.position.x + textNode.width + gap + resultSpec.width / 2, y: centerY }, {
                 content: "", generationMode: "text", model: effectiveConfig.textModel || effectiveConfig.model || defaultConfig.textModel,
-                count: 1, composerContent: isVideo ? "参考视频：@视频1\n任务说明：@文本1" : "参考图片：@图片1\n任务说明：@文本1",
+                count: 1, composerContent: isVideo ? "Reference video: @video1\nTask description: @text1" : "Reference picture: @Picture1\nTask description: @text1",
             }),
-            title: isVideo ? "视频反推提示词结果" : "反推提示词结果",
+            title: isVideo ? "Video reverse prompt word results" : "Reverse prompt word results",
         };
         setNodes((current) => [...current, textNode, resultNode]);
         setConnections((current) => [...current, { id: nanoid(), fromNodeId: node.id, toNodeId: resultNode.id }, { id: nanoid(), fromNodeId: textNode.id, toNodeId: resultNode.id }]);
@@ -136,7 +136,7 @@ export function useCanvasImageTools({
 
     const openPortraitTextureEditor = useCallback((node: CanvasNodeData) => {
         if (node.type !== CanvasNodeType.Image || !node.metadata?.content) {
-            message.warning("图片节点为空，无法调节人物质感");
+            message.warning("The image node is empty and the texture of the character cannot be adjusted.");
             return;
         }
         const portraitTextureSettings = { ...DEFAULT_PORTRAIT_TEXTURE_SETTINGS, ...node.metadata?.portraitTexture };
@@ -162,7 +162,7 @@ export function useCanvasImageTools({
             const image = await operation.wait(uploadImage(cropped));
             const size = fitNodeSize(image.width, image.height, node.width, node.height);
             const childId = nanoid();
-            const child: CanvasNodeData = { id: childId, type: CanvasNodeType.Image, title: `${node.title || "图片"} · 裁剪`, position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height, metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, generatedFromNodeId: node.id,
+            const child: CanvasNodeData = { id: childId, type: CanvasNodeType.Image, title: `${node.title || "pictures"} · Crop`, position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height, metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, generatedFromNodeId: node.id,
                 workflowOperation: { id: "image.crop", version: 1, config: { x: crop.x, y: crop.y, width: crop.width, height: crop.height }, inputs: [{ nodeId: node.id, port: "image" }] },
             }) };
             const connection = { id: nanoid(), fromNodeId: node.id, toNodeId: childId };
@@ -174,7 +174,7 @@ export function useCanvasImageTools({
             await operation.wait(persistMediaNodes([child], [connection], {}));
         } catch (error) {
             if (!operation.isCurrent()) return;
-            message.error(error instanceof Error ? `裁切失败：${error.message}` : "裁切失败，请重试");
+            message.error(error instanceof Error ? `Cropping failed:${error.message}` : "Cutting failed, please try again");
         }
     }, [beginMediaOperation, pageUi, projectId, message, persistMediaNodes, setConnections, setNodes]);
 
@@ -185,7 +185,7 @@ export function useCanvasImageTools({
             const image = await operation.wait(uploadImage(dataUrl));
             const size = fitNodeSize(image.width, image.height, node.width, node.height);
             const childId = nanoid();
-            const child: CanvasNodeData = { id: childId, type: CanvasNodeType.Image, title: `${node.title || "图片"} · 标注`, position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height, metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, generatedFromNodeId: node.id }) };
+            const child: CanvasNodeData = { id: childId, type: CanvasNodeType.Image, title: `${node.title || "pictures"} · Annotation`, position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height, metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, generatedFromNodeId: node.id }) };
             const connection = { id: nanoid(), fromNodeId: node.id, toNodeId: childId };
             setNodes((current) => [...current, child]);
             setConnections((current) => [...current, connection]);
@@ -194,7 +194,7 @@ export function useCanvasImageTools({
             pageUi.getState().setDialogNodeId(null);
             setAnnotationNodeId(null);
             await operation.wait(persistMediaNodes([child], [connection], {}));
-            message.success("标注图片已保存为新节点");
+            message.success("The labeled image has been saved as a new node");
         } catch (error) {
             if (operation.isCurrent()) throw error;
         }
@@ -216,7 +216,7 @@ export function useCanvasImageTools({
                 sizedPieces.map(({ piece, size }) => ({ row: piece.row, column: piece.column, width: size.width, height: size.height })),
             );
             const childNodes = sizedPieces.map(({ piece, image, size }, index) => ({
-                id: nanoid(), type: CanvasNodeType.Image, title: `${node.title || "图片"} · 宫格 ${piece.row + 1}-${piece.column + 1}`,
+                id: nanoid(), type: CanvasNodeType.Image, title: `${node.title || "pictures"} · Gongge${piece.row + 1}-${piece.column + 1}`,
                 position: positions[index] || { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height,
                 metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, manualSize: true, generatedFromNodeId: node.id }),
             } satisfies CanvasNodeData));
@@ -227,7 +227,7 @@ export function useCanvasImageTools({
             pageUi.getState().setSelectedConnectionId(null);
             pageUi.getState().setDialogNodeId(null);
             await operation.wait(persistMediaNodes(childNodes, connections, {}));
-            message.success(`已切分为 ${childNodes.length} 个子节点`);
+            message.success(`has been divided into${childNodes.length} child node`);
         } catch (error) {
             if (operation.isCurrent()) throw error;
         }
@@ -247,7 +247,7 @@ export function useCanvasImageTools({
             const modelDefaults = defaultImageParamsForModel(baseGenerationConfig, selectedModel);
             const selectedImageProfile = modelCapabilityConfigFor(baseGenerationConfig, selectedModel).image;
             if (!selectedImageProfile?.references.maskSupported) {
-                message.error("当前图片模型不支持局部重绘蒙版，请选择支持蒙版编辑的模型");
+                message.error("The current image model does not support partial redrawing of masks. Please select a model that supports mask editing.");
                 return;
             }
             const explicitSize = payload.generationConfig?.size;
@@ -267,7 +267,7 @@ export function useCanvasImageTools({
                 return;
             }
             const userPrompt = payload.prompt.trim();
-            const prompt = `只修改蒙版透明区域，其他区域保持不变。${userPrompt}`;
+            const prompt = `Only the transparent areas of the mask are modified, leaving other areas unchanged.${userPrompt}`;
             const source = nodeReferenceImage(node);
             if (!source) return;
             const styleExecution = resolveImageEditStyle(node, prompt, generationConfig);
@@ -283,7 +283,7 @@ export function useCanvasImageTools({
             const preferredPosition = { x: node.position.x + node.width + 96, y: node.position.y };
             const rootPosition = findAvailableGenerationGroupPosition(nodesRef.current, preferredPosition, imageGenerationGroupSize(imageSize, imageSize, childIds.length));
             const rootNode: CanvasNodeData = {
-                id: rootId, type: CanvasNodeType.Image, title: userPrompt.slice(0, 32) || "局部编辑结果",
+                id: rootId, type: CanvasNodeType.Image, title: userPrompt.slice(0, 32) || "Partial editing results",
                 position: rootPosition, width: node.width, height: node.height,
                 metadata: {
                     ...canvasGenerationPromptMetadata(userPrompt, effectivePrompt), status: NODE_STATUS_LOADING,
@@ -294,7 +294,7 @@ export function useCanvasImageTools({
                 },
             };
             const childNodes: CanvasNodeData[] = childIds.map((id, index) => ({
-                id, type: CanvasNodeType.Image, title: `${userPrompt.slice(0, 28) || "局部编辑结果"} · ${index + 1}`,
+                id, type: CanvasNodeType.Image, title: `${userPrompt.slice(0, 28) || "Partial editing results"} · ${index + 1}`,
                 position: imageGenerationChildPosition(rootNode.position, rootNode.width, imageSize, index),
                 width: node.width, height: node.height,
                 metadata: {
@@ -324,11 +324,11 @@ export function useCanvasImageTools({
                             onTaskCreated: (task) => operation.run(() => bindGenerationTask(targetId, task)),
                         }));
                         const image = result.images?.find((item) => item?.dataUrl);
-                        if (!image?.dataUrl) throw new Error("后端任务没有返回图片");
+                        if (!image?.dataUrl) throw new Error("Backend task does not return images");
                         const uploaded = await operation.wait(uploadImage(image.dataUrl));
                         const size = fitNodeSize(uploaded.width, uploaded.height, node.width, node.height);
                         const currentNode = nodesRef.current.find((item) => item.id === targetId);
-                        if (!currentNode) throw new Error("局部编辑节点已被删除");
+                        if (!currentNode) throw new Error("The local edit node has been deleted");
                         const finalizedNode = { ...currentNode, width: size.width, height: size.height, metadata: { ...currentNode.metadata, ...imageMetadata(uploaded), prompt: effectivePrompt, ...generationMetadata } };
                         setNodes((current) => current.map((item) => {
                             if (item.id === targetId) return finalizedNode;
@@ -362,7 +362,7 @@ export function useCanvasImageTools({
                     });
                     return;
                 }
-                if (failureCount > 0) message.error(hasSuccess ? "部分局部编辑失败" : representativeError || "局部编辑失败");
+                if (failureCount > 0) message.error(hasSuccess ? "Partial editing failed" : representativeError || "Partial editing failed");
                 setNodes((current) => current.map((item) => {
                     if (item.id !== rootId) return item;
                     return {
@@ -370,7 +370,7 @@ export function useCanvasImageTools({
                         metadata: {
                             ...item.metadata, status: hasSuccess ? NODE_STATUS_SUCCESS : NODE_STATUS_ERROR,
                             batchFailedCount: requestedCount > 1 ? failureCount : undefined,
-                            ...(hasSuccess ? { errorDetails: undefined } : { errorDetails: representativeError || "局部编辑失败" }),
+                            ...(hasSuccess ? { errorDetails: undefined } : { errorDetails: representativeError || "Partial editing failed" }),
                         },
                     };
                 }));
@@ -396,7 +396,7 @@ export function useCanvasImageTools({
             const image = await operation.wait(uploadImage(upscaled));
             const size = fitNodeSize(image.width, image.height);
             const childId = nanoid();
-            const child: CanvasNodeData = { id: childId, type: CanvasNodeType.Image, title: `${node.title || "图片"} · 放大`, position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height, metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, generatedFromNodeId: node.id,
+            const child: CanvasNodeData = { id: childId, type: CanvasNodeType.Image, title: `${node.title || "pictures"} · Zoom in`, position: { x: node.position.x + node.width + 96, y: node.position.y }, width: size.width, height: size.height, metadata: mediaResultMetadata("derived", { ...imageMetadata(image), prompt: node.metadata?.prompt, generatedFromNodeId: node.id,
                 workflowOperation: { id: "image.resize", version: 1, config: { longEdge: params.targetLongEdge, algorithm: params.algorithm }, inputs: [{ nodeId: node.id, port: "image" }] },
             }) };
             setNodes((current) => [...current, child]);
@@ -438,11 +438,11 @@ export function useCanvasImageTools({
         try {
             const result = await operation.wait(runBackendCanvasGenerationTask({ projectId, nodeId: childId, mode: "image", prompt: effectivePrompt, config: generationConfig, referenceImages: [source], signal: controller.signal, metadata: { sourceNodeId: node.id, edit: "angle", ...styleMetadata }, onTaskCreated: (task) => operation.run(() => bindGenerationTask(childId, task)) }));
             const image = result.images?.[0];
-            if (!image?.dataUrl) throw new Error("后端任务没有返回图片");
+            if (!image?.dataUrl) throw new Error("Backend task does not return images");
             const uploaded = await operation.wait(uploadImage(image.dataUrl));
             const size = fitNodeSize(uploaded.width, uploaded.height, imageSpec.width, imageSpec.height);
             const currentNode = nodesRef.current.find((item) => item.id === childId);
-            if (!currentNode) throw new Error("视角生成节点已被删除");
+            if (!currentNode) throw new Error("The perspective generation node has been removed");
             const finalizedNode = { ...currentNode, width: size.width, height: size.height, metadata: { ...currentNode.metadata, ...imageMetadata(uploaded), prompt: effectivePrompt, ...generationMetadata } };
             setNodes((current) => current.map((item) => item.id === childId ? finalizedNode : item));
             await operation.wait(persistMediaNodes([finalizedNode], [], {}));
@@ -489,7 +489,7 @@ export function useCanvasImageTools({
         const generationConfig = { ...baseConfig, count: "1", size: providerSize, quality: !baseConfig.quality || baseConfig.quality === "auto" ? "high" : baseConfig.quality };
         if (!isAiConfigReady(generationConfig, generationConfig.model)) { navigateToSettings({ continueCreation: true }); return; }
         if (resolveModelRequestConfig(generationConfig, generationConfig.model).interfaceType !== "openai-image") {
-            message.error("表情编辑需要支持多参考图编辑的 OpenAI Images 渠道");
+            message.error("Expression editing requires the OpenAI Images channel that supports multi-reference image editing.");
             return;
         }
         const imageProfile = modelCapabilityConfigFor(generationConfig, generationConfig.model).image!;
@@ -518,13 +518,13 @@ export function useCanvasImageTools({
             const mask = emotionProviderMask(editPlan, { id: `${node.id}-emotion-mask`, name: "emotion-mask.png", type: "image/png", dataUrl: payload.maskDataUrl });
             const result = await operation.wait(runBackendCanvasGenerationTask({ projectId, nodeId: childId, mode: "image", prompt: providerPrompt, config: generationConfig, referenceImages: [editReference, characterReference], mask, signal: controller.signal, metadata: { sourceNodeId: node.id, edit: "emotion", emotionEditMode: editPlan.mode, emotion: emotionEdit, ...styleMetadata }, onTaskCreated: (task) => operation.run(() => bindGenerationTask(childId, task)) }));
             const image = result.images?.[0];
-            if (!image?.dataUrl) throw new Error("后端任务没有返回图片");
+            if (!image?.dataUrl) throw new Error("Backend task does not return images");
             const sourceDataUrl = await operation.wait(resolveImageUrl(node.metadata.storageKey, node.metadata.content, { cacheMiss: true }));
             const composited = await operation.wait(compositeEmotionImage(sourceDataUrl, image.dataUrl, payload.editRegion, payload.faceBox));
             const uploaded = await operation.wait(uploadImage(composited));
             const size = fitNodeSize(uploaded.width, uploaded.height, node.width, node.height);
             const currentNode = nodesRef.current.find((item) => item.id === childId);
-            if (!currentNode) throw new Error("表情编辑节点已被删除");
+            if (!currentNode) throw new Error("Expression editing node has been deleted");
             const finalizedNode = { ...currentNode, width: size.width, height: size.height, metadata: { ...currentNode.metadata, ...imageMetadata(uploaded), prompt: providerPrompt, ...generationMetadata, emotionEdit } };
             setNodes((current) => current.map((item) => item.id === childId ? finalizedNode : item));
             await operation.wait(persistMediaNodes([finalizedNode], [], {}));

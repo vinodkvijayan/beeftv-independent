@@ -15,10 +15,10 @@ import { AccountBalancePane } from "./account-balance-pane";
 import "./account-settings.css";
 
 const sections = [
-    { id: "account", label: "账号与余额", icon: UserRound },
-    { id: "general", label: "通用设置", icon: Settings2 },
-    { id: "models", label: "模型", icon: Database },
-    { id: "plugins", label: "内置插件", icon: Plug },
+    { id: "account", label: "Account and balance", icon: UserRound },
+    { id: "general", label: "General settings", icon: Settings2 },
+    { id: "models", label: "model", icon: Database },
+    { id: "plugins", label: "Built-in plug-ins", icon: Plug },
 ] as const;
 type Section = typeof sections[number]["id"];
 
@@ -36,9 +36,9 @@ export function AccountSettingsModal({ open, onClose }: { open: boolean; onClose
     useEffect(() => { if (open) setActive("account"); }, [open]);
     useEffect(() => { contentRef.current?.scrollTo({ top: 0 }); }, [active]);
     const goTo = (path: string) => { onClose(); navigate(path); };
-    return <AppModal flush open={open} aria-label="账户设置" width="min(960px, calc(100vw - 32px))" className="account-settings-modal" footer={null} onCancel={onClose}>
+    return <AppModal flush open={open} aria-label="Account settings" width="min(960px, calc(100vw - 32px))" className="account-settings-modal" footer={null} onCancel={onClose}>
         <div className="account-settings-layout">
-            <nav className="account-settings-nav" aria-label="账户设置分类">
+            <nav className="account-settings-nav" aria-label="Account settings classification">
                 {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-current={active === id ? "page" : undefined} onClick={() => setActive(id)}>
                     <Icon size={18} strokeWidth={1.8} aria-hidden="true" /><span>{label}</span>
                 </button>)}
@@ -47,14 +47,14 @@ export function AccountSettingsModal({ open, onClose }: { open: boolean; onClose
                 <h2>{sections.find((section) => section.id === active)?.label}</h2>
                 {active === "account" ? <AccountBalancePane /> : null}
                 {active === "general" ? <>
-                    <div className="account-setting-row"><h3>外观</h3><Segmented className="account-appearance-control" aria-label="外观模式" value={theme} options={[{ label: "浅色", value: "light" }, { label: "深色", value: "dark" }, { label: "跟随系统", value: "system" }]} onChange={(value) => setTheme(value)} /></div>
-                    <div className="account-setting-row"><div><h3>存储设置</h3><p>管理素材、缓存与本地存储位置</p></div><Button onClick={() => goTo("/settings?section=storage")}>打开</Button></div>
-                    <div className="account-setting-row"><div><h3>连接诊断</h3><p>检查模型渠道与请求记录</p></div><Button onClick={() => goTo("/settings?section=diagnostics")}>打开</Button></div>
-                    <div className="account-setting-row"><div><h3>版本与更新日志</h3><p>{installedVersion ? `当前版本 ${installedVersion}，查看版本记录与第三方许可` : "查看版本记录与第三方许可"}</p></div><AppChangelogButton appearance="button" version={installedVersion} label="查看" /></div>
+                    <div className="account-setting-row"><h3>Appearance</h3><Segmented className="account-appearance-control" aria-label="appearance mode" value={theme} options={[{ label: "light color", value: "light" }, { label: "Dark", value: "dark" }, { label: "Follow the system", value: "system" }]} onChange={(value) => setTheme(value)} /></div>
+                    <div className="account-setting-row"><div><h3>Save settings</h3><p>Manage assets, caches and local storage locations</p></div><Button onClick={() => goTo("/settings?section=storage")}>Open</Button></div>
+                    <div className="account-setting-row"><div><h3>Connection diagnostics</h3><p>Check model channels and request records</p></div><Button onClick={() => goTo("/settings?section=diagnostics")}>Open</Button></div>
+                    <div className="account-setting-row"><div><h3>Version and update log</h3><p>{installedVersion ? `Current version${installedVersion}, view version records and third-party licenses` : "View version history and third-party licenses"}</p></div><AppChangelogButton appearance="button" version={installedVersion} label="View" /></div>
                 </> : null}
                 {active === "models" ? <>
-                    <div className="account-setting-row account-model-connection"><div><h3>BeefTV 官方渠道</h3><p role="status">{syncing ? "正在同步模型…" : catalogSyncFailed ? "模型同步失败" : connection?.state === "connected" ? "已连接，模型已同步到本地" : "登录后自动连接官方模型"}</p></div>
-                        {catalogSyncFailed ? <Button loading={busy} onClick={() => void retryCatalog()}>重试同步</Button> : <Button onClick={() => goTo("/settings?section=channels")}>管理渠道</Button>}
+                    <div className="account-setting-row account-model-connection"><div><h3>BeefTV official channel</h3><p role="status">{syncing ? "Synchronizing models..." : catalogSyncFailed ? "Model synchronization failed" : connection?.state === "connected" ? "Connected, model has been synchronized to local" : "Automatically connect to official models after logging in"}</p></div>
+                        {catalogSyncFailed ? <Button loading={busy} onClick={() => void retryCatalog()}>Retry sync</Button> : <Button onClick={() => goTo("/settings?section=channels")}>Management channels</Button>}
                     </div>
                     <ModelDefaultGrid config={config} onChange={(key, value) => updateConfig(key, value)} onOpenChannels={() => goTo("/settings?section=channels")} />
                 </> : null}

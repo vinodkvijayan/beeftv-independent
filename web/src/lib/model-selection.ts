@@ -57,17 +57,17 @@ export function configuredModelDisplayName(config: AiConfig, value: string) {
 // Shared by selection and paid submission, including retries and batch jobs.
 export function portraitGenerationError(config: AiConfig, model: string, resolution?: string) {
     if (!seedancePortraitModel(model)) return "";
-    if (!normalizeModelOptionValue(model, config.channels)) return "真人素材版当前不可用，请刷新模型列表或重新选择模型";
+    if (!normalizeModelOptionValue(model, config.channels)) return "The real-life material version is currently unavailable, please refresh the model list or reselect the model";
     const channel = resolveModelChannel(config, model);
     const profile = channel.modelProfiles?.find((item) => item.model === modelOptionName(model));
     // 只有渠道目录下发了报价字段时才按报价核对；自带 Key 的渠道没有报价，交给上游自己判断。
     if (profile?.videoPricing === undefined) return "";
     const quote = sanitizeVideoPriceQuote(profile.videoPricing);
-    if (!quote || quote.mode !== "tokens") return "真人素材版价格暂不可用，请刷新模型列表";
+    if (!quote || quote.mode !== "tokens") return "The price of the real-life material version is temporarily unavailable, please refresh the model list";
     if (resolution !== undefined) {
         const normalized = normalizeVideoResolutionValue(resolution);
         const key = normalized === "2160" ? "4k" : `${normalized}p`;
-        if (!quote.rates[key]) return "当前分辨率价格暂不可用，请选择其他分辨率或刷新模型列表";
+        if (!quote.rates[key]) return "The current resolution price is temporarily unavailable, please select another resolution or refresh the model list";
     }
     return "";
 }
@@ -101,18 +101,18 @@ export function modelCompatibilityError(config: AiConfig, model: string, require
             options: Object.fromEntries(Object.entries(requirements.options || {}).filter(([name]) => Boolean(publicOptionNames[name])).map(([name, value]) => [name, capability === "image" && name === "count" ? modelCapabilityConfigFor(config, model).image?.fixedOutputs || value : value])),
         };
         const errors = logicalSpecs.map((spec) => logicalModelCompatibilityError(spec, logicalRequirements, visualInputCount));
-        return errors.some((error) => !error) ? "" : errors[0] || "当前输入不受支持";
+        return errors.some((error) => !error) ? "" : errors[0] || "The current input is not supported";
     }
 
     if (capability === "image") {
         const hasDeclaredImageCapability = hasDeclaredModelCapability(config, model, "image");
         const image = modelCapabilityConfigFor(config, model).image!;
         // 尺寸兼容不依赖输入摘要：无输入时（如画布重试/工具链）也要按尺寸过滤组内模型。
-        if (hasDeclaredImageCapability && requirements.imageSize && !image.size.allowCustom && !image.size.values.includes(requirements.imageSize)) return "不支持当前尺寸";
+        if (hasDeclaredImageCapability && requirements.imageSize && !image.size.allowCustom && !image.size.values.includes(requirements.imageSize)) return "Current size is not supported";
         if (!input) return "";
-        if (input.videoCount > 0) return "图片模型不支持参考视频";
-        if (input.audioCount > 0) return "图片模型不支持参考音频";
-        if (hasDeclaredImageCapability && visualInputCount > image.references.maxImages) return `最多支持 ${image.references.maxImages} 张参考图`;
+        if (input.videoCount > 0) return "Image models do not support reference videos";
+        if (input.audioCount > 0) return "Image model does not support reference audio";
+        if (hasDeclaredImageCapability && visualInputCount > image.references.maxImages) return `Most supported${image.references.maxImages} Reference picture`;
         return "";
     }
 
@@ -120,25 +120,25 @@ export function modelCompatibilityError(config: AiConfig, model: string, require
         const capabilityConfig = modelCapabilityConfigFor(config, model);
         if (!hasDeclaredModelCapability(config, model, "video")) return "";
         const profile = capabilityConfig.video!;
-        if (requirements.videoOperation !== "draft_to_final" && requirements.videoSeconds && !videoDurationAllowed(profile, Number(requirements.videoSeconds))) return "不支持当前视频时长";
+        if (requirements.videoOperation !== "draft_to_final" && requirements.videoSeconds && !videoDurationAllowed(profile, Number(requirements.videoSeconds))) return "The current video duration is not supported";
         if (!input) return "";
         const operation = resolveVideoOperation(input, requirements.videoOperation);
         const refs = videoReferencesForOperation(profile, requirements.videoOperation || "");
-        if (visualInputCount > refs.maxImages) return `最多支持 ${refs.maxImages} 张参考图`;
-        if (input.videoCount > refs.maxVideos) return `最多支持 ${refs.maxVideos} 个参考视频`;
-        if (input.audioCount > refs.maxAudios) return `最多支持 ${refs.maxAudios} 个参考音频`;
-        if (operation !== "concat" && !profile.operations.includes(operation)) return `不支持${videoOperationLabel(operation)}`;
+        if (visualInputCount > refs.maxImages) return `Most supported${refs.maxImages} Reference picture`;
+        if (input.videoCount > refs.maxVideos) return `Most supported${refs.maxVideos} reference videos`;
+        if (input.audioCount > refs.maxAudios) return `Most supported${refs.maxAudios} reference audio`;
+        if (operation !== "concat" && !profile.operations.includes(operation)) return `Not supported${videoOperationLabel(operation)}`;
         return "";
     }
 
     if (!input) return "";
 
     if (capability === "text") {
-        return input.audioCount > 0 ? "文本模型不支持参考音频" : "";
+        return input.audioCount > 0 ? "Text model does not support reference audio" : "";
     }
 
-    if (input.characterCount > 1) return "角色配音一次只能引用一个角色卡";
-    return input.imageCount > 0 || input.videoCount > 0 || input.audioCount > 0 ? "音频模型只接受文本或单个角色卡输入" : "";
+    if (input.characterCount > 1) return "Character dubbing can only reference one character card at a time";
+    return input.imageCount > 0 || input.videoCount > 0 || input.audioCount > 0 ? "Audio model only accepts text or single character card input" : "";
 }
 
 export function modelRequestOptions(config: AiConfig, capability: ModelCapability) {
@@ -155,7 +155,7 @@ export function modelRequestOptions(config: AiConfig, capability: ModelCapabilit
 }
 
 function logicalModelCompatibilityError(spec: NonNullable<NonNullable<AiConfig["channels"][number]["modelProfiles"]>[number]["logicalCapabilitySpec"]>, requirements: ModelRequirements, visualInputCount: number) {
-    if (requirements.capability && spec.capability !== requirements.capability) return "不支持当前生成类型";
+    if (requirements.capability && spec.capability !== requirements.capability) return "Current build type is not supported";
     const input = requirements.input;
     const counts: Record<string, number> = {
         text: 0,
@@ -165,11 +165,11 @@ function logicalModelCompatibilityError(spec: NonNullable<NonNullable<AiConfig["
     };
     for (const [kind, count] of Object.entries(counts)) {
         const constraint = spec.inputs?.[kind];
-        if (!constraint && count > 0) return `不支持${kind}输入`;
-        if (constraint && (count < constraint.min || count > constraint.max)) return `${kind}输入需为 ${constraint.min}-${constraint.max} 个`;
+        if (!constraint && count > 0) return `Not supported${kind}input`;
+        if (constraint && (count < constraint.min || count > constraint.max)) return `${kind}The input needs to be${constraint.min}-${constraint.max} a`;
     }
     const operation = requirements.capability === "video" && input ? resolveVideoOperation(input, requirements.videoOperation) : requirements.videoOperation;
-    if (operation && spec.operations?.length && !spec.operations.includes(operation)) return "不支持当前生成模式";
+    if (operation && spec.operations?.length && !spec.operations.includes(operation)) return "Current build mode is not supported";
     // 图片创作状态也会携带全局默认视频时长；这个字段只对视频模型有意义，
     // 不能把它拼进图片逻辑模型的能力匹配，否则图片模型会被误判为“不支持当前时长”。
     const options = {
@@ -206,21 +206,21 @@ function normalizeLogicalOptionValue(name: string, value: unknown) {
 
 function logicalOptionError(name: string) {
     const label: Record<string, string> = {
-        size: "尺寸",
-        quality: "质量",
-        transparentBackground: "透明背景",
-        count: "输出数量",
-        videoSeconds: "时长",
-        vquality: "分辨率",
-        videoGenerateAudio: "同步音频",
-        videoWatermark: "水印设置",
-        audioVoice: "音色",
-        audioFormat: "音频格式",
-        audioSpeed: "语速",
-        audioPitch: "声调",
-        audioVolume: "音量",
+        size: "Size",
+        quality: "quality",
+        transparentBackground: "Transparent background",
+        count: "Output quantity",
+        videoSeconds: "duration",
+        vquality: "resolution",
+        videoGenerateAudio: "Sync audio",
+        videoWatermark: "Watermark settings",
+        audioVoice: "timbre",
+        audioFormat: "audio format",
+        audioSpeed: "speaking speed",
+        audioPitch: "tone",
+        audioVolume: "Volume",
     };
-    return `不支持当前${label[name] || name}`;
+    return `Not supported currently${label[name] || name}`;
 }
 
 export function compatibleModelInGroup(config: AiConfig, models: string[], requirements?: ModelRequirements, preferred?: string) {
@@ -451,12 +451,12 @@ export function resolveVideoOperation(input: ModelInputSummary, storedOperation?
 }
 
 function videoOperationLabel(operation: string) {
-    if (operation === "text_to_video") return "文生视频";
-    if (operation === "image_to_video") return "图生视频";
-    if (operation === "audio_to_video") return "音频生视频";
-    if (operation === "reference_to_video") return "全模态参考";
-    if (operation === "extend") return "视频续写";
-    if (operation === "inpaint") return "视频局部修改";
-    if (operation === "draft_to_final") return "样片转成片";
-    return "当前生成模式";
+    if (operation === "text_to_video") return "Vincent Video";
+    if (operation === "image_to_video") return "tusheng video";
+    if (operation === "audio_to_video") return "Audio produces video";
+    if (operation === "reference_to_video") return "Full modal reference";
+    if (operation === "extend") return "Video continuation";
+    if (operation === "inpaint") return "Partial modification of video";
+    if (operation === "draft_to_final") return "Convert sample to film";
+    return "Current build mode";
 }

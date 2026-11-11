@@ -27,7 +27,7 @@ export function startOperation(title: string, options: { detail?: string; totalB
         });
     };
     useOperationProgress.setState(state => ({ entries: { ...state.entries, [id]: {
-        id, title, target: options.target, detail: options.detail || "正在准备文件", phase: "preparing", totalBytes: options.totalBytes, totalFiles: options.totalFiles, startedAt, updatedAt: startedAt,
+        id, title, target: options.target, detail: options.detail || "Preparing files", phase: "preparing", totalBytes: options.totalBytes, totalFiles: options.totalFiles, startedAt, updatedAt: startedAt,
     } } }));
     const settle = (phase: "done" | "error", detail: string) => {
         update({ phase, detail, bytesPerSecond: 0 });
@@ -41,10 +41,10 @@ export function startOperation(title: string, options: { detail?: string; totalB
             const complete = total !== undefined && total > 0 && loaded >= total;
             if (!complete && Date.now() - lastReport < 150) return;
             lastReport = Date.now();
-            update({ ...next, phase: complete ? "processing" : "transferring", detail: complete ? "文件已传输，正在确认与保存" : "正在传输文件" });
+            update({ ...next, phase: complete ? "processing" : "transferring", detail: complete ? "The file has been transferred and is being confirmed and saved." : "Transferring files" });
         },
-        done: (detail = "处理完成") => settle("done", detail),
-        fail: (detail = "处理没有完成，请重试") => settle("error", detail),
+        done: (detail = "Processing completed") => settle("done", detail),
+        fail: (detail = "Processing not completed, please try again") => settle("error", detail),
         dismiss: () => { finished = true; useOperationProgress.getState().remove(id); },
     };
 }

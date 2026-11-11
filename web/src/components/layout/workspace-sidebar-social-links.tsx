@@ -66,8 +66,8 @@ export function WorkspaceSidebarSocialLinks({ collapsed, onExpand }: { collapsed
                 ref={triggerRef}
                 type="button"
                 className={cn("app-workspace-nav-link group relative flex w-full items-center gap-2 rounded-[var(--r-md)] text-left", collapsed && "is-collapsed")}
-                aria-label="联系我们"
-                title="联系我们"
+                aria-label="Contact us"
+                title="Contact us"
                 aria-expanded={active}
                 aria-hidden={active}
                 inert={active}
@@ -81,23 +81,23 @@ export function WorkspaceSidebarSocialLinks({ collapsed, onExpand }: { collapsed
             >
                 <span className="app-workspace-nav-main flex min-w-0 items-center gap-2.5">
                     <span className="app-workspace-nav-icon" aria-hidden="true"><MessagesSquare className="size-4" strokeWidth={1.8} /></span>
-                    {!collapsed ? <span className="app-workspace-nav-title truncate">联系我们</span> : null}
+                    {!collapsed ? <span className="app-workspace-nav-title truncate">Contact us</span> : null}
                 </span>
             </motion.button>
             <motion.div
                 className="app-workspace-social-links"
                 role="group"
-                aria-label="联系方式"
+                aria-label="Contact information"
                 aria-hidden={!active}
                 inert={!active}
                 initial={false}
                 animate={{ opacity: active ? 1 : 0, x: reducedMotion ? 0 : active ? 0 : 8 }}
                 transition={transition}
             >
-                <button ref={backRef} type="button" className="app-workspace-social-action" aria-label="收起联系方式" title="收起联系方式" onClick={close}>
+                <button ref={backRef} type="button" className="app-workspace-social-action" aria-label="Close contact information" title="Close contact information" onClick={close}>
                     <ArrowLeft aria-hidden="true" strokeWidth={1.8} />
                 </button>
-                <a className="app-workspace-social-action" href="https://beeftv.app/" target="_blank" rel="noopener noreferrer" aria-label="打开 BeefTV 官网" title="BeefTV 官网" onClick={openWebsite}>
+                <a className="app-workspace-social-action" href="https://beeftv.app/" target="_blank" rel="noopener noreferrer" aria-label="Open BeefTV official website" title="BeefTV official website" onClick={openWebsite}>
                     <Globe aria-hidden="true" />
                 </a>
                 <Tooltip
@@ -106,9 +106,9 @@ export function WorkspaceSidebarSocialLinks({ collapsed, onExpand }: { collapsed
                     mouseEnterDelay={0.15}
                     mouseLeaveDelay={0.1}
                     rootClassName="app-workspace-github-tooltip"
-                    title={<span className="app-workspace-github-hint">点点 star <Star aria-hidden="true" /></span>}
+                    title={<span className="app-workspace-github-hint">little star<Star aria-hidden="true" /></span>}
                 >
-                    <a className="app-workspace-social-action" href="https://github.com/glanderness/BeefTV" target="_blank" rel="noopener noreferrer" aria-label="打开 BeefTV GitHub 仓库" onClick={openGitHub}>
+                    <a className="app-workspace-social-action" href="https://github.com/glanderness/BeefTV" target="_blank" rel="noopener noreferrer" aria-label="Open the BeefTV GitHub repository" onClick={openGitHub}>
                         <Github aria-hidden="true" />
                     </a>
                 </Tooltip>
@@ -121,13 +121,13 @@ export function WorkspaceSidebarSocialLinks({ collapsed, onExpand }: { collapsed
                     mouseEnterDelay={0}
                     mouseLeaveDelay={0}
                     rootClassName="app-workspace-wechat-popover"
-                    content={<img src={resolveEmbeddedAssetUrl("/beeftv-wechat-qr.png")} width={180} height={180} alt="个人微信二维码" />}
+                    content={<img src={resolveEmbeddedAssetUrl("/beeftv-wechat-qr.png")} width={180} height={180} alt="Personal WeChat QR code" />}
                 >
-                    <button type="button" className="app-workspace-social-action" aria-label="查看微信二维码" onClick={() => setWechatOpen(true)}>
+                    <button type="button" className="app-workspace-social-action" aria-label="View WeChat QR code" onClick={() => setWechatOpen(true)}>
                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={WECHAT_ICON_PATH} /></svg>
                     </button>
                 </Popover>
-                <a className="app-workspace-social-action" href="https://x.com/beefnoode" target="_blank" rel="noopener noreferrer" aria-label="打开 X 主页" title="X" onClick={openX}>
+                <a className="app-workspace-social-action" href="https://x.com/beefnoode" target="_blank" rel="noopener noreferrer" aria-label="Open X home page" title="X" onClick={openX}>
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={X_ICON_PATH} /></svg>
                 </a>
             </motion.div>

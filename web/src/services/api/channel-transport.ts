@@ -62,7 +62,7 @@ export async function assertChannelBlob(blob: Blob): Promise<void> {
     if (!/json|^text\//.test(mime) && !/^[{[]|^<(?:!doctype|html|head|body)/i.test(prefix)) return;
     const payload = await boundedBlobPayload(blob);
     assertChannelPayload(payload);
-    throw new ChannelResponseError({ code: "malformed_response", message: "模型服务返回了无法解析的内容" });
+    throw new ChannelResponseError({ code: "malformed_response", message: "The model service returned unresolved content" });
 }
 
 export function isChannelCancellation(error: unknown): boolean {

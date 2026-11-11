@@ -48,12 +48,12 @@ export function setActiveUserScope(userId?: string | null) {
     if (!changed) return;
     for (const listener of namespaceListeners) {
         try { listener(); }
-        catch (error) { console.warn("本地存储命名空间切换后重读失败", error); }
+        catch (error) { console.warn("Reread fails after local storage namespace switch", error); }
     }
 }
 
 export function setWorkspaceStorageScope(workspaceId: string) {
-    if (!workspaceId) throw new Error("本地工作区标识缺失");
+    if (!workspaceId) throw new Error("The local workspace identifier is missing");
     // Earlier embedded builds could mix cached documents before bootstrap.
     // Leave those keys intact and isolate new caches by durable workspace ID.
     setActiveUserScope(isEmbeddedRuntime() ? `embedded-workspace-v1:${workspaceId}` : workspaceId);

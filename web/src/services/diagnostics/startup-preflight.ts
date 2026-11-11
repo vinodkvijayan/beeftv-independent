@@ -26,11 +26,11 @@ function showFailure(stage: "capability" | "workspace", capabilities: RequiredCa
     section.setAttribute("role", "alert");
     section.style.cssText = "box-sizing:border-box;max-width:36rem;margin:10vh auto;padding:24px;font:16px/1.6 system-ui,sans-serif;overflow-wrap:anywhere";
     const heading = document.createElement("h1");
-    heading.textContent = stage === "capability" ? "运行环境需要更新" : "工作区暂时无法打开";
+    heading.textContent = stage === "capability" ? "The operating environment needs to be updated" : "The workspace cannot be opened temporarily";
     const detail = document.createElement("p");
-    detail.textContent = stage === "capability" ? "当前环境缺少必要能力，请检查浏览器存储权限，或更新浏览器和系统 WebView 后重试。" : "请重启应用，或确认后端服务可用后重试。仍无法打开时，请把下方排查信息提供给支持人员。";
+    detail.textContent = stage === "capability" ? "The current environment lacks necessary capabilities. Please check the browser storage permissions, or update the browser and system WebView and try again." : "Please restart the application, or confirm that the backend service is available and try again. If it still cannot be opened, please provide the troubleshooting information below to support staff.";
     const button = document.createElement("button");
-    button.textContent = "重新加载";
+    button.textContent = "reload";
     button.onclick = () => location.reload();
     const evidence = document.createElement("pre");
     evidence.style.cssText = "white-space:pre-wrap;font-size:12px";

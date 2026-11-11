@@ -61,7 +61,7 @@ const EMPTY_ISSUES: CanvasReferenceIssue[] = [];
 const EMPTY_REFERENCES: CanvasResourceReference[] = [];
 
 export const CanvasResourceMentionTextarea = forwardRef<HTMLTextAreaElement, Props>(function CanvasResourceMentionTextarea(
-    { value, references, onSelectReference, onChange, onSubmit, onKeyDown, className, containerClassName, style, highlightLabels = true, mentionMenuWidth = 320, sendOnEnter = true, onContentSizeChange, includeAssetLibrary = false, activeDropReferenceId, onReferenceFilesDrop, autoLinkEnabled = false, nodeSectionLabel = "画布节点", referenceIssues = EMPTY_ISSUES, selectedAssetReferences = EMPTY_REFERENCES, referenceAction, onReferenceActionHandled, onSelectionRangeChange, caretRequest, ...props },
+    { value, references, onSelectReference, onChange, onSubmit, onKeyDown, className, containerClassName, style, highlightLabels = true, mentionMenuWidth = 320, sendOnEnter = true, onContentSizeChange, includeAssetLibrary = false, activeDropReferenceId, onReferenceFilesDrop, autoLinkEnabled = false, nodeSectionLabel = "canvas node", referenceIssues = EMPTY_ISSUES, selectedAssetReferences = EMPTY_REFERENCES, referenceAction, onReferenceActionHandled, onSelectionRangeChange, caretRequest, ...props },
     forwardedRef,
 ) {
     const rawTheme = useActiveTheme();
@@ -343,9 +343,9 @@ export const CanvasResourceMentionTextarea = forwardRef<HTMLTextAreaElement, Pro
             onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
             onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
             onClick={(event) => { event.stopPropagation(); insertAutoLink(autoLinkMatch); }}
-            aria-label={`引用${canvasResourceDisplayName(autoLinkMatch.reference)}`}
+            aria-label={`Quote${canvasResourceDisplayName(autoLinkMatch.reference)}`}
         >
-            <span className="truncate">引用「{autoLinkMatch.query}」→ @{canvasResourceDisplayName(autoLinkMatch.reference)}</span>
+            <span className="truncate">Quote "{autoLinkMatch.query}」→ @{canvasResourceDisplayName(autoLinkMatch.reference)}</span>
             <kbd className="shrink-0 rounded border border-current/20 px-1 font-mono text-[var(--fs-micro)]">Tab</kbd>
         </button>,
         document.body,

@@ -29,18 +29,18 @@ export function videoSettingsConstraints(
             // A card can expand into several views and change the submission mode.
             const ratioHelp = first || last
                 ? isH3MaxModel(model)
-                    ? "首尾帧生成不能混用角色参考图；H3 Max 多素材参考生成可组合关键帧与角色参考图，使用所选比例。"
-                    : "角色卡带参考图时，不能与指定的首尾帧同时使用。请移除角色卡，或取消首尾帧指定后再生成。"
+                    ? "Character reference pictures cannot be mixed in the first and last frame generation; H3 Max multi-material reference generation can combine key frames and character reference pictures, using the selected ratio."
+                    : "When using a character cassette with a reference image, it cannot be used at the same time as the specified first and last frames. Please remove the character card, or cancel the specification of the first and last frames before generating again."
                 : isH3Style(model)
-                    ? "角色卡带参考图时，视频比例由参考图决定；所选比例只在没有参考图时生效。"
-                    : "首尾帧生成时，比例随实际参考图；多素材参考生成使用所选比例。";
+                    ? "When the character card has a reference picture, the video ratio is determined by the reference picture; the selected ratio only takes effect when there is no reference picture."
+                    : "When the first and last frames are generated, the scale follows the actual reference image; multi-material reference generation uses the selected scale.";
             return { ratioHelp };
         }
         if (!imageCount) return {};
-        const frame = last && !first ? "尾帧" : "首帧";
+        const frame = last && !first ? "last frame" : "first frame";
         return {
-            ratioLabel: `随${frame}图片`,
-            ratioHelp: `视频比例由${frame}图片决定。需要其他比例时，请先裁切或扩图，再生成视频。`,
+            ratioLabel: `Follow${frame}pictures`,
+            ratioHelp: `The video ratio is given by${frame}Pictures decide. If you need other ratios, please crop or enlarge the image first and then generate the video.`,
         };
     }
     return seedanceSettingsConstraints(modelCapabilityConfigFor(config, config.model).video, imageCount, videoCount, audioCount, metadata?.videoEditOperation, Boolean(first || last));

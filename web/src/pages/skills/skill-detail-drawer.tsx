@@ -46,7 +46,7 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
             .catch((error) => {
                 if (cancelled) return;
                 setFiles([]);
-                setFilesError(skillFailureMessage(error, "技能文件加载失败", "请关闭详情后重新打开。"));
+                setFilesError(skillFailureMessage(error, "Skill file loading failed", "Please close the details and reopen them."));
             })
             .finally(() => {
                 if (!cancelled) setFilesLoading(false);
@@ -67,7 +67,7 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
             .catch((error) => {
                 if (cancelled) return;
                 setContent(null);
-                setContentError(skillFailureMessage(error, "文件读取失败", "请重新选择文件，或关闭详情后重试。"));
+                setContentError(skillFailureMessage(error, "File read failed", "Please reselect the file or close the details and try again."));
             })
             .finally(() => { if (!cancelled) setContentLoading(false); });
         return () => { cancelled = true; };
@@ -104,20 +104,20 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
                             <SkillPackageAbout skill={skill} categories={categories} />
                         </div>
                         {!fileOnly ? <div className="skill-package-actions">
-                            {skill.sourceType === "github" && skill.isOwner ? <Tooltip title={skill.syncError || "从 GitHub 检查并同步最新提交"}><Button loading={mutating} icon={<RefreshCw className="size-4" />} onClick={() => onSync(skill)}>同步</Button></Tooltip> : null}
-                            {skill.isOwner ? <Button icon={<Pencil className="size-4" />} onClick={() => onEdit(skill)}>编辑</Button> : null}
-                            <Button loading={mutating} icon={<Heart className={`size-4 ${skill.isLike ? "fill-current text-rose-500" : ""}`} />} onClick={() => onLike(skill)}>{skill.isLike ? "已收藏" : "收藏"}</Button>
-                            <Button type={skill.isAdded ? "default" : "primary"} loading={mutating} icon={skill.isAdded ? <Check className="size-4" /> : <Plus className="size-4" />} onClick={() => onAdd(skill)}>{skill.isAdded ? "已启用" : "启用技能"}</Button>
+                            {skill.sourceType === "github" && skill.isOwner ? <Tooltip title={skill.syncError || "Check and sync the latest commits from GitHub"}><Button loading={mutating} icon={<RefreshCw className="size-4" />} onClick={() => onSync(skill)}>sync</Button></Tooltip> : null}
+                            {skill.isOwner ? <Button icon={<Pencil className="size-4" />} onClick={() => onEdit(skill)}>Edit</Button> : null}
+                            <Button loading={mutating} icon={<Heart className={`size-4 ${skill.isLike ? "fill-current text-rose-500" : ""}`} />} onClick={() => onLike(skill)}>{skill.isLike ? "Collected" : "Collection"}</Button>
+                            <Button type={skill.isAdded ? "default" : "primary"} loading={mutating} icon={skill.isAdded ? <Check className="size-4" /> : <Plus className="size-4" />} onClick={() => onAdd(skill)}>{skill.isAdded ? "Enabled" : "Enable skills"}</Button>
                         </div> : null}
                     </header>
 
                     <div className="skill-package-workspace">
-                        <aside className="skill-package-sidebar" aria-label="技能文件">
+                        <aside className="skill-package-sidebar" aria-label="Skill file">
                             <div className="skill-package-sidebar-summary">
-                                <span><FileArchive className="size-3.5" />{skill.fileCount || files.length} 个文件</span>
+                                <span><FileArchive className="size-3.5" />{skill.fileCount || files.length}  files</span>
                                 <span>{formatBytes(skill.totalBytes)}</span>
                             </div>
-                            <Input allowClear size="small" value={pathFilter} onChange={(event) => setPathFilter(event.target.value)} placeholder="筛选文件…" prefix={<File className="size-3.5 text-foreground/30" />} />
+                            <Input allowClear size="small" value={pathFilter} onChange={(event) => setPathFilter(event.target.value)} placeholder="Filter files…" prefix={<File className="size-3.5 text-foreground/30" />} />
                             <div className="skill-package-tree thin-scrollbar">
                                 {filesLoading || loading ? <Skeleton active title={false} paragraph={{ rows: 10 }} /> : filesError ? <div className="skill-package-empty">{filesError}</div> : treeData.length ? (
                                     <Tree
@@ -131,24 +131,24 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
                                         switcherIcon={({ expanded, isLeaf }) => isLeaf ? null : <ChevronRight aria-hidden="true" className={`skill-package-tree-chevron size-3.5 ${expanded ? "is-expanded" : ""}`} />}
                                         onSelect={(keys, info) => { if (!info.node.children?.length && keys[0]) setActivePath(String(keys[0])); }}
                                     />
-                                ) : <div className="skill-package-empty">没有匹配文件</div>}
+                                ) : <div className="skill-package-empty">No matching files</div>}
                             </div>
                             {!fileOnly ? <div className="skill-package-sidebar-footer">
-                                <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{formatSkillCount(skill.addedCount)} 人加入</span>
-                                <span>{skill.isPrivate ? "仅自己可见" : "公开"}</span>
+                                <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{formatSkillCount(skill.addedCount)}  people join</span>
+                                <span>{skill.isPrivate ? "Visible only to yourself" : "public"}</span>
                             </div> : null}
                         </aside>
 
                         <main className="skill-package-preview">
                             <div className="skill-package-preview-toolbar">
-                                <div className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/58">{activePath || "请选择文件"}</div>
-{canPreviewMarkdown ? <SegmentedControl size="sm" value={previewMode} onChange={(value) => setPreviewMode(value as PreviewMode)} options={[{ value: "preview", label: <span className="inline-flex items-center gap-1"><FileText className="size-3.5" />预览</span> }, { value: "source", label: <span className="inline-flex items-center gap-1"><Code2 className="size-3.5" />源码</span> }]} /> : null}
-                                {activePath ? <Tooltip title="打开原始文件"><a className="skill-package-raw-link" href={skillFileRawURL(skill.skillId, activePath)} target="_blank" rel="noreferrer" aria-label="打开原始文件"><ExternalLink className="size-4" /></a></Tooltip> : null}
+                                <div className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/58">{activePath || "Please select file"}</div>
+{canPreviewMarkdown ? <SegmentedControl size="sm" value={previewMode} onChange={(value) => setPreviewMode(value as PreviewMode)} options={[{ value: "preview", label: <span className="inline-flex items-center gap-1"><FileText className="size-3.5" />Preview</span> }, { value: "source", label: <span className="inline-flex items-center gap-1"><Code2 className="size-3.5" />Source code</span> }]} /> : null}
+                                {activePath ? <Tooltip title="Open original file"><a className="skill-package-raw-link" href={skillFileRawURL(skill.skillId, activePath)} target="_blank" rel="noreferrer" aria-label="Open original file"><ExternalLink className="size-4" /></a></Tooltip> : null}
                             </div>
                             <div className="skill-package-preview-body thin-scrollbar">
                                 {contentLoading ? <Skeleton active paragraph={{ rows: 18 }} /> : contentError ? <div className="skill-package-empty">{contentError}</div> : content && selectedFile ? (
                                     <SkillFilePreview skill={skill} file={selectedFile} content={content} mode={previewMode} filePaths={filePaths} onNavigate={setActivePath} />
-                                ) : <div className="skill-package-empty">从左侧选择一个文件</div>}
+                                ) : <div className="skill-package-empty">Select a file from the left</div>}
                             </div>
                         </main>
                     </div>
@@ -164,7 +164,7 @@ function SkillFilePreview({ skill, file, content, mode, filePaths, onNavigate }:
         if (file.kind === "image") return <div className="skill-package-media-stage"><img src={rawURL} alt={file.path} /></div>;
         if (file.kind === "video") return <div className="skill-package-media-stage"><video src={rawURL} controls playsInline preload="metadata" /></div>;
         if (file.kind === "audio") return <div className="skill-package-media-stage"><audio src={rawURL} controls preload="metadata" /></div>;
-        return <div className="skill-package-empty"><FileArchive className="mb-3 size-9" /><div>该文件不支持在线预览</div><a className="mt-3 inline-flex items-center gap-1 text-foreground underline" href={rawURL} target="_blank" rel="noreferrer">打开原始文件<ExternalLink className="size-3.5" /></a></div>;
+        return <div className="skill-package-empty"><FileArchive className="mb-3 size-9" /><div>This file does not support online preview</div><a className="mt-3 inline-flex items-center gap-1 text-foreground underline" href={rawURL} target="_blank" rel="noreferrer">Open original file<ExternalLink className="size-3.5" /></a></div>;
     }
     if (file.kind === "markdown" && mode === "preview") {
         return <SkillMarkdown source={content.content} currentPath={file.path} filePaths={filePaths} onNavigate={onNavigate} />;
@@ -190,7 +190,7 @@ function SkillMarkdown({ source, currentPath, filePaths, onNavigate }: { source:
                         if (isExternalURL(src)) return <img src={src} alt={alt || ""} loading="lazy" />;
                         const target = resolveSkillPath(currentPath, src || "");
                         if (target && filePaths.has(target)) return <button type="button" className="skill-package-inline-file" onClick={() => onNavigate(target)}><FileImage className="size-4" />{alt || target}</button>;
-                        return <span className="skill-package-inline-missing">{alt || src || "图片"}</span>;
+                        return <span className="skill-package-inline-missing">{alt || src || "pictures"}</span>;
                     },
                 }}
             >{skillMarkdownBody(source)}</ReactMarkdown>
@@ -266,25 +266,25 @@ function isExternalURL(value?: string) {
 export function SkillPackageAbout({ skill, categories }: { skill: Pick<Skill, "description" | "version" | "effectiveUser" | "sourceType" | "tag" | "updatedAt">; categories: SkillCategory[] }) {
     return (
         <details className="skill-package-about">
-            <summary>技能介绍</summary>
+            <summary>Skill introduction</summary>
             {skill.description ? <p>{skill.description}</p> : null}
             <dl>
-                <div><dt>版本</dt><dd>{skill.version || "1.0.0"}</dd></div>
-                {skill.effectiveUser?.name ? <div><dt>作者</dt><dd>{skill.effectiveUser.name}</dd></div> : null}
-                <div><dt>来源</dt><dd>{sourceLabel(skill.sourceType)}</dd></div>
-                <div><dt>分类</dt><dd>{skillCategoryLabel(skill.tag, categories)}</dd></div>
-                <div><dt>更新于</dt><dd>{formatSkillDate(skill.updatedAt)}</dd></div>
+                <div><dt>Version</dt><dd>{skill.version || "1.0.0"}</dd></div>
+                {skill.effectiveUser?.name ? <div><dt>Author</dt><dd>{skill.effectiveUser.name}</dd></div> : null}
+                <div><dt>Source</dt><dd>{sourceLabel(skill.sourceType)}</dd></div>
+                <div><dt>Classification</dt><dd>{skillCategoryLabel(skill.tag, categories)}</dd></div>
+                <div><dt>updated on</dt><dd>{formatSkillDate(skill.updatedAt)}</dd></div>
             </dl>
         </details>
     );
 }
 
 export function sourceLabel(source: string) {
-    if (source === "market") return "技能市场";
+    if (source === "market") return "skills market";
     if (source === "github") return "GitHub";
-    if (source === "zip") return "ZIP 技能包";
-    if (source === "builtin") return "内置技能";
-    if (source === "plugin") return "插件";
+    if (source === "zip") return "ZIP skill pack";
+    if (source === "builtin") return "Built-in skills";
+    if (source === "plugin") return "plug-in";
     return "Markdown";
 }
 

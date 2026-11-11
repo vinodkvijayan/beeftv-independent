@@ -320,47 +320,47 @@ let uiSessionGeneration = 0;
  * 服务端失败原因只用于分支，展示给用户的永远是用户语。
  * 这些 reason 由后端给出（见 handler/agent_proxy.go 与 agent_host_lifecycle.go）。
  */
-export function agentAssistantFailureText(reason: string | undefined, fallback = "创作助手暂时不可用，请稍后再试") {
+export function agentAssistantFailureText(reason: string | undefined, fallback = "The creative assistant is temporarily unavailable, please try again later.") {
     switch (reason) {
         case "skill_instruction_too_large":
-            return "所选技能正文过大，请减少所选技能或将部分内容移到参考文件后重试。";
+            return "The text of the selected skill is too large. Please reduce the selected skill or move part of the content to the reference file and try again.";
         case "body_too_large":
         case "http_413":
-            return "本次消息内容过大，请缩短消息或减少附件后重试。";
+            return "The content of this message is too large. Please shorten the message or reduce the attachments and try again.";
         case "turn_timeout":
-            return "模型响应时间过长，这一轮尚未完成。已完成的改动会保留，可以继续处理。";
+            return "The model took too long to respond and the round has not yet completed. Completed changes will be retained and can be processed further.";
         case "turn_interrupted":
-            return "上一轮执行中断，已经落地的改动已保留。请查看画布和改动记录后再继续。";
+            return "The last round of execution was interrupted, and the changes that have been implemented have been retained. Please review the canvas and change history before continuing.";
         case "turn_request_budget_exhausted":
         case "turn_tool_step_budget_exhausted":
-            return "这一轮已达到调用上限，已停止继续执行。可以发送新消息继续，已落地的改动会保留。";
+            return "This round has reached the call limit and has stopped execution. You can send a new message to continue, and the changes that have been implemented will be retained.";
         case "request_budget_exhausted":
-            return "当前配置的总调用预算已用完，请检查助手运行配置。已落地的改动会保留。";
+            return "The currently configured total call budget has been exhausted, please check the assistant run configuration. Implemented changes will be retained.";
         case "request_budget_storage_unavailable":
-            return "预算记录无法读取或保存，已停止继续调用。请检查磁盘空间和数据目录权限；仍失败时，请从有效备份恢复预算记录后重启助手。";
+            return "The budget record cannot be read or saved, and further calls have been stopped. Please check the disk space and data directory permissions; if it still fails, please restore the budget records from a valid backup and restart the assistant.";
         case "model_error":
         case "provider_error":
-            return "模型没有完成回复。已经完成的操作会保留，请检查结果后再继续。";
+            return "The model did not complete the reply. Completed operations will be retained, please check the results before continuing.";
         case "model_request_failed":
-            return "模型暂时没有完成响应。已完成的改动会保留，可以继续处理。";
+            return "The model has not yet completed its response. Completed changes will be retained and can be processed further.";
         case "host_unreachable":
         case "host_unhealthy":
         case "host_token_missing":
         case "host_command_missing":
         case "host_start_failed":
-            return "创作助手还没准备好，请稍后再试";
+            return "The creative assistant is not ready yet, please try again later.";
         case "unauthenticated":
         case "read_only_client":
         case "forbidden":
-            return "当前页面无法使用创作助手，请重新打开画布";
+            return "The creative assistant cannot be used on the current page, please reopen the canvas";
         case "session_busy":
-            return "上一条消息还在处理中，请等它结束";
+            return "The previous message is still being processed, please wait until it ends";
         case "session_not_found":
-            return "没找到这条对话记录，可能已经被删除";
+            return "This conversation record was not found. It may have been deleted.";
         case "session_not_current":
-            return "你已经换到别的对话了，请重新发送这条消息";
+            return "You have switched to another conversation, please resend this message";
         case "session_not_running":
-            return "这一轮已经结束，请查看最新结果后发送新消息";
+            return "This round has ended, please check the latest results before sending a new message";
         default:
             return fallback;
     }
@@ -389,13 +389,13 @@ export async function listAssistantSessions(canvasId: string): Promise<Assistant
 
 export async function createAssistantSession(canvasId: string): Promise<string | null> {
     const data = await http.post<{ sessionId: string }>("/assistant/sessions", { canvasId }, await uiSessionConfig());
-    if (!data?.sessionId) throw new Error("没能新建对话，请重试");
+    if (!data?.sessionId) throw new Error("Failed to create new conversation, please try again");
     return data.sessionId;
 }
 
 export async function activateAssistantSession(canvasId: string, sessionId: string): Promise<string | null> {
     const data = await http.post<{ sessionId: string }>("/assistant/sessions/activate", { canvasId, sessionId }, await uiSessionConfig());
-    if (!data?.sessionId) throw new Error("没能切换对话，请重试");
+    if (!data?.sessionId) throw new Error("Failed to switch conversation, please try again");
     return data.sessionId;
 }
 
@@ -414,10 +414,10 @@ export async function getAssistantHistory(canvasId: string, sessionId?: string):
     const query = new URLSearchParams({ canvasId });
     if (sessionId) query.set("sessionId", sessionId);
     const data = await http.get<AssistantHistory>(`/assistant/history?${query.toString()}`, await uiSessionConfig());
-    if (!data || !Array.isArray(data.turns)) throw new Error("没能读取对话，请重试");
+    if (!data || !Array.isArray(data.turns)) throw new Error("Failed to read conversation, please try again");
     return { sessionId: data.sessionId || sessionId || "", active: data.active, plan: data.plan ?? null, turns: data.turns.map((turn) => ({
         ...turn,
-        error: turn.error ? agentAssistantFailureText(turn.errorReason ?? undefined, "这一轮没有全部完成，请核对已经落地的改动。") : null,
+        error: turn.error ? agentAssistantFailureText(turn.errorReason ?? undefined, "Not all of this round has been completed, please check the changes that have been implemented.") : null,
     })) };
 }
 
@@ -440,8 +440,8 @@ export async function undoAssistantTurn(turnId: string, canvasId: string): Promi
 }
 
 /** 已撤销的一轮不再开始生成；这是后端给出的唯一判定，界面隐藏按钮只是提示。 */
-export const ASSISTANT_PROPOSAL_UNDONE_TEXT = "这一轮已撤销，不会生成。";
-export const ASSISTANT_PROPOSAL_INVALIDATED_TEXT = "已失效，请让助手重新提出生成方案。";
+export const ASSISTANT_PROPOSAL_UNDONE_TEXT = "This round has been undone and will not be generated.";
+export const ASSISTANT_PROPOSAL_INVALIDATED_TEXT = "It has expired. Please ask the assistant to propose a new generation plan.";
 
 /**
  * 开始生成前由后端确认生成建议所属的一轮仍然有效。
@@ -455,8 +455,8 @@ export async function confirmAssistantProposalRunnable(turnId: string, proposalI
         const reason = error instanceof ApiError ? error.reason : undefined;
         if (reason === "turn_undone") return ASSISTANT_PROPOSAL_UNDONE_TEXT;
         if (reason === "continuation_intent_changed") return ASSISTANT_PROPOSAL_INVALIDATED_TEXT;
-        if (reason === "turn_not_found") return "找不到这一轮对话，未提交生成。请让助手重新提出方案。";
-        return "无法确认这项生成是否还能进行，未提交生成。请检查连接后重试。";
+        if (reason === "turn_not_found") return "This round of dialogue cannot be found and has not been submitted for generation. Please ask your assistant to propose a new plan.";
+        return "Unable to confirm whether this build can still be performed, the build has not been submitted. Please check the connection and try again.";
     }
 }
 
@@ -496,10 +496,10 @@ async function issueAgentUiSession(generation: number): Promise<string> {
         if (status === 403) {
             throw new Error(agentAssistantFailureText("forbidden"));
         }
-        throw new Error(agentAssistantFailureText(undefined, "创作助手暂时不可用，请稍后再试"));
+        throw new Error(agentAssistantFailureText(undefined, "The creative assistant is temporarily unavailable, please try again later."));
     }
-    if (!data?.token) throw new Error("创作助手暂时不可用，请稍后再试");
-    if (generation !== uiSessionGeneration) throw new Error("当前页面会话已更新，请重新发送");
+    if (!data?.token) throw new Error("The creative assistant is temporarily unavailable, please try again later.");
+    if (generation !== uiSessionGeneration) throw new Error("The current page session has been updated, please resend.");
     // Invalid/missing expiry is never cached; the server remains the authority on validity.
     const expiresAt = Date.parse(data.expiresAt ?? "");
     uiSession = Number.isFinite(expiresAt) ? { token: data.token, expiresAt } : null;
@@ -544,7 +544,7 @@ export type StreamHandlers = {
  * 宿主对每一次对话都恰好发一条 `turn_end`；收到它才算这一回合真的结束。
  * 把「流断了」当成正常结束会让面板停在一段半截回复上，必须显式失败。
  */
-export const AGENT_STREAM_INCOMPLETE_MESSAGE = "创作助手的回复没有完整结束，请再试一次";
+export const AGENT_STREAM_INCOMPLETE_MESSAGE = "The creative assistant's reply is not complete, please try again.";
 
 /**
  * 界面明确引用、且后端会再校验归属的额外资源。
@@ -594,7 +594,7 @@ export type AgentChatRequest = {
 /** 已收到回合终态的业务失败，不等同于断流后的「执行结果未知」。 */
 export class AgentTurnFailedError extends Error {
     constructor(readonly reason?: string | null) {
-        super(agentAssistantFailureText(reason ?? undefined, "这一回合没有完成，请再试一次"));
+        super(agentAssistantFailureText(reason ?? undefined, "This round was not completed, please try again"));
         this.name = "AgentTurnFailedError";
     }
 }
@@ -627,7 +627,7 @@ export async function streamAgentChat(
     try {
         token = await ensureAgentUiSession();
     } catch (error) {
-        throw new AgentChatNotAdmittedError(error instanceof Error ? error.message : "消息未发送，请重试");
+        throw new AgentChatNotAdmittedError(error instanceof Error ? error.message : "Message not sent, please try again");
     }
     signal?.throwIfAborted();
     const body: Record<string, unknown> = { canvasId, message, selectedNodeIds, permissionMode: assistantPermissionMode(request.permissionMode) };
@@ -657,7 +657,7 @@ export async function streamAgentChat(
     if (!result.settled) throw result.detached !== null ? new AgentStreamDetachedError(result.detached) : new Error(AGENT_STREAM_INCOMPLETE_MESSAGE);
     if (result.turnEnd && !result.turnEnd.cancelled && result.turnEnd.error) {
         // 上游错误可能包含请求细节，控制台同样不记录原文。
-        console.error("创作助手回合失败", { canvasId });
+        console.error("Creation Assistant turn failed", { canvasId });
         throw new AgentTurnFailedError(result.turnEnd.errorReason);
     }
 }
@@ -749,7 +749,7 @@ async function readAgentTurnStream(
         reader.releaseLock();
     }
     if (malformedLine !== null) throw new Error(AGENT_STREAM_INCOMPLETE_MESSAGE);
-    if (signal?.aborted && !settled) throw new DOMException("请求已取消", "AbortError");
+    if (signal?.aborted && !settled) throw new DOMException("Request canceled", "AbortError");
     return { settled, turnEnd, malformedLine, detached };
 }
 
@@ -779,7 +779,7 @@ export async function cancelAgentChat(canvasId: string, target?: { sessionId: st
     if (response.status === 403 && uiSession?.token === token) resetAgentUiSession();
     const businessFailed = payload !== null && typeof payload.code === "number" && payload.code !== 0;
     if (!response.ok || businessFailed) {
-        throw new Error(agentAssistantFailureText(payload?.reason, "停止失败，请再试一次"));
+        throw new Error(agentAssistantFailureText(payload?.reason, "Stop failed, please try again"));
     }
     return payload?.data?.state;
 }
@@ -796,6 +796,6 @@ export async function steerAgentChat(canvasId: string, sessionId: string, messag
     try { payload = await response.json(); } catch { payload = null; }
     if (response.status === 403 && uiSession?.token === token) resetAgentUiSession();
     if (!response.ok || payload?.code !== 0 || payload?.data?.accepted !== true) {
-        throw new Error(agentAssistantFailureText(payload?.reason, "未能确认助手收到补充要求，原任务仍会保留。请查看最新回复后再决定是否发送。"));
+        throw new Error(agentAssistantFailureText(payload?.reason, "If it cannot be confirmed that the assistant has received the supplementary request, the original task will still be retained. Please check the latest reply before deciding whether to send it."));
     }
 }

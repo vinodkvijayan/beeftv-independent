@@ -45,7 +45,7 @@ export function VideoReferenceModeSwitch({
             type="button"
             aria-pressed={framesActive}
             aria-disabled={!state.canSelectFrames}
-            aria-label={state.endFrameSupported ? "首尾帧模式" : "首帧模式"}
+            aria-label={state.endFrameSupported ? "First and last frame mode" : "first frame mode"}
             data-canvas-no-drag
             className={`inline-flex h-5 items-center rounded-[var(--r-sm)] px-2 text-[var(--fs-tiny)] font-medium leading-none transition-colors ${state.canSelectFrames ? "cursor-pointer" : "cursor-not-allowed opacity-45"}`}
             style={{
@@ -60,7 +60,7 @@ export function VideoReferenceModeSwitch({
             }}
             onPointerDown={(event) => event.stopPropagation()}
         >
-            {state.endFrameSupported ? "首尾帧" : "首帧"}
+            {state.endFrameSupported ? "First and last frames" : "first frame"}
         </button>
     );
 
@@ -69,7 +69,7 @@ export function VideoReferenceModeSwitch({
             type="button"
             aria-pressed={allActive}
             aria-disabled={!state.canSelectAll}
-            aria-label="全能参考模式"
+            aria-label="Universal reference mode"
             data-canvas-no-drag
             className={`inline-flex h-5 items-center rounded-[var(--r-sm)] px-2 text-[var(--fs-tiny)] font-medium leading-none transition-colors ${state.canSelectAll ? "cursor-pointer" : "cursor-not-allowed opacity-45"}`}
             style={{
@@ -84,7 +84,7 @@ export function VideoReferenceModeSwitch({
             }}
             onPointerDown={(event) => event.stopPropagation()}
         >
-            全能参考
+                        All-round reference
         </button>
     );
 
@@ -95,7 +95,7 @@ export function VideoReferenceModeSwitch({
     return (
         <div
             role="group"
-            aria-label="视频参考模式"
+            aria-label="Video reference mode"
             data-canvas-no-drag
             data-canvas-no-zoom
             className="inline-flex h-6 shrink-0 items-center gap-0.5 rounded-[var(--r-md)] p-0.5"
@@ -117,7 +117,7 @@ export function ReferenceToolsPopover({
     onTogglePickConnect,
     accent,
     compact,
-    label = "引用",
+    label = "Quote",
 }: {
     canAutoMention: boolean;
     autoLinkEnabled: boolean;
@@ -140,8 +140,8 @@ export function ReferenceToolsPopover({
             content={
                 <div className="space-y-1.5">
                     <div>
-                        <div className="text-sm font-medium leading-5">智能引用</div>
-                        <div className="mt-0.5 text-xs leading-4 text-black/50 dark:text-white/50">输入素材序号或名称后按 Tab，可快速引用；按住 Option/Alt 点击节点或开启「点选连线」可快速连线并插入 @引用</div>
+                        <div className="text-sm font-medium leading-5">Smart citation</div>
+                        <div className="mt-0.5 text-xs leading-4 text-black/50 dark:text-white/50">Enter the material serial number or name and press Tab to quickly quote; hold down Option/Alt and click on the node or turn on "Click to connect" to quickly connect and insert @quotes</div>
                     </div>
                     <div className="flex min-h-6 items-center justify-between gap-3">
                         <div className="flex items-center gap-2 text-sm"><Link2 className="size-3.5" />AutoLink</div>
@@ -149,7 +149,7 @@ export function ReferenceToolsPopover({
                             type="button"
                             role="switch"
                             aria-checked={autoLinkEnabled}
-                            aria-label={autoLinkEnabled ? "关闭 AutoLink" : "开启 AutoLink"}
+                            aria-label={autoLinkEnabled ? "Close AutoLink" : "Turn on AutoLink"}
                             className="canvas-reference-autolink-switch relative inline-flex h-5 w-9 items-center rounded-full border transition-colors"
                             style={{ background: autoLinkEnabled ? `${accent}14` : "transparent", borderColor: autoLinkEnabled ? accent : "color-mix(in srgb, currentColor 22%, transparent)", color: accent }}
                             onClick={() => onAutoLinkEnabledChange(!autoLinkEnabled)}
@@ -161,13 +161,13 @@ export function ReferenceToolsPopover({
                         <button
                             type="button"
                             aria-pressed={pickConnectActive}
-                            aria-label={pickConnectActive ? "退出点选连线引用" : "点选连线引用"}
+                            aria-label={pickConnectActive ? "Exit click-to-wire reference" : "Click on wired reference"}
                             className="canvas-reference-tools-pick-connect-button flex h-7 w-full items-center justify-center gap-1.5 rounded-md border px-2.5 text-sm transition-colors"
                             style={{ borderColor: accent, color: pickConnectActive ? "#fff" : accent, background: pickConnectActive ? accent : "transparent" }}
                             onClick={onTogglePickConnect}
                         >
                             <Link2 className="size-3.5" />
-                            {pickConnectActive ? "正在点选连线（按 Esc 退出）" : "点选连线引用"}
+                            {pickConnectActive ? "Clicking on connection (press Esc to exit)" : "Click on wired reference"}
                         </button>
                     ) : null}
                     <button
@@ -177,7 +177,7 @@ export function ReferenceToolsPopover({
                         disabled={!canAutoMention}
                         onClick={onAutoMention}
                     >
-                        <AtSign className="size-3.5" />一键引用全文
+                        <AtSign className="size-3.5" />One-click citation of full text
                     </button>
                 </div>
             }
@@ -185,8 +185,8 @@ export function ReferenceToolsPopover({
             <button
                 type="button"
                 className={`canvas-node-composer-settings-trigger canvas-node-composer-reference-tools-trigger inline-flex shrink-0 items-center gap-1 ${compact ? "is-compact" : ""}`}
-                aria-label={label === "引用" ? "打开智能引用" : label}
-                title={label === "引用" ? "智能引用" : label}
+                aria-label={label === "Quote" ? "Turn on smart citations" : label}
+                title={label === "Quote" ? "Smart citation" : label}
             >
                 <SlidersHorizontal className="size-3.5" />
                 {!compact ? <span>{label}</span> : null}
@@ -196,7 +196,7 @@ export function ReferenceToolsPopover({
 }
 
 export function referenceShelfHeading(references: CanvasResourceReference[]) {
-    const label = references.every((reference) => reference.kind === "image" || reference.kind === "character") ? "参考图" : "参考素材";
+    const label = references.every((reference) => reference.kind === "image" || reference.kind === "character") ? "Reference picture" : "Reference material";
     return `${label} · ${references.length}`;
 }
 
@@ -308,16 +308,16 @@ export function ConnectedReferenceShelf({
         if (videoModeState.mode === "frames") {
             const isStart = videoModeState.startFrameNodeId === reference.nodeId;
             const isEnd = videoModeState.endFrameNodeId === reference.nodeId;
-            const badgeLabel = isStart ? "首帧" : isEnd ? "尾帧" : "设为首帧";
+            const badgeLabel = isStart ? "first frame" : isEnd ? "last frame" : "Set as first frame";
             const interactive = videoModeState.endFrameSupported && imageReferences.length >= 1 && imageReferences.length <= 2;
             const tooltipText =
                 !isStart && !isEnd
-                    ? "点击设为首帧"
+                    ? "Click to set as first frame"
                     : imageReferences.length === 2 && videoModeState.endFrameSupported
-                      ? `当前为${badgeLabel}（点击互换首尾帧）`
+                      ? `Currently${badgeLabel}(Click to swap the first and last frames)`
                       : imageReferences.length === 1 && videoModeState.endFrameSupported
-                        ? `当前为${badgeLabel}（点击切换为${isStart ? "尾帧" : "首帧"}）`
-                        : `当前作为视频${badgeLabel}`;
+                        ? `Currently${badgeLabel}(Click to switch to${isStart ? "last frame" : "first frame"}）`
+                        : `currently as video${badgeLabel}`;
             return (
                 <Tooltip title={tooltipText}>
                     <button
@@ -357,11 +357,11 @@ export function ConnectedReferenceShelf({
         const isPromptStart = videoModeState.promptFirstFrameNodeId === reference.nodeId;
         const displayName = canvasResourceDisplayName(reference);
         return (
-            <Tooltip title={isPromptStart ? `已写入「@${displayName} 作为首帧」（点击取消）` : `设为本镜头起始画面（自动写入 @${displayName} 作为首帧）`}>
+            <Tooltip title={isPromptStart ? `"@" has been written${displayName} as the first frame" (click Cancel)` : `Set as the starting image of this shot (automatically write @${displayName} as the first frame)`}>
                 <button
                     type="button"
                     aria-pressed={isPromptStart}
-                    aria-label={isPromptStart ? `取消 ${reference.label} 提示词首帧` : `将 ${reference.label} 写入提示词首帧`}
+                    aria-label={isPromptStart ? `Cancel${reference.label} Prompt word first frame` : `will${reference.label} Write the first frame of the prompt word`}
                     data-reference-omni-first-frame={isPromptStart ? "true" : "false"}
                     className="mr-1.5 inline-flex h-5 shrink-0 cursor-pointer items-center self-center rounded px-1.5 text-[var(--fs-micro)] font-medium leading-none transition-colors hover:opacity-90"
                     style={
@@ -380,7 +380,7 @@ export function ConnectedReferenceShelf({
                         onTogglePromptFirstFrame(reference);
                     }}
                 >
-                    首帧
+                                        first frame
                 </button>
             </Tooltip>
         );
@@ -388,7 +388,7 @@ export function ConnectedReferenceShelf({
 
     return (
         <>
-            <div className="canvas-node-composer-references" role="group" aria-label="已连接素材">
+            <div className="canvas-node-composer-references" role="group" aria-label="Connected assets">
                 <div className="canvas-node-composer-references-track thin-scrollbar">
                     {activeReferences.map((reference, index) => {
                         const displayName = canvasResourceDisplayName(reference);
@@ -471,8 +471,8 @@ export function ConnectedReferenceShelf({
                                             type="button"
                                             className="canvas-node-reference-drag-handle"
                                             draggable
-                                            title={`拖动调整 ${displayName} 的顺序`}
-                                            aria-label={`调整 ${displayName} 的顺序；使用左右方向键也可移动`}
+                                            title={`Drag to adjust${displayName} order`}
+                                            aria-label={`adjust${displayName} order; you can also use the left and right arrow keys to move`}
                                             onDragStart={(event) => {
                                                 setDraggedReferenceId(reference.nodeId);
                                                 event.dataTransfer.effectAllowed = "move";
@@ -494,8 +494,8 @@ export function ConnectedReferenceShelf({
                                         type="button"
                                         className="canvas-node-reference-preview"
                                         style={{ background: theme.toolbar.itemHover, color: theme.node.text, outlineColor: theme.node.activeStroke }}
-                                        title={canPreview ? `点击插入 @${displayName}（双击预览大图）` : `点击插入 @${displayName}`}
-                                        aria-label={canPreview ? `点击插入 @${displayName}（双击预览大图）` : `点击插入 @${displayName}`}
+                                        title={canPreview ? `Click to insert @${displayName}(Double-click to preview larger image)` : `Click to insert @${displayName}`}
+                                        aria-label={canPreview ? `Click to insert @${displayName}(Double-click to preview larger image)` : `Click to insert @${displayName}`}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             onInsert(reference);
@@ -510,7 +510,7 @@ export function ConnectedReferenceShelf({
                                             <span
                                                 className="canvas-node-reference-preview-hint"
                                                 aria-hidden="true"
-                                                title={`预览 ${reference.title}`}
+                                                title={`Preview${reference.title}`}
                                                 onClick={(event) => {
                                                     event.stopPropagation();
                                                     setImagePreview(reference);
@@ -523,7 +523,7 @@ export function ConnectedReferenceShelf({
                                     <button
                                         type="button"
                                         className="canvas-node-reference-label"
-                                        title={`插入 @${displayName}`}
+                                        title={`Insert @${displayName}`}
                                         onPointerDown={(event) => event.stopPropagation()}
                                         onMouseDown={(event) => event.stopPropagation()}
                                         onClick={(event) => { event.stopPropagation(); onInsert(reference); }}
@@ -537,8 +537,8 @@ export function ConnectedReferenceShelf({
                                             type="button"
                                             className="canvas-node-reference-remove"
                                             style={{ background: theme.toolbar.panel, borderColor: theme.node.stroke, color: theme.node.text }}
-                                            title="移除参考并删除连接"
-                                            aria-label={`移除参考 ${displayName}`}
+                                            title="Remove references and delete connections"
+                                            aria-label={`Remove reference${displayName}`}
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 onRemove(reference);
@@ -550,10 +550,10 @@ export function ConnectedReferenceShelf({
                                     ) : null}
                                 </span>
                                 {showSwapAfter ? (
-                                    <Tooltip title="互换首尾帧">
+                                    <Tooltip title="Swap first and last frames">
                                         <button
                                             type="button"
-                                            aria-label="互换首尾帧"
+                                            aria-label="Swap first and last frames"
                                             data-canvas-no-drag
                                             className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center self-center rounded-full transition-colors hover:opacity-85"
                                             style={{

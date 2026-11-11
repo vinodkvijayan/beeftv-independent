@@ -171,10 +171,10 @@ class TimelinePreviewPlayback {
         // 静音抑制只针对音频：视频轨静音只是关掉声音，画面被跳过时仍必须明确告知。
         if (clip.kind === "audio" && this.track(clip)?.muted) return;
         this.reportedClips.add(clip.id);
-        const title = clip.title || "未命名片段";
+        const title = clip.title || "unnamed fragment";
         this.options.onPlaybackError(clip.kind === "audio"
-            ? `音轨「${title}」未能载入，已跳过该片段，其他轨道继续播放。`
-            : `视频「${title}」未能载入，已跳过画面，音轨继续播放。`);
+            ? `Audio track "${title}"Failed to load. The clip has been skipped and other tracks will continue to play.`
+            : `Video "${title}"Failed to load, screen skipped, audio track continues to play.`);
     }
 
     private reconcileAudio() {
@@ -217,7 +217,7 @@ class TimelinePreviewPlayback {
         const shouldPlay = active && (clip.kind === "video" || !muted) && this.running && this.prepared();
         element.muted = muted;
         const gain = timelinePreviewGain(clip, this.position);
-        if ((clip.volume ?? 1) > 1 && shouldPlay) { this.fail("当前音量超过预览范围，请将片段音量调至 100% 以内后试听。"); return; }
+        if ((clip.volume ?? 1) > 1 && shouldPlay) { this.fail("The current volume exceeds the preview range. Please adjust the clip volume to within 100% before listening."); return; }
         element.volume = clamp(gain, 0, 1);
         // A source can finish between throttled animation frames. Let the
         // clock reach its clip boundary without seeking and replaying the tail.
@@ -234,7 +234,7 @@ class TimelinePreviewPlayback {
         void element.play().then(() => {
             if (this.disposed || record?.disposed || !this.running || !this.active(clip) || (clip.kind !== "video" && this.track(clip)?.muted)) element.pause();
         }).catch(() => {
-            if (!this.disposed && !record?.disposed && this.running && this.active(clip) && (clip.kind === "video" || !this.track(clip)?.muted)) this.fail("预览未能播放，请再次点击播放重试。");
+            if (!this.disposed && !record?.disposed && this.running && this.active(clip) && (clip.kind === "video" || !this.track(clip)?.muted)) this.fail("The preview failed to play, please click play again to try again.");
         }).finally(() => { this.pendingElements.delete(element); });
     }
 

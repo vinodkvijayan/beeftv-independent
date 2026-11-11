@@ -3,7 +3,7 @@ import type { CanvasNodeData } from "@/types/canvas";
 
 import { CanvasOwnerAbandonedError, canvasOwnerCanPersist, canvasOwnerEpochMatches, type CanvasOwnerEpoch } from "./canvas-owner-epoch";
 
-export const CANVAS_HANDOFF_PERSIST_FAILED_MESSAGE = "画布保存失败，请稍后重试";
+export const CANVAS_HANDOFF_PERSIST_FAILED_MESSAGE = "Canvas saving failed, please try again later";
 
 export function rebaseCreatedCanvasNodes<T extends { id: string }>(live: T[], created: T[]) {
     const createdIds = new Set(created.map((node) => node.id));

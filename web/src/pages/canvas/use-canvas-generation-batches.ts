@@ -75,11 +75,11 @@ export function useCanvasGenerationBatches({ projectId, projectLoaded, nodes, no
                         const node = nodeById.get(item.nodeId);
                         let patch: Partial<CanvasGenerationBatchItem> | null = null;
                         if (!node) {
-                            patch = { status: "failed", errorDetails: "目标节点已不存在", errorCode: undefined };
+                            patch = { status: "failed", errorDetails: "The target node no longer exists", errorCode: undefined };
                         } else if (node.metadata?.status === "success" && node.metadata.content) {
                             patch = { status: "succeeded", taskId: node.metadata.taskId, errorDetails: undefined, errorCode: undefined, submissionUncertain: false };
                         } else if (node.metadata?.status === "error") {
-                            const errorDetails = node.metadata.errorDetails || "生成失败";
+                            const errorDetails = node.metadata.errorDetails || "Build failed";
                             const errorCode = node.metadata.generationErrorCode || node.metadata.taskErrorCode;
                             patch = {
                                 status: node.metadata.taskStatus === "cancelled" ? "cancelled" : "failed",
@@ -191,12 +191,12 @@ export function useCanvasGenerationBatches({ projectId, projectLoaded, nodes, no
                 const generationMode: CanvasNodeGenerationMode = liveBatch.mode === "storyboard_video" ? "video" : "image";
                 const generationConfig = buildGenerationConfig(effectiveConfig, liveNode, generationMode);
                 if (!isAiConfigReady(generationConfig, generationConfig.model)) {
-                    updateBatch(batch.sourceNodeId, batch.id, (current) => withUpdatedItem(current, item.id, { status: "failed", errorDetails: "生成模型未配置，请完成配置后重试" }));
+                    updateBatch(batch.sourceNodeId, batch.id, (current) => withUpdatedItem(current, item.id, { status: "failed", errorDetails: "The generated model is not configured, please complete the configuration and try again." }));
                     continue;
                 }
                 const prompt = (liveNode.metadata?.composerContent || liveNode.metadata?.prompt || "").trim();
                 if (!prompt) {
-                    updateBatch(batch.sourceNodeId, batch.id, (current) => withUpdatedItem(current, item.id, { status: "failed", errorDetails: "生成提示词为空" }));
+                    updateBatch(batch.sourceNodeId, batch.id, (current) => withUpdatedItem(current, item.id, { status: "failed", errorDetails: "The generated prompt word is empty" }));
                     continue;
                 }
                 const controller = new AbortController();
@@ -227,7 +227,7 @@ export function useCanvasGenerationBatches({ projectId, projectLoaded, nodes, no
             const activeNodeIds = new Set((sourceNode.metadata?.generationBatches || []).flatMap((batch) => batch.items.filter((item) => ["waiting", "submitting", "queued", "running"].includes(item.status)).map((item) => item.nodeId)));
             const availableTargets = targets.filter((target) => !activeNodeIds.has(target.nodeId));
             if (!availableTargets.length) {
-                message.info("所选镜头已在生成批次中");
+                message.info("The selected shot is already in the build batch");
                 return;
             }
             const now = new Date().toISOString();
@@ -266,14 +266,14 @@ export function useCanvasGenerationBatches({ projectId, projectLoaded, nodes, no
             const batch = findBatch(nodesRef.current, sourceNodeId, batchId);
             if (!batch) return;
             const failedItems = batch.items.filter((item) => item.status === "failed" && (!itemId || item.id === itemId));
-            if (!failedItems.length) return message.info("没有需要重试的失败项");
+            if (!failedItems.length) return message.info("There are no failures to retry");
             const nodeById = new Map(nodesRef.current.map((node) => [node.id, node]));
             const blockedItems = failedItems.filter((item) => {
                 const node = nodeById.get(item.nodeId);
                 return item.submissionUncertain || (node ? canvasNodeFailureView(node).regenerateBlocked : false);
             });
             const retryableItems = failedItems.filter((item) => !blockedItems.includes(item));
-            if (blockedItems.length) message.warning(`${blockedItems.length} 个镜头需要先处理失败原因，请打开对应节点查看`);
+            if (blockedItems.length) message.warning(`${blockedItems.length} Each lens needs to deal with the failure reason first, please open the corresponding node to view`);
             if (!retryableItems.length) return;
             const retry = async () => {
                 const retryContexts = new Map<string, Awaited<ReturnType<typeof createGenerationRetryContext>>>();
@@ -319,7 +319,7 @@ export function useCanvasGenerationBatches({ projectId, projectLoaded, nodes, no
                 nodesRef.current = nextNodes;
                 setNodes(nextNodes);
                 void scheduleWaitingItems();
-                message.success(`已将 ${retryableItems.length} 个失败项重新加入等待队列`);
+                message.success(`Already${retryableItems.length} failed items rejoin the waiting queue`);
             };
             retry();
         },
@@ -334,12 +334,12 @@ export function useCanvasGenerationBatches({ projectId, projectLoaded, nodes, no
             // 只允许停止还在本地等待队列中的项目。进入 submitting 后请求可能已经被服务端接收，
             // 即使前端尚未拿到 taskId 也不能再把它标成取消，避免隐藏已提交任务。
             const stoppableItems = batch.items.filter((item) => item.status === "waiting" && !nodeById.get(item.nodeId)?.metadata?.taskId);
-            if (!stoppableItems.length) return message.info("没有尚未提交的任务");
+            if (!stoppableItems.length) return message.info("There are no tasks yet to be submitted");
             modal.confirm({
-                title: "停止剩余任务？",
-                content: `将停止 ${stoppableItems.length} 个尚未提交的任务；已经排队或运行的任务会继续。`,
-                okText: "停止剩余任务",
-                cancelText: "继续生成",
+                title: "Stop remaining tasks?",
+                content: `will stop${stoppableItems.length} tasks that have not yet been submitted; tasks that are already queued or running will continue.`,
+                okText: "Stop remaining tasks",
+                cancelText: "Continue to generate",
                 okButtonProps: { danger: true },
                 onOk: () => {
                     const latestNodeById = new Map(nodesRef.current.map((node) => [node.id, node]));

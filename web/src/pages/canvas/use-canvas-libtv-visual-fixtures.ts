@@ -237,7 +237,7 @@ export function useCanvasLibTvVisualFixtures({
                     taskCreatedAt: node.metadata.taskCreatedAt || new Date(0).toISOString(),
                     taskStatus: "running",
                     taskProgress: 42,
-                    taskStage: "正在生成画面",
+                    taskStage: "Generating screen",
                     errorDetails: undefined,
                 },
             } : node));

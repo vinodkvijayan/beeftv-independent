@@ -64,7 +64,7 @@ export function CanvasWorkflowEditorGraph({ definition, operations, selected, co
     }, [selected, definition.nodes]);
     useLayoutEffect(() => { latestFit.current(); }, [libraryOpen]);
     return <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden" data-canvas-no-zoom style={{ backgroundColor: theme.canvas.background }}>
-        <div ref={container} className="absolute inset-0 touch-none outline-none" role="region" tabIndex={0} aria-label="工作流节点图"
+        <div ref={container} className="absolute inset-0 touch-none outline-none" role="region" tabIndex={0} aria-label="Workflow node diagram"
             onKeyDown={event => {
                 if (isTextEditableTarget(event.target) || event.nativeEvent.isComposing || event.metaKey || event.ctrlKey || event.altKey) return;
                 if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); linkGesture.current = undefined; setLinkPoint(undefined); onCancelConnection(); return; }
@@ -106,7 +106,7 @@ export function CanvasWorkflowEditorGraph({ definition, operations, selected, co
             }}
             onPointerCancel={() => { linkGesture.current = undefined; setLinkPoint(undefined); onCancelConnection(); gesture.current = undefined; setPreview(undefined); }}>
             <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}>
-                <svg className="pointer-events-none absolute left-0 top-0 overflow-visible" width="1" height="1" aria-label="工作流连线">
+                <svg className="pointer-events-none absolute left-0 top-0 overflow-visible" width="1" height="1" aria-label="Workflow connection">
                     {connecting && positions[connecting] && linkPoint ? (() => {
                         const from = positions[connecting], node = definition.nodes.find(n => n.id === connecting);
                         const x = from.x + WIDTH, y = from.y + cardHeight(operationFor(node)) / 2;
@@ -120,7 +120,7 @@ export function CanvasWorkflowEditorGraph({ definition, operations, selected, co
                         const sx = from.x + WIDTH + 6, sy = from.y + cardHeight(operationFor(source)) / 2;
                         const tx = to.x - 6, ty = to.y + portCenter() + port * 42;
                         const d = `M${sx},${sy} C${sx + 64},${sy} ${tx - 64},${ty} ${tx},${ty}`;
-                        return <g key={`${edge.fromNodeId}:${edge.toNodeId}:${index}`}><path d={d} fill="none" stroke={theme.node.muted} strokeWidth="1.5" /><path d={d} fill="none" stroke="transparent" strokeWidth="18" className="pointer-events-auto cursor-pointer" role="button" tabIndex={0} aria-label={`删除连线：${source?.title}到${target?.title}`} onPointerDown={event => event.stopPropagation()} onClick={() => onRemoveEdge(index)} onKeyDown={event => { if (event.key === "Enter" || event.key === "Delete") onRemoveEdge(index); }} /></g>;
+                        return <g key={`${edge.fromNodeId}:${edge.toNodeId}:${index}`}><path d={d} fill="none" stroke={theme.node.muted} strokeWidth="1.5" /><path d={d} fill="none" stroke="transparent" strokeWidth="18" className="pointer-events-auto cursor-pointer" role="button" tabIndex={0} aria-label={`Delete connection:${source?.title}Arrive${target?.title}`} onPointerDown={event => event.stopPropagation()} onClick={() => onRemoveEdge(index)} onKeyDown={event => { if (event.key === "Enter" || event.key === "Delete") onRemoveEdge(index); }} /></g>;
                     })}
                 </svg>
                 {definition.nodes.map(node => {
@@ -130,25 +130,25 @@ export function CanvasWorkflowEditorGraph({ definition, operations, selected, co
                         onPointerDown={event => { if (event.button !== 0 || (event.target as Element).closest("button,input")) return; event.stopPropagation(); if (connecting) return; navigated.current = true; onSelect(node.id); container.current?.focus({ preventScroll: true }); if (readOnly) return; container.current?.setPointerCapture(event.pointerId); gesture.current = { id: node.id, x: event.clientX, y: event.clientY, initialX: position.x, initialY: position.y }; }}>
                         <div className="flex h-16 flex-col justify-center gap-1 rounded-t-xl px-4" style={{ background: theme.node.fill, color: theme.node.label }}>
                         <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
-                            {renaming?.id === node.id ? <Input autoFocus aria-label={`重命名工作流节点：${node.title}`} maxLength={100} value={renaming.title} onChange={event => setRenaming({ id: node.id, title: event.target.value })} onPressEnter={event => event.currentTarget.blur()} onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); setRenaming(undefined); } }} onBlur={() => { if (renaming.title.trim() && renaming.title.trim() !== node.title) onRename(node.id, renaming.title.trim()); setRenaming(undefined); }} /> : <>
-                                <div role="button" tabIndex={0} className="flex min-w-0 flex-1 cursor-grab items-center gap-2 active:cursor-grabbing" onClick={() => { onSelect(node.id); container.current?.focus({ preventScroll: true }); }} onKeyDown={event => { if (event.key === "Enter") { onSelect(node.id); container.current?.focus({ preventScroll: true }); } }} title={node.title}><span className="shrink-0 [&_svg]:size-5">{getNodeIcon(node.mediaType)}</span><span className="truncate">{node.title}</span>{output ? <span className="flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground"><Check className="size-3" />最终输出</span> : null}</div>
-                                {!readOnly ? <button type="button" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-[var(--surface-hover)] hover:text-foreground" aria-label={`重命名${node.title}`} title="重命名" onClick={() => { onSelect(node.id); setRenaming({ id: node.id, title: node.title }); }}><Pencil className="size-3.5" /></button> : null}
-                                {!readOnly ? <button type="button" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-[var(--surface-hover)] hover:text-destructive focus-visible:outline focus-visible:outline-1" aria-label={`删除工作流节点：${node.title}`} title="删除节点（Delete / Backspace）" onClick={() => onDelete(node.id)}><Trash2 className="size-3.5" /></button> : null}
+                            {renaming?.id === node.id ? <Input autoFocus aria-label={`Rename the workflow node:${node.title}`} maxLength={100} value={renaming.title} onChange={event => setRenaming({ id: node.id, title: event.target.value })} onPressEnter={event => event.currentTarget.blur()} onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); setRenaming(undefined); } }} onBlur={() => { if (renaming.title.trim() && renaming.title.trim() !== node.title) onRename(node.id, renaming.title.trim()); setRenaming(undefined); }} /> : <>
+                                <div role="button" tabIndex={0} className="flex min-w-0 flex-1 cursor-grab items-center gap-2 active:cursor-grabbing" onClick={() => { onSelect(node.id); container.current?.focus({ preventScroll: true }); }} onKeyDown={event => { if (event.key === "Enter") { onSelect(node.id); container.current?.focus({ preventScroll: true }); } }} title={node.title}><span className="shrink-0 [&_svg]:size-5">{getNodeIcon(node.mediaType)}</span><span className="truncate">{node.title}</span>{output ? <span className="flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground"><Check className="size-3" />final output</span> : null}</div>
+                                {!readOnly ? <button type="button" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-[var(--surface-hover)] hover:text-foreground" aria-label={`Rename${node.title}`} title="Rename" onClick={() => { onSelect(node.id); setRenaming({ id: node.id, title: node.title }); }}><Pencil className="size-3.5" /></button> : null}
+                                {!readOnly ? <button type="button" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-[var(--surface-hover)] hover:text-destructive focus-visible:outline focus-visible:outline-1" aria-label={`Delete a workflow node:${node.title}`} title="Delete node (Delete/Backspace)" onClick={() => onDelete(node.id)}><Trash2 className="size-3.5" /></button> : null}
                             </>}
                         </div>
-                            {node.role === "input" || node.role === "constant" ? <span className="text-xs text-muted-foreground">{node.role === "input" ? "每次可替换" : "固定内容"}</span> : null}
+                            {node.role === "input" || node.role === "constant" ? <span className="text-xs text-muted-foreground">{node.role === "input" ? "Replaceable every time" : "Fixed content"}</span> : null}
                         </div>
                             <div className="relative flex flex-col overflow-hidden rounded-b-xl" style={{ height: cardHeight(operation) - 64, background: theme.node.fill }}>
                                 {operation ? <>
                                     <div className="flex shrink-0 flex-col px-4">{operation.inputs.map(port => {
                                         const edges = definition.edges.filter(e => e.toNodeId === node.id && e.toPort === port.id).sort((a, b) => (a.order || 0) - (b.order || 0));
                                         const names = edges.map(e => definition.nodes.find(n => n.id === e.fromNodeId)?.title).filter(Boolean).join("、");
-                                        return <button key={port.id} type="button" data-workflow-input={node.id} data-workflow-port={port.id} className="flex h-[42px] min-w-0 items-center gap-2 text-left disabled:opacity-40" disabled={readOnly} onClick={() => connecting ? onInput(node.id, port.id) : onSelect(node.id)} aria-label={`连接参考${node.title}：${port.label}`}><span className="shrink-0 text-sm">{port.label}</span><span className="truncate text-xs text-muted-foreground" title={names}>{names || (port.required ? "待连接" : "可选")}</span></button>;
+                                        return <button key={port.id} type="button" data-workflow-input={node.id} data-workflow-port={port.id} className="flex h-[42px] min-w-0 items-center gap-2 text-left disabled:opacity-40" disabled={readOnly} onClick={() => connecting ? onInput(node.id, port.id) : onSelect(node.id)} aria-label={`Connection reference${node.title}：${port.label}`}><span className="shrink-0 text-sm">{port.label}</span><span className="truncate text-xs text-muted-foreground" title={names}>{names || (port.required ? "To be connected" : "Optional")}</span></button>;
                                     })}</div>
                                 </> : node.mediaType === "text" ? <p className="overflow-hidden whitespace-pre-wrap break-words px-4 text-sm text-muted-foreground">{node.text || ""}</p> : null}
                             </div>
-                        {operation?.inputs.map((port, index) => <button key={port.id} type="button" data-workflow-input={node.id} data-workflow-port={port.id} disabled={readOnly} className="absolute -left-3 grid size-6 place-items-center rounded-full" style={{ top: portCenter() - 12 + index * 42, background: theme.node.fill, color: connecting ? theme.node.activeStroke : theme.node.muted }} aria-label={`连接到${node.title}：${port.label}`} title={port.label} onClick={() => onInput(node.id, port.id)}><span className="size-2.5 rounded-full border-2 border-current" /></button>)}
-                        <button type="button" disabled={readOnly} className="absolute -right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full" style={{ background: theme.node.fill, color: connecting === node.id ? theme.node.activeStroke : theme.node.muted }} aria-label={`从${node.title}连接`} title="拖动到输入端口连接，也可点击后选择输入" onPointerDown={event => {
+                        {operation?.inputs.map((port, index) => <button key={port.id} type="button" data-workflow-input={node.id} data-workflow-port={port.id} disabled={readOnly} className="absolute -left-3 grid size-6 place-items-center rounded-full" style={{ top: portCenter() - 12 + index * 42, background: theme.node.fill, color: connecting ? theme.node.activeStroke : theme.node.muted }} aria-label={`Connect to${node.title}：${port.label}`} title={port.label} onClick={() => onInput(node.id, port.id)}><span className="size-2.5 rounded-full border-2 border-current" /></button>)}
+                        <button type="button" disabled={readOnly} className="absolute -right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full" style={{ background: theme.node.fill, color: connecting === node.id ? theme.node.activeStroke : theme.node.muted }} aria-label={`from${node.title}connect`} title="Drag to the input port to connect, or click and select input" onPointerDown={event => {
                             if (readOnly || event.button !== 0) return;
                             event.preventDefault(); event.stopPropagation();
                             onCancelConnection(); onOutput(node.id);
@@ -161,12 +161,12 @@ export function CanvasWorkflowEditorGraph({ definition, operations, selected, co
                 })}
             </div>
         </div>
-        {!definition.nodes.length ? <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">点击“添加”，选择素材或处理步骤</p> : null}
+        {!definition.nodes.length ? <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">Click "Add" and select materials or processing steps</p> : null}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-xl bg-[var(--surface-card)] p-1.5 shadow-lg">
-            <Button type="text" size="small" aria-label="缩小工作流设定图" icon={<Minus className="size-4" />} onClick={() => { navigated.current = true; setView(v => ({ ...v, k: Math.max(.25, v.k / 1.2) })); }} />
+            <Button type="text" size="small" aria-label="Reduce the workflow setting diagram" icon={<Minus className="size-4" />} onClick={() => { navigated.current = true; setView(v => ({ ...v, k: Math.max(.25, v.k / 1.2) })); }} />
             <span className="min-w-10 text-center text-xs">{Math.round(view.k * 100)}%</span>
-            <Button type="text" size="small" aria-label="放大工作流设定图" icon={<Plus className="size-4" />} onClick={() => { navigated.current = true; setView(v => ({ ...v, k: Math.min(1.8, v.k * 1.2) })); }} />
-            <Button type="text" size="small" aria-label="适合工作流设定图" icon={<Maximize2 className="size-4" />} onClick={fit} />
+            <Button type="text" size="small" aria-label="Enlarge the workflow settings diagram" icon={<Plus className="size-4" />} onClick={() => { navigated.current = true; setView(v => ({ ...v, k: Math.min(1.8, v.k * 1.2) })); }} />
+            <Button type="text" size="small" aria-label="Suitable for workflow setting diagram" icon={<Maximize2 className="size-4" />} onClick={fit} />
         </div>
     </div>;
 }

@@ -1,7 +1,7 @@
 import { CanvasNodeType, type CanvasNodeTypeId } from "@/types/canvas";
 
 /** Features intentionally shown for roadmap visibility but not released yet. */
-export const CANVAS_DEVELOPING_LABEL = "正在开发";
+export const CANVAS_DEVELOPING_LABEL = "Under development";
 
 const developingNodeTypes = new Set<CanvasNodeTypeId>([
     CanvasNodeType.MediaConversion,

@@ -24,7 +24,7 @@ type AssetExportItem = {
 };
 
 export async function exportAssets(assets: Asset[]): Promise<OwnedMediaSaveResult> {
-    const progress = startOperation("导出素材包", { detail: "正在读取素材文件", totalFiles: assets.length });
+    const progress = startOperation("Export material package", { detail: "Reading material files", totalFiles: assets.length });
     let completed = 0;
     try {
     const files: AssetExportItem[] = [];
@@ -37,7 +37,7 @@ export async function exportAssets(assets: Asset[]): Promise<OwnedMediaSaveResul
             if (asset.kind !== "image" && asset.kind !== "video" && asset.kind !== "audio" && asset.kind !== "model") return;
             const storageKey = asset.data.storageKey;
             if (!storageKey) {
-                missingFiles.push({ owner: asset.title || asset.id, reference: "媒体文件" });
+                missingFiles.push({ owner: asset.title || asset.id, reference: "media files" });
                 return;
             }
             if (seenKeys.has(storageKey)) return;
@@ -46,7 +46,7 @@ export async function exportAssets(assets: Asset[]): Promise<OwnedMediaSaveResul
             try {
                 blob = asset.kind === "image" ? await getImageBlob(storageKey) : await getMediaBlob(storageKey);
             } catch {
-                missingFiles.push({ owner: asset.title || asset.id, reference: `${storageKey}（读取失败）` });
+                missingFiles.push({ owner: asset.title || asset.id, reference: `${storageKey}(read failed)` });
                 return;
             }
             if (!blob || blob.size === 0) {
@@ -63,18 +63,18 @@ export async function exportAssets(assets: Asset[]): Promise<OwnedMediaSaveResul
     if (missingFiles.length) throw new ExportIntegrityError(missingFiles);
     assertUniqueArchiveNames(["assets.json", ...zipFiles.map((file) => file.name)]);
     for (const file of files) {
-        if (!file.storageKey || file.path === file.storageKey) throw new Error("备份未完成：文件引用不一致，未生成备份。");
+        if (!file.storageKey || file.path === file.storageKey) throw new Error("Backup not completed: File references are inconsistent and no backup was generated.");
     }
 
     const exportedAssets = isLocalWorkspaceMode() ? assets.map(normalizeLocalAsset) : assets;
     const data: AssetExportFile = { app: "infinite-canvas", version: 1, exportedAt: new Date().toISOString(), assets: exportedAssets, files };
-    progress.update({ phase: "processing", detail: "正在打包素材文件" });
+    progress.update({ phase: "processing", detail: "Packaging material files" });
     const zip = await createZip([{ name: "assets.json", data: JSON.stringify(data, null, 2) }, ...zipFiles]);
-    progress.update({ detail: "压缩包已准备好，等待选择保存位置", loadedBytes: zip.size, totalBytes: zip.size });
-    const result = await saveOwnedOrBrowserBlob("我的素材.zip", zip);
-    if (result === "cancelled") progress.dismiss(); else progress.done("素材包已保存");
+    progress.update({ detail: "The compressed package is ready, waiting to select the save location", loadedBytes: zip.size, totalBytes: zip.size });
+    const result = await saveOwnedOrBrowserBlob("My material.zip", zip);
+    if (result === "cancelled") progress.dismiss(); else progress.done("Material package saved");
     return result;
-    } catch (error) { progress.fail("素材导出未完成，请查看错误后重试"); throw error; }
+    } catch (error) { progress.fail("The material export is not completed, please check the error and try again."); throw error; }
 }
 
 export async function readAssetPackage(file: File, onProgress?: (completed: number, total: number) => void) {
@@ -83,7 +83,7 @@ export async function readAssetPackage(file: File, onProgress?: (completed: numb
     if (!assetFile) throw new Error("missing assets.json");
     const data = JSON.parse(await assetFile.text()) as AssetExportFile;
     const missingFiles = data.files.filter((item) => !zip.get(item.path));
-    if (missingFiles.length) throw new Error(`导入未完成，压缩包缺少文件：${missingFiles.map((item) => item.path).join("、")}`);
+    if (missingFiles.length) throw new Error(`The import is not completed and the compressed package is missing files:${missingFiles.map((item) => item.path).join("、")}`);
     let completed = 0;
     onProgress?.(completed, data.files.length);
     await Promise.all(

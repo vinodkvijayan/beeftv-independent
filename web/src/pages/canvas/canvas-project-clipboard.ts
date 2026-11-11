@@ -1,7 +1,7 @@
 import { getCachedResourceBlob } from "@/services/resource-blob-cache";
 
 export async function copyImageToSystemClipboard(source: string, storageKey?: string) {
-    if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) throw new Error("当前浏览器不支持复制图片");
+    if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) throw new Error("The current browser does not support copying images");
     if (typeof window !== "undefined") window.focus();
 
     const fetchPNG = async (): Promise<Blob> => {
@@ -11,7 +11,7 @@ export async function copyImageToSystemClipboard(source: string, storageKey?: st
         }
         if (!sourceBlob) {
             const response = await fetch(source);
-            if (!response.ok) throw new Error(`图片读取失败（HTTP ${response.status}）`);
+            if (!response.ok) throw new Error(`Image reading failed (HTTP${response.status}）`);
             sourceBlob = await response.blob();
         }
         return sourceBlob.type === "image/png" ? sourceBlob : await convertClipboardImageToPNG(sourceBlob);
@@ -33,16 +33,16 @@ export async function copyImageToSystemClipboard(source: string, storageKey?: st
 }
 
 export async function convertClipboardImageToPNG(blob: Blob) {
-    if (typeof createImageBitmap !== "function") throw new Error("当前浏览器无法转换这张图片的格式");
+    if (typeof createImageBitmap !== "function") throw new Error("The current browser cannot convert the format of this image");
     const bitmap = await createImageBitmap(blob);
     try {
         const canvas = document.createElement("canvas");
         canvas.width = bitmap.width;
         canvas.height = bitmap.height;
         const context = canvas.getContext("2d");
-        if (!context) throw new Error("当前浏览器无法处理这张图片");
+        if (!context) throw new Error("The current browser cannot process this image");
         context.drawImage(bitmap, 0, 0);
-        return await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => (value ? resolve(value) : reject(new Error("图片格式转换失败"))), "image/png"));
+        return await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => (value ? resolve(value) : reject(new Error("Image format conversion failed"))), "image/png"));
     } finally {
         bitmap.close();
     }
@@ -70,7 +70,7 @@ export function pasteCanvasAtPosition(
             const handled = await options.pasteSystemClipboard(position);
             if (!handled) options.pasteCopiedNodes(position);
         } catch {
-            if (!options.pasteCopiedNodes(position)) options.warn("无法读取剪贴板内容");
+            if (!options.pasteCopiedNodes(position)) options.warn("Unable to read clipboard contents");
         }
     })();
 }

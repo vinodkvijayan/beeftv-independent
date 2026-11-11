@@ -235,7 +235,7 @@ export function CanvasVideoInlineTrim({ node, busy, onCancel, onConfirm }: Canva
     return (
         <section
             role="dialog"
-            aria-label="视频片段剪辑"
+            aria-label="Video clip editing"
             aria-modal="false"
             className="canvas-video-inline-trim"
             data-canvas-no-zoom
@@ -243,9 +243,9 @@ export function CanvasVideoInlineTrim({ node, busy, onCancel, onConfirm }: Canva
             onPointerDown={(event) => event.stopPropagation()}
             onWheel={(event) => event.stopPropagation()}
         >
-            <button type="button" className="canvas-video-trim-icon-button is-cancel" aria-label="取消剪辑" disabled={busy} onClick={onCancel}><X /></button>
+            <button type="button" className="canvas-video-trim-icon-button is-cancel" aria-label="Cancel clipping" disabled={busy} onClick={onCancel}><X /></button>
             <span className="canvas-video-trim-separator" aria-hidden />
-            <button type="button" className="canvas-video-trim-icon-button" aria-label={playing ? "暂停片段预览" : "播放片段预览"} onClick={togglePlayback}>{playing ? <Pause /> : <Play />}</button>
+            <button type="button" className="canvas-video-trim-icon-button" aria-label={playing ? "Pause clip preview" : "Play clip preview"} onClick={togglePlayback}>{playing ? <Pause /> : <Play />}</button>
             <Film className="canvas-video-trim-film-icon" aria-hidden />
 
             <div className="canvas-video-trim-track">
@@ -258,7 +258,7 @@ export function CanvasVideoInlineTrim({ node, busy, onCancel, onConfirm }: Canva
                 <button
                     type="button"
                     className="canvas-video-trim-selection"
-                    aria-label="移动已选片段"
+                    aria-label="Move selected clips"
                     style={{ left: `${startPercent}%`, width: `${Math.max(0, endPercent - startPercent)}%` }}
                     onPointerDown={(event) => beginDrag("range", event)}
                     onPointerMove={continueDrag}
@@ -269,7 +269,7 @@ export function CanvasVideoInlineTrim({ node, busy, onCancel, onConfirm }: Canva
                 <button
                     type="button"
                     className="canvas-video-trim-handle is-start"
-                    aria-label="调整片段起点"
+                    aria-label="Adjust clip start point"
                     style={{ left: `${startPercent}%` }}
                     onPointerDown={(event) => beginDrag("start", event)}
                     onPointerMove={continueDrag}
@@ -279,23 +279,23 @@ export function CanvasVideoInlineTrim({ node, busy, onCancel, onConfirm }: Canva
                 <button
                     type="button"
                     className="canvas-video-trim-handle is-end"
-                    aria-label="调整片段终点"
+                    aria-label="Adjust clip endpoint"
                     style={{ left: `${endPercent}%` }}
                     onPointerDown={(event) => beginDrag("end", event)}
                     onPointerMove={continueDrag}
                     onPointerUp={endDrag}
                     onPointerCancel={endDrag}
                 ><span /></button>
-                {showFrameStatus ? <span className="canvas-video-trim-frame-status" role="status">{frameStatus === "unavailable" ? "缩略图不可用" : "正在读取缩略图"}</span> : null}
+                {showFrameStatus ? <span className="canvas-video-trim-frame-status" role="status">{frameStatus === "unavailable" ? "Thumbnail not available" : "Reading thumbnails"}</span> : null}
             </div>
             <output
                 ref={durationRef}
                 className={`canvas-video-trim-duration${durationPlacement.floating ? " is-floating" : ""}`}
                 style={{ left: trackMetrics.width ? `${durationPlacement.left}px` : `${(startPercent + endPercent) / 2}%` }}
-                aria-label="所选片段时长"
+                aria-label="Selected clip duration"
             >{formatTrimDuration(selectedDuration)}</output>
             </div>
-            <button type="button" className="canvas-video-trim-confirm" aria-label="确认剪辑" disabled={busy || !durationMs} onClick={() => onConfirm(range)}>{busy ? <LoaderCircle className="animate-spin" /> : <Check />}</button>
+            <button type="button" className="canvas-video-trim-confirm" aria-label="Confirm clipping" disabled={busy || !durationMs} onClick={() => onConfirm(range)}>{busy ? <LoaderCircle className="animate-spin" /> : <Check />}</button>
         </section>
     );
 }
@@ -309,7 +309,7 @@ function waitForMediaEvent(element: HTMLMediaElement, eventName: "loadedmetadata
     if (eventName === "loadedmetadata" && element.readyState >= 1) return Promise.resolve();
     return new Promise<void>((resolve, reject) => {
         const onReady = () => { cleanup(); resolve(); };
-        const onError = () => { cleanup(); reject(new Error("视频帧读取失败")); };
+        const onError = () => { cleanup(); reject(new Error("Video frame reading failed")); };
         const cleanup = () => {
             element.removeEventListener(eventName, onReady);
             element.removeEventListener("error", onError);

@@ -13,11 +13,11 @@ export function CanvasAssistantModelPicker({ busy }: { busy: boolean }) {
     return (
         <Select
             className="canvas-assistant-model"
-            aria-label="助手模型"
+            aria-label="helper model"
             size="small"
             variant="borderless"
             value={selected || undefined}
-            placeholder={options.length ? "选择助手模型" : "暂无可用模型"}
+            placeholder={options.length ? "Select helper model" : "No models available yet"}
             options={options}
             disabled={busy || options.length === 0}
             placement="topLeft"

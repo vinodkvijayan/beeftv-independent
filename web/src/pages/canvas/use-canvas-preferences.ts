@@ -41,7 +41,7 @@ export function useCanvasPreferences() {
     }, [colorTheme, setAppearanceTheme]);
     const saveCanvasAppearanceDefault = useCallback((next: CanvasAppearance) => {
         writeCanvasAppearanceDefault({ appearance: next, backgroundMode });
-        message.success("已保存为当前账号在本机的新建画布默认外观");
+        message.success("It has been saved as the default appearance of the new canvas created by the current account on this machine.");
     }, [backgroundMode, message]);
     const changeSnapToGrid = useCallback((enabled: boolean) => {
         setSnapToGrid(enabled);

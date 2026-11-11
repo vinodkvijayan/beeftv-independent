@@ -61,7 +61,7 @@ export function CanvasTimelinePreview({ clips, tracks = EMPTY_TRACKS, output, no
             url = URL.createObjectURL(new Blob([new Uint8Array(bytes).buffer], { type: "image/png" }));
             setSubtitleImage({ key: subtitleKey, url });
         }).catch((error: unknown) => {
-            if (!cancelled) setSubtitleImage({ key: subtitleKey, error: error instanceof Error ? error.message : "字幕预览失败" });
+            if (!cancelled) setSubtitleImage({ key: subtitleKey, error: error instanceof Error ? error.message : "Subtitle preview failed" });
         });
         return () => {
             cancelled = true;
@@ -88,7 +88,7 @@ export function CanvasTimelinePreview({ clips, tracks = EMPTY_TRACKS, output, no
             setResolvedVideo({ key: videoSourceKey, url: source.url });
         }).catch(() => {
             if (!controller.signal.aborted) {
-                setPlaybackError("视频预览未能载入，请重新打开剪辑后重试。");
+                setPlaybackError("The video preview failed to load, please reopen the clip and try again.");
                 onRequestPause();
             }
         });
@@ -125,7 +125,7 @@ export function CanvasTimelinePreview({ clips, tracks = EMPTY_TRACKS, output, no
                 <button
                     type="button"
                     className="absolute inset-0 z-10 grid place-items-center"
-                    aria-label={playing ? "暂停预览" : "播放预览"}
+                    aria-label={playing ? "Pause preview" : "Play preview"}
                     onClick={(event) => {
                         event.stopPropagation();
                         setPlaybackError("");
@@ -140,12 +140,12 @@ export function CanvasTimelinePreview({ clips, tracks = EMPTY_TRACKS, output, no
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-xs">
                     <span className="truncate font-semibold" style={{ color: theme.accent.primary }}>
-                        {activeVideoClip ? getTimelineClipTitle(activeVideoClip, nodes) : "无视频片段"}
+                        {activeVideoClip ? getTimelineClipTitle(activeVideoClip, nodes) : "No video clips"}
                     </span>
                     <span className="opacity-45 tabular-nums">{activeVideoClip ? `${formatTimelineTime(activeVideoClip.startMs)} ~ ${formatTimelineTime(activeVideoClip.startMs + activeVideoClip.durationMs)}` : ""}</span>
                 </div>
                 <div className="mt-1.5 max-h-16 min-h-10 overflow-y-auto rounded-lg border px-2.5 py-1.5 text-xs leading-5" style={{ borderColor: theme.toolbar.border, background: theme.node.fill }}>
-                    {activeSubtitleClip ? activeSubtitleClip.text : <span className="opacity-40">此处无字幕，点选字幕片段后在下方编辑</span>}
+                    {activeSubtitleClip ? activeSubtitleClip.text : <span className="opacity-40">There are no subtitles here. Click on the subtitle clip and edit it below.</span>}
                 </div>
                 {currentSubtitleImage?.error ? <div role="alert" className="mt-1 text-xs">{currentSubtitleImage.error}</div> : null}
                 {playbackError ? <div role="alert" className="mt-1 text-xs">{playbackError}</div> : null}

@@ -170,7 +170,7 @@ export function CanvasDirectorOnboarding({ scope, open = true, restartSignal = 0
     return (
         <section
             className={`grid gap-[var(--space-2)] ${className || ""}`}
-            aria-label="导演台上手引导"
+            aria-label="Hands-on guidance from the director's stage"
             style={{
                 padding: "var(--space-3)",
                 border: "var(--stroke-1) solid var(--border-semantic)",
@@ -184,7 +184,7 @@ export function CanvasDirectorOnboarding({ scope, open = true, restartSignal = 0
                 <p className="m-0 min-w-0 truncate" style={{ fontSize: "var(--fs-label)", fontWeight: 600 }}>
                     {step.title}
                 </p>
-                <span style={{ flex: "0 0 auto", color: "var(--cn-muted)", fontSize: "var(--fs-tiny)" }}>{`第 ${position} 步 / 共 ${total} 步`}</span>
+                <span style={{ flex: "0 0 auto", color: "var(--cn-muted)", fontSize: "var(--fs-tiny)" }}>{`No.${position} steps / total${total} step`}</span>
             </header>
 
             {/* 步骤切换靠 aria-live 播报，不靠焦点转移：焦点必须留在用户正在操作的地方。 */}
@@ -209,7 +209,7 @@ export function CanvasDirectorOnboarding({ scope, open = true, restartSignal = 0
 
             <div className="flex items-center justify-between gap-[var(--space-2)]">
                 <button type="button" className={FOCUS_RING} onClick={dismiss} disabled={busy} style={{ height: "var(--space-6)", padding: "0 var(--space-2)", borderRadius: "var(--r-sm)", color: "var(--cn-muted)", fontSize: "var(--fs-tiny)" }}>
-                    跳过引导
+                    Skip boot
                 </button>
                 <div className="flex items-center gap-[var(--space-1)]">
                     <button
@@ -227,7 +227,7 @@ export function CanvasDirectorOnboarding({ scope, open = true, restartSignal = 0
                             fontSize: "var(--fs-tiny)",
                         }}
                     >
-                        上一步
+                                                Previous step
                     </button>
                     <button
                         type="button"
@@ -244,7 +244,7 @@ export function CanvasDirectorOnboarding({ scope, open = true, restartSignal = 0
                             fontSize: "var(--fs-tiny)",
                         }}
                     >
-                        {isLast ? "结束引导" : "下一步"}
+                        {isLast ? "end boot" : "Next"}
                     </button>
                 </div>
             </div>

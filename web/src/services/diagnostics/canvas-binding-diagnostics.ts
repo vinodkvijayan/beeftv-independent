@@ -17,7 +17,7 @@ export function recordCanvasBindingDiagnostic(input: {
     const server = input.error instanceof ApiError ? sanitizeCanvasBindingEvidence(input.error.details?.canvasBinding) : undefined;
     recordDiagnosticEvent({
         category: "task", level: input.phase === "refused" ? "error" : "info",
-        code: `generation_bind_${input.phase}`, message: `画布结果绑定：${input.phase}`,
+        code: `generation_bind_${input.phase}`, message: `Canvas result binding:${input.phase}`,
         canvasId: input.canvasId, taskId: input.task.id,
         nodeId: input.nodeId, clientOperationId: input.task.clientOperationId,
         traceId: input.task.traceId || getDiagnosticTraceId(input.task.id),

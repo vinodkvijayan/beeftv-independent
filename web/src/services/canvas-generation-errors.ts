@@ -8,7 +8,7 @@ export class CanvasGenerationDurableAckError extends Error {
     constructor(cause: unknown) {
         const explanation = explainGenerationError(cause);
         const code = isCanvasRevisionConflict(cause) ? "canvas_conflict" : explanation.category === "result_target_unavailable" ? "result_target_unavailable" : "result_apply_failed";
-        super(code === "canvas_conflict" ? "生成结果已保留，画布尚未更新" : code === "result_target_unavailable" ? explanation.message : "生成结果已保留，还没放回画布");
+        super(code === "canvas_conflict" ? "The build results have been retained and the canvas has not been updated yet" : code === "result_target_unavailable" ? explanation.message : "The generated results have been retained and have not been put back into the canvas.");
         this.name = "CanvasGenerationDurableAckError";
         this.code = code;
         this.cause = cause;
@@ -20,7 +20,7 @@ export class CanvasGenerationMaterializationError extends Error {
     readonly cause: unknown;
 
     constructor(cause?: unknown) {
-        super("生成结果还没取回，可以继续取回");
+        super("The generated results have not been retrieved yet, you can continue to retrieve them.");
         this.name = "CanvasGenerationMaterializationError";
         this.cause = cause;
     }
@@ -29,8 +29,8 @@ export class CanvasGenerationMaterializationError extends Error {
 export class CanvasGenerationTargetSaveError extends Error {
     constructor(cause?: unknown, message?: string) {
         const detail = isCanvasRevisionConflict(cause) || cause instanceof CanvasBackendSubmitPausedError
-            ? "画布保存已暂停，本次未开始生成。请点击画布顶部的保存状态，按提示处理后再试。"
-            : "画布尚未保存，未开始生成。请先处理画布保存提示后重试。";
+            ? "Canvas saving has been suspended and generation has not started this time. Please click Save Status at the top of the canvas, follow the prompts and try again."
+            : "The canvas has not been saved and generation has not started. Please handle the canvas save prompt and try again.";
         super(message ?? detail, { cause });
         this.name = "CanvasGenerationTargetSaveError";
     }
@@ -39,7 +39,7 @@ export class CanvasGenerationTargetSaveError extends Error {
 export class CanvasGenerationOutputMissingError extends Error {
     readonly code = "results_missing";
     constructor(index: number) {
-        super(`原任务未返回第 ${index + 1} 张图片，已有结果已保留，请查看任务详情`);
+        super(`The original task did not return to the${index + 1} Pictures, existing results have been retained, please check the task details`);
         this.name = "CanvasGenerationOutputMissingError";
     }
 }

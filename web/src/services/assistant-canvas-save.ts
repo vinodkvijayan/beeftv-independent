@@ -4,5 +4,5 @@ import { hasUnconfirmedCanvasEdits, syncLocalCanvasProjectToBackend } from "@/se
 export async function saveCanvasForAssistant(canvasId: string) {
     await flushCanvasStorePersistence();
     await syncLocalCanvasProjectToBackend(canvasId);
-    if (hasUnconfirmedCanvasEdits(canvasId)) throw new Error("画布还有未保存的修改，请保存成功后再发送消息。");
+    if (hasUnconfirmedCanvasEdits(canvasId)) throw new Error("There are still unsaved modifications to the canvas. Please save successfully before sending the message.");
 }

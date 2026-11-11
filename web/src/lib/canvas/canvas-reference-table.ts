@@ -13,6 +13,6 @@ export function assertCanvasImageReferenceTable(prompt: string, images: readonly
         const declaredSlot = Number(row[1]);
         const actualSlot = boundSlots.get(row[2]) ?? slotsByLabel.get(row[2]) ?? slotsByName.get(row[2]);
         if (!actualSlot || actualSlot === declaredSlot) continue;
-        throw new Error(`素材表中的 IMAGE ${declaredSlot} 对应图片${actualSlot}，编号不一致。请统一素材顺序和提示词编号后再生成`);
+        throw new Error(`IMAGE in the material table${declaredSlot} Corresponding picture${actualSlot}, the numbers are inconsistent. Please unify the material order and prompt word number before generating`);
     }
 }

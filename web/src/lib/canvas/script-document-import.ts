@@ -66,7 +66,7 @@ function deriveScriptDocumentTitle(fileName: string | undefined, content: string
         .split("\n")
         .map((line) => line.trim().replace(/^#{1,6}\s*/, "").replace(/^[《〈【“"']+|[》〉】”"']+$/g, "").trim())
         .find(Boolean);
-    return firstLine ? firstLine.slice(0, 40) : "导入剧本";
+    return firstLine ? firstLine.slice(0, 40) : "Import script";
 }
 
 function normalizeScriptParagraphs(raw: string): string {
@@ -204,22 +204,22 @@ async function decompressZipEntry(entry: ZipEntrySlice): Promise<Uint8Array> {
     }
     if (entry.compressionMethod === 8) {
         if (typeof DecompressionStream === "undefined") {
-            throw new Error("当前环境不支持解压 DOCX 文档");
+            throw new Error("The current environment does not support decompressing DOCX documents");
         }
         const stream = new Blob([new Uint8Array(entry.compressedData)]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
         return new Uint8Array(await new Response(stream).arrayBuffer());
     }
-    throw new Error(`不支持的 DOCX 压缩算法（method=${entry.compressionMethod}）`);
+    throw new Error(`Unsupported DOCX compression algorithm (method=${entry.compressionMethod}）`);
 }
 
 async function extractDocxBytesText(bytes: Uint8Array): Promise<string> {
     if (!hasZipSignature(bytes)) {
-        throw new Error("无效的 DOCX 文件格式");
+        throw new Error("Invalid DOCX file format");
     }
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const entry = findEntryViaCentralDirectory(bytes, view, DOCX_DOCUMENT_XML_PATH) ?? findEntryViaLocalHeaders(bytes, view, DOCX_DOCUMENT_XML_PATH);
     if (!entry) {
-        throw new Error("DOCX 文件中未找到 word/document.xml 正文");
+        throw new Error("word/document.xml text not found in DOCX file");
     }
     const xmlBytes = await decompressZipEntry(entry);
     const xml = new TextDecoder("utf-8").decode(xmlBytes);
@@ -242,18 +242,18 @@ export async function extractScriptDocumentText(
     const resolvedType =
         typeof file === "object" && file !== null && "type" in file && typeof file.type === "string" ? file.type.trim() : "";
     if (/\.doc$/i.test(resolvedName)) {
-        throw new Error("暂不支持旧版 .doc 格式，请先另存为 .docx 或 .txt 文件");
+        throw new Error("The old .doc format is not supported yet, please save it as a .docx or .txt file first");
     }
     const bytes = await readInputBytes(file);
     if (bytes.byteLength === 0) {
-        throw new Error("剧本文件为空，请选择包含正文的文件");
+        throw new Error("The script file is empty, please select a file containing text");
     }
     const isDocx = isDocxDocumentFile({ name: resolvedName, type: resolvedType }) || hasZipSignature(bytes);
     const content = isDocx
         ? await extractDocxBytesText(bytes)
         : normalizeScriptParagraphs(new TextDecoder("utf-8").decode(bytes));
     if (!content) {
-        throw new Error("剧本文件中没有可导入的文本内容");
+        throw new Error("There is no text content in the script file that can be imported");
     }
     return {
         title: deriveScriptDocumentTitle(resolvedName, content),

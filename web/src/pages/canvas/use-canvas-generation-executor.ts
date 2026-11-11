@@ -100,10 +100,10 @@ export function useCanvasGenerationExecutor({
     const confirmDuplicateSubmission = useCallback(
         (signal: AbortSignal) =>
             confirmCanvasGeneration((callbacks) => modal.confirm({
-                    title: "再次生成相同内容？",
-                    content: "当前节点已使用相同提示词、模型、参数和参考素材提交过任务。再次生成会新建任务，并可能再次消耗积分。",
-                    okText: "仍然生成",
-                    cancelText: "取消",
+                    title: "Generate the same content again?",
+                    content: "The current node has submitted a task using the same prompt words, model, parameters and reference materials. Generating again will create a new task and may consume points again.",
+                    okText: "Still generated",
+                    cancelText: "Cancel",
                     centered: true,
                     ...callbacks,
                 }), signal),
@@ -128,7 +128,7 @@ export function useCanvasGenerationExecutor({
                         const meta = [ `mode=${mode}`, selectedModel ? `model=${selectedModel}` : "", refSummary, detail ].filter(Boolean).join(" ");
                         recordDiagnosticEvent({
                             category: "action", level, code, reason: stage, canvasId: projectId, requestId: attemptId,
-                            message: meta ? `画布生成提交：${code} (${meta})` : `画布生成提交：${code}`, durationMs: Math.round(performance.now() - startedAt),
+                            message: meta ? `Canvas generation commit:${code} (${meta})` : `Canvas generation commit:${code}`, durationMs: Math.round(performance.now() - startedAt),
                         });
                     };
                     diagnostic("generation_submit_started");
@@ -169,12 +169,12 @@ export function useCanvasGenerationExecutor({
                                     : await findGenerationTaskByOperation(operationId!, projectId, controller.signal);
                                 controller.signal.throwIfAborted();
                                 if (!task) {
-                                    const warningText = "尚未查到上次提交的任务，请稍后再查询，暂勿重新生成";
+                                    const warningText = "The last submitted task has not been found yet. Please check again later and do not regenerate it yet.";
                                     setPreflightNotice(warningText);
                                     message.warning(warningText);
                                     continue;
                                 }
-                                if (task.projectId && task.projectId !== projectId) throw new Error("生成任务不属于当前画布");
+                                if (task.projectId && task.projectId !== projectId) throw new Error("The build task does not belong to the current canvas");
                                 bindGenerationTask(target.id, task);
                                 const completed = await waitForGenerationTask(task.id, { signal: controller.signal, initialTask: task, onTaskUpdate: (update) => bindGenerationTask(target.id, update) });
                                 controller.signal.throwIfAborted();
@@ -193,7 +193,7 @@ export function useCanvasGenerationExecutor({
                         }
                         if (isCanvasNodeGenerating(liveNode)) {
                             diagnostic("generation_task_active", "warning");
-                            message.info("该节点的生成任务仍在进行中，请等待完成后再生成");
+                            message.info("The generation task of this node is still in progress, please wait for completion before generating again");
                             return;
                         }
                         if (isNodeRegenerateBlocked(guardNode?.metadata) || isNodeRegenerateBlocked(sourceNode?.metadata)) {
@@ -206,7 +206,7 @@ export function useCanvasGenerationExecutor({
                         }
                         if (sourceNode?.type === CanvasNodeType.Video && sourceNode.metadata?.videoEditOperation === "concat") {
                             diagnostic("generation_concat_source", "warning");
-                            const concatText = "合并成片节点不直接重新生成，请重新选择源视频合并";
+                            const concatText = "Merged into slice nodes are not directly regenerated, please re-select the source video to merge.";
                             setPreflightNotice(concatText);
                             message.info(concatText);
                             return;
@@ -257,8 +257,8 @@ export function useCanvasGenerationExecutor({
                         startGenerationRequest(nodeId, nodeId, nodeId, controller);
                         preparing = true;
                         setRunningNodeId(nodeId);
-                        if (mode === "video") preparationProgress = startOperation("准备视频素材", { target: { projectId, nodeId }, detail: "正在准备参考素材" });
-                        else message.loading({ key: preparationMessageKey, content: "正在准备参考素材…", duration: 0 });
+                        if (mode === "video") preparationProgress = startOperation("Prepare video footage", { target: { projectId, nodeId }, detail: "Preparing reference materials" });
+                        else message.loading({ key: preparationMessageKey, content: "Preparing reference material...", duration: 0 });
                         stage = "references";
                         setNodes((current) => current.map((node) => node.id === nodeId && node.metadata?.generationPreflightError
                             ? { ...node, metadata: { ...node.metadata, generationPreflightError: undefined } }
@@ -362,10 +362,10 @@ export function useCanvasGenerationExecutor({
                             const confirmed = await confirmCanvasGeneration(
                                 (callbacks) =>
                                     modal.confirm({
-                                        title: copy.confirmTitle || "确认重新生成？",
+                                        title: copy.confirmTitle || "Confirm to regenerate?",
                                         content: copy.confirmContent || copy.message,
-                                        okText: "确认重新生成",
-                                        cancelText: "取消",
+                                        okText: "Confirm regeneration",
+                                        cancelText: "Cancel",
                                         centered: true,
                                         ...callbacks,
                                     }),
@@ -378,13 +378,13 @@ export function useCanvasGenerationExecutor({
                         }
                         if (mode === "audio" && generationContext.characterReferences.length) {
                             if (generationContext.characterReferences.length !== 1) {
-                                reportError(new Error("角色配音一次只能引用一个角色卡"));
+                                reportError(new Error("Character dubbing can only reference one character card at a time"));
                                 return;
                             }
                             const voice = generationContext.resolvedCharacterVoices[0];
                             const hasReferenceMedia = generationContext.referenceImages.length > 0 || generationContext.referenceAudios.length > 0;
                             if (!voice && !hasReferenceMedia) {
-                                reportError(new Error("角色尚未绑定可用声音，无法创建角色配音任务"));
+                                reportError(new Error("The character has not been bound to a valid voice, and the character dubbing task cannot be created."));
                                 return;
                             }
                             if (voice) {
@@ -392,7 +392,7 @@ export function useCanvasGenerationExecutor({
                             }
                         }
                         if (!effectivePrompt && (mode === "text" || mode === "audio")) {
-                            reportError(new Error("请输入生成内容"));
+                            reportError(new Error("Please enter the generated content"));
                             return;
                         }
 
@@ -450,7 +450,7 @@ export function useCanvasGenerationExecutor({
                                                   prompt,
                                                   composerContent: prompt,
                                                   status: NODE_STATUS_LOADING,
-                                                  taskStage: "正在准备生成任务",
+                                                  taskStage: "Preparing to build task",
                                                   taskProgress: 0,
                                                   taskCreatedAt: new Date().toISOString(),
                                                   errorDetails: undefined,
@@ -520,7 +520,7 @@ export function useCanvasGenerationExecutor({
                                 const firstBinding = boundTaskIds.size === 0;
                                 if (!boundTaskIds.has(task.id)) {
                                     boundTaskIds.add(task.id);
-                                    recordDiagnosticEvent({ category: "task", level: "info", code: "generation_submission_bound", message: "画布提交已关联生成任务", requestId: attemptId, canvasId: projectId, taskId: task.id, canvasBinding: { source: "client", nodeId: targetNodeId, clientOperationId: task.clientOperationId } });
+                                    recordDiagnosticEvent({ category: "task", level: "info", code: "generation_submission_bound", message: "Canvas submission has associated build tasks", requestId: attemptId, canvasId: projectId, taskId: task.id, canvasBinding: { source: "client", nodeId: targetNodeId, clientOperationId: task.clientOperationId } });
                                     emitPluginEvent("generation.submitted", { nodeId: targetNodeId, nodeType: mode, model: generationConfig.model, prompt: effectivePrompt, taskId: task.id });
                                 }
                                 bindGenerationTask(targetNodeId, task);
@@ -601,8 +601,8 @@ export function useCanvasGenerationExecutor({
                     }
                 },
                 () => {
-                    recordDiagnosticEvent({ category: "action", level: "warning", code: "generation_duplicate_click", canvasId: projectId, message: "该节点已有生成请求正在提交或执行" });
-                    message.info({ key: `canvas-generation-submission-${nodeId}`, content: "该节点已有生成请求正在提交或执行，请勿重复点击" });
+                    recordDiagnosticEvent({ category: "action", level: "warning", code: "generation_duplicate_click", canvasId: projectId, message: "The node already has a generation request being submitted or executed." });
+                    message.info({ key: `canvas-generation-submission-${nodeId}`, content: "This node has already generated a request that is being submitted or executed. Please do not click repeatedly." });
                 },
             ),
         [

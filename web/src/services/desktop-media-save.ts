@@ -17,24 +17,24 @@ export async function downloadOwnedOrBrowserMedia(options: { fileName: string; r
     const fileName = sanitizeDownloadFileName(options.fileName);
     if (isWailsNativeShell()) {
         const resourceId = options.resourceId?.trim();
-        if (!resourceId) throw new Error("没有可导出的本机文件");
+        if (!resourceId) throw new Error("No native files to export");
         const save = window.go?.main?.DesktopApp?.SaveOwnedMedia;
-        if (!save) throw new Error("当前应用还不能把文件存到所选位置");
+        if (!save) throw new Error("The current application cannot save the file to the selected location yet");
         const saved = await save(fileName, resourceId);
         return saved ? "saved" : "cancelled";
     }
     const browserUrl = options.browserUrl?.trim();
-    if (!browserUrl) throw new Error("没有可导出的文件");
+    if (!browserUrl) throw new Error("No files to export");
     saveAs(browserUrl, fileName);
     return "saved";
 }
 
 export async function saveOwnedOrBrowserBlob(fileName: string, blob: Blob): Promise<OwnedMediaSaveResult> {
-    const name = sanitizeDownloadFileName(fileName, "未命名导出");
+    const name = sanitizeDownloadFileName(fileName, "Unnamed export");
     if (isWailsNativeShell()) {
-        if (blob.size > MAX_OWNED_ARTIFACT_BYTES) throw new Error("导出包太大，请减少所选内容后再导出");
+        if (blob.size > MAX_OWNED_ARTIFACT_BYTES) throw new Error("The export package is too large. Please reduce the selected content before exporting.");
         const save = window.go?.main?.DesktopApp?.SaveOwnedArtifact;
-        if (!save) throw new Error("当前应用还不能把文件存到所选位置");
+        if (!save) throw new Error("The current application cannot save the file to the selected location yet");
         const bytes = new Uint8Array(await blob.arrayBuffer());
         const saved = await save(name, bytesToBase64(bytes));
         return saved ? "saved" : "cancelled";
@@ -46,8 +46,8 @@ export async function saveOwnedOrBrowserBlob(fileName: string, blob: Blob): Prom
 /** Video exports use the resource upload path so large files never cross Wails as base64. */
 export async function saveOwnedOrBrowserVideoBlob(fileName: string, blob: Blob): Promise<OwnedMediaSaveResult> {
     if (!isWailsNativeShell()) return saveOwnedOrBrowserBlob(fileName, blob);
-    if (!window.go?.main?.DesktopApp?.SaveOwnedMedia) throw new Error("当前应用还不能把文件存到所选位置");
-    const name = sanitizeDownloadFileName(fileName, "未命名导出.mp4");
+    if (!window.go?.main?.DesktopApp?.SaveOwnedMedia) throw new Error("The current application cannot save the file to the selected location yet");
+    const name = sanitizeDownloadFileName(fileName, "Unnamed export .mp4");
     const resource = await uploadResourceFile(blob, "video", {
         fileName: name,
         idempotencyKey: `video-export:${nanoid()}`,
@@ -71,13 +71,13 @@ export async function saveOwnedNativeArchiveFiles(
         } else {
             const blob = new Blob([file.data]);
             inlineBytes += blob.size;
-            if (inlineBytes > MAX_OWNED_ARTIFACT_BYTES) throw new Error("本地附加文件过大，请先保存素材后再导出");
+            if (inlineBytes > MAX_OWNED_ARTIFACT_BYTES) throw new Error("The local attached file is too large, please save the material first and then export it.");
             entries.push({ name: file.name, data: bytesToBase64(new Uint8Array(await blob.arrayBuffer())) });
         }
     }
     options.signal?.throwIfAborted();
     options.onSaving?.();
-    return await save(sanitizeDownloadFileName(fileName, "画布.zip"), entries) ? "saved" : "cancelled";
+    return await save(sanitizeDownloadFileName(fileName, "canvas.zip"), entries) ? "saved" : "cancelled";
 }
 
 function bytesToBase64(bytes: Uint8Array) {
@@ -94,9 +94,9 @@ function bytesToBase64(bytes: Uint8Array) {
 export function reportOwnedMediaSave(message: { success: (text: string) => void; error: (text: string) => void }, result: Promise<OwnedMediaSaveResult>) {
     return result
         .then((status) => {
-            if (status === "saved" && isWailsNativeShell()) message.success("已保存到所选位置");
+            if (status === "saved" && isWailsNativeShell()) message.success("Saved to selected location");
         })
         .catch((error) => {
-            message.error(error instanceof Error && error.message.trim() ? error.message : "保存没有完成，请再试一次");
+            message.error(error instanceof Error && error.message.trim() ? error.message : "Save not completed, please try again");
         });
 }

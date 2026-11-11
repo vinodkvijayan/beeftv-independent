@@ -15,7 +15,7 @@ export function IdentityProviderBadge({ user, compact = false, className }: { us
                 compact ? "size-3.5 rounded-full text-[var(--fs-micro)] leading-none" : "h-4 rounded px-1 text-[var(--fs-micro)] leading-none",
                 className,
             )}
-            title={user.identityUsername ? `Linux.do · @${user.identityUsername}` : "Linux.do 用户"}
+            title={user.identityUsername ? `Linux.do · @${user.identityUsername}` : "Linux.do users"}
         >
             {compact ? "L" : "Linux.do"}
         </span>

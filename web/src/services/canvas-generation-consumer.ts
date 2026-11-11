@@ -31,7 +31,7 @@ export class CanvasBindFlushError extends Error {
     readonly cause: unknown;
 
     constructor(cause: unknown) {
-        super(cause instanceof Error ? cause.message : "本地草稿还没保存，生成结果没有写到画布");
+        super(cause instanceof Error ? cause.message : "The local draft has not been saved, and the generated results have not been written to the canvas.");
         this.name = "CanvasBindFlushError";
         this.cause = cause;
     }
@@ -39,7 +39,7 @@ export class CanvasBindFlushError extends Error {
 
 export class CanvasBindProjectionAdoptionError extends Error {
     constructor() {
-        super("这次生成结果没能写进画布。请再试一次。");
+        super("The generated results were not written to the canvas this time. Please try again.");
         this.name = "CanvasBindProjectionAdoptionError";
     }
 }
@@ -181,14 +181,14 @@ async function pollMaterializedGenerationOutput(
         if (!state.isCurrent()) throw new DOMException("The canvas operation was abandoned", "AbortError");
         // A materialized ID can outlive its resource. Repeated bind refusals
         // share this deadline even when the task still reports that ID.
-        if (state.now() - state.startedAt >= GENERATION_MATERIALIZATION_BUDGET_MS) throw new CanvasGenerationMaterializationError(new Error("生成结果取回或写入画布超时，请继续取回"));
+        if (state.now() - state.startedAt >= GENERATION_MATERIALIZATION_BUDGET_MS) throw new CanvasGenerationMaterializationError(new Error("The generation result retrieval or writing to the canvas has timed out, please continue to retrieve it."));
         if (!skipCheck) {
             if (generationTaskOutputMaterialized(task, state.outputIndex)) return task;
             const deliveryCode = generationTaskOutput(task, outputIndexFromState(state))?.materializationErrorCode || task.stage;
             if (deliveryCode === "delivery_paused" || deliveryCode === "delivery_timed_out") {
-                throw new CanvasGenerationMaterializationError(new Error(deliveryCode === "delivery_paused" ? "已停止取回，可继续取回原结果" : "结果取回超时，可继续取回原结果"));
+                throw new CanvasGenerationMaterializationError(new Error(deliveryCode === "delivery_paused" ? "Retrieval has been stopped. You can continue to retrieve the original results." : "The result retrieval has timed out, you can continue to retrieve the original results."));
             }
-            if (generationTaskOutputPermanentlyFailed(task, state.outputIndex)) throw new CanvasGenerationMaterializationError(new Error(task.resultState || task.error || "生成结果下载失败"));
+            if (generationTaskOutputPermanentlyFailed(task, state.outputIndex)) throw new CanvasGenerationMaterializationError(new Error(task.resultState || task.error || "Failed to download generated results"));
         }
         await state.sleep(materializationPollDelay(attempt), state.signal);
         attempt += 1;
@@ -215,7 +215,7 @@ export async function bindBackendCanvasGenerationResult(input: {
     runtime?: BindBackendCanvasGenerationRuntime;
     onPhaseChange?: (phase: "fetching" | "saving") => void;
 }) {
-    if (input.task.status !== "succeeded") throw new Error("只有成功的任务才能绑定到画布");
+    if (input.task.status !== "succeeded") throw new Error("Only successful tasks can be bound to the canvas");
     const runtime = input.runtime ?? {};
     const capturedCanvasId = input.canvasId;
     const outputIndex = input.outputIndex ?? 0;
@@ -424,7 +424,7 @@ export async function persistCanvasOperationContinuationEffect(input: {
     throwIfAborted(input.signal);
     const currentNodes = input.nodesRef.current;
     const currentNode = currentNodes.find((node) => node.id === input.nodeId);
-    if (!currentNode) throw new Error("画布中找不到 Agent continuation 节点");
+    if (!currentNode) throw new Error("Agent continuation node not found in canvas");
     if (generationEffectApplied(currentNode.metadata || {}, input.effectKey) && currentNode.metadata?.agentGenerationContinuation?.status === "completed") return;
 
     const nodes = currentNodes.map((node) =>

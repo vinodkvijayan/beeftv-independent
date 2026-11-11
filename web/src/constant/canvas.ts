@@ -9,32 +9,32 @@ type CanvasNodeSpec = {
 };
 
 export const NODE_DEFAULT_SIZE = {
-    [CanvasNodeType.Image]: { width: 720, height: 405, title: "图片" },
+    [CanvasNodeType.Image]: { width: 720, height: 405, title: "pictures" },
     // LibTV 的文本节点以近似正方形卡片承载提示词与生成入口，作为首屏复刻基准固定为 350×350。
-    [CanvasNodeType.Text]: { width: 350, height: 350, title: "文本节点" },
-    [CanvasNodeType.Drawing]: { width: 440, height: 300, title: "绘图" },
-    [CanvasNodeType.Script]: { width: 920, height: 360, title: "分镜脚本" },
-    [CanvasNodeType.Skill]: { width: 360, height: 220, title: "技能" },
+    [CanvasNodeType.Text]: { width: 350, height: 350, title: "text node" },
+    [CanvasNodeType.Drawing]: { width: 440, height: 300, title: "Drawing" },
+    [CanvasNodeType.Script]: { width: 920, height: 360, title: "Storyboard" },
+    [CanvasNodeType.Skill]: { width: 360, height: 220, title: "Skills" },
     // 配置节点同时承载模式、渠道、工作流和参数；预留稳定空间，避免控件和错误状态互相挤压。
-    [CanvasNodeType.Config]: { width: 480, height: 390, title: "生成配置" },
-    [CanvasNodeType.Video]: { width: 720, height: 405, title: "视频" },
+    [CanvasNodeType.Config]: { width: 480, height: 390, title: "Generate configuration" },
+    [CanvasNodeType.Video]: { width: 720, height: 405, title: "video" },
     // LibTV renders an empty audio node as a square media card, not a
     // shallow waveform strip; this keeps the empty-state affordance visible.
-    [CanvasNodeType.Audio]: { width: 320, height: 320, title: "音频" },
-    [CanvasNodeType.Frame]: { width: 760, height: 520, title: "未命名背板" },
-    [CanvasNodeType.Workflow]: { width: 1180, height: 1030, title: "工作流" },
-    [CanvasNodeType.WorkflowControl]: { width: 1100, height: 180, title: "工作流进度" },
+    [CanvasNodeType.Audio]: { width: 320, height: 320, title: "Audio" },
+    [CanvasNodeType.Frame]: { width: 760, height: 520, title: "Unnamed backplane" },
+    [CanvasNodeType.Workflow]: { width: 1180, height: 1030, title: "Workflow" },
+    [CanvasNodeType.WorkflowControl]: { width: 1100, height: 180, title: "Workflow progress" },
     [CanvasNodeType.Markdown]: { width: 420, height: 320, title: "Markdown" },
     [CanvasNodeType.Svg]: { width: 420, height: 320, title: "SVG" },
     [CanvasNodeType.Html]: { width: 520, height: 380, title: "HTML" },
-    [CanvasNodeType.Panorama]: { width: 520, height: 300, title: "全景" },
-    [CanvasNodeType.Compare]: { width: 520, height: 320, title: "对比" },
-    [CanvasNodeType.Chart]: { width: 480, height: 320, title: "图表" },
-    [CanvasNodeType.ColorGrade]: { width: 420, height: 360, title: "调色" },
-    [CanvasNodeType.MediaConversion]: { width: 480, height: 460, title: "转换" },
-    [CanvasNodeType.Upscale]: { width: 420, height: 240, title: "AI超分" },
-    [CanvasNodeType.BatchTable]: { width: 1280, height: 560, title: "批量创作表" },
-    [CanvasNodeType.Director]: { width: 640, height: 640, title: "导演台" },
+    [CanvasNodeType.Panorama]: { width: 520, height: 300, title: "Panorama" },
+    [CanvasNodeType.Compare]: { width: 520, height: 320, title: "Contrast" },
+    [CanvasNodeType.Chart]: { width: 480, height: 320, title: "chart" },
+    [CanvasNodeType.ColorGrade]: { width: 420, height: 360, title: "Color grading" },
+    [CanvasNodeType.MediaConversion]: { width: 480, height: 460, title: "Convert" },
+    [CanvasNodeType.Upscale]: { width: 420, height: 240, title: "AI super score" },
+    [CanvasNodeType.BatchTable]: { width: 1280, height: 560, title: "Batch creation table" },
+    [CanvasNodeType.Director]: { width: 640, height: 640, title: "Director's desk" },
 } satisfies Record<CanvasNodeType, { width: number; height: number; title: string }>;
 
 export const NODE_SPECS = {
@@ -122,9 +122,9 @@ export const NODE_SPECS = {
                 operation: "try_on",
                 concurrency: 10,
                 referenceColumns: [
-                    { id: "reference-1", label: "参考图 1" },
-                    { id: "reference-2", label: "参考图 2" },
-                    { id: "reference-3", label: "参考图 3" },
+                    { id: "reference-1", label: "Reference Figure 1" },
+                    { id: "reference-2", label: "Reference Figure 2" },
+                    { id: "reference-3", label: "Reference Figure 3" },
                 ],
                 rows: [],
             },

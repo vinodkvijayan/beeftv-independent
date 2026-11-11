@@ -126,7 +126,7 @@ export function useCanvasNodeEditor({
         ui.setSelectedConnectionId(null);
         ui.setContextMenu(null);
         ui.setToolbarNodeId(null);
-        message.success(result.unpackedIds.length ? `已解散文件夹，释放 ${result.unpackedIds.length} 个节点` : "已删除空文件夹");
+        message.success(result.unpackedIds.length ? `Dissolved folder, released${result.unpackedIds.length} nodes` : "Empty folder deleted");
     }, [message, nodesRef, pageUi, setNodes]);
 
     const removeNodeFromFolder = useCallback((nodeId: string) => {
@@ -134,7 +134,7 @@ export function useCanvasNodeEditor({
         if (!result) return;
         nodesRef.current = result.nodes;
         setNodes(result.nodes);
-        message.success("已移出文件夹");
+        message.success("Moved out of folder");
     }, [message, nodesRef, setNodes]);
 
     const handleNodeTitleChange = useCallback((nodeId: string, title: string) => {
@@ -268,12 +268,12 @@ export function useCanvasNodeEditor({
         void persistOwnedEditorNode(updatedNode, patch.assetCategory).then(({ guard, result }) => {
             if (!guard.alive()) return;
             if (result.applied) {
-                if (result.confirmed) message.success("资产分类已更新");
-                else message.warning("文件目前只在这台设备上");
+                if (result.confirmed) message.success("Asset Classification Updated");
+                else message.warning("The file is currently only on this device");
                 return;
             }
             if (result.error === undefined) return;
-            message.error(result.error instanceof Error ? result.error.message : "资产分类更新失败");
+            message.error(result.error instanceof Error ? result.error.message : "Asset classification update failed");
         });
     }, [message, nodesRef, persistOwnedEditorNode, setNodes]);
 
@@ -287,17 +287,17 @@ export function useCanvasNodeEditor({
     }, [canvasTitle, message]);
 
     const saveNodeAsset = useCallback(async (node: CanvasNodeData) => {
-        if (node.type !== CanvasNodeType.Text && node.type !== CanvasNodeType.Image && node.type !== CanvasNodeType.Video && node.type !== CanvasNodeType.Audio) return message.error("当前节点类型不能保存为素材");
-        if (!node.metadata?.content?.trim()) return message.error("当前节点没有可保存的内容");
+        if (node.type !== CanvasNodeType.Text && node.type !== CanvasNodeType.Image && node.type !== CanvasNodeType.Video && node.type !== CanvasNodeType.Audio) return message.error("The current node type cannot be saved as material");
+        if (!node.metadata?.content?.trim()) return message.error("The current node has no content to save");
         const { guard, result } = await persistOwnedEditorNode(node);
         if (!guard.alive()) return;
         if (result.applied) {
-            if (!result.confirmed) message.warning("文件目前只在这台设备上");
-            else message.success(result.linkedToProject ? "已加入项目资产" : "已加入我的素材");
+            if (!result.confirmed) message.warning("The file is currently only on this device");
+            else message.success(result.linkedToProject ? "Project assets have been added" : "Added my material");
             return;
         }
         if (result.error === undefined) return;
-        message.error(result.error instanceof Error ? result.error.message : "素材保存失败");
+        message.error(result.error instanceof Error ? result.error.message : "Failed to save material");
     }, [message, persistOwnedEditorNode]);
 
     const handleFontSizeChange = useCallback((nodeId: string, fontSize: number) => {

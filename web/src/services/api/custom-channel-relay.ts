@@ -19,7 +19,7 @@ export function channelRequest(config: RelayConfig, upstreamUrl: string, headers
     const managed = isManagedEnterpriseRelay(config);
     // Mac Wails uses wails:; WebView2 uses http://wails.localhost and still has CORS.
     if (typeof window !== "undefined" && window.location?.protocol === "wails:" && !managed) {
-        const normalizedUpstreamUrl = requireHttpUrl(upstreamUrl, "当前模型请求地址");
+        const normalizedUpstreamUrl = requireHttpUrl(upstreamUrl, "Current model request address");
         normalizedHeaders.set("Authorization", `Bearer ${config.apiKey}`);
         for (const header of config.headers || []) {
             const name = header.name.trim();
@@ -31,8 +31,8 @@ export function channelRequest(config: RelayConfig, upstreamUrl: string, headers
         return { url: upstreamUrl, headers: Object.fromEntries(normalizedHeaders.entries()), credentials: "include" };
     }
 
-    const normalizedBaseUrl = requireHttpUrl(config.baseUrl, "当前模型渠道 Base URL");
-    const normalizedUpstreamUrl = requireHttpUrl(upstreamUrl, "当前模型请求地址");
+    const normalizedBaseUrl = requireHttpUrl(config.baseUrl, "Current model channel Base URL");
+    const normalizedUpstreamUrl = requireHttpUrl(upstreamUrl, "Current model request address");
     normalizedHeaders.delete("X-Canvas-Upstream-Headers");
     normalizedHeaders.delete("x-goog-api-key");
     normalizedHeaders.set("Authorization", `Bearer ${config.apiKey}`);
@@ -53,10 +53,10 @@ function requireHttpUrl(value: string, label: string) {
     try {
         parsed = new URL(normalized);
     } catch {
-        throw new Error(`${label} 无效，请填写完整地址，例如：https://api.example.com/v1`);
+        throw new Error(`${label} Invalid, please fill in the complete address, for example: https://api.example.com/v1`);
     }
     if (!parsed.hostname || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
-        throw new Error(`${label} 无效，请填写完整地址，例如：https://api.example.com/v1`);
+        throw new Error(`${label} Invalid, please fill in the complete address, for example: https://api.example.com/v1`);
     }
     return parsed.toString();
 }

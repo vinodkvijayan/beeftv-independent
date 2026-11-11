@@ -5,7 +5,7 @@ import type { CanvasNodeGenerationOptions } from "./use-canvas-generation-execut
 import { buildGenerationConfig } from "@/lib/canvas/canvas-project-generation";
 import { ASSISTANT_PROPOSAL_BLOCKED_TEXT, AssistantProposalBlockedError, type ConfirmedGenerationInputs } from "./canvas-assistant-proposal-snapshot";
 
-export const CANVAS_OWNER_CHANGED_PROPOSAL_MESSAGE = "画布或账号已切换，未提交生成。请重新确认提案。";
+export const CANVAS_OWNER_CHANGED_PROPOSAL_MESSAGE = "The canvas or account has been switched and the generation has not been submitted. Please reconfirm the proposal.";
 
 type ProposalExecution = {
     proposal: AssistantGenerationProposal;
@@ -37,26 +37,26 @@ export function buildConfirmedGenerationConfig(
 ) {
     const result = buildGenerationConfig(config, node, mode, requirements);
     if (confirmedModelKey !== undefined && (!confirmedModelKey.trim() || result.model !== confirmedModelKey)) {
-        throw new Error("当前模型与生成提案不一致。请让助手重新提出生成方案，核对模型后再确认。");
+        throw new Error("The current model is inconsistent with the generated proposal. Please ask the assistant to re-propose the generation plan and check the model before confirming.");
     }
     return result;
 }
 
 export async function executeAssistantProposal({ proposal, nodes, claims, isHandled, confirmRunnable, prepare, confirmOrder, generate, markHandled, notify, stillOwns }: ProposalExecution) {
     const kind = proposal.kind;
-    if (kind === "audio" && !confirmOrder) { notify("请将配音加入完整制作方案后确认。"); return; }
+    if (kind === "audio" && !confirmOrder) { notify("Please confirm after adding dubbing to the complete production plan."); return; }
     if (isHandled || claims.has(proposal.proposalId)) {
-        notify("这项提案已提交或正在提交，请在任务列表查看进度。");
+        notify("This proposal has been submitted or is being submitted. Please check the progress in the task list.");
         return;
     }
     const targets = [...new Set(proposal.nodeIds)].map((id) => nodes.find((node) => node.id === id));
     if (!targets.length || targets.some((node) => !node)) {
-        notify("提案中的节点已发生变化，请让助手重新提出生成方案后再确认。");
+        notify("The nodes in the proposal have changed. Please ask the assistant to re-propose the generation plan and then confirm.");
         return;
     }
     const modelKey = proposalModelKey(proposal.modelKey);
     if (!modelKey) {
-        notify("这项提案缺少模型信息，请让助手重新提出生成方案后再确认。");
+        notify("This proposal lacks model information. Please ask the assistant to re-propose the generation plan and then confirm it.");
         return;
     }
     // 先占住这次确认，避免连点发出第二单；没有任务回执时在 finally 里放开。
@@ -78,8 +78,8 @@ export async function executeAssistantProposal({ proposal, nodes, claims, isHand
                 return;
             }
             notify(error instanceof AssistantProposalBlockedError ? ASSISTANT_PROPOSAL_BLOCKED_TEXT[error.reason]
-                : error instanceof ApiError && error.reason === "continuation_intent_changed" ? "要求已更新，请让助手重新提出生成方案。"
-                : "无法核对提案的最新内容，请检查连接后重试。");
+                : error instanceof ApiError && error.reason === "continuation_intent_changed" ? "The requirements have been updated, please ask the assistant to propose a new generation plan."
+                : "Unable to check the latest content of the proposal, please check your connection and try again.");
             return;
         }
         if (stillOwns && !stillOwns()) {
@@ -103,7 +103,7 @@ export async function executeAssistantProposal({ proposal, nodes, claims, isHand
                         receivedTask = true;
                         markHandled(proposal.proposalId);
                     } else {
-                        notify("未确认有生成任务开始。请检查节点提示和任务列表，再让助手重新提出生成方案。");
+                        notify("Unconfirmed build task start. Please check the node prompts and task list, and then let the assistant propose a new generation plan.");
                     }
                     return;
                 }
@@ -113,14 +113,14 @@ export async function executeAssistantProposal({ proposal, nodes, claims, isHand
                     return;
                 }
                 notify(error instanceof AssistantProposalBlockedError ? ASSISTANT_PROPOSAL_BLOCKED_TEXT[error.reason]
-                    : error instanceof ApiError && error.reason === "continuation_intent_changed" ? "要求已更新，请让助手重新提出生成方案。"
+                    : error instanceof ApiError && error.reason === "continuation_intent_changed" ? "The requirements have been updated, please ask the assistant to propose a new generation plan."
                     : error instanceof ApiError && error.message ? error.message
-                    : "暂未确认生成是否开始，请重试确认同一生成单，不会重复提交已接受的素材。");
+                    : "It has not yet been confirmed whether the generation has started. Please try again to confirm the same generation order. Accepted materials will not be re-submitted.");
                 return;
             }
         }
         if (kind === "audio") {
-            notify("请将配音加入完整制作方案后确认。");
+            notify("Please confirm after adding dubbing to the complete production plan.");
             return;
         }
         await Promise.allSettled(confirmedTargets.map(async (node) => {
@@ -140,9 +140,9 @@ export async function executeAssistantProposal({ proposal, nodes, claims, isHand
             });
         }));
         if (!started.size) {
-            notify("未确认有生成任务开始。请检查节点提示和任务列表，再让助手重新提出生成方案。");
+            notify("Unconfirmed build task start. Please check the node prompts and task list, and then let the assistant propose a new generation plan.");
         } else if (started.size < targets.length) {
-            notify(`仅 ${started.size}/${targets.length} 个节点确认开始生成。请检查其余节点的提示和任务列表，不要重复提交整项提案。`);
+            notify(`only${started.size}/${targets.length} Nodes are confirmed to be generated. Please check the prompts and task lists for the remaining nodes and do not resubmit the entire proposal.`);
         }
     } finally {
         if (!receivedTask) claims.delete(proposal.proposalId);

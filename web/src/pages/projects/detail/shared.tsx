@@ -13,47 +13,47 @@ export type ProjectDetailViewProps = {
 export const categoryLabels: Record<string, string> = ASSET_CATEGORY_LABELS;
 
 export const mediaLabels: Record<string, string> = {
-    image: "图片",
-    video: "视频",
-    audio: "音频",
-    text: "文本",
-    model: "3D 模型",
-    entity: "角色卡",
+    image: "pictures",
+    video: "video",
+    audio: "Audio",
+    text: "text",
+    model: "3D model",
+    entity: "character card",
 };
 
 const statusLabels: Record<string, string> = {
-    active: "进行中",
-    archived: "已归档",
-    draft: "草稿",
-    ready: "待制作",
-    completed: "已完成",
-    review: "待审核",
-    confirmed: "已确认",
-    pending: "待处理",
-    pending_confirmation: "待确认",
-    running: "进行中",
-    failed: "失败",
-    ignored: "已忽略",
-    skipped: "已跳过",
-    cancelled: "已取消",
-    succeeded: "已完成",
-    disabled: "已停用",
-    idle: "待开始",
-    loading: "处理中",
-    queued: "排队中",
-    success: "已完成",
-    error: "异常",
-    deleted: "已删除",
-    reserved: "已冻结",
-    settled: "已结算",
-    refunded: "已退款",
-    uncertain: "待核对",
+    active: "In progress",
+    archived: "Archived",
+    draft: "draft",
+    ready: "To be produced",
+    completed: "Completed",
+    review: "Pending review",
+    confirmed: "Confirmed",
+    pending: "Pending",
+    pending_confirmation: "To be confirmed",
+    running: "In progress",
+    failed: "failed",
+    ignored: "Ignored",
+    skipped: "skipped",
+    cancelled: "Canceled",
+    succeeded: "Completed",
+    disabled: "Deactivated",
+    idle: "To be started",
+    loading: "Processing",
+    queued: "Queuing",
+    success: "Completed",
+    error: "Abnormal",
+    deleted: "Deleted",
+    reserved: "frozen",
+    settled: "Settled",
+    refunded: "Refunded",
+    uncertain: "To be verified",
 };
 
 const sourceTypeLabels: Record<string, string> = {
-    blank: "空白开始",
-    novel: "导入小说",
-    text: "粘贴文本",
+    blank: "blank start",
+    novel: "Import novels",
+    text: "Paste text",
 };
 
 export function categoryLabel(value: string) {
@@ -61,15 +61,15 @@ export function categoryLabel(value: string) {
 }
 
 export function statusLabel(value: string) {
-    return statusLabels[value] || "未知状态";
+    return statusLabels[value] || "unknown status";
 }
 
 export function mediaLabel(value: string) {
-    return mediaLabels[value] || "其他类型";
+    return mediaLabels[value] || "Other types";
 }
 
 export function sourceTypeLabel(value: string) {
-    return sourceTypeLabels[value] || "其他来源";
+    return sourceTypeLabels[value] || "other sources";
 }
 
 export function StatusPill({ status }: { status: string }) {
@@ -106,11 +106,11 @@ export function UnitProgress({ unit }: { unit: ProjectUnit }) {
 
 export function formatTime(value?: string) {
     if (!value) return "-";
-    return new Date(value).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    return new Date(value).toLocaleString("en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 export function formatCount(value: number) {
-    return new Intl.NumberFormat("zh-CN").format(value);
+    return new Intl.NumberFormat("en-US").format(value);
 }
 
 export function textValue(value: unknown) {

@@ -30,18 +30,18 @@ export type TimelineRenderExecution = {
     request: TimelineRenderRequest;
 };
 
-const SUBTITLE_BURN_FAILURE = "字幕烧录失败或缺少所需字体，未导出无字幕成片。请使用已安装中文字幕字体的服务端渲染";
+const SUBTITLE_BURN_FAILURE = "The subtitle burning failed or the required fonts are missing, and the film without subtitles was not exported. Please use server-side rendering with Chinese subtitle fonts installed";
 
 export function assertPlanPreservesRequestedContent(plan: TimelineRenderPlan): void {
     const { request } = plan;
     if (request.videoClipIds.length && !plan.concatEntries.length) {
-        throw new Error("导出计划丢失了视频片段，未生成不完整成片");
+        throw new Error("The export plan lost video clips and incomplete videos were not generated.");
     }
     if (request.audioClipIds.length && !plan.steps.some((step) => step.kind === "mix")) {
-        throw new Error("导出计划丢失了独立音轨，未生成不完整成片");
+        throw new Error("The export plan lost the independent audio track and the incomplete film was not generated.");
     }
     if (request.burnSubtitles && !plan.steps.some((step) => step.kind === "burn")) {
-        throw new Error("导出计划丢失了字幕烧录，未生成无字幕成片");
+        throw new Error("The export plan lost the subtitle burning, and the film without subtitles was not generated.");
     }
 }
 
@@ -63,7 +63,7 @@ export async function executeTimelineRenderPlan(options: {
         signal?.throwIfAborted();
         if (step.kind === "subtitle") {
             const srt = plan.subtitleSrt || "";
-            if (!srt.trim() && plan.request.burnSubtitles) throw new Error("字幕内容为空，未导出无字幕成片");
+            if (!srt.trim() && plan.request.burnSubtitles) throw new Error("The subtitle content is empty and the film is not exported without subtitles.");
             if (srt) {
                 await engine.writeFile(SUBTITLE_FILE, srt);
                 writtenFiles.add(SUBTITLE_FILE);
@@ -83,7 +83,7 @@ export async function executeTimelineRenderPlan(options: {
         const { exitCode, log } = await engine.exec(step.args);
         signal?.throwIfAborted();
         if (step.kind === "burn" && (exitCode !== 0 || isSubtitleFontFailure(log))) throw new Error(SUBTITLE_BURN_FAILURE);
-        if (exitCode !== 0) throw new Error("导出失败：" + step.description);
+        if (exitCode !== 0) throw new Error("Export failed:" + step.description);
         completedOutputs.push(step.output);
         stepIndex += 1;
     }
@@ -91,8 +91,8 @@ export async function executeTimelineRenderPlan(options: {
     const burned = completedOutputs.includes(plan.finalOutput) && plan.steps.some((step) => step.kind === "burn" && step.output === plan.finalOutput);
     const mixOutput = plan.steps.find((step) => step.kind === "mix")?.output;
     const mixedAudio = Boolean(mixOutput && completedOutputs.includes(mixOutput));
-    if (plan.request.burnSubtitles && !burned) throw new Error("字幕烧录未完成，未导出无字幕成片");
-    if (plan.request.audioClipIds.length && !mixedAudio) throw new Error("独立音轨混合未完成，未导出缺音频成片");
+    if (plan.request.burnSubtitles && !burned) throw new Error("The subtitle burning is not completed and the film is not exported without subtitles.");
+    if (plan.request.audioClipIds.length && !mixedAudio) throw new Error("The independent audio track mixing is not completed, and the missing audio is not exported into the film.");
 
     signal?.throwIfAborted();
     const output = await engine.readFile(plan.finalOutput);

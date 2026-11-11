@@ -30,9 +30,9 @@ export const progressBytes = (value: number) => formatBytes(Math.max(0, value)) 
 
 export function progressDuration(seconds: number) {
     const value = Math.max(0, Math.ceil(seconds));
-    if (value < 60) return value + " 秒";
+    if (value < 60) return value + " seconds";
     const minutes = Math.floor(value / 60);
-    return minutes < 60 ? minutes + " 分 " + value % 60 + " 秒" : Math.floor(minutes / 60) + " 小时 " + minutes % 60 + " 分";
+    return minutes < 60 ? minutes + " points" + value % 60 + " seconds" : Math.floor(minutes / 60) + " hours" + minutes % 60 + " points";
 }
 
 export function operationProgressView(progress: OperationProgress, now = Date.now()) {
@@ -41,16 +41,16 @@ export function operationProgressView(progress: OperationProgress, now = Date.no
     const known = finite(progress.totalBytes) && progress.totalBytes! > 0;
     const fresh = now - progress.updatedAt < 3000;
     const speed = transferring && fresh && finite(progress.bytesPerSecond) ? progress.bytesPerSecond! : 0;
-    const size = loaded === undefined ? known ? "文件大小 " + progressBytes(progress.totalBytes!) : "" : progressBytes(loaded) + (known ? " / " + progressBytes(progress.totalBytes!) : "");
+    const size = loaded === undefined ? known ? "file size" + progressBytes(progress.totalBytes!) : "" : progressBytes(loaded) + (known ? " / " + progressBytes(progress.totalBytes!) : "");
     const remaining = known && loaded !== undefined && loaded < progress.totalBytes! && speed > 0 && now - progress.startedAt >= 1500
-        ? "预计剩余 " + progressDuration((progress.totalBytes! - loaded) / speed) : "";
+        ? "Estimated remaining" + progressDuration((progress.totalBytes! - loaded) / speed) : "";
     const count = finite(progress.totalFiles) && progress.totalFiles! > 0
-        ? Math.min(progress.completedFiles || 0, progress.totalFiles!) + " / " + progress.totalFiles + " 个文件" : "";
+        ? Math.min(progress.completedFiles || 0, progress.totalFiles!) + " / " + progress.totalFiles + " files" : "";
     return {
         percent: progress.phase === "done" ? 100 : transferring && known && loaded !== undefined ? Math.min(100, Math.floor(loaded / progress.totalBytes! * 100)) : null,
         size,
         speed: speed > 0 ? progressBytes(speed) + "/s" : "",
-        timing: remaining || (progress.phase !== "done" && progress.phase !== "error" ? "已用 " + progressDuration((now - progress.startedAt) / 1000) : ""),
+        timing: remaining || (progress.phase !== "done" && progress.phase !== "error" ? "Used" + progressDuration((now - progress.startedAt) / 1000) : ""),
         count,
     };
 }

@@ -83,7 +83,7 @@ export function PluginFieldsConfigForm({
             </div>
             <div className="plugin-settings-actions">
                 <Button type="primary" icon={<CheckCircle2 className="size-4" />} onClick={() => onSave(values)}>
-                    保存配置
+                                        Save configuration
                 </Button>
             </div>
         </>

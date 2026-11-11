@@ -62,12 +62,12 @@ export function notifyCanvasRefresh(project: CanvasProject, previous: CanvasProj
  */
 export async function syncLocalCanvasSnapshot(id: string, patch: Partial<Pick<CanvasProject, "nodes" | "connections" | "chatSessions" | "activeChatId" | "appearance" | "backgroundMode" | "showImageInfo" | "viewport">>) {
     const current = openLocalCanvasProject(id);
-    if (!current) throw new Error("本地画布不存在");
+    if (!current) throw new Error("The local canvas does not exist");
     const { viewport, ...documentPatch } = patch;
     if (viewport) useCanvasStore.getState().updateProject(id, { viewport });
     if (Object.keys(documentPatch).length > 0) await persistCanvasDocument(id, documentPatch);
     const saved = openLocalCanvasProject(id);
-    if (!saved) throw new Error("本地画布不存在");
+    if (!saved) throw new Error("The local canvas does not exist");
     return saved;
 }
 
@@ -82,8 +82,8 @@ export function loadAssetsForUse(ids: Iterable<string>) {
 }
 
 export function localSavedRemotePendingMessage(localAction: string, error: unknown) {
-    const detail = error instanceof Error && error.message.trim() ? error.message.trim() : "未知错误";
-    return `${localAction}失败：${detail}`;
+    const detail = error instanceof Error && error.message.trim() ? error.message.trim() : "unknown error";
+    return `${localAction}Failure:${detail}`;
 }
 
 export async function createCanvasProjectWithRemoteSync(
@@ -96,7 +96,7 @@ export async function createCanvasProjectWithRemoteSync(
 
 export async function deleteAssetWithRemoteSync(id: string) {
     const assetId = id.trim();
-    if (!assetId) throw new Error("素材 ID 不能为空");
+    if (!assetId) throw new Error("Material ID cannot be empty");
     await useAssetStore.getState().removeAsset(assetId);
     await flushAssetStorePersistence();
 }
@@ -111,7 +111,7 @@ export async function saveRemoteUserDataNow(_input?: string | readonly string[] 
 }
 
 export function scheduleRemoteUserDataSync() {
-    void saveRemoteUserDataNow().catch((error) => console.error("本地工作区保存失败", error));
+    void saveRemoteUserDataNow().catch((error) => console.error("Failed to save local workspace", error));
 }
 
 export async function forceOverwriteRemoteCanvasSync(): Promise<CanvasAssetRebindResult> {

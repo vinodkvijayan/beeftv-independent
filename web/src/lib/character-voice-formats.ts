@@ -25,7 +25,7 @@ export function isSupportedCharacterVoiceFile(file: Pick<File, "name" | "type">)
 }
 
 export function characterVoiceTitleFromFileName(fileName: string) {
-    return fileName.replace(/\.(mp3|wav|m4a|aac|flac|ogg|oga|opus|webm|weba)$/i, "") || "上传声音";
+    return fileName.replace(/\.(mp3|wav|m4a|aac|flac|ogg|oga|opus|webm|weba)$/i, "") || "Upload sound";
 }
 
 export function characterVoiceFormatName(mimeType?: string, fileName = "") {

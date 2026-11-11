@@ -54,16 +54,16 @@ export default function SettingsPage() {
         const invalidChannel = customChannelsEnabled ? userChannels.find((channel) => channelValidationError(channel)) : undefined;
         if (invalidChannel) {
             selectSection("channels");
-            message.warning(`${invalidChannel.name || "未命名渠道"}：${channelValidationError(invalidChannel)}`);
+            message.warning(`${invalidChannel.name || "unnamed channel"}：${channelValidationError(invalidChannel)}`);
             focusInvalidChannelField(invalidChannel);
             return;
         }
         if (!effectiveConfig.channels.some(isChannelReady)) {
             selectSection("channels");
-            message.error(customChannelsEnabled ? (shouldPromptContinue ? "请先完成至少一个渠道的 Base URL、API Key 和模型配置" : "当前没有可用渠道，请先完成连接信息和模型配置") : "当前没有可用的系统模型，请联系管理员配置系统渠道");
+            message.error(customChannelsEnabled ? (shouldPromptContinue ? "Please complete the Base URL, API Key and model configuration of at least one channel first" : "There are currently no channels available. Please complete the connection information and model configuration first.") : "There is currently no system model available, please contact the administrator to configure system channels");
             return;
         }
-        message.success("配置已保存，正在返回创作页面");
+        message.success("The configuration has been saved and you are returning to the creation page.");
         navigate(-1);
     };
 
@@ -74,7 +74,7 @@ export default function SettingsPage() {
                 <div className="settings-section model-default-section">
                     <div className="settings-pane-header">
                         <div className="min-w-0">
-                            <h2>默认模型</h2>
+                            <h2>Default model</h2>
                         </div>
                     </div>
                     <ModelDefaultGrid config={effectiveConfig} onChange={(key, model) => updateConfig(key, model)} />
@@ -83,13 +83,13 @@ export default function SettingsPage() {
         ),
         storage: (
             <SettingsPane>
-                <PageHeader title="存储设置" />
+                <PageHeader title="Save settings" />
                 <div className="storage-settings-sections">
                     <StorageSettingsPane />
                     <ReferenceStoragePane />
                     {hasDepthComponents ? (
-                        <section className="settings-section storage-settings-block space-y-4" aria-label="深度捕捉组件">
-                            <div className="settings-pane-header"><h2>深度捕捉组件</h2></div>
+                        <section className="settings-section storage-settings-block space-y-4" aria-label="Depth capture component">
+                            <div className="settings-pane-header"><h2>Depth capture component</h2></div>
                             <DepthComponentsPanel />
                         </section>
                     ) : null}
@@ -100,8 +100,8 @@ export default function SettingsPage() {
             <SettingsPane>
                 <div className="settings-pane-header">
                     <div className="min-w-0">
-                        <h2>模型选择</h2>
-                        <p>按领域选择默认模型；模型能力和接口格式在渠道“模型与能力”中配置。</p>
+                        <h2>Model selection</h2>
+                        <p>Select a default model by domain; model capabilities and interface formats are configured in the channel "Models and Capabilities".</p>
                     </div>
                 </div>
                 <div className="settings-section">
@@ -120,8 +120,8 @@ export default function SettingsPage() {
                 {shouldPromptContinue ? <div className="settings-topbar shrink-0">
                     <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                         {shouldPromptContinue ? <>
-                        <Button icon={<ArrowLeft className="size-4" />} onClick={() => navigate(-1)}>返回创作</Button>
-                        <Button type="primary" onClick={finishConfig}>保存并返回</Button>
+                        <Button icon={<ArrowLeft className="size-4" />} onClick={() => navigate(-1)}>Return to creation</Button>
+                        <Button type="primary" onClick={finishConfig}>Save and return</Button>
                         </> : null}
                     </div>
                 </div> : null}

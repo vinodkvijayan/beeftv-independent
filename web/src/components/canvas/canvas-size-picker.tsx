@@ -42,7 +42,7 @@ export function CanvasSizePicker({ value, className, onChange }: CanvasSizePicke
                 className={cn("canvas-compact-control canvas-control-select h-full w-full")}
                 value={value || undefined}
                 searchValue={search}
-                placeholder="比例"
+                placeholder="Proportion"
                 options={options}
                 popupMatchSelectWidth={false}
                 popupRender={(menu) => (

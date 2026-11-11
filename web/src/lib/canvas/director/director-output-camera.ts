@@ -26,5 +26,5 @@ export async function waitForDirectorCaptureCamera(
             await nextFrame();
         }
     }
-    throw new Error("当前场景没有可用机位，无法生成参考视频");
+    throw new Error("There are no available camera positions in the current scene, and the reference video cannot be generated.");
 }

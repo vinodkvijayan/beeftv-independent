@@ -21,10 +21,10 @@ export async function executeArtCritique(input: {
     onDraftReport?: ArtCritiquePipelineOptions["onDraftReport"];
     submitStage?: typeof runBackendToolGenerationTask;
 }, dependencies = { inspectImage: inspectAgentImage, runTask: runBackendToolGenerationTask, runPipeline: runArtCritiquePipeline }) {
-    if (!input.nodeId || !input.runId || !isArtCritiqueImageInput(input.source)) throw new Error("分析需要真实目标节点、执行标识和已有图片");
+    if (!input.nodeId || !input.runId || !isArtCritiqueImageInput(input.source)) throw new Error("Analysis requires real target nodes, execution identifiers and existing images");
     const scope = getActiveUserScope();
     const assertLive = () => {
-        if (input.signal.aborted || getActiveUserScope() !== scope) throw new DOMException("分析已停止或账号已切换", "AbortError");
+        if (input.signal.aborted || getActiveUserScope() !== scope) throw new DOMException("Analysis has been stopped or the account has been switched", "AbortError");
     };
     assertLive();
     const content = input.source.metadata?.content || input.source.metadata?.previewContent || "";
@@ -37,11 +37,11 @@ export async function executeArtCritique(input: {
         onDraftReport: (report) => { assertLive(); input.onDraftReport?.(report); },
         requestStage: async ({ config, messages, tool, toolName, signal }) => {
             assertLive();
-            if (calledStages.has(toolName) || calledStages.size >= ART_CRITIQUE_MAX_MODEL_CALLS) throw new Error("分析阶段重复或超过本次调用数量上限");
+            if (calledStages.has(toolName) || calledStages.size >= ART_CRITIQUE_MAX_MODEL_CALLS) throw new Error("The analysis phase is repeated or exceeds the upper limit of the number of calls this time");
             calledStages.add(toolName);
             const result = await (input.submitStage || dependencies.runTask)({
                 config, messages, tools: [tool], toolChoice: { type: "function", name: toolName },
-                prompt: `图片审美分析：${toolName}`, signal,
+                prompt: `Picture aesthetic analysis:${toolName}`, signal,
                 metadata: { source: "art-critique", nodeId: input.nodeId, runId: input.runId, stage: toolName },
                 // A task can be accepted while the user stops observing; retain that receipt.
                 onTaskCreated: (task) => { if (getActiveUserScope() === scope) input.onTaskCreated(toolName, task.id); },

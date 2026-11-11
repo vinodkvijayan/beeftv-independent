@@ -9,7 +9,7 @@ export class ExportIntegrityError extends Error {
 
     constructor(missingFiles: MissingExportFile[]) {
         const unique = uniqueMissingExportFiles(missingFiles);
-        super(`导出未完成：缺少 ${unique.length} 个文件，未生成不完整的备份。请找回以下文件后重试：\n${unique.map((item) => `${item.owner}：${item.reference}`).join("\n")}`);
+        super(`Export not completed: missing${unique.length} files, an incomplete backup was not generated. Please retrieve the following files and try again:${unique.map((item) => `${item.owner}：${item.reference}`).join("\n")}`);
         this.name = "ExportIntegrityError";
         this.missingFiles = unique;
     }
@@ -23,7 +23,7 @@ export function uniqueMissingExportFiles(missingFiles: MissingExportFile[]): Mis
 export function assertUniqueArchiveNames(names: Iterable<string>): void {
     const seen = new Set<string>();
     for (const name of names) {
-        if (seen.has(name)) throw new Error(`导出包存在重名文件，未保存：${name}`);
+        if (seen.has(name)) throw new Error(`There is a file with the same name in the export package and it is not saved:${name}`);
         seen.add(name);
     }
 }

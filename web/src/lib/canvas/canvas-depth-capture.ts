@@ -43,7 +43,7 @@ export function depthCaptureTaskMetadata(task: GenerationTask): CanvasNodeMetada
         taskUpdatedAt: task.updatedAt,
         taskCompletedAt: task.completedAt,
         generationErrorSummary: task.error,
-        processingLabel: task.stage || (task.type === "depth_capture" ? "正在生成深度视频" : "正在生成视频"),
+        processingLabel: task.stage || (task.type === "depth_capture" ? "Generating depth video" : "Generating video"),
         ...(active ? { status: "loading", errorDetails: undefined } : {}),
     };
 }
@@ -51,7 +51,7 @@ export function depthCaptureTaskMetadata(task: GenerationTask): CanvasNodeMetada
 export function depthCaptureWaitFailureMetadata(error: unknown, observed?: GenerationTask | string): CanvasNodeMetadata {
     const task = typeof observed === "object" ? observed : undefined;
     if (typeof observed === "string" || task?.status === "queued" || task?.status === "running") {
-        return { status: "loading", errorDetails: undefined, generationErrorSummary: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskClientOperationTerminal: undefined, processingLabel: "暂时无法同步进度，请重新打开画布查看任务状态" };
+        return { status: "loading", errorDetails: undefined, generationErrorSummary: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskClientOperationTerminal: undefined, processingLabel: "The progress cannot be synchronized temporarily. Please reopen the canvas to check the task status." };
     }
     if (task?.status === "succeeded") {
         const cause = error instanceof CanvasGenerationDurableAckError ? error.cause : error;
@@ -59,16 +59,16 @@ export function depthCaptureWaitFailureMetadata(error: unknown, observed?: Gener
         return {
             ...generationFailureMetadata(new CanvasGenerationDurableAckError(cause), ""),
             taskOutcome: { phase: "retrievable", regenerate: "blocked", reason: "delivery_pending" },
-            status: "error", taskStage: "画布应用结果", taskClientOperationTerminal: false,
+            status: "error", taskStage: "Canvas application results", taskClientOperationTerminal: false,
             generationErrorSummary: explanation.summary,
             taskFailureDiagnostics: {
                 ...task.failureDiagnostics, source: "client_result", executionResult: "completed",
-                stage: "画布应用结果", summary: explanation.summary, requestId: explanation.requestId,
+                stage: "Canvas application results", summary: explanation.summary, requestId: explanation.requestId,
                 httpStatus: explanation.httpStatus, capturedAt: new Date().toISOString(),
             },
         };
     }
-    return { status: "error", taskOutcome: task?.outcome, errorDetails: task?.error || (error instanceof Error ? error.message : typeof error === "string" ? error : "深度处理失败"), generationErrorSummary: undefined, generationProviderCode: undefined, taskFailureDiagnostics: task?.failureDiagnostics, taskClientOperationTerminal: task?.status === "failed" || task?.status === "cancelled" };
+    return { status: "error", taskOutcome: task?.outcome, errorDetails: task?.error || (error instanceof Error ? error.message : typeof error === "string" ? error : "Depth processing failed"), generationErrorSummary: undefined, generationProviderCode: undefined, taskFailureDiagnostics: task?.failureDiagnostics, taskClientOperationTerminal: task?.status === "failed" || task?.status === "cancelled" };
 }
 
 export function canvasNodeFailureExplanation(node: CanvasNodeData) {
@@ -103,15 +103,15 @@ export function canvasNodeFailureExplanation(node: CanvasNodeData) {
             blockManualRetry: explicitOutcome.regenerate === "blocked",
         };
     }
-    if (node.metadata?.taskStage === "已暂停，等待手动继续") {
-        return { ...explanation, reason: "深度捕捉已暂停", action: "确认组件已安装后，点击重试继续", uncertain: false, retryable: true, blockAutomaticRetry: false, blockManualRetry: false };
+    if (node.metadata?.taskStage === "Paused, waiting for manual continuation") {
+        return { ...explanation, reason: "Depth capture is paused", action: "After confirming that the component has been installed, click Retry to continue.", uncertain: false, retryable: true, blockAutomaticRetry: false, blockManualRetry: false };
     }
     if (explicitOutcome ? explicitOutcome.phase === "retrievable" || explicitOutcome.phase === "ready" : node.metadata?.taskStatus === "succeeded") {
-        return { ...explanation, reason: "深度视频已生成，暂时未能显示在画布上", action: "点击「恢复结果」重新加载原任务", uncertain: false, retryable: true, blockAutomaticRetry: false, blockManualRetry: false };
+        return { ...explanation, reason: "The depth video has been generated and cannot be displayed on the canvas for the time being.", action: "Click \"Restore Results\" to reload the original task", uncertain: false, retryable: true, blockAutomaticRetry: false, blockManualRetry: false };
     }
     return {
         ...explanation,
-        ...(["unknown", "download_failed", "submission_uncertain"].includes(explanation.category) ? { reason: "深度处理失败", action: "请查看详情，检查深度组件和网络后重试" } : {}),
+        ...(["unknown", "download_failed", "submission_uncertain"].includes(explanation.category) ? { reason: "Depth processing failed", action: "Please check the details, check the deepin component and network and try again" } : {}),
         uncertain: false,
         retryable: true,
         blockAutomaticRetry: false,

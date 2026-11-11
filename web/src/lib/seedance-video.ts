@@ -10,13 +10,13 @@ export const seedanceResolutionOptions = [
 ] as const;
 
 export const seedanceRatioOptions = [
-    { value: "16:9", label: "横屏" },
-    { value: "9:16", label: "竖屏" },
-    { value: "1:1", label: "方形" },
-    { value: "4:3", label: "标准横屏" },
-    { value: "3:4", label: "标准竖屏" },
-    { value: "21:9", label: "宽银幕" },
-    { value: "adaptive", label: "自适应" },
+    { value: "16:9", label: "Horizontal screen" },
+    { value: "9:16", label: "Vertical screen" },
+    { value: "1:1", label: "square" },
+    { value: "4:3", label: "Standard landscape screen" },
+    { value: "3:4", label: "Standard vertical screen" },
+    { value: "21:9", label: "widescreen" },
+    { value: "adaptive", label: "Adaptive" },
 ] as const;
 
 export const seedanceDurationOptions = VIDEO_DURATION_OPTIONS;
@@ -113,7 +113,7 @@ export function normalizeSeedanceRatio(value: string) {
 export function seedancePixelLabel(resolution: string, ratio: string) {
     const normalizedResolution = normalizeSeedanceResolution(resolution) as keyof typeof seedancePixels;
     const normalizedRatio = normalizeSeedanceRatio(ratio) as keyof (typeof seedancePixels)[typeof normalizedResolution] | "adaptive";
-    if (normalizedRatio === "adaptive") return "自动匹配";
+    if (normalizedRatio === "adaptive") return "automatic matching";
     return seedancePixels[normalizedResolution]?.[normalizedRatio] || "";
 }
 
@@ -124,13 +124,13 @@ export function boolConfig(value: string | undefined, fallback: boolean) {
 }
 
 export function seedanceReferenceLabel(kind: "image" | "video" | "audio", index: number) {
-    if (kind === "image") return `图片${index + 1}`;
-    if (kind === "video") return `视频${index + 1}`;
-    return `音频${index + 1}`;
+    if (kind === "image") return `pictures${index + 1}`;
+    if (kind === "video") return `video${index + 1}`;
+    return `Audio${index + 1}`;
 }
 
 export function buildSeedancePromptText(prompt: string, _images: ReferenceImage[], _videos: ReferenceVideo[], _audios: ReferenceAudio[]) {
     return prompt.trim();
 }
 
-export const seedanceVideoReferenceHint = "参考视频需为 mp4/mov，H.264/H.265，FPS 24-60；含真人人脸素材请使用火山授权 asset:// 素材。";
+export const seedanceVideoReferenceHint = "The reference video must be mp4/mov, H.264/H.265, FPS 24-60; if it contains real-person face material, please use the asset:// material authorized by the volcano.";

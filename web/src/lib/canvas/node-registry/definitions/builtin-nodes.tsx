@@ -21,7 +21,7 @@ const DEFAULT_MIN_SIZE = { width: 220, height: 160 } as const;
  */
 const BUILTIN_NODE_TRAITS = {
     [CanvasNodeType.Image]: {
-        label: "图片",
+        label: "pictures",
         icon: <ImageIcon />,
         minSize: MEDIA_NODE_MIN_SIZE,
         keepAspectRatio: (node: CanvasNodeData) => !node.metadata?.freeResize,
@@ -31,7 +31,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "image",
     },
     [CanvasNodeType.Text]: {
-        label: "文本",
+        label: "text",
         icon: <Type />,
         minSize: DEFAULT_MIN_SIZE,
         showInCreateMenu: true,
@@ -40,7 +40,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "text",
     },
     [CanvasNodeType.Drawing]: {
-        label: "绘图",
+        label: "Drawing",
         icon: <Pencil />,
         minSize: DEFAULT_MIN_SIZE,
         showInCreateMenu: true,
@@ -49,7 +49,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "image",
     },
     [CanvasNodeType.Script]: {
-        label: "分镜脚本",
+        label: "Storyboard",
         icon: <Clapperboard />,
         // 分镜脚本的表格布局需要更宽的下限；高度仍由内容动态撑开（见 canvas-node.tsx）。
         minSize: { width: 800, height: DEFAULT_MIN_SIZE.height },
@@ -58,7 +58,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "text",
     },
     [CanvasNodeType.Skill]: {
-        label: "技能",
+        label: "Skills",
         icon: <Sparkles />,
         minSize: DEFAULT_MIN_SIZE,
         // 技能节点由技能库插入，不占创建菜单格位。
@@ -68,7 +68,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "text",
     },
     [CanvasNodeType.Config]: {
-        label: "生成配置",
+        label: "Generate configuration",
         icon: <Settings2 />,
         minSize: DEFAULT_MIN_SIZE,
         // 生成配置由连线时自动创建。
@@ -78,7 +78,7 @@ const BUILTIN_NODE_TRAITS = {
         // 不设 inputKind：配置节点本身不是参考素材，不参与容量计数。
     },
     [CanvasNodeType.Video]: {
-        label: "视频",
+        label: "video",
         icon: <Video />,
         minSize: MEDIA_NODE_MIN_SIZE,
         keepAspectRatio: () => true,
@@ -88,7 +88,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "video",
     },
     [CanvasNodeType.Audio]: {
-        label: "音频",
+        label: "Audio",
         icon: <Music2 />,
         minSize: DEFAULT_MIN_SIZE,
         showInCreateMenu: true,
@@ -97,16 +97,16 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "audio",
     },
     [CanvasNodeType.Frame]: {
-        label: "背板",
+        label: "backplane",
         // 背板在列表里就叫「背板」，不是「背板节点」——显式钉住，避免被 label 派生改写。
-        listLabel: "背板",
+        listLabel: "backplane",
         icon: <PanelTop />,
         minSize: DEFAULT_MIN_SIZE,
         showInCreateMenu: true,
         // 背板只是视觉容器，既不是素材也不参与计数。
     },
-    [CanvasNodeType.Workflow]: { label: "工作流", icon: <PanelTop />, minSize: { width: 720, height: 400 }, showInCreateMenu: false, showOutputConnection: false },
-    [CanvasNodeType.WorkflowControl]: { label: "工作流进度", icon: <Settings2 />, minSize: { width: 300, height: 160 }, showInCreateMenu: false, showOutputConnection: false },
+    [CanvasNodeType.Workflow]: { label: "Workflow", icon: <PanelTop />, minSize: { width: 720, height: 400 }, showInCreateMenu: false, showOutputConnection: false },
+    [CanvasNodeType.WorkflowControl]: { label: "Workflow progress", icon: <Settings2 />, minSize: { width: 300, height: 160 }, showInCreateMenu: false, showOutputConnection: false },
     [CanvasNodeType.Markdown]: {
         label: "Markdown",
         icon: <FileText />,
@@ -135,7 +135,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "text",
     },
     [CanvasNodeType.Panorama]: {
-        label: "全景",
+        label: "Panorama",
         icon: <Globe />,
         minSize: MEDIA_NODE_MIN_SIZE,
         showInCreateMenu: true,
@@ -143,7 +143,7 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "image",
     },
     [CanvasNodeType.Compare]: {
-        label: "对比",
+        label: "Contrast",
         icon: <Columns2 />,
         minSize: MEDIA_NODE_MIN_SIZE,
         showInCreateMenu: true,
@@ -151,18 +151,18 @@ const BUILTIN_NODE_TRAITS = {
         inputKind: "image",
     },
     [CanvasNodeType.Chart]: {
-        label: "图表",
+        label: "chart",
         icon: <ChartColumn />,
         minSize: DEFAULT_MIN_SIZE,
         showInCreateMenu: true,
         inputKind: "text",
     },
-    [CanvasNodeType.BatchTable]: { label: "批量创作表", icon: <Table2 />, minSize: { width: 1080, height: 420 }, showInCreateMenu: true, acceptsInputKind: "image", inputKind: "text", resourceKind: () => null },
-    [CanvasNodeType.Director]: { label: "导演台", icon: <Clapperboard />, minSize: { width: 320, height: 320 }, showInCreateMenu: true, resourceKind: () => null },
-    [CanvasNodeType.MediaConversion]: { label: "转换", icon: <WandSparkles />, minSize: { width: 400, height: 360 }, showInCreateMenu: true, resourceKind: (node: CanvasNodeData) => { const c = node.metadata?.mediaConversion; return c?.status === "completed" && c.resultStorageKey ? (c.outputKind === "video" ? "video" : "image") : null; }, acceptsInputKind: ["image", "video"], maxInputCount: 1, inputKind: "image" },
-    [CanvasNodeType.Upscale]: { label: "AI超分", icon: <WandSparkles />, minSize: { width: 360, height: 240 }, showInCreateMenu: true, resourceKind: () => null, acceptsInputKind: ["image", "video"] },
+    [CanvasNodeType.BatchTable]: { label: "Batch creation table", icon: <Table2 />, minSize: { width: 1080, height: 420 }, showInCreateMenu: true, acceptsInputKind: "image", inputKind: "text", resourceKind: () => null },
+    [CanvasNodeType.Director]: { label: "Director's desk", icon: <Clapperboard />, minSize: { width: 320, height: 320 }, showInCreateMenu: true, resourceKind: () => null },
+    [CanvasNodeType.MediaConversion]: { label: "Convert", icon: <WandSparkles />, minSize: { width: 400, height: 360 }, showInCreateMenu: true, resourceKind: (node: CanvasNodeData) => { const c = node.metadata?.mediaConversion; return c?.status === "completed" && c.resultStorageKey ? (c.outputKind === "video" ? "video" : "image") : null; }, acceptsInputKind: ["image", "video"], maxInputCount: 1, inputKind: "image" },
+    [CanvasNodeType.Upscale]: { label: "AI super score", icon: <WandSparkles />, minSize: { width: 360, height: 240 }, showInCreateMenu: true, resourceKind: () => null, acceptsInputKind: ["image", "video"] },
     [CanvasNodeType.ColorGrade]: {
-        label: "调色",
+        label: "Color grading",
         icon: <Palette />,
         minSize: MEDIA_NODE_MIN_SIZE,
         showInCreateMenu: true,

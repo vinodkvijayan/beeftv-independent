@@ -33,14 +33,14 @@ function mergeValue(current: unknown, before: unknown, after: unknown): unknown 
     if (record(current) && record(before) && record(after)) {
         const next = { ...current };
         for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
-            if (["__proto__", "constructor", "prototype"].includes(key)) throw new Error("无效的画布增量字段");
+            if (["__proto__", "constructor", "prototype"].includes(key)) throw new Error("Invalid canvas increment field");
             const value = mergeValue(current[key], before[key], after[key]);
             if (value === undefined) delete next[key];
             else next[key] = value;
         }
         return next;
     }
-    throw new Error("Agent 画布增量与本地内容冲突，需要校准；已保留本地编辑");
+    throw new Error("Agent canvas delta conflicts with local content and needs calibration; local edits preserved");
 }
 
 // Node-level createdAt/updatedAt are stamped by the editor on load and on every
@@ -76,7 +76,7 @@ function mergeItems<T extends { id: string }>(items: T[], changes: Change<T>[], 
     const next = new Map(items.map((item) => [item.id, item]));
     for (const { before, after } of changes) {
         const id = after?.id || before?.id;
-        if (!id || (before && after && before.id !== after.id)) throw new Error("无效的画布增量节点");
+        if (!id || (before && after && before.id !== after.id)) throw new Error("Invalid canvas increment node");
         const merged = merge(next.get(id) ?? null, before, after) as T | null;
         if (merged === null) next.delete(id);
         else next.set(id, merged);
@@ -86,14 +86,14 @@ function mergeItems<T extends { id: string }>(items: T[], changes: Change<T>[], 
 }
 
 export function applyCanvasPatch(project: CanvasProject, patch: CanvasPatch): CanvasProject {
-    if (patch.canvasId !== project.id || !Array.isArray(patch.nodes) || !Array.isArray(patch.connections)) throw new Error("画布增量不属于当前画布或格式无效");
+    if (patch.canvasId !== project.id || !Array.isArray(patch.nodes) || !Array.isArray(patch.connections)) throw new Error("The canvas increment does not belong to the current canvas or the format is invalid");
     const byId = new Map(project.nodes.map((node) => [node.id, node]));
     const nodeChanges = patch.nodes.map((change) => {
         if (!change.after) return change;
         const current = byId.get(change.after.id);
         const beforeTask = change.before?.metadata?.taskId;
         const afterTask = change.after.metadata?.taskId;
-        if (beforeTask && current?.metadata?.taskId !== beforeTask && current?.metadata?.taskId !== afterTask) throw new Error("画布增量冲突：生成节点已删除或绑定另一任务，不能覆盖");
+        if (beforeTask && current?.metadata?.taskId !== beforeTask && current?.metadata?.taskId !== afterTask) throw new Error("Canvas increment conflict: The generated node has been deleted or bound to another task and cannot be overwritten.");
         if (!current || !beforeTask || beforeTask !== afterTask) return change;
         const terminal = (status: string | undefined) => ["succeeded", "failed", "cancelled"].includes(status || "");
         // A local task subscriber may already know a newer state than the SSE
@@ -117,7 +117,7 @@ export function mergeCanvasRefreshPatch(previous: CanvasProject, incoming: Canva
     // Share the repository's task-aware merge so an old receipt cannot block a retry.
     const local = settleInFlightGenerationOverlay({ base: previous, local: { ...previous, nodes, connections }, remote: incoming });
     const merged = rebaseCanvasDocumentThreeWay({ base: previous, local, remote: { ...previous, nodes: incoming.nodes, connections: incoming.connections } });
-    if (merged.conflict) throw new Error("画布更新与本地内容冲突，已保留本地编辑");
+    if (merged.conflict) throw new Error("Canvas update conflicts with local content, local edits preserved");
     const reuse = <T extends { id: string }>(before: T[], after: T[]): T[] => {
         const byId = new Map(before.map(item => [item.id, item]));
         const result = after.map(item => equal(item, byId.get(item.id)) ? byId.get(item.id)! : item);

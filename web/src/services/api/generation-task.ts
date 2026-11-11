@@ -143,13 +143,13 @@ export function prepareBackendToolGenerationTask(options: BackendToolGenerationO
         for (const part of message.content) {
             if (part.type !== "image_url") continue;
             const key = part.image_url.url;
-            if (!resourceIdFromStorageKey(key)) throw new Error("看图素材尚未保存为资源，请让助手重新读取图片后继续。");
+            if (!resourceIdFromStorageKey(key)) throw new Error("The picture material has not been saved as a resource. Please ask the assistant to re-read the picture before continuing.");
             imageKeys.add(key);
         }
     }
     const logicalModelId = logicalModelIDForConfig(options.config);
     const requestConfig = resolveModelRequestConfig(options.config, options.config.model);
-    if (!logicalModelId && !requestConfig.channelId && !requestConfig.interfaceType) throw new Error("当前模型还没选接口格式，请在模型设置里选择");
+    if (!logicalModelId && !requestConfig.channelId && !requestConfig.interfaceType) throw new Error("The interface format has not been selected for the current model. Please select it in the model settings.");
     const task: CreateTaskInput = {
         type: "canvas_text",
         operation: "text",
@@ -167,7 +167,7 @@ export function prepareBackendToolGenerationTask(options: BackendToolGenerationO
         },
     };
     if (new Blob([JSON.stringify(task)]).size > 15 * 1024 * 1024) {
-        throw new Error("本次图片或对话内容过多，请减少参考图片，或新建会话后继续。已有作品会保留。");
+        throw new Error("There are too many pictures or conversation content. Please reduce the reference pictures or create a new conversation to continue. Existing works will be retained.");
     }
     return task;
 }
@@ -187,7 +187,7 @@ export async function runBackendToolGenerationTask(options: BackendToolGeneratio
 export async function runBackendGenerationTaskBatch(options: BackendGenerationTaskOptions & { count: number }, dependencies: GenerationTaskDependencies = defaultDependencies) {
     const count = Math.max(1, Math.min(15, Math.floor(Number(options.count)) || 1));
     throwIfAborted(options.signal);
-    if (options.retryContextsByBatchIndex && options.retryContextsByBatchIndex.length !== count) throw new Error("生成重试批次任务数量不匹配");
+    if (options.retryContextsByBatchIndex && options.retryContextsByBatchIndex.length !== count) throw new Error("The number of generated retry batch tasks does not match");
     const prepared = await prepareGenerationReferences(options);
     throwIfAborted(options.signal);
     return Promise.allSettled(
@@ -225,7 +225,7 @@ export function isGenerationTaskCancelled(error: unknown, signal?: AbortSignal) 
 function assertBackendRuntimeConfigured(config: AiConfig) {
     if (logicalModelIDForConfig(config)) return;
     const requestConfig = resolveModelRequestConfig(config, config.model);
-    if (!requestConfig.channelId && !requestConfig.interfaceType) throw new Error("当前模型还没选接口格式，请在模型设置里选择");
+    if (!requestConfig.channelId && !requestConfig.interfaceType) throw new Error("The interface format has not been selected for the current model. Please select it in the model settings.");
 }
 
 function throwIfAborted(signal?: AbortSignal) {
@@ -284,7 +284,7 @@ async function createBackendGenerationTask(options: BackendGenerationTaskOptions
         // Only this admission error guarantees that no task/upstream submission exists.
         if (!(error instanceof ApiError) || error.reason !== "reference_media_requires_url") throw error;
         const groups = ["referenceImages", "referenceVideos", "referenceAudios"] as const;
-        const labels = ["参考图片", "参考视频", "参考音频"];
+        const labels = ["Reference pictures", "Reference video", "Reference audio"];
         const references: ReferenceLinkRequest[] = [];
         const transport = resolveModelRequestConfig(options.config, options.config.model).referenceMediaTransport;
         const required = error.details?.requiredReferences;
@@ -293,7 +293,7 @@ async function createBackendGenerationTask(options: BackendGenerationTaskOptions
             const mediaKind = (["image", "video", "audio"] as const)[kind];
             if (needsURL(mediaKind, index) && (media.storageKey || !isReferenceHTTPSLink(media.url || ""))) references.push({ key: `${group}:${index}`, label: `${labels[kind]} ${index + 1}`, name: media.name, resourceID: resourceIdFromStorageKey(media.storageKey) || undefined, upload: transport?.[mediaKind] !== "link" });
         }));
-        if (prepared.mask && needsURL("image", 0, true) && (prepared.mask.storageKey || !isReferenceHTTPSLink(prepared.mask.url || ""))) references.push({ key: "mask:0", label: "遮罩", name: prepared.mask.name, resourceID: resourceIdFromStorageKey(prepared.mask.storageKey) || undefined, upload: transport?.image !== "link" });
+        if (prepared.mask && needsURL("image", 0, true) && (prepared.mask.storageKey || !isReferenceHTTPSLink(prepared.mask.url || ""))) references.push({ key: "mask:0", label: "Mask", name: prepared.mask.name, resourceID: resourceIdFromStorageKey(prepared.mask.storageKey) || undefined, upload: transport?.image !== "link" });
         if (!references.length) throw error;
         const nodeId = options.metadata?.nodeId;
         const target = options.projectId && typeof nodeId === "string" && nodeId ? { projectId: options.projectId, nodeId } : undefined;
@@ -303,7 +303,7 @@ async function createBackendGenerationTask(options: BackendGenerationTaskOptions
         throwIfAborted(options.signal);
         if (!links || references.some((reference) => !links[reference.key])) throw error;
         for (const reference of references) {
-            if (!isReferenceHTTPSLink(links[reference.key] || "")) throw new Error(`${reference.label}需要有效的 HTTPS 链接`);
+            if (!isReferenceHTTPSLink(links[reference.key] || "")) throw new Error(`${reference.label}Requires a valid HTTPS link`);
         }
         const replace = <T extends { id?: string; name?: string; url?: string }>(items: T[], group: string): T[] =>
             items.map((media, index) => {
@@ -381,13 +381,13 @@ async function prepareBackendMediaReference(media: ReferenceVideo | ReferenceAud
     let blob: Blob | null = null;
     if (media.storageKey) blob = await getMediaBlob(media.storageKey);
     if (!blob && (url.startsWith("blob:") || url.startsWith("data:"))) blob = await (await fetch(url)).blob();
-    if (!blob) throw new Error("参考媒体尚未保存，请重新上传后再生成");
+    if (!blob) throw new Error("The reference media has not been saved, please re-upload it and generate it again.");
     try {
         const kind: "video" | "audio" | "file" = blob.type.startsWith("video/") ? "video" : blob.type.startsWith("audio/") ? "audio" : "file";
         const resource = await uploadResourceFile(blob, kind, { fileName: media.name, width: "width" in media ? media.width : undefined, height: "height" in media ? media.height : undefined, durationMs: media.durationMs });
         return backendMediaReference(media, { storageKey: resourceStorageKey(resource.id), type: resource.mimeType || media.type || blob.type });
     } catch (error) {
-        throw new Error(error instanceof Error ? `参考媒体上传失败：${error.message}` : "参考媒体上传失败");
+        throw new Error(error instanceof Error ? `Reference media upload failed:${error.message}` : "Reference media upload failed");
     }
 }
 
@@ -397,12 +397,12 @@ async function prepareBackendImageReference(image: ReferenceImage, preferArkAsse
     const sourceUrl = image.url || image.dataUrl;
     if (/^https?:\/\//i.test(sourceUrl)) return backendImageReference(image, { url: sourceUrl });
     const blob = image.storageKey ? await getImageBlob(image.storageKey) : sourceUrl ? await (await fetch(sourceUrl)).blob() : null;
-    if (!blob) throw new Error("参考图片尚未保存，请重新上传后再生成");
+    if (!blob) throw new Error("The reference image has not been saved, please re-upload it and generate it again.");
     try {
         const resource = await uploadResourceFile(blob, "image", { fileName: image.name });
         return backendImageReference(image, { storageKey: resourceStorageKey(resource.id), type: resource.mimeType || image.type || blob.type });
     } catch (error) {
-        throw new Error(error instanceof Error ? `参考图片上传失败：${error.message}` : "参考图片上传失败");
+        throw new Error(error instanceof Error ? `Reference image upload failed:${error.message}` : "Reference image upload failed");
     }
 }
 
@@ -512,8 +512,8 @@ function omittedImageQuality(value: string | undefined, request: { model: string
 }
 
 export function parseBackendGenerationResult(task: GenerationTask): BackendGenerationResult {
-    if (!task.resultJson) throw new Error("后端任务没有返回结果");
+    if (!task.resultJson) throw new Error("Backend task returns no results");
     const result = JSON.parse(task.resultJson) as BackendGenerationResult;
-    if (!result || typeof result !== "object") throw new Error("后端任务结果格式错误");
+    if (!result || typeof result !== "object") throw new Error("Backend task result format error");
     return result;
 }

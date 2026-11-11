@@ -41,7 +41,7 @@ export const useCanvasHistoryStore = create<CanvasHistoryStore>()(
                 const now = new Date().toISOString();
                 const newItems: DeletedCanvasHistoryItem[] = projects.map((p) => ({
                     id: p.id,
-                    title: p.title || "未命名画布",
+                    title: p.title || "Unnamed canvas",
                     createdAt: p.createdAt || p.updatedAt || now,
                     updatedAt: p.updatedAt || now,
                     deletedAt: now,

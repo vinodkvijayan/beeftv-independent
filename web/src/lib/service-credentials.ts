@@ -9,20 +9,20 @@ const SIGNATURE_CREDENTIALS: Record<string, { apiKeyLabel: string; secretKeyLabe
     "volcengine-v4": {
         apiKeyLabel: "Access Key（AK）",
         secretKeyLabel: "Secret Key（SK）",
-        apiKeyHelp: "即梦用火山引擎的 AK/SK 签名，不是方舟的 API Key：这里填 Access Key，下面的 Secret Key 填 Secret Key，两个都要有。",
-        secretKeyHelp: "和上面的 Access Key 成对使用。",
+        apiKeyHelp: "Jimeng uses the AK/SK signature of the Volcano engine, not the API Key of Ark: fill in the Access Key here, and fill in the Secret Key in the Secret Key below. You must have both.",
+        secretKeyHelp: "Used in pairs with the Access Key above.",
     },
     tc3: {
         apiKeyLabel: "SecretId",
         secretKeyLabel: "SecretKey",
-        apiKeyHelp: "腾讯云接口用 SecretId 和 SecretKey 签名：这里填 SecretId，下面的 Secret Key 填 SecretKey，两个都要有。",
-        secretKeyHelp: "和上面的 SecretId 成对使用。",
+        apiKeyHelp: "The Tencent Cloud interface is signed with SecretId and SecretKey: fill in SecretId here, and fill in SecretKey in the Secret Key below. Both must be present.",
+        secretKeyHelp: "Used in pairs with the SecretId above.",
     },
     "aws-sigv4": {
         apiKeyLabel: "Access Key ID",
         secretKeyLabel: "Secret Access Key",
-        apiKeyHelp: "AWS 接口用 Access Key ID 和 Secret Access Key 签名：这里填 Access Key ID，下面的 Secret Key 填 Secret Access Key。",
-        secretKeyHelp: "和上面的 Access Key ID 成对使用。",
+        apiKeyHelp: "The AWS interface is signed with Access Key ID and Secret Access Key: fill in the Access Key ID here, and fill in the Secret Access Key for the Secret Key below.",
+        secretKeyHelp: "Used in pairs with the Access Key ID above.",
     },
 };
 const SIGNATURE_AUTH_TYPES = new Set(Object.keys(SIGNATURE_CREDENTIALS));
@@ -38,12 +38,12 @@ const BUILTIN_SIGNATURE_PROTOCOLS: Record<string, string> = {
 const ARK_AGENT_PLAN_PROTOCOLS = new Set(["volcengine-ark-agent-plan-video", "volcengine-ark-agent-plan-image"]);
 const ARK_NATIVE_PROTOCOLS = new Set(["volcengine-ark-video", "volcengine-ark-image"]);
 
-const STANDARD_KEY_HELP = "选择无鉴权协议（例如 Ollama）后可以留空。读取模型目录仍需要密钥。";
-const ARK_KEY_HELP = "方舟有两类 Key，不能混用：普通方舟 Key 配 /api/v3，Agent Plan 专属 Key 配 /api/plan/v3，一个连接只填一种。选好模型和协议后，这里会写明填哪一种。";
-const ARK_AGENT_PLAN_HELP = "只填 Agent Plan 专属 Key。填成普通方舟 Key 会调用失败，还可能多扣费。";
-const ARK_NATIVE_HELP = "普通方舟 Key，用于方舟原生接口（/api/v3）。Agent Plan 专属 Key 不要填在这里。";
-const ARK_MIXED = "这个连接里的模型分别要用普通方舟 Key 和 Agent Plan 专属 Key，一份 Key 只能配一种接口：请拆成两个连接。";
-const SIGNATURE_MIXED = "这个连接里既有 AK/SK 签名的模型，也有只填 API Key 的模型：请拆成两个连接，一个连接只放同一种凭证的模型。";
+const STANDARD_KEY_HELP = "Can be left blank after selecting a non-authentication protocol (e.g. Ollama). Reading the model directory still requires the key.";
+const ARK_KEY_HELP = "Ark has two types of keys, which cannot be mixed: the ordinary Ark key is matched with /api/v3, and the Agent Plan exclusive key is matched with /api/plan/v3. Only one type should be filled in for a connection. After selecting the model and protocol, it will be written which one to fill in.";
+const ARK_AGENT_PLAN_HELP = "Only fill in the Agent Plan exclusive Key. Filling in a normal Ark Key will cause the call to fail and may result in extra charges.";
+const ARK_NATIVE_HELP = "Common Ark Key, used for Ark native interface (/api/v3). Agent Plan Exclusive Key Do not fill in here.";
+const ARK_MIXED = "The models in this connection need to use ordinary Ark Key and Agent Plan exclusive Key respectively. One Key can only be equipped with one kind of interface: please split it into two connections.";
+const SIGNATURE_MIXED = "This connection contains both AK/SK signed models and models that only fill in the API Key: please split it into two connections, and only put the model with the same certificate in one connection.";
 
 /** none 表示协议自己不要凭证，因此不参与「一份连接一种凭证」的判断。 */
 export type ServiceCredentialKind = "ark-native" | "ark-agent-plan" | "signature" | "standard" | "none";
@@ -86,7 +86,7 @@ export function protocolCredentialKind(protocol?: string, authType?: string): Se
 export function signatureCredentialHint(authType?: string): string | undefined {
     const copy = authType ? SIGNATURE_CREDENTIALS[authType] : undefined;
     if (!copy) return undefined;
-    return `这个协议要用${copy.apiKeyLabel}和${copy.secretKeyLabel}两个密钥签名：「连接信息」的密钥栏填${copy.apiKeyLabel}，「高级设置」里填${copy.secretKeyLabel}，缺一个会签名失败。`;
+    return `This protocol needs to be used${copy.apiKeyLabel}and${copy.secretKeyLabel}Two key signature: fill in the key field of "Connection Information"${copy.apiKeyLabel}, fill in "Advanced Settings"${copy.secretKeyLabel}, if one is missing, the signature will fail.`;
 }
 
 function hostOf(baseUrl: string) {
@@ -133,22 +133,22 @@ export function serviceCredentialGuide(channel: CredentialChannel, protocols: Mo
     const signatureMixed = signatureAuths.size > 1 || (kinds.has("signature") && kinds.size > 1);
     if (arkMixed || signatureMixed) {
         const conflict = arkMixed ? ARK_MIXED
-            : signatureAuths.size > 1 ? `这个连接里的模型分别要用 ${[...signatureAuths].map((auth) => SIGNATURE_CREDENTIALS[auth].apiKeyLabel).join(" 和 ")} 签名，一份密钥只能配一种：请拆成两个连接。`
+            : signatureAuths.size > 1 ? `The models in this connection need to be used respectively${[...signatureAuths].map((auth) => SIGNATURE_CREDENTIALS[auth].apiKeyLabel).join(" and")} Signature, one key can only match one type: please split it into two connections.`
             : SIGNATURE_MIXED;
         // 混用时字段说明和下方提示会重复，只留下面那一条。
-        return { kind: "mixed", apiKeyLabel: "API Key", apiKeyPlaceholder: "粘贴你的 API Key", apiKeyHelp: "", secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false, conflict };
+        return { kind: "mixed", apiKeyLabel: "API Key", apiKeyPlaceholder: "Paste your API Key", apiKeyHelp: "", secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false, conflict };
     }
     // 还没选模型时只靠域名判断：即梦开放平台只有 AK/SK 一种凭证。
     const [signatureAuth] = signatureAuths.size ? [...signatureAuths] : !awaitingCredential && isJimengHost(channel.baseUrl) ? ["volcengine-v4"] : [];
     if (signatureAuth) {
         const copy = SIGNATURE_CREDENTIALS[signatureAuth];
-        return { kind: "signature", apiKeyLabel: copy.apiKeyLabel, apiKeyPlaceholder: `粘贴 ${copy.apiKeyLabel.replace(/（.*$/, "")}`, apiKeyHelp: copy.apiKeyHelp, secretKeyLabel: copy.secretKeyLabel, secretKeyHelp: copy.secretKeyHelp, secretKeyRequired: true };
+        return { kind: "signature", apiKeyLabel: copy.apiKeyLabel, apiKeyPlaceholder: `Paste${copy.apiKeyLabel.replace(/（.*$/, "")}`, apiKeyHelp: copy.apiKeyHelp, secretKeyLabel: copy.secretKeyLabel, secretKeyHelp: copy.secretKeyHelp, secretKeyRequired: true };
     }
-    if (kinds.has("ark-agent-plan")) return { kind: "ark-agent-plan", apiKeyLabel: "Agent Plan 专属 Key", apiKeyPlaceholder: "粘贴 Agent Plan 专属 Key", apiKeyHelp: ARK_AGENT_PLAN_HELP, secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false };
-    if (kinds.has("ark-native")) return { kind: "ark-native", apiKeyLabel: "方舟 API Key", apiKeyPlaceholder: "粘贴方舟 API Key", apiKeyHelp: ARK_NATIVE_HELP, secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false };
+    if (kinds.has("ark-agent-plan")) return { kind: "ark-agent-plan", apiKeyLabel: "Agent Plan Exclusive Key", apiKeyPlaceholder: "Paste the Agent Plan exclusive Key", apiKeyHelp: ARK_AGENT_PLAN_HELP, secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false };
+    if (kinds.has("ark-native")) return { kind: "ark-native", apiKeyLabel: "Ark API Key", apiKeyPlaceholder: "Paste Ark API Key", apiKeyHelp: ARK_NATIVE_HELP, secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false };
     // 插件接入的服务由插件读取模型，「目录仍需要密钥」那句对它不成立。
     const pluginService = protocols.find((item) => item.module && item.value === channel.interfaceType);
-    const apiKeyHelp = pluginService ? (pluginService.authType === "none" ? "这个服务不用密钥，可以留空。" : "")
+    const apiKeyHelp = pluginService ? (pluginService.authType === "none" ? "This service does not require a key and can be left blank." : "")
         : isArkHost(channel.baseUrl) ? ARK_KEY_HELP : STANDARD_KEY_HELP;
-    return { kind: "standard", apiKeyLabel: "API Key", apiKeyPlaceholder: "粘贴你的 API Key", apiKeyHelp, secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false };
+    return { kind: "standard", apiKeyLabel: "API Key", apiKeyPlaceholder: "Paste your API Key", apiKeyHelp, secretKeyLabel: "Secret Key（SK）", secretKeyRequired: false };
 }

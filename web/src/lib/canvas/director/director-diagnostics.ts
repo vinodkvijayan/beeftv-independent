@@ -30,17 +30,17 @@ const CODE_SET: ReadonlySet<string> = new Set(DIRECTOR_DIAGNOSTIC_CODES);
 
 /** 固定文案：调用方不得传入任意字符串，避免业务正文经 message 泄漏。 */
 const MESSAGES: Record<DirectorDiagnosticCode, string> = {
-    DIRECTOR_VIEWPORT_RENDER_FAILED: "导演台 3D 视口渲染失败",
-    DIRECTOR_VIEWPORT_CONTEXT_LOST: "导演台 WebGL 上下文丢失",
-    DIRECTOR_VIEWPORT_CONTEXT_RESTORED: "导演台 WebGL 上下文已恢复",
-    DIRECTOR_MODEL_LOAD_FAILED: "导演台 3D 模型加载失败",
-    DIRECTOR_MODEL_LOAD_RETRY: "导演台 3D 模型重试加载",
-    DIRECTOR_MODEL_ADOPT_FAILED: "导演台 3D 模型采纳失败",
-    DIRECTOR_SAVE_FLUSH_FAILED: "导演台场景保存失败",
-    DIRECTOR_SAVE_RETRY_FAILED: "导演台场景重试保存仍失败",
-    DIRECTOR_SAVE_RETRY_RECOVERED: "导演台场景重试保存成功",
-    DIRECTOR_SAVE_DRAFT_UNAVAILABLE: "导演台本地草稿不可用",
-    DIRECTOR_CLOSE_BLOCKED: "导演台关闭被阻止",
+    DIRECTOR_VIEWPORT_RENDER_FAILED: "Director's desk 3D viewport rendering fails",
+    DIRECTOR_VIEWPORT_CONTEXT_LOST: "Director's desk WebGL context lost",
+    DIRECTOR_VIEWPORT_CONTEXT_RESTORED: "Director's desk WebGL context restored",
+    DIRECTOR_MODEL_LOAD_FAILED: "Director's desk 3D model failed to load",
+    DIRECTOR_MODEL_LOAD_RETRY: "Director's desk 3D model retry loading",
+    DIRECTOR_MODEL_ADOPT_FAILED: "Director's desk 3D model failed to be adopted",
+    DIRECTOR_SAVE_FLUSH_FAILED: "Director's desk scene failed to save",
+    DIRECTOR_SAVE_RETRY_FAILED: "Retrying to save the director's desk scene still failed",
+    DIRECTOR_SAVE_RETRY_RECOVERED: "Director's desk scene retry and save successfully",
+    DIRECTOR_SAVE_DRAFT_UNAVAILABLE: "Director's desk local draft is not available",
+    DIRECTOR_CLOSE_BLOCKED: "Director's desk closed blocked",
 };
 
 const LEVELS: Record<DirectorDiagnosticCode, "info" | "warning" | "error"> = {

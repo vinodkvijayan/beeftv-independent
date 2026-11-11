@@ -6,7 +6,7 @@ type CanvasImagePreviewProps = {
     onClose: () => void;
 };
 
-export function CanvasImagePreview({ src, alt = "图片", onClose }: CanvasImagePreviewProps) {
+export function CanvasImagePreview({ src, alt = "pictures", onClose }: CanvasImagePreviewProps) {
     if (!src) return null;
 
     return (

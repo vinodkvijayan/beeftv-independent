@@ -46,12 +46,12 @@ export type DirectorOnboardingStep = {
 
 /** 引导步骤按首次使用的最短操作路径排列：添加演员 → 移动 → 调姿 → 轨迹 → CAM → 应用。 */
 export const DIRECTOR_ONBOARDING_STEPS: DirectorOnboardingStep[] = [
-    { id: "actor", title: "添加并选中演员", detail: "在左侧「快速添加」点演员；模板已有演员时，直接在场景树或视口选中它。", mode: "layout" },
-    { id: "move", title: "把演员移动到表演位置", detail: "保持摆场模式，在底部 dock 选移动工具（W），拖动轴手柄；右栏可输入精确坐标。", mode: "layout" },
-    { id: "pose", title: "调整演员姿态", detail: "切到姿态模式，在右侧选择姿势预设；模型有骨骼时还可选择手臂、腿和躯干微调。", mode: "pose" },
-    { id: "path", title: "记录一段走位", detail: "切到动画模式，在起点和终点分别移动播放头、摆放演员并记录 Transform 关键帧，再播放预览。", mode: "animate" },
-    { id: "camera", title: "用 CAM 检查构图", detail: "切到摄影机模式，再点视口工具栏 CAM；调整焦距、焦点和机位，确认安全框内的画面。", mode: "camera" },
-    { id: "apply", title: "应用到镜头", detail: "确认场景、姿态、走位和 CAM 构图后，点顶栏「应用到镜头」生成静帧并回写画布。", mode: "camera" },
+    { id: "actor", title: "Add and select actors", detail: "Click Actor in \"Quick Add\" on the left; if the template already has an actor, select it directly in the scene tree or viewport.", mode: "layout" },
+    { id: "move", title: "Move the actor to the performance position", detail: "Keep the swing mode, select the move tool (W) in the bottom dock, and drag the axis handle; you can enter precise coordinates in the right column.", mode: "layout" },
+    { id: "pose", title: "Adjust the actor's posture", detail: "Switch to pose mode and select pose presets on the right; if the model has bones, you can also select arm, leg and torso fine-tuning.", mode: "pose" },
+    { id: "path", title: "Record a move", detail: "Switch to animation mode, move the playhead at the starting point and end point, place the actors, record the Transform keyframes, and then play the preview.", mode: "animate" },
+    { id: "camera", title: "Check composition with CAM", detail: "Switch to camera mode and click CAM on the viewport toolbar; adjust the focal length, focus and camera position to confirm the image within the safety frame.", mode: "camera" },
+    { id: "apply", title: "Apply to lens", detail: "After confirming the scene, posture, movement and CAM composition, click \"Apply to Lens\" on the top bar to generate a still frame and write it back to the canvas.", mode: "camera" },
 ];
 
 export type DirectorOnboardingProgress = {
@@ -169,7 +169,7 @@ export type DirectorOnboardingStorage = {
  */
 function requireScope(scope: string) {
     const normalized = scope.trim();
-    if (!normalized) throw new Error("缺少导演台引导的用户 scope");
+    if (!normalized) throw new Error("Missing user scope for director console guidance");
     return normalized;
 }
 

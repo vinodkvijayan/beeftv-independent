@@ -13,14 +13,14 @@ import { libtvCurrentVisibleMedia } from "@/lib/canvas/libtv-current-media";
 export function createLibTvStoryboardFixture(): CanvasNodeData[] {
     const nodes: CanvasNodeData[] = [];
     const groups = [
-        { id: "01", title: "分镜组01｜少年归来·骑行驶来→停车眺望→取随身听", x: -650, y: -280, colors: ["#223b5d", "#486b8b", "#c28b56"] },
-        { id: "02", title: "分镜组02｜逃离此地·戴耳机→走入稻田→感受风", x: 450, y: -280, colors: ["#415443", "#81966c", "#d2a86a"] },
+        { id: "01", title: "Storyboard 01｜The return of the boy·riding on bicycle→stop and look at→get the Walkman", x: -650, y: -280, colors: ["#223b5d", "#486b8b", "#c28b56"] },
+        { id: "02", title: "Storyboard 02｜Escape from this place·wear headphones→walk into the rice fields→feel the wind", x: 450, y: -280, colors: ["#415443", "#81966c", "#d2a86a"] },
     ];
 
     for (const group of groups) {
         const frame = createCanvasNode(CanvasNodeType.Frame, { x: group.x + 470, y: group.y + 280 }, {
             workflowKind: "storyboard",
-            workflowTitle: `分镜组 ${group.id}`,
+            workflowTitle: `Storyboard${group.id}`,
             frame: { collapsed: false, expandedWidth: 940, expandedHeight: 560 },
         });
         frame.title = group.title;
@@ -30,7 +30,7 @@ export function createLibTvStoryboardFixture(): CanvasNodeData[] {
         frame.metadata = { ...frame.metadata, fixture: "libtv-storyboard" };
         nodes.push(frame);
 
-        ["骑行驶来", "停车眺望", "取随身听"].forEach((shot, index) => {
+        ["Riding here", "Parking and looking out", "Get a walkman"].forEach((shot, index) => {
             const image = createCanvasNode(CanvasNodeType.Image, { x: group.x + 190 + index * 285, y: group.y + 295 }, {
                 content: fixtureImage(group.colors[index], shot),
                 status: "success",
@@ -49,11 +49,11 @@ export function createLibTvStoryboardFixture(): CanvasNodeData[] {
     }
 
     const looseText = createCanvasNode(CanvasNodeType.Text, { x: 550, y: 220 }, {
-        content: "岩井俊二美学\n冷色、自然光、青春与消逝。",
+        content: "Shunji Iwai’s Aesthetics\nCool colors, natural light, youth and fading.",
         workflowKind: "styleboard",
-        workflowTitle: "项目画风",
+        workflowTitle: "Project style",
     });
-    looseText.title = "岩井俊二美学";
+    looseText.title = "Shunji Iwai’s Aesthetics";
     looseText.metadata = { ...looseText.metadata, fixture: "libtv-storyboard" };
     nodes.push(looseText);
 
@@ -80,10 +80,10 @@ export function createLibTvReadonlyDenseFixture(): CanvasNodeData[] {
             ...(nodeType === CanvasNodeType.Video ? { previewContent: media?.src || "" } : {}),
             status: "success",
             workflowKind: "shot",
-            workflowTitle: item.text || `BLUE NIGHT 节点 ${index + 1}`,
+            workflowTitle: item.text || `BLUE NIGHT node${index + 1}`,
         });
         node.id = `libtv-current-${item.type}-${index + 1}`;
-        node.title = item.text || `BLUE NIGHT 节点 ${index + 1}`;
+        node.title = item.text || `BLUE NIGHT node${index + 1}`;
         node.width = item.width / viewport.k;
         node.height = item.height / viewport.k;
         node.position = { x: (item.x - viewport.x) / viewport.k, y: (item.y - viewport.y) / viewport.k };
@@ -139,7 +139,7 @@ function createLibTvReadonlyDenseGroupedFixture(): CanvasNodeData[] {
         });
         image.id = `libtv-dense-media-${index + 1}`;
         image.parentId = owner.frame.id;
-        image.title = `${owner.id} 素材 ${index + 1}`;
+        image.title = `${owner.id} Material${index + 1}`;
         image.position = { x: worldX, y: worldY };
         image.width = media.width * 10;
         image.height = media.height * 10;
@@ -154,11 +154,11 @@ function createLibTvReadonlyDenseGroupedFixture(): CanvasNodeData[] {
             content: "",
             status: "success",
             workflowKind: "shot",
-            workflowTitle: audio.text || `音频 ${index + 1}`,
+            workflowTitle: audio.text || `Audio${index + 1}`,
         });
         node.id = `libtv-dense-audio-${index + 1}`;
         node.parentId = owner.frame.id;
-        node.title = audio.text || `音频 ${index + 1}`;
+        node.title = audio.text || `Audio${index + 1}`;
         node.position = { x: worldX, y: worldY };
         node.width = audio.width * 10;
         node.height = audio.height * 10;
@@ -180,27 +180,27 @@ function createLibTvReadonlyDenseGridFixture(): CanvasNodeData[] {
         { id: "16", x: 8000, y: 7600, tone: "#514e56" },
     ];
     const shots = [
-        ["雨夜车站", "#243d52"],
-        ["人物定妆", "#5a6872"],
-        ["深夜街景", "#1b2d3f"],
-        ["道具特写", "#8a6d4b"],
-        ["远景镜头", "#38586b"],
-        ["情绪近景", "#263f52"],
-        ["地下通道", "#243344"],
-        ["角色群像", "#51606c"],
-        ["雾中建筑", "#31495b"],
-        ["手部特写", "#806545"],
-        ["车站远景", "#2b5266"],
-        ["灯光测试", "#435466"],
-        ["夜行镜头", "#1c2a38"],
-        ["道具设计", "#6c5a49"],
-        ["最终画面", "#344d5f"],
-        ["夜景素材", "#263b4b"],
-        ["角色侧脸", "#53636b"],
-        ["场景概念", "#3e5663"],
-        ["雾气测试", "#617069"],
-        ["服装参考", "#6c594c"],
-        ["镜头草图", "#30495b"],
+        ["Rainy night station", "#243d52"],
+        ["Character makeup", "#5a6872"],
+        ["late night street scene", "#1b2d3f"],
+        ["Close-up of props", "#8a6d4b"],
+        ["long shot", "#38586b"],
+        ["Emotional close-up", "#263f52"],
+        ["Underpass", "#243344"],
+        ["Character group portrait", "#51606c"],
+        ["Building in fog", "#31495b"],
+        ["Hand close-up", "#806545"],
+        ["Station view", "#2b5266"],
+        ["Light test", "#435466"],
+        ["night walking footage", "#1c2a38"],
+        ["prop design", "#6c5a49"],
+        ["final screen", "#344d5f"],
+        ["night scene material", "#263b4b"],
+        ["character profile", "#53636b"],
+        ["scene concept", "#3e5663"],
+        ["Fog test", "#617069"],
+        ["Clothing reference", "#6c594c"],
+        ["shot sketch", "#30495b"],
     ] as const;
     const columns = 7;
     const rows = 3;
@@ -253,16 +253,16 @@ function createLibTvReadonlyDenseGridFixture(): CanvasNodeData[] {
 export function createLibTvVideoFixture(contentOverride?: string): CanvasNodeData[] {
     const video = createCanvasNode(CanvasNodeType.Video, { x: 80, y: 40 }, {
         content: "data:video/mp4;base64,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",
-        previewContent: fixtureImage("#294c68", "风吹稻田"),
+        previewContent: fixtureImage("#294c68", "wind blowing rice fields"),
         status: "success",
-        prompt: "雨夜车站，冷色自然光与湿润路面反光",
+        prompt: "Station on a rainy night, cold natural light and wet road reflection",
         mimeType: "video/mp4",
         durationMs: 5000,
         seconds: "5s",
         workflowKind: "shot",
-        workflowTitle: "视频结果｜风吹稻田",
+        workflowTitle: "Video results｜Wind blowing rice fields",
     });
-    video.title = "视频结果｜风吹稻田";
+    video.title = "Video results｜Wind blowing rice fields";
     video.width = 720;
     video.height = 405;
     video.metadata = { ...video.metadata, fixture: "libtv-video" };
@@ -278,7 +278,7 @@ export function createLibTvVideoConversionFixture(contentOverride?: string): { n
         mediaConversion: createDefaultMediaConversionState(),
     });
     conversion.id = "libtv-video-conversion-target";
-    conversion.title = "视频首帧转换";
+    conversion.title = "Video first frame conversion";
     conversion.metadata = { ...conversion.metadata, fixture: "libtv-video-conversion" };
     return { nodes: [video, conversion], connection: { id: "libtv-video-conversion-edge", fromNodeId: video.id, toNodeId: conversion.id } };
 }
@@ -287,13 +287,13 @@ export function createLibTvVideoConversionFixture(contentOverride?: string): { n
 export function createLibTvVideoSubtitleFixture(contentOverride?: string): CanvasNodeData[] {
     const [video] = createLibTvVideoFixture(contentOverride);
     video.id = "libtv-video-subtitle-fixture";
-    video.title = "视频结果｜字幕样片";
+    video.title = "Video results｜Subtitle samples";
     video.metadata = {
         ...video.metadata,
         fixture: "libtv-video-subtitle",
         subtitleEntries: [
-            { index: 0, startMs: 0, endMs: 2200, text: "风从稻田吹来" },
-            { index: 1, startMs: 2400, endMs: 4800, text: "镜头保持冷色自然光" },
+            { index: 0, startMs: 0, endMs: 2200, text: "The wind blows from the rice fields" },
+            { index: 1, startMs: 2400, endMs: 4800, text: "The lens maintains cool natural light" },
         ],
         subtitleStyle: { ...createDefaultSubtitleStyle(), fontSize: 24, color: "#ffffff", position: "bottom", maxCharsPerEntry: 32, highlightRadius: 8 },
         subtitleUpdatedAt: new Date(0).toISOString(),
@@ -307,9 +307,9 @@ export function createLibTvVideoMergeFixture(contentOverride?: string): CanvasNo
     const second: CanvasNodeData = {
         ...first,
         id: "libtv-video-fixture-2",
-        title: "视频结果｜车站远景",
+        title: "Video results｜Station perspective",
         position: { x: first.position.x + first.width + 96, y: first.position.y },
-        metadata: { ...first.metadata, fixture: "libtv-video-merge", prompt: "车站远景，冷色自然光" },
+        metadata: { ...first.metadata, fixture: "libtv-video-merge", prompt: "Long view of the station, cool natural light" },
     };
     first.metadata = { ...first.metadata, fixture: "libtv-video-merge" };
     return [first, second];
@@ -319,14 +319,14 @@ export function createLibTvAudioFixture(): CanvasNodeData[] {
     const audio = createCanvasNode(CanvasNodeType.Audio, { x: 80, y: 40 }, {
         content: "data:audio/wav;base64,UklGRoYGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAATElTVBoAAABJTkZPSVNGVA0AAABMYXZmNjAuMy4xMDAAAGRhdGFABgAAAABrBTIKxQ22D80PBQ6UCuQFgQAP+zP2f/Jk8CHwv/EM9ab5//52BGYJOw1+D+0Peg5QC9AGggEG/AP3D/Ok8AnwUfFX9L34/v19A5IIpAw3D/0P4A4ADLUHgQIB/dz3rfPz8AHw8/Cs89v3AP2AArQH/wvfDv0PNw+kDJMIfQP//b34V/RS8Qnwo/AP8wL3BfyBAc8GTwt5Du0Pfw87DWcJdwT//qb5DfW/8SHwY/B+8jL2DvuAAOMFlAoEDs0Ptw/FDTMKbAUBAJX6zvU78krwM/D78Wz1HPp///EEzQmBDZwP3w9BDvQKWgYBAYr7mvbF8oLwE/CG8bD0MPl+/voD/QjxDFwP9w+vDqkLQwcCAoP8bvdc88nwA/Ag8QD0S/h//f8CJAhTDA0P/w8ND1QMJQgAA4D9TPgB9CHxA/DJ8FzzbfeD/AECQwepC64O9w9dD/EM/gj7A3/+Mfmx9IfxE/CB8MXymfaJ+wEBWgbzCkEO3w+dD4INzgnyBID/Hfps9fzxM/BJ8DvyzfWU+v//awUyCsUNtg/NDwUOlArkBYEAD/sz9n/yZPAh8L/xDPWm+f/+dgRmCTsNfg/tD3oOUAvQBoIBBvwD9w/zpPAJ8FHxV/S9+P79fQOSCKQMNw/9D+AOAAy1B4ECAf3c963z8/AB8PPwrPPb9wD9gAK0B/8L3w79DzcPpAyTCH0D//29+Ff0UvEJ8KPwD/MC9wX8gQHPBk8LeQ7tD38POw1nCXcE//6m+Q31v/Eh8GPwfvIy9g77gADjBZQKBA7ND7cPxQ0zCmwFAQCV+s71O/JK8DPw+/Fs9Rz6f//xBM0JgQ2cD98PQQ70CloGAQGK+5r2xfKC8BPwhvGw9DD5fv76A/0I8QxcD/cPrw6pC0MHAgKD/G73XPPJ8APwIPEA9Ev4f/3/AiQIUwwND/8PDQ9UDCUIAAOA/Uz4AfQh8QPwyfBc8233g/wBAkMHqQuuDvcPXQ/xDP4I+wN//jH5sfSH8RPwgfDF8pn2ifsBAVoG8wpBDt8PnQ+CDc4J8gSA/x36bPX88TPwSfA78s31lPr//2sFMgrFDbYPzQ8FDpQK5AWBAA/7M/Z/8mTwIfC/8Qz1pvn//nYEZgk7DX4P7Q96DlAL0AaCAQb8A/cP86TwCfBR8Vf0vfj+/X0DkgikDDcP/Q/gDgAMtQeBAgH93Pet8/PwAfDz8Kzz2/cA/YACtAf/C98O/Q83D6QMkwh9A//9vfhX9FLxCfCj8A/zAvcF/IEBzwZPC3kO7Q9/DzsNZwl3BP/+pvkN9b/xIfBj8H7yMvYO+4AA4wWUCgQOzQ+3D8UNMwpsBQEAlfrO9TvySvAz8PvxbPUc+n//8QTNCYENnA/fD0EO9ApaBgEBivua9sXygvAT8IbxsPQw+X7++gP9CPEMXA/3D68OqQtDBwICg/xu91zzyfAD8CDxAPRL+H/9/wIkCFMMDQ//Dw0PVAwlCAADgP1M+AH0IfED8MnwXPNt94P8AQJDB6kLrg73D10P8Qz+CPsDf/4x+bH0h/ET8IHwxfKZ9on7AQFaBvMKQQ7fD50Pgg3OCfIEgP8d+mz1/PEz8EnwO/LN9ZT6//9rBTIKxQ22D80PBQ6UCuQFgQAP+zP2f/Jk8CHwv/EM9ab5//52BGYJOw1+D+0Peg5QC9AGggEG/AP3D/Ok8AnwUfFX9L34/v19A5IIpAw3D/0P4A4ADLUHgQIB/dz3rfPz8AHw8/Cs89v3AP2AArQH/wvfDv0PNw+kDJMIfQP//b34V/RS8Qnwo/AP8wL3BfyBAc8GTwt5Du0Pfw87DWcJdwT//qb5DfW/8SHwY/B+8jL2DvuAAOMFlAoEDs0Ptw/FDTMKbAUBAJX6zvU78krwM/D78Wz1HPp///EEzQmBDZwP3w9BDvQKWgYBAYr7mvbF8oLwE/CG8bD0MPl+/voD/QjxDFwP9w+vDqkLQwcCAoP8bvdc88nwA/Ag8QD0S/h//f8CJAhTDA0P/w8ND1QMJQgAA4D9TPgB9CHxA/DJ8FzzbfeD/AECQwepC64O9w9dD/EM/gj7A3/+Mfmx9IfxE/CB8MXymfaJ+wEBWgbzCkEO3w+dD4INzgnyBID/Hfps9fzxM/BJ8DvyzfWU+g==",
         status: "success",
-        prompt: "风吹稻田，轻柔环境声与自然呼吸感",
+        prompt: "The wind blows in the rice fields, the gentle ambient sound and the sense of natural breathing",
         mimeType: "audio/wav",
         durationMs: 100,
-        audioVoice: "中文",
+        audioVoice: "Chinese",
         audioFormat: "wav",
         audioSpeed: "1.0",
     });
-    audio.title = "音频结果｜风吹稻田";
+    audio.title = "Audio results｜Wind blowing rice fields";
     audio.width = 320;
     audio.height = 320;
     audio.metadata = { ...audio.metadata, fixture: "libtv-audio" };
@@ -335,14 +335,14 @@ export function createLibTvAudioFixture(): CanvasNodeData[] {
 
 export function createLibTvTextFixture(): CanvasNodeData[] {
     const text = createCanvasNode(CanvasNodeType.Text, { x: 80, y: 40 }, {
-        content: "镜头基调：冷色自然光，保留青春感与空气中的风。",
+        content: "The tone of the lens: cool natural light, retaining the sense of youth and the wind in the air.",
         status: "success",
-        prompt: "生成镜头基调：冷色自然光，保留青春感与空气中的风",
+        prompt: "Generate lens tone: cool natural light, retaining youthfulness and wind in the air",
         workflowKind: "styleboard",
-        workflowTitle: "文本结果｜镜头基调",
+        workflowTitle: "Text results | Lens tone",
         fontSize: 24,
     });
-    text.title = "文本结果｜镜头基调";
+    text.title = "Text results | Lens tone";
     text.width = 420;
     text.height = 240;
     text.metadata = { ...text.metadata, fixture: "libtv-text" };
@@ -360,7 +360,7 @@ export function createLibTvEmptyTextFixture(): CanvasNodeData[] {
         fontSize: 14,
     });
     text.id = "libtv-empty-text-fixture";
-    text.title = "文本节点1";
+    text.title = "text node 1";
     text.width = 350;
     text.height = 350;
     const { status: _status, ...emptyTextMetadata } = text.metadata || {};
@@ -374,9 +374,9 @@ export function createLibTvGeneratingFixture(): CanvasNodeData[] {
     const image = createCanvasNode(CanvasNodeType.Image, { x: 80, y: 40 }, {
         status: "loading",
         workflowKind: "shot",
-        workflowTitle: "生成中｜雨夜车站",
+        workflowTitle: "Generating｜Rainy Night Station",
     });
-    image.title = "生成中｜雨夜车站";
+    image.title = "Generating｜Rainy Night Station";
     image.width = 480;
     image.height = 270;
     image.metadata = {
@@ -388,7 +388,7 @@ export function createLibTvGeneratingFixture(): CanvasNodeData[] {
         taskCreatedAt: new Date(0).toISOString(),
         taskStatus: "running",
         taskProgress: 42,
-        taskStage: "正在生成画面",
+        taskStage: "Generating screen",
         taskProvider: "Lib Image 2.5 Pro",
     };
     return [image];

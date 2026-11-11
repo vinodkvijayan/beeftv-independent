@@ -133,10 +133,10 @@ export function createDiagnosticEventStore(options: {
         async snapshot(range?: { from?: Date; to?: Date }) {
             const state = current;
             const capturedEpoch = epoch;
-            if (!state) throw new Error("诊断记录尚未初始化");
+            if (!state) throw new Error("Diagnostic logging has not been initialized");
             await state.ready;
             await state.writes;
-            if (current !== state || epoch !== capturedEpoch) throw new Error("账号已切换，请重新导出诊断包");
+            if (current !== state || epoch !== capturedEpoch) throw new Error("The account has been switched, please re-export the diagnostic package.");
             trim(state);
             const events = this.events(range);
             const coverage: ClientDiagnosticCoverage = {

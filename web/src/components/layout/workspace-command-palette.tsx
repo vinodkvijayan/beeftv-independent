@@ -43,7 +43,7 @@ export function WorkspaceCommandPalette({ open, onClose }: { open: boolean; onCl
             },
         }));
         return [
-            { id: "home", title: "首页", icon: Home, to: "/" },
+            { id: "home", title: "Home page", icon: Home, to: "/" },
             toolEntry("projects", "/project"),
             toolEntry("canvas", "/canvas"),
             toolEntry("assets", "/assets"),
@@ -125,7 +125,7 @@ export function WorkspaceCommandPalette({ open, onClose }: { open: boolean; onCl
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             className="min-w-0 flex-1 bg-transparent text-[var(--fs-body)] outline-none placeholder:text-foreground/45"
-                            placeholder="搜索页面或操作…"
+                            placeholder="Search page or action…"
                         />
                         <Kbd onClick={onClose} className="hidden shrink-0 cursor-pointer transition-colors hover:bg-surface-hover hover:text-foreground sm:inline-flex">
                             ⌘K
@@ -134,7 +134,7 @@ export function WorkspaceCommandPalette({ open, onClose }: { open: boolean; onCl
                             type="button"
                             onClick={onClose}
                             className="ml-0.5 shrink-0 rounded-md p-1 text-foreground/50 transition-colors hover:bg-surface-hover hover:text-foreground"
-                            aria-label="关闭搜索"
+                            aria-label="Close search"
                         >
                             <X className="size-4" strokeWidth={1.6} />
                         </button>
@@ -167,7 +167,7 @@ export function WorkspaceCommandPalette({ open, onClose }: { open: boolean; onCl
                     ) : (
                         <div className="flex flex-col items-center justify-center py-8">
                             <Command className="mb-2 size-6 text-foreground/30" strokeWidth={1.5} />
-                            <p className="text-[var(--fs-caption)] font-medium text-foreground/55">未找到「{query}」相关页面</p>
+                            <p className="text-[var(--fs-caption)] font-medium text-foreground/55">Not found "{query}》Related pages</p>
                         </div>
                     )}
                 </div>

@@ -83,7 +83,7 @@ export function AppWorkspaceShell({ children }: { children: ReactNode }) {
     return (
         <>
             <div className={cn("app-workspace-shell flex h-dvh min-h-0 w-full flex-col overflow-hidden", spatialWorkbench && "is-spatial", creationWorkspace && "is-creation-workspace")}>
-                {!hideChrome && mobileSidebarExpanded ? <button type="button" className="app-workspace-sidebar-scrim lg:hidden" aria-label="收起侧栏" onClick={() => setMobileSidebarExpanded(false)} /> : null}
+                {!hideChrome && mobileSidebarExpanded ? <button type="button" className="app-workspace-sidebar-scrim lg:hidden" aria-label="Collapse sidebar" onClick={() => setMobileSidebarExpanded(false)} /> : null}
 
                 <div className="app-workspace-main-row flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     {!hideChrome ? (
@@ -106,7 +106,7 @@ export function AppWorkspaceShell({ children }: { children: ReactNode }) {
 
                     <div className="app-workspace-stage relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                         {!hideChrome ? (
-                            <button type="button" className="app-workspace-mobile-menu app-workspace-topbar-icon-button app-workspace-floating-menu" aria-label="展开侧栏" onClick={toggleSidebar}>
+                            <button type="button" className="app-workspace-mobile-menu app-workspace-topbar-icon-button app-workspace-floating-menu" aria-label="Expand sidebar" onClick={toggleSidebar}>
                                 <PanelLeftOpen className="size-4" strokeWidth={1.7} />
                             </button>
                         ) : null}

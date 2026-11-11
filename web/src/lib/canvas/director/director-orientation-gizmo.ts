@@ -5,12 +5,12 @@ export type DirectorOrientation = [number, number, number, number];
 export type DirectorAxisHead = { id: string; label: string; mode?: DirectorViewMode; x: number; y: number; depth: number };
 
 const axes: Array<{ id: string; label: string; mode?: DirectorViewMode; direction: [number, number, number] }> = [
-    { id: "x+", label: "右视", mode: "right", direction: [1, 0, 0] },
-    { id: "x-", label: "左视", mode: "left", direction: [-1, 0, 0] },
-    { id: "y+", label: "俯视", mode: "top", direction: [0, 1, 0] },
-    { id: "y-", label: "下方", direction: [0, -1, 0] },
-    { id: "z+", label: "正视", mode: "front", direction: [0, 0, 1] },
-    { id: "z-", label: "背视", mode: "back", direction: [0, 0, -1] },
+    { id: "x+", label: "right view", mode: "right", direction: [1, 0, 0] },
+    { id: "x-", label: "left view", mode: "left", direction: [-1, 0, 0] },
+    { id: "y+", label: "looking down", mode: "top", direction: [0, 1, 0] },
+    { id: "y-", label: "below", direction: [0, -1, 0] },
+    { id: "z+", label: "Face it squarely", mode: "front", direction: [0, 0, 1] },
+    { id: "z-", label: "dorsal view", mode: "back", direction: [0, 0, -1] },
 ];
 
 /** Project world axes into the active camera's screen plane. */

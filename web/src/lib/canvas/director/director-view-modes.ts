@@ -43,13 +43,13 @@ const CAPABILITIES: Record<DirectorViewMode, DirectorViewModeCapabilities> = {
 };
 
 export const DIRECTOR_VIEW_MODES: Array<{ mode: DirectorViewMode; label: string; hint: string }> = [
-    { mode: "free", label: "3D", hint: "自由视角：拖拽环绕、滚轮缩放" },
-    { mode: "camera", label: "CAM", hint: "机位视图：按当前镜头的摄影机取景，环绕已锁定" },
-    { mode: "top", label: "TOP", hint: "俯视：从正上方向下看，正交投影，环绕已锁定" },
-    { mode: "front", label: "FRONT", hint: "正视：沿 -Z 方向看向场景，正交投影，环绕已锁定" },
-    { mode: "back", label: "BACK", hint: "背视：沿 +Z 方向看向场景，正交投影，环绕已锁定" },
-    { mode: "left", label: "LEFT", hint: "左视：沿 +X 方向看向场景，正交投影，环绕已锁定" },
-    { mode: "right", label: "RIGHT", hint: "右视：沿 -X 方向看向场景，正交投影，环绕已锁定" },
+    { mode: "free", label: "3D", hint: "Free perspective: drag to surround, scroll wheel to zoom" },
+    { mode: "camera", label: "CAM", hint: "Camera view: Framed according to the camera of the current shot, surround is locked" },
+    { mode: "top", label: "TOP", hint: "Top view: looking down from directly above, orthographic projection, surround locked" },
+    { mode: "front", label: "FRONT", hint: "Front view: looking into the scene in the -Z direction, orthographic projection, surround locked" },
+    { mode: "back", label: "BACK", hint: "Back view: looking into the scene in the +Z direction, orthographic projection, surround locked" },
+    { mode: "left", label: "LEFT", hint: "Left view: looking into the scene in the +X direction, orthographic projection, surround locked" },
+    { mode: "right", label: "RIGHT", hint: "Right view: looking into the scene in the -X direction, orthographic projection, surround locked" },
 ];
 
 export const DIRECTOR_DEFAULT_VIEW_MODE: DirectorViewMode = "free";

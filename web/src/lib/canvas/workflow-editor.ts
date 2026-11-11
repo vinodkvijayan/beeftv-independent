@@ -9,10 +9,10 @@ export function workflowDurationSources(definition: WorkflowDefinition, nodeId: 
     return definition.nodes.filter(node => ids.has(node.id) && node.mediaType === "video");
 }
 export function genericWorkflowNodeTitle(node: WorkflowNode, operations: WorkflowOperation[] = []) {
-    const labels = { image: "图片", video: "视频", audio: "音频", text: "文本" };
+    const labels = { image: "pictures", video: "video", audio: "Audio", text: "text" };
     const id = workflowOperationId(node);
-    if (isWorkflowOperation(node)) return operations.find(item => item.id === id)?.name || ({ "video.depth": "深度提取", "video.trim": "视频剪辑", "video.merge": "视频拼接", "image.crop": "图片裁切", "image.resize": "调整图片尺寸", "video.crop": "视频画面裁切", "video.frame": "截取视频帧", "video.audio": "提取视频音频" } as Record<string, string>)[id] || `${id.startsWith("generate.") || node.role === "generation" ? "生成" : "处理"}${labels[node.mediaType]}`;
-    return `${labels[node.mediaType]}${node.role === "input" ? "输入" : "参考"}`;
+    if (isWorkflowOperation(node)) return operations.find(item => item.id === id)?.name || ({ "video.depth": "Deep extraction", "video.trim": "video clip", "video.merge": "Video splicing", "image.crop": "Picture cropping", "image.resize": "Resize image", "video.crop": "Video screen cropping", "video.frame": "Capture video frames", "video.audio": "Extract video audio" } as Record<string, string>)[id] || `${id.startsWith("generate.") || node.role === "generation" ? "generate" : "Process"}${labels[node.mediaType]}`;
+    return `${labels[node.mediaType]}${node.role === "input" ? "input" : "Reference"}`;
 }
 
 /** Number default names without changing custom names or existing numbered references. */
@@ -37,7 +37,7 @@ export const workflowOperationDefaults = (operation: WorkflowOperation) => Objec
 
 export function switchWorkflowOperation(definition: WorkflowDefinition, id: string, operation: WorkflowOperation): WorkflowDefinition {
     if (operation.unavailableReason) throw new Error(operation.unavailableReason);
-    if (operation.id.startsWith("generate.")) throw new Error("请为模型步骤选择已成功的画布配方");
+    if (operation.id.startsWith("generate.")) throw new Error("Please select a successful canvas recipe for the model step");
     const node = definition.nodes.find(n => n.id === id);
     if (!node) return definition;
     const config = workflowOperationDefaults(operation);
@@ -79,14 +79,14 @@ export function workflowEditorPositions(definition: WorkflowDefinition) {
 
 export function connectWorkflowDraft(definition: WorkflowDefinition, from: string, to: string, toPort: string, operations: WorkflowOperation[]): WorkflowDefinition {
     const source = definition.nodes.find(node => node.id === from), target = definition.nodes.find(node => node.id === to);
-    if (!source || !target || from === to) throw new Error("请选择两个不同的有效节点");
+    if (!source || !target || from === to) throw new Error("Please select two different valid nodes");
     const candidates = operations.find(operation => operation.id === workflowOperationId(target))?.inputs.filter(input => input.mediaType === source.mediaType) || [];
-    if (!candidates.length) throw new Error(`「${target.title}」不支持接收此类素材`);
+    if (!candidates.length) throw new Error(`「${target.title}"Does not support receiving this type of material`);
     const available = (id: string, multiple: boolean) => multiple || !definition.edges.some(edge => edge.toNodeId === to && edge.toPort === id);
     const port = candidates.find(input => input.id === toPort && available(input.id, input.multiple))
         || candidates.find(input => definition.edges.some(edge => edge.fromNodeId === from && edge.toNodeId === to && edge.toPort === input.id))
         || candidates.find(input => available(input.id, input.multiple));
-    if (!port) throw new Error(`「${target.title}」的同类输入已连接，请先移除旧连线`);
+    if (!port) throw new Error(`「${target.title}"The same type of input has been connected, please remove the old connection first`);
     toPort = port.id;
     if (definition.edges.some(edge => edge.fromNodeId === from && edge.toNodeId === to && edge.toPort === toPort)) return definition;
     const visit = (id: string, seen = new Set<string>()): boolean => {
@@ -95,7 +95,7 @@ export function connectWorkflowDraft(definition: WorkflowDefinition, from: strin
         seen.add(id);
         return definition.edges.filter(edge => edge.fromNodeId === id).some(edge => visit(edge.toNodeId, seen));
     };
-    if (visit(to)) throw new Error("此连线会形成循环");
+    if (visit(to)) throw new Error("This connection will form a loop");
     const used = new Set(definition.edges.filter(edge => edge.toNodeId === to && edge.toPort === toPort).map(edge => edge.order || 0));
     let order = 0;
     while (used.has(order)) order++;
@@ -103,27 +103,27 @@ export function connectWorkflowDraft(definition: WorkflowDefinition, from: strin
 }
 
 export function validateWorkflowDraft(definition: WorkflowDefinition, operations: WorkflowOperation[]) {
-    if (!definition.nodes.length) throw new Error("请添加节点");
-    if (!definition.outputNodeIds.length) throw new Error("请选择至少一个工作流输出");
-    if (!definition.nodes.some(isWorkflowOperation)) throw new Error("请添加至少一个处理步骤");
+    if (!definition.nodes.length) throw new Error("Please add node");
+    if (!definition.outputNodeIds.length) throw new Error("Please select at least one workflow output");
+    if (!definition.nodes.some(isWorkflowOperation)) throw new Error("Please add at least one processing step");
     const ids = new Set(definition.nodes.map(node => node.id));
-    if (ids.size !== definition.nodes.length) throw new Error("节点 ID 重复");
+    if (ids.size !== definition.nodes.length) throw new Error("Duplicate node ID");
     for (const node of definition.nodes) {
-        if (!node.title.trim()) throw new Error("请填写节点名称");
-        if (node.videoDurationSourceNodeId && (workflowOperationId(node) !== "generate.video" || !workflowDurationSources(definition, node.id).some(source => source.id === node.videoDurationSourceNodeId))) throw new Error(`「${node.title}」的时长参考视频已断开，请重新选择`);
-        if (node.role === "constant" && (node.mediaType === "text" ? !node.text?.trim() : !node.resourceId)) throw new Error(`「${node.title}」缺少固定内容`);
+        if (!node.title.trim()) throw new Error("Please fill in the node name");
+        if (node.videoDurationSourceNodeId && (workflowOperationId(node) !== "generate.video" || !workflowDurationSources(definition, node.id).some(source => source.id === node.videoDurationSourceNodeId))) throw new Error(`「${node.title}The duration reference video of " has been disconnected, please select again.`);
+        if (node.role === "constant" && (node.mediaType === "text" ? !node.text?.trim() : !node.resourceId)) throw new Error(`「${node.title}"Lack of fixed content`);
         if (isWorkflowOperation(node)) {
             const operation = operations.find(item => item.id === workflowOperationId(node));
-            if (!operation) throw new Error(`「${node.title}」的处理能力不可用`);
+            if (!operation) throw new Error(`「${node.title}” processing power is not available`);
             if (operation.unavailableReason) throw new Error(`「${node.title}」：${operation.unavailableReason}`);
-            for (const input of operation.inputs) if (input.required && !definition.edges.some(edge => edge.toNodeId === node.id && edge.toPort === input.id)) throw new Error(`「${node.title}」缺少「${input.label}」输入`);
+            for (const input of operation.inputs) if (input.required && !definition.edges.some(edge => edge.toNodeId === node.id && edge.toPort === input.id)) throw new Error(`「${node.title}"Missing"${input.label}"Input`);
         }
     }
-    if (definition.outputNodeIds.some(id => !ids.has(id))) throw new Error("输出节点已不存在");
-    if (definition.edges.some(edge => !ids.has(edge.fromNodeId) || !ids.has(edge.toNodeId))) throw new Error("连线引用了已删除节点");
+    if (definition.outputNodeIds.some(id => !ids.has(id))) throw new Error("The output node no longer exists");
+    if (definition.edges.some(edge => !ids.has(edge.fromNodeId) || !ids.has(edge.toNodeId))) throw new Error("The wire references a deleted node");
     const active = new Set<string>(), complete = new Set<string>();
     const visit = (id: string) => {
-        if (active.has(id)) throw new Error("工作流包含循环连线");
+        if (active.has(id)) throw new Error("Workflow contains looping wires");
         if (complete.has(id)) return;
         active.add(id);
         for (const edge of definition.edges.filter(edge => edge.fromNodeId === id)) visit(edge.toNodeId);
@@ -134,7 +134,7 @@ export function validateWorkflowDraft(definition: WorkflowDefinition, operations
         const source = definition.nodes.find(node => node.id === edge.fromNodeId)!;
         const target = definition.nodes.find(node => node.id === edge.toNodeId)!;
         const port = operations.find(operation => operation.id === workflowOperationId(target))?.inputs.find(input => input.id === edge.toPort);
-        if (!port || port.mediaType !== source.mediaType) throw new Error(`「${target.title}」的输入类型或端口不匹配`);
+        if (!port || port.mediaType !== source.mediaType) throw new Error(`「${target.title}'' does not match the input type or port`);
     }
 }
 /** Freeze existing coordinates and place appended nodes beside the current graph. */

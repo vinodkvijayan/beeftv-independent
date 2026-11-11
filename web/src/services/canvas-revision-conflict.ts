@@ -4,7 +4,7 @@ import { projectSyncProgress, useSyncProgressStore } from "@/stores/use-sync-pro
 import { getActiveUserScope } from "@/lib/user-scope";
 
 export class CanvasBackendSubmitPausedError extends Error {
-    constructor(message = "画布有未处理的外部改动，本次未提交") {
+    constructor(message = "The canvas has unprocessed external changes and has not been submitted this time.") {
         super(message);
         this.name = "CanvasBackendSubmitPausedError";
     }
@@ -32,8 +32,8 @@ export async function preserveCanvasConflictDraft(id: string, project: CanvasPro
         const { preserveCanvasSyncDraft } = await import("@/services/canvas-sync-drafts");
         await preserveCanvasSyncDraft(project, scope);
     } catch (draftError) {
-        console.error("画布冲突草稿保留失败", { id, error: draftError });
-        if (options.required) throw new Error("当前内容没能存成草稿，画布没有替换。请先下载当前内容再试。");
+        console.error("Canvas conflict draft retention failed", { id, error: draftError });
+        if (options.required) throw new Error("The current content could not be saved as a draft and the canvas was not replaced. Please download the current content and try again.");
     }
 }
 
@@ -49,10 +49,10 @@ export async function handleRejectedCanvasBackendSave(id: string, project: Canva
 }
 
 const SAVE_PROGRESS_MESSAGES = {
-    pending: "正在保存",
-    saving: "正在保存",
-    done: "画布已保存",
-    error: "保存没有完成，修改仍保留在本机。",
+    pending: "Saving",
+    saving: "Saving",
+    done: "Canvas saved",
+    error: "The save is not completed and the modifications are still retained on this machine.",
 } as const;
 
 export type CanvasBackendSaveProgressPhase = keyof typeof SAVE_PROGRESS_MESSAGES;
@@ -74,7 +74,7 @@ export function clearCanvasBackendSaveProgress(id: string, scope: string) {
     useSyncProgressStore.getState().setProjectProgress(id, null, scope);
 }
 
-export function pauseCanvasBackendSubmit(id: string, scope = getActiveUserScope(), message = "画布已被其他入口修改，本次改动未提交；现有内容已保留在本机") {
+export function pauseCanvasBackendSubmit(id: string, scope = getActiveUserScope(), message = "The canvas has been modified by other entries and this change has not been submitted; the existing content has been retained on this machine") {
     useSyncProgressStore.getState().setProjectProgress(id, { phase: "conflict", message }, scope);
 }
 
@@ -86,5 +86,5 @@ export function canvasBackendSubmitPaused(id: string, scope = getActiveUserScope
 /** 后端已接受这次提交：解除暂停，画布恢复自动保存。 */
 export function resumeCanvasBackendSubmit(id: string, scope = getActiveUserScope()) {
     if (!canvasBackendSubmitPaused(id, scope)) return;
-    useSyncProgressStore.getState().setProjectProgress(id, { phase: "done", message: "画布已保存" }, scope);
+    useSyncProgressStore.getState().setProjectProgress(id, { phase: "done", message: "Canvas saved" }, scope);
 }

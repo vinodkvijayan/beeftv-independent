@@ -12,18 +12,18 @@ import "./canvas-workflow.css";
 function WorkflowSaveName({ node, disabled, onRename }: { node: WorkflowNode; disabled: boolean; onRename(title: string): void }) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(node.title);
-    return editing ? <Input autoFocus aria-label={`重命名：${node.title}`} maxLength={80} disabled={disabled} value={value}
+    return editing ? <Input autoFocus aria-label={`Rename:${node.title}`} maxLength={80} disabled={disabled} value={value}
         onChange={event => setValue(event.target.value)} onPressEnter={event => event.currentTarget.blur()}
         onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); setEditing(false); } }}
         onBlur={() => { if (value.trim()) onRename(value.trim()); setEditing(false); }} />
-        : <><span className="min-w-0 flex-1 break-words">{node.title}</span><Button type="text" size="small" disabled={disabled} aria-label={`重命名：${node.title}`} icon={<Pencil className="size-3.5" />} onClick={() => { setValue(node.title); setEditing(true); }} /></>;
+        : <><span className="min-w-0 flex-1 break-words">{node.title}</span><Button type="text" size="small" disabled={disabled} aria-label={`Rename:${node.title}`} icon={<Pencil className="size-3.5" />} onClick={() => { setValue(node.title); setEditing(true); }} /></>;
 }
 
 export function CanvasWorkflowSave({ initial, externalCount, onClose, onSave }: {
     initial: WorkflowDefinition; externalCount: number; onClose(): void;
     onSave(input: { name: string; description: string; definition: WorkflowDefinition }): Promise<CanvasWorkflow>;
 }) {
-    const [name, setName] = useState("我的工作流");
+    const [name, setName] = useState("my workflow");
     const [description, setDescription] = useState("");
     const [definition, setDefinition] = useState(() => {
         const titles = initial.nodes.map(node => workflowSlotTitle(node, initial));
@@ -60,45 +60,45 @@ export function CanvasWorkflowSave({ initial, externalCount, onClose, onSave }: 
         if (saving) return;
         setSaving(true); setError("");
         try {
-            if (!name.trim()) throw new Error("请填写工作流名称");
-            if (definition.nodes.some(node => !node.title.trim())) throw new Error("请填写节点名称");
+            if (!name.trim()) throw new Error("Please fill in the workflow name");
+            if (definition.nodes.some(node => !node.title.trim())) throw new Error("Please fill in the node name");
             await onSave({ name: name.trim(), description: description.trim(), definition: prepareWorkflowDefinition(definition) });
-        } catch (cause) { setError(cause instanceof Error ? cause.message : "保存失败，请重试"); }
+        } catch (cause) { setError(cause instanceof Error ? cause.message : "Save failed, please try again"); }
         finally { setSaving(false); }
     };
     return <AppModal open flush closable={false} footer={null} width="min(1040px, calc(100vw - 32px))" onCancel={() => { if (!saving) onClose(); }} maskClosable={!saving} keyboard={!saving}>
-        <section className="workflow-surface flex max-h-[90vh] flex-col" data-canvas-no-zoom data-canvas-no-drag data-canvas-wheel-scroll aria-label="保存工作流">
-            <header className="flex items-center justify-between border-b border-border px-6 py-4"><h2 className="font-semibold">保存工作流</h2><Button type="text" aria-label="关闭保存工作流" icon={<X className="size-4" />} disabled={saving} onClick={onClose} /></header>
+        <section className="workflow-surface flex max-h-[90vh] flex-col" data-canvas-no-zoom data-canvas-no-drag data-canvas-wheel-scroll aria-label="Save workflow">
+            <header className="flex items-center justify-between border-b border-border px-6 py-4"><h2 className="font-semibold">Save workflow</h2><Button type="text" aria-label="Close save workflow" icon={<X className="size-4" />} disabled={saving} onClick={onClose} /></header>
             <div className="flex min-h-0 flex-col gap-6 overflow-y-auto p-6">
                 {error ? <Alert type="error" title={error} showIcon /> : null}
-                <label className="flex flex-col gap-2">名称<Input autoFocus value={name} onChange={event => setName(event.target.value)} maxLength={80} disabled={saving} aria-label="工作流名称" /></label>
+                <label className="flex flex-col gap-2">Name<Input autoFocus value={name} onChange={event => setName(event.target.value)} maxLength={80} disabled={saving} aria-label="Workflow name" /></label>
                 <div className="workflow-save-path">
-                    <section className="workflow-save-stage"><h3>可替换素材</h3><p>勾选的素材，每次使用时重新选择。</p>
-                        {inputs.length ? inputs.map(node => <div key={node.id} className="workflow-save-node"><Checkbox aria-label={`每次替换：${node.title}`} checked={node.role === "input"} disabled={saving} onChange={event => setRole(node.id, event.target.checked ? "input" : "constant")} />{nameRow(node)}{node.role === "constant" ? <span className="shrink-0 text-xs text-muted-foreground">固定</span> : null}</div>) : <p>无需额外素材</p>}
+                    <section className="workflow-save-stage"><h3>Replaceable materials</h3><p>The checked materials will be re-selected each time they are used.</p>
+                        {inputs.length ? inputs.map(node => <div key={node.id} className="workflow-save-node"><Checkbox aria-label={`Replace every time:${node.title}`} checked={node.role === "input"} disabled={saving} onChange={event => setRole(node.id, event.target.checked ? "input" : "constant")} />{nameRow(node)}{node.role === "constant" ? <span className="shrink-0 text-xs text-muted-foreground">Fixed</span> : null}</div>) : <p>No additional material required</p>}
                     </section>
                     <ArrowRight className="workflow-save-arrow size-4 text-muted-foreground" aria-hidden />
-                    <section className="workflow-save-stage"><h3>处理过程</h3><p>沿用已成功运行的模型和参数。</p>
+                    <section className="workflow-save-stage"><h3>Processing</h3><p>Inherit the model and parameters from a successful run.</p>
                         {steps.map(node => {
                             const parents = preview.edges.filter(edge => edge.toNodeId === node.id).map(edge => preview.nodes.find(item => item.id === edge.fromNodeId)?.title).filter(Boolean);
-                            return <div key={node.id} className="workflow-save-node flex-col items-stretch"><div className="flex items-center gap-2">{nameRow(node)}</div>{parents.length ? <span className="text-xs leading-relaxed text-muted-foreground">来自：{[...new Set(parents)].join("、")}</span> : null}</div>;
+                            return <div key={node.id} className="workflow-save-node flex-col items-stretch"><div className="flex items-center gap-2">{nameRow(node)}</div>{parents.length ? <span className="text-xs leading-relaxed text-muted-foreground">From:{[...new Set(parents)].join("、")}</span> : null}</div>;
                         })}
                     </section>
                     <ArrowRight className="workflow-save-arrow size-4 text-muted-foreground" aria-hidden />
-                    <section className="workflow-save-stage"><div className="flex items-center justify-between"><h3>保存结果</h3><Button type="text" size="small" disabled={saving} onClick={() => setChoosingResults(value => !value)}>{choosingResults ? "完成" : "更改"}</Button></div><p>每次运行后，得到这些结果。</p>
-                        {results.map(node => <div key={node.id} className="workflow-save-node">{choosingResults ? <Checkbox aria-label={`输出：${node.title}`} checked={definition.outputNodeIds.includes(node.id)} disabled={saving} onChange={event => setOutput(node.id, event.target.checked)} /> : <Check className="size-4 shrink-0 text-muted-foreground" />}{nameRow(node)}</div>)}
-                        {!results.length ? <p>请选择至少一个结果</p> : null}
+                    <section className="workflow-save-stage"><div className="flex items-center justify-between"><h3>Save results</h3><Button type="text" size="small" disabled={saving} onClick={() => setChoosingResults(value => !value)}>{choosingResults ? "Done" : "change"}</Button></div><p>After each run, I get these results.</p>
+                        {results.map(node => <div key={node.id} className="workflow-save-node">{choosingResults ? <Checkbox aria-label={`Output:${node.title}`} checked={definition.outputNodeIds.includes(node.id)} disabled={saving} onChange={event => setOutput(node.id, event.target.checked)} /> : <Check className="size-4 shrink-0 text-muted-foreground" />}{nameRow(node)}</div>)}
+                        {!results.length ? <p>Please select at least one result</p> : null}
                     </section>
                 </div>
-                {externalCount > 0 ? <p className="text-xs text-muted-foreground">相关参考素材已自动包含。</p> : null}
-                <details className="workflow-details border-t border-border pt-4"><summary>更多设置<ChevronDown className="size-4" /></summary><div className="mt-4 flex flex-col gap-4">
-                    <label className="flex flex-col gap-2 text-sm">说明（可选）<Input.TextArea value={description} onChange={event => setDescription(event.target.value)} maxLength={500} autoSize={{ minRows: 1, maxRows: 3 }} disabled={saving} placeholder="例如：替换人物，复用同一段动作" aria-label="工作流说明" /></label>
+                {externalCount > 0 ? <p className="text-xs text-muted-foreground">Relevant reference material is automatically included.</p> : null}
+                <details className="workflow-details border-t border-border pt-4"><summary>More settings<ChevronDown className="size-4" /></summary><div className="mt-4 flex flex-col gap-4">
+                    <label className="flex flex-col gap-2 text-sm">Description (optional)<Input.TextArea value={description} onChange={event => setDescription(event.target.value)} maxLength={500} autoSize={{ minRows: 1, maxRows: 3 }} disabled={saving} placeholder="For example: replace characters and reuse the same action" aria-label="Workflow description" /></label>
                     {definition.nodes.map(node => {
                         const original = initial.nodes.find(item => item.id === node.id)!;
-                        return <div key={node.id} className="flex flex-wrap items-center gap-3"><span className="min-w-32 flex-1 break-words text-sm">{node.title}</span><Select aria-label={`${node.title}的复用方式`} className="min-w-36" value={node.role} disabled={saving} onChange={role => setRole(node.id, role)} options={[{ value: "input", label: "每次可替换" }, { value: "constant", label: "固定内容" }, ...(isWorkflowOperation(original) ? [{ value: original.role, label: "执行处理步骤" }] : [])]} /><Checkbox checked={definition.outputNodeIds.includes(node.id)} disabled={saving} onChange={event => setOutput(node.id, event.target.checked)}>输出</Checkbox></div>;
+                        return <div key={node.id} className="flex flex-wrap items-center gap-3"><span className="min-w-32 flex-1 break-words text-sm">{node.title}</span><Select aria-label={`${node.title}reuse method`} className="min-w-36" value={node.role} disabled={saving} onChange={role => setRole(node.id, role)} options={[{ value: "input", label: "Replaceable every time" }, { value: "constant", label: "Fixed content" }, ...(isWorkflowOperation(original) ? [{ value: original.role, label: "Execute processing steps" }] : [])]} /><Checkbox checked={definition.outputNodeIds.includes(node.id)} disabled={saving} onChange={event => setOutput(node.id, event.target.checked)}>output</Checkbox></div>;
                     })}
                 </div></details>
             </div>
-            <footer className="flex shrink-0 justify-end gap-2 border-t border-border px-6 py-4"><Button type="text" disabled={saving} onClick={onClose}>取消</Button><Button type="primary" loading={saving} onClick={() => void save()}>保存工作流</Button></footer>
+            <footer className="flex shrink-0 justify-end gap-2 border-t border-border px-6 py-4"><Button type="text" disabled={saving} onClick={onClose}>Cancel</Button><Button type="primary" loading={saving} onClick={() => void save()}>Save workflow</Button></footer>
         </section>
     </AppModal>;
 }

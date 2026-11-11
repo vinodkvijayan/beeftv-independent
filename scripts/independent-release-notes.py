@@ -10,7 +10,7 @@ destination.write_text(
     f"""Unofficial independent Windows build of upstream BeefTV {version}.
 
 This is not an official BeefTV release and it is not signed by BeefTV.
-The interface is still the upstream Chinese UI. There is no English locale in this source.
+The interface is a machine translation of the upstream Chinese UI into English. It is not an official BeefTV localization, and some backend messages are still Chinese.
 Upstream: https://github.com/glanderness/BeefTV tag {version} ({sha}).
 License: BeefTV Source Available License 1.0 (see LICENSE). Do not represent this as an official BeefTV download.
 

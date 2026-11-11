@@ -9,9 +9,9 @@ export const DEFAULT_SUBTITLE_TRACK_ID = "subtitle-1";
 
 export function createDefaultTracks(): TimelineTrack[] {
     return [
-        { id: DEFAULT_VIDEO_TRACK_ID, kind: "video", label: "视频 1", order: 0 },
-        { id: DEFAULT_AUDIO_TRACK_ID, kind: "audio", label: "音频 1", order: 1 },
-        { id: DEFAULT_SUBTITLE_TRACK_ID, kind: "subtitle", label: "字幕 1", order: 2 },
+        { id: DEFAULT_VIDEO_TRACK_ID, kind: "video", label: "Video 1", order: 0 },
+        { id: DEFAULT_AUDIO_TRACK_ID, kind: "audio", label: "Audio 1", order: 1 },
+        { id: DEFAULT_SUBTITLE_TRACK_ID, kind: "subtitle", label: "subtitles 1", order: 2 },
     ];
 }
 
@@ -41,7 +41,7 @@ export function normalizeTimelineProject(timeline: Partial<TimelineProject> | nu
         return true;
     });
     const baseTracks = createDefaultTracks();
-    const names = { video: "视频", image: "图片", audio: "音频", subtitle: "字幕", text: "文字" };
+    const names = { video: "video", image: "pictures", audio: "Audio", subtitle: "subtitles", text: "text" };
     const counts = new Map<string, number>();
     const tracks = deduped.map((track, index) => {
         const number = (counts.get(track.kind) ?? 0) + 1;

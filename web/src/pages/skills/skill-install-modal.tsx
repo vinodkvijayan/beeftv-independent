@@ -12,7 +12,7 @@ import "./skill-install.css";
 
 const modeOptions = [
     { value: "markdown", label: <span className="inline-flex items-center gap-1.5"><FileText className="size-3.5" />Markdown</span> },
-    { value: "zip", label: <span className="inline-flex items-center gap-1.5"><FileArchive className="size-3.5" />ZIP 技能包</span> },
+    { value: "zip", label: <span className="inline-flex items-center gap-1.5"><FileArchive className="size-3.5" />ZIP skill pack</span> },
     { value: "github", label: <span className="inline-flex items-center gap-1.5"><GitBranch className="size-3.5" />GitHub</span> },
 ];
 
@@ -35,7 +35,7 @@ export function SkillInstallModal({ open, onClose, onInstalled, onManualCreate }
         if (submitting.current) return;
         const file = values.files?.[0]?.originFileObj;
         if (mode !== "github" && !file) {
-            form.setFields([{ name: "files", errors: [`请选择一个 ${mode === "zip" ? "ZIP 技能包" : "Markdown 文件"}`] }]);
+            form.setFields([{ name: "files", errors: [`Please select one${mode === "zip" ? "ZIP skill pack" : "Markdown file"}`] }]);
             return;
         }
         submitting.current = true;
@@ -58,11 +58,11 @@ export function SkillInstallModal({ open, onClose, onInstalled, onManualCreate }
                     tag: values.tag,
                     isPrivate: localRuntime || !values.is_public,
                 });
-            message.success("技能已安装");
+            message.success("Skill installed");
             onInstalled(result.skill);
         } catch (error) {
             const field = mode === "github" ? "url" : "files";
-            form.setFields([{ name: field, errors: [skillFailureMessage(error, "技能安装失败", "请检查所选文件及格式，确认连接后重新安装。")] }]);
+            form.setFields([{ name: field, errors: [skillFailureMessage(error, "Skill installation failed", "Please check the selected files and formats, confirm the connection and reinstall.")] }]);
             form.scrollToField(field, { block: "center", focus: mode === "github" });
         } finally {
             submitting.current = false;
@@ -80,16 +80,16 @@ export function SkillInstallModal({ open, onClose, onInstalled, onManualCreate }
             closable={!installing}
             keyboard={!installing}
             mask={{ closable: !installing }}
-            title="安装技能"
+            title="Installation skills"
             onCancel={() => { if (!submitting.current) onClose(); }}
             footer={(
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    {onManualCreate ? <Button type="text" disabled={installing} onClick={() => { if (!submitting.current) onManualCreate(); }}>从空白创建单文件技能</Button> : <span />}
-                    <div className="ml-auto flex gap-2"><Button disabled={installing} onClick={() => { if (!submitting.current) onClose(); }}>取消</Button><Button type="primary" form={formId} htmlType="submit" loading={installing} disabled={installing} onClick={(event) => { event.preventDefault(); if (!submitting.current) form.submit(); }}>安装技能</Button></div>
+                    {onManualCreate ? <Button type="text" disabled={installing} onClick={() => { if (!submitting.current) onManualCreate(); }}>Create single file from blank skill</Button> : <span />}
+                    <div className="ml-auto flex gap-2"><Button disabled={installing} onClick={() => { if (!submitting.current) onClose(); }}>Cancel</Button><Button type="primary" form={formId} htmlType="submit" loading={installing} disabled={installing} onClick={(event) => { event.preventDefault(); if (!submitting.current) form.submit(); }}>Installation skills</Button></div>
                 </div>
             )}
         >
-            <p className="mb-4 text-sm leading-6 text-foreground/55">支持标准 <code>SKILL.md</code> 或包含多层目录的 ZIP 技能包。名称和简介会优先从技能入口自动读取。</p>
+            <p className="mb-4 text-sm leading-6 text-foreground/55">Support standards<code>SKILL.md</code>  Or a ZIP skills package containing multiple levels of directories. The name and introduction will be automatically read from the skill portal first.</p>
             <SegmentedControl className="skill-install-mode" block disabled={installing} options={modeOptions} value={mode}
                 onChange={(value) => {
                     if (submitting.current) return;

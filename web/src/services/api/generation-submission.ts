@@ -4,7 +4,7 @@ import type { CreateTaskInput, GenerationTask } from "./task-center";
 export class GenerationSubmissionUnknownError extends Error {
     readonly code = "submission_uncertain";
     constructor(readonly operationId: string, cause: unknown) {
-        super("提交结果尚未确认，请继续查询原任务，暂勿重新生成", { cause });
+        super("The submission result has not been confirmed yet. Please continue to query the original task and do not regenerate it yet.", { cause });
         this.name = "GenerationSubmissionUnknownError";
     }
 }

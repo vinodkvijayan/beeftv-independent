@@ -76,7 +76,7 @@ export default function SkillMarketplace() {
                 if (isAssistantSettingsUnavailableError(err)) { setScriptLoadState("unavailable"); return; }
                 // 读取失败时不能沿用默认 OFF，否则会把实际已开启的设置显示成需要确认。
                 setScriptLoadState("error");
-                setScriptLoadError(err instanceof Error ? err.message : "读取技能脚本设置失败");
+                setScriptLoadError(err instanceof Error ? err.message : "Failed to read skill script settings");
             });
         return () => { cancelled = true; };
     }, [scriptReloadKey]);
@@ -85,9 +85,9 @@ export default function SkillMarketplace() {
         try {
             const settings = await updateAssistantSettings({ skillScriptAutoRun: checked });
             setScriptAutoRun(settings.skillScriptAutoRun);
-            message.success(settings.skillScriptAutoRun ? "已开启自动运行技能脚本" : "已关闭自动运行技能脚本");
+            message.success(settings.skillScriptAutoRun ? "Automatically running skill scripts has been turned on" : "Automatically running skill scripts is turned off");
         } catch (err) {
-            message.error(err instanceof Error ? err.message : "保存技能脚本设置失败");
+            message.error(err instanceof Error ? err.message : "Failed to save skill script settings");
         } finally {
             setScriptSaving(false);
         }
@@ -111,15 +111,15 @@ export default function SkillMarketplace() {
                     const pubItems = pubRes.status === "fulfilled" ? (pubRes.value.items || []) : [];
                     const notice = pubRes.status === "fulfilled" ? (pubRes.value.notice || "") : "";
                     if (hubRes.status === "rejected" && pubRes.status === "rejected") {
-                        setError(hubRes.reason?.message || "暂时无法读取技能");
+                        setError(hubRes.reason?.message || "Temporarily unable to read skills");
                         return;
                     }
                     setPublicItems(pubItems);
-                    setPublicNotice(notice || (hubRes.status === "rejected" ? "技能市场服务暂不可用，当前展示公共技能目录快照。" : ""));
+                    setPublicNotice(notice || (hubRes.status === "rejected" ? "The skill market service is temporarily unavailable, and a snapshot of the public skill catalog is currently displayed." : ""));
                     if (clampPage(hubTotal)) setItems(hubItems);
                 })
                 : listSkills({ scope: "mine", page, pageSize: SKILL_PAGE_SIZE, search: query }).then(value => { if (!stale && clampPage(value.totalCount)) setLocal(value.skills); });
-            void work.catch(e => { if (!stale) setError(e.message || "暂时无法读取技能"); }).finally(() => { if (!stale) setLoading(false); });
+            void work.catch(e => { if (!stale) setError(e.message || "Temporarily unable to read skills"); }).finally(() => { if (!stale) setLoading(false); });
         }, 200);
         return () => { stale = true; clearTimeout(timer); };
     }, [tab, page, query, revision]);
@@ -137,7 +137,7 @@ export default function SkillMarketplace() {
                 if (!result.hasMore) break;
             }
             if (!stale) setInstalled(skills);
-        })().catch(error => { if (!stale) setInstalledError(skillFailureMessage(error, "无法读取安装状态", "请刷新技能市场后重试。")); })
+        })().catch(error => { if (!stale) setInstalledError(skillFailureMessage(error, "Unable to read installation status", "Please refresh the skill market and try again.")); })
             .finally(() => { if (!stale) setInstalledLoading(false); });
         return () => { stale = true; };
     }, [tab, revision]);
@@ -147,19 +147,19 @@ export default function SkillMarketplace() {
         let stale = false;
         setBusy(true); setRelease(null);
         void getMarketRelease(skillId, releaseId).then(value => { if (!stale) setRelease(value); })
-            .catch(e => { if (!stale) message.error(skillFailureMessage(e, "无法打开技能版本", "请刷新技能市场后重新打开。")); })
+            .catch(e => { if (!stale) message.error(skillFailureMessage(e, "Unable to open skill version", "Please refresh the skill market and reopen it.")); })
             .finally(() => { if (!stale) setBusy(false); });
         return () => { stale = true; };
     }, [params, message]);
-    const action = async (work: () => Promise<unknown>, done?: string, failure = "操作未完成", nextStep = "请保留当前内容，稍后重试。") => {
+    const action = async (work: () => Promise<unknown>, done?: string, failure = "Operation not completed", nextStep = "Please keep the current content and try again later.") => {
         setBusy(true);
         try { await work(); if (done) { message.success(done); reload(); } } catch (e) { message.error(skillFailureMessage(e, failure, nextStep)); } finally { setBusy(false); }
     };
-    const openLocal = async (skill: Skill) => action(async () => { setDetail((await getSkill(skill.skillId)).skill); }, undefined, "无法打开技能详情", "请刷新“我的技能”后重新打开。");
+    const openLocal = async (skill: Skill) => action(async () => { setDetail((await getSkill(skill.skillId)).skill); }, undefined, "Unable to open skill details", "Please refresh \"My Skills\" and reopen it.");
     const openEditor = (skill?: Skill) => { setDetail(null); setEdit(skill || null); setEditorOpen(true); };
     const openRelease = (skillId: string, releaseId: string) => setParams({ tab: "market", skillId, releaseId });
-    const deleteLocal = (skill: Skill) => modal.confirm({ title: `删除本机的“${skill.skillName}”？`, content: "本机技能文件和历史版本会被删除。公开市场中的版本不会改变。", okText: "删除本机技能", cancelText: "取消", okButtonProps: { danger: true }, onOk: async () => { await deleteSkill(skill.skillId); setDetail(null); reload(); } });
-    const showVersions = async (skill: Skill) => action(async () => { const value = await getInstalledVersions(skill.skillId); setVersions({ skill, items: value.versions }); setVersionId(skill.versionId); }, undefined, "无法读取历史版本", "请关闭版本窗口后重试。");
+    const deleteLocal = (skill: Skill) => modal.confirm({ title: `Delete the local "${skill.skillName}”？`, content: "Native skill files and historical versions will be deleted. The version in the open market will not change.", okText: "Delete local skills", cancelText: "Cancel", okButtonProps: { danger: true }, onOk: async () => { await deleteSkill(skill.skillId); setDetail(null); reload(); } });
+    const showVersions = async (skill: Skill) => action(async () => { const value = await getInstalledVersions(skill.skillId); setVersions({ skill, items: value.versions }); setVersionId(skill.versionId); }, undefined, "Unable to read historical version", "Please close the version window and try again.");
     const install = (target: Pick<MarketRelease, "skillId" | "releaseId">, showMine: boolean) => {
         if (installing.current) return;
         installing.current = true;
@@ -168,7 +168,7 @@ export default function SkillMarketplace() {
             const { skill } = await installMarketRelease(target.skillId, target.releaseId);
             setInstalled(previous => [skill, ...previous.filter(item => item.skillId !== skill.skillId)]);
             if (showMine) { setRelease(null); changeTab("mine"); }
-        }, "已安装，可在画布助手中选择使用", "安装未完成", "请查看失败原因后重试，或打开技能详情检查使用条件。")
+        }, "Already installed and available for use in Canvas Assistant", "Installation not completed", "Please check the reason for the failure and try again, or open the skill details to check the usage conditions.")
             .finally(() => { installing.current = false; setInstallingRelease(""); });
     };
     const requestInstall = (target: Pick<MarketItem, "skillId" | "releaseId" | "name" | "versionLabel" | "author" | "description">, showMine: boolean) => {
@@ -203,7 +203,7 @@ export default function SkillMarketplace() {
             });
             setInstalled(previous => [skill, ...previous.filter(existing => existing.skillId !== skill.skillId)]);
             if (showMine) { setPublicDetail(null); changeTab("mine"); }
-        }, "已从 GitHub 安装技能，可在画布助手中选择使用", "GitHub 技能安装未完成", "请检查网络连接或仓库地址后重试。")
+        }, "The skill is installed from GitHub and can be selected for use in the Canvas Assistant", "GitHub skills installation is not completed", "Please check the network connection or warehouse address and try again.")
             .finally(() => { installing.current = false; setInstallingRelease(""); });
     };
     const requestPublicInstall = (item: PublicMarketSkill, showMine: boolean) => {
@@ -213,8 +213,8 @@ export default function SkillMarketplace() {
                 skillId: item.skillId,
                 name: item.name,
                 sourceRepo: item.source,
-                sourceLabel: "公共技能目录",
-                description: item.description || `来自 GitHub 仓库 ${item.source}（${formatSkillCount(item.installs)} 次安装）`,
+                sourceLabel: "Public skills directory",
+                description: item.description || `From GitHub repository${item.source}（${formatSkillCount(item.installs)} installation)`,
             },
         });
     };
@@ -236,24 +236,24 @@ export default function SkillMarketplace() {
     const visibleMarketItems = marketSource === "public" ? [] : items;
     const visiblePublicItems = marketSource === "beeftv" ? [] : publicItems;
     const scriptAutoRunControl = scriptLoadState === "unavailable" ? undefined : (
-        <div className="skill-script-autorun" role="group" aria-label="技能脚本设置">
+        <div className="skill-script-autorun" role="group" aria-label="Skill script settings">
             {scriptLoadState === "error" ? (
-                <Tooltip title={scriptLoadError || "读取技能脚本设置失败，暂时无法修改。"} placement="bottomRight">
+                <Tooltip title={scriptLoadError || "Failed to read skill script settings and cannot be modified temporarily."} placement="bottomRight">
                     <span id="skill-script-autorun-error" role="status" className="skill-script-autorun-error">
-                        读取失败
-                        <button type="button" className="skill-script-autorun-retry" onClick={() => setScriptReloadKey((key) => key + 1)}>重试</button>
+                                                Read failed
+                        <button type="button" className="skill-script-autorun-retry" onClick={() => setScriptReloadKey((key) => key + 1)}>Try again</button>
                     </span>
                 </Tooltip>
             ) : null}
-            <Tooltip title="打开后，助手运行技能里的脚本前不再询问。脚本在技能副本里运行，拿不到你的 API Key。" placement="bottomRight">
+            <Tooltip title="After opening, the assistant will no longer ask before running the script in the skill. The script runs in the skill copy and cannot get your API Key." placement="bottomRight">
                 <label className="skill-script-autorun-toggle">
-                    <span>自动运行技能脚本</span>
+                    <span>Automatically run skill scripts</span>
                     <Switch
                         size="sm"
                         checked={scriptAutoRun}
                         loading={scriptLoadState === "loading" || scriptSaving}
                         disabled={scriptLoadState !== "ready" || scriptSaving}
-                        aria-label="自动运行技能脚本"
+                        aria-label="Automatically run skill scripts"
                         aria-describedby={scriptLoadState === "error" ? "skill-script-autorun-error" : undefined}
                         onChange={(checked) => void toggleScriptAutoRun(checked)}
                     />
@@ -262,9 +262,9 @@ export default function SkillMarketplace() {
         </div>
     );
     const headerProps = {
-        title: "技能",
-        navigationLabel: "技能分类",
-        tabs: [{ value: "market", label: "技能市场" }, { value: "mine", label: "我的技能" }, { value: "publish", label: "我的投稿" }],
+        title: "Skills",
+        navigationLabel: "Skill classification",
+        tabs: [{ value: "market", label: "skills market" }, { value: "mine", label: "my skills" }, { value: "publish", label: "my contribution" }],
         value: tab,
         onChange: changeTab,
         trailing: scriptAutoRunControl,
@@ -273,24 +273,24 @@ export default function SkillMarketplace() {
         {tab === "publish" ? <SkillPublishingPanel planId={params.get("planId") || undefined} renderHeader={controls => <CollectionHeader {...headerProps} {...controls} />} /> : <>
             <CollectionHeader
                 {...headerProps}
-                search={{ value: query, placeholder: "搜索技能", onChange: (value) => { setQuery(value); setPage(1); } }}
-                actions={<button type="button" className="assets-header-compact-button" aria-label="刷新技能" title="刷新技能" disabled={loading} aria-busy={loading} onClick={reload}><RefreshCw className={loading ? "size-4 animate-spin" : "size-4"} /></button>}
+                search={{ value: query, placeholder: "Search skills", onChange: (value) => { setQuery(value); setPage(1); } }}
+                actions={<button type="button" className="assets-header-compact-button" aria-label="Refresh skills" title="Refresh skills" disabled={loading} aria-busy={loading} onClick={reload}><RefreshCw className={loading ? "size-4 animate-spin" : "size-4"} /></button>}
                 createItems={[
-                    { key: "create", label: "创建技能", onClick: () => openEditor() },
-                    { key: "import", label: "导入文件", onClick: () => setInstallOpen(true) },
+                    { key: "create", label: "Create skills", onClick: () => openEditor() },
+                    { key: "import", label: "Import file", onClick: () => setInstallOpen(true) },
                 ]}
             />
             <div className="skill-market-content">
             {tab === "market" ? <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <SegmentedControl size="sm" value={marketSource} onChange={(v) => setMarketSource(v as "all" | "beeftv" | "public")} options={[{ value: "all", label: "全部来源" }, { value: "beeftv", label: "BeefTV 市场" }, { value: "public", label: "公共技能目录" }]} />
+                <SegmentedControl size="sm" value={marketSource} onChange={(v) => setMarketSource(v as "all" | "beeftv" | "public")} options={[{ value: "all", label: "All sources" }, { value: "beeftv", label: "BeefTV Market" }, { value: "public", label: "Public skills directory" }]} />
             </div> : null}
             {tab === "market" && publicNotice && marketSource !== "beeftv" ? <Alert type="info" showIcon title={publicNotice} className="mb-3" /> : null}
-            {error ? <Alert type="error" showIcon title={error} action={<Button size="small" onClick={reload}>重试</Button>} /> : loading ? <Skeleton active paragraph={{ rows: 6 }} /> : <>
-                {tab === "market" && installedError ? <Alert type="warning" showIcon title={installedError} className="mb-4" action={<Button size="small" onClick={reload}>重试</Button>} /> : null}
+            {error ? <Alert type="error" showIcon title={error} action={<Button size="small" onClick={reload}>Try again</Button>} /> : loading ? <Skeleton active paragraph={{ rows: 6 }} /> : <>
+                {tab === "market" && installedError ? <Alert type="warning" showIcon title={installedError} className="mb-4" action={<Button size="small" onClick={reload}>Try again</Button>} /> : null}
                 {tab === "market" ? <>
                     {visibleMarketItems.map(item => {
                         const installation = marketInstallationState(item, installed);
-                        const installLabel = installation === "installed" ? "已安装" : installation === "update" ? "更新" : "安装";
+                        const installLabel = installation === "installed" ? "Installed" : installation === "update" ? "update" : "Installation";
                         const itemUnsupported = releaseUnsupportedReasons(item, item.compatibility);
                         const isOfficial = isOfficialBuiltinMarketSkill(item, installed);
                         return <article className="workspace-list-row" key={`${item.skillId}/${item.releaseId}`}>
@@ -298,22 +298,22 @@ export default function SkillMarketplace() {
                                 <h2><button type="button" className="workspace-item-title" onClick={() => openRelease(item.skillId, item.releaseId)}>{item.name}</button></h2>
                             </div>
                             <div className="workspace-list-controls">
-                                <Tooltip title={isOfficial ? "BeefTV 官方内置技能" : `作者：${item.author || "未提供"}`}><span className="skill-origin-label">{isOfficial ? "官方" : "市场"}</span></Tooltip>
-                                <Button size="small" onClick={() => openRelease(item.skillId, item.releaseId)} disabled={busy}>查看详情</Button>
+                                <Tooltip title={isOfficial ? "BeefTV official built-in skills" : `Author:${item.author || "Not provided"}`}><span className="skill-origin-label">{isOfficial ? "official" : "market"}</span></Tooltip>
+                                <Button size="small" onClick={() => openRelease(item.skillId, item.releaseId)} disabled={busy}>View details</Button>
                                 <Button type="primary" size="small" className="min-w-16" aria-label={`${installLabel}${item.name}`} loading={installingRelease === item.releaseId} disabled={!canInstallMarketRelease({ busy, installedLoading, installedError, installation, unsupportedReasons: itemUnsupported })} onClick={() => requestInstall(item, false)}>{installLabel}</Button>
                             </div>
                         </article>;
                     })}
                     {visiblePublicItems.map(item => {
                         const isInstalled = isPublicMarketSkillInstalled(item, installed);
-                        const installLabel = isInstalled ? "已安装" : "安装";
+                        const installLabel = isInstalled ? "Installed" : "Installation";
                         return <article className="workspace-list-row" key={`public:${item.id}`}>
                             <div className="workspace-list-copy">
                                 <h2><button type="button" className="workspace-item-title" onClick={() => openPublicSkill(item)}>{item.name}</button></h2>
                             </div>
                             <div className="workspace-list-controls">
-                                <Tooltip title={`来源仓库：${item.source} · ${formatSkillCount(item.installs)} 次安装`}><span className="skill-origin-label">市场</span></Tooltip>
-                                <Button size="small" onClick={() => openPublicSkill(item)} disabled={busy}>查看详情</Button>
+                                <Tooltip title={`Source warehouse:${item.source} · ${formatSkillCount(item.installs)} times installed`}><span className="skill-origin-label">market</span></Tooltip>
+                                <Button size="small" onClick={() => openPublicSkill(item)} disabled={busy}>View details</Button>
                                 <Button type="primary" size="small" className="min-w-16" aria-label={`${installLabel}${item.name}`} loading={installingRelease === item.id} disabled={busy || installedLoading || isInstalled} onClick={() => requestPublicInstall(item, false)}>{installLabel}</Button>
                             </div>
                         </article>;
@@ -326,81 +326,81 @@ export default function SkillMarketplace() {
                     </div>
                     <div className="workspace-list-controls">
                         <Tooltip title={origin.hint}><span className="skill-origin-label">{origin.label}</span></Tooltip>
-                        <Button size="small" onClick={() => void openLocal(skill)} disabled={busy}>查看详情</Button>
-                        <label className="skill-market-toggle"><span>{skill.isAdded ? "已启用" : "已停用"}</span><Switch size="sm" aria-label={`启用${skill.skillName}`} checked={skill.isAdded} disabled={busy} onChange={() => void action(() => skill.isAdded ? removeSkill(skill.skillId) : addSkill(skill.skillId), skill.isAdded ? "已停用，不再供助手选择" : "已启用")} /></label>
+                        <Button size="small" onClick={() => void openLocal(skill)} disabled={busy}>View details</Button>
+                        <label className="skill-market-toggle"><span>{skill.isAdded ? "Enabled" : "Deactivated"}</span><Switch size="sm" aria-label={`enable${skill.skillName}`} checked={skill.isAdded} disabled={busy} onChange={() => void action(() => skill.isAdded ? removeSkill(skill.skillId) : addSkill(skill.skillId), skill.isAdded ? "Disabled and no longer available for assistant selection" : "Enabled")} /></label>
                         <Dropdown trigger={["click"]} menu={{ items: [
                             ...(skill.sourceType === "market" ? [
-                                { key: "updates", label: "检查更新", onClick: () => { changeTab("market"); setQuery(skill.skillName); } },
-                                { key: "versions", label: "历史版本", onClick: () => void showVersions(skill) },
-                                { key: "fork", label: "创建私人副本", onClick: () => void action(async () => openEditor((await forkSkill(skill.skillId)).skill), "已创建私人副本") },
+                                { key: "updates", label: "Check for updates", onClick: () => { changeTab("market"); setQuery(skill.skillName); } },
+                                { key: "versions", label: "Historical version", onClick: () => void showVersions(skill) },
+                                { key: "fork", label: "Create a private copy", onClick: () => void action(async () => openEditor((await forkSkill(skill.skillId)).skill), "Private copy created") },
                             ] : skill.sourceType === "builtin" && !skill.isOwner ? [
-                                { key: "fork", label: "创建私人副本", onClick: () => void action(async () => openEditor((await forkSkill(skill.skillId)).skill), "已创建私人副本") },
+                                { key: "fork", label: "Create a private copy", onClick: () => void action(async () => openEditor((await forkSkill(skill.skillId)).skill), "Private copy created") },
                             ] : [
-                                { key: "edit", label: "编辑技能", onClick: () => void action(async () => openEditor((await getSkill(skill.skillId)).skill), undefined, "无法打开技能编辑", "请刷新“我的技能”后重新打开。") },
-                                { key: "publish", label: "分享投稿", onClick: () => setParams({ tab: "publish", skillId: skill.skillId }) },
+                                { key: "edit", label: "Editing skills", onClick: () => void action(async () => openEditor((await getSkill(skill.skillId)).skill), undefined, "Unable to open skill editor", "Please refresh \"My Skills\" and reopen it.") },
+                                { key: "publish", label: "Share contribution", onClick: () => setParams({ tab: "publish", skillId: skill.skillId }) },
                             ]),
-                            ...(skill.isOwner ? [{ type: "divider" as const }, { key: "delete", label: "删除技能", danger: true, onClick: () => deleteLocal(skill) }] : []),
-                        ] }}><Button type="text" size="small" aria-label={`管理${skill.skillName}`} disabled={busy} icon={<MoreHorizontal className="size-4" />} /></Dropdown>
+                            ...(skill.isOwner ? [{ type: "divider" as const }, { key: "delete", label: "Delete skills", danger: true, onClick: () => deleteLocal(skill) }] : []),
+                        ] }}><Button type="text" size="small" aria-label={`management${skill.skillName}`} disabled={busy} icon={<MoreHorizontal className="size-4" />} /></Dropdown>
                     </div>
                 </article>; })}
-                {(tab === "mine" ? total === 0 : visibleMarketItems.length === 0 && visiblePublicItems.length === 0) ? <p className="skill-market-empty">{tab === "mine" ? "还没有技能。可以从市场安装，或导入自己的 SKILL.md。" : "没有找到匹配的技能。"}</p> : null}
+                {(tab === "mine" ? total === 0 : visibleMarketItems.length === 0 && visiblePublicItems.length === 0) ? <p className="skill-market-empty">{tab === "mine" ? "No skills yet. You can install it from the market, or import your own SKILL.md." : "No matching skills found."}</p> : null}
             </>}
             </div>
-            {!loading && !error && (total > SKILL_PAGE_SIZE || page > 1) ? <nav className="skill-market-pagination" aria-label="技能分页"><Button disabled={page <= 1} onClick={() => setPage(n => n - 1)}>上一页</Button><span>第 {page} / {Math.max(1, Math.ceil(total / SKILL_PAGE_SIZE))} 页 · 共 {total} 项</span><Button disabled={page * SKILL_PAGE_SIZE >= total} onClick={() => setPage(n => n + 1)}>下一页</Button></nav> : null}
+            {!loading && !error && (total > SKILL_PAGE_SIZE || page > 1) ? <nav className="skill-market-pagination" aria-label="Skill pagination"><Button disabled={page <= 1} onClick={() => setPage(n => n - 1)}>Previous page</Button><span>No.{page} / {Math.max(1, Math.ceil(total / SKILL_PAGE_SIZE))}  Pages · Total{total}  item</span><Button disabled={page * SKILL_PAGE_SIZE >= total} onClick={() => setPage(n => n + 1)}>Next page</Button></nav> : null}
         </>}
-        <AppModal flush scrollBody className="skill-release-dialog" wrapClassName="skill-release-wrap" open={Boolean(release)} title={release?.name || "技能详情"} onCancel={() => { setRelease(null); setParams({ tab: "market" }); }} footer={<Button type="primary" loading={busy} disabled={!canInstallMarketRelease({ busy, installedLoading, installedError, installation: releaseInstallation, unsupportedReasons: releaseUnsupported })} onClick={() => { if (release) requestInstall(release, true); }}>{releaseInstallation === "installed" ? "已安装" : releaseInstallation === "update" ? "更新此版本" : "安装此版本"}</Button>} width="min(760px, calc(100vw - 32px))">
-            {release ? <div className="skill-market-preview" tabIndex={0} role="region" aria-label="技能详情内容">
+        <AppModal flush scrollBody className="skill-release-dialog" wrapClassName="skill-release-wrap" open={Boolean(release)} title={release?.name || "Skill details"} onCancel={() => { setRelease(null); setParams({ tab: "market" }); }} footer={<Button type="primary" loading={busy} disabled={!canInstallMarketRelease({ busy, installedLoading, installedError, installation: releaseInstallation, unsupportedReasons: releaseUnsupported })} onClick={() => { if (release) requestInstall(release, true); }}>{releaseInstallation === "installed" ? "Installed" : releaseInstallation === "update" ? "Update this version" : "Install this version"}</Button>} width="min(760px, calc(100vw - 32px))">
+            {release ? <div className="skill-market-preview" tabIndex={0} role="region" aria-label="Skill details">
                 <div className="skill-release-overview">
                     <dl className="skill-release-metadata">
-                        <div><dt>版本</dt><dd>{release.versionLabel}</dd></div>
-                        <div><dt>作者</dt><dd>{release.author || "未提供"}</dd></div>
-                        <div><dt>许可</dt><dd>{release.license}</dd></div>
+                        <div><dt>Version</dt><dd>{release.versionLabel}</dd></div>
+                        <div><dt>Author</dt><dd>{release.author || "Not provided"}</dd></div>
+                        <div><dt>permission</dt><dd>{release.license}</dd></div>
                     </dl>
                     <p className="skill-release-description">{release.description}</p>
                 </div>
                 <div className="skill-release-sections">
-                    <section className="skill-release-section" aria-label="使用条件">
-                        <details open={releaseUnsupported.length > 0}><summary>使用条件</summary>
-                            <p>{release.requirements.length ? release.requirements.map(requirementLabel).join("、") : "没有额外工具要求"}</p>
+                    <section className="skill-release-section" aria-label="Conditions of use">
+                        <details open={releaseUnsupported.length > 0}><summary>Conditions of use</summary>
+                            <p>{release.requirements.length ? release.requirements.map(requirementLabel).join("、") : "No additional tools required"}</p>
                             {release.requirementNotes ? <p>{release.requirementNotes}</p> : null}
-                            {releaseUnsupported.length ? <p className="skill-market-warning">当前环境不满足：{releaseUnsupported.join("、")}</p> : null}
-                            {release.requirements.some(value => value.startsWith("model.")) ? <Alert type="info" title="使用前需要在模型配置中选择支持所需理解能力的模型。安装不代表这些条件已满足。" /> : null}
+                            {releaseUnsupported.length ? <p className="skill-market-warning">The current environment does not meet:{releaseUnsupported.join("、")}</p> : null}
+                            {release.requirements.some(value => value.startsWith("model.")) ? <Alert type="info" title="Before use, you need to select a model that supports the required understanding capabilities in the model configuration. Installation does not imply that these conditions have been met." /> : null}
                         </details>
                     </section>
                     <section className="skill-release-section">
-                        <details className="skill-release-notes"><summary>安装与运行说明</summary>
-                            <p>模型与费用请按技能说明确认。安装只保存文件，使用时由你选择模型。</p><p>安装后不会自动运行，也不会替你切换模型。后续更新需要再次确认。</p>
+                        <details className="skill-release-notes"><summary>Installation and operation instructions</summary>
+                            <p>Please confirm the model and cost according to the skill description. The installation only saves the file, and you choose the model when using it.</p><p>It will not run automatically after installation, nor will it switch models for you. Subsequent updates require confirmation again.</p>
                         </details>
                     </section>
                     <MarketFilePreview key={release.releaseId} skillId={release.skillId} releaseId={release.releaseId} />
-                    <section className="skill-release-section" aria-label="技能文件与高级信息">
-                        <SkillFileDetails files={release.files} info={[{ label: "内容哈希", value: release.contentHash }, { label: "压缩包 SHA-256", value: release.archiveSha256 }, { label: "压缩包大小（字节）", value: release.archiveBytes }, { label: "技能编号", value: release.skillId }, { label: "版本编号", value: release.releaseId }]} />
+                    <section className="skill-release-section" aria-label="Skill files and advanced information">
+                        <SkillFileDetails files={release.files} info={[{ label: "content hash", value: release.contentHash }, { label: "Compressed package SHA-256", value: release.archiveSha256 }, { label: "Compressed package size (bytes)", value: release.archiveBytes }, { label: "Skill number", value: release.skillId }, { label: "version number", value: release.releaseId }]} />
                     </section>
                 </div>
             </div> : null}
         </AppModal>
-        <AppModal flush scrollBody className="skill-release-dialog" wrapClassName="skill-release-wrap" open={Boolean(publicDetail)} title={publicDetail?.name || "技能详情"} onCancel={() => setPublicDetail(null)} footer={<Button type="primary" loading={busy || Boolean(publicDetail && installingRelease === publicDetail.id)} disabled={installedLoading || publicDetailInstalled} onClick={() => { if (publicDetail) requestPublicInstall(publicDetail, true); }}>{publicDetailInstalled ? "已安装" : "安装此技能"}</Button>} width="min(760px, calc(100vw - 32px))">
-            {publicDetail ? <div className="skill-market-preview" tabIndex={0} role="region" aria-label="公共技能详情内容">
+        <AppModal flush scrollBody className="skill-release-dialog" wrapClassName="skill-release-wrap" open={Boolean(publicDetail)} title={publicDetail?.name || "Skill details"} onCancel={() => setPublicDetail(null)} footer={<Button type="primary" loading={busy || Boolean(publicDetail && installingRelease === publicDetail.id)} disabled={installedLoading || publicDetailInstalled} onClick={() => { if (publicDetail) requestPublicInstall(publicDetail, true); }}>{publicDetailInstalled ? "Installed" : "Install this skill"}</Button>} width="min(760px, calc(100vw - 32px))">
+            {publicDetail ? <div className="skill-market-preview" tabIndex={0} role="region" aria-label="Public skill details">
                 <div className="skill-release-overview">
                     <dl className="skill-release-metadata">
-                        <div><dt>来源仓库</dt><dd><a href={publicDetail.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline">{publicDetail.source}<ExternalLink className="size-3.5" /></a></dd></div>
-                        <div><dt>技能标识</dt><dd>{publicDetail.skillId}</dd></div>
-                        <div><dt>安装量</dt><dd>{formatSkillCount(publicDetail.installs)}</dd></div>
+                        <div><dt>Source warehouse</dt><dd><a href={publicDetail.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline">{publicDetail.source}<ExternalLink className="size-3.5" /></a></dd></div>
+                        <div><dt>Skill ID</dt><dd>{publicDetail.skillId}</dd></div>
+                        <div><dt>Installation volume</dt><dd>{formatSkillCount(publicDetail.installs)}</dd></div>
                     </dl>
-                    <p className="skill-release-description">{publicDetail.description || `来自 GitHub 仓库 ${publicDetail.source} 的公开技能。安装后会从该仓库读取 SKILL.md 与附属参考文件。`}</p>
+                    <p className="skill-release-description">{publicDetail.description || `From GitHub repository${publicDetail.source} public skills. After installation, SKILL.md and accompanying reference files will be read from this repository.`}</p>
                 </div>
                 <div className="skill-release-sections">
                     <section className="skill-release-section">
-                        <details className="skill-release-notes" open><summary>安装与运行说明</summary>
-                            <p>安装时从 GitHub 仓库 {publicDetail.source} 下载技能文件。</p>
-                            <p>安装后只保存技能文件，可在「我的技能」中查看完整文件、手动同步最新提交或启用给画布助手。</p>
+                        <details className="skill-release-notes" open><summary>Installation and operation instructions</summary>
+                            <p>Install from GitHub repository{publicDetail.source}  Download skill files.</p>
+                            <p>After installation, only the skill file is saved. You can view the complete file in "My Skills", manually synchronize the latest submission, or enable it to the canvas assistant.</p>
                         </details>
                     </section>
                 </div>
             </div> : null}
         </AppModal>
-        <AppModal scrollBody open={Boolean(versions)} title="恢复本机历史版本" onCancel={() => setVersions(null)} onOk={() => { if (versions) void action(async () => { await rollbackSkill(versions.skill.skillId, versionId); setVersions(null); }, "已恢复指定版本"); }} okText="恢复此版本" okButtonProps={{ disabled: !versions || versionId === versions.skill.versionId, loading: busy }}>
-            <p>恢复后新对话可选择此版本。已有对话保留原先选定的版本。</p><Select className="w-full" value={versionId} onChange={setVersionId} options={versions?.items.map(v => ({ value: v.id, label: `${v.versionLabel} · ${v.createdAt.slice(0, 10)}${v.id === versions.skill.versionId ? "（当前）" : ""}` }))} />
+        <AppModal scrollBody open={Boolean(versions)} title="Restore historical version of the machine" onCancel={() => setVersions(null)} onOk={() => { if (versions) void action(async () => { await rollbackSkill(versions.skill.skillId, versionId); setVersions(null); }, "The specified version has been restored"); }} okText="Restore this version" okButtonProps={{ disabled: !versions || versionId === versions.skill.versionId, loading: busy }}>
+            <p>New conversations after restoration can select this version. Existing conversations retain the originally selected version.</p><Select className="w-full" value={versionId} onChange={setVersionId} options={versions?.items.map(v => ({ value: v.id, label: `${v.versionLabel} · ${v.createdAt.slice(0, 10)}${v.id === versions.skill.versionId ? "(current)" : ""}` }))} />
         </AppModal>
         <SkillDetailModal
             skill={detail}
@@ -412,7 +412,7 @@ export default function SkillMarketplace() {
             onAdd={(skill) => void action(async () => {
                 const res = skill.isAdded ? await removeSkill(skill.skillId) : await addSkill(skill.skillId);
                 setDetail(res.skill);
-            }, skill.isAdded ? "已停用，不再供助手选择" : "已启用")}
+            }, skill.isAdded ? "Disabled and no longer available for assistant selection" : "Enabled")}
             onLike={(skill) => void action(async () => {
                 const res = skill.isLike ? await unlikeSkill(skill.skillId) : await likeSkill(skill.skillId);
                 setDetail(res.skill);
@@ -420,7 +420,7 @@ export default function SkillMarketplace() {
             onSync={(skill) => void action(async () => {
                 const res = await syncSkill(skill.skillId);
                 setDetail(res.skill);
-            }, "已同步最新 GitHub 提交", "GitHub 技能同步失败")}
+            }, "Latest GitHub commits synced", "GitHub skill sync failed")}
         />
         <SkillEditorDrawer open={editorOpen} skill={edit} onClose={() => setEditorOpen(false)} onSaved={() => { setEditorOpen(false); changeTab("mine"); reload(); }} />
         <SkillInstallModal open={installOpen} onClose={() => setInstallOpen(false)} onManualCreate={() => { setInstallOpen(false); openEditor(); }} onInstalled={() => { setInstallOpen(false); changeTab("mine"); reload(); }} />

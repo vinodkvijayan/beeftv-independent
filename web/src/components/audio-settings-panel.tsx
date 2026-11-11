@@ -34,15 +34,15 @@ export function AudioSettingsPanel({ config, onConfigChange, theme, showTitle = 
     return (
         <ImageSettingsTheme theme={theme}>
             <div className={className} style={{ color: theme.node.text }} onMouseDown={(event) => event.stopPropagation()}>
-                {showTitle ? <div className="text-lg font-semibold">音频设置</div> : null}
+                {showTitle ? <div className="text-lg font-semibold">Audio settings</div> : null}
                 {profile.showVoice ? (
                     <SettingGroup
-                        title="音色"
+                        title="timbre"
                         color={theme.node.muted}
                         action={
                             <button
                                 type="button"
-                                aria-label={isPreviewingCurrentVoice ? "停止试听" : "试听当前音色"}
+                                aria-label={isPreviewingCurrentVoice ? "Stop listening" : "Listen to the current sound"}
                                 aria-pressed={isPreviewingCurrentVoice}
                                 className="inline-flex h-6 cursor-pointer items-center gap-1 rounded-full border px-2.5 text-xs transition hover:opacity-80"
                                 style={{ borderColor: isPreviewingCurrentVoice ? theme.node.text : theme.node.stroke, color: theme.node.text }}
@@ -50,7 +50,7 @@ export function AudioSettingsPanel({ config, onConfigChange, theme, showTitle = 
                                 onClick={() => void previewAudioVoice(voice, setPlayingVoice, { speed: Number(speed) || 1 })}
                             >
                                 {isPreviewingCurrentVoice ? <Square className="size-3" aria-hidden="true" /> : <Volume2 className="size-3.5" aria-hidden="true" />}
-                                <span>{isPreviewingCurrentVoice ? "停止试听" : "试听当前音色"}</span>
+                                <span>{isPreviewingCurrentVoice ? "Stop listening" : "Listen to the current sound"}</span>
                             </button>
                         }
                     >
@@ -63,7 +63,7 @@ export function AudioSettingsPanel({ config, onConfigChange, theme, showTitle = 
                         </div>
                     </SettingGroup>
                 ) : null}
-                <SettingGroup title="格式" color={theme.node.muted}>
+                <SettingGroup title="Format" color={theme.node.muted}>
                     <div className="grid grid-cols-3 gap-2.5">
                         {profile.formats.map((item) => (
                             <OptionPill key={item.value} selected={format === item.value} theme={theme} onClick={() => onConfigChange("audioFormat", item.value)}>
@@ -73,7 +73,7 @@ export function AudioSettingsPanel({ config, onConfigChange, theme, showTitle = 
                     </div>
                 </SettingGroup>
                 {profile.showSpeed ? (
-                    <SettingGroup title="语速" color={theme.node.muted}>
+                    <SettingGroup title="speaking speed" color={theme.node.muted}>
                         <div className="grid grid-cols-4 gap-2.5">
                             {profile.speedOptions.map((value) => (
                                 <OptionPill key={value} selected={speed === value} theme={theme} onClick={() => onConfigChange("audioSpeed", value)}>
@@ -96,26 +96,26 @@ export function AudioSettingsPanel({ config, onConfigChange, theme, showTitle = 
                     </SettingGroup>
                 ) : null}
                 {profile.showPitch ? (
-                    <SettingGroup title="声调" color={theme.node.muted}>
+                    <SettingGroup title="tone" color={theme.node.muted}>
                         <div className="flex items-center gap-2">
-                            <input aria-label="声调" type="range" min={-12} max={12} step={1} className="min-w-0 flex-1 accent-current" value={pitch} onChange={(event) => onConfigChange("audioPitch", event.target.value)} onMouseDown={(event) => event.stopPropagation()} />
+                            <input aria-label="tone" type="range" min={-12} max={12} step={1} className="min-w-0 flex-1 accent-current" value={pitch} onChange={(event) => onConfigChange("audioPitch", event.target.value)} onMouseDown={(event) => event.stopPropagation()} />
                             <span className="w-12 text-right text-xs tabular-nums">{audioPitchLabel(pitch)}</span>
                         </div>
                     </SettingGroup>
                 ) : null}
                 {profile.showVolume ? (
-                    <SettingGroup title="音量" color={theme.node.muted}>
+                    <SettingGroup title="Volume" color={theme.node.muted}>
                         <div className="flex items-center gap-2">
-                            <input aria-label="音量" type="range" min={0.5} max={2} step={0.05} className="min-w-0 flex-1 accent-current" value={volume} onChange={(event) => onConfigChange("audioVolume", event.target.value)} onMouseDown={(event) => event.stopPropagation()} />
+                            <input aria-label="Volume" type="range" min={0.5} max={2} step={0.05} className="min-w-0 flex-1 accent-current" value={volume} onChange={(event) => onConfigChange("audioVolume", event.target.value)} onMouseDown={(event) => event.stopPropagation()} />
                             <span className="w-12 text-right text-xs tabular-nums">{audioVolumeLabel(volume)}</span>
                         </div>
                     </SettingGroup>
                 ) : null}
                 {profile.showInstructions ? (
-                    <SettingGroup title="声音指令" color={theme.node.muted}>
+                    <SettingGroup title="voice command" color={theme.node.muted}>
                         <textarea
                             value={config.audioInstructions || ""}
-                            placeholder={profile.kind === "seed-audio" ? "可选：补充音色或情绪（如：温柔甜美少女音）。也可直接在节点提示词中写多人对话、@音频1~3、音效与配乐，或连接参考图生音色。" : "例如：自然、温暖、适合旁白。"}
+                            placeholder={profile.kind === "seed-audio" ? "Optional: Supplement the timbre or mood (for example: gentle and sweet girly voice). You can also directly write multi-person dialogue, @audio 1~3, sound effects and soundtrack in the node prompt words, or connect to the reference picture to generate the sound." : "For example: natural, warm, suitable for narration."}
                             className="thin-scrollbar h-20 w-full resize-none rounded-xl border bg-transparent px-3 py-2 text-sm leading-5 outline-none"
                             style={{ borderColor: theme.node.stroke, color: theme.node.text }}
                             onChange={(event) => onConfigChange("audioInstructions", event.target.value)}

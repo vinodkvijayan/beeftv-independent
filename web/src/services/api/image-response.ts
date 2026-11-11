@@ -30,7 +30,7 @@ export function parseImagePayload(payload: ImageApiResponse) {
             ?.map(resolveImageDataUrl)
             .filter((value): value is string => Boolean(value))
             .map((dataUrl) => ({ id: nanoid(), dataUrl })) || [];
-    if (images.length === 0) throw new Error("接口没有返回图片");
+    if (images.length === 0) throw new Error("The interface does not return pictures");
     return images;
 }
 
@@ -53,7 +53,7 @@ export function readStatusError(status: number | undefined, fallback: string) {
 }
 
 export function parseChatCompletionPayload(payload: ChatCompletionPayload): ToolResponseResult {
-    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || "请求失败");
+    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || "Request failed");
     if (payload.error?.message) throw new Error(payload.error.message);
     const message = payload.choices?.[0]?.message;
     const toolCalls = (message?.tool_calls || [])
@@ -102,13 +102,13 @@ export function responseErrorMessage(value: unknown) {
 }
 
 export function validateResponsePayload(payload: ResponseApiPayload) {
-    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || "请求失败");
+    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || "Request failed");
     if (payload.error?.message) throw new Error(payload.error.message);
 }
 
 export function validateGeminiPayload(payload: GeminiPayload) {
     if (payload.error?.message) throw new Error(payload.error.message);
-    if (payload.promptFeedback?.blockReason) throw new Error(`Gemini 拒绝了本次请求：${payload.promptFeedback.blockReason}`);
+    if (payload.promptFeedback?.blockReason) throw new Error(`Gemini rejected this request:${payload.promptFeedback.blockReason}`);
 }
 
 export async function readFetchError(response: Response, fallback: string) {
@@ -126,8 +126,8 @@ export async function readJsonPayload<T>(response: Response, fallback: string): 
     try {
         return JSON.parse(text) as T;
     } catch {
-        if (/^\s*(?:<!doctype|<html)/i.test(text)) throw new Error("后端代理返回了前端网页，请检查 VITE_CANVAS_BACKEND_URL 和反向代理配置");
-        throw new Error(`${fallback}：接口没有返回有效 JSON`);
+        if (/^\s*(?:<!doctype|<html)/i.test(text)) throw new Error("Backend proxy returned frontend webpage, please check VITE_CANVAS_BACKEND_URL and reverse proxy configuration");
+        throw new Error(`${fallback}: The interface did not return valid JSON`);
     }
 }
 
@@ -300,6 +300,6 @@ export function parseGeminiImagePayload(payload: GeminiPayload) {
             })
             .filter((value): value is string => Boolean(value))
             .map((dataUrl) => ({ id: nanoid(), dataUrl })) || [];
-    if (!images.length) throw new Error("Gemini 接口没有返回图片");
+    if (!images.length) throw new Error("Gemini interface does not return images");
     return images;
 }

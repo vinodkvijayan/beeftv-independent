@@ -133,7 +133,7 @@ export function CanvasToolbar({
     useEffect(() => {
         if (lastShortcutRequest.current === shortcutRequestNonce) return;
         lastShortcutRequest.current = shortcutRequestNonce;
-        const button = dockRef.current?.querySelector<HTMLElement>('[aria-label="画布快捷键"]');
+        const button = dockRef.current?.querySelector<HTMLElement>('[aria-label="Canvas shortcut keys"]');
         if (button) setPanelX(getPanelX(dockRef.current, button));
         setAddOpen(false);
         setAppearanceOpen(false);
@@ -177,7 +177,7 @@ export function CanvasToolbar({
             event.preventDefault();
             event.stopPropagation();
             setShortcutsOpen(false);
-            dockRef.current?.querySelector<HTMLButtonElement>('[aria-label="画布快捷键"]')?.focus();
+            dockRef.current?.querySelector<HTMLButtonElement>('[aria-label="Canvas shortcut keys"]')?.focus();
         };
         window.addEventListener("keydown", closeOnEscape, true);
         return () => window.removeEventListener("keydown", closeOnEscape, true);
@@ -287,7 +287,7 @@ export function CanvasToolbar({
         ...(libtvChrome ? [
             {
                 id: "tool-portrait-studio",
-                label: "人像造型室",
+                label: "Portrait modeling room",
                 icon: <ScanFace />,
                 onClick: onOpenProjectCharacters,
             },
@@ -324,8 +324,8 @@ export function CanvasToolbar({
             </AnimatePresence>
 
             {appearanceOpen ? (
-                <div role="dialog" aria-label="画布外观" className="pointer-events-auto absolute bottom-[var(--canvas-dock-popover-offset)] w-[288px] max-w-[calc(100vw-24px)] max-h-[70vh] overflow-y-auto rounded-[18px] border p-4 shadow-xl" style={{ left: "50%", transform: "translateX(-50%)", background: theme.node.fill, borderColor: theme.toolbar.border, color: theme.node.text }} onWheel={(event) => event.stopPropagation()}>
-                    <div className="text-sm font-semibold">画布外观</div>
+                <div role="dialog" aria-label="Canvas appearance" className="pointer-events-auto absolute bottom-[var(--canvas-dock-popover-offset)] w-[288px] max-w-[calc(100vw-24px)] max-h-[70vh] overflow-y-auto rounded-[18px] border p-4 shadow-xl" style={{ left: "50%", transform: "translateX(-50%)", background: theme.node.fill, borderColor: theme.toolbar.border, color: theme.node.text }} onWheel={(event) => event.stopPropagation()}>
+                    <div className="text-sm font-semibold">Canvas appearance</div>
                     <CanvasAppearanceControls appearance={appearance} backgroundMode={backgroundMode} colorTheme={colorTheme} theme={theme} onAppearanceChange={onAppearanceChange} onSaveAppearanceDefault={onSaveAppearanceDefault} onBackgroundModeChange={onBackgroundModeChange} snapToGrid={snapToGrid} onSnapToGridChange={onSnapToGridChange} showConnections={showConnections} onShowConnectionsChange={onShowConnectionsChange} wheelBehavior={wheelBehavior} onWheelBehaviorChange={onWheelBehaviorChange} />
                 </div>
             ) : null}
@@ -359,7 +359,7 @@ export function createCanvasModeDockCommand(
     return {
         kind: "command",
         id: "tool-canvas-mode-trigger",
-        label: grabbing ? "抓手工具" : "移动",
+        label: grabbing ? "Gripper tool" : "move",
         icon: grabbing ? <Hand /> : <MousePointer2 />,
         active: open,
         expands: true,
@@ -373,13 +373,13 @@ export function CanvasModeMenu({ canvasTool, x, onSelect }: {
     onSelect: (tool: CanvasToolMode) => void;
 }) {
     const options: Array<{ tool: CanvasToolMode; label: string; shortcut: string; icon: ReactNode }> = [
-        { tool: "box-select", label: "移动", shortcut: "V", icon: <MousePointer2 /> },
-        { tool: "move", label: "抓手工具", shortcut: "H", icon: <Hand /> },
+        { tool: "box-select", label: "move", shortcut: "V", icon: <MousePointer2 /> },
+        { tool: "move", label: "Gripper tool", shortcut: "H", icon: <Hand /> },
     ];
     return (
         <motion.div
             role="menu"
-            aria-label="画布操作工具"
+            aria-label="Canvas manipulation tools"
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 6, transition: { duration: 0.08 } }}

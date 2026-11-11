@@ -47,7 +47,7 @@ export function SkillEditorDrawer({ open, skill, onClose, onSaved }: { open: boo
             onClose();
             return;
         }
-        modal.confirm({ title: "放弃未保存的修改？", content: "当前填写内容不会保留。", okText: "放弃修改", okButtonProps: { danger: true }, cancelText: "继续编辑", onOk: onClose });
+        modal.confirm({ title: "Discard unsaved changes?", content: "The currently filled content will not be retained.", okText: "Abandon changes", okButtonProps: { danger: true }, cancelText: "Continue editing", onOk: onClose });
     };
 
     const submit = async (values: SkillFormValues) => {
@@ -65,10 +65,10 @@ export function SkillEditorDrawer({ open, skill, onClose, onSaved }: { open: boo
             };
             const result = skill ? await updateSkill(skill.skillId, input) : await createSkill(input);
             setDirty(false);
-            message.success(skill ? "技能已更新" : "技能已创建");
+            message.success(skill ? "Skills have been updated" : "Skill created");
             onSaved(result.skill);
         } catch (error) {
-            message.error(skillFailureMessage(error, "技能保存失败", "当前表单仍保留，请检查必填项和连接后重试。"));
+            message.error(skillFailureMessage(error, "Skill save failed", "The current form is still retained, please check the required fields and connection and try again."));
         } finally {
             setSaving(false);
         }
@@ -77,11 +77,11 @@ export function SkillEditorDrawer({ open, skill, onClose, onSaved }: { open: boo
     const draftFromIdea = async () => {
         const idea = draftIdea.trim();
         if (!idea) {
-            message.warning("请先描述你想沉淀的技能");
+            message.warning("Please first describe the skills you want to develop");
             return;
         }
         if (!useConfigStore.getState().isAiConfigReady(effectiveConfig, effectiveConfig.model)) {
-            message.info("尚未配置可用的文本模型，请先到设置页配置");
+            message.info("The available text model has not been configured yet. Please go to the settings page to configure it first.");
             navigateToSettings({ section: "models", continueCreation: true });
             return;
         }
@@ -95,9 +95,9 @@ export function SkillEditorDrawer({ open, skill, onClose, onSaved }: { open: boo
                 ...(draft.tag ? { tag: draft.tag } : {}),
             });
             setDirty(true);
-            message.success("草稿已生成，请检查并调整后保存");
+            message.success("A draft has been generated, please check and adjust before saving.");
         } catch (error) {
-            message.error(skillFailureMessage(error, "起草失败", "请检查文本模型配置后重试，也可直接填写指令。"));
+            message.error(skillFailureMessage(error, "Drafting failed", "Please check the text model configuration and try again, or fill in the instructions directly."));
         } finally {
             setDrafting(false);
         }
@@ -105,51 +105,51 @@ export function SkillEditorDrawer({ open, skill, onClose, onSaved }: { open: boo
 
     return (
         <AppDrawer className="skill-editor-drawer" flush open={open} size="min(480px, 96vw)" mask={{ closable: !dirty && !saving && !drafting }} title={null} closable={false} onClose={requestClose}>
-            <section className="skill-editor-shell" aria-label={skill ? "编辑技能" : "创建技能"}>
-                <header className="workspace-panel-header"><h2>{skill ? "编辑技能" : "创建技能"}</h2><Button type="text" size="small" aria-label="关闭技能编辑" disabled={saving || drafting} icon={<X className="size-4" />} onClick={requestClose} /></header>
+            <section className="skill-editor-shell" aria-label={skill ? "Editing skills" : "Create skills"}>
+                <header className="workspace-panel-header"><h2>{skill ? "Editing skills" : "Create skills"}</h2><Button type="text" size="small" aria-label="Close skill editing" disabled={saving || drafting} icon={<X className="size-4" />} onClick={requestClose} /></header>
                 <div className="skill-editor-content">
             {!isPackageSkill ? <details className="skill-editor-disclosure">
-                <summary><Wand2 className="size-4" aria-hidden="true" />AI 起草</summary>
+                <summary><Wand2 className="size-4" aria-hidden="true" />AI drafting</summary>
                 <div className="skill-editor-draft">
-                    <Input.TextArea value={draftIdea} onChange={(event) => { setDraftIdea(event.target.value); setDirty(true); }} autoSize={{ minRows: 3, maxRows: 6 }} maxLength={2000} disabled={drafting || saving} placeholder="描述你希望技能完成的任务" />
-                    <div className="skill-editor-draft-actions"><span>使用当前文本模型，按模型配置计费。</span><Button size="small" loading={drafting} disabled={!draftIdea.trim() || saving} onClick={() => void draftFromIdea()}>生成草稿</Button></div>
+                    <Input.TextArea value={draftIdea} onChange={(event) => { setDraftIdea(event.target.value); setDirty(true); }} autoSize={{ minRows: 3, maxRows: 6 }} maxLength={2000} disabled={drafting || saving} placeholder="Describe what you want the skill to accomplish" />
+                    <div className="skill-editor-draft-actions"><span>Use the current text model, billed per model configuration.</span><Button size="small" loading={drafting} disabled={!draftIdea.trim() || saving} onClick={() => void draftFromIdea()}>Generate draft</Button></div>
                 </div>
-            </details> : <p className="skill-editor-note">这是多文件技能包，此处可编辑基本信息。修改正文请重新导入技能包。</p>}
+            </details> : <p className="skill-editor-note">This is a multi-file skill pack, basic information can be edited here. Please re-import the skill package when modifying the text.</p>}
             <WorkspaceForm form={form} className="skill-editor-form" aria-busy={saving || drafting} disabled={saving || drafting} onFinish={submit} onFinishFailed={({ errorFields }) => { if (advancedRef.current && errorFields.some(field => ["tag", "markdownUrl", "showcaseMedia", "extraInfo"].includes(String(field.name[0])))) advancedRef.current.open = true; }} onValuesChange={() => setDirty(true)}>
-                <Form.Item name="skillName" label="名称" rules={[{ required: true, message: "请填写技能名称" }, { max: 80, message: "最多 80 个字符" }]}>
-                    <Input maxLength={80} placeholder="为技能起一个清晰的名称" autoComplete="off" />
+                <Form.Item name="skillName" label="Name" rules={[{ required: true, message: "Please fill in the skill name" }, { max: 80, message: "Maximum 80 characters" }]}>
+                    <Input maxLength={80} placeholder="Give skills a clear name" autoComplete="off" />
                 </Form.Item>
 
-                <Form.Item name="description" label="简介" rules={[{ required: true, message: "请填写技能简介" }, { max: 1024, message: "最多 1024 个字符" }]}>
-                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} maxLength={1024} placeholder="说明适用场景、输入条件和最终产出" />
+                <Form.Item name="description" label="Introduction" rules={[{ required: true, message: "Please fill in the skills profile" }, { max: 1024, message: "Maximum 1024 characters" }]}>
+                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} maxLength={1024} placeholder="Explain applicable scenarios, input conditions and final output" />
                 </Form.Item>
 
-                {!isPackageSkill ? <Form.Item name="instruction" label="指令" rules={[{ required: true, message: "请填写技能指令" }, { max: 100000, message: "最多 100000 个字符" }]}>
-                    <Input.TextArea className="font-mono text-xs leading-5" autoSize={{ minRows: 10, maxRows: 24 }} maxLength={100000} placeholder="使用 Markdown 编写角色、约束、流程、检查清单和输出格式" />
+                {!isPackageSkill ? <Form.Item name="instruction" label="instructions" rules={[{ required: true, message: "Please fill in the skill instructions" }, { max: 100000, message: "Up to 100000 characters" }]}>
+                    <Input.TextArea className="font-mono text-xs leading-5" autoSize={{ minRows: 10, maxRows: 24 }} maxLength={100000} placeholder="Use Markdown to write roles, constraints, processes, checklists, and output formats" />
                 </Form.Item> : null}
 
                 <details ref={advancedRef} className="skill-editor-disclosure skill-editor-advanced">
-                    <summary>更多设置</summary>
+                    <summary>More settings</summary>
                     <div className="skill-editor-advanced-content">
-                    <Form.Item name="tag" label="分类" rules={[{ required: true, message: "请选择技能分类" }]}><Select options={fallbackSkillCategories.map(({ value, label }) => ({ value, label }))} /></Form.Item>
-                    <Form.Item name="markdownUrl" label="来源链接" rules={[{ type: "url", message: "请输入有效的 HTTP(S) 链接" }]}><Input type="url" inputMode="url" spellCheck={false} placeholder="https://" /></Form.Item>
+                    <Form.Item name="tag" label="Classification" rules={[{ required: true, message: "Please select a skill category" }]}><Select options={fallbackSkillCategories.map(({ value, label }) => ({ value, label }))} /></Form.Item>
+                    <Form.Item name="markdownUrl" label="Source link" rules={[{ type: "url", message: "Please enter a valid HTTP(S) link" }]}><Input type="url" inputMode="url" spellCheck={false} placeholder="https://" /></Form.Item>
                 <Form.List name="showcaseMedia">
                     {(fields, { add, remove }) => (
                         <section aria-labelledby="skill-media-title">
                             <div className="mb-3 flex items-center justify-between">
-                                <h3 id="skill-media-title" className="text-sm font-medium">展示媒体</h3>
-                                <Button size="small" disabled={fields.length >= 8} icon={<Plus className="size-4" />} onClick={() => add(emptyMedia())}>添加媒体</Button>
+                                <h3 id="skill-media-title" className="text-sm font-medium">display media</h3>
+                                <Button size="small" disabled={fields.length >= 8} icon={<Plus className="size-4" />} onClick={() => add(emptyMedia())}>Add media</Button>
                             </div>
                             <div className="space-y-2">
                                 {fields.map((field) => (
                                     <div key={field.key} className="grid grid-cols-[80px_minmax(0,1fr)_32px] gap-2">
-                                        <Form.Item {...field} name={[field.name, "type"]} className="mb-0" rules={[{ required: true, message: "选择类型" }]}>
-                                            <Select aria-label={`媒体 ${field.name + 1} 类型`} options={[{ value: "image", label: "图片" }, { value: "video", label: "视频" }]} />
+                                        <Form.Item {...field} name={[field.name, "type"]} className="mb-0" rules={[{ required: true, message: "Select type" }]}>
+                                            <Select aria-label={`media${field.name + 1} Type`} options={[{ value: "image", label: "pictures" }, { value: "video", label: "video" }]} />
                                         </Form.Item>
-                                        <Form.Item {...field} name={[field.name, "showcaseUrl"]} className="mb-0" rules={[{ required: true, message: "请填写媒体链接" }, { type: "url", message: "链接格式无效" }]}>
-                                            <Input aria-label={`媒体 ${field.name + 1} 链接`} type="url" inputMode="url" spellCheck={false} placeholder="https://example.com/media" />
+                                        <Form.Item {...field} name={[field.name, "showcaseUrl"]} className="mb-0" rules={[{ required: true, message: "Please fill in the media link" }, { type: "url", message: "Invalid link format" }]}>
+                                            <Input aria-label={`media${field.name + 1} link`} type="url" inputMode="url" spellCheck={false} placeholder="https://example.com/media" />
                                         </Form.Item>
-                                        <Button aria-label="移除媒体" title="移除媒体" icon={<Minus className="size-4" />} onClick={() => remove(field.name)} />
+                                        <Button aria-label="Remove media" title="Remove media" icon={<Minus className="size-4" />} onClick={() => remove(field.name)} />
                                         <Form.Item {...field} name={[field.name, "showcaseUri"]} hidden><Input /></Form.Item>
                                     </div>
                                 ))}
@@ -158,14 +158,14 @@ export function SkillEditorDrawer({ open, skill, onClose, onSaved }: { open: boo
                     )}
                 </Form.List>
 
-                <Form.Item name="extraInfo" label="补充信息" className="mt-5" rules={[{ max: 2000, message: "最多 2000 个字符" }]}>
-                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} maxLength={2000} placeholder="版本说明、依赖工具或使用注意事项" />
+                <Form.Item name="extraInfo" label="Supplementary information" className="mt-5" rules={[{ max: 2000, message: "Maximum 2000 characters" }]}>
+                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} maxLength={2000} placeholder="Version notes, dependent tools or usage notes" />
                 </Form.Item>
                     </div>
                 </details>
             </WorkspaceForm>
                 </div>
-                <footer className="workspace-panel-footer"><Button type="primary" loading={saving} aria-busy={saving} disabled={saving || drafting} onClick={() => form.submit()}>{skill ? "保存修改" : "创建技能"}</Button></footer>
+                <footer className="workspace-panel-footer"><Button type="primary" loading={saving} aria-busy={saving} disabled={saving || drafting} onClick={() => form.submit()}>{skill ? "Save changes" : "Create skills"}</Button></footer>
             </section>
         </AppDrawer>
     );

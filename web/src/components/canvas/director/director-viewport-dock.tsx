@@ -39,17 +39,17 @@ type DirectorViewportDockProps = {
 
 /** 渲染视图按钮的展示顺序与图标。实际可见项由 renderModes 过滤。 */
 const RENDER_VIEW_BUTTONS: Array<{ mode: DirectorRenderMode; label: string; icon: ReactNode }> = [
-    { mode: "beauty", label: "构图预览", icon: <Camera /> },
-    { mode: "clay", label: "彩色白膜", icon: <Palette /> },
-    { mode: "pose", label: "骨骼视图", icon: <Bone /> },
-    { mode: "depth", label: "深度视图", icon: <Layers /> },
-    { mode: "normal", label: "法线视图", icon: <Compass /> },
+    { mode: "beauty", label: "Composition preview", icon: <Camera /> },
+    { mode: "clay", label: "Color white film", icon: <Palette /> },
+    { mode: "pose", label: "Bone view", icon: <Bone /> },
+    { mode: "depth", label: "depth view", icon: <Layers /> },
+    { mode: "normal", label: "normal view", icon: <Compass /> },
 ];
 
 const TRANSFORM_BUTTONS = [
-    { mode: "translate", label: "移动", shortcut: "V", icon: <MousePointer2 /> },
-    { mode: "rotate", label: "旋转", shortcut: "R", icon: <Rotate3D /> },
-    { mode: "scale", label: "缩放", shortcut: "F", icon: <Scaling /> },
+    { mode: "translate", label: "move", shortcut: "V", icon: <MousePointer2 /> },
+    { mode: "rotate", label: "rotate", shortcut: "R", icon: <Rotate3D /> },
+    { mode: "scale", label: "Zoom", shortcut: "F", icon: <Scaling /> },
 ] as const;
 
 export function DirectorViewportDock({ transformMode, renderMode, renderModes, onTransformModeChange, onRenderModeChange, timelineOpen, onToggleTimeline, captureBusy, captureReady, onCapture, onExportClay, exportBusy, onApplyToCanvas, applyBusy, saveRetryable, saveRetryBusy, onRetrySave, mode = "layout", onModeChange = () => {}, workspaceView = "scene", onWorkspaceViewChange = () => {}, canUndo = false, canRedo = false, onUndo = () => {}, onRedo = () => {} }: DirectorViewportDockProps) {
@@ -57,21 +57,21 @@ export function DirectorViewportDock({ transformMode, renderMode, renderModes, o
     const activeTransform = TRANSFORM_BUTTONS.find((item) => item.mode === transformMode) ?? TRANSFORM_BUTTONS[0];
     const releaseMenuFocus = (detail: number) => releaseDirectorFocusAfterPointer({ detail, currentTarget: document.activeElement as HTMLElement });
     const toolMenuItems: NonNullable<MenuProps["items"]> = [
-        { type: "group" as const, key: "render", label: "视图模式", children: RENDER_VIEW_BUTTONS.filter((item) => renderModes.includes(item.mode)).map((item) => ({ key: `render-${item.mode}`, icon: item.icon, label: item.label, onClick: ({ domEvent }) => { onRenderModeChange(item.mode); releaseMenuFocus(domEvent.detail); } })) },
-        { type: "group" as const, key: "workbench", label: "工作台", children: [
-            { key: "export-clay", icon: exportBusy ? <LoaderCircle className="animate-spin" /> : <Video />, label: exportBusy ? "正在导出白膜视频" : "导出白膜视频", disabled: exportBusy, onClick: ({ domEvent }) => { onExportClay(); releaseMenuFocus(domEvent.detail); } },
-            { key: "apply-to-canvas", icon: applyBusy ? <LoaderCircle className="animate-spin" /> : <Save />, label: applyBusy ? "正在应用到镜头" : "应用到镜头", disabled: applyBusy, onClick: ({ domEvent }) => { onApplyToCanvas(); releaseMenuFocus(domEvent.detail); } },
-            ...(saveRetryable ? [{ key: "retry-save", icon: saveRetryBusy ? <LoaderCircle className="animate-spin" /> : <RotateCcw />, label: saveRetryBusy ? "正在重试保存" : "重试保存", disabled: saveRetryBusy, onClick: ({ domEvent }: MenuInfo) => { onRetrySave(); releaseMenuFocus(domEvent.detail); } }] : []),
+        { type: "group" as const, key: "render", label: "view mode", children: RENDER_VIEW_BUTTONS.filter((item) => renderModes.includes(item.mode)).map((item) => ({ key: `render-${item.mode}`, icon: item.icon, label: item.label, onClick: ({ domEvent }) => { onRenderModeChange(item.mode); releaseMenuFocus(domEvent.detail); } })) },
+        { type: "group" as const, key: "workbench", label: "workbench", children: [
+            { key: "export-clay", icon: exportBusy ? <LoaderCircle className="animate-spin" /> : <Video />, label: exportBusy ? "Exporting white film video" : "Export white film video", disabled: exportBusy, onClick: ({ domEvent }) => { onExportClay(); releaseMenuFocus(domEvent.detail); } },
+            { key: "apply-to-canvas", icon: applyBusy ? <LoaderCircle className="animate-spin" /> : <Save />, label: applyBusy ? "Applying to lens" : "Apply to lens", disabled: applyBusy, onClick: ({ domEvent }) => { onApplyToCanvas(); releaseMenuFocus(domEvent.detail); } },
+            ...(saveRetryable ? [{ key: "retry-save", icon: saveRetryBusy ? <LoaderCircle className="animate-spin" /> : <RotateCcw />, label: saveRetryBusy ? "Retrying to save" : "Retry saving", disabled: saveRetryBusy, onClick: ({ domEvent }: MenuInfo) => { onRetrySave(); releaseMenuFocus(domEvent.detail); } }] : []),
         ] },
-        { key: "director-navigation", label: "导演台导航", icon: <Layers />, children: [
-            { type: "group" as const, key: "director-mode", label: "导演台模式", children: DIRECTOR_MODES.map((item) => ({ key: `director-mode-${item.mode}`, label: item.label, title: item.hint, onClick: ({ domEvent }) => { onModeChange(item.mode); releaseMenuFocus(domEvent.detail); } })) },
-            { type: "group" as const, key: "workspace-view", label: "工作区视图", children: [
-                { key: "workspace-scene", label: "场景调度", onClick: ({ domEvent }) => { onWorkspaceViewChange("scene"); releaseMenuFocus(domEvent.detail); } },
-                { key: "workspace-preview", label: "成片预演", onClick: ({ domEvent }) => { onWorkspaceViewChange("preview"); releaseMenuFocus(domEvent.detail); } },
+        { key: "director-navigation", label: "Director's desk navigation", icon: <Layers />, children: [
+            { type: "group" as const, key: "director-mode", label: "Director's desk mode", children: DIRECTOR_MODES.map((item) => ({ key: `director-mode-${item.mode}`, label: item.label, title: item.hint, onClick: ({ domEvent }) => { onModeChange(item.mode); releaseMenuFocus(domEvent.detail); } })) },
+            { type: "group" as const, key: "workspace-view", label: "workspace view", children: [
+                { key: "workspace-scene", label: "mise en scene", onClick: ({ domEvent }) => { onWorkspaceViewChange("scene"); releaseMenuFocus(domEvent.detail); } },
+                { key: "workspace-preview", label: "Film preview", onClick: ({ domEvent }) => { onWorkspaceViewChange("preview"); releaseMenuFocus(domEvent.detail); } },
             ] },
-            { type: "group" as const, key: "history", label: "编辑历史", children: [
-                { key: "undo", icon: <RotateCcw />, label: "撤销", disabled: !canUndo, onClick: ({ domEvent }) => { onUndo(); releaseMenuFocus(domEvent.detail); } },
-                { key: "redo", icon: <RotateCcw className="scale-x-[-1]" />, label: "重做", disabled: !canRedo, onClick: ({ domEvent }) => { onRedo(); releaseMenuFocus(domEvent.detail); } },
+            { type: "group" as const, key: "history", label: "Edit history", children: [
+                { key: "undo", icon: <RotateCcw />, label: "Cancel", disabled: !canUndo, onClick: ({ domEvent }) => { onUndo(); releaseMenuFocus(domEvent.detail); } },
+                { key: "redo", icon: <RotateCcw className="scale-x-[-1]" />, label: "Redo", disabled: !canRedo, onClick: ({ domEvent }) => { onRedo(); releaseMenuFocus(domEvent.detail); } },
             ] },
         ] },
     ];
@@ -84,7 +84,7 @@ export function DirectorViewportDock({ transformMode, renderMode, renderModes, o
         })),
     ];
     return (
-        <nav className="director-viewport-dock" aria-label="导演台视口工具" data-director-mode={mode} data-workspace-view={workspaceView}>
+        <nav className="director-viewport-dock" aria-label="Director's Desk Viewport Tool" data-director-mode={mode} data-workspace-view={workspaceView}>
             <Dropdown
                 trigger={["click", "contextMenu"]}
                 placement="topLeft"
@@ -94,12 +94,12 @@ export function DirectorViewportDock({ transformMode, renderMode, renderModes, o
                     items: advancedMenu ? toolMenuItems : transformMenuItems,
                 }}
             >
-                <button type="button" className="director-viewport-dock-button is-active" aria-label={activeTransform.label} aria-haspopup="menu" title={`${activeTransform.label} (${activeTransform.shortcut}) · 右键更多工具`} onClick={() => setAdvancedMenu(false)} onContextMenu={() => setAdvancedMenu(true)}>
+                <button type="button" className="director-viewport-dock-button is-active" aria-label={activeTransform.label} aria-haspopup="menu" title={`${activeTransform.label} (${activeTransform.shortcut}) · Right click for more tools`} onClick={() => setAdvancedMenu(false)} onContextMenu={() => setAdvancedMenu(true)}>
                     {activeTransform.icon}
                 </button>
             </Dropdown>
-            <button type="button" className="director-viewport-dock-button disabled:opacity-40" aria-label="截图" disabled={captureBusy || !captureReady} title={captureBusy ? "正在保存截图" : captureReady ? "截图" : "视口加载中"} onClick={(event) => { onCapture(); releaseDirectorFocusAfterPointer(event); }}>{captureBusy ? <LoaderCircle className="animate-spin" /> : <Camera />}</button>
-            <button type="button" className={`director-viewport-dock-button ${timelineOpen ? "is-active" : ""}`} aria-label="动画时间轴" aria-pressed={timelineOpen} onClick={(event) => { onToggleTimeline(); releaseDirectorFocusAfterPointer(event); }}><Clapperboard /></button>
+            <button type="button" className="director-viewport-dock-button disabled:opacity-40" aria-label="screenshot" disabled={captureBusy || !captureReady} title={captureBusy ? "Saving screenshot" : captureReady ? "screenshot" : "Viewport loading"} onClick={(event) => { onCapture(); releaseDirectorFocusAfterPointer(event); }}>{captureBusy ? <LoaderCircle className="animate-spin" /> : <Camera />}</button>
+            <button type="button" className={`director-viewport-dock-button ${timelineOpen ? "is-active" : ""}`} aria-label="animation timeline" aria-pressed={timelineOpen} onClick={(event) => { onToggleTimeline(); releaseDirectorFocusAfterPointer(event); }}><Clapperboard /></button>
         </nav>
     );
 }

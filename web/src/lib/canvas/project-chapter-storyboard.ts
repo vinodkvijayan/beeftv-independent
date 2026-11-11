@@ -28,13 +28,13 @@ export function upsertProjectChapterStoryboard(
     const scriptNode: CanvasNodeData = existing
         ? {
               ...existing,
-              title: `分镜脚本 · ${unit.title}`,
+              title: `Storyboard ·${unit.title}`,
               metadata: {
                   ...existing.metadata,
                   status: "idle" as const,
                   workflowKind: "storyboard" as const,
-                  workflowTitle: "章节分镜",
-                  workflowDescription: `已导入 ${rows.length} 个镜头`,
+                  workflowTitle: "Chapter storyboard",
+                  workflowDescription: `Imported${rows.length} shot`,
                   chapterId: unit.id,
                   chapterTitle: unit.title,
                   storyboard,
@@ -69,8 +69,8 @@ function createChapterStoryboardNode(nodes: CanvasNodeData[], unit: Pick<Project
     const node = createCanvasNode(CanvasNodeType.Script, { x: rightEdge + 540, y: 340 }, {
         status: "idle",
         workflowKind: "storyboard",
-        workflowTitle: "章节分镜",
-        workflowDescription: `已导入 ${rows.length} 个镜头`,
+        workflowTitle: "Chapter storyboard",
+        workflowDescription: `Imported${rows.length} shot`,
         chapterId: unit.id,
         chapterTitle: unit.title,
         storyboard: {
@@ -79,7 +79,7 @@ function createChapterStoryboardNode(nodes: CanvasNodeData[], unit: Pick<Project
             referenceNodeIds: [],
         },
     });
-    node.title = `分镜脚本 · ${unit.title}`;
+    node.title = `Storyboard ·${unit.title}`;
     return node;
 }
 

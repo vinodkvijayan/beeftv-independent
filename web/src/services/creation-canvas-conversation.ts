@@ -16,15 +16,15 @@ type SourceConversation = { id: string; title: string; updatedAt: string; canvas
 // or replacing messages produced by the canvas Agent after the handoff.
 export async function continueCreationConversationOnCanvas(source: SourceConversation) {
     const scope = getActiveUserScope();
-    const assertScope = () => { if (scope !== getActiveUserScope()) throw new DOMException("账号已切换，请重新打开创作", "AbortError"); };
-    if (!source.id || !source.messages.length) throw new Error("请先开始一段创作对话");
-    if (source.messages.some((item) => item.status === "pending" || item.status === "streaming")) throw new Error("当前创作仍在生成，请完成或停止后再转入画布。");
-    if (!useCanvasStore.getState().hydrated) throw new Error("画布资料正在加载，请稍后继续。");
+    const assertScope = () => { if (scope !== getActiveUserScope()) throw new DOMException("The account has been switched, please reopen creation", "AbortError"); };
+    if (!source.id || !source.messages.length) throw new Error("Please start a creative conversation first");
+    if (source.messages.some((item) => item.status === "pending" || item.status === "streaming")) throw new Error("The current creation is still being generated, please finish or stop before switching to the canvas.");
+    if (!useCanvasStore.getState().hydrated) throw new Error("Canvas data is loading, please continue later.");
     const sessionId = `creation:${source.id}`;
     const messages: CanvasAssistantMessage[] = source.messages.map((item) => ({
         id: `creation:${source.id}:${item.id}`, role: item.role,
-        text: item.content || (item.status === "done" ? "首页作品已生成，可在画布中继续创作。" : item.status === "error" ? "首页生成未完成。" : item.status === "cancelled" ? "首页生成已停止。" : "来自首页的创作记录"),
-        meta: "来自首页",
+        text: item.content || (item.status === "done" ? "The homepage work has been generated and you can continue to create it in the canvas." : item.status === "error" ? "Home page generation is not completed." : item.status === "cancelled" ? "Home page generation has stopped." : "Creative records from the home page"),
+        meta: "From home page",
         detail: { kind: "creation-handoff", sourceConversationId: source.id, sourceMessageId: item.id, createdAt: item.createdAt,
             status: item.status, mode: item.mode, model: item.model, taskIds: item.taskIds, error: item.error, settings: item.settings,
             references: item.references?.map(({ id, label, kind }) => ({ id, label, kind })),
@@ -38,7 +38,7 @@ export async function continueCreationConversationOnCanvas(source: SourceConvers
     if (existingId) {
         const project = await loadCanvasProjectForEditing(existingId);
         assertScope();
-        if (!project) throw new Error("关联画布已不存在，请先恢复画布后继续。");
+        if (!project) throw new Error("The associated canvas no longer exists, please restore the canvas before continuing.");
         const sessions = project.chatSessions || [];
         const previous = sessions.find((item) => item.id === sessionId);
         const incoming = new Map(messages.map((item) => [item.id, item]));
@@ -58,7 +58,7 @@ export async function continueCreationConversationOnCanvas(source: SourceConvers
         }
     } else {
         const session: CanvasAssistantSession = { id: sessionId, title: source.title, createdAt: source.messages[0].createdAt, updatedAt: source.updatedAt, messages };
-        const created = await createWorkspaceCanvasProject(source.title || "创作画布", undefined, { chatSessions: [session], activeChatId: sessionId });
+        const created = await createWorkspaceCanvasProject(source.title || "creative canvas", undefined, { chatSessions: [session], activeChatId: sessionId });
         id = created.id;
         syncError = created.syncError;
         await flushCanvasStorePersistence();

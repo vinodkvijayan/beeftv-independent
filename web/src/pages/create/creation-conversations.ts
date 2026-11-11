@@ -9,7 +9,7 @@ type CreationRuntime = typeof import("./creation-runtime");
 type PersistedCreationTask = GenerationTask & { creationResultUrls?: string[]; creationError?: string };
 
 export function newConversation(): CreationConversation {
-    return { id: createClientId(), title: "新创作", updatedAt: new Date().toISOString(), messages: [] };
+    return { id: createClientId(), title: "new creation", updatedAt: new Date().toISOString(), messages: [] };
 }
 
 export function newMessage(role: CreationMessage["role"], content: string, extra: Partial<CreationMessage> = {}): CreationMessage {
@@ -78,7 +78,7 @@ export async function materializeCreationTaskResults(runtime: CreationRuntime, t
             const creationResultUrls = runtime.generationTaskMaterializedUrls(materialized);
             return creationResultUrls.length ? { ...materialized, creationResultUrls } : materialized;
         } catch (error) {
-            return { ...task, creationError: error instanceof Error ? error.message : "生成结果资源化失败" };
+            return { ...task, creationError: error instanceof Error ? error.message : "Failed to resource the generated results" };
         }
     }));
 }
@@ -113,23 +113,23 @@ export function reconcileCreationTaskMessages(runtime: CreationRuntime, conversa
             changed = true;
 
             if (resultUrls.length) {
-                const content = message.mode === "video" ? "视频已生成" : failedCount ? `${resultUrls.length} 张图片已生成，${failedCount} 张失败` : "图片已生成";
+                const content = message.mode === "video" ? "Video has been generated" : failedCount ? `${resultUrls.length} pictures have been generated,${failedCount} Zhang failed` : "Image has been generated";
                 return { ...message, status: "done" as const, content, resultUrls, error: undefined, generationErrorSummary: undefined, generationErrorCode: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskIds: nextTaskIds };
             }
             if (matches.every((task) => task.status === "cancelled")) {
-                return { ...message, status: "cancelled" as const, content: "已停止", error: undefined, generationErrorSummary: undefined, generationErrorCode: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskIds: nextTaskIds };
+                return { ...message, status: "cancelled" as const, content: "Stopped", error: undefined, generationErrorSummary: undefined, generationErrorCode: undefined, generationProviderCode: undefined, taskFailureDiagnostics: undefined, taskIds: nextTaskIds };
             }
             const failed = matches.find((task) => task.status === "failed" || task.creationError);
             const rawError = failed?.creationError
                 ? failed.creationError
                 : failed?.errorCode
-                  ? { code: failed.errorCode, message: failed.error || "任务已结束，但生成结果暂时无法读取" }
-                  : failed?.error || "任务已结束，但生成结果暂时无法读取";
+                  ? { code: failed.errorCode, message: failed.error || "The task has ended, but the generated results cannot be read temporarily." }
+                  : failed?.error || "The task has ended, but the generated results cannot be read temporarily.";
             const explained = explainGenerationError(rawError);
             return {
                 ...message,
                 status: "error" as const,
-                content: "生成失败",
+                content: "Build failed",
                 error: explained.message,
                 generationErrorSummary: explained.summary,
                 ...(explained.providerCode ? { generationProviderCode: explained.providerCode } : {}),

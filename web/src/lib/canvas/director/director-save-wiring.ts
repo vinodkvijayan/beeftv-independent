@@ -38,19 +38,19 @@ export function describeDirectorSaveStatus(progress: DirectorSaveProgress): Dire
 
     if (progress.status === "error") {
         return {
-            label: progress.draftStored ? "保存失败 · 本地草稿已保留" : "保存失败 · 本地草稿也未写入",
+            label: progress.draftStored ? "Save failed · Local draft has been retained" : "Saving failed · Local draft was not written either",
             tone: "danger",
             retryable: true,
             busy: false,
         };
     }
     if (progress.status === "saving") {
-        return { label: "正在保存…", tone: "pending", retryable: false, busy: true };
+        return { label: "Saving…", tone: "pending", retryable: false, busy: true };
     }
     if (progress.status === "dirty" || unconfirmed) {
-        return { label: "有未保存修改", tone: "pending", retryable: true, busy: false };
+        return { label: "There are unsaved changes", tone: "pending", retryable: true, busy: false };
     }
-    return { label: "已保存", tone: "idle", retryable: false, busy: false };
+    return { label: "saved", tone: "idle", retryable: false, busy: false };
 }
 
 /**
@@ -74,10 +74,10 @@ export function resolveDirectorCloseOutcome(decision: DirectorCloseDecision): Di
     if (decision === "offer-draft-exit") {
         return {
             kind: "confirm-draft-exit",
-            message: "远端保存失败，但本地草稿已安全保存。下次打开这个镜头可以恢复，确认离开吗？",
+            message: "The remote save failed, but the local draft was saved safely. This lens can be restored next time you open it. Are you sure to leave?",
         };
     }
-    return { kind: "blocked", message: "保存失败且本地草稿未写入，已留在导演台，请重试保存。" };
+    return { kind: "blocked", message: "The save failed and the local draft was not written and has been left on the director's desk. Please try saving again." };
 }
 
 /**

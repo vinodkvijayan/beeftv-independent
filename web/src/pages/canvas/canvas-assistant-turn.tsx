@@ -44,7 +44,7 @@ type Props = {
 };
 
 const replyMarkdownComponents: Components = {
-    table: ({ children }) => <div className="canvas-assistant-table-scroll" role="region" aria-label="回复表格" tabIndex={0}>
+    table: ({ children }) => <div className="canvas-assistant-table-scroll" role="region" aria-label="Reply form" tabIndex={0}>
         <table>{children}</table>
     </div>,
 };
@@ -65,9 +65,9 @@ export function CanvasAssistantUserMessage({ text, selectedCount, continuationId
     const automatic = Boolean(continuationId);
     return (
         <div className="canvas-assistant-user">
-            {automatic ? <span className="canvas-assistant-chip">自动继续</span> : null}
-            <span style={{ whiteSpace: "pre-wrap" }}>{automatic ? "生成已结束，继续检查结果和制作。" : text}</span>
-            {selectedCount > 0 ? <span className="canvas-assistant-meta">{automatic ? `关联了本次生成的 ${selectedCount} 个节点` : `带上了已选的 ${selectedCount} 个节点`}</span> : null}
+            {automatic ? <span className="canvas-assistant-chip">Automatically continue</span> : null}
+            <span style={{ whiteSpace: "pre-wrap" }}>{automatic ? "The generation has ended, continue checking the results and production." : text}</span>
+            {selectedCount > 0 ? <span className="canvas-assistant-meta">{automatic ? `associated with this generated${selectedCount} nodes` : `Brought selected${selectedCount} nodes`}</span> : null}
         </div>
     );
 }
@@ -87,8 +87,8 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
     const copyDiagnostics = async () => {
         try {
             const text = formatAssistantDiagnostics(turn, { canvasId, assistantSessionId: sessionId || undefined });
-            if (await copy(text)) message.success("排查信息已复制"); else message.error("复制失败，请导出诊断包");
-        } catch { message.error("复制失败，请导出诊断包"); }
+            if (await copy(text)) message.success("Troubleshooting information copied"); else message.error("Copy failed, please export the diagnostic package");
+        } catch { message.error("Copy failed, please export the diagnostic package"); }
     };
 
     return (
@@ -125,25 +125,25 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
             {turn.outputs?.length ? <CanvasAssistantOutputs outputs={turn.outputs} /> : null}
             {turn.cancelled && stoppedWithChanges ? (
                 <div className="canvas-assistant-incomplete" role="status">
-                    <strong>这一条已经停下了</strong>
-                    <span>停下前的改动保留在画布上。</span>
+                    <strong>This one has been stopped</strong>
+                    <span>Changes made before stopping remain on the canvas.</span>
                     {onContinue ? <>
-                        <Button size="small" onClick={onContinue}>继续处理</Button>
-                        <span className="canvas-assistant-meta">在输入框里确认或补充要求后发送。</span>
+                        <Button size="small" onClick={onContinue}>Continue processing</Button>
+                        <span className="canvas-assistant-meta">Send after confirming or adding requirements in the input box.</span>
                     </> : null}
                 </div>
-            ) : turn.cancelled ? <p className="canvas-assistant-meta">这一条已经停下了。</p> : null}
+            ) : turn.cancelled ? <p className="canvas-assistant-meta">This one has been stopped.</p> : null}
             {turn.error ? (
                 <div className={canContinue ? "canvas-assistant-incomplete" : "canvas-assistant-feedback"} role="status">
-                    <strong>{canContinue ? "尚未完成" : "这一步没有完成"}</strong>
-                    <span className={canContinue ? undefined : "canvas-assistant-failed"}>{undone ? ASSISTANT_UNDONE_INCOMPLETE_TEXT : agentAssistantFailureText(turn.errorReason ?? undefined, "这一轮没有全部完成，请核对已经落地的改动。")}</span>
+                    <strong>{canContinue ? "Not yet completed" : "This step is not completed"}</strong>
+                    <span className={canContinue ? undefined : "canvas-assistant-failed"}>{undone ? ASSISTANT_UNDONE_INCOMPLETE_TEXT : agentAssistantFailureText(turn.errorReason ?? undefined, "Not all of this round has been completed, please check the changes that have been implemented.")}</span>
                     {canContinue && onContinue && !undone ? <>
-                        <Button size="small" onClick={onContinue}>继续处理</Button>
-                        <span className="canvas-assistant-meta">在输入框里确认或补充要求后发送。</span>
+                        <Button size="small" onClick={onContinue}>Continue processing</Button>
+                        <span className="canvas-assistant-meta">Send after confirming or adding requirements in the input box.</span>
                     </> : null}
                 </div>
             ) : null}
-            {turn.error || turn.cancelled ? <Button size="small" onClick={() => void copyDiagnostics()}>复制排查信息</Button> : null}
+            {turn.error || turn.cancelled ? <Button size="small" onClick={() => void copyDiagnostics()}>Copy troubleshooting information</Button> : null}
 
             {failedActions.length > 0 ? (
                 <div className="canvas-assistant-feedback" role="status">
@@ -159,21 +159,21 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
                 <div className="canvas-assistant-change">
                     <strong>{summary}</strong>
                     {undone ? (
-                        <span className="canvas-assistant-meta">{changedCanvasCount > 1 ? "已撤销这一轮全部画布改动" : "已撤销"}</span>
+                        <span className="canvas-assistant-meta">{changedCanvasCount > 1 ? "All canvas changes in this round have been undone" : "Revoked"}</span>
                     ) : (
                         <>
-                            {changedCanvasCount > 1 ? <span className="canvas-assistant-meta">撤销会恢复这 {changedCanvasCount} 个画布本轮的全部改动。</span> : null}
+                            {changedCanvasCount > 1 ? <span className="canvas-assistant-meta">Undo will restore this{changedCanvasCount}  All changes to this canvas this round.</span> : null}
                             <div className="canvas-assistant-card-actions">
                                 {changedNodeIds.length > 0 ? (
                                     <Button type="text" size="small" icon={<Crosshair className="size-3.5" />} onClick={() => onLocate(changedNodeIds)}>
-                                        在画布上查看
+                                                                                View on canvas
                                     </Button>
                                 ) : null}
                                 <Button type="text" size="small" icon={<Undo2 className="size-3.5" />} loading={status?.undoing} onClick={() => onUndo(turn.turnId)}>
-                                    撤销这一轮
+                                                                        Undo this round
                                 </Button>
                             </div>
-                            {status?.undoFailure ? <span className="canvas-assistant-meta">{changedCanvasCount > 1 && status.undoFailure === "canvas_changed" ? "其中一个画布后来又改过，这一轮未撤销。" : assistantUndoFailureText(status.undoFailure)}</span> : null}
+                            {status?.undoFailure ? <span className="canvas-assistant-meta">{changedCanvasCount > 1 && status.undoFailure === "canvas_changed" ? "One of the canvases was later changed and this round was not undone." : assistantUndoFailureText(status.undoFailure)}</span> : null}
                         </>
                     )}
                 </div>
@@ -210,7 +210,7 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
                                 </div>
                                 {productionParts.targetLines.length > 0 ? (
                                     <details className="canvas-assistant-proposal-details">
-                                        <summary>查看 {productionParts.targetLines.length} 项镜头与提示词明细</summary>
+                                        <summary>View{productionParts.targetLines.length}  Item shots and prompt word details</summary>
                                         <div className="canvas-assistant-proposal-targets">
                                             {productionParts.targetLines.map((line, index) => (
                                                 <div key={proposal.production?.targets[index]?.nodeId || index} className="canvas-assistant-proposal-target">
@@ -233,7 +233,7 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
                                 </div>
                                 {orderTargetLines.length > 0 ? (
                                     <details className="canvas-assistant-proposal-details">
-                                        <summary>查看 {orderTargetLines.length} 项生成单明细</summary>
+                                        <summary>View{orderTargetLines.length}  Item creation order details</summary>
                                         <div className="canvas-assistant-proposal-targets">
                                             {orderTargetLines.map((line, index) => (
                                                 <div key={proposal.targets?.[index]?.nodeId || index} className="canvas-assistant-proposal-target">
@@ -249,25 +249,25 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
                         {!skipped && !running && ((!undone && !turn.proposalsInvalidated) || started) && proposalFeedback?.[proposal.proposalId] ? <span className="canvas-assistant-meta" role="status" style={{ overflowWrap: "anywhere" }}>{proposalFeedback[proposal.proposalId]}</span> : null}
                         {started ? (
                             <>
-                                <span className="canvas-assistant-meta" role="status">{progress?.text || "已开始生成"}</span>
+                                <span className="canvas-assistant-meta" role="status">{progress?.text || "Started generating"}</span>
                                 {progress && onCheckResults && !undone && !proposal.production ? <div className="canvas-assistant-card-actions">
-                                    <Button size="small" disabled={running || !progress.ready} onClick={() => onCheckResults(progress.nodeIds)}>检查结果</Button>
-                                    <span className="canvas-assistant-meta">填入检查要求后，由你发送。</span>
+                                    <Button size="small" disabled={running || !progress.ready} onClick={() => onCheckResults(progress.nodeIds)}>Check results</Button>
+                                    <span className="canvas-assistant-meta">After filling in the inspection requirements, it will be sent by you.</span>
                                 </div> : null}
                             </>
                         ) : undone ? (
                             <span className="canvas-assistant-meta">{ASSISTANT_PROPOSAL_UNDONE_TEXT}</span>
                         ) : skipped ? (
-                            <span className="canvas-assistant-meta">这次没有生成</span>
+                            <span className="canvas-assistant-meta">Not generated this time</span>
                         ) : turn.proposalsInvalidated ? (
                             <span className="canvas-assistant-meta" role="status">{ASSISTANT_PROPOSAL_INVALIDATED_TEXT}</span>
                         ) : (
                             <div className="canvas-assistant-card-actions">
                                 <Button size="small" type="primary" autoInsertSpace={false} loading={running} disabled={generationDisabled || Boolean(priceError)} onClick={() => onRunProposal(proposal, turn.turnId)}>
-                                    {proposal.production ? "确认并制作整片" : "生成"}
+                                    {proposal.production ? "Confirm and make the entire film" : "generate"}
                                 </Button>
                                 <Button size="small" disabled={running} onClick={() => onDismissProposal(proposal.proposalId)}>
-                                    先不用
+                                                                        No need for now
                                 </Button>
                             </div>
                         )}
@@ -296,17 +296,17 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
                                 <span className="canvas-assistant-meta" role="status">{assistantScriptResultStatusText(proposal)}</span>
                                 {hasOutput ? (
                                     <details className="canvas-assistant-proposal-details">
-                                        <summary>查看脚本输出</summary>
+                                        <summary>View script output</summary>
                                         <div className="canvas-assistant-proposal-targets">
                                             {proposal.result?.stdout ? (
                                                 <div className="canvas-assistant-proposal-target">
-                                                    <div className="canvas-assistant-meta">标准输出：</div>
+                                                    <div className="canvas-assistant-meta">Standard output:</div>
                                                     <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: 0 }}>{proposal.result.stdout}</pre>
                                                 </div>
                                             ) : null}
                                             {proposal.result?.stderr ? (
                                                 <div className="canvas-assistant-proposal-target">
-                                                    <div className="canvas-assistant-meta">错误输出：</div>
+                                                    <div className="canvas-assistant-meta">Error output:</div>
                                                     <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: 0 }}>{proposal.result.stderr}</pre>
                                                 </div>
                                             ) : null}
@@ -315,23 +315,23 @@ export function CanvasAssistantTurnView({ turn, canvasId, sessionId, status, han
                                 ) : null}
                             </>
                         ) : running ? (
-                            <span className="canvas-assistant-meta" role="status">正在运行脚本…</span>
+                            <span className="canvas-assistant-meta" role="status">Running script…</span>
                         ) : undone ? (
-                            <span className="canvas-assistant-meta">这一轮已撤销，不会运行脚本。</span>
+                            <span className="canvas-assistant-meta">This round has been revoked and the script will not be run.</span>
                         ) : skipped ? (
-                            <span className="canvas-assistant-meta">这次没有运行脚本</span>
+                            <span className="canvas-assistant-meta">No script is run this time</span>
                         ) : turn.proposalsInvalidated ? (
-                            <span className="canvas-assistant-meta" role="status">已失效，请让助手重新提出脚本运行请求。</span>
+                            <span className="canvas-assistant-meta" role="status">It has expired. Please ask the assistant to make a request to run the script again.</span>
                         ) : (
                             <div className="canvas-assistant-card-actions">
                                 <Button size="small" type="primary" autoInsertSpace={false} loading={running} disabled={generationDisabled} onClick={() => onRunScriptProposal?.(proposal, turn.turnId, false)}>
-                                    运行脚本
+                                                                        run script
                                 </Button>
                                 <Button size="small" disabled={generationDisabled || running} onClick={() => onRunScriptProposal?.(proposal, turn.turnId, true)}>
-                                    本对话始终允许
+                                                                        This conversation is always allowed
                                 </Button>
                                 <Button size="small" disabled={running} onClick={() => onDismissProposal(proposal.proposalId)}>
-                                    先不用
+                                                                        No need for now
                                 </Button>
                             </div>
                         )}

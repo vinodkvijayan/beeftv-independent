@@ -360,12 +360,12 @@ function BatchConnectionHandle({ scale, count, active, onPointerDown }: { scale:
             data-canvas-no-zoom
             className="pointer-events-auto absolute grid -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border shadow-md transition hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             style={buttonStyle}
-            title={`批量连接 ${count} 个节点`}
-            aria-label={`批量连接 ${count} 个节点`}
+            title={`Batch connection${count} nodes`}
+            aria-label={`Batch connection${count} nodes`}
             onPointerDown={onPointerDown}
         >
             <Link2 style={{ width: 14 * inverseScale, height: 14 * inverseScale }} strokeWidth={2} />
-            <span className="sr-only">连接 {count} 个节点</span>
+            <span className="sr-only">connect{count}  nodes</span>
         </button>
     );
 }

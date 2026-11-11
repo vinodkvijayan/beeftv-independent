@@ -7,14 +7,14 @@ export const MEDIA_CONVERSION_PLUGIN_ID = "media-conversion";
 const manifest: PluginManifest = {
     apiVersion: PLUGIN_API_VERSION,
     id: MEDIA_CONVERSION_PLUGIN_ID,
-    name: "媒体转换节点",
+    name: "media conversion node",
     version: "0.1.0",
     publishedAt: "2026-09-08",
     updatedAt: "2026-09-08",
-    description: "在画布中提供图片和视频首帧转换节点，支持灰度、Canny 边缘、AI 线稿、本地 Depth Anything V2 深度图和 OpenPose 姿态骨架。",
+    description: "Provides image and video first frame conversion nodes in the canvas, supporting grayscale, Canny edge, AI line drawing, local Depth Anything V2 depth map and OpenPose pose skeleton.",
     documentation:
-        "# 媒体转换节点\n\n连接图片到转换节点后，可以在节点内选择灰度图、Canny 边缘、AI 线稿、深度图或姿态骨架；连接视频时，灰度图和 Canny 边缘会先提取视频首帧再处理。AI 线稿使用本机 ControlNet Aux 预处理模型，深度图使用本机已安装的 Depth Anything V2 Small 模型，姿态骨架使用 ControlNet Aux 的 OpenPose 人体预处理模型运行；这些操作都不会加载 Stable Diffusion 重绘管线。姿态转换只绘制人体骨架，未检测到人物时会跳过并提示。透明抠图和视频高级逐帧模型仍在验证，会明确提示不可用。\n\n该插件只读取当前节点的媒体输入，并把结果保存回当前画布节点的本地素材存储。",
-    author: "BeefTV 团队",
+        "#Media conversion node\n\nAfter connecting the image to the conversion node, you can select the grayscale image, Canny edge, AI line drawing, depth map or pose skeleton in the node; when connecting the video, the grayscale image and Canny edge will first extract the first frame of the video and then process it. The AI ​​line art uses the native ControlNet Aux preprocessed model, the depth map uses the natively installed Depth Anything V2 Small model, and the pose skeleton is run using ControlNet Aux's OpenPose human preprocessed model; none of these operations load the Stable Diffusion redraw pipeline. Posture conversion only draws the human skeleton, and will skip and prompt when no character is detected. The transparent cutout and video advanced frame-by-frame models are still being verified, and a clear message will be displayed that they are unavailable.\n\nThe plug-in only reads the media input of the current node and saves the results back to the local material storage of the current canvas node.",
+    author: "BeefTV Team",
     surfaces: ["node"],
     permissions: ["canvas.read", "canvas.write", "media.read"],
     trusted: true,

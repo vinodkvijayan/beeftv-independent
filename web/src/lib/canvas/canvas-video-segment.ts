@@ -24,8 +24,8 @@ const OUTPUT_NAME = SEGMENT_OUTPUT_NAME;
 function assertValidRange(range: VideoSegmentRange, durationMs?: number) {
     const startMs = Math.max(0, Math.round(range.startMs));
     const endMs = Math.round(range.endMs);
-    if (endMs <= startMs) throw new Error("片段结束时间必须晚于开始时间");
-    if (durationMs !== undefined && endMs > Math.round(durationMs)) throw new Error("片段结束时间超过视频时长");
+    if (endMs <= startMs) throw new Error("Clip end time must be later than start time");
+    if (durationMs !== undefined && endMs > Math.round(durationMs)) throw new Error("Clip end time exceeds video duration");
 }
 
 async function readVideoSourceBlob(source: VideoSegmentSource) {
@@ -35,10 +35,10 @@ async function readVideoSourceBlob(source: VideoSegmentSource) {
     }
     if (source.url) {
         const response = await fetch(source.url);
-        if (!response.ok) throw new Error(`视频资源请求失败（${response.status}）`);
+        if (!response.ok) throw new Error(`Video resource request failed (${response.status}）`);
         return response.blob();
     }
-    throw new Error("找不到视频素材，请重新上传后再操作");
+    throw new Error("The video material cannot be found, please re-upload it before proceeding.");
 }
 
 function leaseProgress(onProgress?: (progress: VideoSegmentProgress) => void) {
@@ -69,7 +69,7 @@ async function runSegmentJob(
         onProgress?.({ phase: "encoding", progress: 55 });
         try {
             const exitCode = await ffmpeg.exec(["-y", ...buildArgs(startSec, durationSec, inputName, resolvedOutput)]);
-            if (exitCode !== 0) throw new Error("媒体处理失败，请确认视频编码格式兼容");
+            if (exitCode !== 0) throw new Error("Media processing failed, please confirm that the video encoding format is compatible");
             const output = await ffmpeg.readFile(resolvedOutput);
             assertUsableSegmentOutput(output, outputType.startsWith("audio/") ? "audio" : "video");
             onProgress?.({ phase: "encoding", progress: 100 });
@@ -111,7 +111,7 @@ export async function extractVideoAudio(source: VideoSegmentSource, range: Video
             const probeCode = await ffmpeg.ffprobe(["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=index:format=duration", "-of", "json", inputName, "-o", probeName]);
             // The bundled ffprobe writes valid JSON while leaving ret at -1.
             // Validate its output and duration; do not mistake that sentinel for an encoder failure.
-            if (probeCode !== 0 && probeCode !== -1) throw new Error("无法读取视频音轨信息，请检查素材是否完整");
+            if (probeCode !== 0 && probeCode !== -1) throw new Error("Unable to read video audio track information, please check whether the material is complete");
             const probe = await ffmpeg.readFile(probeName);
             assertVideoAudioProbe(typeof probe === "string" ? probe : new TextDecoder().decode(probe));
             const args = (audioCodec: string, outputName = audioName) => buildExtractAudioArgs(audioCodec, startSec, durationSec, outputName, inputName);
@@ -139,7 +139,7 @@ export async function extractVideoAudio(source: VideoSegmentSource, range: Video
                 outputType = "audio/wav";
                 exitCode = await ffmpeg.exec(["-y", ...args("pcm_s16le", outputName)]);
             }
-            if (exitCode !== 0) throw new Error("音频提取失败：当前 FFmpeg 内核不支持可用的音频编码");
+            if (exitCode !== 0) throw new Error("Audio extraction failed: The available audio encoding is not supported by the current FFmpeg kernel");
             const output = await ffmpeg.readFile(outputName);
             assertUsableSegmentOutput(output, "audio");
             onProgress?.({ phase: "encoding", progress: 100 });
@@ -164,7 +164,7 @@ export async function cropVideo(source: VideoSegmentSource, crop: VideoCropRect,
         onProgress?.({ phase: "encoding", progress: 55 });
         try {
             const exitCode = await ffmpeg.exec(["-y", ...buildVideoCropArgs(crop.x, crop.y, crop.width, crop.height, inputName, cropName)]);
-            if (exitCode !== 0) throw new Error("视频画面裁切失败，请确认视频编码格式兼容");
+            if (exitCode !== 0) throw new Error("Video screen cropping failed, please confirm that the video encoding format is compatible");
             const output = await ffmpeg.readFile(cropName);
             assertUsableSegmentOutput(output, "video");
             onProgress?.({ phase: "encoding", progress: 100 });

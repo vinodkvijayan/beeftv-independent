@@ -82,7 +82,7 @@ export function CanvasSelectionToolbar({ anchorRef, containerRef, count, childre
             onPointerDown={(event) => event.stopPropagation()}
         >
             <motion.div initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: anchor.placement === "above" ? 8 : -8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={aceternityMotion.spring.panel} className="flex items-center gap-2">
-                <span className="aceternity-floating-panel shrink-0 rounded-full border px-2.5 py-1.5 text-[var(--fs-tiny)] font-semibold tabular-nums backdrop-blur-2xl" style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.accent.primary }}>已选 {count}</span>
+                <span className="aceternity-floating-panel shrink-0 rounded-full border px-2.5 py-1.5 text-[var(--fs-tiny)] font-semibold tabular-nums backdrop-blur-2xl" style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.accent.primary }}>Selected{count}</span>
                 <div className="max-w-[min(560px,calc(100vw-90px))]">{children}</div>
             </motion.div>
         </div>
@@ -171,13 +171,13 @@ export function CanvasConnectionCreateMenu({ pending, viewport, viewportSize, co
         const create = (type: CreatableNodeType) => () => { onCreate(type); onClose(); };
         const command = (id: string, label: string, type: CreatableNodeType, icon: ReactNode, section: CanvasCreateCommand["section"] = "node", disabledReason?: string, action?: () => void): CanvasCreateCommand => ({ id, label, icon, section, disabledReason, onClick: action || create(type) });
         return [
-            command("text", "文本", CanvasNodeType.Text, getNodeIcon(CanvasNodeType.Text), "node", getDisabledReason(CanvasNodeType.Text)),
-            command("image", "图片", CanvasNodeType.Image, getNodeIcon(CanvasNodeType.Image), "node", getDisabledReason(CanvasNodeType.Image)),
-            command("video", "视频", CanvasNodeType.Video, getNodeIcon(CanvasNodeType.Video), "node", getDisabledReason(CanvasNodeType.Video)),
-            command("audio", "音频", CanvasNodeType.Audio, getNodeIcon(CanvasNodeType.Audio), "node", getDisabledReason(CanvasNodeType.Audio)),
-            command("smart-edit", "智能剪辑", CanvasNodeType.MediaConversion, getNodeIcon(CanvasNodeType.MediaConversion), "node", "暂不可用"),
-            command("director", "导演台", CanvasNodeType.Config, getNodeIcon(CanvasNodeType.Config), "node", "暂不可用"),
-            command("script", "脚本", CanvasNodeType.Script, getNodeIcon(CanvasNodeType.Script), "node", "暂不可用"),
+            command("text", "text", CanvasNodeType.Text, getNodeIcon(CanvasNodeType.Text), "node", getDisabledReason(CanvasNodeType.Text)),
+            command("image", "pictures", CanvasNodeType.Image, getNodeIcon(CanvasNodeType.Image), "node", getDisabledReason(CanvasNodeType.Image)),
+            command("video", "video", CanvasNodeType.Video, getNodeIcon(CanvasNodeType.Video), "node", getDisabledReason(CanvasNodeType.Video)),
+            command("audio", "Audio", CanvasNodeType.Audio, getNodeIcon(CanvasNodeType.Audio), "node", getDisabledReason(CanvasNodeType.Audio)),
+            command("smart-edit", "Smart clipping", CanvasNodeType.MediaConversion, getNodeIcon(CanvasNodeType.MediaConversion), "node", "Not available yet"),
+            command("director", "Director's desk", CanvasNodeType.Config, getNodeIcon(CanvasNodeType.Config), "node", "Not available yet"),
+            command("script", "script", CanvasNodeType.Script, getNodeIcon(CanvasNodeType.Script), "node", "Not available yet"),
         ];
     }, [getDisabledReason, onClose, onCreate]);
 
@@ -209,7 +209,7 @@ export function CanvasConnectionCreateMenu({ pending, viewport, viewportSize, co
             className="thin-scrollbar absolute origin-top-left overflow-x-hidden overflow-y-auto rounded-[var(--r-2xl)] border p-2"
             data-canvas-no-zoom
             data-connection-create-menu
-            aria-label="创建下一步"
+            aria-label="Create next step"
             onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); onClose(); } }}
             style={{ width: menuWidth, maxHeight: Math.max(120, viewportSize.height - 84), left: initialPosition.left, top: initialPosition.top, zIndex, background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.node.text }}
             onMouseDown={(event) => event.stopPropagation()}
@@ -217,7 +217,7 @@ export function CanvasConnectionCreateMenu({ pending, viewport, viewportSize, co
             onFocusCapture={bringToFront}
             onPointerDown={(event) => event.stopPropagation()}
         >
-            <CanvasCreateMenu commands={commands} layout="list" title="引用该节点生成" showSearch={false} showSectionTitles={false} showResources={false} />
+            <CanvasCreateMenu commands={commands} layout="list" title="Generate by referencing this node" showSearch={false} showSectionTitles={false} showResources={false} />
         </motion.div>
     );
 }

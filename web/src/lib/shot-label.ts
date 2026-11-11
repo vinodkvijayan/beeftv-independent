@@ -1,7 +1,7 @@
 const LEGACY_DEFAULT_SHOT_TITLE = /^SC\.\d+$/i;
 
 export function formatShotOrdinal(index: number) {
-    return `镜头${String(Math.max(0, index) + 1).padStart(2, "0")}`;
+    return `lens${String(Math.max(0, index) + 1).padStart(2, "0")}`;
 }
 
 export function normalizeDefaultShotTitle(title: string | undefined, index: number) {

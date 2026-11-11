@@ -4,7 +4,7 @@ import type { CanvasConnection, CanvasNodeData } from "@/types/canvas";
 
 export class CanvasMediaPersistUnconfirmedError extends Error {
     constructor() {
-        super("素材还没有保存完成，无法写入画布，请稍后重试");
+        super("The material has not been saved and cannot be written to the canvas. Please try again later.");
         this.name = "CanvasMediaPersistUnconfirmedError";
     }
 }
@@ -86,12 +86,12 @@ export async function persistOwnedCanvasMediaNodes(
         } catch (error) {
             if (isPersistStop(error)) throw error;
             assertPersistOwnership();
-            const details = error instanceof Error ? error.message : "未知错误";
+            const details = error instanceof Error ? error.message : "unknown error";
             if (required) {
-                deps.warn?.(`已有媒体节点尚未完成素材库绑定，无法保存本次结果：${details}`);
+                deps.warn?.(`The existing media nodes have not been bound to the material library and the results cannot be saved:${details}`);
                 throw error;
             }
-            deps.warn?.(`媒体节点已创建，但素材库写入失败：${details}`);
+            deps.warn?.(`The media node has been created, but writing to the material library failed:${details}`);
             return undefined;
         }
     };
@@ -151,7 +151,7 @@ export async function persistOwnedCanvasMediaNodes(
         assertPersistOwnership();
     }
     if (!deps.hasProject(originalProjectId)) {
-        throw new Error("当前画布未载入本地项目库，无法保存媒体结果");
+        throw new Error("The current canvas is not loaded into the local project library and the media results cannot be saved.");
     }
 
     assertPersistOwnership();
@@ -171,13 +171,13 @@ export async function persistOwnedCanvasMediaNodes(
             const saved = await deps.readSavedProject?.(originalProjectId);
             assertPersistOwnership();
             if (!saved || input.mediaNodes.some((node) => !saved.nodes.some((savedNode) => savedNode.id === node.id))) {
-                throw new Error("本地项目库回读校验未包含刚生成的媒体节点");
+                throw new Error("The local project library readback verification does not contain the newly generated media node");
             }
         }
     } catch (error) {
         if (isPersistStop(error)) throw error;
         assertPersistOwnership();
-        deps.error?.(`媒体结果已生成，但本地画布保存失败：${error instanceof Error ? error.message : "未知错误"}`);
+        deps.error?.(`Media results are generated, but local canvas save fails:${error instanceof Error ? error.message : "unknown error"}`);
         throw error;
     }
     return assetIds;

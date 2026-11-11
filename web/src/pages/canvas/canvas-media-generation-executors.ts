@@ -50,10 +50,10 @@ export async function executeVideoGeneration({
     const isExistingVideoNode = sourceNode?.type === CanvasNodeType.Video && Boolean(sourceNode.metadata?.content) && !reuseSourceNode;
     const videoId = reuseSourceNode ? nodeId : nanoid();
     if (onSubmissionPlan) {
-        if (!clientOperationId) throw new Error("生成提交缺少确认标识");
+        if (!clientOperationId) throw new Error("Build commit missing confirmation id");
         await onSubmissionPlan({ sourceNodeId: nodeId, submissions: [{ operationId: clientOperationId, outputNodeIds: [videoId] }] });
         controller.signal.throwIfAborted();
-        if (!(nodesRef?.current || canvasNodes).some(node => node.id === nodeId)) throw new Error("原节点已删除，未开始生成");
+        if (!(nodesRef?.current || canvasNodes).some(node => node.id === nodeId)) throw new Error("The original node has been deleted and generation has not started.");
     }
     const versionRootId = isExistingVideoNode && sourceNode ? sourceNode.metadata?.versionOfNodeId || sourceNode.id : undefined;
     const parent = sourceNode?.position || { x: 0, y: 0 };

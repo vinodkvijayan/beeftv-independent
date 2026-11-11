@@ -55,7 +55,7 @@ export type CanvasNodeFailureView = {
     batchRegenerateVisible: boolean;
 };
 
-const LEGACY_INTERRUPTED_GENERATION_DETAILS = "页面刷新后生成已中断，请重新生成。";
+const LEGACY_INTERRUPTED_GENERATION_DETAILS = "The generation was interrupted after the page was refreshed, please regenerate.";
 
 function nodeNeedsGenerationRecovery(node: CanvasNodeData) {
     const metadata = node.metadata;

@@ -220,10 +220,10 @@ export function useCanvasGenerationOrchestration({
             const isCurrent = () => lifetime.matches(owner, projectIdRef.current);
             modal.confirm({
                 ...canvasTaskConfirmation,
-                title: deliveryOnly ? "停止取回结果？" : "取消生成任务？",
-                content: deliveryOnly ? "已生成的结果会保留，之后可以继续取回。" : localOnly ? "任务会立即停止本地执行。" : "任务会立即停止本地执行；如果已经提交到上游，系统会继续核对取消结果和积分状态。",
-                okText: deliveryOnly ? "停止取回" : "取消任务",
-                cancelText: "继续等待",
+                title: deliveryOnly ? "Stop retrieving results?" : "Cancel build task?",
+                content: deliveryOnly ? "The generated results will be retained and can be retrieved later." : localOnly ? "The task stops local execution immediately." : "The task will immediately stop local execution; if it has been submitted to the upstream, the system will continue to check the cancellation result and points status.",
+                okText: deliveryOnly ? "Stop retrieval" : "Cancel task",
+                cancelText: "Keep waiting",
                 onOk: async () => {
                     if (!isCurrent()) return;
                     try {
@@ -234,10 +234,10 @@ export function useCanvasGenerationOrchestration({
                         setTaskDetail((current) => (current?.id === task.id ? next : current));
                         await queryClient.invalidateQueries({ queryKey: ["canvas-active-tasks", projectId] });
                         if (!isCurrent()) return;
-                        message.success(deliveryOnly ? "已停止取回" : "任务已取消");
+                        message.success(deliveryOnly ? "Retrieval has stopped" : "Task canceled");
                     } catch (error) {
                         if (!isCurrent()) return;
-                        message.error(error instanceof Error ? error.message : "取消任务失败");
+                        message.error(error instanceof Error ? error.message : "Failed to cancel task");
                     }
                 },
             });
@@ -274,11 +274,11 @@ export function useCanvasGenerationOrchestration({
                         setNodes((current) => insertedNodes.reduce((nodes, inserted) => rebaseInsertedCanvasNode(nodes, inserted), current));
                         pageUi.getState().setSelectedNodeIds(new Set([node.id]));
                         setGenerationHistoryOpen(false);
-                        message.success("已从生成历史插入到画布");
+                        message.success("Inserted into canvas from build history");
                     },
                 });
             } catch (error) {
-                message.error(error instanceof Error ? error.message : "生成结果无法插入画布");
+                message.error(error instanceof Error ? error.message : "The generated results cannot be inserted into the canvas");
             } finally {
                 insertingHistory.current.exit();
             }
@@ -296,7 +296,7 @@ export function useCanvasGenerationOrchestration({
     const retryImageBatchChildren = useCallback(
         (rootId: string, children: CanvasNodeData[]) => {
             const { retryable, blocked } = selectRetryableImageBatchChildren(children);
-            if (blocked) message.warning("部分图片需要先处理失败原因，请打开对应节点查看");
+            if (blocked) message.warning("Some pictures need to deal with the failure reasons first, please open the corresponding node to view");
             if (!retryable.length) return;
             const root = nodesRef.current.find((node) => node.id === rootId);
             if (root) {
@@ -338,7 +338,7 @@ export function useCanvasGenerationOrchestration({
                 connectionId: nanoid(),
             });
             if (!created.ok) {
-                if (created.reason === "empty-prompt") message.warning("文本节点为空，无法生图");
+                if (created.reason === "empty-prompt") message.warning("The text node is empty and the graph cannot be generated.");
                 return;
             }
             nodesRef.current = created.nextNodes;
@@ -356,14 +356,14 @@ export function useCanvasGenerationOrchestration({
         (node: CanvasNodeData, resolution: "720p" | "1080p") => {
             const draftTaskId = node.metadata?.taskProviderRequestId?.trim();
             if (!draftTaskId) {
-                message.warning("该样片缺少上游任务 ID，无法直接转高清成片");
+                message.warning("This sample lacks the upstream task ID and cannot be directly converted into a high-definition film.");
                 return;
             }
             const promptText = node.metadata?.prompt || "";
             const childNode: CanvasNodeData = {
                 id: nanoid(),
                 type: CanvasNodeType.Video,
-                title: `${node.title || "样片"} (${resolution.toUpperCase()} 成片)`.slice(0, 36),
+                title: `${node.title || "Samples"} (${resolution.toUpperCase()} finished film)`.slice(0, 36),
                 position: { x: node.position.x + node.width + 96, y: node.position.y },
                 width: node.width,
                 height: node.height,
@@ -410,13 +410,13 @@ export function useCanvasGenerationOrchestration({
     const createVideoEditNodeFromVideo = useCallback(
         (node: CanvasNodeData, operation: "extend" | "inpaint") => {
             if (!node.metadata?.content && !node.metadata?.storageKey) {
-                message.warning("视频节点为空，无法发起视频二创");
+                message.warning("The video node is empty and video secondary creation cannot be initiated.");
                 return;
             }
-            const label = operation === "extend" ? "视频续写" : "视频局部修改";
+            const label = operation === "extend" ? "Video continuation" : "Partial modification of video";
             const defaultPrompt = operation === "extend"
-                ? `基于 @视频1 自然顺延后续动作、镜头运动与环境氛围，保持人物与画风一致`
-                : `基于 @视频1 进行画面修改：保持原有构图与节奏，将主体调整为 `;
+                ? `Based on @Video 1, follow-up actions, camera movements and environmental atmosphere are naturally delayed, keeping the characters and painting style consistent.`
+                : `Modify the picture based on @Video 1: Keep the original composition and rhythm, and adjust the subject to`;
             const editSeconds = node.metadata?.seconds || effectiveConfig.videoSeconds;
             const editQuality = node.metadata?.vquality || "720p";
             const editRequirements = {
@@ -434,7 +434,7 @@ export function useCanvasGenerationOrchestration({
             const childNode: CanvasNodeData = {
                 id: nanoid(),
                 type: CanvasNodeType.Video,
-                title: `${node.title || "视频"} · ${label}`.slice(0, 36),
+                title: `${node.title || "video"} · ${label}`.slice(0, 36),
                 position: { x: node.position.x + node.width + 96, y: node.position.y },
                 width: node.width,
                 height: node.height,

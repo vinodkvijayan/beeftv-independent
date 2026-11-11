@@ -136,7 +136,7 @@ export function Minimap({ nodes, viewport, viewportSize, canvasContainerRef, onV
         <div
             data-canvas-minimap
             role="dialog"
-            aria-label="画布小地图"
+            aria-label="canvas minimap"
             className="absolute bottom-[calc(var(--canvas-inset-y)+var(--space-16)+var(--space-10))] left-6 z-[var(--z-panel)] overflow-hidden rounded-[var(--panel-radius)] border shadow-2xl backdrop-blur-sm lg:bottom-[calc(var(--canvas-inset-y)+var(--space-12))]"
             style={{ width, height, background: theme.toolbar.panel, borderColor: theme.toolbar.border }}
         >

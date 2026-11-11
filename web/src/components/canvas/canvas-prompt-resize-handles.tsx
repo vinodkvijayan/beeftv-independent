@@ -46,7 +46,7 @@ export function PromptResizeHandle({ height, min, max, onResize }: { height: num
             type="button"
             className="canvas-node-composer-resize-handle"
             role="separator"
-            aria-label="调整提示词输入高度"
+            aria-label="Adjust prompt word input height"
             aria-orientation="horizontal"
             aria-valuemin={min}
             aria-valuemax={max}
@@ -121,8 +121,8 @@ export function PromptModalResizeHandle({
         <button
             type="button"
             className="absolute bottom-1.5 right-1.5 z-10 grid size-5 cursor-nwse-resize touch-none place-items-center opacity-60 transition-opacity hover:opacity-100 focus-visible:outline focus-visible:outline-2"
-            aria-label="拖动调整窗口大小"
-            title="拖动调整窗口宽高，也可用方向键调整"
+            aria-label="Drag to resize window"
+            title="Drag to adjust the width and height of the window, or use the arrow keys to adjust it."
             onKeyDown={handleKeyDown}
             onPointerDown={(event) => {
                 if (event.button !== 0 || !event.isPrimary) return;

@@ -10,12 +10,12 @@ import type { TaskStatus } from "@/services/api/task-center";
 export type ShortDramaWorkflowStage = "story" | "assets" | "storyboard" | "previz" | "video" | "delivery";
 
 export const workflowStages: Array<{ key: ShortDramaWorkflowStage; label: string; shortLabel: string }> = [
-    { key: "story", label: "剧情与章节", shortLabel: "剧情" },
-    { key: "assets", label: "资产拆分", shortLabel: "资产" },
-    { key: "storyboard", label: "分镜脚本", shortLabel: "分镜" },
-    { key: "previz", label: "黑白动作预演", shortLabel: "预演" },
-    { key: "video", label: "视频生成", shortLabel: "视频" },
-    { key: "delivery", label: "交付与打包", shortLabel: "交付" },
+    { key: "story", label: "Plot and chapters", shortLabel: "plot" },
+    { key: "assets", label: "Asset split", shortLabel: "assets" },
+    { key: "storyboard", label: "Storyboard", shortLabel: "Storyboard" },
+    { key: "previz", label: "Black and white action preview", shortLabel: "preview" },
+    { key: "video", label: "video generation", shortLabel: "video" },
+    { key: "delivery", label: "Delivery and packaging", shortLabel: "Delivery" },
 ];
 
 export function WorkflowStageLink({ href, active, step, index, label, shortLabel }: { href: string; active: boolean; step?: WorkflowStep; index: number; label: string; shortLabel: string }) {
@@ -42,12 +42,12 @@ export function MetricCard({ icon, label, value }: { icon: ReactNode; label: str
 
 export function ArtifactStatus({ artifact, taskStatus }: { artifact?: ShotArtifact; taskStatus?: TaskStatus; compact?: boolean }) {
     if (taskStatus === "queued" || taskStatus === "running" || (taskStatus === "succeeded" && !artifact)) {
-        return <StatusBadge variant="filled" tone="loading" label="生成中" />;
+        return <StatusBadge variant="filled" tone="loading" label="Generating" />;
     }
-    if (taskStatus === "failed") return <StatusBadge variant="filled" tone="error" label="生成失败" />;
-    if (!artifact) return <StatusBadge variant="filled" tone="neutral" label="待生成" />;
+    if (taskStatus === "failed") return <StatusBadge variant="filled" tone="error" label="Build failed" />;
+    if (!artifact) return <StatusBadge variant="filled" tone="neutral" label="To be generated" />;
     const tone = artifact.status === "ready" ? "success" : artifact.status === "failed" ? "error" : artifact.status === "stale" ? "warning" : "loading";
-    const label = artifact.status === "ready" ? "已生成" : artifact.status === "failed" ? "生成失败" : artifact.status === "stale" ? "已过期" : "生成中";
+    const label = artifact.status === "ready" ? "Generated" : artifact.status === "failed" ? "Build failed" : artifact.status === "stale" ? "Expired" : "Generating";
     return <StatusBadge variant="filled" tone={tone} label={label} />;
 }
 
@@ -81,9 +81,9 @@ export function formatDuration(durationMs: number) {
 }
 
 export function stageActionLabel(step?: WorkflowStep) {
-    if (!step || step.status === "pending") return "等待上一步";
-    if (step.status === "running" || step.status === "review") return "完成阶段";
-    if (step.status === "completed") return "重新打开";
-    if (step.status === "failed") return "重新开始";
-    return "开始阶段";
+    if (!step || step.status === "pending") return "Wait for the previous step";
+    if (step.status === "running" || step.status === "review") return "completion stage";
+    if (step.status === "completed") return "reopen";
+    if (step.status === "failed") return "Start over";
+    return "Beginning stage";
 }

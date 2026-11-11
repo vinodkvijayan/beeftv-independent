@@ -102,17 +102,17 @@ type ArtCritiqueReferenceInput = Pick<ArtCritiqueIssue, "category" | "title" | "
  */
 export function referenceTargetForIssue(issue: ArtCritiqueReferenceInput): ArtCritiqueTarget {
     const text = [issue.targetDescription, issue.title, issue.explanation].filter(Boolean).join(" ").toLowerCase();
-    if (!text || matches(text, ["整体", "全局", "全图", "总体", "overall", "global", "whole image"])) return globalTarget();
+    if (!text || matches(text, ["Whole", "overall situation", "full picture", "Overall", "overall", "global", "whole image"])) return globalTarget();
 
-    const left = matches(text, ["左侧", "左边", "左方", "左上", "左下", "left"]);
-    const right = matches(text, ["右侧", "右边", "右方", "右上", "右下", "right"]);
-    const top = matches(text, ["上方", "顶部", "上部", "上半", "天空", "top", "upper"]);
-    const bottom = matches(text, ["下方", "底部", "下部", "下半", "地面", "bottom", "lower"]);
-    const foreground = matches(text, ["前景", "近景", "foreground"]);
-    const table = matches(text, ["桌", "台面", "台子", "桌腿", "table", "desk"]);
-    const subject = matches(text, ["人物", "少女", "男孩", "女孩", "脸", "面部", "主体", "人像", "产品", "物体", "subject", "person", "face", "portrait"]);
-    const head = matches(text, ["头部", "发丝", "发际", "head", "hair"]);
-    const scattered = matches(text, ["多处", "多个", "多块", "散落", "分散", "亮点", "光点", "色块", "高饱和", "暖色", "反光", "highlight", "hotspot", "specular"]);
+    const left = matches(text, ["left side", "left", "left", "upper left", "lower left", "left"]);
+    const right = matches(text, ["right side", "right", "right", "upper right", "lower right", "right"]);
+    const top = matches(text, ["above", "top", "upper part", "first half", "sky", "top", "upper"]);
+    const bottom = matches(text, ["below", "bottom", "lower part", "second half", "ground", "bottom", "lower"]);
+    const foreground = matches(text, ["prospects", "close shot", "foreground"]);
+    const table = matches(text, ["table", "Countertop", "platform", "table legs", "table", "desk"]);
+    const subject = matches(text, ["characters", "girl", "boy", "girl", "face", "face", "Subject", "portrait", "Products", "object", "subject", "person", "face", "portrait"]);
+    const head = matches(text, ["head", "Hair", "Hairline", "head", "hair"]);
+    const scattered = matches(text, ["Many places", "multiple", "multiple blocks", "scattered", "disperse", "Highlights", "light spot", "color block", "High saturation", "warm color", "Reflective", "highlight", "hotspot", "specular"]);
 
     if (table) {
         if (left && !right) return referenceBox(0.08, 0.53, 0.38, 0.38);
@@ -126,7 +126,7 @@ export function referenceTargetForIssue(issue: ArtCritiqueReferenceInput): ArtCr
         return referenceBox(0.16, 0.54, 0.68, 0.4);
     }
 
-    const headClearance = head && matches(text, ["留白", "拥挤", "切线", "贴近", "轮廓", "装饰", "clearance"]);
+    const headClearance = head && matches(text, ["Leave blank", "crowded", "tangent", "close", "outline", "decoration", "clearance"]);
     if (headClearance) {
         if (left && !right) return referenceBox(0.08, 0.08, 0.34, 0.34);
         if (right && !left) return referenceBox(0.58, 0.08, 0.34, 0.34);

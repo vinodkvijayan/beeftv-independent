@@ -206,7 +206,7 @@ const HoverTip = memo(({ title, description, useCase, children }: HoverTipProps)
                     >
                         <div className="text-[12px] font-semibold">{title}</div>
                         {description && <div className="mt-1 text-[11px] leading-5" style={{ color: theme.node.muted }}>{description}</div>}
-                        {useCase && <div className="mt-2 rounded px-2 py-1 text-[10px]" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }}>使用场景：{useCase}</div>}
+                        {useCase && <div className="mt-2 rounded px-2 py-1 text-[10px]" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }}>Usage scenarios:{useCase}</div>}
                     </div>,
                     document.body,
                 )}
@@ -237,8 +237,8 @@ const CardColumn = memo(({ label, tooltipTitle, tooltipDesc, tooltipUseCase, vis
                 onClick={onPrev}
                 className="flex h-5 w-full items-center justify-center rounded-md transition-colors"
                 style={{ color: theme.node.faint }}
-                title="上一项"
-                aria-label={`上一项${label}`}
+                title="Previous item"
+                aria-label={`Previous item${label}`}
             >
                 <ChevronUp className="size-3.5" />
             </button>
@@ -256,8 +256,8 @@ const CardColumn = memo(({ label, tooltipTitle, tooltipDesc, tooltipUseCase, vis
                 onClick={onNext}
                 className="flex h-5 w-full items-center justify-center rounded-md transition-colors"
                 style={{ color: theme.node.faint }}
-                title="下一项"
-                aria-label={`下一项${label}`}
+                title="Next item"
+                aria-label={`Next item${label}`}
             >
                 <ChevronDown className="size-3.5" />
             </button>
@@ -351,15 +351,15 @@ export function CanvasNodeCameraPanel({
         >
             <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
                 <div className="min-w-0">
-                    <div className="text-sm font-semibold tracking-tight">摄像机控制</div>
+                    <div className="text-sm font-semibold tracking-tight">Camera control</div>
                 </div>
                 <button
                     type="button"
                     className="grid size-7 shrink-0 place-items-center rounded-md transition-colors hover:bg-white/10"
                     style={{ color: theme.node.muted }}
                     onClick={onClose}
-                    aria-label="关闭摄像机控制"
-                    title="关闭"
+                    aria-label="Turn off camera controls"
+                    title="Close"
                 >
                     <X className="size-4" />
                 </button>
@@ -368,7 +368,7 @@ export function CanvasNodeCameraPanel({
             {/* 相机、镜头、焦距和光圈均来自已注册枚举，确认时由纯函数再次强校验。 */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-5 py-3 sm:grid-cols-4">
                 <CardColumn
-                    label="相机"
+                    label="camera"
                     tooltipTitle={`${currentCamera.zhName} · ${currentCamera.label}`}
                     tooltipDesc={currentCamera.description}
                     tooltipUseCase={currentCamera.useCase}
@@ -379,7 +379,7 @@ export function CanvasNodeCameraPanel({
                     theme={theme}
                 />
                 <CardColumn
-                    label="镜头"
+                    label="lens"
                     tooltipTitle={`${currentLens.zhName} · ${currentLens.label}`}
                     tooltipDesc={currentLens.description}
                     tooltipUseCase={currentLens.useCase}
@@ -390,7 +390,7 @@ export function CanvasNodeCameraPanel({
                     theme={theme}
                 />
                 <CardColumn
-                    label="焦距"
+                    label="focal length"
                     tooltipTitle={`${focal}mm · ${focalMeta?.zhName ?? ""}`}
                     tooltipDesc={focalMeta?.description}
                     tooltipUseCase={focalMeta?.useCase}
@@ -406,7 +406,7 @@ export function CanvasNodeCameraPanel({
                     theme={theme}
                 />
                 <CardColumn
-                    label="光圈"
+                    label="Aperture"
                     tooltipTitle={`f/${aperture} · ${apertureMeta?.zhName ?? ""}`}
                     tooltipDesc={apertureMeta?.description}
                     tooltipUseCase={apertureMeta?.useCase}
@@ -427,21 +427,21 @@ export function CanvasNodeCameraPanel({
             {/* 操作区：重置与复制不产生写入，只有应用会提交生成配置。 */}
             <div className="flex min-h-12 flex-wrap items-center gap-2 px-5 pt-2 pb-4">
                 <button type="button" className={secondaryButtonClass} style={{ color: theme.node.muted }} onClick={handleReset}>
-                    <RotateCcw className="size-3.5" />重置参数
+                    <RotateCcw className="size-3.5" />Reset parameters
                 </button>
                 <span className="flex-1" />
-                <Tooltip title="复制当前生成的摄像机提示词">
-                    <button type="button" className={secondaryButtonClass} onClick={() => copyText(buildPrompt(), "摄像机提示词已复制")}>复制提示词</button>
+                <Tooltip title="Copy the currently generated camera prompt word">
+                    <button type="button" className={secondaryButtonClass} onClick={() => copyText(buildPrompt(), "Camera prompt word has been copied")}>copy prompt word</button>
                 </Tooltip>
                 {/* 关闭后仍保留参数选择，但提交空提示词，便于用户无损恢复。 */}
-                <div className="flex items-center gap-2" title={enabled ? "当前启用摄像机控制" : "当前关闭摄像机控制"}>
+                <div className="flex items-center gap-2" title={enabled ? "Camera control is currently enabled" : "Camera control is currently closed"}>
                     <span className="text-xs transition-colors" style={{ color: enabled ? theme.accent.primary : theme.node.muted, fontWeight: enabled ? 600 : 400 }}>
-                        {enabled ? "开启" : "关闭"}
+                        {enabled ? "turn on" : "Close"}
                     </span>
                     <button
                         type="button"
                         role="switch"
-                        aria-label="启用摄像机控制"
+                        aria-label="Enable camera control"
                         aria-checked={enabled}
                         onClick={() => setEnabled((v) => !v)}
                         className="canvas-node-camera-switch relative inline-flex h-5 w-9 cursor-pointer items-center rounded-full border transition-colors"
@@ -464,7 +464,7 @@ export function CanvasNodeCameraPanel({
                     style={{ borderColor: theme.node.activeStroke, color: theme.node.activeStroke, background: "transparent" }}
                     onClick={handleApply}
                 >
-                    <CameraIcon className="size-3.5" />应用
+                    <CameraIcon className="size-3.5" />Application
                 </motion.button>
             </div>
         </SpotlightSurface>

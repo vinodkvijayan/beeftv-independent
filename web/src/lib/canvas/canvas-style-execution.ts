@@ -17,7 +17,7 @@ export function resolveCanvasStyleExecution(nodes: CanvasNodeData[], sourceNode:
     const requestConfig = resolveModelRequestConfig(config, config.model);
     const plan = resolveStyleExecutionPlan(profile, { mode, model: requestConfig.model, interfaceType: requestConfig.interfaceType || requestConfig.apiFormat });
     // 平台模型的真实供应模型由后端入队时路由，前端只能预览，最终兼容性由后端重算。
-    if (plan.status === "blocked" && !logicalModelIDForConfig(config)) throw new Error(`当前模型无法完整执行项目画风：${plan.warnings.join("；")}。请切换模型，或在项目设置中停用对应画风资产`);
+    if (plan.status === "blocked" && !logicalModelIDForConfig(config)) throw new Error(`The current model cannot fully execute the project style:${plan.warnings.join("；")}. Please switch the model or disable the corresponding style assets in the project settings`);
     return { profile, profileJson: serializeStyleProfile(profile), plan, prompt: applyStyleExecutionPlan(prompt, plan) };
 }
 
@@ -28,7 +28,7 @@ function legacyStyleNodeProfile(node: CanvasNodeData) {
     return createStyleProfileSnapshot({
         presetId,
         title: node.title.replace(/^(?:项目)?画风\s*[·：:]?\s*/, "").trim() || node.title,
-        description: node.metadata?.workflowDescription || "历史项目画风规范",
+        description: node.metadata?.workflowDescription || "Historical project painting style specifications",
         tags: [],
         prompt,
         assets: [],

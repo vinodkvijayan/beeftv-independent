@@ -10,7 +10,7 @@ export async function runStartupEnvironmentCheck(signal?: AbortSignal) {
         if (signal?.aborted) return undefined;
         const report: EnvironmentReport = native.status === "fulfilled" ? native.value : {
             checkedAt: new Date().toISOString(), os: "browser", arch: "unknown", catalog: { repository: "", revision: "", cases: [] },
-            checks: [{ id: "check-unavailable", title: "本地服务检查", status: "unknown", detail: "启动环境检查未完成，可在问题诊断中重新检查。", cases: [] }],
+            checks: [{ id: "check-unavailable", title: "Local service check", status: "unknown", detail: "The startup environment check has not been completed. You can check it again in the problem diagnosis.", cases: [] }],
         };
         const checks = [...report.checks, ...browserChecks({ ...browserCapabilities(), ...(browser.status === "fulfilled" ? browser.value : {}) })];
         for (const check of checks) {
@@ -19,7 +19,7 @@ export async function runStartupEnvironmentCheck(signal?: AbortSignal) {
         }
         return { ...report, checks };
     } catch {
-        recordDiagnosticEvent({ category: "environment", code: "check-unavailable", level: "warning", message: "启动环境检查未完成，可在问题诊断中重新检查。" });
+        recordDiagnosticEvent({ category: "environment", code: "check-unavailable", level: "warning", message: "The startup environment check has not been completed. You can check it again in the problem diagnosis." });
         return undefined;
     }
 }

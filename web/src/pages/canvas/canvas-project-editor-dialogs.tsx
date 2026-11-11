@@ -134,7 +134,7 @@ export function CanvasProjectEditorDialogs({
             drawingEngine: summary.engine, drawingRevision: summary.revision, drawingUpdatedAt: summary.updatedAt,
             drawingShapeCount: summary.shapeCount, drawingPageCount: summary.pageCount,
         } } : node));
-        message.success("绘图已保存");
+        message.success("Drawing saved");
     };
     const saveSubtitles = (nodeId: string, patch: Partial<CanvasNodeMetadata>) => {
         nodeEditor.handleConfigNodeChange(nodeId, patch);
@@ -207,7 +207,7 @@ export function CanvasProjectEditorDialogs({
                 <Suspense
                     fallback={
                         <div className="fixed inset-0 z-[var(--z-toast)] grid place-items-center px-5" style={{ background: theme.canvas.background, color: theme.node.text }}>
-                            <WorkspaceState icon="loading" title="正在加载绘图编辑器" description="正在准备绘图画布。" />
+                            <WorkspaceState icon="loading" title="Loading drawing editor" description="Preparing canvas for drawing." />
                         </div>
                     }
                 >
@@ -228,7 +228,7 @@ export function CanvasProjectEditorDialogs({
                 open={Boolean(mediaTools.panoramaConfigNodeId)}
                 onCancel={() => mediaTools.setPanoramaConfigNodeId(null)}
                 onConfirm={(prompt, config) => { const node = findNode(mediaTools.panoramaConfigNodeId); if (node) mediaTools.createPanoramaViewerWithConfig(node, prompt, config); }}
-                onCopyPrompt={prompt => { void navigator.clipboard?.writeText(prompt).then(() => message.success("已复制全景提示词")); }}
+                onCopyPrompt={prompt => { void navigator.clipboard?.writeText(prompt).then(() => message.success("Panorama prompt word copied")); }}
                 previewImageUrl={mediaTools.panoramaConfigNodeId ? nodes.find((node) => node.id === mediaTools.panoramaConfigNodeId)?.metadata?.content : undefined}
                 nodes={nodes}
             />
@@ -247,7 +247,7 @@ export function CanvasProjectEditorDialogs({
                 <Suspense
                     fallback={
                         <div className="fixed inset-0 z-[var(--z-toast)] grid place-items-center px-5" style={{ background: theme.canvas.background, color: theme.node.text }}>
-                            <WorkspaceState icon="loading" title="正在加载 3D 导演台" description="准备场景、镜头与空间控制。" />
+                            <WorkspaceState icon="loading" title="Loading 3D Director's Desk" description="Prepare scenes, shots and space control." />
                         </div>
                     }
                 >

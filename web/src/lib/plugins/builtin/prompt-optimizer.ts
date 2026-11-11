@@ -15,28 +15,28 @@ import type {
 export const PROMPT_OPTIMIZER_PLUGIN_ID = "prompt-optimizer";
 
 const modeLabels: Record<PromptOptimizationMode, string> = {
-    expand: "扩展想法",
-    refine: "精修已有提示词",
-    style: "强化视觉风格",
-    "model-adapt": "适配当前模型",
-    reference: "结合参考素材",
+    expand: "expand ideas",
+    refine: "Refine existing prompt words",
+    style: "Enhance visual style",
+    "model-adapt": "Adapt to current model",
+    reference: "Combined with reference material",
 };
 
 const optimizerTool: PluginTextTool = {
     type: "function",
     function: {
         name: "optimize_prompt",
-        description: "返回结构化的 AI 生图或生视频提示词优化结果。",
+        description: "Returns structured AI image or video prompt word optimization results.",
         strict: true,
         parameters: {
             type: "object",
             additionalProperties: false,
             required: ["optimizedPrompt", "negativePrompt", "changes", "assumptions", "variants"],
             properties: {
-                optimizedPrompt: { type: "string", description: "可直接用于生成的正向提示词。" },
-                negativePrompt: { type: "string", description: "需要规避的内容；没有时返回空字符串。" },
-                changes: { type: "array", items: { type: "string" }, description: "相较输入提示词做出的关键变化。" },
-                assumptions: { type: "array", items: { type: "string" }, description: "对模糊需求做出的假设；没有时返回空数组。" },
+                optimizedPrompt: { type: "string", description: "Can be used directly to generate positive prompt words." },
+                negativePrompt: { type: "string", description: "Content to be avoided; if not available, an empty string is returned." },
+                changes: { type: "array", items: { type: "string" }, description: "Key changes compared to entering the prompt word." },
+                assumptions: { type: "array", items: { type: "string" }, description: "Assumptions made about fuzzy requirements; returns an empty array if none." },
                 variants: {
                     type: "array",
                     items: {
@@ -48,7 +48,7 @@ const optimizerTool: PluginTextTool = {
                             prompt: { type: "string" },
                         },
                     },
-                    description: "最多两个可选的提示词版本。",
+                    description: "Up to two optional prompt word versions.",
                 },
             },
         },
@@ -57,24 +57,24 @@ const optimizerTool: PluginTextTool = {
 
 const manifest: PluginManifest = {
     id: PROMPT_OPTIMIZER_PLUGIN_ID,
-    name: "AI 提示词优化器",
+    name: "AI prompt word optimizer",
     version: "0.3.0",
     apiVersion: "beeftv.plugin/v1",
-    description: "把模糊的生图想法整理成可执行、可比较、适配当前模型的提示词。",
-    author: "内置工具",
+    description: "Organize vague drawing ideas into prompt words that are executable, comparable, and suitable for the current model.",
+    author: "Built-in tools",
     permissions: ["canvas.read", "canvas.write", "ai.text"],
     trusted: true,
     contributes: {},
 };
 
 const systemPrompt = [
-    "你是当前创作工作台里的提示词导演，负责把用户模糊的视觉想法整理成可以直接交给生成模型的提示词。",
-    "只优化表达和可执行性，不擅自改变用户明确写出的主体、身份、动作、数量、时代、地点、画幅比例或安全边界。",
-    "优先使用具体可视化语言：主体与关系、构图与景别、动作、环境、材质、光线、色彩、镜头和风格。",
-    "如果输入已经足够明确，保持原意并做克制的精修；如果信息不足，把不确定项写入 assumptions，不要假装知道。",
-    "根据 generationMode 选择表达：图片侧重静态画面、构图和材质，视频侧重动作连续性、时长感、镜头运动和首尾衔接。",
-    "当优化模式是适配当前模型时，先结合 targetProtocol 和 targetModel 判断模型族，再严格执行模型适配策略；不要编造不存在的参数、权重语法或模型能力。",
-    "最终必须调用 optimize_prompt 工具，不要输出 Markdown，不要在工具调用之外解释。",
+    "You are the prompt word director in the current creation workbench, responsible for organizing the user's vague visual ideas into prompt words that can be directly handed over to the generative model.",
+    "Only optimize expression and executability, and do not change the subject, identity, action, quantity, era, location, aspect ratio or safety boundaries clearly written by the user without authorization.",
+    "Prioritize the use of specific visual language: subject and relationship, composition and scene, action, environment, material, light, color, lens and style.",
+    "If the input is clear enough, keep the original meaning and refine it with restraint; if the information is insufficient, write the uncertain items into assumptions and don't pretend to know.",
+    "Choose expression according to generationMode: pictures focus on static images, composition and materials, videos focus on action continuity, sense of duration, camera movement and end-to-end connection.",
+    "When the optimization mode is to adapt the current model, first determine the model family by combining targetProtocol and targetModel, and then strictly implement the model adaptation strategy; do not make up non-existent parameters, weight syntax, or model capabilities.",
+    "The optimize_prompt tool must be called eventually, do not output Markdown, and do not interpret outside of the tool call.",
 ].join("\n");
 
 type ModelAdaptationProfile = {
@@ -87,18 +87,18 @@ type ModelAdaptationProfile = {
 
 const genericImageProfile: ModelAdaptationProfile = {
     id: "generic-image",
-    label: "通用图片模型",
-    promptShape: "自然语言描述，按主体与动作 → 环境 → 构图 → 光线与材质 → 风格排列。",
-    rules: ["先锁定主体、数量、身份和动作，再补充可见的画面细节。", "把重要的比例、文字、位置和一致性要求写明确。"],
-    avoid: ["不要臆造供应商参数或控制语法。", "关键规避项不要只放在 negativePrompt 中，正向提示词也要表达清楚。"],
+    label: "Universal picture model",
+    promptShape: "Natural language description, arranged by subject and action → environment → composition → light and material → style.",
+    rules: ["First lock the subject, quantity, identity and action, and then add the visible details of the picture.", "Make important proportions, text, placement, and consistency requirements clear."],
+    avoid: ["Don't make up vendor parameters or control syntax.", "Don’t just put key avoidance items in negativePrompt. Positive prompt words must also be clearly expressed."],
 };
 
 const genericVideoProfile: ModelAdaptationProfile = {
     id: "generic-video",
-    label: "通用视频模型",
-    promptShape: "单镜头时序描述，按起始画面 → 主体动作 → 镜头运动 → 环境变化 → 结尾状态排列。",
-    rules: ["每个动作使用可观察、连续的动词，避免一段话塞入互不相连的多个镜头。", "明确主体、镜头和环境谁在运动，并保持角色、服装和场景一致。"],
-    avoid: ["不要把静态摄影参数堆成关键词列表。", "不要新增用户未要求的转场、角色或剧情。"],
+    label: "Universal video model",
+    promptShape: "Single shot timing description, arranged in the order of starting picture → main action → camera movement → environment change → ending state.",
+    rules: ["Use observable, continuous verbs for each action to avoid cramming a paragraph into multiple disconnected shots.", "Be clear about who is moving in subjects, shots, and environments, and keep characters, costumes, and scenes consistent."],
+    avoid: ["Don’t pile still photography parameters into a keyword list.", "Don't add transitions, characters, or storylines that the user didn't request."],
 };
 
 function containsAny(value: string, keywords: string[]) {
@@ -111,73 +111,73 @@ function resolveModelAdaptationProfile(input: PromptOptimizationInput): ModelAda
         if (containsAny(model, ["gemini", "imagen", "nano-banana", "nanobanana"])) {
             return {
                 id: "gemini-image",
-                label: "Gemini / Imagen 图片模型",
-                promptShape: "清晰的自然语言场景描述，按主体 → 背景与上下文 → 风格与摄影细节组织。",
-                rules: ["优先使用完整句子和具体视觉事实，参考图只描述确实可见的内容。", "如果画面含文字，保留原文并明确位置、层级和字数，避免无关装饰。", "控制提示词长度，先保留主体、上下文和风格这三个核心层次。"],
-                avoid: ["不要使用 SD 权重、反向提示词标签或未确认的供应商参数。"],
+                label: "Gemini / Imagen picture model",
+                promptShape: "Clear natural language scene descriptions, organized by Subject → Background & Context → Style & Photographic Details.",
+                rules: ["Prefer complete sentences and specific visual facts, and refer to images to describe only what is actually visible.", "If the picture contains text, keep the original text and clarify the location, level and number of words, and avoid irrelevant decorations.", "To control the length of prompt words, first retain the three core levels of subject, context and style."],
+                avoid: ["Do not use SD weights, backword tags, or unconfirmed vendor parameters."],
             };
         }
         if (containsAny(model, ["gpt-image", "dall-e", "dalle", "openai-image", "openai"])) {
             return {
                 id: "openai-image",
-                label: "OpenAI 图片模型",
-                promptShape: "简洁、完整的自然语言描述，先说要生成什么，再补充构图、光线、材质和风格。",
-                rules: ["使用模型能直接理解的画面描述，不把提示词写成控制台参数。", "对画面中的文字、位置、数量和主体关系使用明确句子。"],
-                avoid: ["不要添加 SD 权重、逗号关键词堆叠或 -- 参数。", "不要依赖单独 negativePrompt，重要限制要写进正向描述。"],
+                label: "OpenAI image model",
+                promptShape: "A concise and complete natural language description, first describing what is to be generated, and then adding composition, light, material and style.",
+                rules: ["Use screen descriptions that the model can directly understand, and do not write prompt words as console parameters.", "Use clear sentences about the text, position, quantity, and subject relationships in the picture."],
+                avoid: ["Do not add SD weights, comma keyword stacking, or -- parameters.", "Don't rely on negativePrompt alone; important restrictions should be written into the positive description."],
             };
         }
         if (containsAny(model, ["grok-image", "grok-imagine"])) {
             return {
                 id: "grok-image",
-                label: "Grok 图片模型",
-                promptShape: "简洁的自然语言画面描述，主体、动作、环境和视觉风格清晰分层。",
-                rules: ["保留明确的主体关系、构图和风格意图，避免把提示词写成参数清单。", "有参考图时说明要保留的主体或风格特征，不臆测看不见的细节。"],
-                avoid: ["不要添加 SD 权重、Midjourney 参数或模型未确认支持的控制语法。"],
+                label: "Grok picture model",
+                promptShape: "Concise natural language picture description, with clear layering of subject, action, environment and visual style.",
+                rules: ["Keep clear subject relationships, composition, and stylistic intent, and avoid writing prompts as lists of parameters.", "When you have a reference picture, explain the main theme or stylistic features that you want to retain, and don’t speculate on invisible details."],
+                avoid: ["Do not add SD weights, Midjourney parameters, or control syntax that the model is not confirmed to support."],
             };
         }
         if (containsAny(model, ["seedream", "jimeng", "doubao", "volcengine-ark-image", "volcengine-ark-agent-plan-image", "volcengine-jimeng-image"])) {
             return {
                 id: "seedream-image",
                 label: "Seedream / 即梦 / 火山图片模型",
-                promptShape: "中文自然语言镜头描述，按主体与动作 → 构图 → 光影 → 材质与风格组织。",
-                rules: ["优先写清人物或主体的外观、动作、空间关系和画面重点。", "需要人物一致性时重复关键外观特征，避免只写抽象的‘保持一致’。", "中文需求保持中文表达，英文专有名词只在确实有帮助时保留。"],
-                avoid: ["不要套用 SD 的权重语法、质量词串或无意义的英文标签。", "不要把多个镜头和互相冲突的动作混在一条提示词里。"],
+                promptShape: "Chinese natural language lens description, organized by subject and action → composition → light and shadow → material and style.",
+                rules: ["Prioritize the appearance, movements, spatial relationships and key points of the characters or subjects.", "Repeat key appearance features when character consistency is needed, and avoid just writing abstract ‘keep it consistent’.", "Chinese needs to be expressed in Chinese, and English proper nouns are only retained when they are really helpful."],
+                avoid: ["Don't apply SD's weighted syntax, quality strings, or meaningless English tags.", "Don’t mix multiple shots and conflicting actions into one prompt."],
             };
         }
         if (containsAny(model, ["flux"])) {
             return {
                 id: "flux-image",
-                label: "FLUX 图片模型",
-                promptShape: "自然语言段落 + 少量明确的视觉关键词，主体和动作放在前面。",
-                rules: ["用具体关系描述主体、位置、材质和光线，而不是重复质量形容词。", "保留用户指定的风格和构图，不主动添加模型参数。"],
-                avoid: ["不要输出很长的逗号标签清单或堆叠 negative prompt。", "不要添加未经用户要求的 LoRA、采样器或权重标记。"],
+                label: "FLUX picture model",
+                promptShape: "Natural language paragraphs + a few clear visual keywords, with subject and action at the front.",
+                rules: ["Describe subject, location, material, and light in concrete relationships rather than repeating quality adjectives.", "The style and composition specified by the user are retained, and model parameters are not actively added."],
+                avoid: ["Don't output long lists of comma tags or stacked negative prompts.", "Do not add LoRA, sampler, or weight markers not requested by the user."],
             };
         }
         if (containsAny(model, ["sdxl", "stable-diffusion", "stable diffusion", "sd3", "stable3"])) {
             return {
                 id: "stable-diffusion-image",
-                label: "Stable Diffusion / SDXL 图片模型",
-                promptShape: "紧凑的分层关键词或短句，按主体 → 构图 → 光线 → 风格与质量组织。",
-                rules: ["只保留能影响画面的关键词，主体和构图优先。", "如果原提示词已经使用括号权重，只在确有必要时保留并少量调整。", "将画面主体和反向规避项分开表达，避免互相冲突。"],
-                avoid: ["不要盲目添加过多质量词、艺术家名或模型专属标签。", "不确定权重语法是否被当前渠道支持时，不要主动新增。"],
+                label: "Stable Diffusion / SDXL image model",
+                promptShape: "Compact layered keywords or short sentences, organized by subject → composition → light → style and quality.",
+                rules: ["Only keep keywords that can affect the picture, giving priority to the subject and composition.", "If the original prompt word already uses bracket weighting, keep it and adjust it slightly if necessary.", "Express the main body of the picture and the reverse avoidance items separately to avoid conflict with each other."],
+                avoid: ["Don’t blindly add too many quality words, artist names, or model-specific tags.", "If you are not sure whether the weight syntax is supported by the current channel, do not actively add it."],
             };
         }
         if (containsAny(model, ["midjourney", "mid-journey"])) {
             return {
                 id: "midjourney-image",
-                label: "Midjourney 图片模型",
-                promptShape: "精炼的视觉描述，主体、场景、构图和风格清晰，参数放在末尾。",
-                rules: ["优先写画面内容和视觉方向，保持短而有辨识度。", "只有用户原本提供或明确要求时才保留 --ar、--stylize 等参数。"],
-                avoid: ["不要臆造 Midjourney 参数或把所有摄影术语都堆上去。", "不要使用与当前工作台协议无关的命令前缀。"],
+                label: "Midjourney picture model",
+                promptShape: "A concise visual description with clear subject, scene, composition and style, with parameters at the end.",
+                rules: ["Prioritize screen content and visual direction, and keep it short and recognizable.", "Parameters such as --ar and --stylize are retained only if originally provided or explicitly requested by the user."],
+                avoid: ["Don’t make up Midjourney parameters or pile all the photography jargon on it.", "Do not use command prefixes that are not related to the current workbench protocol."],
             };
         }
         if (containsAny(model, ["ideogram", "recraft"])) {
             return {
                 id: "design-image",
-                label: "设计与文字图片模型",
-                promptShape: "先说明画布、主体和版式，再说明文字内容、位置、层级、字体气质和配色。",
-                rules: ["画面文字保留精确原文并控制字数，明确文字与主体的空间关系。", "区分内容、版式和视觉风格，避免只给抽象审美词。"],
-                avoid: ["不要擅自改写品牌名、标题、数字或标语。"],
+                label: "Design and text picture mockup",
+                promptShape: "First explain the canvas, main body and layout, and then explain the text content, position, level, font temperament and color matching.",
+                rules: ["The text on the screen retains the precise original text and controls the number of words to clarify the spatial relationship between the text and the subject.", "Distinguish content, layout and visual style, and avoid giving only abstract aesthetic words."],
+                avoid: ["Do not rewrite brand names, titles, numbers or slogans without permission."],
             };
         }
         return genericImageProfile;
@@ -186,37 +186,37 @@ function resolveModelAdaptationProfile(input: PromptOptimizationInput): ModelAda
     if (containsAny(model, ["seedance", "doubao-seedance", "volcengine-ark-video", "volcengine-ark-agent-plan-video", "volcengine-jimeng-video", "jimeng-video"])) {
         return {
             id: "seedance-video",
-            label: "Seedance / 即梦视频模型",
-            promptShape: "单镜头时序描述，明确起始构图、动作节拍、镜头运动、环境变化和结尾状态。",
-            rules: ["用连续动作描述主体如何开始、发展和结束，保持镜头内的因果关系。", "人物、服装、场景和道具的一致性优先于堆叠风格词。", "有首帧或参考图时，明确哪些内容必须保持、哪些内容允许变化。"],
-            avoid: ["不要在一条提示词中拼接多个无关镜头。", "不要把静态图片参数当成视频动作指令。"],
+            label: "Seedance/Jimeng Video Model",
+            promptShape: "Single-shot timing description, clarifying the starting composition, action rhythm, camera movement, environmental changes and ending status.",
+            rules: ["Use sequential actions to describe how the subject begins, develops, and ends, maintaining cause-and-effect relationships within the shot.", "Consistency of characters, costumes, sets, and props takes precedence over stacked style words.", "When you have a first frame or reference image, make it clear what content must be maintained and what content is allowed to change."],
+            avoid: ["Don't splice multiple unrelated shots into one prompt.", "Don't treat static image parameters as video action instructions."],
         };
     }
     if (containsAny(model, ["veo", "gemini-veo"])) {
         return {
             id: "veo-video",
-            label: "Veo 视频模型",
-            promptShape: "电影化的自然语言镜头描述，按主体、动作、镜头、环境和节奏组织。",
-            rules: ["把想法拆成可观察的动作和镜头运动，并补充时间顺序。", "用景别、机位、运镜、光线和环境声等可视化要素控制镜头。"],
-            avoid: ["不要只写情绪和抽象风格，不给动作或镜头变化。", "不要加入用户未要求的多镜头转场。"],
+            label: "Veo video model",
+            promptShape: "Cinematic natural language shot description, organized by subject, action, shot, environment and rhythm.",
+            rules: ["Break down ideas into observable actions and camera movements, and supplement them with chronology.", "Use visual elements such as scene, camera position, camera movement, light and environmental sound to control the lens."],
+            avoid: ["Don't just write in mood and abstract style without giving action or shot changes.", "Don't include multi-camera transitions that were not requested by the user."],
         };
     }
     if (containsAny(model, ["kling"])) {
         return {
             id: "kling-video",
-            label: "Kling 视频模型",
-            promptShape: "简洁、连续的动作指令，明确主体运动和摄像机运动。",
-            rules: ["每个动作都写清主体、方向、速度或结果，避免互相冲突的动作。", "优先保证物理连续性、角色一致性和镜头稳定。"],
-            avoid: ["不要加入过多抽象叙事或无法在短片段中完成的事件。"],
+            label: "Kling video model",
+            promptShape: "Concise and continuous action instructions clarify the subject movement and camera movement.",
+            rules: ["Write down the subject, direction, speed or result of each action to avoid conflicting actions.", "Prioritize physical continuity, character consistency and camera stability."],
+            avoid: ["Don’t include too much abstract narrative or events that can’t be accomplished in a short clip."],
         };
     }
     if (containsAny(model, ["runway", "gen-3", "gen3", "minimax-video", "hailuo", "wan", "ltx-video", "hunyuan-video"])) {
         return {
             id: "general-video-family",
-            label: "通用视频模型",
-            promptShape: "以单个镜头为单位描述起始画面、动作过程、摄影机和结束画面。",
-            rules: ["动作使用连续动词，明确运动主体和摄像机，不把结果写成静态形容词。", "保持角色、服装、场景和光线的连续性。"],
-            avoid: ["不要堆砌静态图片关键词或一次安排过多动作。"],
+            label: "Universal video model",
+            promptShape: "Describe the starting scene, action sequence, camera, and ending scene as a single shot.",
+            rules: ["Use continuous verbs for actions, clarify the moving subject and camera, and do not write the results as static adjectives.", "Maintain continuity with characters, costumes, scenery, and lighting."],
+            avoid: ["Don’t stuff static image keywords or schedule too many actions at once."],
         };
     }
     return genericVideoProfile;
@@ -224,39 +224,39 @@ function resolveModelAdaptationProfile(input: PromptOptimizationInput): ModelAda
 
 function buildUserMessage(input: PromptOptimizationInput, modelProfile: ModelAdaptationProfile | null = input.mode === "model-adapt" ? resolveModelAdaptationProfile(input) : null): PluginTextMessage {
     const textParts = [
-        `优化模式：${modeLabels[input.mode]}`,
-        `目标类型：${input.generationMode === "image" ? "图片" : "视频"}`,
-        `目标生成模型：${input.targetModel?.trim() || "未指定"}`,
-        `目标接口协议：${input.targetProtocol?.trim() || "未指定"}`,
+        `Optimization mode:${modeLabels[input.mode]}`,
+        `Target type:${input.generationMode === "image" ? "pictures" : "video"}`,
+        `Target generation model:${input.targetModel?.trim() || "unspecified"}`,
+        `Target interface protocol:${input.targetProtocol?.trim() || "unspecified"}`,
         "",
-        "用户原始提示词：",
-        input.prompt.trim() || "（用户还没有写出具体提示词，请从参考上下文中提炼一个可执行版本）",
+        "User's original prompt word:",
+        input.prompt.trim() || "(The user has not written a specific prompt word, please extract an executable version from the reference context)",
     ];
     if (modelProfile) {
         textParts.push(
             "",
-            `模型适配策略：${modelProfile.label}`,
-            `建议提示词结构：${modelProfile.promptShape}`,
-            "必须遵守：",
+            `Model adaptation strategy:${modelProfile.label}`,
+            `Suggested prompt word structure:${modelProfile.promptShape}`,
+            "Must comply with:",
             ...modelProfile.rules.map((rule) => `- ${rule}`),
-            "避免：",
+            "Avoid:",
             ...modelProfile.avoid.map((rule) => `- ${rule}`),
-            "请在 changes 中明确说明已经采用的模型适配要点。",
+            "Please clearly state the key points of model adaptation that have been adopted in changes.",
         );
     }
     if (input.context?.texts?.length) {
-        textParts.push("", "已连接的文本上下文：", ...input.context.texts.map((item) => `- ${item.title}：${item.text}`));
+        textParts.push("", "Connected text context:", ...input.context.texts.map((item) => `- ${item.title}：${item.text}`));
     }
     if (input.context?.images?.length) {
-        textParts.push("", "已连接的参考图已作为图片输入，请只在确实可见的内容上做判断：", ...input.context.images.map((item) => `- ${item.title}`));
+        textParts.push("", "The connected reference image has been input as an image, please only make judgments on the content that is actually visible:", ...input.context.images.map((item) => `- ${item.title}`));
     }
     textParts.push(
         "",
-        "输出要求：",
-        "1. optimizedPrompt 是一段可以直接复制到当前生成节点的提示词。",
-        "2. negativePrompt 只填写明确有帮助的规避项，没有就留空。",
-        "3. changes 和 assumptions 使用简短中文条目。",
-        "4. variants 最多给出两个明显不同但仍忠于原意的版本，没有必要时返回空数组。",
+        "Output requirements:",
+        "1. optimizedPrompt is a prompt word that can be copied directly to the current generation node.",
+        "2. negativePrompt Only fill in the avoidance items that are clearly helpful, and leave them blank if they are not.",
+        "3. Use short Chinese entries for changes and assumptions.",
+        "4. Variants gives at most two versions that are obviously different but still faithful to the original intention, and returns an empty array when not necessary.",
     );
 
     const content: PluginTextContentPart[] = [{ type: "text", text: textParts.join("\n") }];
@@ -301,9 +301,9 @@ function variants(value: unknown): PromptOptimizationVariant[] {
         .flatMap((item): PromptOptimizationVariant[] => {
             if (!item || typeof item !== "object") return [];
             const record = item as Record<string, unknown>;
-            const label = typeof record.label === "string" ? record.label.trim() : "备选版本";
+            const label = typeof record.label === "string" ? record.label.trim() : "alternative version";
             const prompt = typeof record.prompt === "string" ? record.prompt.trim() : "";
-            return prompt ? [{ label: label || "备选版本", prompt }] : [];
+            return prompt ? [{ label: label || "alternative version", prompt }] : [];
         })
         .slice(0, 2);
 }
@@ -323,7 +323,7 @@ function normalizeResult(value: Record<string, unknown> | null, sourcePrompt: st
 
 function createPromptOptimizer(context: Parameters<NonNullable<RegisteredPlugin["createPromptOptimizer"]>>[0]): PromptOptimizerProvider {
     const textService = context.services?.ai?.text;
-    if (!textService) throw new Error("提示词优化器暂未获得文本模型服务");
+    if (!textService) throw new Error("The prompt word optimizer has not yet obtained the text model service");
 
     return {
         optimize: async (input, options) => {
@@ -349,7 +349,7 @@ export const promptOptimizerPlugin: RegisteredPlugin = {
     setup(host) {
         return host.contribute("canvas.promptActions", {
             id: "prompt-optimizer",
-            label: "润色",
+            label: "polish",
             order: 10,
             nodeTypes: ["image", "video"],
         });

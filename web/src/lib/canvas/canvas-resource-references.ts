@@ -184,7 +184,7 @@ function canvasResourceMentionNames(reference: CanvasResourceReference, index: n
     // Media labels are numbered per kind; the mixed shelf position is not an image slot.
     const imageLabelMatch = reference.kind === "image" && /^图片(\d+)$/u.exec(reference.label.trim());
     if (imageLabelMatch) {
-        names.add(`图${imageLabelMatch[1]}`);
+        names.add(`Figure${imageLabelMatch[1]}`);
         names.add(`image${imageLabelMatch[1]}`);
         names.add(`image ${imageLabelMatch[1]}`);
     }
@@ -369,7 +369,7 @@ export function buildCanvasResourceReferences(nodes: CanvasNodeData[], connectio
 export function buildCanvasAgentMentionReferences(nodes: CanvasNodeData[]): CanvasResourceReference[] {
     return nodes.map((node, index) => {
         const kind = resourceKind(node) || "text";
-        const fallbackTitle = `节点 ${index + 1}`;
+        const fallbackTitle = `node${index + 1}`;
         return {
             id: node.id,
             nodeId: node.id,
@@ -535,7 +535,7 @@ function labelResourceNodes(nodes: CanvasNodeData[], active: boolean) {
         const kind = resourceKind(node);
         if (!kind) return [];
         const index = node.type === CanvasNodeType.Drawing ? drawingCount++ : counts[kind]++;
-        const label = node.type === CanvasNodeType.Drawing ? `绘图${index + 1}` : labelForKind(kind, index);
+        const label = node.type === CanvasNodeType.Drawing ? `Drawing${index + 1}` : labelForKind(kind, index);
         return [
             {
                 id: node.id,
@@ -564,12 +564,12 @@ function labelResourceNodes(nodes: CanvasNodeData[], active: boolean) {
 }
 
 function labelForKind(kind: CanvasResourceKind, index: number) {
-    if (kind === "character") return `角色${index + 1}`;
+    if (kind === "character") return `role${index + 1}`;
     if (kind === "image") return imageReferenceLabel(index);
     if (kind === "video") return seedanceReferenceLabel("video", index);
     if (kind === "audio") return seedanceReferenceLabel("audio", index);
-    if (kind === "skill") return `技能${index + 1}`;
-    return `文本${index + 1}`;
+    if (kind === "skill") return `Skills${index + 1}`;
+    return `text${index + 1}`;
 }
 
 export function isCanvasTextResourceNode(node: CanvasNodeData) {

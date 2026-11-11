@@ -32,7 +32,7 @@ export function StyleProfileEditorModal({ open, initialProfile, saving = false, 
         setAssetsOpen(false);
     }, [initialProfile, open]);
 
-    const validationMessage = useMemo(() => draft ? styleProfileValidationMessage(draft) : "风格草稿不存在", [draft]);
+    const validationMessage = useMemo(() => draft ? styleProfileValidationMessage(draft) : "Style draft does not exist", [draft]);
     if (!draft) return null;
 
     const update = (patch: Partial<StyleProfileSnapshot>) => setDraft((current) => current ? { ...current, ...patch } : current);
@@ -41,7 +41,7 @@ export function StyleProfileEditorModal({ open, initialProfile, saving = false, 
             onClose();
             return;
         }
-        modal.confirm({ title: "放弃未保存的风格修改？", content: "名称、Prompt、封面和执行配置中的改动都会丢失。", okText: "放弃修改", cancelText: "继续编辑", okButtonProps: { danger: true }, onOk: onClose });
+        modal.confirm({ title: "Discard unsaved style changes?", content: "Changes in name, prompt, cover, and execution configuration will be lost.", okText: "Abandon changes", cancelText: "Continue editing", okButtonProps: { danger: true }, onOk: onClose });
     };
     const submit = (applyToProject: boolean) => {
         if (validationMessage) {
@@ -69,17 +69,17 @@ export function StyleProfileEditorModal({ open, initialProfile, saving = false, 
                             <div className="flex items-center gap-2">
                                 <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-foreground/5"><Sparkles className="size-3.5" /></span>
                                 <div>
-                                    <h2 className="text-sm font-semibold">风格编辑器</h2>
-                                    <p className="mt-0.5 truncate text-[var(--fs-tiny)] text-foreground/45">{draft.title || "未命名风格"} · 我的风格</p>
+                                    <h2 className="text-sm font-semibold">style editor</h2>
+                                    <p className="mt-0.5 truncate text-[var(--fs-tiny)] text-foreground/45">{draft.title || "unnamed style"}  · My style</p>
                                 </div>
                             </div>
                         </div>
                     </header>
 
-                    <nav className="style-profile-editor-tabs grid shrink-0 grid-cols-3 border-b border-border px-2 sm:flex sm:px-4" role="tablist" aria-label="风格编辑器分区">
-                        <EditorTab id="style-profile-tab-identity" panelId="style-profile-panel-identity" active={section === "identity"} icon={<Image className="size-3.5" />} label="基本信息" onClick={() => setSection("identity")} />
-                        <EditorTab id="style-profile-tab-prompt" panelId="style-profile-panel-prompt" active={section === "prompt"} icon={<Braces className="size-3.5" />} label="Prompt 规则" onClick={() => setSection("prompt")} />
-                        <EditorTab id="style-profile-tab-execution" panelId="style-profile-panel-execution" active={section === "execution"} icon={<Layers3 className="size-3.5" />} label="执行配置" onClick={() => setSection("execution")} />
+                    <nav className="style-profile-editor-tabs grid shrink-0 grid-cols-3 border-b border-border px-2 sm:flex sm:px-4" role="tablist" aria-label="Style editor section">
+                        <EditorTab id="style-profile-tab-identity" panelId="style-profile-panel-identity" active={section === "identity"} icon={<Image className="size-3.5" />} label="Basic information" onClick={() => setSection("identity")} />
+                        <EditorTab id="style-profile-tab-prompt" panelId="style-profile-panel-prompt" active={section === "prompt"} icon={<Braces className="size-3.5" />} label="Prompt rules" onClick={() => setSection("prompt")} />
+                        <EditorTab id="style-profile-tab-execution" panelId="style-profile-panel-execution" active={section === "execution"} icon={<Layers3 className="size-3.5" />} label="Execute configuration" onClick={() => setSection("execution")} />
                     </nav>
 
                     <div className="style-profile-editor-workspace grid min-h-0 flex-1 lg:grid-cols-3">
@@ -92,11 +92,11 @@ export function StyleProfileEditorModal({ open, initialProfile, saving = false, 
                     </div>
 
                     <footer className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                        <p className={`text-[var(--fs-tiny)] ${validationMessage ? "text-red-500" : "text-foreground/45"}`}>{validationMessage || "保存后进入“我的风格”；应用时会把当前版本复制为项目快照"}</p>
+                        <p className={`text-[var(--fs-tiny)] ${validationMessage ? "text-red-500" : "text-foreground/45"}`}>{validationMessage || "After saving, enter \"My Style\"; when applying, the current version will be copied as a project snapshot"}</p>
                         <div className="flex shrink-0 flex-wrap justify-end gap-2">
-                            <Button onClick={requestClose}>取消</Button>
-                            <Button icon={<Save className="size-3.5" />} disabled={Boolean(validationMessage)} loading={saving} onClick={() => submit(false)}>保存到我的风格</Button>
-                            <Button type="primary" icon={<Sparkles className="size-3.5" />} disabled={Boolean(validationMessage)} loading={saving} onClick={() => submit(true)}>保存并应用</Button>
+                            <Button onClick={requestClose}>Cancel</Button>
+                            <Button icon={<Save className="size-3.5" />} disabled={Boolean(validationMessage)} loading={saving} onClick={() => submit(false)}>Save to my styles</Button>
+                            <Button type="primary" icon={<Sparkles className="size-3.5" />} disabled={Boolean(validationMessage)} loading={saving} onClick={() => submit(true)}>Save and apply</Button>
                         </div>
                     </footer>
                 </div>
@@ -118,20 +118,20 @@ function StylePreview({ profile }: { profile: StyleProfileSnapshot }) {
     return (
         <aside className="style-profile-editor-preview thin-scrollbar min-h-0 overflow-y-auto border-b border-border bg-foreground/5 lg:border-b-0 lg:border-r">
             <div className="relative aspect-video overflow-hidden border-b border-border bg-foreground/5">
-                {profile.coverUrl ? <img src={profile.coverUrl} alt={`${profile.title || "未命名风格"}封面`} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-foreground/25"><Image className="size-7" /></div>}
-                <span className="absolute bottom-3 left-3 rounded bg-background/85 px-2 py-1 text-[var(--fs-tiny)] font-medium backdrop-blur">我的风格</span>
+                {profile.coverUrl ? <img src={profile.coverUrl} alt={`${profile.title || "unnamed style"}cover`} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-foreground/25"><Image className="size-7" /></div>}
+                <span className="absolute bottom-3 left-3 rounded bg-background/85 px-2 py-1 text-[var(--fs-tiny)] font-medium backdrop-blur">my style</span>
             </div>
             <div className="p-4 sm:p-5">
-                <h3 className="text-base font-semibold">{profile.title || "未命名风格"}</h3>
-                <p className="mt-1.5 text-xs leading-5 text-foreground/48">{profile.description || "填写简介，让风格库中更容易判断它适合什么项目。"}</p>
+                <h3 className="text-base font-semibold">{profile.title || "unnamed style"}</h3>
+                <p className="mt-1.5 text-xs leading-5 text-foreground/48">{profile.description || "Fill out the introduction to make it easier to judge what project it is suitable for in the style library."}</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                    {profile.tags.length ? profile.tags.map((tag) => <span key={tag} className="rounded bg-foreground/10 px-2 py-1 text-[var(--fs-tiny)] text-foreground/58">{tag}</span>) : <span className="text-[var(--fs-tiny)] text-foreground/35">暂无标签</span>}
+                    {profile.tags.length ? profile.tags.map((tag) => <span key={tag} className="rounded bg-foreground/10 px-2 py-1 text-[var(--fs-tiny)] text-foreground/58">{tag}</span>) : <span className="text-[var(--fs-tiny)] text-foreground/35">No tags yet</span>}
                 </div>
                 <dl className="mt-5 grid grid-cols-2 border-y border-border py-3 text-[var(--fs-tiny)]">
-                    <Metric label="Prompt" value={`${profile.prompt.length} 字`} />
-                    <Metric label="负面约束" value={`${profile.negativePrompt?.length || 0} 字`} />
-                    <Metric label="执行资产" value={`${profile.assets.length} 个`} />
-                    <Metric label="策略" value={profile.executionPolicy === "strict-assets" ? "严格阻止" : "兼容降级"} />
+                    <Metric label="Prompt" value={`${profile.prompt.length} word`} />
+                    <Metric label="negative constraints" value={`${profile.negativePrompt?.length || 0} word`} />
+                    <Metric label="execution assets" value={`${profile.assets.length} a`} />
+                    <Metric label="Strategy" value={profile.executionPolicy === "strict-assets" ? "Strictly block" : "Compatibility downgrade"} />
                 </dl>
             </div>
         </aside>
@@ -143,19 +143,19 @@ function IdentityFields({ profile, onChange }: EditorFieldsProps) {
     const setSelection = (key: string, value: string) => onChange({ selection: { ...selection, [key]: value } });
     return (
         <div className="space-y-5">
-            <SectionHeading title="风格身份" description="名称、封面和标签会出现在“我的风格”中" />
+            <SectionHeading title="style identity" description="Name, cover, and tags appear in My Styles" />
             <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="风格名称" className="sm:col-span-2"><Input maxLength={80} showCount value={profile.title} placeholder="例如：东方志怪 · 工笔暗彩" onChange={(event) => onChange({ title: event.target.value })} /></Field>
-                <Field label="风格简介" className="sm:col-span-2"><Input.TextArea maxLength={500} showCount autoSize={{ minRows: 3, maxRows: 6 }} value={profile.description} placeholder="说明适用题材、画面气质和核心辨识度" onChange={(event) => onChange({ description: event.target.value })} /></Field>
-                <Field label="封面图 URL" className="sm:col-span-2"><Input value={profile.coverUrl} placeholder="可填写项目资源 URL 或可访问的图片地址" onChange={(event) => onChange({ coverUrl: event.target.value })} /></Field>
-                <Field label="标签" className="sm:col-span-2"><Select mode="tags" maxCount={20} tokenSeparators={[",", "，"]} value={profile.tags} placeholder="输入题材、媒介、色彩或质感后回车" onChange={(tags) => onChange({ tags })} /></Field>
+                <Field label="style name" className="sm:col-span-2"><Input maxLength={80} showCount value={profile.title} placeholder="For example: Oriental Zhiguai·Gongbi Dark Color" onChange={(event) => onChange({ title: event.target.value })} /></Field>
+                <Field label="Style introduction" className="sm:col-span-2"><Input.TextArea maxLength={500} showCount autoSize={{ minRows: 3, maxRows: 6 }} value={profile.description} placeholder="Explain the applicable themes, picture temperament and core recognition" onChange={(event) => onChange({ description: event.target.value })} /></Field>
+                <Field label="Cover image URL" className="sm:col-span-2"><Input value={profile.coverUrl} placeholder="You can fill in the project resource URL or accessible image address." onChange={(event) => onChange({ coverUrl: event.target.value })} /></Field>
+                <Field label="label" className="sm:col-span-2"><Select mode="tags" maxCount={20} tokenSeparators={[",", "，"]} value={profile.tags} placeholder="Enter the subject, medium, color or texture and press Enter" onChange={(tags) => onChange({ tags })} /></Field>
             </div>
-            <SectionHeading title="辅助标注" description="这些字段用于检索和理解，不会限制你自由编写 Prompt" />
+            <SectionHeading title="Auxiliary annotation" description="These fields are used for retrieval and understanding and do not restrict you from writing prompts freely." />
             <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="题材世界"><Input value={selection.world || ""} placeholder="仙侠、都市、悬疑……" onChange={(event) => setSelection("world", event.target.value)} /></Field>
-                <Field label="视觉媒介"><Input value={selection.medium || ""} placeholder="真人实拍、二维、水墨……" onChange={(event) => setSelection("medium", event.target.value)} /></Field>
-                <Field label="叙事气质"><Input value={selection.tone || ""} placeholder="史诗、克制、轻喜剧……" onChange={(event) => setSelection("tone", event.target.value)} /></Field>
-                <Field label="角色造型"><Input value={selection.character || ""} placeholder="写实、半写实、风格化……" onChange={(event) => setSelection("character", event.target.value)} /></Field>
+                <Field label="Theme world"><Input value={selection.world || ""} placeholder="Fairy tale, city, suspense..." onChange={(event) => setSelection("world", event.target.value)} /></Field>
+                <Field label="visual media"><Input value={selection.medium || ""} placeholder="Real-life photography, 2D, ink..." onChange={(event) => setSelection("medium", event.target.value)} /></Field>
+                <Field label="narrative temperament"><Input value={selection.tone || ""} placeholder="Epic, restrained, light comedy..." onChange={(event) => setSelection("tone", event.target.value)} /></Field>
+                <Field label="Character modeling"><Input value={selection.character || ""} placeholder="Realistic, semi-realistic, stylized..." onChange={(event) => setSelection("character", event.target.value)} /></Field>
             </div>
         </div>
     );
@@ -164,12 +164,12 @@ function IdentityFields({ profile, onChange }: EditorFieldsProps) {
 function PromptFields({ profile, onChange }: EditorFieldsProps) {
     return (
         <div className="space-y-5">
-            <SectionHeading title="完整风格 Prompt" description="直接定义项目长期稳定的美术系统；这里没有固定组合限制" />
-            <Field label="正向 Prompt">
-                <Input.TextArea value={profile.prompt} autoSize={{ minRows: 16, maxRows: 28 }} placeholder="填写视觉媒介、角色设计、色彩、材质、建筑世界观、影像基线和一致性规则……" onChange={(event) => onChange({ prompt: event.target.value })} />
+            <SectionHeading title="Complete style Prompt" description="Directly define the long-term stable art system of the project; there are no fixed combination restrictions here" />
+            <Field label="Forward Prompt">
+                <Input.TextArea value={profile.prompt} autoSize={{ minRows: 16, maxRows: 28 }} placeholder="Fill in the visual medium, character design, colors, materials, architectural world view, image baseline and consistency rules..." onChange={(event) => onChange({ prompt: event.target.value })} />
             </Field>
-            <Field label="推荐负面 Prompt">
-                <Input.TextArea value={profile.negativePrompt} autoSize={{ minRows: 6, maxRows: 14 }} placeholder="填写需要全项目避免的媒介漂移、人物错误、材质错误、文字水印等" onChange={(event) => onChange({ negativePrompt: event.target.value })} />
+            <Field label="Recommend Negative Prompt">
+                <Input.TextArea value={profile.negativePrompt} autoSize={{ minRows: 6, maxRows: 14 }} placeholder="Fill in the media drift, character errors, material errors, text watermarks, etc. that need to be avoided throughout the project." onChange={(event) => onChange({ negativePrompt: event.target.value })} />
             </Field>
         </div>
     );
@@ -179,24 +179,24 @@ function ExecutionFields({ profile, onChange, onEditAssets }: EditorFieldsProps 
     const enabled = profile.assets.filter((asset) => asset.enabled !== false);
     return (
         <div className="space-y-5">
-            <SectionHeading title="生成执行" description="控制模型资产不兼容时是继续使用 Prompt，还是阻止任务" />
-            <Field label="执行策略">
+            <SectionHeading title="Build execution" description="Controls whether to continue using Prompt or blocking tasks when model assets are incompatible" />
+            <Field label="execution strategy">
                 <Segmented
                     block
                     value={profile.executionPolicy || "compatible-fallback"}
-                    options={[{ value: "compatible-fallback", label: "兼容降级" }, { value: "strict-assets", label: "严格阻止" }]}
+                    options={[{ value: "compatible-fallback", label: "Compatibility downgrade" }, { value: "strict-assets", label: "Strictly block" }]}
                     onChange={(executionPolicy) => onChange({ executionPolicy: executionPolicy as StyleProfileSnapshot["executionPolicy"] })}
                 />
             </Field>
             <div className="flex flex-col gap-3 border-y border-border py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h4 className="text-sm font-medium">执行资产</h4>
-                    <p className="mt-1 text-[var(--fs-label)] text-foreground/45">{profile.assets.length} 个已绑定，{enabled.length} 个已启用</p>
+                    <h4 className="text-sm font-medium">execution assets</h4>
+                    <p className="mt-1 text-[var(--fs-label)] text-foreground/45">{profile.assets.length}  are bound,{enabled.length}  enabled</p>
                 </div>
-                <Button icon={<Layers3 className="size-3.5" />} onClick={onEditAssets}>配置 LoRA、模板与参考图</Button>
+                <Button icon={<Layers3 className="size-3.5" />} onClick={onEditAssets}>Configure LoRA, templates and reference images</Button>
             </div>
-            {profile.assets.length ? <div className="divide-y divide-border border-b border-border">{profile.assets.map((asset) => <div key={asset.id} className="flex items-center gap-3 py-3 text-xs"><span className={`size-1.5 shrink-0 rounded-full ${asset.enabled !== false && asset.status === "validated" ? "bg-emerald-500" : asset.status === "unavailable" ? "bg-red-500" : "bg-amber-500"}`} /><span className="min-w-0 flex-1 truncate font-medium">{asset.title}</span><span className="shrink-0 text-foreground/40">{asset.kind.toUpperCase()} · {asset.status === "validated" ? "已验证" : asset.status === "unavailable" ? "不可用" : "待验证"}</span></div>)}</div> : <div className="grid min-h-36 place-items-center border-b border-border text-center text-xs text-foreground/38">尚未绑定执行资产，当前风格将只通过 Prompt 执行</div>}
-            <p className="text-[var(--fs-tiny)] leading-5 text-foreground/42">LoRA 与参考图已支持绑定、验证和兼容判断；具体生成渠道没有原生适配器时，兼容策略会降级到 Prompt，严格策略会阻止生成。</p>
+            {profile.assets.length ? <div className="divide-y divide-border border-b border-border">{profile.assets.map((asset) => <div key={asset.id} className="flex items-center gap-3 py-3 text-xs"><span className={`size-1.5 shrink-0 rounded-full ${asset.enabled !== false && asset.status === "validated" ? "bg-emerald-500" : asset.status === "unavailable" ? "bg-red-500" : "bg-amber-500"}`} /><span className="min-w-0 flex-1 truncate font-medium">{asset.title}</span><span className="shrink-0 text-foreground/40">{asset.kind.toUpperCase()} · {asset.status === "validated" ? "Verified" : asset.status === "unavailable" ? "Not available" : "To be verified"}</span></div>)}</div> : <div className="grid min-h-36 place-items-center border-b border-border text-center text-xs text-foreground/38">The execution assets have not been bound yet, the current style will only be executed through Prompt</div>}
+            <p className="text-[var(--fs-tiny)] leading-5 text-foreground/42">LoRA and reference images already support binding, verification and compatibility judgment; when the specific generation channel does not have a native adapter, the compatibility policy will be downgraded to Prompt, and the strict policy will prevent generation.</p>
         </div>
     );
 }

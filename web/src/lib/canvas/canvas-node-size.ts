@@ -62,10 +62,10 @@ export function nodeSizeFromRatio(size: string, baseWidth: number, baseHeight: n
     if (match) {
         width = Number(match[1]);
         height = Number(match[2]);
-    } else if (raw.includes("竖") || raw.includes("portrait") || raw.includes("9:16")) {
+    } else if (raw.includes("Portrait") || raw.includes("portrait") || raw.includes("9:16")) {
         width = 9;
         height = 16;
-    } else if (raw.includes("横") || raw.includes("landscape") || raw.includes("16:9")) {
+    } else if (raw.includes("Landscape") || raw.includes("landscape") || raw.includes("16:9")) {
         width = 16;
         height = 9;
     } else if (raw.includes("(1:1)") || raw.includes("1:1") || raw.includes("square")) {
@@ -95,7 +95,7 @@ export function ensureMediaNodeMinimumSize(node: CanvasNodeData) {
     // Workflow cards own their layout, including empty upload and output slots.
     if (node.metadata?.workflowSlot) return node;
     if (node.type !== CanvasNodeType.Image && node.type !== CanvasNodeType.Video) return node;
-    const title = node.title === "New Generation" ? "图片" : node.title === "Video" ? "视频" : node.title;
+    const title = node.title === "New Generation" ? "pictures" : node.title === "Video" ? "video" : node.title;
     let width = node.width;
     let height = node.height;
     const emptyStage = isBuiltinCanvasNodeType(node.type) ? NODE_DEFAULT_SIZE[node.type] : undefined;

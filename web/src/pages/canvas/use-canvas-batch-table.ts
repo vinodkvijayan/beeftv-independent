@@ -52,9 +52,9 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
         const table = nodesRef.current.find((item) => item.id === nodeId)?.metadata?.batchTable;
         if (!table) return;
         const columns = batchReferenceColumns(table);
-        if (columns.length >= 6) return message.info("最多支持 6 组参考图");
+        if (columns.length >= 6) return message.info("Supports up to 6 groups of reference pictures");
         const nextIndex = columns.length + 1;
-        patchTable(nodeId, { referenceColumns: [...columns, { id: `reference-${nanoid()}`, label: `参考图 ${nextIndex}` }] });
+        patchTable(nodeId, { referenceColumns: [...columns, { id: `reference-${nanoid()}`, label: `Reference picture${nextIndex}` }] });
     }, [message, nodesRef, patchTable]);
 
     const removeReferenceColumn = useCallback((nodeId: string) => {
@@ -62,7 +62,7 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
         if (!table) return;
         const columns = batchReferenceColumns(table);
         const nextTable = removeLastBatchReferenceColumn(table);
-        if (!nextTable) return message.info("至少保留 1 组参考图");
+        if (!nextTable) return message.info("Keep at least 1 set of reference pictures");
         const removed = columns.at(-1);
         patchTable(nodeId, nextTable);
         if (removed) {
@@ -81,19 +81,19 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
             return input?.type === CanvasNodeType.Image && Boolean(input.metadata?.content || input.metadata?.storageKey);
         }));
         if (!columns.some((column) => column.length)) {
-            if (!silent) message.warning("请先把图片节点连接到批量创作表");
+            if (!silent) message.warning("Please first connect the image node to the batch creation table");
             return false;
         }
         const rows = createBatchRowsFromColumns(table.operation, columns, table.rows);
         if (!rows.length) {
-            if (!silent) message.warning("批量换装至少需要一张人物图和一张服装图");
+            if (!silent) message.warning("Batch dressing requires at least one character picture and one clothing picture");
             return false;
         }
         if (JSON.stringify(rows) === JSON.stringify(table.rows)) return true;
         patchTable(nodeId, { rows });
         if (!silent) {
             const added = Math.max(0, rows.length - table.rows.length);
-            message.success(added ? `已同步连线并新增 ${added} 行，原有任务均已保留` : "已同步最新连线，原有任务均已保留");
+            message.success(added ? `Already synchronized and added${added} OK, all original tasks have been retained` : "The latest connections have been synchronized and all original tasks have been retained.");
         }
         return true;
     }, [connectionsRef, message, nodesRef, patchTable]);
@@ -138,12 +138,12 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
             if (requested) return true;
             return !output?.metadata?.content;
         });
-        if (!rows.length) return message.info("没有可提交的未完成任务，请检查参考图和提示词");
+        if (!rows.length) return message.info("There are no outstanding tasks to submit, please check the reference pictures and prompt words");
         const confirmed = await new Promise<boolean>((resolve) => modal.confirm({
-            title: `确认提交 ${rows.length} 个批量图片任务`,
-            content: `模型：${modelDisplayName(effectiveConfig, imageModel)}；并发上限：${table.concurrency}。这些任务可能消耗积分或产生外部模型费用。`,
-            okText: "确认生成",
-            cancelText: "取消",
+            title: `Confirm submission${rows.length} batch image tasks`,
+            content: `Model:${modelDisplayName(effectiveConfig, imageModel)};Concurrency upper limit:${table.concurrency}. These tasks may cost credits or incur external model fees.`,
+            okText: "Confirm generation",
+            cancelText: "Cancel",
             centered: true,
             onOk: () => resolve(true),
             onCancel: () => resolve(false),
@@ -166,7 +166,7 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
                 generationMode: "image" as const,
                 generationType: "edit" as const,
                 workflowKind: "final" as const,
-                workflowTitle: `${table.operation === "try_on" ? "换装" : "创意"}任务 ${index + 1}`,
+                workflowTitle: `${table.operation === "try_on" ? "Dress up" : "creativity"}Task${index + 1}`,
                 status: "idle" as const,
                 batchSourceNodeId: nodeId,
                 batchRowId: row.id,
@@ -176,7 +176,7 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
             const output = existingIndex >= 0
                 ? { ...nextNodes[existingIndex], metadata }
                 : createCanvasNode(CanvasNodeType.Image, { x: sourceNode.position.x + sourceNode.width + 120 + imageSpec.width / 2, y: sourceNode.position.y + index * (imageSpec.height + 32) + imageSpec.height / 2 }, metadata);
-            output.title = `${table.operation === "try_on" ? "换装" : "创意"} · ${index + 1}`;
+            output.title = `${table.operation === "try_on" ? "Dress up" : "creativity"} · ${index + 1}`;
             if (existingIndex >= 0) nextNodes[existingIndex] = output;
             else nextNodes.push(output);
             nextConnections = nextConnections.filter((connection) => connection.toNodeId !== output.id);
@@ -192,7 +192,7 @@ export function useCanvasBatchTable({pageUi,  projectId, nodesRef, connectionsRe
         setNodes(nextNodes);
         setConnections(nextConnections);
         pageUi.getState().setSelectedNodeIds(new Set(targets.map((target) => target.nodeId)));
-        if (enqueueGenerationBatch(nodeId, "batch_image", targets, { concurrency: table.concurrency })) message.success(`${targets.length} 个任务已加入并发队列`);
+        if (enqueueGenerationBatch(nodeId, "batch_image", targets, { concurrency: table.concurrency })) message.success(`${targets.length} tasks have been added to the concurrent queue`);
     }, [pageUi, projectId, connectionsRef, effectiveConfig, enqueueGenerationBatch, isAiConfigReady, message, modal, nodesRef, setConnections, setNodes]);
 
     return { addReferenceColumn, addRow, fillRowsFromConnections, generateRows, moveReferenceCell, patchTable, removeReferenceColumn, removeRow, reorderReferenceColumns, syncRowsFromConnections, updateRow };

@@ -15,24 +15,24 @@ import { CanvasNodeType } from "@/types/canvas";
  * （?state=ready|unavailable|starting|no-model|streaming|thinking|interrupted&narrow=1&dark=1&readonly=1）。生产构建不含此路由。
  */
 const REFERENCES: CanvasResourceReference[] = [
-    { id: "n1", nodeId: "n1", kind: "text", label: "镜头1", title: "镜头1-开场", active: true, sourceType: CanvasNodeType.Text, mentionToken: "@[node:n1]" },
-    { id: "n2", nodeId: "n2", kind: "image", label: "镜头2", title: "镜头2-冲突", active: true, sourceType: CanvasNodeType.Image, mentionToken: "@[node:n2]" },
+    { id: "n1", nodeId: "n1", kind: "text", label: "Shot 1", title: "Shot 1-Opening", active: true, sourceType: CanvasNodeType.Text, mentionToken: "@[node:n1]" },
+    { id: "n2", nodeId: "n2", kind: "image", label: "Shot 2", title: "Shot 2 - Conflict", active: true, sourceType: CanvasNodeType.Image, mentionToken: "@[node:n2]" },
 ];
 
 const TURNS: AssistantTurn[] = [
     {
         turnId: "turn-1",
-        userText: "把剧本拆成三个镜头，并按顺序连起来",
+        userText: "Split the script into three shots and connect them in order",
         selectedNodeIds: ["n1", "n2"],
-        reply: "已经按开场、冲突、收尾拆成三个镜头，并按这个顺序连好。\n\n- **镜头1 开场**：雨夜巷口，远景压住情绪\n- **镜头2 冲突**：近景对峙，光只打半张脸\n- **镜头3 收尾**：中景离场，留一句没说完的台词",
+        reply: "It has been split into three shots according to the opening, conflict, and ending, and connected in this order.\n\n- **Shot 1 Opening**: At the entrance of the alley on a rainy night, the distant view suppresses emotions\n- **Shot 2 Conflict**: Close-up confrontation, the light only hits half of the face\n- **Shot 3 Ending**: Leaving the scene in mid-shot, leaving an unfinished line",
         toolCalls: [
             { toolCallId: "t1", tool: "canvas.nodes.create" },
             { toolCallId: "t2", tool: "canvas.edge.create" },
             { toolCallId: "t3", tool: "canvas.node.update", isError: true, error: "conflict" },
         ],
         reasoning: [
-            { id: "12:0", text: "先确认三个镜头要覆盖的剧情节点：开场、冲突、收尾。\n用户已经给了两张参考图，可以直接沿用它们的构图和光线。", status: "done" },
-            { id: "12:1", text: "连接顺序按时间线排，不新增多余节点。", status: "done" },
+            { id: "12:0", text: "First confirm the plot points to be covered by the three shots: opening, conflict, and ending.\nThe user has given two reference pictures, and you can directly use their composition and lighting.", status: "done" },
+            { id: "12:1", text: "The connection sequence is arranged according to the timeline, and no redundant nodes are added.", status: "done" },
         ],
         change: { revisionBefore: 12, revisionAfter: 13, createdNodeIds: ["n3", "n4", "n5"], updatedNodeIds: [], createdEdgeIds: ["e1", "e2"] },
         proposals: [{ proposalId: "p1", kind: "image", nodeIds: ["n3", "n4", "n5"], model: "seedream-4", modelKey: "beeftv::seedream-4" }],
@@ -44,7 +44,7 @@ const TURNS: AssistantTurn[] = [
 
 /** 正在生成的那一轮的思考片段：只在 ?state=thinking 下挂到面板上。 */
 const LIVE_REASONING: AssistantReasoningSegment[] = [
-    { id: "live-1:0", text: "先确认这段参考视频的时长和声道，再定位中间黑屏的位置。", status: "streaming" },
+    { id: "live-1:0", text: "First confirm the duration and audio channel of this reference video, and then locate the black screen in the middle.", status: "streaming" },
 ];
 
 function stubController(open: boolean, setOpen: (next: boolean) => void, width: number, setWidth: (next: number) => void, status: AgentHostStatus | null): CanvasAssistantController {
@@ -61,8 +61,8 @@ function stubController(open: boolean, setOpen: (next: boolean) => void, width: 
         statusBusy: false,
         modelBusy: false,
         sessions: [
-            { sessionId: "s1", title: "把剧本拆成三个镜头，并按顺序连起来", updatedAt: new Date().toISOString(), turnCount: 1 },
-            { sessionId: "s2", title: "检查哪些镜头还缺参考图", updatedAt: new Date().toISOString(), turnCount: 3 },
+            { sessionId: "s1", title: "Split the script into three shots and connect them in order", updatedAt: new Date().toISOString(), turnCount: 1 },
+            { sessionId: "s2", title: "Check which lenses are missing reference images", updatedAt: new Date().toISOString(), turnCount: 3 },
         ],
         sessionId: "s1",
         turns: status?.available ? TURNS : [],
@@ -141,30 +141,30 @@ export default function AssistantPanelLab() {
     if (state === "thinking") {
         assistant.streaming = true;
         assistant.canSupplement = true;
-        assistant.pendingUserText = "检查参考视频的声音，去掉中间黑屏，保留咖啡和蛋糕的结尾";
+        assistant.pendingUserText = "Check the sound of the reference video, remove the black screen in the middle, and keep the coffee and cake ending";
         assistant.reasoning = LIVE_REASONING;
-        assistant.lifecycleNotice = "正在检查媒体";
+        assistant.lifecycleNotice = "Checking media";
     }
     if (state === "interrupted") {
-        assistant.turns = [{ ...TURNS[0], proposals: [], error: "本轮达到等待上限", errorReason: "turn_timeout", change: { ...TURNS[0].change!, timelineUpdated: true } }];
+        assistant.turns = [{ ...TURNS[0], proposals: [], error: "The waiting limit has been reached this round", errorReason: "turn_timeout", change: { ...TURNS[0].change!, timelineUpdated: true } }];
     }
     if (state === "streaming") {
         assistant.streaming = true;
         assistant.canSupplement = true;
-        assistant.pendingUserText = "检查参考视频的声音，去掉中间黑屏，保留咖啡和蛋糕的结尾";
-        assistant.streamed = "已找到中间的黑屏，正在检查这段声音。";
-        assistant.supplements = [{ text: "不要删除片尾的两秒停顿", status: "accepted" }];
-        assistant.lifecycleNotice = "正在检查媒体";
+        assistant.pendingUserText = "Check the sound of the reference video, remove the black screen in the middle, and keep the coffee and cake ending";
+        assistant.streamed = "The black screen in the middle has been found and the sound is being checked.";
+        assistant.supplements = [{ text: "Don’t delete the two-second pause at the end of the film", status: "accepted" }];
+        assistant.lifecycleNotice = "Checking media";
     }
 
     return (
         <div className="flex h-screen min-h-0" style={{ background: "var(--background)", color: "var(--foreground)" }}>
             <div className="flex min-w-0 flex-1 items-center justify-center" style={{ background: "var(--muted)" }}>
-                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>画布区域（实验室占位）</p>
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Canvas area (lab space)</p>
             </div>
             <CanvasAssistantSidebar
                 assistant={assistant}
-                canvasTitle="雨夜巷口"
+                canvasTitle="Rainy night alley"
                 dockable={!narrow}
                 readOnly={params.get("readonly") === "1"}
                 selectedNodeIds={["n1", "n2"]}

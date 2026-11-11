@@ -42,10 +42,10 @@ export default function AgentsPage() {
         setRevoking(id);
         try {
             await revokeAgentClient(id);
-            message.success("已断开");
+            message.success("Disconnected");
             await clientsQuery.refetch();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "断开失败，请稍后重试");
+            message.error(error instanceof Error ? error.message : "Disconnect failed, please try again later");
         } finally {
             setRevoking("");
         }
@@ -55,10 +55,10 @@ export default function AgentsPage() {
         setIntegrationBusy(integration.kind);
         try {
             await connectAgentIntegration(integration.kind);
-            message.success(`已接入 ${integration.name}`);
+            message.success(`Already connected${integration.name}`);
             await clientsQuery.refetch();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "接入失败，请稍后重试");
+            message.error(error instanceof Error ? error.message : "Access failed, please try again later");
         } finally {
             setIntegrationBusy(null);
         }
@@ -68,11 +68,11 @@ export default function AgentsPage() {
         setIntegrationBusy(integration.kind);
         try {
             const result = await disconnectAgentIntegration(integration.kind);
-            message.success(`已断开 ${integration.name}`);
+            message.success(`Disconnected${integration.name}`);
             if (result.warning) message.info(result.warning);
             await clientsQuery.refetch();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "断开失败，请稍后重试");
+            message.error(error instanceof Error ? error.message : "Disconnect failed, please try again later");
         } finally {
             setIntegrationBusy(null);
         }
@@ -83,15 +83,15 @@ export default function AgentsPage() {
             <PageHeader title="BeefTV MCP" />
 
             {unsupported ? (
-                <EmptyState icon={Plug} title="当前版本还不支持" description="更新到新版本后就能在这里连接 Codex、Claude Code 和 Cursor。" />
+                <EmptyState icon={Plug} title="The current version does not support it yet" description="After updating to the new version, you will be able to connect Codex, Claude Code and Cursor here." />
             ) : (
                 <div className="agents-settings mt-4 pb-6">
-                    {clientsQuery.isPending ? <p className="text-xs text-foreground/55">正在读取…</p> : null}
+                    {clientsQuery.isPending ? <p className="text-xs text-foreground/55">Reading…</p> : null}
                     {clientsQuery.error ? (
                         <div role="alert" className="mb-4 text-sm">
-                            无法读取连接状态。
+                                                        Unable to read connection status.
                             <Button type="link" onClick={() => void clientsQuery.refetch()}>
-                                重试
+                                                                Try again
                             </Button>
                         </div>
                     ) : null}
@@ -107,12 +107,12 @@ export default function AgentsPage() {
                             const status = integration
                                 ? agentIntegrationStatusLabel(integration)
                                 : clientsQuery.isPending || clientsQuery.error
-                                  ? "状态未知"
+                                  ? "Status unknown"
                                   : registered.some((client) => client.lastUsedAt)
-                                    ? "已验证连接"
+                                    ? "Verified connection"
                                     : registered.length
-                                      ? "等待连接"
-                                      : "未连接";
+                                      ? "Waiting for connection"
+                                      : "Not connected";
                             return (
                                 <section key={kind} data-agent-client-kind={kind} className="agent-tool">
                                     <div className="agent-tool-row">
@@ -123,14 +123,14 @@ export default function AgentsPage() {
                                                 <>
                                                     {action === "disconnect" ? (
                                                         <Popconfirm
-                                                            title={`断开 ${integration.name}？`}
-                                                            description="断开后它不能再读取或修改画布，使用说明也会移除。重新接入即可恢复。"
-                                                            okText="断开"
-                                                            cancelText="取消"
+                                                            title={`Disconnect${integration.name}？`}
+                                                            description="When disconnected it can no longer read or modify the canvas, and the usage instructions are removed. Reconnect to restore."
+                                                            okText="Disconnect"
+                                                            cancelText="Cancel"
                                                             okButtonProps={{ danger: true }}
                                                             onConfirm={() => void disconnectIntegration(integration)}
                                                         >
-                                                            <Button loading={integrationBusy === integration.kind}>断开</Button>
+                                                            <Button loading={integrationBusy === integration.kind}>Disconnect</Button>
                                                         </Popconfirm>
                                                     ) : (
                                                         <Button
@@ -138,10 +138,10 @@ export default function AgentsPage() {
                                                             loading={integrationBusy === integration.kind}
                                                             onClick={() => void connectIntegration(integration)}
                                                         >
-                                                            接入
+                                                                                                                        Access
                                                         </Button>
                                                     )}
-                                                    <Button onClick={() => setManaging(managing === kind ? null : kind)}>{managing === kind ? "收起" : "手动连接"}</Button>
+                                                    <Button onClick={() => setManaging(managing === kind ? null : kind)}>{managing === kind ? "close" : "Manual connection"}</Button>
                                                 </>
                                             ) : (
                                                 <Button
@@ -157,7 +157,7 @@ export default function AgentsPage() {
                                                         setManaging(manualClients.length ? kind : null);
                                                     }}
                                                 >
-                                                    {expanded ? "收起" : manualClients.length ? "管理" : "连接"}
+                                                    {expanded ? "close" : manualClients.length ? "management" : "connect"}
                                                 </Button>
                                             )}
                                         </div>
@@ -170,18 +170,18 @@ export default function AgentsPage() {
                                                     <div className="agent-registration-info">
                                                         <p className="text-sm font-medium break-words">{agentClientDisplayLabel(client)}</p>
                                                         <p className="text-xs text-foreground/55">
-                                                            {agentClientModeLabel(client.mode)} · 最近使用：{agentClientLastUsedLabel(client.lastUsedAt)}
+                                                            {agentClientModeLabel(client.mode)}  · Recently used:{agentClientLastUsedLabel(client.lastUsedAt)}
                                                         </p>
                                                     </div>
                                                     <Popconfirm
-                                                        title="断开这个工具？"
-                                                        description="断开后它不能再读取或修改画布，需要重新连接。"
-                                                        okText="断开"
-                                                        cancelText="取消"
+                                                        title="Disconnect this tool?"
+                                                        description="After disconnecting it can no longer read or modify the canvas and needs to be reconnected."
+                                                        okText="Disconnect"
+                                                        cancelText="Cancel"
                                                         okButtonProps={{ danger: true }}
                                                         onConfirm={() => void disconnect(client.id)}
                                                     >
-                                                        <Button loading={revoking === client.id}>断开</Button>
+                                                        <Button loading={revoking === client.id}>Disconnect</Button>
                                                     </Popconfirm>
                                                 </div>
                                             ))}
@@ -192,7 +192,7 @@ export default function AgentsPage() {
                                                     setConnecting(kind);
                                                 }}
                                             >
-                                                新增连接
+                                                                                                New connection
                                             </Button>
                                         </div>
                                     ) : null}
@@ -212,16 +212,16 @@ export default function AgentsPage() {
                     </div>
                     {cli && !cli.available ? (
                         <p role="alert" className="mt-4 text-sm text-foreground/60">
-                            安装文件不完整，无法连接外部工具。请重新下载并完整解压 BeefTV。
+                                                        The installation file is incomplete and external tools cannot be connected. Please re-download and fully unzip BeefTV.
                         </p>
                     ) : null}
                     {cli?.available ? (
                         <details className="agent-cli-details">
-                            <summary>命令行工具</summary>
+                            <summary>Command line tools</summary>
                             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                                <p className="text-xs text-foreground/55">在终端使用 beeftv 命令</p>
+                                <p className="text-xs text-foreground/55">Use beeftv command in terminal</p>
                                 <Button size="small" onClick={() => copyText(cli.installCommand)}>
-                                    复制安装命令
+                                                                        Copy the installation command
                                 </Button>
                             </div>
                         </details>

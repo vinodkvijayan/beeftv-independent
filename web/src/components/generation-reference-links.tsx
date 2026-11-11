@@ -10,7 +10,7 @@ export function ReferenceLinkFields({ references, onChange }: { references: Refe
     const [links, setLinks] = useState<Record<string, string>>({});
     return (
         <div data-canvas-no-zoom data-canvas-wheel-scroll>
-            <p>当前渠道只能读取在线素材。请填写对应素材的 HTTPS 链接，用于本次生成。</p>
+            <p>The current channel can only read online materials. Please fill in the HTTPS link of the corresponding material for this generation.</p>
             <div style={{ maxHeight: "45vh", overflowY: "auto", display: "grid", gap: 12 }}>
                 {references.map((reference) => (
                     <label key={reference.key} style={{ display: "grid", gap: 4 }}>
@@ -33,7 +33,7 @@ export function ReferenceLinkFields({ references, onChange }: { references: Refe
                     </label>
                 ))}
             </div>
-            <p>链接需允许服务商直接读取。原素材会保留。</p>
+            <p>The link must allow the service provider to read it directly. The original material will be retained.</p>
         </div>
     );
 }
@@ -47,7 +47,7 @@ export function createReferenceLinkResolver(modal: ModalAPI): ResolveReferenceLi
         const existing = requests.get(key);
         if (existing) {
             if (!target) return existing;
-            const waiting = startOperation("准备参考素材", { target, detail: "正在等待参考素材确认" });
+            const waiting = startOperation("Prepare reference materials", { target, detail: "Waiting for reference material confirmation" });
             return existing.finally(() => waiting.dismiss());
         }
         const pending = (async () => {
@@ -68,16 +68,16 @@ export function createReferenceLinkResolver(modal: ModalAPI): ResolveReferenceLi
                     resolve(result);
                 };
                 const dialog = modal.confirm({
-                    title: "填写参考素材链接",
+                    title: "Fill in the reference material link",
                     centered: true,
                     closable: true,
                     width: 520,
-                    okText: "使用链接并生成",
-                    cancelText: "取消",
+                    okText: "Use link and generate",
+                    cancelText: "Cancel",
                     okButtonProps: { disabled: true },
                     content: (
                         <>
-                            {uploadError && <Alert type="warning" showIcon title="对象存储上传未完成" description={`${uploadError}。可检查存储设置，或填写可公开读取的 HTTPS 链接继续。`} style={{ marginBottom: 16 }} />}
+                            {uploadError && <Alert type="warning" showIcon title="Object storage upload not completed" description={`${uploadError}. You can check your storage settings, or fill in a publicly readable HTTPS link to continue.`} style={{ marginBottom: 16 }} />}
                             <ReferenceLinkFields
                                 references={missing}
                                 onChange={(value) => {
@@ -92,10 +92,10 @@ export function createReferenceLinkResolver(modal: ModalAPI): ResolveReferenceLi
                                     navigateToSettings({ section: "channels", continueCreation: true });
                                 }}
                             >
-                                切换渠道
+                                                                Switch channels
                             </Button>
                             <Button onClick={() => { finish(null); dialog.destroy(); navigateToSettings({ section: "storage", continueCreation: true }); }}>
-                                配置对象存储
+                                                                Configure object storage
                             </Button>
                         </>
                     ),

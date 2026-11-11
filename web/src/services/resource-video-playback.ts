@@ -9,16 +9,16 @@ export async function resolveResourceVideoPlayback(storageKey: string, fallback:
             resource = await prepareResourcePlayback(id, { signal });
         }
         for (let attempt = 0; resource.playbackStatus === "processing"; attempt += 1) {
-            if (attempt >= 120) throw new Error("视频预览仍在准备中，请稍后重新打开");
+            if (attempt >= 120) throw new Error("The video preview is still being prepared, please reopen it later");
             await waitForPlaybackPoll(signal);
             resource = await refreshResource(id, { signal });
         }
         if (resource.playbackStatus === "ready") {
             const playback = await getResourcePlayback(storageKey, { signal });
-            if (!playback) throw new Error("视频预览不可用，请重试");
+            if (!playback) throw new Error("Video preview is not available, please try again");
             return playback;
         }
-        if (needsCompatible && resource.playbackStatus !== "ready") throw new Error("视频已导入，暂时无法准备预览，请重试。原文件仍可下载。");
+        if (needsCompatible && resource.playbackStatus !== "ready") throw new Error("The video has been imported and cannot be previewed at the moment. Please try again. The original file is still available for download.");
     }
     const url = await resolveMediaUrl(storageKey, fallback);
     if (signal.aborted) throw signal.reason;

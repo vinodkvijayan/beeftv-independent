@@ -148,7 +148,7 @@ function resolveReferencePreview(reference: CanvasResourceReference, identity: s
 function blobToDataUrl(blob: Blob) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onerror = () => reject(reader.error || new Error("读取绘图预览失败"));
+        reader.onerror = () => reject(reader.error || new Error("Failed to read drawing preview"));
         reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
         reader.readAsDataURL(blob);
     });

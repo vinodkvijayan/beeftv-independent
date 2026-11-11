@@ -23,7 +23,7 @@ type SandboxedFrameProps = {
 export function SandboxedFrame({ srcDoc, theme, allowScripts = false }: SandboxedFrameProps) {
     return (
         <iframe
-            title="节点预览"
+            title="Node preview"
             className="h-full w-full border-0"
             sandbox={allowScripts ? "allow-scripts" : ""}
             srcDoc={srcDoc}

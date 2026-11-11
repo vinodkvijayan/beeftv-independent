@@ -32,41 +32,41 @@ export function CanvasFocusModeBar({ versionsOpen, onToggleVersions, syncStatus,
             transition={reducedMotion ? { duration: 0 } : aceternityMotion.spring.panel}
             className="pointer-events-auto absolute left-1/2 top-2 z-[var(--z-toolbar)] -translate-x-1/2"
             role="toolbar"
-            aria-label="专注模式工具栏"
+            aria-label="Focus Mode Toolbar"
         >
             <div className="flex items-center gap-0.5 rounded-full p-1 backdrop-blur-2xl" style={{ background: theme.spatial.elevated, color: theme.node.text, boxShadow: "var(--workspace-overlay-shadow)" }}>
-                <Tooltip title="退出专注模式（Esc）">
+                <Tooltip title="Exit focus mode (Esc)">
                     <button
                         type="button"
                         onClick={onExit}
                         className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10"
                         style={{ color: theme.node.text }}
-                        aria-label="退出专注模式"
+                        aria-label="Exit focus mode"
                     >
                         <X className="size-4" />
                     </button>
                 </Tooltip>
                 {syncStatus}
-                <Tooltip title="版本记录">
-                    <button type="button" onClick={onToggleVersions} className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10" style={{ color: theme.node.text, background: versionsOpen ? theme.toolbar.itemHover : undefined }} aria-label="版本记录" aria-pressed={versionsOpen}>
+                <Tooltip title="version record">
+                    <button type="button" onClick={onToggleVersions} className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10" style={{ color: theme.node.text, background: versionsOpen ? theme.toolbar.itemHover : undefined }} aria-label="version record" aria-pressed={versionsOpen}>
                         <History className="size-4" />
                     </button>
                 </Tooltip>
                 <span className="mx-0.5 h-4 w-px" style={{ background: theme.toolbar.border }} />
-                <Tooltip title={dockRevealed ? "收起工具" : "工具"}>
+                <Tooltip title={dockRevealed ? "Put away tools" : "Tools"}>
                     <button
                         type="button"
                         onClick={onToggleDock}
                         className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10"
                         style={{ color: theme.node.text, background: dockRevealed ? theme.toolbar.itemHover : undefined }}
-                        aria-label="工具"
+                        aria-label="Tools"
                         aria-pressed={dockRevealed}
                     >
                         <PanelBottom className="size-4" />
                     </button>
                 </Tooltip>
-                <Tooltip title="缩小">
-                    <button type="button" onClick={onZoomOut} className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10" style={{ color: theme.node.text }} aria-label="缩小">
+                <Tooltip title="zoom out">
+                    <button type="button" onClick={onZoomOut} className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10" style={{ color: theme.node.text }} aria-label="zoom out">
                         <ZoomOut className="size-4" />
                     </button>
                 </Tooltip>
@@ -75,12 +75,12 @@ export function CanvasFocusModeBar({ versionsOpen, onToggleVersions, syncStatus,
                     onClick={onFit}
                     className="grid h-8 min-w-14 place-items-center rounded-full px-2 text-xs font-medium tabular-nums transition hover:bg-black/5 dark:hover:bg-white/10"
                     style={{ color: theme.node.text }}
-                    title="适应画布"
+                    title="Adapt to canvas"
                 >
                     {Math.round(zoomPercent * 100)}%
                 </button>
-                <Tooltip title="放大">
-                    <button type="button" onClick={onZoomIn} className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10" style={{ color: theme.node.text }} aria-label="放大">
+                <Tooltip title="Zoom in">
+                    <button type="button" onClick={onZoomIn} className="grid size-8 place-items-center rounded-full transition hover:bg-black/5 dark:hover:bg-white/10" style={{ color: theme.node.text }} aria-label="Zoom in">
                         <ZoomIn className="size-4" />
                     </button>
                 </Tooltip>

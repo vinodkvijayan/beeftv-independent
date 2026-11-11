@@ -22,16 +22,16 @@ type UiEntry =
     | { kind: "error"; id: string; text: string; retry: string }
     | { kind: "preview"; id: string; plan: AiCommandPlan };
 
-const FAILED_MARK = "（上一轮指令被宿主拒绝）";
-const RETRY_MODIFY_PREFIX = "宿主拒绝了上一轮输出，错误：";
+const FAILED_MARK = "(The last round of instructions was rejected by the host)";
+const RETRY_MODIFY_PREFIX = "The host rejected the last round of output with error:";
 const MAX_VISIBLE_RAW = 240;
-const PREVIEW_HEAD = "以下指令将直接修改时间线，请确认后执行：";
+const PREVIEW_HEAD = "The following instructions will directly modify the timeline, please confirm before executing:";
 // 空态建议指令：点击直接发送（对应参考图的 suggestion chips）。
 const SUGGESTED_PROMPTS = [
-    "把第二段素材换成封面图",
-    "删掉所有片段之间的空隙",
-    "给全部字幕加上黑色描边",
-    "当前时间线一共有多少片段？",
+    "Replace the second paragraph of material with a cover image",
+    "Delete the gaps between all clips",
+    "Add black stroke to all subtitles",
+    "How many clips are there in the current timeline?",
 ];
 
 /** 指令行人类可读摘要（op + payload 截断），用于执行汇报与预览清单。 */
@@ -43,7 +43,7 @@ function commandLine(cmd: { op: string; payload?: unknown }, index: number): str
 
 function describePlan(plan: AiCommandPlan): string {
     const lines = plan.commands.map((c, i) => commandLine(c, i));
-    return [plan.reasoning?.trim(), `已提交 ${plan.commands.length} 条指令：`, ...lines]
+    return [plan.reasoning?.trim(), `Submitted${plan.commands.length} Instructions:`, ...lines]
         .filter((line): line is string => Boolean(line))
         .join("\n");
 }
@@ -109,7 +109,7 @@ export function EditorAiAssistant() {
         );
         pushHistory({
             role: "assistant",
-            content: `已提交 ${plan.commands.length} 条指令：${plan.commands.map((c) => c.op).join("、")}`,
+            content: `Submitted${plan.commands.length} Instructions:${plan.commands.map((c) => c.op).join("、")}`,
         });
         setBusy(false);
     }
@@ -125,10 +125,10 @@ export function EditorAiAssistant() {
     function failTurn(assistantId: string, reason: string, userText: string, fixable: boolean): void {
         patchEntry(
             assistantId,
-            `指令未应用：${reason.slice(0, MAX_VISIBLE_RAW)}${reason.length > MAX_VISIBLE_RAW ? "…" : ""}`,
+            `Directive not applied:${reason.slice(0, MAX_VISIBLE_RAW)}${reason.length > MAX_VISIBLE_RAW ? "…" : ""}`,
         );
         pushHistory({ role: "assistant", content: FAILED_MARK });
-        const retry = fixable ? `${RETRY_MODIFY_PREFIX}${reason}。请只输出修正后的命令 JSON。` : userText;
+        const retry = fixable ? `${RETRY_MODIFY_PREFIX}${reason}. Please output only the corrected command JSON.` : userText;
         const errId = nextId();
         setEntries((prev) => [...prev, { kind: "error", id: errId, text: reason, retry }]);
         setBusy(false);
@@ -162,7 +162,7 @@ export function EditorAiAssistant() {
             settleAnswer(assistantId, answer, text);
         } catch (err) {
             const reason = err instanceof Error ? err.message : String(err);
-            patchEntry(assistantId, `请求失败：${reason.slice(0, MAX_VISIBLE_RAW)}`);
+            patchEntry(assistantId, `Request failed:${reason.slice(0, MAX_VISIBLE_RAW)}`);
             const errId = nextId();
             setEntries((prev) => [...prev, { kind: "error", id: errId, text: reason, retry: text }]);
             setBusy(false);
@@ -171,7 +171,7 @@ export function EditorAiAssistant() {
 
     function settleAnswer(assistantId: string, answer: string, userText: string): void {
         if (!project) {
-            failTurn(assistantId, "编辑器项目已不可用，无法校验指令。", userText, false);
+            failTurn(assistantId, "The editor project is no longer available and the command cannot be verified.", userText, false);
             return;
         }
         let plan: AiCommandPlan;
@@ -193,7 +193,7 @@ export function EditorAiAssistant() {
         if (!verdict.ok) {
             failTurn(
                 assistantId,
-                `命令校验失败：${verdict.op}（第 ${verdict.index + 1} 条）：${verdict.error}`,
+                `Command verification failed:${verdict.op}(No.${verdict.index + 1} Article):${verdict.error}`,
                 userText,
                 true,
             );
@@ -203,12 +203,12 @@ export function EditorAiAssistant() {
             applyPlan(assistantId, plan);
             return;
         }
-        patchEntry(assistantId, plan.reasoning?.trim() || `${PREVIEW_HEAD}共 ${plan.commands.length} 条。`);
+        patchEntry(assistantId, plan.reasoning?.trim() || `${PREVIEW_HEAD}total${plan.commands.length} article.`);
         const previewId = nextId();
         setEntries((prev) => [...prev, { kind: "preview", id: previewId, plan }]);
         pushHistory({
             role: "assistant",
-            content: `输出 ${plan.commands.length} 条指令，等待用户确认后执行。`,
+            content: `output${plan.commands.length} An instruction is executed after waiting for user confirmation.`,
         });
         setBusy(false);
     }
@@ -238,24 +238,24 @@ export function EditorAiAssistant() {
     const ready = hasProject && Boolean(modelValue);
     const canSend = ready && !busy && input.trim().length > 0;
     const placeholder = !hasProject
-        ? "编辑器尚未就绪"
+        ? "Editor is not ready yet"
         : !modelValue
-          ? "未检测到文本模型，请先在「AI 设置」启用文本渠道"
-          : "描述编辑意图，或提问当前时间线…";
+          ? "The text model is not detected. Please enable the text channel in \"AI Settings\" first."
+          : "Describe editorial intent, or ask about the current timeline…";
 
     return (
         <div className="flex h-full min-h-0 flex-col bg-[var(--director-sequencer-surface)]">
             <div className="flex shrink-0 items-center gap-2 border-b border-[var(--director-sequencer-border)] px-3 py-2">
                 <span className="shrink-0 text-[10px] uppercase tracking-wider text-[var(--director-dock-fg)]/50">
-                    对话模型
+                                        dialogue model
                 </span>
                 {textModels.length > 0 ? (
                     <select
                         value={modelValue}
                         onChange={(e) => onModelChange(e.target.value)}
                         disabled={busy}
-                        aria-label="选择文本对话模型"
-                        title="选择文本对话模型"
+                        aria-label="Select text dialogue model"
+                        title="Select text dialogue model"
                         className="h-7 min-w-0 flex-1 rounded-md border border-[var(--director-sequencer-border)] bg-[var(--director-control-hover)] px-1.5 text-xs text-[var(--director-dock-fg)] outline-none focus:border-[var(--director-accent)] disabled:opacity-50 [&>option]:bg-[var(--director-sequencer-surface-raised)] [&>option]:text-[var(--director-dock-fg)]"
                     >
                         {textModels.map((m) => (
@@ -266,7 +266,7 @@ export function EditorAiAssistant() {
                     </select>
                 ) : (
                     <span className="text-[11px] text-[var(--director-warning)]">
-                        未检测到可用文本模型，请先配置渠道
+                                                No available text model detected, please configure the channel first
                     </span>
                 )}
             </div>
@@ -279,10 +279,10 @@ export function EditorAiAssistant() {
                         <div className="grid size-10 place-items-center rounded-full bg-[var(--director-dock-active-surface)]">
                             <Bot className="size-4 text-[var(--director-dock-fg)]/80" />
                         </div>
-                        <p className="text-xs text-[var(--director-dock-fg)]/70">AI 剪辑助手</p>
+                        <p className="text-xs text-[var(--director-dock-fg)]/70">AI editing assistant</p>
                         <p className="max-w-[240px] text-[11px] leading-relaxed text-[var(--director-dock-fg)]/50">
-                            基于当前时间线提问，或描述编辑意图（如"把第二段素材换成封面图"）。
-                            修改指令会先在宿主侧校验，数量超过 3 条时需你确认后才执行。
+                                                        Ask questions based on the current timeline, or describe the editing intention (such as "replace the second paragraph of footage with a cover image").
+                            Modification instructions will be verified on the host side first. If the number exceeds 3, your confirmation will be required before execution.
                         </p>
                         <div className="flex max-w-[260px] flex-wrap items-center justify-center gap-1.5">
                             {SUGGESTED_PROMPTS.map((s) => (
@@ -319,7 +319,7 @@ export function EditorAiAssistant() {
                                 {entry.text || (
                                     <span className="inline-flex items-center gap-1.5 text-[var(--director-dock-fg)]/60">
                                         <Loader2 className="size-3 animate-spin" />
-                                        思考中…
+                                                                                Thinking…
                                     </span>
                                 )}
                             </div>
@@ -345,7 +345,7 @@ export function EditorAiAssistant() {
                                                 className="mt-1 inline-flex items-center gap-1 rounded border border-[var(--director-sequencer-border)] px-1.5 py-0.5 text-[10px] text-[var(--director-dock-fg)]/80 hover:bg-[var(--director-control-hover)] disabled:opacity-40"
                                             >
                                                 <RotateCcw className="size-2.5" />
-                                                修正后重试
+                                                                                                Correct and try again
                                             </button>
                                         )}
                                     </div>
@@ -378,7 +378,7 @@ export function EditorAiAssistant() {
                                     disabled={busy}
                                     className="rounded-md border border-[var(--director-sequencer-border)] px-2 py-1 text-[10px] text-[var(--director-dock-fg)]/80 hover:bg-[var(--director-control-hover)] disabled:opacity-40"
                                 >
-                                    放弃
+                                                                        give up
                                 </button>
                                 <button
                                     type="button"
@@ -386,7 +386,7 @@ export function EditorAiAssistant() {
                                     disabled={busy}
                                     className="flex items-center gap-1 rounded-md bg-[var(--director-accent)] px-2 py-1 text-[10px] font-medium text-[var(--director-on-accent)] hover:bg-[var(--director-accent-hover)] disabled:opacity-40"
                                 >
-                                    确认执行（{entry.plan.commands.length}）
+                                                                        Confirm execution ({entry.plan.commands.length}）
                                 </button>
                             </div>
                         </div>
@@ -411,8 +411,8 @@ export function EditorAiAssistant() {
                     type="button"
                     onClick={() => void send()}
                     disabled={!canSend}
-                    aria-label={modelValue ? "发送" : "无可用文本模型"}
-                    title={modelValue ? "发送" : "请先选择文本模型"}
+                    aria-label={modelValue ? "send" : "No text model available"}
+                    title={modelValue ? "send" : "Please select text model first"}
                     className="grid size-7 shrink-0 place-items-center rounded-md bg-[var(--director-accent)] text-[var(--director-on-accent)] hover:bg-[var(--director-accent-hover)] disabled:opacity-40"
                 >
                     {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}

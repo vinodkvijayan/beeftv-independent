@@ -67,7 +67,7 @@ export default function EagleLibraryPage() {
             setItems(nextItems || []);
             setPage(1);
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : "连接 Eagle 失败，请确认 Eagle 已启动");
+            setError(reason instanceof Error ? reason.message : "Failed to connect to Eagle, please confirm that Eagle has been started");
             setItems([]);
         } finally {
             setLoading(false);
@@ -100,10 +100,10 @@ export default function EagleLibraryPage() {
         try {
             await provider.createFolder(name, selectedFolder || undefined);
             setFolderName("");
-            message.success("已在" + (currentFolder?.name || "Eagle 素材库") + "中新建文件夹");
+            message.success("Already in" + (currentFolder?.name || "Eagle Library") + "Create a new folder in");
             await load();
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : "新建 Eagle 文件夹失败");
+            setError(reason instanceof Error ? reason.message : "Failed to create new Eagle folder");
         } finally {
             setCreatingFolder(false);
         }
@@ -118,15 +118,15 @@ export default function EagleLibraryPage() {
         let uploaded = 0;
         try {
             for (const [index, file] of files.entries()) {
-                setProgress("正在写入 " + (index + 1) + "/" + files.length + "：" + file.name);
+                setProgress("Writing" + (index + 1) + "/" + files.length + "：" + file.name);
                 await provider.uploadFile(file, selectedFolder || undefined);
                 uploaded += 1;
             }
-            message.success("已写入 Eagle " + uploaded + " 个文件");
+            message.success("Written to Eagle" + uploaded + " files");
             await load();
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : "写入 Eagle 失败");
-            if (uploaded) message.warning("已写入 " + uploaded + " 个文件，剩余文件未完成");
+            setError(reason instanceof Error ? reason.message : "Writing to Eagle failed");
+            if (uploaded) message.warning("has been written" + uploaded + " files, the remaining files are not completed");
         } finally {
             setProgress("");
             setWorking(false);
@@ -137,15 +137,15 @@ export default function EagleLibraryPage() {
         return (
             <WorkspacePage grid className="library-page eagle-library-page">
                 <PageHeader
-                    title="Eagle 素材库"
-                    description={`把 Eagle 作为${brandName}的外部素材来源，直接浏览和管理 Eagle 原始文件。`}
-                    actions={<Button icon={<ArrowLeft className="size-3.5" />} onClick={() => navigate("/assets")}>返回{brandName}素材库</Button>}
+                    title="Eagle Library"
+                    description={`Think of Eagle as${brandName}From external sources, browse and manage Eagle raw files directly.`}
+                    actions={<Button icon={<ArrowLeft className="size-3.5" />} onClick={() => navigate("/assets")}>Back{brandName}Material library</Button>}
                 />
                 <section className="mt-4 library-card-surface flex min-h-72 flex-col items-center justify-center rounded-[var(--r-xl)] px-6 py-10 text-center">
                     <span className="grid size-14 place-items-center rounded-[var(--r-lg)] bg-[var(--workspace-accent-soft)] text-[var(--workspace-accent)]"><FolderOpen className="size-7" aria-hidden="true" /></span>
-                    <h2 className="mt-4 text-base font-semibold">先启用 Eagle 素材来源</h2>
-                    <p className="mt-2 max-w-md text-sm leading-6 text-foreground/55">启用后，这里会直接显示 Eagle 原本的文件夹和文件，不会把素材复制成{brandName}本地素材。</p>
-                    <Button type="primary" className="mt-5" icon={<Settings2 className="size-4" />} onClick={() => navigate("/plugins")}>去插件页启用</Button>
+                    <h2 className="mt-4 text-base font-semibold">First enable the Eagle material source</h2>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-foreground/55">When enabled, Eagle's original folders and files will be displayed directly here, and the materials will not be copied into{brandName}Local materials.</p>
+                    <Button type="primary" className="mt-5" icon={<Settings2 className="size-4" />} onClick={() => navigate("/plugins")}>Go to the plugin page to enable it</Button>
                 </section>
             </WorkspacePage>
         );
@@ -156,15 +156,15 @@ export default function EagleLibraryPage() {
             <WorkspacePage grid className="library-page assets-library-page canvas-library-page eagle-library-page">
                 <div className="studio-band">
                     <PageHeader
-                        title="Eagle 素材库"
-                        description={`Eagle 是${brandName}的外部素材来源；这里复用${brandName}素材库的浏览方式，直接读取和写入 Eagle 原始文件。`}
-                        meta={<span className="app-projects-header-meta assets-header-meta">{error ? "Eagle · 连接异常" : "Eagle · 已连接"}</span>}
+                        title="Eagle Library"
+                        description={`Eagle is${brandName}external source of material; reused here${brandName}Browse the material library, directly read and write Eagle original files.`}
+                        meta={<span className="app-projects-header-meta assets-header-meta">{error ? "Eagle · Connection abnormality" : "Eagle · Connected"}</span>}
                         actions={(
                             <div className="assets-header-actions">
                                 <div className="assets-header-action-buttons">
-                                    <Button className="library-primary-action" type="primary" icon={<Upload className="size-3.5" />} onClick={() => fileInputRef.current?.click()} disabled={working}>写入素材</Button>
-                                    <Button icon={<ArrowLeft className="size-3.5" />} onClick={() => navigate("/assets")}>{brandName}素材库</Button>
-                                    <Button icon={<Settings2 className="size-3.5" />} onClick={() => navigate("/plugins")}>插件设置</Button>
+                                    <Button className="library-primary-action" type="primary" icon={<Upload className="size-3.5" />} onClick={() => fileInputRef.current?.click()} disabled={working}>Write material</Button>
+                                    <Button icon={<ArrowLeft className="size-3.5" />} onClick={() => navigate("/assets")}>{brandName}Material library</Button>
+                                    <Button icon={<Settings2 className="size-3.5" />} onClick={() => navigate("/plugins")}>Plugin settings</Button>
                                 </div>
                             </div>
                         )}
@@ -173,70 +173,70 @@ export default function EagleLibraryPage() {
                         className="library-toolbar"
                         active={Boolean(keyword)}
                         onReset={() => { setKeyword(""); setPage(1); void load(selectedFolder, ""); }}
-                        trailing={<Button icon={<RefreshCw className="size-3.5" />} loading={loading} onClick={() => void load()}>刷新</Button>}
+                        trailing={<Button icon={<RefreshCw className="size-3.5" />} loading={loading} onClick={() => void load()}>Refresh</Button>}
                     >
-                        <Input allowClear className="w-full sm:w-80" prefix={<Search className="size-4 text-foreground/40" />} value={keyword} placeholder="搜索 Eagle 素材标题、标签或文件夹" onChange={(event) => { setPage(1); setKeyword(event.target.value); }} onPressEnter={() => void load()} />
+                        <Input allowClear className="w-full sm:w-80" prefix={<Search className="size-4 text-foreground/40" />} value={keyword} placeholder="Search Eagle asset titles, tags or folders" onChange={(event) => { setPage(1); setKeyword(event.target.value); }} onPressEnter={() => void load()} />
                     </ListToolbar>
                 </div>
 
-                {error ? <div className="mt-3 flex items-start justify-between gap-3 rounded-[var(--r-lg)] bg-danger/[.08] px-4 py-3 text-sm text-danger" role="alert"><span>{error}</span><Button size="small" icon={<RefreshCw className="size-3.5" />} onClick={() => void load()}>重试</Button></div> : null}
+                {error ? <div className="mt-3 flex items-start justify-between gap-3 rounded-[var(--r-lg)] bg-danger/[.08] px-4 py-3 text-sm text-danger" role="alert"><span>{error}</span><Button size="small" icon={<RefreshCw className="size-3.5" />} onClick={() => void load()}>Try again</Button></div> : null}
 
                 <div className="canvas-library-frame assets-library-frame eagle-library-frame mt-4">
                     <div className="grid min-h-0 gap-4 lg:grid-cols-[176px_minmax(0,1fr)]">
                         <aside className="eagle-folder-sidebar thin-scrollbar flex gap-2 overflow-x-auto py-3 lg:sticky lg:top-0 lg:block lg:max-h-[calc(100vh-190px)] lg:overflow-y-auto lg:pr-3">
                             <div className="eagle-folder-sidebar-header">
-                                <span className="text-[var(--fs-label)] font-semibold">Eagle 文件夹</span>
-                                <IconButton size="sm" variant="ghost" icon={RefreshCw} aria-label="刷新 Eagle 文件夹" loading={loading} onClick={() => void load()} />
+                                <span className="text-[var(--fs-label)] font-semibold">Eagle folder</span>
+                                <IconButton size="sm" variant="ghost" icon={RefreshCw} aria-label="Refresh Eagle folder" loading={loading} onClick={() => void load()} />
                             </div>
                             <button type="button" className={"assets-filter-item " + (selectedFolder === "" ? "is-active" : "")} aria-pressed={selectedFolder === ""} onClick={() => handleFolderSelect("root")}>
-                                <span className="assets-filter-item-label">全部素材</span>
+                                <span className="assets-filter-item-label">All materials</span>
                                 <span className="assets-filter-count">{items.length}</span>
                             </button>
                             <div className="eagle-folder-sidebar-label">
-                                <span>文件夹</span>
+                                <span>folder</span>
                                 <button type="button" className="eagle-folder-collapse" aria-expanded={foldersExpanded} aria-controls="eagle-folder-tree" onClick={() => setFoldersExpanded((expanded) => !expanded)}>
                                     {foldersExpanded ? <ChevronUp className="size-3.5" aria-hidden="true" /> : <ChevronDown className="size-3.5" aria-hidden="true" />}
-                                    <span className="sr-only">{foldersExpanded ? "收起文件夹" : "展开文件夹"}</span>
+                                    <span className="sr-only">{foldersExpanded ? "Collapse folder" : "Expand folder"}</span>
                                 </button>
                             </div>
-                            {foldersExpanded ? (treeData.length ? <div id="eagle-folder-tree"><Tree className="eagle-folder-tree" blockNode selectable selectedKeys={selectedFolder ? [selectedFolder] : []} treeData={treeData} onSelect={(keys) => handleFolderSelect(String(keys[0] || "root"))} /></div> : <div className="eagle-folder-empty">Eagle 中还没有文件夹</div>) : null}
-                            <Button className="eagle-folder-create" icon={<FolderPlus className="size-3.5" />} onClick={() => setFolderName((value) => value ? "" : "新文件夹")}>新建文件夹</Button>
+                            {foldersExpanded ? (treeData.length ? <div id="eagle-folder-tree"><Tree className="eagle-folder-tree" blockNode selectable selectedKeys={selectedFolder ? [selectedFolder] : []} treeData={treeData} onSelect={(keys) => handleFolderSelect(String(keys[0] || "root"))} /></div> : <div className="eagle-folder-empty">There is no folder in Eagle yet</div>) : null}
+                            <Button className="eagle-folder-create" icon={<FolderPlus className="size-3.5" />} onClick={() => setFolderName((value) => value ? "" : "new folder")}>Create new folder</Button>
                         </aside>
 
                         <section className="min-w-0">
-                            <nav aria-label="Eagle 文件夹路径" className="mb-3 flex min-w-0 items-center gap-1 text-xs text-foreground/48">
-                                <button type="button" className="truncate rounded px-1.5 py-1 hover:bg-surface-hover" onClick={() => handleFolderSelect("root")}>Eagle 素材库</button>
+                            <nav aria-label="Eagle folder path" className="mb-3 flex min-w-0 items-center gap-1 text-xs text-foreground/48">
+                                <button type="button" className="truncate rounded px-1.5 py-1 hover:bg-surface-hover" onClick={() => handleFolderSelect("root")}>Eagle Library</button>
                                 {folderPath.map((folder) => <span key={folder.id} className="contents"><span aria-hidden="true">/</span><button type="button" className="truncate rounded px-1.5 py-1 font-medium text-foreground hover:bg-surface-hover" onClick={() => handleFolderSelect(folder.id)}>{folder.name}</button></span>)}
                             </nav>
 
                             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <h2 className="text-base font-semibold">{currentFolder?.name || "全部素材"}</h2>
-                                        <span className="app-projects-header-meta">{items.length} 个素材</span>
+                                        <h2 className="text-base font-semibold">{currentFolder?.name || "All materials"}</h2>
+                                        <span className="app-projects-header-meta">{items.length}  materials</span>
                                     </div>
-                                    <p className="mt-1 text-xs text-foreground/48">{currentFolder ? `当前文件夹由 Eagle 管理，${brandName}只负责展示和调用。` : "当前展示 Eagle 素材库中的全部文件。"}</p>
+                                    <p className="mt-1 text-xs text-foreground/48">{currentFolder ? `The current folder is managed by Eagle,${brandName}Only responsible for display and calling.` : "Currently displaying all files in the Eagle library."}</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <Button icon={<FolderPlus className="size-3.5" />} onClick={() => setFolderName((value) => value ? "" : "新文件夹")}>新建文件夹</Button>
-                                    <Button icon={<Download className="size-3.5" />} onClick={() => { const firstFile = visibleItems.find((item) => item.fileUrl); if (firstFile?.fileUrl) window.open(firstFile.fileUrl, "_blank", "noopener,noreferrer"); }}>下载当前文件</Button>
+                                    <Button icon={<FolderPlus className="size-3.5" />} onClick={() => setFolderName((value) => value ? "" : "new folder")}>Create new folder</Button>
+                                    <Button icon={<Download className="size-3.5" />} onClick={() => { const firstFile = visibleItems.find((item) => item.fileUrl); if (firstFile?.fileUrl) window.open(firstFile.fileUrl, "_blank", "noopener,noreferrer"); }}>Download current file</Button>
                                 </div>
                             </div>
 
                             {folderName ? <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[var(--r-lg)] bg-surface-secondary p-3">
-                                <Input autoFocus value={folderName} onChange={(event) => setFolderName(event.target.value)} onPressEnter={() => void handleCreateFolder()} placeholder="输入文件夹名称" className="min-w-48 flex-1" aria-label="新文件夹名称" />
-                                <Button type="primary" loading={creatingFolder} onClick={() => void handleCreateFolder()}>创建</Button>
-                                <Button onClick={() => setFolderName("")}>取消</Button>
+                                <Input autoFocus value={folderName} onChange={(event) => setFolderName(event.target.value)} onPressEnter={() => void handleCreateFolder()} placeholder="Enter folder name" className="min-w-48 flex-1" aria-label="New folder name" />
+                                <Button type="primary" loading={creatingFolder} onClick={() => void handleCreateFolder()}>Create</Button>
+                                <Button onClick={() => setFolderName("")}>Cancel</Button>
                             </div> : null}
 
-                            {loading ? <div className="library-loading-grid grid min-h-64 place-items-center"><Spin tip="读取 Eagle 文件…"/></div> : items.length ? (
+                            {loading ? <div className="library-loading-grid grid min-h-64 place-items-center"><Spin tip="Reading Eagle files…"/></div> : items.length ? (
                                 <>
                                     <CollectionGrid className="library-grid assets-library-grid eagle-assets-grid">
                                         {visibleItems.map((item) => <EagleItemCard key={item.id} item={item} selected={previewItem?.id === item.id} onOpen={() => setPreviewItem(item)} />)}
                                     </CollectionGrid>
                                     <PaginationBar current={page} pageSize={pageSize} total={items.length} pageSizeOptions={[20, 40, 80]} onChange={(nextPage, nextPageSize) => { setPage(nextPageSize !== pageSize ? 1 : nextPage); setPageSize(nextPageSize); }} />
                                 </>
-                            ) : <div className="eagle-empty-state"><EmptyState size="compact" title="当前 Eagle 文件夹没有文件" /></div>}
+                            ) : <div className="eagle-empty-state"><EmptyState size="compact" title="There are currently no files in the Eagle folder" /></div>}
                         </section>
                     </div>
                 </div>
@@ -251,7 +251,7 @@ export default function EagleLibraryPage() {
 function EagleItemCard({ item, selected, onOpen }: { item: ExternalAssetItem; selected: boolean; onOpen: () => void }) {
     return <AssetLibraryCard selected={selected}>
         <AssetLibraryCardMedia className={item.kind === "image" || item.kind === "video" ? "assets-cover" : "assets-cover is-light"}>
-            <button type="button" className="assets-cover-link" onClick={onOpen} aria-label={"查看 Eagle 素材：" + item.title}>
+            <button type="button" className="assets-cover-link" onClick={onOpen} aria-label={"View Eagle footage:" + item.title}>
                 {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt={item.title} loading="lazy" decoding="async" className="assets-cover-media" /> : <div className="assets-cover-fallback"><AssetKindIcon kind={item.kind} size="size-7" /></div>}
                 <span className="assets-cover-vignette" aria-hidden="true" />
             </button>
@@ -259,46 +259,46 @@ function EagleItemCard({ item, selected, onOpen }: { item: ExternalAssetItem; se
                 <span className="assets-cover-badge is-kind"><AssetKindIcon kind={item.kind} size="size-3" />{assetKindLabel(item.kind)}</span>
                 <span className="assets-cover-badge is-category">Eagle</span>
             </span>
-            {item.fileUrl ? <a href={item.fileUrl} download={item.title} target="_blank" rel="noreferrer" className="eagle-cover-download" aria-label={"下载原文件：" + item.title}><Download className="size-3.5" aria-hidden="true" /></a> : null}
+            {item.fileUrl ? <a href={item.fileUrl} download={item.title} target="_blank" rel="noreferrer" className="eagle-cover-download" aria-label={"Download the original file:" + item.title}><Download className="size-3.5" aria-hidden="true" /></a> : null}
         </AssetLibraryCardMedia>
         <button type="button" className="block w-full px-2.5 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--workspace-accent)]" onClick={onOpen}>
             <div className="flex min-w-0 items-center justify-between gap-2">
                 <h2 className="truncate text-[var(--fs-body)] font-semibold text-foreground" title={item.title}>{item.title}</h2>
                 <span className="shrink-0 text-[var(--fs-tiny)] tabular-nums text-foreground/38">{formatBytes(item.bytes || 0)}</span>
             </div>
-            <div className="mt-1 truncate text-[var(--fs-label)] text-foreground/52" title={item.folderPath?.join(" / ") || "Eagle 根目录"}>{item.folderPath?.join(" / ") || "Eagle 根目录"}</div>
+            <div className="mt-1 truncate text-[var(--fs-label)] text-foreground/52" title={item.folderPath?.join(" / ") || "Eagle root directory"}>{item.folderPath?.join(" / ") || "Eagle root directory"}</div>
             <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[var(--fs-tiny)] text-foreground/38">
                 <span className="truncate">{formatDimensions(item)}</span>
                 <span aria-hidden="true">·</span>
-                <span className="truncate">Eagle 原文件</span>
+                <span className="truncate">Eagle original file</span>
             </div>
         </button>
     </AssetLibraryCard>;
 }
 
 function EagleAssetDrawer({ item, onClose, totalBytes }: { item: ExternalAssetItem | null; onClose: () => void; totalBytes: number }) {
-    return <Drawer className="library-drawer" title="素材档案" open={Boolean(item)} size="large" onClose={onClose}>
+    return <Drawer className="library-drawer" title="Material file" open={Boolean(item)} size="large" onClose={onClose}>
         {item ? <div className="space-y-4">
             <div className="asset-archive-header">
                 <span className="asset-archive-header-icon"><AssetKindIcon kind={item.kind} size="size-5" /></span>
                 <div className="min-w-0">
                     <h2 className="asset-archive-title">{item.title}</h2>
-                    <p className="asset-archive-subtitle">Eagle 原文件 · {item.folderPath?.join(" / ") || "根目录"}</p>
+                    <p className="asset-archive-subtitle">Eagle original file ·{item.folderPath?.join(" / ") || "root directory"}</p>
                 </div>
             </div>
             <div className="eagle-drawer-preview">
                 {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt={item.title} loading="lazy" decoding="async" /> : <AssetKindIcon kind={item.kind} size="size-9" />}
             </div>
             <div className="grid gap-2">
-                <EagleFact label="类型" value={assetKindLabel(item.kind)} />
-                <EagleFact label="尺寸" value={formatDimensions(item)} />
-                <EagleFact label="文件大小" value={formatBytes(item.bytes || 0)} />
-                <EagleFact label="所在文件夹" value={item.folderPath?.join(" / ") || "Eagle 根目录"} />
-                <EagleFact label="素材库总大小" value={formatBytes(totalBytes)} />
+                <EagleFact label="Type" value={assetKindLabel(item.kind)} />
+                <EagleFact label="Size" value={formatDimensions(item)} />
+                <EagleFact label="file size" value={formatBytes(item.bytes || 0)} />
+                <EagleFact label="Folder" value={item.folderPath?.join(" / ") || "Eagle root directory"} />
+                <EagleFact label="Total library size" value={formatBytes(totalBytes)} />
             </div>
-            {item.tags?.length ? <div><Typography.Text strong className="text-xs">标签</Typography.Text><div className="mt-2 flex flex-wrap gap-1.5">{item.tags.map((tag) => <Tag key={tag} className="m-0">{tag}</Tag>)}</div></div> : null}
-            {item.description ? <div><Typography.Text strong className="text-xs">备注</Typography.Text><p className="mt-2 text-sm leading-6 text-foreground/65">{item.description}</p></div> : null}
-            {item.fileUrl ? <a href={item.fileUrl} download={item.title} target="_blank" rel="noreferrer" className="eagle-drawer-download inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium"><Download className="size-4" aria-hidden="true" />下载 Eagle 原文件</a> : null}
+            {item.tags?.length ? <div><Typography.Text strong className="text-xs">label</Typography.Text><div className="mt-2 flex flex-wrap gap-1.5">{item.tags.map((tag) => <Tag key={tag} className="m-0">{tag}</Tag>)}</div></div> : null}
+            {item.description ? <div><Typography.Text strong className="text-xs">Remarks</Typography.Text><p className="mt-2 text-sm leading-6 text-foreground/65">{item.description}</p></div> : null}
+            {item.fileUrl ? <a href={item.fileUrl} download={item.title} target="_blank" rel="noreferrer" className="eagle-drawer-download inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium"><Download className="size-4" aria-hidden="true" />Download Eagle original file</a> : null}
         </div> : null}
     </Drawer>;
 }
@@ -315,11 +315,11 @@ function AssetKindIcon({ kind, size = "size-5" }: { kind: Asset["kind"]; size?: 
 }
 
 function assetKindLabel(kind: Asset["kind"]) {
-    if (kind === "image") return "图片";
-    if (kind === "video") return "视频";
-    if (kind === "audio") return "音频";
-    if (kind === "model") return "模型";
-    return "文件";
+    if (kind === "image") return "pictures";
+    if (kind === "video") return "video";
+    if (kind === "audio") return "Audio";
+    if (kind === "model") return "model";
+    return "File";
 }
 
 function formatBytes(bytes: number) {
@@ -368,7 +368,7 @@ function eagleFolderOptions(folders: EagleFolder[]) {
         }
         return path.join(" / ");
     };
-    return folders.map((folder) => ({ value: folder.id, label: pathFor(folder) })).sort((left, right) => left.label.localeCompare(right.label, "zh-CN"));
+    return folders.map((folder) => ({ value: folder.id, label: pathFor(folder) })).sort((left, right) => left.label.localeCompare(right.label, "en-US"));
 }
 
 export function EaglePluginSettingsPanel({ pluginId, config, updateConfig }: PluginAppSettingsProps) {
@@ -396,7 +396,7 @@ export function EaglePluginSettingsPanel({ pluginId, config, updateConfig }: Plu
             const result = await getEagleLibrary(url.trim().replace(/\/$/, ""));
             setEagleFolders(result.library.folders || []);
         } catch (reason) {
-            setEagleFoldersError(reason instanceof Error ? reason.message : "读取 Eagle 文件夹失败");
+            setEagleFoldersError(reason instanceof Error ? reason.message : "Failed to read Eagle folder");
             setEagleFolders([]);
         } finally {
             setEagleFoldersLoading(false);
@@ -406,7 +406,7 @@ export function EaglePluginSettingsPanel({ pluginId, config, updateConfig }: Plu
     const saveEagleConfig = async () => {
         const baseUrl = eagleBaseUrl.trim().replace(/\/$/, "");
         if (!/^https?:\/\//i.test(baseUrl)) {
-            message.error("Eagle 地址必须以 http:// 或 https:// 开头");
+            message.error("Eagle address must start with http:// or https://");
             return;
         }
         await updateConfig({
@@ -414,54 +414,54 @@ export function EaglePluginSettingsPanel({ pluginId, config, updateConfig }: Plu
             autoUploadGenerated: eagleAutoUploadGenerated,
             generatedFolderId: eagleGeneratedFolderId,
         });
-        message.success("Eagle 插件配置已保存");
+        message.success("Eagle plugin configuration saved");
     };
 
     return (
         <>
             <div className="plugin-settings-fields">
                 <div className="min-w-0">
-                    <label htmlFor="eagle-base-url">Eagle 本地 API 地址</label>
-                    <Input id="eagle-base-url" aria-label="Eagle 本地 API 地址" value={eagleBaseUrl} onChange={(event) => setEagleBaseUrl(event.target.value)} placeholder="http://localhost:41595" />
-                    <p>Eagle 必须在本机运行；{brandName}通过插件直接读取和写入 Eagle 原始文件。</p>
+                    <label htmlFor="eagle-base-url">Eagle local API address</label>
+                    <Input id="eagle-base-url" aria-label="Eagle local API address" value={eagleBaseUrl} onChange={(event) => setEagleBaseUrl(event.target.value)} placeholder="http://localhost:41595" />
+                    <p>Eagle must be run on this machine;{brandName}Read and write Eagle raw files directly through the plug-in.</p>
                 </div>
                 <div className="min-w-0">
                     <div className="plugin-setting-label-row">
-                        <label htmlFor="eagle-auto-upload-generated">自动归档生成结果</label>
-                        <Switch id="eagle-auto-upload-generated" checked={eagleAutoUploadGenerated} onChange={setEagleAutoUploadGenerated} aria-label="自动归档生成结果到 Eagle" />
+                        <label htmlFor="eagle-auto-upload-generated">Automatic archiving of generated results</label>
+                        <Switch id="eagle-auto-upload-generated" checked={eagleAutoUploadGenerated} onChange={setEagleAutoUploadGenerated} aria-label="Automatically archive generated results to Eagle" />
                     </div>
-                    <p>图片、视频和音频生成成功后，自动写入 Eagle；{brandName}本地素材仍会保留。</p>
+                    <p>After images, videos and audio are successfully generated, they are automatically written to Eagle;{brandName}Local content will remain.</p>
                 </div>
                 <div className="min-w-0">
                     <div className="plugin-setting-label-row">
-                        <label htmlFor="eagle-generated-folder">生成结果写入文件夹</label>
+                        <label htmlFor="eagle-generated-folder">Generate results and write them to a folder</label>
                         <Button type="link" size="small" loading={eagleFoldersLoading} onClick={() => void loadEagleFolders()}>
-                            读取文件夹
+                                                        Read folder
                         </Button>
                     </div>
                     <Select
                         id="eagle-generated-folder"
-                        aria-label="生成结果写入文件夹"
+                        aria-label="Generate results and write them to a folder"
                         showSearch
                         allowClear
                         value={eagleGeneratedFolderId || undefined}
-                        placeholder="Eagle 根目录"
+                        placeholder="Eagle root directory"
                         optionFilterProp="label"
-                        options={[{ value: "__root__", label: "Eagle 根目录" }, ...eagleFolderOptions(eagleFolders)]}
+                        options={[{ value: "__root__", label: "Eagle root directory" }, ...eagleFolderOptions(eagleFolders)]}
                         onChange={(value) => setEagleGeneratedFolderId(value === "__root__" || !value ? "" : value)}
                     />
-                    <p>{eagleFoldersError || "默认写入 Eagle 根目录；选择文件夹后按 Eagle 原始目录归档。"}</p>
+                    <p>{eagleFoldersError || "By default, it is written to the Eagle root directory; after selecting the folder, it is archived in the Eagle original directory."}</p>
                 </div>
             </div>
             <div className="plugin-settings-actions">
                 <Button type="primary" icon={<CheckCircle2 className="size-4" />} onClick={() => void saveEagleConfig()}>
-                    保存配置
+                                        Save configuration
                 </Button>
                 <Button icon={<FolderOpen className="size-4" />} disabled={!settingsEnabled} onClick={() => navigate("/p/eagle-asset-connector")}>
-                    打开 Eagle 素材库
+                                        Open Eagle Library
                 </Button>
                 <Button icon={<ExternalLink className="size-4" />} href="https://api.eagle.cool/" target="_blank">
-                    查看 API
+                                        View API
                 </Button>
             </div>
         </>

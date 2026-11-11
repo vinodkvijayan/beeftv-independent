@@ -8,7 +8,7 @@ type FullScreenLoaderProps = {
     className?: string;
 };
 
-export function FullScreenLoader({ label = "正在恢复工作区", detail = "同步账号、模型和项目数据", className }: FullScreenLoaderProps) {
+export function FullScreenLoader({ label = "Restoring workspace", detail = "Synchronize account, model and project data", className }: FullScreenLoaderProps) {
     return (
         <div
             data-full-screen-loader
@@ -22,7 +22,7 @@ export function FullScreenLoader({ label = "正在恢复工作区", detail = "�
     );
 }
 
-export function WorkspaceRouteLoader({ label = "正在打开页面" }: { label?: string }) {
+export function WorkspaceRouteLoader({ label = "Opening page" }: { label?: string }) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {

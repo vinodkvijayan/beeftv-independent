@@ -53,7 +53,7 @@ export function MessageReasoning({ reasoning, isStreaming }: { reasoning: string
         return () => window.clearTimeout(timer);
     }, [durationSeconds, isStreaming, open]);
 
-    return <ReasoningShell open={open} onToggle={() => setOpen((value) => !value)} label={isStreaming ? <>正在思考<LiveReasoningCount /></> : durationSeconds ? <>已思考 <span className="font-mono tabular-nums">{durationSeconds}</span> 秒</> : "思考过程"}>
+    return <ReasoningShell open={open} onToggle={() => setOpen((value) => !value)} label={isStreaming ? <>thinking<LiveReasoningCount /></> : durationSeconds ? <>Have thought<span className="font-mono tabular-nums">{durationSeconds}</span>  seconds</> : "thought process"}>
         <AIMessageMarkdown isStreaming={isStreaming}>{reasoning}</AIMessageMarkdown>
     </ReasoningShell>;
 }
@@ -67,7 +67,7 @@ export function MessageReasoning({ reasoning, isStreaming }: { reasoning: string
 export function AssistantReasoning({ segments, open, onOpenChange }: { segments: AssistantReasoningSegment[]; open: boolean; onOpenChange: (open: boolean) => void }) {
     if (!segments.length) return null;
     const thinking = segments.at(-1)?.status === "streaming";
-    return <ReasoningShell open={open} onToggle={() => onOpenChange(!open)} testId="assistant-reasoning" label={thinking ? "正在思考…" : "思考过程"}>
+    return <ReasoningShell open={open} onToggle={() => onOpenChange(!open)} testId="assistant-reasoning" label={thinking ? "Thinking…" : "thought process"}>
         <div className="whitespace-pre-wrap break-words">{segments.map((segment) => segment.text).join("\n\n")}</div>
     </ReasoningShell>;
 }

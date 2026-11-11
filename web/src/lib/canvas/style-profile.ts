@@ -127,7 +127,7 @@ export function serializeStyleProfile(profile: StyleProfileSnapshot): string {
     const validationMessage = styleProfileValidationMessage(normalized);
     if (validationMessage) throw new Error(validationMessage);
     const serialized = JSON.stringify(normalized);
-    if (new TextEncoder().encode(serialized).length > MAX_PROFILE_BYTES) throw new Error("项目画风资产配置过大");
+    if (new TextEncoder().encode(serialized).length > MAX_PROFILE_BYTES) throw new Error("Project style asset allocation is too large");
     return serialized;
 }
 
@@ -184,7 +184,7 @@ export function resolveStyleExecutionPlan(profile: StyleProfileSnapshot, context
         model: context.model,
         interfaceType: context.interfaceType,
         status: strictBlocked ? "blocked" : warnings.length ? "degraded" : "ready",
-        prompt: [profile.prompt, profile.negativePrompt ? `【全局负面 Prompt】\n${profile.negativePrompt}` : "", ...promptFragments].filter(Boolean).join("\n"),
+        prompt: [profile.prompt, profile.negativePrompt ? `[Global Negative Prompt]${profile.negativePrompt}` : "", ...promptFragments].filter(Boolean).join("\n"),
         assets,
         warnings,
     };
@@ -194,44 +194,44 @@ export function applyStyleExecutionPlan(prompt: string, plan: StyleExecutionPlan
     const content = prompt.trim();
     const stylePrompt = plan.prompt.trim();
     if (!stylePrompt || content.includes(stylePrompt)) return content;
-    return [content, "【项目画风执行规范】", stylePrompt].filter(Boolean).join("\n\n");
+    return [content, "[Project style execution specifications]", stylePrompt].filter(Boolean).join("\n\n");
 }
 
 export function styleAssetValidationMessage(asset: StyleAssetBinding) {
-    if (!asset.id.trim()) return "资产 ID 不能为空";
-    if (!asset.title.trim()) return "请填写资产名称";
-    if (!asset.provider.trim()) return "请填写来源平台或适配器";
-    if (asset.weight !== undefined && (!Number.isFinite(asset.weight) || asset.weight < 0 || asset.weight > 2)) return "LoRA 权重必须在 0 到 2 之间";
-    if ((asset.baseModels?.length || 0) > 20) return "单个资产最多声明 20 个兼容模型";
-    if ((asset.triggerWords?.length || 0) > 50) return "单个资产最多声明 50 个触发词";
-    if ((asset.referenceUrls?.length || 0) > 20 || (asset.referenceResourceIds?.length || 0) > 20) return "单个参考图组最多绑定 20 个 URL 和 20 个资源";
-    if (asset.parameters?.steps !== undefined && (!Number.isInteger(asset.parameters.steps) || asset.parameters.steps < 1 || asset.parameters.steps > 200)) return "Steps 必须在 1 到 200 之间";
-    if (asset.parameters?.cfg !== undefined && (!Number.isFinite(asset.parameters.cfg) || asset.parameters.cfg < 0 || asset.parameters.cfg > 50)) return "CFG 必须在 0 到 50 之间";
+    if (!asset.id.trim()) return "Asset ID cannot be empty";
+    if (!asset.title.trim()) return "Please fill in the asset name";
+    if (!asset.provider.trim()) return "Please fill in the source platform or adapter";
+    if (asset.weight !== undefined && (!Number.isFinite(asset.weight) || asset.weight < 0 || asset.weight > 2)) return "LoRA weight must be between 0 and 2";
+    if ((asset.baseModels?.length || 0) > 20) return "A single asset can declare up to 20 compatible models";
+    if ((asset.triggerWords?.length || 0) > 50) return "A single asset can declare up to 50 trigger words.";
+    if ((asset.referenceUrls?.length || 0) > 20 || (asset.referenceResourceIds?.length || 0) > 20) return "A single reference image group can bind up to 20 URLs and 20 resources.";
+    if (asset.parameters?.steps !== undefined && (!Number.isInteger(asset.parameters.steps) || asset.parameters.steps < 1 || asset.parameters.steps > 200)) return "Steps must be between 1 and 200";
+    if (asset.parameters?.cfg !== undefined && (!Number.isFinite(asset.parameters.cfg) || asset.parameters.cfg < 0 || asset.parameters.cfg > 50)) return "CFG must be between 0 and 50";
     if (asset.status !== "validated") return "";
-    if (asset.kind === "lora" && !asset.sourceId?.trim() && !asset.sourceUrl?.trim()) return "已验证的 LoRA 必须填写来源资产 ID 或 URL";
-    if ((asset.kind === "prompt" || asset.kind === "template") && !asset.promptFragment?.trim() && !asset.triggerWords?.some((word) => word.trim())) return "已验证的模板或提示词模块必须填写提示词内容";
-    if (asset.kind === "reference" && !asset.referenceUrls?.some((url) => url.trim()) && !asset.referenceResourceIds?.some((id) => id.trim())) return "已验证的参考图组必须绑定参考图";
+    if (asset.kind === "lora" && !asset.sourceId?.trim() && !asset.sourceUrl?.trim()) return "Verified LoRA must fill in the source asset ID or URL";
+    if ((asset.kind === "prompt" || asset.kind === "template") && !asset.promptFragment?.trim() && !asset.triggerWords?.some((word) => word.trim())) return "The verified template or prompt word module must fill in the prompt word content";
+    if (asset.kind === "reference" && !asset.referenceUrls?.some((url) => url.trim()) && !asset.referenceResourceIds?.some((id) => id.trim())) return "The verified reference picture group must be bound to the reference picture";
     return "";
 }
 
 export function styleProfileValidationMessage(profile: StyleProfileSnapshot) {
-    if (!profile.presetId.trim() || profile.revision < 1) return "项目画风快照缺少必要字段";
-    if (!profile.title.trim()) return "请填写风格名称";
-    if (!profile.prompt.trim()) return "请填写完整风格 Prompt";
-    if (profile.title.length > 80) return "风格名称最多 80 个字";
-    if (profile.description.length > 500) return "风格简介最多 500 个字";
-    if (profile.tags.length > 20) return "风格标签最多 20 个";
-    if (profile.selection && Object.keys(profile.selection).length > 20) return "项目画风辅助标注最多 20 项";
-    if (profile.selection && Object.entries(profile.selection).some(([key, value]) => !key.trim() || key.length > 64 || value.length > 200)) return "项目画风辅助标注格式无效";
-    if ((profile.coverUrl?.length || 0) > 4096) return "风格封面地址过长";
-    if (profile.coverUrl && !isStyleCoverUrl(profile.coverUrl)) return "风格封面只支持 http(s)、站内路径或图片 Data URL";
-    if ((profile.negativePrompt?.length || 0) > 64 * 1024) return "负面 Prompt 过大";
-    if (profile.assets.length > MAX_STYLE_ASSETS) return `项目画风最多绑定 ${MAX_STYLE_ASSETS} 个执行资产`;
+    if (!profile.presetId.trim() || profile.revision < 1) return "Project style snapshot is missing required fields";
+    if (!profile.title.trim()) return "Please fill in the style name";
+    if (!profile.prompt.trim()) return "Please fill in the complete style Prompt";
+    if (profile.title.length > 80) return "Style name can be up to 80 characters long";
+    if (profile.description.length > 500) return "Style introduction up to 500 words";
+    if (profile.tags.length > 20) return "Up to 20 style tags";
+    if (profile.selection && Object.keys(profile.selection).length > 20) return "Up to 20 items of auxiliary annotations for project style";
+    if (profile.selection && Object.entries(profile.selection).some(([key, value]) => !key.trim() || key.length > 64 || value.length > 200)) return "The project style auxiliary annotation format is invalid";
+    if ((profile.coverUrl?.length || 0) > 4096) return "Style cover address is too long";
+    if (profile.coverUrl && !isStyleCoverUrl(profile.coverUrl)) return "Style cover only supports http(s), site path or image Data URL";
+    if ((profile.negativePrompt?.length || 0) > 64 * 1024) return "Negative Prompt is too large";
+    if (profile.assets.length > MAX_STYLE_ASSETS) return `Project style is most bound${MAX_STYLE_ASSETS} execution assets`;
     const ids = new Set<string>();
     for (const asset of profile.assets) {
         const assetMessage = styleAssetValidationMessage(asset);
-        if (assetMessage) return `${asset.title || "未命名资产"}：${assetMessage}`;
-        if (ids.has(asset.id)) return "项目画风执行资产 ID 不能重复";
+        if (assetMessage) return `${asset.title || "unnamed asset"}：${assetMessage}`;
+        if (ids.has(asset.id)) return "Project style execution asset ID cannot be repeated";
         ids.add(asset.id);
     }
     return "";
@@ -243,15 +243,15 @@ function isStyleCoverUrl(value: string) {
 }
 
 function resolveAssetExecution(asset: StyleAssetBinding, context: StyleExecutionContext): StyleExecutionAsset {
-    if (asset.status !== "validated") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "skip", reason: asset.status === "unavailable" ? "资产当前不可用" : "资产尚未验证" };
+    if (asset.status !== "validated") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "skip", reason: asset.status === "unavailable" ? "Asset is currently unavailable" : "Asset has not been verified" };
     if (asset.baseModels?.length && !asset.baseModels.some((model) => model.trim().toLowerCase() === context.model.trim().toLowerCase())) {
-        return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: `仅兼容 ${asset.baseModels.join("、")}` };
+        return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: `Compatible only${asset.baseModels.join("、")}` };
     }
-    if (asset.kind === "prompt") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: "追加到项目画风提示词" };
-    if (asset.kind === "template" && (asset.promptFragment?.trim() || asset.triggerWords?.length)) return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: "当前以模板触发词执行" };
-    if (asset.kind === "reference") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: "项目参考图自动注入适配器尚未启用" };
-    if (asset.kind === "lora") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: `当前 ${context.interfaceType || "图片"} 协议未启用 LoRA 适配器` };
-    return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: "当前协议不支持该执行资产" };
+    if (asset.kind === "prompt") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: "Add style prompts to project" };
+    if (asset.kind === "template" && (asset.promptFragment?.trim() || asset.triggerWords?.length)) return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: "Currently executed with template trigger words" };
+    if (asset.kind === "reference") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: "Project reference diagram auto-injection adapter is not enabled yet" };
+    if (asset.kind === "lora") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: `current${context.interfaceType || "pictures"} Protocol is not enabled for LoRA adapter` };
+    return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: "The execution asset is not supported by the current protocol" };
 }
 
 function isStyleAssetBinding(value: unknown): value is StyleAssetBinding {

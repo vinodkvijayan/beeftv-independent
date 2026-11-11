@@ -79,11 +79,11 @@ export type CanonicalSourceFacts = {
 
 export function assertCanonicalPlan(plan: CanonicalTimelinePlan): void {
     if (!plan || plan.version !== CANONICAL_PLAN_VERSION) {
-        throw new Error("不支持的渲染计划版本");
+        throw new Error("Unsupported render plan version");
     }
     const hasVisual = plan.segments?.some((segment) => segment.kind !== "gap");
     if (!hasVisual && !(plan.audio?.length)) {
-        throw new Error("时间线没有可渲染的媒体片段");
+        throw new Error("The timeline has no renderable media clips");
     }
 }
 
@@ -95,27 +95,27 @@ export function applySourceFacts(plan: CanonicalTimelinePlan, facts: Record<stri
             continue;
         }
         const fact = facts[segment.sourceId || ""];
-        if (!fact) throw new Error("找不到素材：" + (segment.clipId || segment.sourceId || ""));
+        if (!fact) throw new Error("Material not found:" + (segment.clipId || segment.sourceId || ""));
         if (segment.kind === "image") {
             segment.hasAudio = false;
             continue;
         }
         if (segment.kind === "video") {
-            if (!fact.hasVideo) throw new Error("素材缺少所需音视频轨：" + (segment.clipId || ""));
-            if (fact.durationMs <= 0) throw new Error("无法解析素材：" + (segment.clipId || ""));
+            if (!fact.hasVideo) throw new Error("The material is missing the required audio and video tracks:" + (segment.clipId || ""));
+            if (fact.durationMs <= 0) throw new Error("Unable to parse material:" + (segment.clipId || ""));
             if ((segment.sourceStartMs || 0) + segment.durationMs > fact.durationMs + DURATION_TOLERANCE_MS) {
-                throw new Error("素材时长不足，请调整裁剪范围：" + (segment.clipId || ""));
+                throw new Error("The length of the material is insufficient, please adjust the cropping range:" + (segment.clipId || ""));
             }
             segment.hasAudio = fact.hasAudio && !segment.muted;
         }
     }
     for (const clip of plan.audio || []) {
         const fact = facts[clip.sourceId];
-        if (!fact) throw new Error("找不到素材：" + clip.clipId);
-        if (!fact.hasAudio) throw new Error("独立音频素材没有可用音轨");
-        if (fact.durationMs <= 0) throw new Error("无法解析素材：" + clip.clipId);
+        if (!fact) throw new Error("Material not found:" + clip.clipId);
+        if (!fact.hasAudio) throw new Error("Standalone audio material has no available audio track");
+        if (fact.durationMs <= 0) throw new Error("Unable to parse material:" + clip.clipId);
         if (clip.sourceStartMs + clip.durationMs > fact.durationMs + DURATION_TOLERANCE_MS) {
-            throw new Error("素材时长不足，请调整裁剪范围：" + clip.clipId);
+            throw new Error("The length of the material is insufficient, please adjust the cropping range:" + clip.clipId);
         }
     }
 }

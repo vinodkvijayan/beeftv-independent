@@ -61,7 +61,7 @@ export function togglePromptFirstFrameMention(
     if (currentId === target.nodeId) {
         return cleaned;
     }
-    const prefix = `${target.token} 作为首帧，`;
+    const prefix = `${target.token} As the first frame,`;
     return cleaned ? `${prefix}${cleaned}` : prefix;
 }
 
@@ -101,18 +101,18 @@ export function resolveVideoReferenceModeState({
     let framesDisabledReason: string | undefined;
     if (!canSelectFrames) {
         if (videoCount > 0) {
-            framesDisabledReason = "已连接参考视频，当前为全能参考模式；可点击图片缩略图「首帧」设为起始画面";
+            framesDisabledReason = "The reference video has been connected and is currently in all-purpose reference mode; you can click on the image thumbnail \"First Frame\" to set it as the starting image.";
         } else if (characterCount > 0) {
-            framesDisabledReason = "已连接角色卡，当前为全能参考模式；可点击图片缩略图「首帧」设为起始画面";
+            framesDisabledReason = "The character card has been connected and is currently in all-purpose reference mode; you can click on the image thumbnail \"First Frame\" to set it as the starting screen";
         } else if (visualCount > maxFrameImages) {
-            framesDisabledReason = "首尾帧模式仅限 1–2 张图；多图全能参考下可直接点击图片「首帧」设为起始画面";
+            framesDisabledReason = "The first and last frame mode is limited to 1-2 pictures; for comprehensive reference of multiple pictures, you can directly click the \"first frame\" of the picture to set it as the starting picture";
         } else if (audioCount > 0) {
-            framesDisabledReason = "已连接参考音频，当前为全能参考模式；可点击图片缩略图「首帧」设为起始画面";
+            framesDisabledReason = "The reference audio has been connected and is currently in the all-purpose reference mode; you can click on the image thumbnail \"First Frame\" to set it as the starting image";
         } else {
-            framesDisabledReason = "请先连接 1–2 张参考图";
+            framesDisabledReason = "Please connect 1–2 reference pictures first";
         }
     }
-    const allDisabledReason = !canSelectAll ? "当前模型仅支持首帧/首尾帧模式，不支持全能参考" : undefined;
+    const allDisabledReason = !canSelectAll ? "The current model only supports the first frame/first and last frame modes and does not support all-round reference." : undefined;
 
     const mode: "frames" | "all" = !canSelectFrames
         ? "all"

@@ -10,14 +10,14 @@ import { resolveMediaUrl } from "@/services/file-storage";
 import { CanvasNodeType, type CanvasNodeData, type StoryboardAssetBinding } from "@/types/canvas";
 
 const ROLE_LABELS: Record<StoryboardAssetBinding["role"], string> = {
-    character: "角色",
-    environment: "场景",
-    wardrobe: "服装",
-    prop: "道具",
-    weapon: "武器",
-    style: "风格",
-    motion: "动态",
-    audio: "音频",
+    character: "role",
+    environment: "scene",
+    wardrobe: "clothing",
+    prop: "Props",
+    weapon: "weapons",
+    style: "style",
+    motion: "Dynamic",
+    audio: "Audio",
 };
 
 export function StoryboardAssetsCell({ bindings, nodes, limit = 4 }: { bindings: StoryboardAssetBinding[]; nodes: CanvasNodeData[]; limit?: number }) {
@@ -27,17 +27,17 @@ export function StoryboardAssetsCell({ bindings, nodes, limit = 4 }: { bindings:
     const visible = assets.slice(0, limit);
     const hiddenCount = Math.max(0, assets.length - visible.length);
 
-    if (!assets.length) return <span className="text-[var(--fs-caption)] text-foreground/35">未关联</span>;
+    if (!assets.length) return <span className="text-[var(--fs-caption)] text-foreground/35">Not associated</span>;
     return (
         <>
-            <div className="flex min-w-0 items-center gap-1.5" aria-label={`已关联 ${assets.length} 个资产`}>
+            <div className="flex min-w-0 items-center gap-1.5" aria-label={`Already linked${assets.length} assets`}>
                 {visible.map(({ binding, node }) => (
-                    <Tooltip key={binding.nodeId} title={`${node?.title || "资产已失效"} · ${ROLE_LABELS[binding.role]}`}>
+                    <Tooltip key={binding.nodeId} title={`${node?.title || "Asset has expired"} · ${ROLE_LABELS[binding.role]}`}>
                         <button
                             type="button"
                             disabled={!node}
                             className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-md border border-foreground/10 bg-foreground/[0.035] text-foreground/45 outline-none transition enabled:hover:border-foreground/30 enabled:hover:text-foreground/70 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] disabled:cursor-not-allowed"
-                            aria-label={`预览${node?.title || "失效资产"}`}
+                            aria-label={`Preview${node?.title || "expired assets"}`}
                             onMouseDown={(event) => event.stopPropagation()}
                             onPointerDown={(event) => event.stopPropagation()}
                             onClick={(event) => {
@@ -76,13 +76,13 @@ function AssetThumbnail({ node }: { node: CanvasNodeData }) {
 function AssetPreviewModal({ node, onClose }: { node: CanvasNodeData | null; onClose: () => void }) {
     const source = useNodeMediaSource(node);
     return (
-        <Modal title={node?.title || "资产预览"} open={Boolean(node)} onCancel={onClose} footer={null} width={880} centered destroyOnHidden>
+        <Modal title={node?.title || "Asset preview"} open={Boolean(node)} onCancel={onClose} footer={null} width={880} centered destroyOnHidden>
             {node ? (
                 <div className="grid min-h-56 place-items-center overflow-hidden rounded-lg bg-black/[0.035] p-3 dark:bg-white/[0.035]" data-canvas-no-zoom>
                     {node.type === CanvasNodeType.Video && source ? <video src={source} controls autoPlay playsInline className="max-h-[68vh] max-w-full rounded-md" />
                         : node.type === CanvasNodeType.Audio && source ? <audio src={source} controls autoPlay className="w-full max-w-xl" />
-                            : source ? <img src={source} alt={node.title || "资产预览"} className="max-h-[68vh] max-w-full object-contain" />
-                                : <span className="text-sm text-foreground/45">当前资产没有可预览的媒体内容</span>}
+                            : source ? <img src={source} alt={node.title || "Asset preview"} className="max-h-[68vh] max-w-full object-contain" />
+                                : <span className="text-sm text-foreground/45">The current asset has no media content to preview</span>}
                 </div>
             ) : null}
         </Modal>

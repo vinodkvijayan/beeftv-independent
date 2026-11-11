@@ -34,9 +34,9 @@ export function WorkspaceAccountMenu() {
                 </div>
             )}
         >
-            <button type="button" className="app-workspace-topbar-icon-button app-workspace-account-trigger" aria-label="账户菜单" title={user.displayName || user.username}>
+            <button type="button" className="app-workspace-topbar-icon-button app-workspace-account-trigger" aria-label="Account menu" title={user.displayName || user.username}>
                 <UserAvatar user={user} className="size-6" />
             </button>
         </Popover></>
-    ) : <span className="app-workspace-topbar-icon-button grid place-items-center" aria-label="本地工作区" title="本地工作区"><UserRound className="size-4 opacity-70" /></span>;
+    ) : <span className="app-workspace-topbar-icon-button grid place-items-center" aria-label="local workspace" title="local workspace"><UserRound className="size-4 opacity-70" /></span>;
 }

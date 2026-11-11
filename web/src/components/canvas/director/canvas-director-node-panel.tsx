@@ -33,21 +33,21 @@ export function CanvasDirectorNodePanel({ node, scene, readNodeContent, readNode
             data-director-open={preview.kind === "image" ? "preview" : "empty"}
         >
             {preview.kind === "image"
-                ? <img src={preview.url} alt={`${node.title} 导演台场景封面`} className="block h-full w-full object-cover" draggable={false} onError={() => setFailedUrl(preview.url)} />
+                ? <img src={preview.url} alt={`${node.title} Director's desk scene cover`} className="block h-full w-full object-cover" draggable={false} onError={() => setFailedUrl(preview.url)} />
                 : <DirectorPreviewState kind={preview.kind} theme={theme} />}
             <button
                 type="button"
                 data-canvas-no-zoom
                 className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 whitespace-nowrap rounded-xl px-6 py-4 text-base font-semibold shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-default disabled:opacity-60"
                 style={{ background: theme.accent.primary, color: theme.accent.onPrimary, border: `1px solid ${theme.toolbar.border}` }}
-                aria-label={professional ? "打开导演台" : "切换到专业模式后编辑导演台"}
+                aria-label={professional ? "Open the director's desk" : "Editing the director's console after switching to professional mode"}
                 disabled={!professional}
                 onMouseDown={(event) => event.stopPropagation()}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => { event.stopPropagation(); onOpen(); }}
             >
                 <Clapperboard className="size-8" aria-hidden />
-                {professional ? "打开导演台" : "专业模式可编辑"}
+                {professional ? "Open the director's desk" : "Professional mode editable"}
             </button>
         </div>
     );
@@ -62,7 +62,7 @@ function DirectorPreviewState({ kind, theme }: { kind: "loading" | "empty"; them
     return (
         <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-3 text-center">
             <Move3d className="size-7" style={{ color: theme.node.muted }} aria-hidden />
-            <span className="text-xs leading-5" style={{ color: theme.node.muted }}>{loading ? "正在准备场景" : "在3D空间中搭建场景并进行多视角截图"}</span>
+            <span className="text-xs leading-5" style={{ color: theme.node.muted }}>{loading ? "Preparing the scene" : "Build scenes in 3D space and take screenshots from multiple perspectives"}</span>
         </div>
     );
 }

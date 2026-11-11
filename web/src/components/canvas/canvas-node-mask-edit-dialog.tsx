@@ -73,8 +73,8 @@ export function CanvasImageMaskEditor({ imageDimensions, scale, config, onCancel
     const resetMask = () => { clearCanvas(maskCanvasRef.current); clearCanvas(previewCanvasRef.current); setError(""); };
     const submit = async () => {
         const nextPrompt = prompt.trim(); const canvas = maskCanvasRef.current;
-        if (!nextPrompt) return setError("请输入修改要求");
-        if (!canvas || !canvasHasPaint(canvas)) return setError("请先涂抹局部区域");
+        if (!nextPrompt) return setError("Please enter modification request");
+        if (!canvas || !canvasHasPaint(canvas)) return setError("Please apply local area first");
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
@@ -87,30 +87,30 @@ export function CanvasImageMaskEditor({ imageDimensions, scale, config, onCancel
 
     return <div data-image-mask-edit-inline="true" className="absolute inset-0 z-[calc(var(--node-z-overlay)+3)] overflow-visible rounded-[inherit]" onMouseDown={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
         <canvas ref={maskCanvasRef} width={imageDimensions.width} height={imageDimensions.height} className="hidden" />
-        <canvas ref={previewCanvasRef} width={imageDimensions.width} height={imageDimensions.height} aria-label="局部重绘蒙版" className="absolute inset-0 h-full w-full cursor-crosshair touch-none rounded-[inherit]" onPointerDown={startDraw} onPointerMove={moveDraw} onPointerUp={stopDraw} onPointerCancel={stopDraw} />
+        <canvas ref={previewCanvasRef} width={imageDimensions.width} height={imageDimensions.height} aria-label="Partial redraw mask" className="absolute inset-0 h-full w-full cursor-crosshair touch-none rounded-[inherit]" onPointerDown={startDraw} onPointerMove={moveDraw} onPointerUp={stopDraw} onPointerCancel={stopDraw} />
 
         <div data-canvas-live-scale data-canvas-no-zoom="true" className="absolute bottom-[calc(100%+14px)] left-1/2 flex h-14 items-center gap-1 rounded-2xl border p-1.5 shadow-2xl backdrop-blur-xl" style={{ ...barStyle, transform: screenTransform, transformOrigin: "center bottom" }}>
-            <ToolButton title="关闭局部重绘" theme={theme} onClick={onCancel}><X /></ToolButton><Divider theme={theme} />
-            <ToolButton title="画笔" active={mode === "paint"} theme={theme} onClick={() => setMode("paint")}><Brush /></ToolButton>
-            <ToolButton title="擦除" active={mode === "erase"} theme={theme} onClick={() => setMode("erase")}><Eraser /></ToolButton>
-            <input aria-label="笔刷大小" type="range" min={8} max={160} step={2} value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} className="mx-2 w-24 accent-current" />
+            <ToolButton title="Turn off local redrawing" theme={theme} onClick={onCancel}><X /></ToolButton><Divider theme={theme} />
+            <ToolButton title="brush" active={mode === "paint"} theme={theme} onClick={() => setMode("paint")}><Brush /></ToolButton>
+            <ToolButton title="Erase" active={mode === "erase"} theme={theme} onClick={() => setMode("erase")}><Eraser /></ToolButton>
+            <input aria-label="brush size" type="range" min={8} max={160} step={2} value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} className="mx-2 w-24 accent-current" />
             <span className="w-11 text-center text-xs tabular-nums" style={{ color: theme.node.muted }}>{brushSize}px</span><Divider theme={theme} />
-            <ToolButton title="重置蒙版" theme={theme} onClick={resetMask}><RotateCcw /></ToolButton>
+            <ToolButton title="Reset mask" theme={theme} onClick={resetMask}><RotateCcw /></ToolButton>
         </div>
 
         <div data-canvas-live-scale data-canvas-no-zoom="true" className="absolute left-1/2 top-[calc(100%+14px)] flex w-[min(520px,90vw)] items-center gap-1.5 rounded-2xl border p-1.5 shadow-2xl backdrop-blur-xl" style={{ ...barStyle, transform: screenTransform, transformOrigin: "center top" }}>
             <div className="relative min-w-0 flex-1">
-                <input aria-label="局部重绘要求" type="text" value={prompt} placeholder="描述选中区域需要如何修改…" onChange={(event) => { setPrompt(event.target.value); setError(""); }} onKeyDown={(event) => { event.stopPropagation(); if (event.key === "Enter") void submit(); }} className="block h-9 w-full rounded-xl border px-3 text-sm outline-none placeholder:opacity-50" style={{ background: theme.toolbar.itemHover, borderColor: theme.node.stroke, color: theme.node.text }} />
+                <input aria-label="Partial redraw requirements" type="text" value={prompt} placeholder="Describe how the selected area needs to be modified..." onChange={(event) => { setPrompt(event.target.value); setError(""); }} onKeyDown={(event) => { event.stopPropagation(); if (event.key === "Enter") void submit(); }} className="block h-9 w-full rounded-xl border px-3 text-sm outline-none placeholder:opacity-50" style={{ background: theme.toolbar.itemHover, borderColor: theme.node.stroke, color: theme.node.text }} />
                 {error ? <div className="absolute left-1 top-[calc(100%+8px)] whitespace-nowrap rounded-lg border px-2 py-1 text-xs font-medium shadow-lg" style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border, color: theme.accent.danger }}>{error}</div> : null}
             </div>
             <div className="relative">
-                <button type="button" aria-label="局部重绘设置" title="局部重绘设置" onClick={() => setSettingsOpen((value) => !value)} className="grid size-9 place-items-center rounded-xl transition hover:opacity-85" style={{ background: settingsOpen ? theme.toolbar.activeBg : "transparent", color: settingsOpen ? theme.toolbar.activeText : theme.toolbar.item }}><Settings2 className="size-4" /></button>
+                <button type="button" aria-label="Partial redraw settings" title="Partial redraw settings" onClick={() => setSettingsOpen((value) => !value)} className="grid size-9 place-items-center rounded-xl transition hover:opacity-85" style={{ background: settingsOpen ? theme.toolbar.activeBg : "transparent", color: settingsOpen ? theme.toolbar.activeText : theme.toolbar.item }}><Settings2 className="size-4" /></button>
                 {settingsOpen ? <div className="absolute bottom-11 right-0 w-80 space-y-3 rounded-2xl border p-3 shadow-2xl" style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.node.text }} onPointerDown={(event) => event.stopPropagation()}>
                     <ModelPicker config={generationConfig} value={generationConfig.imageModel || generationConfig.model} capability="image" fullWidth onChange={(model) => setGenerationConfig((current) => ({ ...current, model, imageModel: model, ...defaultImageParamsForModel(current, model) }))} />
                     <ImageSettingsPanel config={generationConfig} showTitle={false} showCount={false} className="space-y-3" theme={theme} onConfigChange={(key, value) => setGenerationConfig((current) => ({ ...current, [key]: value }))} />
                 </div> : null}
             </div>
-            <button type="button" aria-label={isSubmitting ? "正在修改" : "AI 修改"} title={isSubmitting ? "正在修改" : "AI 修改"} disabled={isSubmitting} onClick={() => void submit()} className="grid size-9 place-items-center rounded-xl transition hover:opacity-90 disabled:cursor-wait disabled:opacity-60" style={{ background: theme.accent.primary, color: theme.accent.onPrimary }}>{isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : <WandSparkles className="size-4" />}</button>
+            <button type="button" aria-label={isSubmitting ? "Modifying" : "AI modification"} title={isSubmitting ? "Modifying" : "AI modification"} disabled={isSubmitting} onClick={() => void submit()} className="grid size-9 place-items-center rounded-xl transition hover:opacity-90 disabled:cursor-wait disabled:opacity-60" style={{ background: theme.accent.primary, color: theme.accent.onPrimary }}>{isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : <WandSparkles className="size-4" />}</button>
         </div>
     </div>;
 }

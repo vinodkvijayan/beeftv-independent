@@ -234,7 +234,7 @@ export const DirectorViewport = forwardRef<DirectorViewportHandle, DirectorViewp
         captureCameraPreview: (playhead) => captureCameraPreviewFrame(usableContext(), props.scene, playhead),
         captureShot: (playhead) => {
             const context = usableContext();
-            if (!context) throw new Error("3D 视口尚未就绪");
+            if (!context) throw new Error("3D viewport not ready yet");
             const canvas = context.gl.domElement;
             const crop = resolveDirectorPixelCrop(canvas.width, canvas.height, aspectRatio, { width: canvas.clientWidth, height: canvas.clientHeight });
             return captureCameraPreviewFrame(context, props.scene, playhead, crop.width, crop.height);
@@ -242,7 +242,7 @@ export const DirectorViewport = forwardRef<DirectorViewportHandle, DirectorViewp
         readCaptureCameraKind: () => usableContext()?.cameraKind ?? null,
         recordVideo: (duration, fps) => {
             const context = usableContext();
-            if (context && context.cameraKind !== "camera") throw new Error("机位视角尚未就绪，无法录制参考视频");
+            if (context && context.cameraKind !== "camera") throw new Error("The camera angle is not ready yet and the reference video cannot be recorded.");
             return recordCanvas(context, duration, fps, aspectRatio);
         },
         readCameraTransform: () => {
@@ -299,23 +299,23 @@ export const DirectorViewport = forwardRef<DirectorViewportHandle, DirectorViewp
                     onCameraOrientation={onCameraOrientation}
                 />
             </DirectorViewportErrorBoundary>
-            {aspectRatio !== "adaptive" && frame.width > 0 ? <div data-director-aspect-frame={aspectRatio} aria-label={`${aspectRatio} 画幅取景框`} className="pointer-events-none absolute rounded-xl border border-white/35" style={{ zIndex: 1, left: frame.x, top: frame.y, width: frame.width, height: frame.height, boxShadow: "0 0 0 100vmax rgba(0, 0, 0, 0.68)" }} /> : null}
+            {aspectRatio !== "adaptive" && frame.width > 0 ? <div data-director-aspect-frame={aspectRatio} aria-label={`${aspectRatio} frame viewfinder`} className="pointer-events-none absolute rounded-xl border border-white/35" style={{ zIndex: 1, left: frame.x, top: frame.y, width: frame.width, height: frame.height, boxShadow: "0 0 0 100vmax rgba(0, 0, 0, 0.68)" }} /> : null}
             {/* 取景切换是纯视口状态：放在 DOM 层，不随 Canvas 重建而丢失。 */}
             {onViewModeChange ? <DirectorViewToolbar viewMode={props.viewMode ?? DIRECTOR_DEFAULT_VIEW_MODE} orientation={props.viewMode === "camera" ? cameraOrientation : freeOrientation} onViewModeChange={onViewModeChange} onResetView={resetView} /> : null}
             {capture.contextLost ? (
                 <DirectorViewportNotice
-                    title="3D 显示上下文已丢失"
-                    description="浏览器回收了 WebGL 上下文。等待自动恢复，或立即重建视口。"
-                    actionLabel="重建 3D 视口"
+                    title="3D display context has been lost"
+                    description="The browser recycled the WebGL context. Wait for automatic recovery, or rebuild the viewport immediately."
+                    actionLabel="Reconstruct the 3D viewport"
                     onAction={retry}
                 />
             ) : null}
             {!capture.contextLost && failedIds.length ? (
                 <DirectorViewportNotice
                     variant="corner"
-                    title={`${failedIds.length} 个 3D 模型加载失败`}
-                    description="已用占位人偶继续显示场景。可能是网络或模型地址不可用，重试将重新加载。"
-                    actionLabel="重试加载"
+                    title={`${failedIds.length} 3D models failed to load`}
+                    description="The scene continues to be displayed using a placeholder puppet. It may be that the network or model address is unavailable and retrying will reload."
+                    actionLabel="Retry loading"
                     onAction={() => {
                         // 重试触发新的 load generation，旧的晚到回调会被忽略并释放资源。
                         Object.values(failedLoads).forEach((retryLoad) => retryLoad());
@@ -409,9 +409,9 @@ class DirectorViewportErrorBoundary extends Component<{ children: ReactNode; onR
         if (!this.state.failed) return this.props.children;
         return (
             <DirectorViewportNotice
-                title="3D 视口渲染失败"
-                description="导演台其余面板仍可使用。可重试重建视口；若持续失败请检查显卡驱动或浏览器 WebGL 支持。"
-                actionLabel="重试 3D 视口"
+                title="3D viewport rendering failed"
+                description="The remaining panels of the director's desk can still be used. You can retry to rebuild the viewport; if it continues to fail, please check the graphics card driver or browser WebGL support."
+                actionLabel="Retry 3D viewport"
                 onAction={() => {
                     this.setState({ failed: false });
                     this.props.onRetry();
@@ -1086,7 +1086,7 @@ function DirectorObjectView({ object, selected, selectedBone, showBoneControls, 
             >
                 <DirectorObjectVisual object={object} selected={selected} selectedBone={selectedBone} showBoneControls={showBoneControls} playhead={playhead} onSelectBone={onSelectBone} onBoneTransform={onBoneTransform} onActorRigReady={onActorRigReady} onPoseEvaluated={onPoseEvaluated} onLoadStateChange={onLoadStateChange} />
                 {showLabel ? <Html position={[0, 2.04, 0]} center style={{ pointerEvents: "none" }}>
-                    <span data-director-actor-label={object.id} data-director-bone-gizmo-target={selectedBone || undefined} role="note" aria-label={`角色 ${object.name}`} style={{ color: "#fff", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", textShadow: "0 1px 3px #000, 0 0 5px #000" }}>{object.name}</span>
+                    <span data-director-actor-label={object.id} data-director-bone-gizmo-target={selectedBone || undefined} role="note" aria-label={`role${object.name}`} style={{ color: "#fff", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", textShadow: "0 1px 3px #000, 0 0 5px #000" }}>{object.name}</span>
                 </Html> : null}
             </group>
             {selected && showGizmo && !object.locked && !selectedBone && target ? (
@@ -1912,7 +1912,7 @@ function DirectorLightView({ light }: { light: DirectorLight }) {
 }
 
 async function captureFrame(context: CaptureContext | null, mode: DirectorRenderMode, aspectRatio: DirectorAspectRatio) {
-    if (!context) throw new Error("3D 视口尚未就绪");
+    if (!context) throw new Error("3D viewport not ready yet");
     const { gl, scene, camera } = context;
     const resumeDisplayMaterialOverride = context.suspendDisplayMaterialOverride();
     const previous = scene.overrideMaterial;
@@ -1940,9 +1940,9 @@ async function captureFrame(context: CaptureContext | null, mode: DirectorRender
  * 且在同步读回像素后立刻恢复主视口 target / viewport / overlay 状态，避免污染用户当前取景。
  */
 function captureCameraPreviewFrame(context: CaptureContext | null, directorScene: DirectorScene, playhead: number, width = 384, height = 216) {
-    if (!context) throw new Error("3D 视口尚未就绪");
+    if (!context) throw new Error("3D viewport not ready yet");
     const framing = resolveDirectorViewFraming({ scene: directorScene, mode: "camera", playhead });
-    if (!framing) throw new Error("当前场景没有可用机位");
+    if (!framing) throw new Error("There are no available seats in the current scene");
 
     const { gl, scene, camera: activeCamera } = context;
     const target = new WebGLRenderTarget(width, height, { depthBuffer: true, stencilBuffer: false });
@@ -1977,7 +1977,7 @@ function captureCameraPreviewFrame(context: CaptureContext | null, directorScene
         gl.readRenderTargetPixels(target, 0, 0, width, height, pixels);
 
         const canvasContext = canvas.getContext("2d");
-        if (!canvasContext) throw new Error("无法初始化摄影机预览画布");
+        if (!canvasContext) throw new Error("Unable to initialize camera preview canvas");
         const imageData = canvasContext.createImageData(width, height);
         for (let row = 0; row < height; row += 1) {
             const sourceStart = (height - row - 1) * width * 4;
@@ -2001,8 +2001,8 @@ function captureCameraPreviewFrame(context: CaptureContext | null, directorScene
 }
 
 async function recordCanvas(context: CaptureContext | null, duration: number, fps: number, aspectRatio: DirectorAspectRatio) {
-    if (!context) throw new Error("3D 视口尚未就绪");
-    if (!context.gl.domElement.captureStream || typeof MediaRecorder === "undefined") throw new Error("当前浏览器不支持视频录制，请导出帧序列");
+    if (!context) throw new Error("3D viewport not ready yet");
+    if (!context.gl.domElement.captureStream || typeof MediaRecorder === "undefined") throw new Error("The current browser does not support video recording, please export the frame sequence");
     const resumeDisplayMaterialOverride = context.suspendDisplayMaterialOverride();
     const previousMaterial = context.scene.overrideMaterial;
     const restoreClayMaterials = applyClaySceneMaterials(context.scene);
@@ -2033,13 +2033,13 @@ async function recordCanvas(context: CaptureContext | null, duration: number, fp
         // captureStream 依赖渲染循环持续产出新帧；异常立即停止，避免静默回写残缺视频。
         let renderError: Error | null = null;
         onRenderError = () => {
-            renderError ??= new Error("白膜视频录制期间发生渲染错误，请重试");
+            renderError ??= new Error("A rendering error occurred during white film video recording, please try again");
             if (recorder.state !== "inactive") recorder.stop();
         };
         window.addEventListener("error", onRenderError);
         const result = new Promise<Blob>((resolve, reject) => {
             recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
-            recorder.onerror = () => reject(new Error("白膜视频录制失败"));
+            recorder.onerror = () => reject(new Error("White film video recording failed"));
             recorder.onstop = () => resolve(new Blob(chunks, { type: recorder.mimeType || "video/webm" }));
         });
         recorder.start(250);
@@ -2052,7 +2052,7 @@ async function recordCanvas(context: CaptureContext | null, duration: number, fp
             ? await import("@fix-webm-duration/fix").then(({ fixWebmDuration }) => fixWebmDuration(rawBlob, Math.max(1, performance.now() - recordingStartedAt), { logger: false }))
             : rawBlob;
         const recorded = await probeRecordedDuration(blob);
-        if (!Number.isFinite(recorded) || recorded < Math.max(0.25, duration * 0.5)) throw new Error("白膜视频时长异常，录制可能不完整，请重试");
+        if (!Number.isFinite(recorded) || recorded < Math.max(0.25, duration * 0.5)) throw new Error("The duration of the white film video is abnormal and the recording may be incomplete. Please try again.");
         return blob;
     } finally {
         if (stopTimer !== null) window.clearTimeout(stopTimer);
@@ -2098,5 +2098,5 @@ async function probeRecordedDuration(blob: Blob) {
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
-    return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("3D 预览图导出失败"))), "image/png"));
+    return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("3D preview export failed"))), "image/png"));
 }

@@ -8,7 +8,7 @@ const COPY_TITLE_SUFFIX = /^(.*)_copy(\d+)$/i;
 
 export function nextCopiedNodeTitle(sourceTitle: string, existingTitles: Iterable<string>) {
     const sourceMatch = sourceTitle.match(COPY_TITLE_SUFFIX);
-    const baseTitle = (sourceMatch?.[1] || sourceTitle.replace(/ Copy$/i, "")).trim() || sourceTitle.trim() || "未命名节点";
+    const baseTitle = (sourceMatch?.[1] || sourceTitle.replace(/ Copy$/i, "")).trim() || sourceTitle.trim() || "unnamed node";
     let maxCopyIndex = 0;
     for (const title of existingTitles) {
         const match = title.match(COPY_TITLE_SUFFIX);

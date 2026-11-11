@@ -26,18 +26,18 @@ export type CanvasExportProgress = { phase: "loading" | "media" | "drawings" | "
 
 export function canvasExportProgressLabel(progress: CanvasExportProgress) {
     switch (progress.phase) {
-        case "loading": return "正在读取画布…";
-        case "media": return `正在读取文件 ${progress.completed ?? 0}/${progress.total ?? 0}…`;
-        case "drawings": return "正在读取画板…";
-        case "packing": return "正在打包…";
-        case "saving": return "正在准备保存，请在弹窗中选择位置…";
+        case "loading": return "Reading canvas...";
+        case "media": return `Reading file${progress.completed ?? 0}/${progress.total ?? 0}…`;
+        case "drawings": return "Loading artboards...";
+        case "packing": return "Packing...";
+        case "saving": return "Preparing to save, please select a location in the pop-up window...";
     }
 }
 
-export async function exportCanvasProjects(projects: CanvasProject[], fileName = "画布", options: { includeLocalDrawings?: boolean; allowMissingMedia?: boolean; onSkippedFiles?: (missing: MissingExportFile[]) => void; folders?: CanvasFolder[]; signal?: AbortSignal; onProgress?: (progress: CanvasExportProgress) => void } = {}): Promise<OwnedMediaSaveResult> {
-    const operation = startOperation("导出画布", { detail: "正在读取画布与媒体文件", totalFiles: projects.reduce((sum, project) => sum + collectStorageKeys(project).length, 0) });
+export async function exportCanvasProjects(projects: CanvasProject[], fileName = "canvas", options: { includeLocalDrawings?: boolean; allowMissingMedia?: boolean; onSkippedFiles?: (missing: MissingExportFile[]) => void; folders?: CanvasFolder[]; signal?: AbortSignal; onProgress?: (progress: CanvasExportProgress) => void } = {}): Promise<OwnedMediaSaveResult> {
+    const operation = startOperation("Export canvas", { detail: "Reading canvas and media files", totalFiles: projects.reduce((sum, project) => sum + collectStorageKeys(project).length, 0) });
     const finish = (result: OwnedMediaSaveResult) => {
-        if (result === "cancelled") operation.dismiss(); else operation.done("画布备份已保存");
+        if (result === "cancelled") operation.dismiss(); else operation.done("Canvas backup saved");
         return result;
     };
     try {
@@ -51,7 +51,7 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
         if (value.phase === "media") operation.update({ completedFiles: value.completed, totalFiles: value.total });
         if (!recordedPhases.has(value.phase)) {
             recordedPhases.add(value.phase);
-            recordDiagnosticEvent({ category: "action", level: "info", code: "canvas_export_" + value.phase, message: `画布导出 ${value.phase}`, canvasId: projects.length === 1 ? projects[0]?.id : undefined });
+            recordDiagnosticEvent({ category: "action", level: "info", code: "canvas_export_" + value.phase, message: `Canvas export${value.phase}`, canvasId: projects.length === 1 ? projects[0]?.id : undefined });
         }
     };
     let completed = 0;
@@ -73,7 +73,7 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
                     } catch (error) {
                         check();
                         missingStorageKeys.add(storageKey);
-                        missingFiles.push({ owner: project.title || project.id, reference: `${storageKey}（读取失败）` });
+                        missingFiles.push({ owner: project.title || project.id, reference: `${storageKey}(read failed)` });
                         return;
                     } finally {
                         if (!options.signal?.aborted) progress({ phase: "media", completed: ++completed, total });
@@ -107,12 +107,12 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
                 } catch (error) {
                     check();
                     missingDrawingIds.add(drawingId);
-                    missingFiles.push({ owner: project.title || project.id, reference: `画板 ${node.title || drawingId}（读取失败）` });
+                    missingFiles.push({ owner: project.title || project.id, reference: `drawing board${node.title || drawingId}(read failed)` });
                     return null;
                 }
                 if (!saved) {
                     missingDrawingIds.add(drawingId);
-                    missingFiles.push({ owner: project.title || project.id, reference: `画板 ${node.title || drawingId}` });
+                    missingFiles.push({ owner: project.title || project.id, reference: `drawing board${node.title || drawingId}` });
                     return null;
                 }
                 const previewPath = preview ? `projects/${project.id}/drawings/${safeFileName(drawingId)}.png` : undefined;
@@ -151,14 +151,14 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
                 cover = response.data;
             } else if (folder.coverDataUrl) {
                 const response = await fetch(folder.coverDataUrl, { signal: options.signal });
-                if (!response.ok) throw new ExportIntegrityError([{ owner: folder.name, reference: "文件夹封面" }]);
+                if (!response.ok) throw new ExportIntegrityError([{ owner: folder.name, reference: "Folder cover" }]);
                 cover = await step(response.blob());
             }
-            if (cover && !cover.size) throw new ExportIntegrityError([{ owner: folder.name, reference: "文件夹封面" }]);
+            if (cover && !cover.size) throw new ExportIntegrityError([{ owner: folder.name, reference: "Folder cover" }]);
         } catch (error) {
             check();
             if (!options.allowMissingMedia) throw error;
-            missingFiles.push({ owner: folder.name, reference: "文件夹封面" });
+            missingFiles.push({ owner: folder.name, reference: "Folder cover" });
             cover = undefined;
         }
         const coverPath = cover ? `folders/${encodeURIComponent(folder.id)}/cover.${archiveFileExtension(cover.type, "png")}` : undefined;
@@ -180,7 +180,7 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
         const liveKeys = new Set(collectStorageKeys(item.project));
         for (const file of item.files) {
             if (!liveKeys.has(file.storageKey) || file.path === file.storageKey) {
-                throw new Error("备份未完成：文件引用不一致，未生成备份。");
+                throw new Error("Backup not completed: File references are inconsistent and no backup was generated.");
             }
         }
     }
@@ -202,7 +202,7 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
     progress({ phase: "saving" });
     return finish(await saveOwnedOrBrowserBlob(`${safeFileName(fileName)}.zip`, zip));
     } catch (error) {
-        if (options.signal?.aborted) operation.dismiss(); else operation.fail("画布导出未完成，请查看错误后重试");
+        if (options.signal?.aborted) operation.dismiss(); else operation.fail("Canvas export is not completed, please check the error and try again");
         throw error;
     }
 }
@@ -232,17 +232,17 @@ export async function exportCanvasProjectsByIds(
         onProgress?: (progress: CanvasExportProgress) => void;
     } = {},
 ): Promise<OwnedMediaSaveResult> {
-    if (!canvasIds.length) throw new Error("画布不存在，无法导出");
+    if (!canvasIds.length) throw new Error("Canvas does not exist and cannot be exported");
     const loaded: CanvasProject[] = [];
     for (const id of canvasIds) {
         const project = await awaitCanvasExportStep(Promise.resolve(loadProject(id)), options.signal);
         options.signal?.throwIfAborted();
-        if (!project) throw new Error("画布不存在，无法导出");
+        if (!project) throw new Error("Canvas does not exist and cannot be exported");
         loaded.push(project);
     }
     let skippedFiles: MissingExportFile[] = [];
-    const baseTitle = loaded[0]?.title || "画布";
-    const fileName = options.archiveTitle || (options.singleCanvasOnly ? `${baseTitle}-画布备份` : `${baseTitle}-${loaded.length}个画布`);
+    const baseTitle = loaded[0]?.title || "canvas";
+    const fileName = options.archiveTitle || (options.singleCanvasOnly ? `${baseTitle}- Canvas backup` : `${baseTitle}-${loaded.length}canvas`);
     const result = await exportCanvasProjects(loaded, fileName, {
         folders: options.folders,
         allowMissingMedia: options.allowMissingMedia ?? false,
@@ -264,36 +264,36 @@ export type OpenCanvasArchive = {
 export async function openCanvasArchive(file: Blob): Promise<OpenCanvasArchive> {
     const zip = await readZip(file);
     const projectFile = zip.get("projects.json");
-    if (!projectFile) throw new Error("缺少 projects.json 元数据文件");
+    if (!projectFile) throw new Error("Missing projects.json metadata file");
     let data: CanvasExportFile;
     try {
         data = JSON.parse(await projectFile.text()) as CanvasExportFile;
     } catch {
-        throw new Error("画布备份已损坏，无法导入");
+        throw new Error("Canvas backup is corrupted and cannot be imported");
     }
     preflightCanvasArchive(data, zip);
     return { data, files: zip };
 }
 
 export function preflightCanvasArchive(data: CanvasExportFile, zip: Map<string, Blob>): void {
-    if (!data || data.app !== "infinite-canvas") throw new Error("不是有效的画布备份");
-    if (data.version !== 3 && data.version !== 4) throw new Error("不支持的画布备份版本");
-    if (!Array.isArray(data.projects)) throw new Error("projects.json 中缺少画布列表");
-    if (data.folders !== undefined && !Array.isArray(data.folders)) throw new Error("备份中的文件夹列表无效");
+    if (!data || data.app !== "infinite-canvas") throw new Error("Not a valid canvas backup");
+    if (data.version !== 3 && data.version !== 4) throw new Error("Unsupported canvas backup version");
+    if (!Array.isArray(data.projects)) throw new Error("Missing canvas list in projects.json");
+    if (data.folders !== undefined && !Array.isArray(data.folders)) throw new Error("The list of folders in backup is invalid");
     const folderIds = new Set<string>();
     const archivePaths = new Set<string>(["projects.json"]);
     for (const folder of data.folders || []) {
         if (!folder || typeof folder.id !== "string" || !folder.id.trim() || typeof folder.name !== "string") {
-            throw new Error("备份中的文件夹无效");
+            throw new Error("The folder in the backup is invalid");
         }
-        if (folderIds.has(folder.id)) throw new Error("备份中存在重复的文件夹");
+        if (folderIds.has(folder.id)) throw new Error("There are duplicate folders in the backup");
         folderIds.add(folder.id);
         if (folder.coverPath !== undefined) {
             const path = confinedArchivePath(folder.coverPath);
-            if (archivePaths.has(path)) throw new Error(`压缩包存在重名文件：${path}`);
+            if (archivePaths.has(path)) throw new Error(`There are files with the same name in the compressed package:${path}`);
             archivePaths.add(path);
             const blob = zip.get(path);
-            if (!blob?.size) throw new Error(`压缩包缺少文件夹封面：${folder.name}`);
+            if (!blob?.size) throw new Error(`The compressed package is missing the folder cover:${folder.name}`);
         }
     }
     const projectIds = new Set<string>();
@@ -309,82 +309,82 @@ function preflightCanvasArchiveProject(
     folderIds: Set<string>,
     archivePaths: Set<string>,
 ) {
-    if (!item || !item.project || typeof item.project !== "object") throw new Error("备份中的画布无效");
+    if (!item || !item.project || typeof item.project !== "object") throw new Error("The canvas in the backup is invalid");
     const project = item.project;
-    const title = typeof project.title === "string" && project.title.trim() ? project.title : "未命名画布";
-    if (typeof project.id !== "string" || !project.id.trim()) throw new Error(`画布「${title}」缺少编号`);
-    if (projectIds.has(project.id)) throw new Error(`备份中存在重复的画布：${title}`);
+    const title = typeof project.title === "string" && project.title.trim() ? project.title : "Unnamed canvas";
+    if (typeof project.id !== "string" || !project.id.trim()) throw new Error(`canvas "${title}"Missing number`);
+    if (projectIds.has(project.id)) throw new Error(`There are duplicate canvases in the backup:${title}`);
     projectIds.add(project.id);
-    if (project.folderId && !folderIds.has(project.folderId)) throw new Error(`画布「${title}」引用了不存在的文件夹`);
-    if (!Array.isArray(item.files)) throw new Error(`画布「${title}」的媒体清单无效`);
-    if (project.nodes !== undefined && !Array.isArray(project.nodes)) throw new Error(`画布「${title}」的节点列表无效`);
-    if (project.connections !== undefined && !Array.isArray(project.connections)) throw new Error(`画布「${title}」的连线列表无效`);
+    if (project.folderId && !folderIds.has(project.folderId)) throw new Error(`canvas "${title}” refers to a folder that does not exist`);
+    if (!Array.isArray(item.files)) throw new Error(`canvas "${title}The media list for " is invalid`);
+    if (project.nodes !== undefined && !Array.isArray(project.nodes)) throw new Error(`canvas "${title}》The node list is invalid`);
+    if (project.connections !== undefined && !Array.isArray(project.connections)) throw new Error(`canvas "${title}The connection list for " is invalid`);
     if (project.timeline !== undefined) preflightCanvasArchiveTimeline(project.timeline, title);
     const nodeIds = new Set<string>();
     for (const node of project.nodes || []) {
         if (!node || typeof node !== "object" || typeof node.id !== "string" || !node.id.trim() || typeof node.type !== "string" || !node.type.trim()) {
-            throw new Error(`画布「${title}」包含无效节点`);
+            throw new Error(`canvas "${title}” contains invalid nodes`);
         }
-        if (nodeIds.has(node.id)) throw new Error(`画布「${title}」存在重复节点`);
+        if (nodeIds.has(node.id)) throw new Error(`canvas "${title}"There are duplicate nodes`);
         nodeIds.add(node.id);
     }
     const fileKeys = new Set<string>();
     for (const fileItem of item.files) {
         if (!fileItem || typeof fileItem.storageKey !== "string" || typeof fileItem.path !== "string") {
-            throw new Error(`画布「${title}」的媒体清单无效`);
+            throw new Error(`canvas "${title}The media list for " is invalid`);
         }
         if (!isArchiveStorageKey(fileItem.storageKey)) {
-            throw new Error(`画布「${title}」包含无效的媒体引用`);
+            throw new Error(`canvas "${title}” contains an invalid media reference`);
         }
-        if (fileKeys.has(fileItem.storageKey)) throw new Error(`画布「${title}」存在重复的媒体引用`);
+        if (fileKeys.has(fileItem.storageKey)) throw new Error(`canvas "${title}"There are duplicate media references`);
         fileKeys.add(fileItem.storageKey);
         const path = confinedArchivePath(fileItem.path);
-        if (path === "projects.json" || archivePaths.has(path)) throw new Error(`压缩包存在重名文件：${path}`);
+        if (path === "projects.json" || archivePaths.has(path)) throw new Error(`There are files with the same name in the compressed package:${path}`);
         archivePaths.add(path);
         const blob = zip.get(path) || zip.get(fileItem.path);
-        if (!blob || blob.size === 0) throw new Error(`压缩包缺少媒体文件：${fileItem.path || "未命名文件"}`);
+        if (!blob || blob.size === 0) throw new Error(`The compressed package is missing media files:${fileItem.path || "unnamed file"}`);
     }
     const liveKeys = collectStorageKeys(project);
     for (const storageKey of liveKeys) {
-        if (!fileKeys.has(storageKey)) throw new Error(`压缩包缺少媒体文件：${storageKey}`);
+        if (!fileKeys.has(storageKey)) throw new Error(`The compressed package is missing media files:${storageKey}`);
     }
     for (const storageKey of fileKeys) {
-        if (!liveKeys.includes(storageKey)) throw new Error(`画布「${title}」的媒体清单与画布内容不一致`);
+        if (!liveKeys.includes(storageKey)) throw new Error(`canvas "${title}"The media list is inconsistent with the canvas content`);
     }
     if (item.drawingDocuments !== undefined && !Array.isArray(item.drawingDocuments)) {
-        throw new Error(`画布「${title}」的画板文档无效`);
+        throw new Error(`canvas "${title}"The artboard document is invalid`);
     }
     const drawingIds = new Set<string>();
     for (const document of item.drawingDocuments || []) {
         if (!document || typeof document.drawingId !== "string" || !document.drawingId.trim()) {
-            throw new Error(`画布「${title}」的画板文档无效`);
+            throw new Error(`canvas "${title}"The artboard document is invalid`);
         }
-        if (drawingIds.has(document.drawingId)) throw new Error(`画布「${title}」存在重复画板`);
+        if (drawingIds.has(document.drawingId)) throw new Error(`canvas "${title}"Duplicate artboards exist`);
         drawingIds.add(document.drawingId);
         if (document.previewPath) {
             const path = confinedArchivePath(document.previewPath);
-            if (archivePaths.has(path)) throw new Error(`压缩包存在重名文件：${path}`);
+            if (archivePaths.has(path)) throw new Error(`There are files with the same name in the compressed package:${path}`);
             archivePaths.add(path);
-            if (!zip.get(path) && !zip.get(document.previewPath)) throw new Error(`压缩包缺少媒体文件：${document.previewPath}`);
+            if (!zip.get(path) && !zip.get(document.previewPath)) throw new Error(`The compressed package is missing media files:${document.previewPath}`);
         }
         if (document.generationRender?.path) {
             const path = confinedArchivePath(document.generationRender.path);
-            if (archivePaths.has(path)) throw new Error(`压缩包存在重名文件：${path}`);
+            if (archivePaths.has(path)) throw new Error(`There are files with the same name in the compressed package:${path}`);
             archivePaths.add(path);
-            if (!zip.get(path) && !zip.get(document.generationRender.path)) throw new Error(`压缩包缺少媒体文件：${document.generationRender.path}`);
+            if (!zip.get(path) && !zip.get(document.generationRender.path)) throw new Error(`The compressed package is missing media files:${document.generationRender.path}`);
         }
     }
     for (const node of project.nodes || []) {
         if (node.type !== "drawing" || !node.metadata?.drawingId) continue;
         if (item.drawingDocuments && !drawingIds.has(node.metadata.drawingId)) {
-            throw new Error(`画布「${title}」缺少画板 ${node.title || node.metadata.drawingId}`);
+            throw new Error(`canvas "${title}"Missing artboard${node.title || node.metadata.drawingId}`);
         }
     }
 }
 
 function preflightCanvasArchiveTimeline(timeline: NonNullable<CanvasProject["timeline"]>, title: string) {
     if (!timeline || typeof timeline !== "object" || !Array.isArray(timeline.clips) || !Array.isArray(timeline.tracks)) {
-        throw new Error(`画布「${title}」的时间线无效`);
+        throw new Error(`canvas "${title}"The timeline is invalid`);
     }
 }
 

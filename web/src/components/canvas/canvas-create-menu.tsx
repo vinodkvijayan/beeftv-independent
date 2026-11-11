@@ -17,7 +17,7 @@ export type CanvasCreateCommand = {
     onClick: () => void;
 };
 
-export function CanvasCreateMenu({ commands, layout = "grid", title = "添加节点", showSearch = layout === "list", showSectionTitles = true, showResources = true }: { commands: CanvasCreateCommand[]; layout?: "grid" | "list"; title?: string; showSearch?: boolean; showSectionTitles?: boolean; showResources?: boolean }) {
+export function CanvasCreateMenu({ commands, layout = "grid", title = "Add node", showSearch = layout === "list", showSectionTitles = true, showResources = true }: { commands: CanvasCreateCommand[]; layout?: "grid" | "list"; title?: string; showSearch?: boolean; showSectionTitles?: boolean; showResources?: boolean }) {
     const theme = canvasThemes[useActiveTheme()];
     const [searchOpen, setSearchOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -30,7 +30,7 @@ export function CanvasCreateMenu({ commands, layout = "grid", title = "添加节
         // Advanced node types remain available through the same search box, so
         // hiding them here changes presentation without removing capability.
         if (layout === "list" && !normalizedQuery) {
-            const advancedLabels = new Set(["绘图", "文件夹", "批量创作表"]);
+            const advancedLabels = new Set(["Drawing", "folder", "Batch creation table"]);
             return filtered.filter((command) => !advancedLabels.has(command.label));
         }
         return filtered;
@@ -48,7 +48,7 @@ export function CanvasCreateMenu({ commands, layout = "grid", title = "添加节
                     <button
                         key={command.id}
                         type="button"
-                        data-onboarding={command.label === "图片" ? "image-option" : undefined}
+                        data-onboarding={command.label === "pictures" ? "image-option" : undefined}
                         className="inline-flex h-6 min-w-0 items-center gap-1 rounded-[var(--dock-item-radius)] px-1.5 font-medium outline-none transition-colors hover:bg-black/5 focus-visible:ring-2 dark:hover:bg-white/8 [&_svg]:size-3"
                         style={{ color: theme.node.muted, fontSize: "var(--fs-tiny)", "--tw-ring-color": theme.node.muted } as CSSProperties}
                         title={command.label}
@@ -64,8 +64,8 @@ export function CanvasCreateMenu({ commands, layout = "grid", title = "添加节
                         type="button"
                         className="ml-auto grid size-6 shrink-0 place-items-center rounded-[var(--dock-item-radius)] opacity-65 transition-opacity hover:opacity-100 focus-visible:ring-2"
                         style={{ color: theme.node.muted, "--tw-ring-color": theme.node.muted } as CSSProperties}
-                        aria-label={searchOpen ? "关闭节点搜索" : "搜索节点"}
-                        title={searchOpen ? "关闭节点搜索" : "搜索节点"}
+                        aria-label={searchOpen ? "Turn off node search" : "Search node"}
+                        title={searchOpen ? "Turn off node search" : "Search node"}
                         onMouseDown={(event) => event.stopPropagation()}
                         onClick={() => { setSearchOpen((value) => !value); if (searchOpen) setQuery(""); }}
                     >
@@ -84,24 +84,24 @@ export function CanvasCreateMenu({ commands, layout = "grid", title = "添加节
                         onKeyDown={(event) => { if (event.key === "Escape") { setQuery(""); setSearchOpen(false); } }}
                         className="min-w-0 flex-1 bg-transparent text-[var(--fs-tiny)] outline-none placeholder:opacity-45"
                         style={{ color: theme.node.text }}
-                        placeholder="搜索节点"
-                        aria-label="搜索节点"
+                        placeholder="Search node"
+                        aria-label="Search node"
                     />
                 </div>
             ) : null}
 
-            {showSectionTitles ? <MenuSection title="创作节点" color={theme.node.muted} /> : null}
+            {showSectionTitles ? <MenuSection title="Creation node" color={theme.node.muted} /> : null}
             {layout === "list" ? <CanvasCreateCommandList commands={nodeCommands} /> : <CanvasCreateCommandGrid commands={nodeCommands} variant="node" />}
 
             {layout !== "list" && workflowCommands.length ? (
                 <>
-                    <MenuSection title="工作流" color={theme.node.muted} spaced />
+                    <MenuSection title="Workflow" color={theme.node.muted} spaced />
                     <CanvasCreateCommandGrid commands={workflowCommands} variant="workflow" />
                 </>
             ) : null}
 
             {showResources ? <>
-                <MenuSection title="导入资源" color={theme.node.muted} spaced />
+                <MenuSection title="Import resources" color={theme.node.muted} spaced />
                 {layout === "list" ? <CanvasCreateCommandList commands={resourceCommands} /> : <CanvasCreateCommandGrid commands={resourceCommands} variant="compact" />}
             </> : null}
         </div>
@@ -115,7 +115,7 @@ function CanvasCreateCommandList({ commands }: { commands: CanvasCreateCommand[]
             {commands.map((command) => (
                     <button
                         key={command.id}
-                        data-onboarding={command.label === "图片" ? "image-option" : undefined}
+                        data-onboarding={command.label === "pictures" ? "image-option" : undefined}
                         type="button"
                         disabled={Boolean(command.disabledReason)}
                         aria-disabled={Boolean(command.disabledReason)}
@@ -143,7 +143,7 @@ function CanvasCreateCommandGrid({ commands, variant }: { commands: CanvasCreate
         <div className={cn("grid gap-1", variant === "node" ? "grid-cols-4" : variant === "workflow" ? "grid-cols-1" : "grid-cols-2")}>
             {commands.map((command) => (
                 <motion.button
-                    data-onboarding={command.label === "图片" ? "image-option" : undefined}
+                    data-onboarding={command.label === "pictures" ? "image-option" : undefined}
                     key={command.id}
                     type="button"
                     disabled={Boolean(command.disabledReason)}

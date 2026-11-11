@@ -36,12 +36,12 @@ const MIME_EXTENSIONS: Record<string, string> = {
 const CONTENT_EXTENSIONS = new Set(Object.values(MIME_EXTENSIONS).concat(["jpeg", "mpg"]));
 
 export function buildCanvasMediaDownloadFileName(canvasTitle: string, node: CanvasNodeData, now = new Date()) {
-    const canvasName = safeFileNamePart(canvasTitle, "未命名画布");
+    const canvasName = safeFileNamePart(canvasTitle, "Unnamed canvas");
     const nodeName = safeFileNamePart(node.title, defaultNodeName(node.type));
     return `${canvasName}_${nodeName}_${formatDownloadDate(now)}.${canvasMediaFileExtension(node)}`;
 }
 
-export function sanitizeDownloadFileName(value: string, fallback = "未命名文件") {
+export function sanitizeDownloadFileName(value: string, fallback = "unnamed file") {
     const leaf = value.trim().replace(/\\/g, "/").split("/").pop() || "";
     const lastDot = leaf.lastIndexOf(".");
     const extension = lastDot > 0 ? leaf.slice(lastDot + 1) : "";
@@ -99,9 +99,9 @@ function formatDownloadDate(date: Date) {
 }
 
 function defaultNodeName(type: CanvasNodeTypeId) {
-    if (type === CanvasNodeType.Video) return "视频节点";
-    if (type === CanvasNodeType.Audio) return "音频节点";
-    return "图片节点";
+    if (type === CanvasNodeType.Video) return "video node";
+    if (type === CanvasNodeType.Audio) return "audio node";
+    return "Picture node";
 }
 
 function defaultExtension(type: CanvasNodeTypeId) {

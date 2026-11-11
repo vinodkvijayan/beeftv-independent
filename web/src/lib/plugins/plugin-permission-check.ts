@@ -55,9 +55,9 @@ export function pluginMayRenderEditorSlot(pluginId: string, slot: EditorSlotKind
 export function assertEditorPermission(pluginId: string, permission: EditorPluginPermission): void {
     const permissions = pluginPermissions(pluginId);
     if (permissions === null) {
-        throw new Error(`插件 ${pluginId} 未注册，无法代发 ${permission} 命令`);
+        throw new Error(`plug-in${pluginId}Not registered, cannot be shipped on behalf of others${permission} command`);
     }
     if (!permissions.has(permission)) {
-        throw new Error(`插件 ${pluginId} 缺少 ${permission} 权限，命令已被拒绝`);
+        throw new Error(`plug-in${pluginId} missing${permission} Permission, command has been denied`);
     }
 }

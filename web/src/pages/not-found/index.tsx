@@ -10,12 +10,12 @@ export default function NotFound() {
                 <section className="w-full max-w-md text-center">
                     <WorkspaceSignalIcon variant="empty" size="lg" className="mx-auto mb-5" />
                     <div className="mb-2 text-xs font-semibold tabular-nums text-foreground/45">404</div>
-                    <h1 className="text-3xl font-semibold tracking-normal">页面不存在</h1>
-                    <p className="mt-3 text-sm leading-6 text-stone-500 dark:text-stone-400">这个地址没有对应的页面，可能已经移动或被合并到其他入口。</p>
+                    <h1 className="text-3xl font-semibold tracking-normal">Page does not exist</h1>
+                    <p className="mt-3 text-sm leading-6 text-stone-500 dark:text-stone-400">This address does not have a corresponding page and may have been moved or merged into other entries.</p>
                     <div className="mt-8 flex flex-wrap justify-center gap-3">
                         <Link to="/" className="inline-flex h-9 items-center gap-2 rounded-md bg-stone-950 px-4 text-[var(--fs-body)] font-medium text-white transition-colors hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-950 dark:hover:bg-stone-200">
                             <Home className="size-4" />
-                            返回首页
+                                                        Return to homepage
                         </Link>
                     </div>
                 </section>

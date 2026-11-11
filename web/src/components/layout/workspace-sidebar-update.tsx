@@ -25,20 +25,20 @@ import "./workspace-sidebar-update.css";
 type UpdateStatusLine = { title: string; detail: string; percent: number | null; tone: "active" | "paused" };
 
 function statusLine(state: DesktopUpdateState, persistBusy: boolean, latest: string, percent: number | null): UpdateStatusLine | null {
-    if (persistBusy) return { title: "正在保存工作区", detail: "保存完成后开始安装", percent: null, tone: "active" };
+    if (persistBusy) return { title: "Saving workspace", detail: "After saving, start the installation", percent: null, tone: "active" };
     switch (state.status) {
         case "downloading":
-            return { title: state.totalBytes > 0 && state.downloadedBytes >= state.totalBytes ? "正在校验更新包" : latest ? `正在下载 ${latest}` : "正在下载更新", detail: desktopUpdateDetailLabel(state), percent: state.downloadedBytes > 0 ? percent : null, tone: "active" };
+            return { title: state.totalBytes > 0 && state.downloadedBytes >= state.totalBytes ? "Verifying update package" : latest ? `Downloading${latest}` : "Downloading updates", detail: desktopUpdateDetailLabel(state), percent: state.downloadedBytes > 0 ? percent : null, tone: "active" };
         case "ready":
-            return { title: "更新包已下载", detail: "安装前会保存当前工作", percent: null, tone: "active" };
+            return { title: "Update package has been downloaded", detail: "Current work will be saved before installation", percent: null, tone: "active" };
         case "installing": {
-            const title = state.installPrepared || state.phase === "restarting" ? "正在重启应用" : state.phase === "verifying" ? "正在校验更新包" : state.phase === "extracting" ? "正在解压更新" : "正在准备安装";
+            const title = state.installPrepared || state.phase === "restarting" ? "Restarting application" : state.phase === "verifying" ? "Verifying update package" : state.phase === "extracting" ? "Unpacking update" : "Preparing for installation";
             return { title, detail: desktopUpdateDetailLabel(state), percent: state.phase === "extracting" && state.totalFiles ? Math.min(100, Math.floor((state.completedFiles ?? 0) / state.totalFiles * 100)) : null, tone: "active" };
         }
         case "error":
             return hasResumableDesktopUpdate(state)
-                ? { title: latest ? `继续下载 ${latest}` : "继续下载", detail: desktopUpdateDetailLabel(state), percent, tone: "paused" }
-                : { title: latest ? `重试更新 ${latest}` : "重试更新", detail: desktopUpdateDetailLabel(state), percent: null, tone: "paused" };
+                ? { title: latest ? `Continue downloading${latest}` : "Continue downloading", detail: desktopUpdateDetailLabel(state), percent, tone: "paused" }
+                : { title: latest ? `Retry update${latest}` : "Retry update", detail: desktopUpdateDetailLabel(state), percent: null, tone: "paused" };
         default:
             return null;
     }
@@ -60,9 +60,9 @@ export function WorkspaceSidebarUpdate({ collapsed, leading }: { collapsed: bool
     const percent = desktopUpdateProgressPercent(state);
     const resumable = hasResumableDesktopUpdate(state);
     const enabled = runtime === "desktop" && state.status !== "disabled";
-    const actionLabel = !enabled ? (state.error || "当前环境不支持自动更新") : persistBusy ? "正在保存" : state.status === "available" ? "下载并安装更新" : showControls ? desktopUpdateActionLabel(state.status) : state.status === "checking" ? "正在检查更新" : state.status === "error" ? "重试检查更新" : "检查更新";
+    const actionLabel = !enabled ? (state.error || "The current environment does not support automatic updates") : persistBusy ? "Saving" : state.status === "available" ? "Download and install updates" : showControls ? desktopUpdateActionLabel(state.status) : state.status === "checking" ? "Checking for updates" : state.status === "error" ? "Retry checking for updates" : "Check for updates";
     const errorText = state.status === "error" ? userFacingDesktopUpdateError(state.error) : "";
-    const updateLabel = updater.canForceInstall ? "保存未完成，点击查看处理方式" : state.status === "error" ? `${errorText.replace(/[。！，]$/, "")}，${resumable ? "点击继续下载" : "点击重试"}` : latest ? `${actionLabel} ${latest}` : actionLabel;
+    const updateLabel = updater.canForceInstall ? "Saving is not completed, click to view processing method" : state.status === "error" ? `${errorText.replace(/[。！，]$/, "")}，${resumable ? "Click to continue downloading" : "Click to try again"}` : latest ? `${actionLabel} ${latest}` : actionLabel;
     const line = showControls ? statusLine(state, persistBusy, latest, percent) : null;
     const elapsed = usePhaseElapsed(busy, persistBusy ? "saving" : `${state.status}:${state.phase ?? ""}`);
     const slow = elapsed >= 30 && (persistBusy || state.status === "installing" || state.phase === "verifying");
@@ -81,14 +81,14 @@ export function WorkspaceSidebarUpdate({ collapsed, leading }: { collapsed: bool
     const statusContent = line ? <div className={cn("app-workspace-update-status", line.tone === "paused" && "is-paused")} role="status" aria-live="polite">
         <span className="app-workspace-update-status-title">{line.title}</span>
         <span className="app-workspace-update-status-detail">{line.detail}</span>
-		{state.status === "error" ? <button type="button" className="app-workspace-update-diagnostics" onClick={() => setDiagnosticsOpen(true)}>更新失败排查</button> : null}
-        {slow ? <span className="app-workspace-update-status-detail">{persistBusy ? "仍在等待保存完成" : "耗时较长，请保持应用开启"}</span> : null}
+		{state.status === "error" ? <button type="button" className="app-workspace-update-diagnostics" onClick={() => setDiagnosticsOpen(true)}>Troubleshooting update failures</button> : null}
+        {slow ? <span className="app-workspace-update-status-detail">{persistBusy ? "Still waiting for save to complete" : "It takes a long time, please keep the app open"}</span> : null}
         {showBar ? <UpdateProgressBar state={state} percent={barPercent} reducedMotion={Boolean(reducedMotion)} paused={state.status === "error"} /> : null}
     </div> : null;
 
     return (
         <div className={cn("app-workspace-update", collapsed && "is-collapsed")} data-desktop-update-status={state.status} data-desktop-update-runtime={runtime}>
-            {leading ?? <AppChangelogButton className="app-workspace-update-version" showIcon={false} showVersion version={installed} versionClassName="tabular-nums" ariaLabel={installed ? `当前版本 ${installed}，查看更新日志` : "查看更新日志"} />}
+            {leading ?? <AppChangelogButton className="app-workspace-update-version" showIcon={false} showVersion version={installed} versionClassName="tabular-nums" ariaLabel={installed ? `Current version${installed}, view the change log` : "View changelog"} />}
                 <Popover open={collapsed && Boolean(line)} content={collapsed ? statusContent : null} placement="rightBottom" arrow={false} rootClassName="app-workspace-update-popover">
                 <div className="app-workspace-update-progress" role="status" aria-live="polite">
                     {!line ? <span className="sr-only">{updateLabel}</span> : null}
@@ -101,18 +101,18 @@ export function WorkspaceSidebarUpdate({ collapsed, leading }: { collapsed: bool
 			<DiagnosticsPanel open={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />
             <AppModal
                 open={saveWarningOpen && updater.canForceInstall}
-                title="保存未完成，是否仍然更新？"
+                title="The save is not complete, do you still want to update?"
                 onCancel={() => setSaveWarningOpen(false)}
                 width={480}
                 footer={[
-                    <Button key="cancel" onClick={() => setSaveWarningOpen(false)}>返回处理</Button>,
-                    <Button key="retry" type="primary" onClick={() => { setSaveWarningOpen(false); void updater.install(); }}>重试保存</Button>,
-                    <Button key="force" danger onClick={() => { setSaveWarningOpen(false); void updater.forceInstall(); }}>仍然更新</Button>,
+                    <Button key="cancel" onClick={() => setSaveWarningOpen(false)}>Return to processing</Button>,
+                    <Button key="retry" type="primary" onClick={() => { setSaveWarningOpen(false); void updater.install(); }}>Retry saving</Button>,
+                    <Button key="force" danger onClick={() => { setSaveWarningOpen(false); void updater.forceInstall(); }}>Still updated</Button>,
                 ]}
             >
                 <p>{errorText}</p>
-                <p className="mt-3">更新会关闭并重启应用，尚未保存的修改可能丢失。</p>
-                <p className="mt-3">你可以先返回处理，或重试保存。</p>
+                <p className="mt-3">The update will close and restart the application, and unsaved changes may be lost.</p>
+                <p className="mt-3">You can go back to processing first, or try saving again.</p>
             </AppModal>
         </div>
     );
@@ -123,7 +123,7 @@ function UpdateProgressBar({ state, percent, reducedMotion, paused }: { state: D
         <span
             className={cn("app-workspace-update-progress-bar", paused && "is-paused")}
             role="progressbar"
-            aria-label={state.phase === "extracting" ? "更新解压进度" : "更新下载进度"}
+            aria-label={state.phase === "extracting" ? "Update decompression progress" : "Update download progress"}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percent ?? undefined}

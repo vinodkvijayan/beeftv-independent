@@ -128,7 +128,7 @@ export async function runCanvasGenerationTaskToConsumer(
         const isCurrent = () => !input.signal?.aborted && (dependencies.isCurrent ? dependencies.isCurrent() : true);
         const submission = (state: NonNullable<CanvasNodeMetadata["generationSubmissionState"]>) => {
             if (!isCurrent()) return;
-            const metadata = { taskClientOperationId: input.clientOperationId, generationSubmissionState: state, taskStage: state === "submitting" ? "正在提交生成任务" : state === "unknown" ? "提交结果待确认，请查询原任务" : undefined };
+            const metadata = { taskClientOperationId: input.clientOperationId, generationSubmissionState: state, taskStage: state === "submitting" ? "Submitting build task" : state === "unknown" ? "The submission result is pending confirmation, please check the original task" : undefined };
             // Editor and store are one writer here. Advance the editor's live
             // refs before publishing the store change can trigger persistence.
             dependencies.onSubmission?.(metadata);
@@ -162,7 +162,7 @@ export async function runCanvasGenerationTaskToConsumer(
             throw error;
         }
         if (input.signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
-        if (!completedTask) throw new Error("生成任务缺少成功终态");
+        if (!completedTask) throw new Error("Build task lacks successful final state");
         const taskForConsumer = input.mode === "text" && completedTask.type === "canvas_text" && result.text ? hydrateCompletedTextTask(completedTask, result.text) : completedTask;
         try {
             await dependencies.consumeTask(taskForConsumer);
@@ -174,8 +174,8 @@ export async function runCanvasGenerationTaskToConsumer(
                 ...taskForConsumer.failureDiagnostics,
                 source: "client_result",
                 executionResult: "completed",
-                stage: "画布应用结果",
-                summary: cause instanceof Error ? cause.message : "画布应用结果失败",
+                stage: "Canvas application results",
+                summary: cause instanceof Error ? cause.message : "Canvas application results failed",
                 capturedAt: new Date().toISOString(),
             };
             dependencies.bindTask({
@@ -477,13 +477,13 @@ export function buildVideoGenerationMetadata(
         ? undefined
         : defaultFrames
           ? connectedImages[0]?.id
-          : requireConnectedVideoFrame(storedStartFrame, "首帧", referenceImageIds);
+          : requireConnectedVideoFrame(storedStartFrame, "first frame", referenceImageIds);
     const endFrame = ignoreFrameSelection
         ? undefined
         : defaultFrames && connectedImages.length === 2
           ? connectedImages[1]?.id
-          : requireConnectedVideoFrame(storedEndFrame, "尾帧", referenceImageIds);
-    const middleFrame = ignoreFrameSelection || !metadata?.videoMiddleFrameNodeId ? undefined : requireConnectedVideoFrame(metadata.videoMiddleFrameNodeId, "中间帧", referenceImageIds);
+          : requireConnectedVideoFrame(storedEndFrame, "last frame", referenceImageIds);
+    const middleFrame = ignoreFrameSelection || !metadata?.videoMiddleFrameNodeId ? undefined : requireConnectedVideoFrame(metadata.videoMiddleFrameNodeId, "intermediate frame", referenceImageIds);
     return {
         ...(config ? { workflowProvider: "model" as const } : {}),
         videoEditOperation,
@@ -503,7 +503,7 @@ export function buildVideoGenerationMetadata(
 function requireConnectedVideoFrame(frameNodeId: string | undefined, label: string, referenceImageIds: Set<string>) {
     if (!frameNodeId) return undefined;
     if (referenceImageIds.has(frameNodeId)) return frameNodeId;
-    throw new Error(`已配置的${label}参考图未连接或不可用，请重新选择后再生成`);
+    throw new Error(`configured${label}The reference image is not connected or unavailable, please select again and generate again.`);
 }
 
 export async function resolveMetadataReferences(metadata: CanvasNodeMetadata) {
@@ -563,7 +563,7 @@ export function supportsVideoReferenceAudio(config: AiConfig) {
     return interfaceType === "newapi-channel-1" || interfaceType === "newapi-channel-2" || isSeedanceVideoConfig(config);
 }
 
-export const MISSING_GENERATION_TASK_IDENTITY_DETAILS = "上次提交缺少任务标识，暂时无法确认是否已生成。请先在生成历史中核对结果，避免重复扣费。";
+export const MISSING_GENERATION_TASK_IDENTITY_DETAILS = "The last submission lacked the task ID, and it is temporarily impossible to confirm whether it has been generated. Please check the results in the generation history first to avoid repeated deductions.";
 
 /** 节点是否还要和任务中心对账。首次打开画布和之后才载入的快照共用这一条判定。 */
 export function canvasNodeNeedsGenerationRecovery(node: CanvasNodeData) {
@@ -631,7 +631,7 @@ export function resetInterruptedGeneration(nodes: CanvasNodeData[] = []) {
                 : mediaNode.type === CanvasNodeType.Script && mediaNode.height < NODE_DEFAULT_SIZE[CanvasNodeType.Script].height
                   ? { ...mediaNode, height: NODE_DEFAULT_SIZE[CanvasNodeType.Script].height }
                   : mediaNode;
-        const restoredNode = markGenerationRecoveryRestore(resizedNode.metadata?.status === "loading" ? { ...resizedNode, metadata: { ...resizedNode.metadata, errorDetails: "正在从任务中心恢复生成状态..." } } : resizedNode);
+        const restoredNode = markGenerationRecoveryRestore(resizedNode.metadata?.status === "loading" ? { ...resizedNode, metadata: { ...resizedNode.metadata, errorDetails: "Restoring build status from Task Center..." } } : resizedNode);
         if (restoredNode !== node) changed = true;
         return restoredNode;
     });
@@ -639,7 +639,7 @@ export function resetInterruptedGeneration(nodes: CanvasNodeData[] = []) {
 }
 
 export function isGenerationCanceled(error: unknown) {
-    return error instanceof Error && (error.message === "请求已取消" || error.name === "AbortError");
+    return error instanceof Error && (error.message === "Request canceled" || error.name === "AbortError");
 }
 
 export function findRetrySourceNode(nodeId: string, nodes: CanvasNodeData[], connections: CanvasConnection[]) {

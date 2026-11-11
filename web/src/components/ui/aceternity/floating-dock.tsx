@@ -97,7 +97,7 @@ function useSafeReducedMotion() {
     return reduced;
 }
 
-export const FloatingDock = forwardRef<HTMLDivElement, FloatingDockProps>(function FloatingDock({ items, size = "default", embedded = false, className, style, ariaLabel = "画布工具", showLabels = false }, forwardedRef) {
+export const FloatingDock = forwardRef<HTMLDivElement, FloatingDockProps>(function FloatingDock({ items, size = "default", embedded = false, className, style, ariaLabel = "canvas tool", showLabels = false }, forwardedRef) {
     const mouseX = useMotionValue(Number.POSITIVE_INFINITY);
     const reducedMotion = useSafeReducedMotion();
     const [coarsePointer, setCoarsePointer] = useState(() => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches);

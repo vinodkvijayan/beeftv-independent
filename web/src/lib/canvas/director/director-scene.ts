@@ -13,7 +13,7 @@ export const DIRECTOR_ACTOR_COLORS = ["#4f8ef7", "#202329", "#2f7de1", "#d84949"
 
 export const directorIdentityTransform = (position: DirectorVec3 = [0, 0, 0]): DirectorTransform => ({ position, rotation: [0, 0, 0], scale: [1, 1, 1] });
 
-export function createDirectorScene(title = "未命名场景"): DirectorScene {
+export function createDirectorScene(title = "unnamed scene"): DirectorScene {
     const now = new Date().toISOString();
     const camera = createDirectorCamera();
     const shotId = nanoid();
@@ -31,10 +31,10 @@ export function createDirectorScene(title = "未命名场景"): DirectorScene {
         stageTransform: { ...DIRECTOR_DEFAULT_STAGE_TRANSFORM, position: [...DIRECTOR_DEFAULT_STAGE_TRANSFORM.position], rotation: [...DIRECTOR_DEFAULT_STAGE_TRANSFORM.rotation] },
         labelsVisible: true,
         aspectRatio: "adaptive",
-        objects: [createDirectorActor("演员 1", [0, 0, 0])],
+        objects: [createDirectorActor("actor 1", [0, 0, 0])],
         cameras: [camera],
-        lights: [createDirectorLight("directional", "主光", [4, 6, 4], 2.4), createDirectorLight("directional", "轮廓光", [-4, 3, -2], 1.1), createDirectorLight("ambient", "环境光", [0, 0, 0], 0.65)],
-        shots: [{ id: shotId, name: "镜头 1", cameraId: camera.id, duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" }],
+        lights: [createDirectorLight("directional", "key light", [4, 6, 4], 2.4), createDirectorLight("directional", "rim light", [-4, 3, -2], 1.1), createDirectorLight("ambient", "ambient light", [0, 0, 0], 0.65)],
+        shots: [{ id: shotId, name: "Shot 1", cameraId: camera.id, duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" }],
         activeShotId: shotId,
         createdAt: now,
         updatedAt: now,
@@ -72,7 +72,7 @@ export function duplicateDirectorObject(source: DirectorObject): DirectorObject 
     return {
         ...copy,
         id: nanoid(),
-        name: `${source.name}副本`,
+        name: `${source.name}copy`,
         keyframes: copy.keyframes.map((frame) => ({ ...frame, id: ids.get(frame.id)! })),
         motionPath: copy.motionPath && { ...copy.motionPath, controlKeyframeIds: copy.motionPath.controlKeyframeIds?.flatMap((id) => ids.has(id) ? [ids.get(id)!] : []), originalKeyframes: copy.motionPath.originalKeyframes.map((frame) => ({ ...frame, id: nanoid() })) },
         boneTracks: copy.boneTracks?.map((track) => ({ ...track, keyframes: track.keyframes.map((frame) => ({ ...frame, id: nanoid() })) })),
@@ -82,7 +82,7 @@ export function duplicateDirectorObject(source: DirectorObject): DirectorObject 
 export function duplicateDirectorCamera(source: DirectorCamera): DirectorCamera {
     const copy = structuredClone(source);
     const ids = new Map(copy.keyframes.map((frame) => [frame.id, nanoid()]));
-    return { ...copy, id: nanoid(), name: `${source.name}副本`, keyframes: copy.keyframes.map((frame) => ({ ...frame, id: ids.get(frame.id)! })), drawnPath: copy.drawnPath && { ...copy.drawnPath, sampleKeyframeIds: copy.drawnPath.sampleKeyframeIds.flatMap((id) => ids.has(id) ? [ids.get(id)!] : []), originalKeyframes: copy.drawnPath.originalKeyframes?.map((frame) => ({ ...frame, id: nanoid() })) } };
+    return { ...copy, id: nanoid(), name: `${source.name}copy`, keyframes: copy.keyframes.map((frame) => ({ ...frame, id: ids.get(frame.id)! })), drawnPath: copy.drawnPath && { ...copy.drawnPath, sampleKeyframeIds: copy.drawnPath.sampleKeyframeIds.flatMap((id) => ids.has(id) ? [ids.get(id)!] : []), originalKeyframes: copy.drawnPath.originalKeyframes?.map((frame) => ({ ...frame, id: nanoid() })) } };
 }
 
 export function groupDirectorObjects(scene: DirectorScene, ids: string[]): DirectorScene {
@@ -91,8 +91,8 @@ export function groupDirectorObjects(scene: DirectorScene, ids: string[]): Direc
     if (members.length < 2) return scene;
     const groups = scene.groups || [];
     let index = 1;
-    while (groups.some((group) => group.name === `分组${index}`)) index += 1;
-    const group: DirectorGroup = { id: nanoid(), name: `分组${index}`, collapsed: false };
+    while (groups.some((group) => group.name === `Group${index}`)) index += 1;
+    const group: DirectorGroup = { id: nanoid(), name: `Group${index}`, collapsed: false };
     const objects = scene.objects.map((object) => selected.has(object.id) ? { ...object, groupId: group.id } : object);
     const remainingGroups = groups.filter((entry) => objects.some((object) => object.groupId === entry.id));
     return { ...scene, groups: [...remainingGroups, group], objects };
@@ -117,7 +117,7 @@ export function duplicateDirectorGroup(scene: DirectorScene, id: string): Direct
     const members = scene.objects.filter((object) => object.groupId === id);
     if (!group || members.length === 0) return scene;
     const copyId = nanoid();
-    const duplicate: DirectorGroup = { id: copyId, name: `${group.name}副本`, collapsed: false };
+    const duplicate: DirectorGroup = { id: copyId, name: `${group.name}copy`, collapsed: false };
     const objects = members.map((object) => ({ ...duplicateDirectorObject(object), groupId: copyId }));
     return { ...scene, groups: [...(scene.groups || []), duplicate], objects: [...scene.objects, ...objects] };
 }
@@ -133,7 +133,7 @@ export function ungroupDirectorObjects(scene: DirectorScene, id: string): Direct
     return { ...scene, groups: groups.length ? groups : undefined, objects: scene.objects.map((object) => object.groupId === id ? { ...object, groupId: undefined } : object) };
 }
 
-export function createDirectorObject(primitive: DirectorObject["primitive"] = "box", name = "新对象", position: DirectorVec3 = [0, 0.5, 0], color = "#8795a5"): DirectorObject {
+export function createDirectorObject(primitive: DirectorObject["primitive"] = "box", name = "new object", position: DirectorVec3 = [0, 0.5, 0], color = "#8795a5"): DirectorObject {
     return {
         id: nanoid(),
         name,
@@ -165,7 +165,7 @@ export function applyDirectorUniformScale(object: DirectorObject, input: number)
     };
 }
 
-export function createDirectorActor(name = "演员", position: DirectorVec3 = [0, 0, 0], color: string = DIRECTOR_ACTOR_COLORS[0]): DirectorObject {
+export function createDirectorActor(name = "actor", position: DirectorVec3 = [0, 0, 0], color: string = DIRECTOR_ACTOR_COLORS[0]): DirectorObject {
     return {
         ...createDirectorObject("box", name, position, color),
         kind: "actor",
@@ -189,7 +189,7 @@ export function createDirectorBillboard(name: string, url: string, storageKey?: 
     return { ...createDirectorObject("plane", name, [0, 1.1, 0], "#ffffff"), kind: "billboard", url, storageKey, sourceNodeId, transform: { position: [0, 1.1, 0], rotation: [0, 0, 0], scale: [1.6, 0.9, 1] } };
 }
 
-export function createDirectorCamera(name = "机位1"): DirectorCamera {
+export function createDirectorCamera(name = "Seat 1"): DirectorCamera {
     return { id: nanoid(), name, transform: directorIdentityTransform([0, 2.2, 10]), target: [0, 1.2, 0], focalLength: 35, fov: 50, aperture: 2.8, focusDistance: 5, near: 0.05, far: 500, keyframes: [] };
 }
 
@@ -406,26 +406,26 @@ export function interpolateDirectorBoneRotation(base: DirectorQuat, keyframes: D
 
 export function directorBoneLabel(bone: string) {
     return ({
-        hips: "骨盆", spine: "脊柱", chest: "胸腔", neck: "颈部", head: "头部",
-        leftShoulder: "左肩", leftUpperArm: "左上臂", leftLowerArm: "左前臂", leftHand: "左手",
-        rightShoulder: "右肩", rightUpperArm: "右上臂", rightLowerArm: "右前臂", rightHand: "右手",
-        leftUpperLeg: "左大腿", leftLowerLeg: "左小腿", leftFoot: "左脚",
-        rightUpperLeg: "右大腿", rightLowerLeg: "右小腿", rightFoot: "右脚",
-        leftThumb1: "左拇指·根", leftThumb2: "左拇指·中", leftThumb3: "左拇指·尖",
-        leftIndex1: "左食指·根", leftIndex2: "左食指·中", leftIndex3: "左食指·尖",
-        leftMiddle1: "左中指·根", leftMiddle2: "左中指·中", leftMiddle3: "左中指·尖",
-        leftRing1: "左无名指·根", leftRing2: "左无名指·中", leftRing3: "左无名指·尖",
-        leftPinky1: "左小指·根", leftPinky2: "左小指·中", leftPinky3: "左小指·尖",
-        rightThumb1: "右拇指·根", rightThumb2: "右拇指·中", rightThumb3: "右拇指·尖",
-        rightIndex1: "右食指·根", rightIndex2: "右食指·中", rightIndex3: "右食指·尖",
-        rightMiddle1: "右中指·根", rightMiddle2: "右中指·中", rightMiddle3: "右中指·尖",
-        rightRing1: "右无名指·根", rightRing2: "右无名指·中", rightRing3: "右无名指·尖",
-        rightPinky1: "右小指·根", rightPinky2: "右小指·中", rightPinky3: "右小指·尖",
+        hips: "pelvis", spine: "spine", chest: "chest", neck: "neck", head: "head",
+        leftShoulder: "left shoulder", leftUpperArm: "left upper arm", leftLowerArm: "left forearm", leftHand: "left hand",
+        rightShoulder: "right shoulder", rightUpperArm: "right upper arm", rightLowerArm: "right forearm", rightHand: "right hand",
+        leftUpperLeg: "left thigh", leftLowerLeg: "Left calf", leftFoot: "left foot",
+        rightUpperLeg: "right thigh", rightLowerLeg: "Right calf", rightFoot: "right foot",
+        leftThumb1: "Left thumb root", leftThumb2: "Left thumb·center", leftThumb3: "Left thumb tip",
+        leftIndex1: "Left index finger root", leftIndex2: "Left index finger·middle", leftIndex3: "Left index finger tip",
+        leftMiddle1: "Left middle finger root", leftMiddle2: "Left middle finger·middle", leftMiddle3: "Left middle finger tip",
+        leftRing1: "Left ring finger root", leftRing2: "Left ring finger·middle", leftRing3: "Left ring finger tip",
+        leftPinky1: "Left little finger root", leftPinky2: "Left little finger·middle", leftPinky3: "Left little finger tip",
+        rightThumb1: "Right thumb root", rightThumb2: "Right thumb·center", rightThumb3: "Right thumb tip",
+        rightIndex1: "Right index finger root", rightIndex2: "Right index finger·middle", rightIndex3: "Right index finger tip",
+        rightMiddle1: "Right middle finger root", rightMiddle2: "Right middle finger·middle", rightMiddle3: "Right middle finger tip",
+        rightRing1: "Right ring finger root", rightRing2: "Right ring finger·middle", rightRing3: "Right ring finger tip",
+        rightPinky1: "Right little finger root", rightPinky2: "Right little finger·middle", rightPinky3: "Right little finger tip",
     } as Record<string, string>)[bone] || bone;
 }
 
 export function directorPoseLabel(pose: DirectorPose) {
-    return ({ neutral: "自然", stand: "站立", t_pose: "T 型", walk: "行走", run: "跑步", sit: "坐姿", squat: "蹲下", kneel_single: "单膝跪", kneel_double: "双膝跪", hands_hips: "叉腰", lean: "倚靠", bow: "鞠躬", think: "思考", fight: "格斗", kick: "踢球", throw: "投掷", push: "推进", wave: "招手", reach: "伸手", arms_crossed: "抱臂", phone: "看手机" } as Record<DirectorPose, string>)[pose];
+    return ({ neutral: "natural", stand: "stand", t_pose: "T type", walk: "walk", run: "running", sit: "sitting position", squat: "Squat down", kneel_single: "Kneel down on one knee", kneel_double: "Kneel down", hands_hips: "Akimbo", lean: "rely on", bow: "bow", think: "think", fight: "fighting", kick: "kick a ball", throw: "throw", push: "advance", wave: "wave", reach: "reach out", arms_crossed: "Cross your arms", phone: "Look at mobile phone" } as Record<DirectorPose, string>)[pose];
 }
 
 export function directorPoseBoneDeltas(pose: DirectorPose): Partial<Record<DirectorHumanoidBone, DirectorQuat>> {
@@ -460,18 +460,18 @@ export function directorPoseBoneDeltas(pose: DirectorPose): Partial<Record<Direc
 export function directorColorLabel(value: string) {
     const hsl = { h: 0, s: 0, l: 0 };
     new Color(value).getHSL(hsl);
-    if (hsl.l >= 0.86 && hsl.s <= 0.2) return "白色";
-    if (hsl.l <= 0.18) return "黑色";
-    if (hsl.s <= 0.16) return hsl.l >= 0.52 ? "浅灰色" : "深灰色";
+    if (hsl.l >= 0.86 && hsl.s <= 0.2) return "white";
+    if (hsl.l <= 0.18) return "black";
+    if (hsl.s <= 0.16) return hsl.l >= 0.52 ? "light gray" : "dark gray";
     const hue = hsl.h * 360;
-    if (hue < 18 || hue >= 345) return "红色";
-    if (hue < 48) return "橙色";
-    if (hue < 72) return "黄色";
-    if (hue < 165) return "绿色";
-    if (hue < 195) return "青色";
-    if (hue < 255) return "蓝色";
-    if (hue < 290) return "紫色";
-    return "粉色";
+    if (hue < 18 || hue >= 345) return "red";
+    if (hue < 48) return "orange";
+    if (hue < 72) return "yellow";
+    if (hue < 165) return "green";
+    if (hue < 195) return "cyan";
+    if (hue < 255) return "blue";
+    if (hue < 290) return "purple";
+    return "pink";
 }
 
 function poseQuaternion(x: number, y: number, z: number): DirectorQuat {

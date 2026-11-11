@@ -69,16 +69,16 @@ export function CanvasReferenceFeedback({ issues, pending, checkFailed, onRetry,
     onLocateNode?: (nodeId: string) => void;
 }) {
     return <div className="canvas-reference-feedback" data-canvas-no-drag data-canvas-no-zoom>
-        {pending ? <p role="status"><LoaderCircle className="size-3 animate-spin motion-reduce:animate-none" aria-hidden />正在检查参考素材…</p> : null}
-        {checkFailed ? <p role="status">暂时无法检查素材。<button type="button" onClick={onRetry}>重新检查</button></p> : null}
-        {issues.length ? <section aria-label="需要修正的引用">
-            <p role="alert"><AlertCircle className="size-3 shrink-0" aria-hidden />生成前请修正 {issues.length} 处引用</p>
+        {pending ? <p role="status"><LoaderCircle className="size-3 animate-spin motion-reduce:animate-none" aria-hidden />Checking reference material...</p> : null}
+        {checkFailed ? <p role="status">The material cannot be checked at the moment.<button type="button" onClick={onRetry}>recheck</button></p> : null}
+        {issues.length ? <section aria-label="References that need correction">
+            <p role="alert"><AlertCircle className="size-3 shrink-0" aria-hidden />Please correct before generating{issues.length}  quoted everywhere</p>
             <ul>{issues.map((issue) => <li key={issue.token}>
                 <div className="min-w-0 flex-1"><strong>{issue.title}</strong><span>{issue.reason}</span></div>
                 <div className="canvas-reference-feedback-actions">
-                    <button type="button" onClick={() => onLocate(issue)}>定位引用</button>
-                    {issue.nodeId && onLocateNode ? <button type="button" onClick={() => onLocateNode(issue.nodeId!)}>定位节点</button> : null}
-                    <button type="button" onClick={() => onReplace(issue)}>重新选择</button>
+                    <button type="button" onClick={() => onLocate(issue)}>Locate reference</button>
+                    {issue.nodeId && onLocateNode ? <button type="button" onClick={() => onLocateNode(issue.nodeId!)}>Locate node</button> : null}
+                    <button type="button" onClick={() => onReplace(issue)}>Reselect</button>
                 </div>
             </li>)}</ul>
         </section> : null}

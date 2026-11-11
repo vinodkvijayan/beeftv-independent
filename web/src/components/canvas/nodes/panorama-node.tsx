@@ -58,7 +58,7 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
     const inherited = upstream.find((item) => getNodeResourceKind(item) === "image");
     const url = node.metadata?.content || inherited?.metadata?.content || node.metadata?.panoramaConfig?.directImageUrl || "";
     const projection = node.metadata?.panoramaConfig?.projection || "spherical";
-    const projectionLabel = projection === "spherical" ? "720° 球体" : "360° 环绕";
+    const projectionLabel = projection === "spherical" ? "720° sphere" : "360° surround";
     const [active, setActive] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [failed, setFailed] = useState(false);
@@ -83,7 +83,7 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
         if (!controller || !exportNode) return;
         const canvas = controller.captureCanvas();
         if (!canvas) return;
-        await exportNode(node, canvas.toDataURL("image/png"), `${node.title || "全景"} · 当前视角`);
+        await exportNode(node, canvas.toDataURL("image/png"), `${node.title || "Panorama"} · Current perspective`);
     };
 
     const handleQuadExport = async () => {
@@ -107,7 +107,7 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
             ctx.drawImage(capture.canvas, (index % 2) * PANORAMA_QUAD_SIZE, Math.floor(index / 2) * PANORAMA_QUAD_SIZE, PANORAMA_QUAD_SIZE, PANORAMA_QUAD_SIZE);
             capture.release();
         }
-        const labels = ["前 (0°)", "右 (90°)", "后 (180°)", "左 (270°)"];
+        const labels = ["Front (0°)", "Right (90°)", "Back (180°)", "Left (270°)"];
         ctx.font = "bold 36px sans-serif";
         ctx.fillStyle = "rgba(255,255,255,0.85)";
         ctx.strokeStyle = "rgba(0,0,0,0.65)";
@@ -119,7 +119,7 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
             ctx.fillText(label, x, y);
         });
         controller.setView(restore.lon, restore.lat);
-        await exportNode(node, off.toDataURL("image/png"), `${node.title || "全景"} · 四向视图`);
+        await exportNode(node, off.toDataURL("image/png"), `${node.title || "Panorama"} · Four-way view`);
     };
 
     const handleViewportError = () => {
@@ -132,17 +132,17 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
         return (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center" style={{ color: theme.node.muted }}>
                 <Globe className="size-5 opacity-60" />
-                <span style={{ fontSize: "var(--fs-label)" }}>连接一张 360° 等距柱状全景图</span>
+                <span style={{ fontSize: "var(--fs-label)" }}>Connect a 360° isometric panorama</span>
             </div>
         );
     }
 
     const previewContent = (
         <div className="relative h-full w-full overflow-hidden" style={{ background: theme.node.fill }}>
-            <img src={url} alt={node.title || "全景"} className="h-full w-full object-cover opacity-80" draggable={false} />
+            <img src={url} alt={node.title || "Panorama"} className="h-full w-full object-cover opacity-80" draggable={false} />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-3 py-2" style={{ background: "linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.35))", boxShadow: "0 -1px 0 rgba(0,0,0,.25)" }}>
                 <span className="min-w-0 truncate text-white" style={{ fontSize: "var(--fs-label)", textShadow: "0 1px 3px rgba(0,0,0,.85)" }}>
-                    {failed ? "全景加载失败（图片可能不允许跨域读取）" : expanded ? "已展开全屏环视" : reduceMediaEffects ? "性能模式下仅显示预览" : `${projectionLabel} · 360° 全景`}
+                    {failed ? "Panorama loading failed (images may not be allowed to be read across domains)" : expanded ? "Full screen view expanded" : reduceMediaEffects ? "Show only preview in performance mode" : `${projectionLabel} · 360° panorama`}
                 </span>
                 {reduceMediaEffects || expanded ? null : (
                     <button
@@ -152,7 +152,7 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
                         onMouseDown={(event) => event.stopPropagation()}
                         onClick={() => { setFailed(false); setActive(true); }}
                     >
-                        进入环视
+                                                Enter look around
                     </button>
                 )}
             </div>
@@ -177,12 +177,12 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
                         <div className="flex h-[min(88vh,920px)] w-[min(94vw,1440px)] flex-col overflow-hidden rounded-[var(--r-2xl)] border border-white/15 bg-black shadow-2xl" onClick={(event) => event.stopPropagation()}>
                             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                                 <div className="min-w-0">
-                                    <div className="truncate text-sm font-semibold text-white">{node.title || "全景环视"}</div>
-                                    <div className="mt-0.5 text-white/45" style={{ fontSize: "var(--fs-tiny)" }}>{projectionLabel} · 拖拽环视 · 方向键旋转 · 滚轮缩放</div>
+                                    <div className="truncate text-sm font-semibold text-white">{node.title || "panoramic view"}</div>
+                                    <div className="mt-0.5 text-white/45" style={{ fontSize: "var(--fs-tiny)" }}>{projectionLabel}  · Drag to look around · Arrow keys to rotate · Scroll wheel to zoom</div>
                                 </div>
                                 <button
                                     type="button"
-                                    aria-label="退出全屏"
+                                    aria-label="Exit full screen"
                                     className="grid size-8 shrink-0 place-items-center rounded-[var(--r-md)] text-white/60 transition-colors hover:bg-white/10 hover:text-white"
                                     onMouseDown={(event) => event.stopPropagation()}
                                     onClick={() => { rememberView(); setExpanded(false); }}
@@ -198,7 +198,7 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
                                     onQuadExport={handleQuadExport}
                                     onResetView={() => controllerRef.current?.setView(0, 0)}
                                     onClose={() => { rememberView(); setExpanded(false); }}
-                                    closeLabel="退出全屏"
+                                    closeLabel="Exit full screen"
                                 />
                             </div>
                         </div>
@@ -223,10 +223,10 @@ export function PanoramaNodeContent({ node, theme, reduceMediaEffects }: Panoram
                 onResetView={() => controllerRef.current?.setView(0, 0)}
                 onExpand={() => { rememberView(); setExpanded(true); }}
                 onClose={() => setActive(false)}
-                closeLabel="退出环视"
+                closeLabel="Exit look around"
             />
             <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-black/55 px-2 py-0.5 text-[10px] text-white/70 backdrop-blur-sm">
-                {projectionLabel} · 拖拽环视 · 方向键旋转
+                {projectionLabel}  · Drag to look around · Arrow keys to rotate
             </div>
         </div>
     );
@@ -244,15 +244,15 @@ function PanoramaViewerToolbar({ canCapture, onScreenshot, onQuadExport, onReset
     return (
         <div className="absolute right-2.5 top-2.5 flex gap-1.5" onMouseDown={(event) => event.stopPropagation()}>
             {onExpand ? (
-                <ViewerToolbarButton title="全屏环视" onClick={onExpand}><Maximize2 className="size-4" /></ViewerToolbarButton>
+                <ViewerToolbarButton title="Full screen look around" onClick={onExpand}><Maximize2 className="size-4" /></ViewerToolbarButton>
             ) : null}
             {canCapture ? (
                 <>
-                    <ViewerToolbarButton title="截图当前视角" onClick={() => void onScreenshot()}><Camera className="size-4" /></ViewerToolbarButton>
-                    <ViewerToolbarButton title="导出四向视图" onClick={() => void onQuadExport()}><Grid3x3 className="size-4" /></ViewerToolbarButton>
+                    <ViewerToolbarButton title="Take a screenshot of the current perspective" onClick={() => void onScreenshot()}><Camera className="size-4" /></ViewerToolbarButton>
+                    <ViewerToolbarButton title="Export four-way view" onClick={() => void onQuadExport()}><Grid3x3 className="size-4" /></ViewerToolbarButton>
                 </>
             ) : null}
-            <ViewerToolbarButton title="重置视角" onClick={onResetView}><RotateCcw className="size-4" /></ViewerToolbarButton>
+            <ViewerToolbarButton title="Reset perspective" onClick={onResetView}><RotateCcw className="size-4" /></ViewerToolbarButton>
             <ViewerToolbarButton title={closeLabel} danger onClick={onClose}><X className="size-4" /></ViewerToolbarButton>
         </div>
     );
@@ -464,7 +464,7 @@ function PanoramaViewport({ url, controllerRef, initialView, allowWheelZoom, aut
         <div ref={hostRef} className="relative h-full w-full outline-none focus-visible:ring-2 focus-visible:ring-white/40" tabIndex={0} data-canvas-no-zoom onMouseDown={(event) => event.stopPropagation()}>
             {loading ? (
                 <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/70 text-xs text-white/85">
-                    <Loader2 className="size-4 animate-spin" /> 全景加载中...
+                    <Loader2 className="size-4 animate-spin" />  Panorama loading...
                 </div>
             ) : null}
         </div>

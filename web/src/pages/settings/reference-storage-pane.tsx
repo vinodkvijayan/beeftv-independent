@@ -3,11 +3,11 @@ import { Alert, App, Button, Input, Switch } from "antd";
 import { getDesktopAppBinding, type ReferenceStorageConfig } from "@/services/desktop-runtime";
 
 const fields = [
-    ["endpoint", "S3 端点", "例如 https://cos.ap-guangzhou.myqcloud.com 或 R2 S3 地址"],
-    ["bucket", "存储桶名称", "例如 beeftv-media（腾讯云含 -APPID）"],
-    ["region", "区域", "R2 填 auto；COS 如 ap-guangzhou；OSS 如 cn-hangzhou"],
+    ["endpoint", "S3 endpoint", "For example https://cos.ap-guangzhou.myqcloud.com or R2 S3 address"],
+    ["bucket", "bucket name", "For example beeftv-media (Tencent Cloud includes -APPID)"],
+    ["region", "area", "R2 fills in auto; COS such as ap-guangzhou; OSS such as cn-hangzhou"],
     ["accessKeyId", "Access Key ID", ""],
-    ["publicBaseURL", "存储桶公网地址", "例如 https://media.example.com 或存储桶公网默认域名"],
+    ["publicBaseURL", "Bucket public network address", "For example, https://media.example.com or the default domain name of the public network of the bucket"],
 ] as const;
 
 export function ReferenceStoragePane() {
@@ -47,8 +47,8 @@ export function ReferenceStoragePane() {
             setSecret("");
             if (test) {
                 await binding.TestReferenceStorage!();
-                setTestResult({ success: true, detail: "上传、公开读取和测试文件清理均已通过" });
-            } else message.success("对象存储配置已保存");
+                setTestResult({ success: true, detail: "Upload, public read and test file cleanup all passed" });
+            } else message.success("Object storage configuration saved");
         } catch (error) {
             const detail = error instanceof Error ? error.message : String(error);
             if (test) setTestResult({ success: false, detail });
@@ -58,17 +58,17 @@ export function ReferenceStoragePane() {
         }
     };
     return (
-        <section className="settings-section storage-settings-block space-y-4" aria-label="参考素材对象存储">
+        <section className="settings-section storage-settings-block space-y-4" aria-label="Reference material object storage">
             <div className="settings-pane-header">
                 <div className="min-w-0">
-                    <h2>参考素材对象存储</h2>
+                    <h2>Reference material object storage</h2>
                 </div>
             </div>
             <label className="flex items-center justify-between gap-4 text-sm">
-                <span>生成时上传需要公网地址的参考素材</span>
+                <span>Upload reference materials that require a public network address when generating</span>
                 <Switch checked={config.enabled} disabled={busy || loading} onChange={(enabled) => { setTestResult(null); setConfig((value) => ({ ...value, enabled })); }} />
             </label>
-            <p className="text-sm leading-6 text-foreground/60">启用后，需要在线素材的渠道会使用上传后的链接。原始素材仍保存在本机；存储及流量由你的存储服务计费。</p>
+            <p className="text-sm leading-6 text-foreground/60">When enabled, channels that require online materials will use the uploaded link. The original material is still saved locally; storage and traffic are billed by your storage service.</p>
             <div className="grid min-w-0 gap-4 md:grid-cols-2">
                 {fields.map(([key, label, placeholder]) => (
                     <label key={key} className="block min-w-0 space-y-2 text-sm">
@@ -82,7 +82,7 @@ export function ReferenceStoragePane() {
                         aria-label="Secret Access Key"
                         value={secret}
                         autoComplete="new-password"
-                        placeholder={config.hasSecret ? "已保存，留空保持" : "请输入访问密钥"}
+                        placeholder={config.hasSecret ? "Saved, leave blank to keep" : "Please enter access key"}
                         disabled={busy || loading}
                         onChange={(event) => { setTestResult(null); setSecret(event.target.value); }}
                     />
@@ -90,15 +90,14 @@ export function ReferenceStoragePane() {
             </div>
             {loadError ? (
                 <p role="alert" className="text-sm text-destructive">
-                    已有对象存储配置无法读取（如本机密钥已重置），可直接保存关闭对象存储，或重新填写完整配置与 Secret Key 后保存覆盖。
-                </p>
+                                        If the existing object storage configuration cannot be read (for example, the local key has been reset), you can directly save and close the object storage, or refill the complete configuration and Secret Key and save and overwrite it.</p>
             ) : null}
-            {testResult && <Alert showIcon type={testResult.success ? "success" : "error"} title={testResult.success ? "存储测试通过" : "存储测试未通过"} description={testResult.detail} />}
+            {testResult && <Alert showIcon type={testResult.success ? "success" : "error"} title={testResult.success ? "Storage test passed" : "Storage test failed"} description={testResult.detail} />}
             <div className="flex flex-wrap gap-3">
-                <Button onClick={() => void save()} loading={busy} disabled={loading}>保存对象存储配置</Button>
-                {binding.TestReferenceStorage && <Button onClick={() => void save(true)} loading={busy} disabled={loading || !config.enabled}>保存并测试上传</Button>}
+                <Button onClick={() => void save()} loading={busy} disabled={loading}>Save object storage configuration</Button>
+                {binding.TestReferenceStorage && <Button onClick={() => void save(true)} loading={busy} disabled={loading || !config.enabled}>Save and test upload</Button>}
             </div>
-            <p className="text-sm leading-6 text-foreground/60">支持 S3 兼容存储。测试会上传一张小图片，检查公开读取后删除；存储服务可能收取少量请求费用。</p>
+            <p className="text-sm leading-6 text-foreground/60">Supports S3 compatible storage. The test will upload a small image, check it for public reading and then delete it; the storage service may charge a small request fee.</p>
         </section>
     );
 }

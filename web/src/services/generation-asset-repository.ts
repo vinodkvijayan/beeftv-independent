@@ -50,7 +50,7 @@ function runWithBrowserStorageLock<T>(scope: string, operation: () => Promise<T>
     const locks = typeof window !== "undefined" && typeof navigator !== "undefined" ? (navigator.locks as AsyncStorageLock | undefined) : undefined;
     if (locks) return locks.request(`${ASSET_STORAGE_LOCK_PREFIX}${scope}`, operation);
     if (options.requireCrossRealmLock && typeof window !== "undefined" && typeof document !== "undefined") {
-        throw new Error("当前浏览器不支持跨标签存储锁，已停止生成素材持久化");
+        throw new Error("The current browser does not support cross-tab storage locks and has stopped generating material persistence.");
     }
     return operation();
 }
@@ -83,7 +83,7 @@ export function withGenerationArtifactCommitLock<T>(scope: string, operation: ()
             const locks = typeof window !== "undefined" && typeof navigator !== "undefined" ? (navigator.locks as AsyncStorageLock | undefined) : undefined;
             if (locks) return locks.request(`${ARTIFACT_COMMIT_LOCK_PREFIX}${scope}`, operation);
             if (options.requireCrossRealmLock && typeof window !== "undefined" && typeof document !== "undefined") {
-                throw new Error("当前浏览器不支持跨标签存储锁，已停止生成文件提交");
+                throw new Error("The current browser does not support cross-tab storage locks and has stopped generating file submissions.");
             }
             return operation();
         });
@@ -125,7 +125,7 @@ export async function insertOrReturnGenerationAsset<TAsset extends GenerationAss
             throwIfAborted(dependencies.signal);
             const persistedAssets = await dependencies.readPersistedAssets();
             throwIfAborted(dependencies.signal);
-            if (dependencies.isAssetDeleted?.()) throw new Error("生成素材已被用户删除");
+            if (dependencies.isAssetDeleted?.()) throw new Error("The generated material has been deleted by the user");
             const existing = persistedAssets.find((asset) => asset.metadata?.generationEffectKey === dependencies.effectKey);
             if (existing) {
                 const hydratedExisting = dependencies.readAssets().find((asset) => asset.id === existing.id && asset.metadata?.generationEffectKey === dependencies.effectKey);
@@ -133,7 +133,7 @@ export async function insertOrReturnGenerationAsset<TAsset extends GenerationAss
                 return existing.id;
             }
             if (persistedAssets.some((asset) => asset.id === dependencies.assetId)) {
-                throw new Error("生成素材幂等键冲突");
+                throw new Error("Generating material idempotent key conflicts");
             }
             const assets = [dependencies.createAsset(), ...persistedAssets];
             throwIfAborted(dependencies.signal);

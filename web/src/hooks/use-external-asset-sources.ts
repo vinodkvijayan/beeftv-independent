@@ -53,7 +53,7 @@ export function useExternalAssetSources(open: boolean): ExternalAssetSourceState
                 ]);
                 return { source, folders: folders || [], items: items || [] };
             } catch (reason) {
-                const detail = reason instanceof Error ? reason.message : "读取失败";
+                const detail = reason instanceof Error ? reason.message : "Read failed";
                 throw new Error(source.name + "：" + detail);
             }
         })).then((results) => {
@@ -62,7 +62,7 @@ export function useExternalAssetSources(open: boolean): ExternalAssetSourceState
             const errors: string[] = [];
             results.forEach((result) => {
                 if (result.status === "fulfilled") loaded.push(result.value);
-                else errors.push(result.reason instanceof Error ? result.reason.message : "外部素材来源读取失败");
+                else errors.push(result.reason instanceof Error ? result.reason.message : "Failed to read external source");
             });
             setLoadedSources(loaded);
             setError(errors.join("；"));
@@ -85,16 +85,16 @@ export function useExternalAssetSources(open: boolean): ExternalAssetSourceState
     );
 
     const importExternalAsset = useCallback(async (reference: ExternalAssetPickerReference, signal?: AbortSignal) => {
-        if (isLocalWorkspaceMode()) throw new Error("本地工作区仅支持本地素材");
+        if (isLocalWorkspaceMode()) throw new Error("Local workspace only supports local assets");
         const source = sources.find((item) => item.id === reference.sourceId);
-        if (!source?.provider.importAsset) throw new Error(`${reference.sourceName}暂不支持导入项目资产`);
+        if (!source?.provider.importAsset) throw new Error(`${reference.sourceName}Importing project assets is not currently supported.`);
         return source.provider.importAsset(reference.item, signal);
     }, [sources]);
 
     const uploadExternalFiles = useCallback(async (files: FileList | File[], folderId?: string, signal?: AbortSignal) => {
-        if (isLocalWorkspaceMode()) throw new Error("本地工作区仅支持本地素材");
+        if (isLocalWorkspaceMode()) throw new Error("Local workspace only supports local assets");
         const source = resolveUploadSource(sources, folderId);
-        if (!source?.provider.uploadFile) throw new Error("当前插件不支持写入文件");
+        if (!source?.provider.uploadFile) throw new Error("The current plugin does not support writing files");
         const providerFolderId = folderId ? externalFolderValue(source.id, folderId) : undefined;
         const uploadedItems: ExternalAssetItem[] = [];
         for (const file of Array.from(files)) uploadedItems.push(await source.provider.uploadFile(file, providerFolderId, signal));
@@ -134,7 +134,7 @@ function externalFolderValue(sourceId: string, folderId: string) {
 function resolveUploadSource(sources: HostedAssetSource[], folderId?: string) {
     if (folderId) return sources.find((source) => folderId.startsWith(externalFolderId(source.id, "")));
     if (sources.length === 1) return sources[0];
-    throw new Error("请先选择一个插件文件夹，再写入素材");
+    throw new Error("Please select a plug-in folder first and then write the material");
 }
 
 function toPickerItem(source: HostedAssetSource, item: ExternalAssetItem): AssetLibraryPickerItem {
@@ -144,7 +144,7 @@ function toPickerItem(source: HostedAssetSource, item: ExternalAssetItem): Asset
         id: externalAssetPickerId(reference),
         title: item.title,
         category: externalCategory(source.id),
-        kindLabel: item.kind === "video" ? "视频" : item.kind === "audio" ? "音频" : "图片",
+        kindLabel: item.kind === "video" ? "video" : item.kind === "audio" ? "Audio" : "pictures",
         imageUrl: item.thumbnailUrl,
         description: folderPath || item.description || undefined,
         searchText: [item.title, ...(item.tags || []), item.description || "", folderPath || ""].join(" "),

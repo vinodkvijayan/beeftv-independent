@@ -4,11 +4,11 @@ import type { GenerationTask, TaskStatus } from "@/services/api/task-center";
 import { modelDisplayName, type AiConfig } from "@/stores/use-config-store";
 
 export function getTaskCanvasContext(task: GenerationTask, canvasById: Map<string, { title: string; projectId?: string }>, projectNameById: Map<string, string>) {
-    if (!task.projectId) return { canvasName: "未绑定画布", projectName: "" };
+    if (!task.projectId) return { canvasName: "Unbound canvas", projectName: "" };
     const canvas = canvasById.get(task.projectId);
-    if (canvas) return { canvasName: canvas.title || "未命名画布", projectName: canvas.projectId ? projectNameById.get(canvas.projectId) || "" : "" };
+    if (canvas) return { canvasName: canvas.title || "Unnamed canvas", projectName: canvas.projectId ? projectNameById.get(canvas.projectId) || "" : "" };
     const projectName = projectNameById.get(task.projectId);
-    return projectName ? { canvasName: "项目级任务", projectName } : { canvasName: `未加载或已移除的画布 · ${task.projectId}`, projectName: "" };
+    return projectName ? { canvasName: "Project level tasks", projectName } : { canvasName: `Canvas not loaded or removed ·${task.projectId}`, projectName: "" };
 }
 
 export function isTaskFailed(task: GenerationTask) {
@@ -39,20 +39,20 @@ export function taskAttentionReason(task: GenerationTask) {
         { taskId: task.id, providerRequestId: task.providerRequestId, model: task.model, createdAt: task.createdAt, stage: outcome ? undefined : task.stage },
     );
     const text = explanation.message.trim();
-    if (text.startsWith("{") || text.startsWith("[")) return explanation.reason || "生成失败，打开详情查看原因";
+    if (text.startsWith("{") || text.startsWith("[")) return explanation.reason || "Generation failed, open details to view the reason";
     if (explanation.moderation) return explanation.message;
     if (task.error || task.errorCode) return explanation.message;
     if (outcome) return taskOutcomeCopy(outcome).message;
-    return task.stage || "生成失败，打开详情查看原因";
+    return task.stage || "Generation failed, open details to view the reason";
 }
 
 export function providerCancelStatusLabel(task: GenerationTask) {
-    if (task.providerCancelStatus === "requested") return "已请求上游取消，正在等待确认";
-    if (task.providerCancelStatus === "confirmed") return "上游已确认取消";
+    if (task.providerCancelStatus === "requested") return "Cancellation requested from upstream, waiting for confirmation";
+    if (task.providerCancelStatus === "confirmed") return "Cancellation confirmed by upstream";
     if (task.providerCancelStatus === "uncertain") {
-        return task.providerCancelError || "上游无法确认取消，状态待确认";
+        return task.providerCancelError || "The upstream cannot confirm the cancellation and the status needs to be confirmed.";
     }
-    return "任务已取消，可按原输入重新提交";
+    return "The task has been cancelled. You can resubmit according to the original input.";
 }
 
 export function statusDotClassName(status: TaskStatus) {
@@ -65,8 +65,8 @@ export function statusDotClassName(status: TaskStatus) {
 
 export function taskMediaKind(task: GenerationTask): "text" | "image" | "video" {
     const value = `${task.type} ${task.operation || ""}`.toLowerCase();
-    if (value.includes("video") || value.includes("视频")) return "video";
-    if (value.includes("image") || value.includes("图片") || value.includes("画面")) return "image";
+    if (value.includes("video") || value.includes("video")) return "video";
+    if (value.includes("image") || value.includes("pictures") || value.includes("Picture")) return "image";
     return "text";
 }
 
@@ -86,10 +86,10 @@ export function formatModelName(config: AiConfig, task: GenerationTask) {
     const raw = (task.model || task.provider || "").trim();
     const model = raw.includes("::") ? raw.split("::").pop()?.trim() || raw : raw;
 
-    if (!model) return "工作流";
-    if (model === "version-router") return "版本对比工作流";
-    if (model === "workflow-router") return "工作流路由";
-    if (model === "internal-agent") return "内置工作流";
-    if (model === "openai-compatible") return "OpenAI 兼容接口";
+    if (!model) return "Workflow";
+    if (model === "version-router") return "Version comparison workflow";
+    if (model === "workflow-router") return "Workflow routing";
+    if (model === "internal-agent") return "Built-in workflow";
+    if (model === "openai-compatible") return "OpenAI compatible interface";
     return modelDisplayName(config, raw);
 }

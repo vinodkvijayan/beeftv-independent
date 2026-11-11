@@ -36,7 +36,7 @@ async function renderGradedBlob(url: string, grade: CanvasColorGrade) {
     image.crossOrigin = "anonymous";
     await new Promise<void>((resolve, reject) => {
         image.onload = () => resolve();
-        image.onerror = () => reject(new Error("源图无法读取（可能不允许跨域）"));
+        image.onerror = () => reject(new Error("The source image cannot be read (cross-domain may not be allowed)"));
         image.src = url;
     });
 
@@ -44,15 +44,15 @@ async function renderGradedBlob(url: string, grade: CanvasColorGrade) {
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
     const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("无法创建画布上下文");
+    if (!ctx) throw new Error("Unable to create canvas context");
     // ctx.filter 在少数浏览器上不存在——那会静默导出一张未调色的图，
     // 与用户看到的预览不一致。宁可明确失败。
-    if (!("filter" in ctx)) throw new Error("当前浏览器不支持导出调色结果，请换用 Chrome / Edge");
+    if (!("filter" in ctx)) throw new Error("The current browser does not support exporting color grading results, please use Chrome/Edge instead.");
     ctx.filter = colorGradeCssFilter(grade);
     ctx.drawImage(image, 0, 0);
 
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
-    if (!blob) throw new Error("调色结果导出失败");
+    if (!blob) throw new Error("Export of color correction results failed");
     return { blob, width: canvas.width, height: canvas.height };
 }
 
@@ -82,6 +82,6 @@ export async function resolveCanvasColorGradeReference(image: ReferenceImage): P
         publishedCache.set(cacheKey(source.url, source.grade), { url, storageKey, type });
         return { ...image, dataUrl: "", url, storageKey, type };
     } catch (error) {
-        throw new Error(error instanceof Error ? `调色参考图生成失败：${error.message}` : "调色参考图生成失败");
+        throw new Error(error instanceof Error ? `Failed to generate color grading reference image:${error.message}` : "Color grading reference image generation failed");
     }
 }

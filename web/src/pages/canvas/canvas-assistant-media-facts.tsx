@@ -2,8 +2,8 @@ import type { AgentToolCall, AssistantMediaFacts } from "@/services/api/agent-as
 import type { CanvasNodeData } from "@/types/canvas";
 
 const seconds = (ms: number) => String(ms / 1000);
-const range = ({ startMs, endMs }: { startMs: number; endMs: number }) => `${seconds(startMs)}–${seconds(endMs)} 秒`;
-const labels: Record<AssistantMediaFacts["mode"], string> = { frames: "静态抽帧区间", video: "视频片段读取", audio: "音频片段读取", check: "客观检测" };
+const range = ({ startMs, endMs }: { startMs: number; endMs: number }) => `${seconds(startMs)}–${seconds(endMs)} seconds`;
+const labels: Record<AssistantMediaFacts["mode"], string> = { frames: "static frame interval", video: "Video clip reading", audio: "Audio clip reading", check: "objective testing" };
 
 function wholeIntervalSilent(facts: AssistantMediaFacts) {
     if (!facts.hasAudio || facts.source.endMs <= facts.source.startMs) return false;
@@ -30,20 +30,20 @@ export function CanvasAssistantMediaFacts({ calls, nodes = [] }: { calls: AgentT
         }
     }
     if (!groups.size) return null;
-    return <div className="canvas-assistant-card" aria-label="媒体检查记录">
-        <strong>媒体检查记录</strong>
-        <span className="canvas-assistant-meta">记录实际读取的片段和检测结果，不代表质量已通过。</span>
+    return <div className="canvas-assistant-card" aria-label="Media censorship record">
+        <strong>Media censorship record</strong>
+        <span className="canvas-assistant-meta">Recording the actual read fragments and detection results does not mean that the quality has passed.</span>
         {[...groups].map(([key, group], groupIndex) => {
             const title = nodes.find(node => node.id === group[0].source.nodeId)?.title;
             return <div key={key} data-media-fact-group={key}>
-                <strong>{title ? `${title} · ` : ""}检查记录 {groupIndex + 1}</strong>
+                <strong>{title ? `${title} · ` : ""}Check records{groupIndex + 1}</strong>
                 {group.map((facts, index) => <div key={index} className="canvas-assistant-meta">
-                    <div>{labels[facts.mode]}：{range(facts.source)} · 全长 {seconds(facts.durationMs)} 秒</div>
+                    <div>{labels[facts.mode]}：{range(facts.source)}  · Full length{seconds(facts.durationMs)}  seconds</div>
                     {facts.mode === "check" ? <>
-                        {!facts.hasAudio ? <div>没有音轨</div> : wholeIntervalSilent(facts) ? <div>该检测区间全段静音</div>
-                            : facts.silenceIntervals?.length ? <div>静音区间：{facts.silenceIntervals.map(range).join("、")}</div> : null}
-                        {facts.meanDb !== undefined ? <div>平均音量：{facts.meanDb} dB</div> : null}
-                        {facts.peakDb !== undefined ? <div>峰值音量：{facts.peakDb} dB</div> : null}
+                        {!facts.hasAudio ? <div>no audio track</div> : wholeIntervalSilent(facts) ? <div>The entire detection interval is muted</div>
+                            : facts.silenceIntervals?.length ? <div>Silent interval:{facts.silenceIntervals.map(range).join("、")}</div> : null}
+                        {facts.meanDb !== undefined ? <div>Average volume:{facts.meanDb} dB</div> : null}
+                        {facts.peakDb !== undefined ? <div>Peak volume:{facts.peakDb} dB</div> : null}
                     </> : null}
                 </div>)}
             </div>;

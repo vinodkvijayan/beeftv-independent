@@ -5,12 +5,12 @@ import type { PluginAgentAction } from "./plugin-types";
 export function prepareAnalysisNodeAction(nodeType: string, title: string, metadata: () => CanvasNodeMetadata): PluginAgentAction {
     return {
         id: "prepare-input",
-        description: `为已有图片准备${title}节点及连线，复用相同输入的已有节点；仅准备输入，不启动分析或收费。`,
+        description: `Prepare for existing images${title}Nodes and connections, reuse existing nodes with the same input; only prepare input, do not start analysis or charge.`,
         inputSchema: { type: "object", properties: { sourceNodeId: { type: "string" } }, required: ["sourceNodeId"], additionalProperties: false },
         buildOperations(input, snapshot) {
-            if (Object.keys(input).some((key) => key !== "sourceNodeId")) throw new Error("只接受 sourceNodeId");
+            if (Object.keys(input).some((key) => key !== "sourceNodeId")) throw new Error("Only accept sourceNodeId");
             const source = snapshot.nodes.find((node) => node.id === input.sourceNodeId && node.type === "image");
-            if (!source || !(source.metadata?.storageKey || source.metadata?.content || source.metadata?.previewContent)) throw new Error("请提供当前画布已有图片节点的真实 ID");
+            if (!source || !(source.metadata?.storageKey || source.metadata?.content || source.metadata?.previewContent)) throw new Error("Please provide the real ID of the existing image node in the current canvas");
             const existing = snapshot.nodes.find((node) => node.type === nodeType && snapshot.connections.some((edge) => edge.fromNodeId === source.id && edge.toNodeId === node.id));
             if (existing) return [{ type: "select_nodes", ids: [existing.id] }];
             const id = `${nodeType}-${nanoid()}`;

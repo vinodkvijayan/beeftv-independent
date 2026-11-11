@@ -26,18 +26,18 @@ export function CanvasNodeGenerationProgress({ node, theme, operation, onOpenTas
     const displayTask = { status: ((hasTaskIdentity ? node.metadata?.taskStatus : undefined) || "running") as GenerationTask["status"], stage: node.metadata?.taskStage };
     const now = useSecondTick(hasTaskIdentity || Boolean(operation) || canCancelLocalLoading, rootRef);
     const createdAt = operation?.startedAt ?? new Date(node.metadata?.taskCreatedAt || "").getTime();
-    const elapsed = Number.isFinite(createdAt) ? `已用 ${formatGenerationElapsed(now - createdAt)}` : "刚刚开始";
+    const elapsed = Number.isFinite(createdAt) ? `Used${formatGenerationElapsed(now - createdAt)}` : "Just started";
     const progress = generationTaskShowsProgress(displayTask) && taskId && typeof node.metadata?.taskProgress === "number" ? Math.max(0, Math.min(100, Math.round(node.metadata.taskProgress))) : null;
     const record = progress !== null ? rememberProgressChange(taskId || node.id, progress, now) : undefined;
     const generation = generationProgressDisplay({ status: displayTask.status, progress, progressChangedAt: record?.changedAt, now, isVideo: node.type === CanvasNodeType.Video });
     const deliveryProgress = useGenerationDeliveryProgress(state => taskId ? state.byTask[taskId] : undefined);
     const delivery = deliveryProgress ? generationDeliveryProgressView(deliveryProgress, now) : undefined;
     const fetching = generationTaskFetchingResult(displayTask, Boolean(deliveryProgress));
-    const pendingStage = ["正在准备生成任务", "正在准备参考素材", "正在提交生成任务"].includes(displayTask.stage || "") ? displayTask.stage : undefined;
+    const pendingStage = ["Preparing to build task", "Preparing reference materials", "Submitting build task"].includes(displayTask.stage || "") ? displayTask.stage : undefined;
     const queued = displayTask.status === "queued";
     const fileMetrics = operation ? operationProgressView(operation, now) : undefined;
     const metrics = fileMetrics || delivery;
-    const title = operation?.detail || delivery?.title || (fetching ? "正在取回结果" : queued ? "排队中" : pendingStage || "生成中");
+    const title = operation?.detail || delivery?.title || (fetching ? "Retrieving results" : queued ? "Queuing" : pendingStage || "Generating");
     const percent = metrics ? metrics.percent : fetching || queued || pendingStage ? null : generation.percent;
     const bar = metrics || fetching || queued || pendingStage ? percent === null ? "indeterminate" : "determinate" : generation.bar;
     const timing = metrics?.timing || (!fetching ? elapsed : "");
@@ -57,10 +57,10 @@ export function CanvasNodeGenerationProgress({ node, theme, operation, onOpenTas
                 {metrics?.speed ? <span className="whitespace-nowrap">{metrics.speed}</span> : null}
                 {fileMetrics?.count ? <span className="whitespace-nowrap">{fileMetrics.count}</span> : null}
             </div> : null}
-            {timing ? <span className="whitespace-nowrap text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.muted }}>{timing.startsWith("已用") ? <Clock3 className="mr-1 inline size-3 align-[-2px]" /> : null}{timing}</span> : null}
+            {timing ? <span className="whitespace-nowrap text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.muted }}>{timing.startsWith("Used") ? <Clock3 className="mr-1 inline size-3 align-[-2px]" /> : null}{timing}</span> : null}
             {controls || canCancelLocalLoading ? <div className="mt-0.5 flex items-center gap-1.5">
-                {controls ? <button type="button" className="inline-flex h-7 items-center gap-1 rounded-[var(--r-sm)] px-2 text-[var(--fs-tiny)] font-medium" style={{ background: theme.toolbar.itemHover, color: theme.node.text }} onMouseDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onOpenTaskDetails?.(node); }}><FileText className="size-3" />详情</button> : null}
-                {onCancelTask && (canCancelLocalLoading || (controls && ["queued", "running", "succeeded"].includes(displayTask.status))) ? <button type="button" className="inline-flex h-7 items-center gap-1 rounded-[var(--r-sm)] px-2 text-[var(--fs-tiny)] font-medium" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }} onMouseDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onCancelTask(node); }} aria-label={controls && displayTask.status === "succeeded" ? "停止取回结果" : "取消生成任务"}><Square className="size-3" />{controls && displayTask.status === "succeeded" ? "停止取回" : "取消"}</button> : null}
+                {controls ? <button type="button" className="inline-flex h-7 items-center gap-1 rounded-[var(--r-sm)] px-2 text-[var(--fs-tiny)] font-medium" style={{ background: theme.toolbar.itemHover, color: theme.node.text }} onMouseDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onOpenTaskDetails?.(node); }}><FileText className="size-3" />Details</button> : null}
+                {onCancelTask && (canCancelLocalLoading || (controls && ["queued", "running", "succeeded"].includes(displayTask.status))) ? <button type="button" className="inline-flex h-7 items-center gap-1 rounded-[var(--r-sm)] px-2 text-[var(--fs-tiny)] font-medium" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }} onMouseDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onCancelTask(node); }} aria-label={controls && displayTask.status === "succeeded" ? "Stop retrieving results" : "Cancel build task"}><Square className="size-3" />{controls && displayTask.status === "succeeded" ? "Stop retrieval" : "Cancel"}</button> : null}
             </div> : null}
         </div> : null}
     </div>;

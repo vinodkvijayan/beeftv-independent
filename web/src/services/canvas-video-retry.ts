@@ -6,7 +6,7 @@ export async function retryStoredCanvasVideo(taskId: string, signal: AbortSignal
     const check = () => signal.throwIfAborted();
     let task = await dependencies.queryGenerationTask(taskId, { signal });
     check();
-    if (task.type !== "canvas_video") throw new Error("原任务不是画布视频任务，无法按原输入重试");
+    if (task.type !== "canvas_video") throw new Error("The original task is not a canvas video task and cannot be retried according to the original input.");
     if (task.status === "failed" || task.status === "cancelled") {
         task = await dependencies.retryGenerationTask(taskId, { signal });
         check();

@@ -88,11 +88,11 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
             <button
                 type="button"
                 className="flex min-h-9 w-full items-center gap-2 rounded-md border border-border/60 bg-background px-2.5 text-left text-sm transition-colors hover:border-border hover:bg-muted/20 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-1"
-                aria-label="选择模型 Logo"
+                aria-label="Select model logo"
                 onClick={() => setOpen(true)}
             >
                 <ModelLogo icon={value} size={20} />
-                <span className="min-w-0 flex-1 truncate text-foreground/70">{selectedOption?.title || value || "选择 Logo"}</span>
+                <span className="min-w-0 flex-1 truncate text-foreground/70">{selectedOption?.title || value || "Select a logo"}</span>
                 {value ? (
                     <span
                         className="ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded text-foreground/40 hover:bg-muted hover:text-foreground"
@@ -100,17 +100,17 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                             event.stopPropagation();
                             onChange?.("");
                         }}
-                        title="清除 Logo"
+                        title="clear logo"
                     >
                         <X className="size-3" />
                     </span>
                 ) : (
-                    <span className="text-xs text-foreground/35">浏览</span>
+                    <span className="text-xs text-foreground/35">Browse</span>
                 )}
             </button>
 
             <Modal
-                title="选择模型 Logo"
+                title="Select model logo"
                 open={open}
                 onCancel={() => setOpen(false)}
                 width={540}
@@ -118,7 +118,7 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                 destroyOnClose
                 footer={
                     <div className="flex items-center justify-between py-1 text-xs text-foreground/45">
-                        <span>共 {filteredIcons.length} 个可用 Logo</span>
+                        <span>total{filteredIcons.length}  available logos</span>
                         <div className="flex items-center gap-2">
                             {value ? (
                                 <Button
@@ -128,11 +128,11 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                                         setOpen(false);
                                     }}
                                 >
-                                    清除 Logo
+                                                                        clear logo
                                 </Button>
                             ) : null}
                             <Button type="primary" size="small" onClick={() => setOpen(false)}>
-                                完成
+                                                                Complete
                             </Button>
                         </div>
                     </div>
@@ -144,13 +144,13 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                         prefix={<Search className="size-4 text-foreground/40" />}
                         value={keyword}
                         onChange={(event) => setKeyword(event.target.value)}
-                        placeholder="搜索品牌或模型名称（如 OpenAI, Claude, Google, Flux...）"
+                        placeholder="Search for brand or model name (e.g. OpenAI, Claude, Google, Flux...)"
                         allowClear
                     />
                     <div
                         className="grid max-h-[380px] grid-cols-8 gap-2 overflow-y-auto pr-1 sm:grid-cols-9"
                         role="listbox"
-                        aria-label="模型 Logo 列表"
+                        aria-label="Model Logo List"
                     >
                         {filteredIcons.length ? (
                             filteredIcons.map((item) => {
@@ -177,7 +177,7 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                             })
                         ) : (
                             <div className="col-span-full py-12 text-center text-xs text-foreground/45">
-                                未找到与 “{keyword}” 相关的 Logo
+                                                                Not found with "{keyword}” related logos
                             </div>
                         )}
                     </div>

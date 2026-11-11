@@ -51,17 +51,17 @@ export async function copyPromptToClipboard(
     try {
         if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(trimmed);
-            message?.success?.("已复制生成提示词");
+            message?.success?.("Prompt word has been copied and generated");
             return true;
         }
     } catch {
         // Fall through to fallback copy helper
     }
     if (fallbackCopy) {
-        const result = await fallbackCopy(trimmed, "已复制生成提示词");
+        const result = await fallbackCopy(trimmed, "Prompt word has been copied and generated");
         return typeof result === "boolean" ? result : true;
     }
-    message?.error?.("当前环境不支持复制，请手动选择复制");
+    message?.error?.("The current environment does not support replication, please select replication manually.");
     return false;
 }
 
@@ -77,7 +77,7 @@ export function AssetGenerationPromptSection({ asset }: { asset: LibraryAsset })
         <div className="asset-archive-section" data-testid="asset-generation-prompt-section">
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="asset-archive-section-title">生成提示词</span>
+                    <span className="asset-archive-section-title">Generate prompt words</span>
                     {model ? <Tag className="m-0">{model}</Tag> : null}
                     {aspectRatio ? <Tag className="m-0">{aspectRatio}</Tag> : null}
                 </div>
@@ -86,7 +86,7 @@ export function AssetGenerationPromptSection({ asset }: { asset: LibraryAsset })
                     icon={<Copy className="size-3.5" />}
                     onClick={() => void copyPromptToClipboard(promptText, message, copyText)}
                 >
-                    复制提示词
+                                        copy prompt word
                 </Button>
             </div>
             <div className="asset-archive-section-body select-text whitespace-pre-wrap break-words rounded-lg border border-black/10 bg-black/[0.02] p-3 text-sm leading-relaxed dark:border-white/10 dark:bg-white/[0.03]">
@@ -127,8 +127,8 @@ export function AssetVideoPreview({ storageKey, url, title, className }: { stora
                             setVolume(event.currentTarget.volume);
                         }}
                     />
-                    <div className="asset-video-controls" aria-label="视频播放控制">
-                        <button type="button" className="asset-video-control-button" aria-label={playing ? "暂停" : "播放"} onClick={() => {
+                    <div className="asset-video-controls" aria-label="Video playback control">
+                        <button type="button" className="asset-video-control-button" aria-label={playing ? "pause" : "play"} onClick={() => {
                             const video = videoRef.current;
                             if (!video) return;
                             if (video.paused) void video.play().catch(() => playback.fail());
@@ -144,7 +144,7 @@ export function AssetVideoPreview({ storageKey, url, title, className }: { stora
                             max={Math.max(duration, 0.1)}
                             step={0.1}
                             value={Math.min(currentTime, duration || 0)}
-                            aria-label="播放进度"
+                            aria-label="Playback progress"
                             onChange={(event) => {
                                 const time = Number(event.currentTarget.value);
                                 if (videoRef.current) videoRef.current.currentTime = time;
@@ -153,7 +153,7 @@ export function AssetVideoPreview({ storageKey, url, title, className }: { stora
                         />
                         <span className="asset-video-time">{formatAssetClock(duration * 1000) || "0:00"}</span>
                         <div className="asset-video-volume">
-                            <button type="button" className="asset-video-control-button" aria-label={muted || volume === 0 ? "开启声音" : "静音"} onClick={() => {
+                            <button type="button" className="asset-video-control-button" aria-label={muted || volume === 0 ? "Turn on sound" : "mute"} onClick={() => {
                                 const video = videoRef.current;
                                 if (!video) return;
                                 video.muted = !video.muted;
@@ -168,7 +168,7 @@ export function AssetVideoPreview({ storageKey, url, title, className }: { stora
                                 max={1}
                                 step={0.05}
                                 value={volume}
-                                aria-label="音量"
+                                aria-label="Volume"
                                 onChange={(event) => {
                                     const nextVolume = Number(event.currentTarget.value);
                                     if (videoRef.current) {
@@ -180,17 +180,17 @@ export function AssetVideoPreview({ storageKey, url, title, className }: { stora
                                 }}
                             />
                         </div>
-                        <button type="button" className="asset-video-control-button" aria-label="全屏" onClick={() => void videoRef.current?.requestFullscreen?.()}>
+                        <button type="button" className="asset-video-control-button" aria-label="full screen" onClick={() => void videoRef.current?.requestFullscreen?.()}>
                             <Maximize2 aria-hidden="true" />
                         </button>
                     </div>
                 </>
             ) : null}
-            {!source && !error ? <span className="text-sm text-white/65">正在加载视频…</span> : null}
+            {!source && !error ? <span className="text-sm text-white/65">Loading video…</span> : null}
             {error ? (
                 <div className="absolute inset-0 grid place-content-center justify-items-center gap-3 bg-black px-4 text-center text-sm text-white/80">
-                    <span>视频加载失败，请检查资源服务后重试。</span>
-                    <Button size="small" onClick={playback.retry}>重试</Button>
+                    <span>Video loading failed, please check the resource service and try again.</span>
+                    <Button size="small" onClick={playback.retry}>Try again</Button>
                 </div>
             ) : null}
         </div>
@@ -232,7 +232,7 @@ export function AssetDrawer({
                 <div className="space-y-4">
                     <div className="asset-archive-header">
                         <h2 className="asset-archive-title min-w-0">{asset.title}</h2>
-                        <Button type="text" className="asset-detail-close" icon={<X className="size-4" />} aria-label="关闭资产详情" onClick={onClose} />
+                        <Button type="text" className="asset-detail-close" icon={<X className="size-4" />} aria-label="Close asset details" onClick={onClose} />
                     </div>
                     <div className="asset-archive-preview">
                         {asset.kind === "text" ? (
@@ -256,8 +256,8 @@ export function AssetDrawer({
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                         {asset.arkAssetId ? (
-                            <Tag className="m-0" color="geekblue" title="火山方舟素材 ID，生成视频时可直接 asset:// 引用">
-                                方舟 {asset.arkAssetId}
+                            <Tag className="m-0" color="geekblue" title="Volcano Ark material ID, which can be directly referenced by asset:// when generating videos">
+                                                                Ark{asset.arkAssetId}
                             </Tag>
                         ) : null}
                         {model ? <Tag className="m-0">{model}</Tag> : null}
@@ -276,14 +276,14 @@ export function AssetDrawer({
                     <AssetGenerationPromptSection asset={asset} />
                     {asset.note ? (
                         <div className="asset-archive-section">
-                            <span className="asset-archive-section-title">备注</span>
+                            <span className="asset-archive-section-title">Remarks</span>
                             <p className="asset-archive-section-body">{asset.note}</p>
                         </div>
                     ) : null}
                     <div className="asset-archive-actions">
                         {asset.kind === "text" ? (
                             <Button type="primary" icon={<Copy className="size-4" />} onClick={() => onCopy(asset)}>
-                                复制文本
+                                                                copy text
                             </Button>
                         ) : null}
                         {asset.kind === "image" || asset.kind === "video" || asset.kind === "audio" || asset.kind === "model" ? (
@@ -315,14 +315,14 @@ function AssetImageZoom({ asset }: { asset: LibraryAsset & { kind: "image" } }) 
                 decoding="async"
                 className="asset-archive-preview-media asset-zoom-image"
                 style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }}
-                loadingFallback={<span className="text-sm text-white/65">正在加载图片…</span>}
-                fallback={<div className="grid justify-items-center gap-3 text-sm text-white/75"><span>图片加载失败，请重试。</span><Button size="small" onClick={() => setRetry((value) => value + 1)}>重试</Button></div>}
+                loadingFallback={<span className="text-sm text-white/65">Loading images…</span>}
+                fallback={<div className="grid justify-items-center gap-3 text-sm text-white/75"><span>Image loading failed, please try again.</span><Button size="small" onClick={() => setRetry((value) => value + 1)}>Try again</Button></div>}
             />
             <div className="asset-zoom-controls" data-canvas-no-zoom>
-                <button type="button" title="缩小" aria-label="缩小" onClick={() => setScale((value) => Math.max(.25, value / 1.25))}><ZoomOut className="size-4" /></button>
-                <button type="button" title="恢复适应" aria-label="恢复适应" onClick={reset}>{Math.round(scale * 100)}%</button>
-                <button type="button" title="放大" aria-label="放大" onClick={() => setScale((value) => Math.min(4, value * 1.25))}><ZoomIn className="size-4" /></button>
-                <button type="button" title="查看原图尺寸" aria-label="查看原图尺寸" onClick={() => setScale(1)}><Maximize2 className="size-4" /></button>
+                <button type="button" title="zoom out" aria-label="zoom out" onClick={() => setScale((value) => Math.max(.25, value / 1.25))}><ZoomOut className="size-4" /></button>
+                <button type="button" title="recovery adaptation" aria-label="recovery adaptation" onClick={reset}>{Math.round(scale * 100)}%</button>
+                <button type="button" title="Zoom in" aria-label="Zoom in" onClick={() => setScale((value) => Math.min(4, value * 1.25))}><ZoomIn className="size-4" /></button>
+                <button type="button" title="View original image size" aria-label="View original image size" onClick={() => setScale(1)}><Maximize2 className="size-4" /></button>
             </div>
         </div>
     );
@@ -330,37 +330,37 @@ function AssetImageZoom({ asset }: { asset: LibraryAsset & { kind: "image" } }) 
 
 export function assetArchiveFacts(asset: LibraryAsset) {
     const facts: Array<{ label: string; value: string }> = [
-        { label: "类型", value: assetKindLabel(asset.kind) },
-        { label: "分类", value: assetCategoryLabel(asset.category) },
+        { label: "Type", value: assetKindLabel(asset.kind) },
+        { label: "Classification", value: assetCategoryLabel(asset.category) },
     ];
     if (asset.kind === "image" || asset.kind === "video") {
-        facts.push({ label: "尺寸", value: assetSizeLabel(asset.data.width, asset.data.height) });
+        facts.push({ label: "Size", value: assetSizeLabel(asset.data.width, asset.data.height) });
     }
     if (asset.kind === "video" || asset.kind === "audio") {
-        facts.push({ label: "时长", value: formatAssetClock(asset.data.durationMs) || "未知" });
+        facts.push({ label: "duration", value: formatAssetClock(asset.data.durationMs) || "unknown" });
     }
     if (asset.kind !== "text") {
-        facts.push({ label: "大小", value: formatBytes(asset.data.bytes) });
-        facts.push({ label: "格式", value: asset.data.mimeType });
+        facts.push({ label: "size", value: formatBytes(asset.data.bytes) });
+        facts.push({ label: "Format", value: asset.data.mimeType });
     }
-    facts.push({ label: "来源", value: asset.source || "未标注" });
-    facts.push({ label: "创建", value: formatAssetDateTime(asset.createdAt) });
+    facts.push({ label: "Source", value: asset.source || "Not labeled" });
+    facts.push({ label: "Create", value: formatAssetDateTime(asset.createdAt) });
     return facts;
 }
 
 function assetSizeLabel(width: number, height: number) {
-    return width > 0 && height > 0 ? `${width}x${height}` : "未知";
+    return width > 0 && height > 0 ? `${width}x${height}` : "unknown";
 }
 
 function assetKindLabel(kind: AssetKind) {
-    return kind === "image" ? "图片" : kind === "video" ? "视频" : kind === "audio" ? "音频" : kind === "model" ? "模型" : "文本";
+    return kind === "image" ? "pictures" : kind === "video" ? "video" : kind === "audio" ? "Audio" : kind === "model" ? "model" : "text";
 }
 
 function assetDownloadLabel(asset: LibraryAsset) {
-    if (asset.kind === "video") return "下载视频";
-    if (asset.kind === "audio") return "下载音频";
-    if (asset.kind === "model") return "下载模型";
-    return "下载图片";
+    if (asset.kind === "video") return "Download video";
+    if (asset.kind === "audio") return "Download audio";
+    if (asset.kind === "model") return "Download model";
+    return "Download pictures";
 }
 
 export function formatAssetClock(durationMs?: number) {
@@ -374,5 +374,5 @@ export function formatAssetClock(durationMs?: number) {
 export function formatAssetDateTime(value: string) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleString("en-US", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }

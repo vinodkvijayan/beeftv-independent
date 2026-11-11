@@ -190,8 +190,8 @@ export function canvasNodeAssetCategory(node: CanvasNodeData): AssetCategory {
 }
 
 function canvasAssetFallbackTitle(type: CanvasNodeTypeId) {
-    if (type === CanvasNodeType.Image) return "画布图片";
-    if (type === CanvasNodeType.Video) return "画布视频";
-    if (type === CanvasNodeType.Audio) return "画布音频";
-    return "画布文本";
+    if (type === CanvasNodeType.Image) return "canvas image";
+    if (type === CanvasNodeType.Video) return "canvas video";
+    if (type === CanvasNodeType.Audio) return "canvas audio";
+    return "canvas text";
 }

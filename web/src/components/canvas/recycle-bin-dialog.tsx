@@ -72,15 +72,15 @@ export function RecycleBinDialog({ open, onClose }: { open: boolean; onClose: ()
         >
             <section className="recycle-bin-dialog" role="dialog" aria-modal="true" aria-labelledby="recycle-bin-title">
                 <header className="recycle-bin-header">
-                    <h2 id="recycle-bin-title">回收站</h2>
-                    <button ref={closeButtonRef} type="button" className="recycle-bin-close" aria-label="关闭回收站" onClick={onClose}>
+                    <h2 id="recycle-bin-title">recycle bin</h2>
+                    <button ref={closeButtonRef} type="button" className="recycle-bin-close" aria-label="Close recycle bin" onClick={onClose}>
                         <X />
                     </button>
                 </header>
 
                 <div className="recycle-bin-viewport">
                     {deletedProjects.length === 0 ? (
-                        <div className="recycle-bin-empty">回收站是空的</div>
+                        <div className="recycle-bin-empty">Recycle Bin is empty</div>
                     ) : (
                         <div className="recycle-bin-grid">
                             {deletedProjects.map((item) => {
@@ -92,12 +92,12 @@ export function RecycleBinDialog({ open, onClose }: { open: boolean; onClose: ()
                                                 type="checkbox"
                                                 checked={checked}
                                                 onChange={(event) => setSelectedDeleted((current) => (event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id)))}
-                                                aria-label={`选择 ${item.title || "未命名项目"}`}
+                                                aria-label={`Select${item.title || "Unnamed project"}`}
                                             />
                                         </label>
                                         <div className="recycle-bin-preview">{item.project ? <ProjectPreview project={item.project} emptyVariant="libtv" /> : <div className="canvas-project-empty is-libtv size-full" />}</div>
                                         <div className="recycle-bin-card-body">
-                                            <h3>{item.title || "未命名项目"}</h3>
+                                            <h3>{item.title || "Unnamed project"}</h3>
                                             <time>{formatTimelineDate(item.deletedAt || item.updatedAt)}</time>
                                         </div>
                                     </article>
@@ -109,16 +109,16 @@ export function RecycleBinDialog({ open, onClose }: { open: boolean; onClose: ()
 
                 <footer className="recycle-bin-footer">
                     <label className="recycle-bin-select-all">
-                        <input type="checkbox" aria-label="全选回收站项目" disabled={!allDeletedProjectIds.length} checked={allDeletedSelected} onChange={(event) => setSelectedDeleted(event.target.checked ? allDeletedProjectIds : [])} />
-                        <span>全选</span>
-                        {selectedDeleted.length ? <span className="recycle-bin-selected-count">已选择 {selectedDeleted.length} 项</span> : null}
+                        <input type="checkbox" aria-label="Select all recycle bin items" disabled={!allDeletedProjectIds.length} checked={allDeletedSelected} onChange={(event) => setSelectedDeleted(event.target.checked ? allDeletedProjectIds : [])} />
+                        <span>Select all</span>
+                        {selectedDeleted.length ? <span className="recycle-bin-selected-count">Selected{selectedDeleted.length}  item</span> : null}
                     </label>
                     <div className="recycle-bin-actions">
                         <Button danger disabled={!selectedDeleted.length} icon={<Trash2 className="size-4" />} onClick={() => setDeleteConfirmationOpen(true)}>
-                            彻底删除
+                                                        Delete completely
                         </Button>
-                        <Button disabled={!selectedDeleted.length} icon={<RotateCcw className="size-4" />} onClick={() => void restoreSelectedProjects()} aria-label="恢复到项目列表">
-                            恢复
+                        <Button disabled={!selectedDeleted.length} icon={<RotateCcw className="size-4" />} onClick={() => void restoreSelectedProjects()} aria-label="Revert to project list">
+                                                        restore
                         </Button>
                     </div>
                 </footer>
@@ -131,10 +131,10 @@ export function RecycleBinDialog({ open, onClose }: { open: boolean; onClose: ()
                         }}
                     >
                         <div className="recycle-delete-confirm" role="alertdialog" aria-modal="true" aria-labelledby="recycle-delete-title" aria-describedby="recycle-delete-description">
-                            <h3 id="recycle-delete-title">确认彻底删除？</h3>
-                            <p id="recycle-delete-description">将永久删除已选择的 {selectedDeleted.length} 个项目，删除后无法恢复。</p>
+                            <h3 id="recycle-delete-title">Confirm complete deletion?</h3>
+                            <p id="recycle-delete-description">The selected{selectedDeleted.length}  Items cannot be recovered after being deleted.</p>
                             <div className="recycle-delete-confirm-actions">
-                                <Button onClick={() => setDeleteConfirmationOpen(false)}>取消</Button>
+                                <Button onClick={() => setDeleteConfirmationOpen(false)}>Cancel</Button>
                                 <Button
                                     danger
                                     type="primary"
@@ -143,8 +143,7 @@ export function RecycleBinDialog({ open, onClose }: { open: boolean; onClose: ()
                                         setDeleteConfirmationOpen(false);
                                     }}
                                 >
-                                    确认删除
-                                </Button>
+                                                                        Confirm deletion</Button>
                             </div>
                         </div>
                     </div>

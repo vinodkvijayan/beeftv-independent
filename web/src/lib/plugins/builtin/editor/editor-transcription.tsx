@@ -84,7 +84,7 @@ export function EditorTranscription() {
         const resourceId = resourceIdOfAsset(selected);
         if (!resourceId) {
             setFailed(true);
-            setMessage("该素材没有可转写的媒体对象（缺少 storageKey）");
+            setMessage("The material has no media objects to transcribe (storageKey is missing)");
             return;
         }
         runningRef.current = true;
@@ -101,7 +101,7 @@ export function EditorTranscription() {
         setRunning(true);
         setFailed(false);
         setMessage(null);
-        setProgressLabel("排队中…");
+        setProgressLabel("Queuing up…");
         try {
             const session = beginLocalExecutorSession(originalProjectId, {
                 controller: observer,
@@ -127,16 +127,16 @@ export function EditorTranscription() {
             const entries = toSrtEntries(result.segments ?? []);
             await attachLocalExecutorResult(session, () => {
                 if (entries.length === 0) {
-                    setMessage("转写完成，但没有识别出可用字幕（语音内容为空？）");
+                    setMessage("Transcription is completed, but no available subtitles are recognized (the voice content is empty?)");
                 } else if (!originalTrackId) {
-                    setMessage("项目没有字幕轨道，无法写入转写字幕");
+                    setMessage("The project has no subtitle track and cannot write transcribed subtitles");
                 } else {
                     originalDispatch({
                         op: "rebuildSubtitleClips",
                         payload: { nodeId: `transcription:${originalSelectedId}`, entries, trackId: originalTrackId },
                     });
                     const langHint = result.language ? `（${result.language}）` : "";
-                    setMessage(`已写入 ${entries.length} 条转写字幕${langHint}`);
+                    setMessage(`has been written${entries.length} subtitles${langHint}`);
                 }
                 setProgressLabel(null);
             });
@@ -150,7 +150,7 @@ export function EditorTranscription() {
             }
             submitIntentRef.current = localExecutorIntentAfterError(submitIntentRef.current ?? { clientOperationId, frozenInputKey }, err);
             setFailed(true);
-            setMessage(err instanceof Error ? err.message : "转写失败，请稍后重试");
+            setMessage(err instanceof Error ? err.message : "Transcription failed, please try again later");
             setProgressLabel(null);
         } finally {
             runningRef.current = false;
@@ -164,13 +164,13 @@ export function EditorTranscription() {
                 {transcribableAssets.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
                         <AudioLines className="size-5 text-[var(--director-dock-fg)]/40" />
-                        <p className="text-xs text-[var(--director-dock-fg)]/60">项目暂无音视频素材</p>
-                        <p className="max-w-[200px] text-[11px] leading-relaxed text-[var(--director-dock-fg)]/45">素材库加入音频或视频后可转写自动字幕</p>
+                        <p className="text-xs text-[var(--director-dock-fg)]/60">There is currently no audio and video material for the project</p>
+                        <p className="max-w-[200px] text-[11px] leading-relaxed text-[var(--director-dock-fg)]/45">After adding audio or video to the material library, automatic subtitles can be transcribed</p>
                     </div>
                 ) : (
                     <>
                         <label className="mb-2 block">
-                            <span className="mb-1 block text-[11px] text-[var(--director-dock-fg)]/70">音视频素材</span>
+                            <span className="mb-1 block text-[11px] text-[var(--director-dock-fg)]/70">Audio and video materials</span>
                             <select
                                 value={selectedId ?? ""}
                                 onChange={(e) => setSelectedId(e.target.value)}
@@ -191,7 +191,7 @@ export function EditorTranscription() {
                             className="flex w-full items-center justify-center gap-2 rounded-md bg-[var(--director-accent)] px-2 py-1.5 text-xs font-medium text-[var(--director-on-accent)] hover:bg-[var(--director-accent-hover)] disabled:opacity-40"
                         >
                             {running && <Loader2 className="size-3.5 animate-spin" />}
-                            {running ? "转写中…" : "转写自动字幕"}
+                            {running ? "Transcribing…" : "Transcribe automatic subtitles"}
                         </button>
 
                         {running && progressLabel && (
@@ -203,7 +203,7 @@ export function EditorTranscription() {
                             </p>
                         )}
                         <p className="mt-2 text-[11px] leading-relaxed text-[var(--director-dock-fg)]/45">
-                            由本地 whisper.cpp 识别，音视频不出本机；识别结果写入字幕轨道，可再编辑。
+                                                        It is recognized by the local whisper.cpp, and the audio and video are not exported from the machine; the recognition result is written to the subtitle track and can be edited again.
                         </p>
                     </>
                 )}

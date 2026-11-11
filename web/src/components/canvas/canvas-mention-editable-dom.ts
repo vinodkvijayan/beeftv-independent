@@ -105,7 +105,7 @@ export function createInlineMentionChip(reference: CanvasResourceReference, toke
     chip.dataset.mentionToken = token;
     chip.dataset.mentionReferenceId = reference.id;
     chip.className = `canvas-resource-inline-mention ${reference.kind === "skill" ? "is-skill" : reference.kind === "text" ? "is-node" : ""}`;
-    chip.title = `${canvasResourceDisplayName(reference)} · 双击放大预览`;
+    chip.title = `${canvasResourceDisplayName(reference)} · Double-click to enlarge preview`;
     if (reference.kind === "skill") chip.style.setProperty("--canvas-skill-mention-color", skillMentionColor(reference));
 
     const prefix = document.createElement("span");
@@ -439,6 +439,6 @@ export function syncInlineMentionPreviews(editor: HTMLElement, references: Canva
         const label = chip.querySelector(".canvas-resource-inline-label");
         const displayName = canvasResourceDisplayName(reference);
         if (label && label.textContent !== displayName) label.textContent = displayName;
-        chip.title = `${displayName} · 双击放大预览`;
+        chip.title = `${displayName} · Double-click to enlarge preview`;
     });
 }

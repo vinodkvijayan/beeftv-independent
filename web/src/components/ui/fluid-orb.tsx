@@ -116,11 +116,11 @@ export function FluidOrb({ size = 56, color = "#6d5dfc", className }: FluidOrbPr
 
         const compile = (type: number, source: string) => {
             const shader = gl.createShader(type);
-            if (!shader) throw new Error("无法创建 Fluid Orb shader");
+            if (!shader) throw new Error("Unable to create Fluid Orb shader");
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                const detail = gl.getShaderInfoLog(shader) || "未知 shader 错误";
+                const detail = gl.getShaderInfoLog(shader) || "Unknown shader error";
                 gl.deleteShader(shader);
                 throw new Error(detail);
             }
@@ -137,11 +137,11 @@ export function FluidOrb({ size = 56, color = "#6d5dfc", className }: FluidOrbPr
             vertexShader = compile(gl.VERTEX_SHADER, VERTEX_SHADER);
             fragmentShader = compile(gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
             program = gl.createProgram();
-            if (!program) throw new Error("无法创建 Fluid Orb program");
+            if (!program) throw new Error("Unable to create Fluid Orb program");
             gl.attachShader(program, vertexShader);
             gl.attachShader(program, fragmentShader);
             gl.linkProgram(program);
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "Fluid Orb link 失败");
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "Fluid Orb link failed");
             gl.useProgram(program);
 
             buffer = gl.createBuffer();
@@ -180,7 +180,7 @@ export function FluidOrb({ size = 56, color = "#6d5dfc", className }: FluidOrbPr
             removeMotionListener = () => motionPreference.removeEventListener("change", updateMotion);
             frame = window.requestAnimationFrame(render);
         } catch (error) {
-            console.warn("Fluid Orb WebGL 初始化失败，已切换为 CSS 降级效果", error);
+            console.warn("Fluid Orb WebGL initialization failed and has been switched to CSS degradation effect", error);
             setFallback(true);
         }
 

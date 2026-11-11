@@ -47,7 +47,7 @@ export function CanvasActiveTaskPanel({ tasks, align = "right", topInset = "var(
                         layout
                         className="pointer-events-auto overflow-hidden rounded-[var(--panel-radius)] border backdrop-blur-2xl"
                         style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border, color: theme.node.text, boxShadow: `0 24px 72px ${theme.spatial.shadow}` }}
-                        aria-label="当前画布生成任务"
+                        aria-label="Current canvas generation task"
                     >
                         <motion.button
                             type="button"
@@ -62,9 +62,9 @@ export function CanvasActiveTaskPanel({ tasks, align = "right", topInset = "var(
                                     <ListTodo className="size-4" />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block text-sm font-semibold leading-5">生成任务</span>
+                                    <span className="block text-sm font-semibold leading-5">Generate tasks</span>
                                     <span className="block truncate text-[var(--fs-label)]" style={{ color: theme.node.muted }} aria-live="polite">
-                                        当前画布 · {tasks.length} 个进行中
+                                                                                Current canvas ·{tasks.length}  in progress
                                     </span>
                                 </span>
                             </span>
@@ -128,7 +128,7 @@ function ActiveTaskCard({
     const progress = showsProgress && typeof task.progress === "number" ? Math.max(0, Math.min(100, Math.round(task.progress))) : showsProgress && task.status === "queued" ? 0 : undefined;
     const startedAt = task.startedAt || task.createdAt;
     const elapsedMs = Math.max(0, now - parseTime(startedAt));
-    const durationLabel = `${task.status === "queued" ? "已等待" : "已运行"} ${formatDuration(elapsedMs)}`;
+    const durationLabel = `${task.status === "queued" ? "Already waiting" : "Already run"} ${formatDuration(elapsedMs)}`;
     const statusTone = task.status === "running" ? theme.accent.primary : theme.node.muted;
     const transition = reducedMotion ? { duration: 0 } : aceternityMotion.spring.panel;
 
@@ -206,7 +206,7 @@ function ActiveTaskCard({
                         style={{ borderColor: theme.toolbar.border, color: theme.node.muted }}
                     >
                         <div className="flex items-center justify-between gap-2">
-                            <span>当前阶段</span>
+                            <span>current stage</span>
                             <span className="max-w-[200px] truncate text-right" style={{ color: theme.node.text }}>
                                 {generationTaskStageLabel(task)}
                             </span>
@@ -223,7 +223,7 @@ function ActiveTaskCard({
                                 onMouseDown={(event) => event.stopPropagation()}
                             >
                                 <XCircle className="size-3" />
-                                取消任务
+                                                                Cancel task
                             </button>
                         ) : null}
                     </motion.div>

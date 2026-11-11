@@ -84,8 +84,8 @@ export function CanvasFolderCard({ project, projectName, folders = [], onMoveToF
         const file = event.target.files?.[0];
         event.target.value = "";
         if (!file) return;
-        if (!file.type.startsWith("image/")) { message.error("封面请选择图片文件"); return; }
-        if (file.size > 12 * 1024 * 1024) { message.error("封面图片不能超过 12 MB"); return; }
+        if (!file.type.startsWith("image/")) { message.error("Please select an image file for cover"); return; }
+        if (file.size > 12 * 1024 * 1024) { message.error("Cover image cannot exceed 12 MB"); return; }
         const reader = new FileReader();
         reader.onload = () => {
             const image = new Image();
@@ -105,7 +105,7 @@ export function CanvasFolderCard({ project, projectName, folders = [], onMoveToF
                     .catch(() => {
                         try { localStorage.setItem(coverKey, dataUrl); } catch { /* quota */ }
                     });
-                message.success("项目封面已更新");
+                message.success("Project cover has been updated");
             };
             image.src = String(reader.result);
         };
@@ -120,12 +120,12 @@ export function CanvasFolderCard({ project, projectName, folders = [], onMoveToF
             renameProject(project.id, editingTitle);
             await flushCanvasStorePersistence();
             if (hasRemoteUserDataSyncSession()) await saveRemoteUserDataNow();
-        } catch (error) { message.error(error instanceof Error ? error.message : "重命名失败"); }
+        } catch (error) { message.error(error instanceof Error ? error.message : "Rename failed"); }
     };
 
     return (
         <LibraryCardShell
-            ariaLabel={`打开画布 ${project.title}`}
+            ariaLabel={`open canvas${project.title}`}
             onboardingProjectId={project.id}
             className={cn("canvas-collection-card", selected && "is-selected", editing && "is-editing", opening && "is-opening")}
             updatedAt={project.updatedAt}
@@ -138,7 +138,7 @@ export function CanvasFolderCard({ project, projectName, folders = [], onMoveToF
                 <div className="canvas-collection-preview-content">
                     <ProjectPreview project={{ id: project.id, nodes: project.previewNodes }} emptyVariant="libtv" />
                     {coverUrl ? <img className="canvas-collection-custom-cover" src={coverUrl} alt="" /> : null}
-                    {opening ? <div className="canvas-collection-opening"><LoaderCircle className="size-5 animate-spin" /><span>正在打开</span></div> : null}
+                    {opening ? <div className="canvas-collection-opening"><LoaderCircle className="size-5 animate-spin" /><span>Opening</span></div> : null}
                 </div>
             }
             title={editing ? (
@@ -161,7 +161,7 @@ export function CanvasFolderCard({ project, projectName, folders = [], onMoveToF
                     type="checkbox"
                     checked={selected}
                     onChange={(event) => toggleSelected(project.id, event.target.checked)}
-                    aria-label={`选择 ${project.title}`}
+                    aria-label={`Select${project.title}`}
                 />
                 </span>
 
@@ -173,18 +173,18 @@ export function CanvasFolderCard({ project, projectName, folders = [], onMoveToF
                     menu={{
                         onClick: ({ domEvent }) => domEvent.stopPropagation(),
                         items: [
-                            { key: "open", label: "打开", onClick: onClick },
-                            { key: "rename", label: "重命名", onClick: () => startEditing(project.id, project.title) },
-                            { key: "cover", label: "修改封面", onClick: () => coverInputRef.current?.click() },
-                            { key: "duplicate", label: "创建副本", onClick: () => void onDuplicate?.() },
-                            ...(onExport ? [{ key: "export", label: "导出项目", onClick: () => void onExport() }] : []),
-                            { key: "move", label: "移动至文件夹", children: [{ key: "root", label: "未分类", onClick: () => onMoveToFolder?.(undefined) }, ...folders.map((folder) => ({ key: folder.id, label: folder.name, onClick: () => onMoveToFolder?.(folder.id) }))] },
+                            { key: "open", label: "Open", onClick: onClick },
+                            { key: "rename", label: "Rename", onClick: () => startEditing(project.id, project.title) },
+                            { key: "cover", label: "Modify cover", onClick: () => coverInputRef.current?.click() },
+                            { key: "duplicate", label: "Create a copy", onClick: () => void onDuplicate?.() },
+                            ...(onExport ? [{ key: "export", label: "Export project", onClick: () => void onExport() }] : []),
+                            { key: "move", label: "Move to folder", children: [{ key: "root", label: "Uncategorized", onClick: () => onMoveToFolder?.(undefined) }, ...folders.map((folder) => ({ key: folder.id, label: folder.name, onClick: () => onMoveToFolder?.(folder.id) }))] },
                             { type: "divider" },
-                            { key: "delete", danger: true, label: "删除项目", onClick: () => onDelete?.() },
+                            { key: "delete", danger: true, label: "Delete project", onClick: () => onDelete?.() },
                         ],
                     }}
                 >
-                    <button type="button" className="product-icon-button canvas-collection-more" aria-label={`${project.title} 画布操作`} title="更多操作" onClick={(event) => event.stopPropagation()}>
+                    <button type="button" className="product-icon-button canvas-collection-more" aria-label={`${project.title} Canvas operations`} title="More actions" onClick={(event) => event.stopPropagation()}>
                         <MoreHorizontal />
                     </button>
                 </Dropdown>

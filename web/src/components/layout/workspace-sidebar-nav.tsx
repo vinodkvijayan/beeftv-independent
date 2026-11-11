@@ -48,18 +48,18 @@ function buildNav(features: FeatureAvailability): { groups: WorkspaceNavGroup[];
     const groups: WorkspaceNavGroup[] = [
         {
             items: [
-                { id: "new", title: "新建项目", icon: Plus, to: "/canvas?mode=new" },
+                { id: "new", title: "New project", icon: Plus, to: "/canvas?mode=new" },
             ],
         },
         {
             items: [
-                { id: "home", title: "首页", icon: Home, to: "/" },
-                { ...toolItem("canvas", "/project"), title: "项目" },
-                { ...toolItem("assets", "/assets"), title: "资产" },
-                { ...toolItem("skills", "/skills"), title: "技能" },
-                ...(features.pluginCenterEnabled ? [{ ...toolItem("plugins", "/plugins"), title: "插件" }] : []),
-                { id: "settings:channels", title: "模型配置", icon: Settings2, to: "/settings?section=channels" },
-                { id: "settings:storage", title: "存储设置", icon: HardDrive, to: "/settings?section=storage" },
+                { id: "home", title: "Home page", icon: Home, to: "/" },
+                { ...toolItem("canvas", "/project"), title: "Project" },
+                { ...toolItem("assets", "/assets"), title: "assets" },
+                { ...toolItem("skills", "/skills"), title: "Skills" },
+                ...(features.pluginCenterEnabled ? [{ ...toolItem("plugins", "/plugins"), title: "plug-in" }] : []),
+                { id: "settings:channels", title: "Model configuration", icon: Settings2, to: "/settings?section=channels" },
+                { id: "settings:storage", title: "Save settings", icon: HardDrive, to: "/settings?section=storage" },
                 { id: "agents", title: "BeefTV MCP", icon: Plug, to: "/agents" },
             ],
         },
@@ -76,7 +76,7 @@ function WorkspaceSwitcher({ collapsed, onNavigate, onExpand, onCollapse }: { co
     if (collapsed) {
         return (
             <div className="app-workspace-sidebar-rail-header shrink-0">
-                <button type="button" className="app-workspace-sidebar-rail-button" aria-label="展开侧栏菜单" title="展开侧栏菜单" onClick={onExpand}>
+                <button type="button" className="app-workspace-sidebar-rail-button" aria-label="Expand sidebar menu" title="Expand sidebar menu" onClick={onExpand}>
                     <ChevronRight className="size-4" strokeWidth={1.7} />
                 </button>
             </div>
@@ -85,7 +85,7 @@ function WorkspaceSwitcher({ collapsed, onNavigate, onExpand, onCollapse }: { co
 
     return (
         <div className="app-workspace-sidebar-brand-row relative shrink-0 px-3 pt-3">
-            <Link to="/" onClick={onNavigate} className="app-workspace-sidebar-brand-button group" aria-label={`${appearance.brandName}首页`}>
+            <Link to="/" onClick={onNavigate} className="app-workspace-sidebar-brand-button group" aria-label={`${appearance.brandName}Home page`}>
                 <span className="flex min-w-0 items-center gap-2">
                     <BrandLogoFrame className="app-workspace-brand-mark grid size-8 shrink-0 place-items-center rounded-[var(--r-sm)] shadow-sm" logoClassName="size-5 object-contain" alt="" fallback={<span className="app-workspace-brand-placeholder" aria-hidden>B</span>} />
                     <span className="flex min-w-0">
@@ -93,7 +93,7 @@ function WorkspaceSwitcher({ collapsed, onNavigate, onExpand, onCollapse }: { co
                     </span>
                 </span>
             </Link>
-            <button type="button" className="app-workspace-sidebar-collapse-button" aria-label="收起侧栏" title="收起侧栏" onClick={onCollapse}>
+            <button type="button" className="app-workspace-sidebar-collapse-button" aria-label="Collapse sidebar" title="Collapse sidebar" onClick={onCollapse}>
                 <ChevronLeft className="size-4" strokeWidth={1.7} />
             </button>
         </div>
@@ -141,7 +141,7 @@ function NavItem({
                 {!collapsed ? <span className="app-workspace-nav-title truncate">{item.title}</span> : null}
             </span>
             <span className="app-workspace-nav-meta flex shrink-0 items-center gap-2">
-                {item.disabled && !collapsed ? <span className="text-[var(--fs-micro)] font-normal text-foreground/35">正在开发</span> : null}
+                {item.disabled && !collapsed ? <span className="text-[var(--fs-micro)] font-normal text-foreground/35">Under development</span> : null}
                 {item.shortcut ? (
                     <Kbd className="hidden group-hover:inline-flex">{item.shortcut}</Kbd>
                 ) : null}
@@ -179,7 +179,7 @@ function NavItem({
 
     // 局部 const：闭包内 TS 保留窄化，供 preload 回调使用。
     const linkTo = item.to;
-    const disabledLabel = item.disabled ? `${item.title}：正在开发` : undefined;
+    const disabledLabel = item.disabled ? `${item.title}: Under development` : undefined;
 
     return (
         <div className="flex w-full flex-col">
@@ -336,7 +336,7 @@ export function WorkspaceSidebarNav({ collapsed, onNavigate, onOpenSearch, onExp
                 <WorkspaceSidebarSocialLinks collapsed={collapsed} onExpand={onExpand} />
                 <div className={cn("app-workspace-sidebar-utility-row", collapsed && "is-collapsed")}>
                     <WorkspaceSidebarUpdate collapsed={collapsed} leading={<WorkspaceSidebarAccount collapsed={collapsed} />} />
-                    <AnimatedThemeToggler theme={theme} onThemeChange={setTheme} aria-label={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"} title={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"} className="app-workspace-theme-action">
+                    <AnimatedThemeToggler theme={theme} onThemeChange={setTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} className="app-workspace-theme-action">
                         {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
                     </AnimatedThemeToggler>
                 </div>

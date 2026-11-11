@@ -134,7 +134,7 @@ export async function getCanvasDocumentLimitMB(): Promise<number> {
 export async function updateCanvasDocumentLimitMB(canvasDocumentMB: number): Promise<number> {
     const normalized = Math.trunc(canvasDocumentMB);
     if (!Number.isFinite(normalized) || normalized < 0 || normalized > MAX_CANVAS_DOCUMENT_LIMIT_MB) {
-        throw new Error(`单画布容量上限请填写 0（不限制）或 1–${MAX_CANVAS_DOCUMENT_LIMIT_MB} 之间的整数（MB）`);
+        throw new Error(`For the maximum capacity of a single canvas, please enter 0 (no limit) or 1–${MAX_CANVAS_DOCUMENT_LIMIT_MB} Integer between (MB)`);
     }
     const data = await http.patch<{ canvasDocumentMB?: number }>("/resources/storage-usage", { canvasDocumentMB: normalized });
     const persisted = typeof data?.canvasDocumentMB === "number" ? data.canvasDocumentMB : normalized;
@@ -206,7 +206,7 @@ export async function uploadResourceFile(
     onProgress?: (uploadedBytes: number, totalBytes: number) => void,
 ): Promise<RemoteResource> {
     const name = meta?.fileName || (file instanceof File ? file.name : `${kind}.${extensionFromMime(file.type, kind)}`);
-    const progress = startOperation(name, { totalBytes: file.size, detail: isLocalRuntimeMode() ? "正在保存到本地资源目录" : "正在准备上传" });
+    const progress = startOperation(name, { totalBytes: file.size, detail: isLocalRuntimeMode() ? "Saving to local resource directory" : "Preparing to upload" });
     const report = (loaded: number, total: number) => { progress.progress(loaded, total); onProgress?.(loaded, total); };
     // 分片与 multipart 两条路径的失败都要归一成 ResourceUploadError，
     // 否则调用方只能靠文案猜测该重试还是该报错。
@@ -214,7 +214,7 @@ export async function uploadResourceFile(
         if (file.size > CHUNK_UPLOAD_THRESHOLD) {
             const resource = await uploadFileInChunks(file, name, kind, meta, report);
             rememberResource(resource);
-            progress.done("文件已确认并保存");
+            progress.done("File confirmed and saved");
             return resource;
         }
         const formData = new FormData();
@@ -231,11 +231,11 @@ export async function uploadResourceFile(
             },
         });
         rememberResource(data.resource);
-        progress.done("文件已确认并保存");
+        progress.done("File confirmed and saved");
         return data.resource;
     } catch (error) {
         
-        progress.fail("文件保存未完成，请查看上传提示后重试");
+        progress.fail("The file saving is not completed, please check the upload prompt and try again.");
         throw normalizeUploadError(error);
     }
 }
@@ -253,14 +253,14 @@ async function uploadFileInChunks(file: Blob, name: string, kind: "image" | "vid
             await prepareChunkRetry(error);
         }
     }
-    throw new Error("上传失败");
+    throw new Error("Upload failed");
 }
 
 async function runChunkedUpload(file: Blob, name: string, kind: "image" | "video" | "audio" | "file", meta: ResourceUploadMeta | undefined, onProgress?: (uploadedBytes: number, totalBytes: number) => void) {
     const session = await http.post<{ uploadId: string; chunkSize: number; chunkCount: number; received?: number[] }>("/resources/uploads", { fileName: name, kind, size: file.size, width: meta?.width, height: meta?.height, durationMs: meta?.durationMs }, uploadConfig(meta?.idempotencyKey));
     const received = new Set(session.received ?? []);
     if (!session.uploadId || !Number.isSafeInteger(session.chunkSize) || session.chunkSize <= 0 || session.chunkCount !== Math.ceil(file.size / session.chunkSize) || [...received].some((index) => !Number.isInteger(index) || index < 0 || index >= session.chunkCount)) {
-        throw new ResourceUploadError("上传分片回执无效", { permanent: true });
+        throw new ResourceUploadError("Invalid upload fragment receipt", { permanent: true });
     }
     let uploaded = [...received].reduce((total, index) => total + Math.min(session.chunkSize, file.size - index * session.chunkSize), 0);
     if (uploaded > 0) onProgress?.(uploaded, file.size);
@@ -304,12 +304,12 @@ function normalizeUploadError(error: unknown): ResourceUploadError {
         const permanent = status !== undefined && !error.retryable;
         // 即使误超 50MB multipart 上限（后端 http.MaxBytesError），也给出可读中文而非英文裸错。
         if (status === 400 && /body too large|MaxBytes/i.test(error.message)) {
-            return new ResourceUploadError("文件过大，请使用小于 50MB 的文件或稍后重试", { status, permanent: true, cause: error });
+            return new ResourceUploadError("File too large, please use a file smaller than 50MB or try again later", { status, permanent: true, cause: error });
         }
-        if (status === 413) return new ResourceUploadError("文件过大，无法上传", { status, permanent: true, cause: error });
-        return new ResourceUploadError(error.message || "上传失败", { status, permanent, cause: error });
+        if (status === 413) return new ResourceUploadError("File is too large and cannot be uploaded", { status, permanent: true, cause: error });
+        return new ResourceUploadError(error.message || "Upload failed", { status, permanent, cause: error });
     }
-    return new ResourceUploadError(error instanceof Error ? error.message : "上传失败", { permanent: false, cause: error });
+    return new ResourceUploadError(error instanceof Error ? error.message : "Upload failed", { permanent: false, cause: error });
 }
 
 export async function importResourceFromUrl(url: string, kind: "image" | "video" | "audio" | "file", meta?: Omit<ResourceUploadMeta, "fileName">) {
@@ -342,7 +342,7 @@ export function getResource(id: string, config?: HttpRequestConfig): Promise<Rem
     const cached = resourceCache.get(cacheKey);
     const ensureMetadata = config?.params?.metadata === "ensure";
     if (cached && !ensureMetadata) return Promise.resolve(cached);
-    if (missingResourceIds.has(cacheKey)) return Promise.reject(new Error("资源不存在或已被删除"));
+    if (missingResourceIds.has(cacheKey)) return Promise.reject(new Error("The resource does not exist or has been deleted"));
     const sharePending = !config?.signal && !ensureMetadata;
     if (sharePending) {
         const pending = resourceRequests.get(cacheKey);
@@ -380,16 +380,16 @@ export function refreshResource(id: string, config?: HttpRequestConfig): Promise
 
 export async function getResourceOSSUrl(storageKey?: string) {
     if (isLocalRuntimeMode()) {
-        throw new Error("本地素材不会上传到对象存储；当前视频渠道要求公网 URL，请改用支持本地素材的渠道或直接提供公网素材地址");
+        throw new Error("Local materials will not be uploaded to object storage; the current video channel requires a public network URL. Please use a channel that supports local materials instead or directly provide the public network material address.");
     }
     const id = resourceIdFromStorageKey(storageKey);
-    if (!id) throw new Error("当前媒体尚未上传到后端资源存储");
+    if (!id) throw new Error("The current media has not yet been uploaded to the backend resource storage");
     try {
         const data = await http.get<{ url: string }>(`/resources/${encodeURIComponent(id)}/oss-url`);
-        if (!data.url) throw new Error("后端未返回对象存储地址");
+        if (!data.url) throw new Error("The backend did not return the object storage address");
         return data.url;
     } catch (error) {
-        if (error instanceof ApiError) throw new Error(error.message || "获取对象存储地址失败");
+        if (error instanceof ApiError) throw new Error(error.message || "Failed to obtain object storage address");
         throw error;
     }
 }

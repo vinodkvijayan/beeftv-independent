@@ -8,7 +8,7 @@ export const DEFAULT_PUBLIC_APPEARANCE: PublicAppearance = {
     schemaVersion: 7,
     brandName: "BeefTV",
     brandSlug: "beeftv",
-    authHeroTitle: "让一个故事，\n从文字走向银幕。",
+    authHeroTitle: "Let a story\nFrom text to screen.",
     authHeroDescription: "",
     logoUrl: "/beef-logo.png",
     darkLogoUrl: "/beef-logo.png",
@@ -19,7 +19,7 @@ export const DEFAULT_PUBLIC_APPEARANCE: PublicAppearance = {
     skinId: "classic",
     activeSkin: DEFAULT_CLASSIC_SKIN,
     seoTitle: "BeefTV",
-    seoDescription: "BeefTV，本地优先的开源 AI 视频创作工作台。",
+    seoDescription: "BeefTV, a local-first open source AI video creation workbench.",
     seoKeywords: "",
     footerCopyright: `© ${new Date().getFullYear()} BeefTV. Open source video studio.`,
     icpFilingEnabled: false,
@@ -56,7 +56,7 @@ export function normalizePublicAppearance(value?: Partial<PublicAppearance> | nu
     const darkLogoUrl = customDarkLogo ? safeAppearanceURL(value?.darkLogoUrl, logoUrl) : customLogo ? logoUrl : DEFAULT_PUBLIC_APPEARANCE.darkLogoUrl;
     const resolvedBrandName = brandName || DEFAULT_PUBLIC_APPEARANCE.brandName;
     const seoTitle = normalizeAppearanceCopy(value?.seoTitle, resolvedBrandName);
-    const seoDescription = normalizeAppearanceCopy(value?.seoDescription, `${resolvedBrandName}，面向 AI 影视与短剧创作的工作台。`, true);
+    const seoDescription = normalizeAppearanceCopy(value?.seoDescription, `${resolvedBrandName}, a workbench for AI film, television and short drama creation.`, true);
     const seoKeywords = normalizeAppearanceCopy(value?.seoKeywords, "", true);
     const footerCopyright = normalizeAppearanceCopy(value?.footerCopyright, `© ${new Date().getFullYear()} ${resolvedBrandName}. All rights reserved.`);
     const icpFilingNumber = normalizeAppearanceCopy(value?.icpFilingNumber, "", true);

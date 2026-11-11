@@ -12,9 +12,9 @@ export function creationConflictPreview(conversation: { title?: string; messages
     const lastUser = [...messages].reverse().find((item) => item.role === "user" && String(item.content || "").trim());
     const excerpt = String(lastUser?.content || "").trim().replace(/\s+/g, " ");
     return {
-        title: String(conversation?.title || "").trim() || "未命名对话",
+        title: String(conversation?.title || "").trim() || "Unnamed conversation",
         messageCount: messages.length,
-        excerpt: excerpt ? (excerpt.length > 42 ? `${excerpt.slice(0, 41)}…` : excerpt) : "还没有文字",
+        excerpt: excerpt ? (excerpt.length > 42 ? `${excerpt.slice(0, 41)}…` : excerpt) : "No text yet",
     };
 }
 
@@ -32,19 +32,19 @@ export function CreationConflictBanner({
     if (parked) {
         return (
             <div className="creation-conflict-banner" role="status">
-                <p>已改为已保存的版本。刚才的草稿还在，可以再换回来。</p>
+                <p>Changed to saved version. The draft just now is still there, you can change it back again.</p>
                 <div className="creation-conflict-banner-actions">
-                    <button type="button" onClick={onRestoreParked}>恢复刚才的草稿</button>
+                    <button type="button" onClick={onRestoreParked}>Restore the previous draft</button>
                 </div>
             </div>
         );
     }
     return (
         <div className="creation-conflict-banner" role="status">
-            <p>这份对话和已保存的版本不一样。先看两边，再决定用哪一份。</p>
+            <p>This conversation is different from the saved version. Look at both sides before deciding which one to use.</p>
             <div className="creation-conflict-banner-actions">
-                <button type="button" onClick={onReview}>查看两边</button>
-                <button type="button" onClick={onUseSaved}>用已保存的版本</button>
+                <button type="button" onClick={onReview}>look both sides</button>
+                <button type="button" onClick={onUseSaved}>Use saved version</button>
             </div>
         </div>
     );
@@ -70,7 +70,7 @@ export function CreationConflictDialog({
     return (
         <AppModal
             open={open}
-            title="有两个版本"
+            title="There are two versions"
             onCancel={onClose}
             footer={null}
             centered
@@ -78,25 +78,25 @@ export function CreationConflictDialog({
             className="creation-conflict-modal"
         >
             <div className="creation-conflict-dialog">
-                <p className="creation-conflict-lead">先看两边的标题和最近一句。用已保存的版本时，这份草稿会留下来，之后还能换回来。</p>
+                <p className="creation-conflict-lead">First look at the title on both sides and the most recent sentence. When working with a saved version, the draft remains and can be changed back later.</p>
                 <div className="creation-conflict-cards">
                     <section className="creation-conflict-card">
-                        <h3>这份草稿</h3>
+                        <h3>this draft</h3>
                         <p className="creation-conflict-title">{localPreview.title}</p>
-                        <p>{localPreview.messageCount} 条消息</p>
+                        <p>{localPreview.messageCount}  messages</p>
                         <p className="creation-conflict-excerpt">{localPreview.excerpt}</p>
                     </section>
                     <section className="creation-conflict-card">
-                        <h3>已保存的版本</h3>
+                        <h3>saved version</h3>
                         <p className="creation-conflict-title">{remotePreview.title}</p>
-                        <p>{remotePreview.messageCount} 条消息</p>
+                        <p>{remotePreview.messageCount}  messages</p>
                         <p className="creation-conflict-excerpt">{remotePreview.excerpt}</p>
                     </section>
                 </div>
                 <div className="creation-conflict-dialog-actions">
-                    <button type="button" onClick={onUseLocal}>用这份草稿替换已保存的版本</button>
-                    <button type="button" className="is-primary" onClick={onUseSaved}>用已保存的版本</button>
-                    <button type="button" className="is-quiet" onClick={onClose}>先不处理</button>
+                    <button type="button" onClick={onUseLocal}>Replace the saved version with this draft</button>
+                    <button type="button" className="is-primary" onClick={onUseSaved}>Use saved version</button>
+                    <button type="button" className="is-quiet" onClick={onClose}>Don't deal with it yet</button>
                 </div>
             </div>
         </AppModal>

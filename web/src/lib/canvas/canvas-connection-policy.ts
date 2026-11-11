@@ -11,9 +11,9 @@ type CanvasConnectionPolicyOptions = {
 
 export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[], connections: CanvasConnection[], candidate: ConnectionCandidate, options: CanvasConnectionPolicyOptions = {}) {
     const target = nodes.find((node) => node.id === candidate.toNodeId);
-    if (!target) return "找不到连线目标节点";
+    if (!target) return "The connection target node cannot be found";
     const sourceNode = nodes.find((node) => node.id === candidate.fromNodeId);
-    if (sourceNode?.type === CanvasNodeType.Upscale && target.type !== CanvasNodeType.Image && target.type !== CanvasNodeType.Video) return "超分节点右侧只连接图片或视频结果节点";
+    if (sourceNode?.type === CanvasNodeType.Upscale && target.type !== CanvasNodeType.Image && target.type !== CanvasNodeType.Video) return "The right side of the super-resolution node is only connected to the picture or video result node.";
     const acceptedInputKinds = getNodeAcceptedInputKinds(target.type);
     if (acceptedInputKinds.length) {
         const source = nodes.find((node) => node.id === candidate.fromNodeId);
@@ -23,9 +23,9 @@ export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[],
             ? source?.type === CanvasNodeType.Image || source?.type === CanvasNodeType.Video
             : Boolean(sourceKind && acceptedInputKinds.includes(sourceKind));
         if (!sourceKind || !hasAcceptedSource) {
-            const labels = acceptedInputKinds.map(acceptedInputKindLabel).join("或");
-            const targetLabel = target.type === CanvasNodeType.Upscale ? "超分" : isMediaConversion ? "转换" : target.type === CanvasNodeType.BatchTable ? "批量创作表" : labels;
-            return `${targetLabel}节点只接受${labels}输入`;
+            const labels = acceptedInputKinds.map(acceptedInputKindLabel).join("or");
+            const targetLabel = target.type === CanvasNodeType.Upscale ? "Super score" : isMediaConversion ? "Convert" : target.type === CanvasNodeType.BatchTable ? "Batch creation table" : labels;
+            return `${targetLabel}The node only accepts${labels}input`;
         }
         const maxInputCount = getNodeMaxInputCount(target.type);
         if (maxInputCount) {
@@ -34,7 +34,7 @@ export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[],
                     .filter((connection) => connection.toNodeId === target.id)
                     .map((connection) => connection.fromNodeId),
             ).size;
-            if (inputCount > maxInputCount) return `${isMediaConversion ? "转换" : "当前"}节点最多连接 ${maxInputCount} 个输入`;
+            if (inputCount > maxInputCount) return `${isMediaConversion ? "Convert" : "current"}Nodes have the most connections${maxInputCount} input`;
         }
     }
     const mode = getNodeGenerationMode(target);
@@ -43,25 +43,25 @@ export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[],
     const visualInputCount = input.imageCount + input.characterCount;
 
     if (mode === "image") {
-        if (input.videoCount > 0) return "图片生成节点不能连接参考视频";
-        if (input.audioCount > 0) return "图片生成节点不能连接参考音频";
-        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, "参考图");
+        if (input.videoCount > 0) return "The image generation node cannot connect to the reference video";
+        if (input.audioCount > 0) return "The image generation node cannot be connected to the reference audio";
+        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, "Reference picture");
     }
     if (mode === "video") {
-        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, "参考图") || capacityError(config, mode, "video", input.videoCount, "参考视频") || capacityError(config, mode, "audio", input.audioCount, "参考音频");
+        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, "Reference picture") || capacityError(config, mode, "video", input.videoCount, "Reference video") || capacityError(config, mode, "audio", input.audioCount, "Reference audio");
     }
-    if (mode === "text" && input.audioCount > 0) return "文本生成节点不能连接参考音频";
-    if (mode === "audio" && input.characterCount > 1) return "角色配音一次只能连接一个角色卡";
-    if (mode === "audio" && (input.imageCount > 0 || input.videoCount > 0 || input.audioCount > 0)) return "音频生成节点只接受文本或单个角色卡输入";
+    if (mode === "text" && input.audioCount > 0) return "Text generation node cannot connect to reference audio";
+    if (mode === "audio" && input.characterCount > 1) return "Character dubbing can only connect one character card at a time";
+    if (mode === "audio" && (input.imageCount > 0 || input.videoCount > 0 || input.audioCount > 0)) return "Audio generation nodes only accept text or single character card input";
     return "";
 }
 
 function acceptedInputKindLabel(kind: "image" | "video" | "audio" | "text" | "table_data") {
-    if (kind === "image") return "图片";
-    if (kind === "video") return "视频";
-    if (kind === "audio") return "音频";
-    if (kind === "table_data") return "多维表格";
-    return "文本";
+    if (kind === "image") return "pictures";
+    if (kind === "video") return "video";
+    if (kind === "audio") return "Audio";
+    if (kind === "table_data") return "multidimensional table";
+    return "text";
 }
 
 export function connectionInputSummary(targetNodeId: string, nodes: CanvasNodeData[], connections: CanvasConnection[], candidate?: ConnectionCandidate): ModelInputSummary {
@@ -84,6 +84,6 @@ export function connectionInputSummary(targetNodeId: string, nodes: CanvasNodeDa
 function capacityError(config: AiConfig, capability: "image" | "video", kind: "image" | "video" | "audio", count: number, label: string) {
     const maximum = maxModelInputCapacity(config, capability, kind);
     if (maximum === null || count <= maximum) return "";
-    const unit = kind === "image" ? "张" : "个";
-    return maximum > 0 ? `已配置模型最多支持 ${maximum} ${unit}${label}` : `已配置模型均不支持${label}`;
+    const unit = kind === "image" ? "images" : "items";
+    return maximum > 0 ? `The configured model supports up to${maximum} ${unit}${label}` : `None of the configured models are supported${label}`;
 }

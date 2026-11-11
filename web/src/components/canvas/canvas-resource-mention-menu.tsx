@@ -107,13 +107,13 @@ export function MentionMenu({ anchor, connectedReferences, assetReferences, filt
             }}
             onClick={(event) => event.stopPropagation()}
         >
-            {replacing ? <div className="flex items-center justify-between gap-3 px-2 py-1 text-[var(--fs-tiny)]"><span>选择替换素材</span><button type="button" onClick={onClose}>取消重新选择</button></div> : null}
+            {replacing ? <div className="flex items-center justify-between gap-3 px-2 py-1 text-[var(--fs-tiny)]"><span>Select replacement material</span><button type="button" onClick={onClose}>Cancel reselect</button></div> : null}
             <div className="canvas-resource-mention-search">
                 <Search aria-hidden />
                 <input
                     value={query}
-                    placeholder={nodeSectionLabel === "工作流节点" ? "搜索工作流节点" : "搜索节点、素材或技能"}
-                    aria-label="搜索引用素材"
+                    placeholder={nodeSectionLabel === "Workflow node" ? "Search workflow nodes" : "Search for nodes, materials or skills"}
+                    aria-label="Search for cited material"
                     onChange={(event) => onQueryChange(event.target.value)}
                     onPointerDown={(event) => event.stopPropagation()}
                     onMouseDown={(event) => event.stopPropagation()}
@@ -161,7 +161,7 @@ export function MentionMenu({ anchor, connectedReferences, assetReferences, filt
                             }}
                         >
                             <ArrowLeft aria-hidden />
-                            <span>个人资产库</span>
+                            <span>Personal asset library</span>
                             <small>{visibleReferences.length}</small>
                         </button>
                         <MentionReferenceList references={visibleReferences} activeReferenceId={activeReferenceId} onSelect={selectReference} />
@@ -176,7 +176,7 @@ export function MentionMenu({ anchor, connectedReferences, assetReferences, filt
                         ) : null}
                         {skillReferences.length ? (
                             <section className="canvas-resource-mention-section">
-                                <h4><span>技能库</span><small>{skillReferences.length}</small></h4>
+                                <h4><span>Skill library</span><small>{skillReferences.length}</small></h4>
                                 <MentionReferenceList references={skillReferences} activeReferenceId={activeReferenceId} onSelect={selectReference} />
                             </section>
                         ) : null}
@@ -196,7 +196,7 @@ export function MentionMenu({ anchor, connectedReferences, assetReferences, filt
                                         }}
                                     >
                                         <Folder aria-hidden />
-                                        <span>个人资产库</span>
+                                        <span>Personal asset library</span>
                                         <small>{assetReferences.length}</small>
                                         <ChevronRight aria-hidden />
                                     </button>
@@ -211,7 +211,7 @@ export function MentionMenu({ anchor, connectedReferences, assetReferences, filt
 }
 
 function MentionReferenceList({ references, activeReferenceId, onSelect }: { references: CanvasResourceReference[]; activeReferenceId?: string; onSelect: (reference: CanvasResourceReference) => void }) {
-    if (!references.length) return <div className="canvas-resource-mention-empty">没有匹配的引用</div>;
+    if (!references.length) return <div className="canvas-resource-mention-empty">No matching reference</div>;
     return references.map((reference) => (
         <button
             key={reference.id}
@@ -230,9 +230,9 @@ function MentionReferenceList({ references, activeReferenceId, onSelect }: { ref
         >
             <ReferencePreview reference={reference} />
             <span className="canvas-resource-mention-copy">
-                <span className="canvas-resource-mention-title-row"><strong title={canvasResourceDisplayName(reference)}>{canvasResourceDisplayName(reference)}</strong>{reference.kind === "skill" ? <em>技能</em> : null}</span>
+                <span className="canvas-resource-mention-title-row"><strong title={canvasResourceDisplayName(reference)}>{canvasResourceDisplayName(reference)}</strong>{reference.kind === "skill" ? <em>Skills</em> : null}</span>
                 {reference.kind === "skill" ? (
-                    <span className="canvas-resource-mention-meta"><span>{reference.skill?.description || reference.text || "工作流技能"}</span><small>{reference.skill?.version ? `v${reference.skill.version}` : ""}{reference.skill?.fileCount ? ` · ${reference.skill.fileCount} 文件` : ""}</small></span>
+                    <span className="canvas-resource-mention-meta"><span>{reference.skill?.description || reference.text || "Workflow skills"}</span><small>{reference.skill?.version ? `v${reference.skill.version}` : ""}{reference.skill?.fileCount ? ` · ${reference.skill.fileCount} File` : ""}</small></span>
                 ) : reference.text && reference.text !== reference.title ? <span className="canvas-resource-mention-meta"><span>{reference.text}</span></span> : null}
             </span>
         </button>
@@ -277,10 +277,10 @@ export function InlineReferencePreview({ reference, onClose }: { reference: Canv
     const url = referencePreviewUrl(reference);
     if (!url) return null;
     return createPortal(
-        <div className="fixed inset-0 z-[var(--z-dialog-popover)] grid place-items-center bg-black/80 p-6" role="dialog" aria-label={`预览${reference.label}`} onClick={onClose}>
+        <div className="fixed inset-0 z-[var(--z-dialog-popover)] grid place-items-center bg-black/80 p-6" role="dialog" aria-label={`Preview${reference.label}`} onClick={onClose}>
             <div className="relative max-h-[92vh] max-w-[92vw]" onClick={(event) => event.stopPropagation()}>
                 <img src={url} alt={reference.label} className="max-h-[88vh] max-w-[88vw] rounded-xl object-contain shadow-2xl" />
-                <button type="button" className="absolute -right-3 -top-3 rounded-full bg-black/75 p-2 text-white shadow-lg" onClick={onClose} aria-label="关闭图片预览">×</button>
+                <button type="button" className="absolute -right-3 -top-3 rounded-full bg-black/75 p-2 text-white shadow-lg" onClick={onClose} aria-label="Close image preview">×</button>
             </div>
         </div>,
         document.body,

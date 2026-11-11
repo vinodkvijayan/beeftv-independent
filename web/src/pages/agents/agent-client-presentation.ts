@@ -7,29 +7,29 @@ const kindLabels: Record<AgentClientKind, string> = {
     claude: "Claude Code",
     "claude-desktop": "Claude Desktop",
     cursor: "Cursor",
-    other: "其他 MCP 客户端",
+    other: "Other MCP clients",
 };
 
 const kindSummaries: Record<AgentClientKind, string> = {
-    codex: "在终端里连接 Codex。",
-    claude: "在终端里连接 Claude Code。",
-    "claude-desktop": "在 Claude 桌面应用里连接。",
-    cursor: "在 Cursor 的配置里连接。",
-    other: "支持 MCP 的工具都能连。",
+    codex: "Connect to Codex in the terminal.",
+    claude: "Connect to Claude Code in the terminal.",
+    "claude-desktop": "Connect in the Claude desktop app.",
+    cursor: "Connect in Cursor configuration.",
+    other: "All tools that support MCP can be connected.",
 };
 
 const modeLabels: Record<AgentClientMode, string> = {
-    "read-only": "旧版只读连接",
-    "read-write": "全部创作工具",
+    "read-only": "Legacy read-only connections",
+    "read-write": "All creative tools",
 };
 
 const modeSummaries: Record<AgentClientMode, string> = {
-    "read-only": "此连接保持只读；重新连接后可使用全部创作工具。",
-    "read-write": "可使用 BeefTV 的全部创作工具，操作审批由连接的 Agent 负责。",
+    "read-only": "This connection remains read-only; all authoring tools will be available upon reconnection.",
+    "read-write": "All of BeefTV's authoring tools are available, and approval of operations is handled by the connected Agent.",
 };
 
 export function agentClientKindLabel(kind: AgentClientKind | string) {
-    return kindLabels[kind as AgentClientKind] || "其他 MCP 客户端";
+    return kindLabels[kind as AgentClientKind] || "Other MCP clients";
 }
 
 export function agentClientKindSummary(kind: AgentClientKind) {
@@ -51,14 +51,14 @@ export type AgentClientSetupBlock = {
     instruction: string;
 };
 
-const COMMAND_INSTRUCTION = "粘贴到终端运行；Windows 请使用 PowerShell。连接时请保持 BeefTV 开启。";
+const COMMAND_INSTRUCTION = "Paste into Terminal and run; for Windows, use PowerShell. Please keep BeefTV on while connected.";
 
 const configInstructions: Record<AgentClientKind, string> = {
-    codex: "粘贴到你使用的工具的 MCP 配置文件里。",
-    claude: "粘贴到你使用的工具的 MCP 配置文件里。",
-    "claude-desktop": "打开 Claude Desktop 的设置 → 开发者 → 编辑配置，将 beeftv 项合并到 mcpServers，保留已有服务，然后完全退出并重新打开 Claude。连接时请保持 BeefTV 开启。",
-    cursor: "粘贴到 ~/.cursor/mcp.json。",
-    other: "粘贴到你使用的工具的 MCP 配置文件里。",
+    codex: "Paste it into the MCP configuration file of the tool you are using.",
+    claude: "Paste it into the MCP configuration file of the tool you are using.",
+    "claude-desktop": "Open Claude Desktop's Settings → Developer → Edit Configuration, merge the beeftv entry into mcpServers, keep the existing service, then exit completely and reopen Claude. Please keep BeefTV on while connected.",
+    cursor: "Paste into ~/.cursor/mcp.json.",
+    other: "Paste it into the MCP configuration file of the tool you are using.",
 };
 
 /**
@@ -82,15 +82,15 @@ const DAY = 24 * HOUR;
 
 /** 最近使用：没用过要说没用过，不要显示一个假的时间。 */
 export function agentClientLastUsedLabel(lastUsedAt: string | null | undefined, now: number = Date.now()) {
-    if (!lastUsedAt) return "还没用过";
+    if (!lastUsedAt) return "Not used yet";
     const used = Date.parse(lastUsedAt);
-    if (!Number.isFinite(used)) return "还没用过";
+    if (!Number.isFinite(used)) return "Not used yet";
     const elapsed = now - used;
-    if (elapsed < MINUTE) return "刚刚";
-    if (elapsed < HOUR) return `${Math.floor(elapsed / MINUTE)} 分钟前`;
-    if (elapsed < DAY) return `${Math.floor(elapsed / HOUR)} 小时前`;
-    if (elapsed < 30 * DAY) return `${Math.floor(elapsed / DAY)} 天前`;
-    return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "long", day: "numeric" }).format(used);
+    if (elapsed < MINUTE) return "just now";
+    if (elapsed < HOUR) return `${Math.floor(elapsed / MINUTE)} minutes ago`;
+    if (elapsed < DAY) return `${Math.floor(elapsed / HOUR)} hours ago`;
+    if (elapsed < 30 * DAY) return `${Math.floor(elapsed / DAY)} days ago`;
+    return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric" }).format(used);
 }
 
 export function agentClientDisplayLabel(client: AgentClient) {
@@ -103,9 +103,9 @@ export function agentIntegrationKindLabel(kind: AgentIntegrationKind) {
 
 /** 状态只说明本机事实：没检测到、已接入或还没接入。 */
 export function agentIntegrationStatusLabel(integration: AgentIntegration) {
-    if (integration.needsRetry) return "需要重试";
-    if (integration.connected) return "已接入";
-    return integration.detected ? "未接入" : "未检测到";
+    if (integration.needsRetry) return "Need to retry";
+    if (integration.connected) return "Already connected";
+    return integration.detected ? "Not connected" : "not detected";
 }
 
 export type AgentIntegrationAction = "connect" | "disconnect" | "unavailable";
@@ -120,10 +120,10 @@ export function agentIntegrationAction(integration: AgentIntegration): AgentInte
 /** 一行说清接入会发生什么、未检测到该怎么办、断开能恢复什么。 */
 export function agentIntegrationHint(integration: AgentIntegration) {
     const name = integration.name || agentIntegrationKindLabel(integration.kind);
-    if (integration.needsRetry) return "上一次没有清理完连接。再点一次断开即可重试。";
-    if (integration.connected && !integration.detected) return `已接入，但这次没有检测到 ${name}。重新打开或重新安装 ${name} 后就会生效。`;
-    if (!integration.detected) return `没有检测到 ${name} 的命令行。安装后打开一次，再回到这里。`;
-    if (integration.connected && !integration.skillInstalled) return "已接入，但使用说明没有写入。请检查对应技能目录里是否已有同名内容。";
-    if (integration.connected) return `已接入。打开 ${name} 就能使用 BeefTV 画布。`;
-    return `接入后会在 ${name} 里添加 BeefTV，并装好一份画布使用说明。`;
+    if (integration.needsRetry) return "The connection was not cleared last time. Click Disconnect again to try again.";
+    if (integration.connected && !integration.detected) return `Connected, but not detected this time${name}. Reopen or reinstall${name} It will take effect later.`;
+    if (!integration.detected) return `not detected${name} command line. Open it once after installation and come back here.`;
+    if (integration.connected && !integration.skillInstalled) return "It has been connected, but the instructions for use have not been written. Please check whether there is content with the same name in the corresponding skill directory.";
+    if (integration.connected) return `Accessed. open${name} You can use the BeefTV canvas.`;
+    return `After accessing, it will be${name} Add BeefTV and install a copy of the canvas instructions.`;
 }

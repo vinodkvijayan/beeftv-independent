@@ -83,63 +83,63 @@ export function CanvasAppearanceControls({
 
     return (
         <>
-            <div className="mt-3 text-[var(--fs-micro)] font-semibold uppercase opacity-45">主题模式</div>
+            <div className="mt-3 text-[var(--fs-micro)] font-semibold uppercase opacity-45">theme mode</div>
             <div className="mt-1 grid grid-cols-2 gap-1 rounded-[var(--dock-item-radius-labeled)] border p-1" style={{ background: theme.spatial.surface, borderColor: theme.toolbar.border }}>
-                <ThemeButton active={draft.mode === "follow"} label="跟随全局" theme={theme} onClick={() => { const next: CanvasAppearance = { ...draft, mode: "follow" }; setDraft(next); onAppearanceChange(next); }}><Link2 className="size-3.5" /></ThemeButton>
-                <ThemeButton active={draft.mode === "light"} label="浅色" theme={theme} onClick={() => selectFixedTheme("light")}><Sun className="size-3.5" /></ThemeButton>
-                <ThemeButton active={draft.mode === "dark"} label="深色" theme={theme} onClick={() => selectFixedTheme("dark")}><Moon className="size-3.5" /></ThemeButton>
-                <ThemeButton active={draft.mode === "custom"} label="自定义" theme={theme} onClick={selectCustomTheme}><Paintbrush className="size-3.5" /></ThemeButton>
+                <ThemeButton active={draft.mode === "follow"} label="Follow the big picture" theme={theme} onClick={() => { const next: CanvasAppearance = { ...draft, mode: "follow" }; setDraft(next); onAppearanceChange(next); }}><Link2 className="size-3.5" /></ThemeButton>
+                <ThemeButton active={draft.mode === "light"} label="light color" theme={theme} onClick={() => selectFixedTheme("light")}><Sun className="size-3.5" /></ThemeButton>
+                <ThemeButton active={draft.mode === "dark"} label="Dark" theme={theme} onClick={() => selectFixedTheme("dark")}><Moon className="size-3.5" /></ThemeButton>
+                <ThemeButton active={draft.mode === "custom"} label="Customize" theme={theme} onClick={selectCustomTheme}><Paintbrush className="size-3.5" /></ThemeButton>
             </div>
 
             {draft.mode === "custom" && draft.custom ? (
                 <div className="mt-2.5 space-y-2.5 rounded-[var(--dock-item-radius-labeled)] border p-2.5" style={{ background: theme.spatial.surface, borderColor: theme.toolbar.border }}>
                     <div className="flex items-center justify-between gap-2">
-                        <span className="text-[var(--fs-tiny)] font-semibold">背景预设</span>
-                        <span className="text-[var(--fs-micro)] opacity-50">{draft.custom.baseTheme === "light" ? "浅色界面" : "深色界面"}</span>
+                        <span className="text-[var(--fs-tiny)] font-semibold">background preset</span>
+                        <span className="text-[var(--fs-micro)] opacity-50">{draft.custom.baseTheme === "light" ? "Light interface" : "Dark interface"}</span>
                     </div>
                     <div className="grid grid-cols-4 gap-1.5">
                         {presets.map((color) => (
-                            <button key={color} type="button" className="h-7 rounded-md border transition-transform hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 motion-reduce:transition-none motion-reduce:hover:scale-100" style={{ background: color, borderColor: draft.custom?.backgroundColor === color ? theme.node.activeStroke : theme.toolbar.border }} aria-label={`使用背景颜色 ${color}`} title={color} onClick={() => updateCustom({ backgroundColor: color, backgroundBrightness: 0 })} />
+                            <button key={color} type="button" className="h-7 rounded-md border transition-transform hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 motion-reduce:transition-none motion-reduce:hover:scale-100" style={{ background: color, borderColor: draft.custom?.backgroundColor === color ? theme.node.activeStroke : theme.toolbar.border }} aria-label={`Use background color${color}`} title={color} onClick={() => updateCustom({ backgroundColor: color, backgroundBrightness: 0 })} />
                         ))}
                     </div>
-                    <ColorField label="画布背景" value={draft.custom.backgroundColor} theme={theme} onChange={(backgroundColor) => updateCustom({ backgroundColor, backgroundBrightness: 0 })} />
-                    <SliderField label="明亮度" value={draft.custom.backgroundBrightness} min={-30} max={30} suffix="%" onChange={(backgroundBrightness) => updateCustom({ backgroundBrightness })} />
-                    <ColorField label="网格颜色" value={draft.custom.gridColor} theme={theme} onChange={(gridColor) => updateCustom({ gridColor })} />
-                    <SliderField label="网格强度" value={draft.custom.gridOpacity} min={0} max={100} suffix="%" onChange={(gridOpacity) => updateCustom({ gridOpacity })} />
-                    <Button block size="small" type="text" icon={<RotateCcw className="size-3.5" />} onClick={resetCustom}>从继承主题重新开始</Button>
+                    <ColorField label="canvas background" value={draft.custom.backgroundColor} theme={theme} onChange={(backgroundColor) => updateCustom({ backgroundColor, backgroundBrightness: 0 })} />
+                    <SliderField label="brightness" value={draft.custom.backgroundBrightness} min={-30} max={30} suffix="%" onChange={(backgroundBrightness) => updateCustom({ backgroundBrightness })} />
+                    <ColorField label="grid color" value={draft.custom.gridColor} theme={theme} onChange={(gridColor) => updateCustom({ gridColor })} />
+                    <SliderField label="Grid strength" value={draft.custom.gridOpacity} min={0} max={100} suffix="%" onChange={(gridOpacity) => updateCustom({ gridOpacity })} />
+                    <Button block size="small" type="text" icon={<RotateCcw className="size-3.5" />} onClick={resetCustom}>Starting over from inherited theme</Button>
                 </div>
             ) : null}
-            <Button block size="small" type="text" className="mt-2" icon={<Save className="size-3.5" />} onClick={saveAsDefault}>保存为默认</Button>
+            <Button block size="small" type="text" className="mt-2" icon={<Save className="size-3.5" />} onClick={saveAsDefault}>save as default</Button>
 
-            <div className="mt-3 text-[var(--fs-micro)] font-semibold uppercase opacity-45">空间网格</div>
+            <div className="mt-3 text-[var(--fs-micro)] font-semibold uppercase opacity-45">spatial grid</div>
             <Segmented
                 className={SEGMENTED_ROW_CLASS}
                 value={backgroundMode}
                 onChange={(value) => onBackgroundModeChange(value as CanvasBackgroundMode)}
                 options={[
-                    { value: "dots", label: <span className="inline-flex items-center gap-1.5"><CircleDot className="size-3.5" />点</span> },
-                    { value: "lines", label: <span className="inline-flex items-center gap-1.5"><Grid2x2 className="size-3.5" />线</span> },
-                    { value: "blank", label: <span className="inline-flex items-center gap-1.5"><Square className="size-3.5" />空白</span> },
+                    { value: "dots", label: <span className="inline-flex items-center gap-1.5"><CircleDot className="size-3.5" />point</span> },
+                    { value: "lines", label: <span className="inline-flex items-center gap-1.5"><Grid2x2 className="size-3.5" />line</span> },
+                    { value: "blank", label: <span className="inline-flex items-center gap-1.5"><Square className="size-3.5" />blank</span> },
                 ]}
             />
             <div className="mt-2 flex items-center justify-between rounded-[var(--dock-item-radius-labeled)] border px-2.5 py-2 text-[var(--fs-tiny)]" style={{ background: theme.spatial.surface, borderColor: theme.toolbar.border }}>
-                <span className="font-medium">网格吸附 <span className="ml-1 opacity-45">16px</span></span>
-                <Switch size="sm" checked={snapToGrid} onChange={onSnapToGridChange} aria-label="网格吸附" />
+                <span className="font-medium">Grid adsorption<span className="ml-1 opacity-45">16px</span></span>
+                <Switch size="sm" checked={snapToGrid} onChange={onSnapToGridChange} aria-label="Grid adsorption" />
             </div>
             <div className="mt-2 flex items-center justify-between rounded-[var(--dock-item-radius-labeled)] border px-2.5 py-2 text-[var(--fs-tiny)]" style={{ background: theme.spatial.surface, borderColor: theme.toolbar.border }}>
-                <span className="inline-flex items-center gap-1.5 font-medium"><Link2 className="size-3.5 opacity-65" />显示连线</span>
-                <Switch size="sm" checked={showConnections} onChange={onShowConnectionsChange} aria-label="显示连线" />
+                <span className="inline-flex items-center gap-1.5 font-medium"><Link2 className="size-3.5 opacity-65" />Show connections</span>
+                <Switch size="sm" checked={showConnections} onChange={onShowConnectionsChange} aria-label="Show connections" />
             </div>
 
-            <div className="mt-3 text-[var(--fs-micro)] font-semibold uppercase opacity-45">滚轮操作</div>
+            <div className="mt-3 text-[var(--fs-micro)] font-semibold uppercase opacity-45">Scroll wheel operation</div>
             <Segmented
                 className={SEGMENTED_ROW_CLASS}
                 value={wheelBehavior}
                 onChange={(value) => onWheelBehaviorChange(value as CanvasWheelBehavior)}
                 options={[
-                    { value: "auto", label: <span className="inline-flex items-center gap-1.5"><Wand2 className="size-3.5" />自动</span> },
-                    { value: "zoom", label: <span className="inline-flex items-center gap-1.5"><ZoomIn className="size-3.5" />缩放</span> },
-                    { value: "pan", label: <span className="inline-flex items-center gap-1.5"><Move className="size-3.5" />平移</span> },
+                    { value: "auto", label: <span className="inline-flex items-center gap-1.5"><Wand2 className="size-3.5" />automatic</span> },
+                    { value: "zoom", label: <span className="inline-flex items-center gap-1.5"><ZoomIn className="size-3.5" />Zoom</span> },
+                    { value: "pan", label: <span className="inline-flex items-center gap-1.5"><Move className="size-3.5" />Pan</span> },
                 ]}
             />
         </>
@@ -148,7 +148,7 @@ export function CanvasAppearanceControls({
 
 function ThemeButton({ active, label, theme, onClick, children }: { active: boolean; label: string; theme: CanvasTheme; onClick: () => void; children: ReactNode }) {
     return (
-        <button type="button" className="inline-flex h-8 min-w-0 items-center justify-center gap-1 rounded-[var(--dock-item-radius)] px-1 text-[var(--fs-tiny)] font-semibold transition-colors" style={active ? { background: theme.node.text, color: theme.node.panel } : { color: theme.toolbar.item }} aria-label={`切换到${label}主题`} aria-pressed={active} title={`切换到${label}主题`} onClick={onClick}>
+        <button type="button" className="inline-flex h-8 min-w-0 items-center justify-center gap-1 rounded-[var(--dock-item-radius)] px-1 text-[var(--fs-tiny)] font-semibold transition-colors" style={active ? { background: theme.node.text, color: theme.node.panel } : { color: theme.toolbar.item }} aria-label={`switch to${label}Topic`} aria-pressed={active} title={`switch to${label}Topic`} onClick={onClick}>
             {children}<span className="truncate">{label}</span>
         </button>
     );
@@ -174,7 +174,7 @@ function ColorField({ label, value, theme, onChange }: { label: string; value: s
         <label className="grid grid-cols-[72px_28px_minmax(0,1fr)] items-center gap-1.5 text-[var(--fs-tiny)] font-medium">
             <span>{label}</span>
             <ColorPicker disabledAlpha size="small" value={value} onChange={(color) => onChange(color.toHexString().toUpperCase())} />
-            <Input size="small" value={textValue} aria-label={`${label}色码`} style={{ color: theme.node.text }} onFocus={() => setEditing(true)} onChange={(event) => {
+            <Input size="small" value={textValue} aria-label={`${label}color code`} style={{ color: theme.node.text }} onFocus={() => setEditing(true)} onChange={(event) => {
                 const next = event.target.value;
                 setTextValue(next);
                 const normalized = normalizeHexColor(next);

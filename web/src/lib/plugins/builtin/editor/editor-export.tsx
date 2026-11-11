@@ -103,7 +103,7 @@ export function EditorExport() {
                     }
                     setPreview({
                         plan: null,
-                        planError: error instanceof Error ? error.message : "无法生成导出计划",
+                        planError: error instanceof Error ? error.message : "Unable to generate export plan",
                         loading: false,
                     });
                 });
@@ -128,7 +128,7 @@ export function EditorExport() {
         const frozenInputKey = localExecutorFrozenInputKey(["timeline_render", originalProjectId, originalTimeline]);
         const clientOperationId = nextLocalExecutorClientOperationId(submitIntentRef.current, frozenInputKey);
         submitIntentRef.current = { clientOperationId, frozenInputKey };
-        setState({ phase: "running", mode: "remote", percent: 0, detail: "提交渲染任务…", result: null });
+        setState({ phase: "running", mode: "remote", percent: 0, detail: "Submit rendering task…", result: null });
         try {
             const session = beginLocalExecutorSession(originalProjectId, {
                 controller: observer,
@@ -149,7 +149,7 @@ export function EditorExport() {
                         percent: next.progress ?? 0,
                         detail: next.stage
                             ? `${next.stage}${next.progress ? ` · ${next.progress}%` : ""}`
-                            : "渲染中…",
+                            : "Rendering…",
                         result: null,
                     }),
             });
@@ -159,7 +159,7 @@ export function EditorExport() {
                     phase: "done",
                     mode: "remote",
                     percent: 100,
-                    detail: `渲染完成：${result.fileName ?? "timeline.mp4"}`,
+                    detail: `Rendering completed:${result.fileName ?? "timeline.mp4"}`,
                     result,
                 });
             });
@@ -173,7 +173,7 @@ export function EditorExport() {
                 phase: "error",
                 mode: "remote",
                 percent: 0,
-                detail: error instanceof Error ? error.message : "渲染失败",
+                detail: error instanceof Error ? error.message : "Rendering failed",
                 result: null,
             });
         } finally { runningRef.current = false; }
@@ -185,7 +185,7 @@ export function EditorExport() {
         runningRef.current = true;
         const controller = new AbortController();
         localControllerRef.current = controller;
-        setState({ phase: "running", mode: "local", percent: 0, detail: "准备导出", result: null });
+        setState({ phase: "running", mode: "local", percent: 0, detail: "Prepare to export", result: null });
         try {
             const blob = await exportTimelineToMp4(project, sources, {
                 signal: controller.signal,
@@ -198,13 +198,13 @@ export function EditorExport() {
             a.download = "timeline-export.mp4";
             a.click();
             URL.revokeObjectURL(url);
-            setState({ phase: "done", mode: "local", percent: 100, detail: "导出完成，已开始下载", result: null });
+            setState({ phase: "done", mode: "local", percent: 100, detail: "Export completed, download has started", result: null });
         } catch (error) {
             setState({
                 phase: "error",
                 mode: "local",
                 percent: 0,
-                detail: error instanceof Error ? error.message : "导出失败",
+                detail: error instanceof Error ? error.message : "Export failed",
                 result: null,
             });
         } finally { runningRef.current = false; localControllerRef.current = null; }
@@ -217,8 +217,8 @@ export function EditorExport() {
             <div className="director-scroll min-h-0 flex-1 overflow-y-auto p-3">
                 <div className="mb-3 rounded-md border border-[var(--director-sequencer-border)] bg-[var(--director-control-hover)] p-2.5">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-[var(--director-dock-fg-strong)]">渲染计划</span>
-                        <span className="text-[10px] text-[var(--director-dock-fg)]/60">{plan ? `${plan.steps.length} 步` : "—"}</span>
+                        <span className="text-xs font-medium text-[var(--director-dock-fg-strong)]">rendering plan</span>
+                        <span className="text-[10px] text-[var(--director-dock-fg)]/60">{plan ? `${plan.steps.length} step` : "—"}</span>
                     </div>
                     {plan && plan.steps.length > 0 ? (
                         <ul className="mt-2 space-y-1">
@@ -231,20 +231,20 @@ export function EditorExport() {
                                 </li>
                             ))}
                             {plan.steps.length > 8 && (
-                                <li className="pt-0.5 text-[10px] text-[var(--director-dock-fg)]/50">…共 {plan.steps.length} 步</li>
+                                <li className="pt-0.5 text-[10px] text-[var(--director-dock-fg)]/50">…total{plan.steps.length}  step</li>
                             )}
                         </ul>
                     ) : (
-                        <p className="mt-2 text-[11px] text-[var(--director-dock-fg)]/55">{planError || (preview.loading ? "正在生成渲染计划" : "时间线没有可渲染的媒体片段。")}</p>
+                        <p className="mt-2 text-[11px] text-[var(--director-dock-fg)]/55">{planError || (preview.loading ? "Generating render plan" : "The timeline has no renderable media clips.")}</p>
                     )}
                 </div>
 
                 <div className="mb-3 flex items-center justify-between rounded-md border border-[var(--director-sequencer-border)] bg-[var(--director-control-hover)] px-2.5 py-2 text-[11px] text-[var(--director-dock-fg)]/70">
                     <span className="flex items-center gap-1.5">
                         <PackageOpen className="size-3.5 text-[var(--director-dock-fg)]/60" />
-                        渲染源
+                                                render source
                     </span>
-                    <span className="tabular-nums text-[var(--director-dock-fg)]/80">{sources.length} 个</span>
+                    <span className="tabular-nums text-[var(--director-dock-fg)]/80">{sources.length}  a</span>
                 </div>
 
                 <button
@@ -258,7 +258,7 @@ export function EditorExport() {
                     ) : (
                         <Server className="size-3.5" />
                     )}
-                    {state.phase === "running" && state.mode === "remote" ? "渲染中…" : "渲染成片（服务端）"}
+                    {state.phase === "running" && state.mode === "remote" ? "Rendering…" : "Render into slices (server side)"}
                 </button>
 
                 <button
@@ -272,12 +272,12 @@ export function EditorExport() {
                     ) : (
                         <Download className="size-3.5" />
                     )}
-                    {state.phase === "running" && state.mode === "local" ? "导出中…" : "本地导出（ffmpeg.wasm）"}
+                    {state.phase === "running" && state.mode === "local" ? "Exporting…" : "Local export (ffmpeg.wasm)"}
                 </button>
 
                 {state.phase === "running" && (
                     <div className="mt-3">
-                        {state.mode === "local" && <button type="button" onClick={() => localControllerRef.current?.abort()}>取消导出</button>}
+                        {state.mode === "local" && <button type="button" onClick={() => localControllerRef.current?.abort()}>Cancel export</button>}
                         <div className="mb-1 flex justify-between text-[10px] text-[var(--director-dock-fg)]/70">
                             <span>{state.detail}</span>
                             <span className="tabular-nums">{state.percent}%</span>
@@ -302,7 +302,7 @@ export function EditorExport() {
                                 className="flex shrink-0 items-center gap-1 text-[var(--director-accent)] hover:underline"
                             >
                                 <Download className="size-3" />
-                                下载
+                                                                Download
                             </a>
                         </div>
                     </div>
@@ -313,10 +313,10 @@ export function EditorExport() {
                 {state.phase === "error" && <p className="mt-2 text-[11px] text-[var(--director-danger)]">{state.detail}</p>}
 
                 <p className="mt-3 text-[11px] leading-relaxed text-[var(--director-dock-fg)]/55">
-                    默认提交服务端渲染任务（异步，产物可直接预览/下载）；本地 ffmpeg.wasm 导出保留为离线兜底。
+                                        The server-side rendering task is submitted by default (asynchronous, the product can be previewed/downloaded directly); the local ffmpeg.wasm export is reserved for offline processing.
                 </p>
                 {sources.length === 0 && (
-                    <p className="mt-1 text-[11px] text-[var(--director-dock-fg)]/55">请补齐缺失媒体后再导出完整成片。</p>
+                    <p className="mt-1 text-[11px] text-[var(--director-dock-fg)]/55">Please fill in the missing media before exporting the complete video.</p>
                 )}
             </div>
         </div>

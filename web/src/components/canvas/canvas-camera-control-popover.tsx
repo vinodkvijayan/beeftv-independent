@@ -14,7 +14,7 @@ type CanvasCameraControlPopoverProps = {
     label?: string;
 };
 
-export function CanvasCameraControlPopover({ cameraControl, onCameraControlChange, theme, compact = false, label = "摄像机" }: CanvasCameraControlPopoverProps) {
+export function CanvasCameraControlPopover({ cameraControl, onCameraControlChange, theme, compact = false, label = "camera" }: CanvasCameraControlPopoverProps) {
     const [open, setOpen] = useState(false);
     const cameraEnabled = cameraControl?.enabled === true;
     return (
@@ -28,7 +28,7 @@ export function CanvasCameraControlPopover({ cameraControl, onCameraControlChang
                 }}
                 aria-pressed={cameraEnabled}
                 aria-label={label}
-                title={`${label}${cameraEnabled ? " · 已启用" : ""}`}
+                title={`${label}${cameraEnabled ? " · Enabled" : ""}`}
                 onClick={() => setOpen(true)}
             >
                 <Camera className="size-3.5" />

@@ -35,7 +35,7 @@ export type SpeechRecognitionError = {
 };
 
 type UseSpeechRecognitionOptions = {
-    /** 语言代码，默认 zh-CN */
+    /** 语言代码，默认 en-US */
     lang?: string;
 };
 
@@ -57,7 +57,7 @@ export type UseSpeechRecognitionReturn = {
  * 第一阶段 MVP 使用：不依赖后端、模型渠道或 API Key，零配置可用
  */
 export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}): UseSpeechRecognitionReturn {
-    const { lang = "zh-CN" } = options;
+    const { lang = "en-US" } = options;
     const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
     const finalTextRef = useRef("");
     const stopResolveRef = useRef<((text: string) => void) | null>(null);
@@ -68,7 +68,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}):
     const start = useCallback(() => {
         const Constructor = getSpeechRecognition();
         if (!Constructor) {
-            setError({ code: "unsupported", message: "当前浏览器不支持语音识别，请使用 Chrome 或 Edge" });
+            setError({ code: "unsupported", message: "The current browser does not support speech recognition, please use Chrome or Edge" });
             return;
         }
         finalTextRef.current = "";
@@ -90,13 +90,13 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}):
         };
         recognition.onerror = (event) => {
             if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-                setError({ code: event.error, message: "麦克风权限被拒绝，请在浏览器设置中允许访问麦克风" });
+                setError({ code: event.error, message: "Microphone permission denied, please allow access to the microphone in your browser settings" });
             } else if (event.error === "no-speech") {
-                setError({ code: event.error, message: "未检测到语音，请重试" });
+                setError({ code: event.error, message: "Voice not detected, please try again" });
             } else if (event.error === "network") {
-                setError({ code: event.error, message: "语音识别服务不可用，请检查网络后重试" });
+                setError({ code: event.error, message: "The speech recognition service is unavailable, please check the network and try again" });
             } else {
-                setError({ code: event.error, message: `语音识别失败（${event.error}）` });
+                setError({ code: event.error, message: `Voice recognition failed (${event.error}）` });
             }
         };
         recognition.onend = () => {

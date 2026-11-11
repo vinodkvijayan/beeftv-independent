@@ -36,7 +36,7 @@ export function useCanvasShortDrama({pageUi,  projectId, nodes, connections, nod
     }, [pageUi, projectId, selectedNodeIdsRef]);
 
     const createPipeline = useCallback(() => {
-        if (nodesRef.current.length) return message.info("当前画布已有内容，请在新画布创建短剧流水线");
+        if (nodesRef.current.length) return message.info("The current canvas already contains content, please create a skit pipeline in the new canvas.");
         const pipeline = createShortDramaPipeline(getCanvasCenter());
         nodesRef.current = pipeline.nodes;
         connectionsRef.current = pipeline.connections;
@@ -48,7 +48,7 @@ export function useCanvasShortDrama({pageUi,  projectId, nodes, connections, nod
             fitCanvasSelection();
             setStylePickerOpen(true);
         });
-        message.success("短剧流水线已创建");
+        message.success("The skit pipeline has been created");
     }, [connectionsRef, fitCanvasSelection, getCanvasCenter, message, nodesRef, selectNodes, setConnections, setNodes, setStylePickerOpen]);
 
     const openStoryInput = useCallback((nodeId?: string) => {

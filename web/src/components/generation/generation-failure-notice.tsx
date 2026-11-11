@@ -52,7 +52,7 @@ export function GenerationFailureNotice({ explanation, context, compact, onRetry
                         onMouseDown={(event) => event.stopPropagation()}
                     >
                         <Eye className="size-3.5" />
-                        {explanation.uncertain ? "查看原任务" : "查看详情"}
+                        {explanation.uncertain ? "View original task" : "View details"}
                     </button>
                 ) : null}
                 {!summaryOnly && diagnostics ? (
@@ -66,7 +66,7 @@ export function GenerationFailureNotice({ explanation, context, compact, onRetry
                         onMouseDown={(event) => event.stopPropagation()}
                     >
                         <Copy className="size-3.5" />
-                        {copyState === "copied" ? "已复制" : copyState === "failed" ? "复制失败" : "复制排查信息"}
+                        {copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy failed" : "Copy troubleshooting information"}
                     </button>
                 ) : null}
                 {showRetry ? (
@@ -80,7 +80,7 @@ export function GenerationFailureNotice({ explanation, context, compact, onRetry
                         onMouseDown={(event) => event.stopPropagation()}
                     >
                         <RefreshCw className="size-3.5" />
-                        {retryLabel || "重新生成"}
+                        {retryLabel || "Regenerate"}
                     </button>
                 ) : null}
             </div>

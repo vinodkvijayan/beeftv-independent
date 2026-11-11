@@ -8,16 +8,16 @@ const CONNECTABLE_RESOURCE_KINDS = new Set(["image", "video", "audio", "characte
 export function connectCanvasResourceMention(nodes: CanvasNodeData[], connections: CanvasConnection[], targetId: string, sourceId: string, connectionId: string) {
     const target = nodes.find((node) => node.id === targetId);
     const source = buildCanvasResourceReferences(nodes, connections).find((reference) => reference.nodeId === sourceId && CONNECTABLE_RESOURCE_KINDS.has(reference.kind));
-    if (!target || !source || sourceId === targetId || target.metadata?.locked) throw new Error("无法引用该节点");
+    if (!target || !source || sourceId === targetId || target.metadata?.locked) throw new Error("The node cannot be referenced");
     const configId = connections.find((edge) => edge.fromNodeId === targetId && nodes.find((node) => node.id === edge.toNodeId)?.type === CanvasNodeType.Config)?.toNodeId;
     const configReferences = configId ? buildCanvasNodeMentionReferenceMap(nodes, connections).get(configId) : [];
     const receiverId = configReferences?.some((reference) => reference.nodeId !== targetId) ? configId! : targetId;
-    if (nodes.find((node) => node.id === receiverId)?.metadata?.locked) throw new Error("无法修改锁定节点的引用");
+    if (nodes.find((node) => node.id === receiverId)?.metadata?.locked) throw new Error("Unable to modify reference to locked node");
     const pending = [receiverId];
     const visited = new Set<string>();
     while (pending.length) {
         const id = pending.pop()!;
-        if (id === sourceId) throw new Error("该引用会形成循环连线");
+        if (id === sourceId) throw new Error("This reference will form a circular connection");
         if (visited.has(id)) continue;
         visited.add(id);
         pending.push(...connections.filter((edge) => edge.fromNodeId === id).map((edge) => edge.toNodeId));
@@ -25,7 +25,7 @@ export function connectCanvasResourceMention(nodes: CanvasNodeData[], connection
     const nextConnections = connections.some((edge) => edge.fromNodeId === sourceId && edge.toNodeId === receiverId) ? connections : [...connections, { id: connectionId, fromNodeId: sourceId, toNodeId: receiverId }];
     const nextNodes = applyCanvasConnectionPromptSync(nodes, connections, nodes, nextConnections);
     const reference = buildCanvasNodeMentionReferenceMap(nextNodes, nextConnections).get(targetId)?.find((item) => item.nodeId === sourceId);
-    if (!reference) throw new Error("节点引用未建立");
+    if (!reference) throw new Error("Node reference not established");
     return { nodes: nextNodes, connections: nextConnections, reference };
 }
 

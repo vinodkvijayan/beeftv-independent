@@ -28,17 +28,17 @@ export function selectedCreationReferences(prompt: string, references: CreationR
 export type CreationReferenceLimits = Partial<Record<CreationAttachmentKind, number>>;
 
 const referenceKindLabels: Record<CreationAttachmentKind, string> = {
-    image: "参考图",
-    video: "参考视频",
-    audio: "参考音频",
-    file: "参考文档",
+    image: "Reference picture",
+    video: "Reference video",
+    audio: "Reference audio",
+    file: "Reference documentation",
 };
 
 const referenceKindUnits: Record<CreationAttachmentKind, string> = {
-    image: "张",
-    video: "个",
-    audio: "段",
-    file: "个",
+    image: "images",
+    video: "items",
+    audio: "clips",
+    file: "items",
 };
 
 export const creationReferenceKinds: CreationAttachmentKind[] = ["image", "video", "audio"];
@@ -80,8 +80,8 @@ export function creationReferenceLimit(limits: CreationReferenceLimits, kind: Cr
 export function creationReferenceLimitMessage(limits: CreationReferenceLimits, kind: CreationAttachmentKind) {
     const limit = creationReferenceLimit(limits, kind);
     if (limit === undefined) return "";
-    if (limit === 0) return `当前模型不支持${referenceKindLabels[kind]}`;
-    return `${referenceKindLabels[kind]}最多 ${limit} ${referenceKindUnits[kind]}`;
+    if (limit === 0) return `The current model does not support${referenceKindLabels[kind]}`;
+    return `${referenceKindLabels[kind]}most${limit} ${referenceKindUnits[kind]}`;
 }
 
 export function creationReferenceLimitsLabel(limits: CreationReferenceLimits) {
@@ -149,12 +149,12 @@ export function removeCreationReferenceTokens(value: string, references: Creatio
 
 export function replaceCreationAttachmentReference(prompt: string, attachments: CreationAttachment[], targetAttachmentId: string, replacement: CreationAttachment) {
     const targetIndex = attachments.findIndex((attachment) => attachment.id === targetAttachmentId);
-    if (targetIndex < 0) throw new Error("要替换的参考内容不存在");
+    if (targetIndex < 0) throw new Error("The reference content to be replaced does not exist");
     if (replacement.id === targetAttachmentId) return { prompt, attachments };
 
     const currentReferences = buildCreationMentionReferences([], attachments);
     const targetReference = currentReferences.find((reference) => reference.attachmentId === targetAttachmentId);
-    if (!targetReference) throw new Error("要替换的提示词引用不存在");
+    if (!targetReference) throw new Error("The prompt word reference to be replaced does not exist");
 
     const remainingAttachments = attachments.filter((attachment) => attachment.id !== targetAttachmentId && attachment.id !== replacement.id);
     const insertionIndex = Math.min(targetIndex, remainingAttachments.length);
@@ -164,7 +164,7 @@ export function replaceCreationAttachmentReference(prompt: string, attachments: 
         ...remainingAttachments.slice(insertionIndex),
     ];
     const replacementReference = buildCreationMentionReferences([], nextAttachments).find((reference) => reference.attachmentId === replacement.id);
-    if (!replacementReference) throw new Error("替换后的提示词引用无效");
+    if (!replacementReference) throw new Error("The replaced prompt word reference is invalid");
 
     const targetToken = canvasResourceMentionToken(targetReference);
     const replacementToken = canvasResourceMentionToken(replacementReference);
@@ -189,25 +189,25 @@ export function expandCreationPrompt(prompt: string, references: CreationReferen
     references.forEach((reference) => {
         if (reference.attachmentId) {
             const position = attachmentPositions.get(reference.attachmentId);
-            const kindLabel = reference.kind === "video" ? "视频" : reference.kind === "audio" ? "音频" : reference.kind === "text" ? "文件" : "图片";
-            mediaMappings.push(`- @${reference.label}：参考${kindLabel} ${position || 1}`);
+            const kindLabel = reference.kind === "video" ? "video" : reference.kind === "audio" ? "Audio" : reference.kind === "text" ? "File" : "pictures";
+            mediaMappings.push(`- @${reference.label}:Reference${kindLabel} ${position || 1}`);
             return;
         }
     });
 
-    if (mediaMappings.length) contexts.push(`【资源对应关系】\n${mediaMappings.join("\n")}`);
-    return [...contexts, `【创作要求】\n${visiblePrompt}`].filter(Boolean).join("\n\n");
+    if (mediaMappings.length) contexts.push(`[Resource correspondence]${mediaMappings.join("\n")}`);
+    return [...contexts, `【Creation requirements】${visiblePrompt}`].filter(Boolean).join("\n\n");
 }
 
 function attachmentReference(attachment: CreationAttachment, index: number): CreationReference {
     const kind = creationAttachmentKind(attachment);
-    const label = kind === "video" ? "视频" : kind === "audio" ? "音频" : kind === "file" ? "文件" : "图片";
+    const label = kind === "video" ? "video" : kind === "audio" ? "Audio" : kind === "file" ? "File" : "pictures";
     return {
         id: `upload:${attachment.id}`,
         nodeId: `upload:${attachment.id}`,
         kind: kind === "file" ? "text" : kind,
         label: `${label}${index + 1}`,
-        title: "当前参考内容",
+        title: "Current reference content",
         previewUrl: attachment.previewUrl || ("dataUrl" in attachment ? attachment.dataUrl : attachment.url),
         storageKey: attachment.storageKey,
         active: true,

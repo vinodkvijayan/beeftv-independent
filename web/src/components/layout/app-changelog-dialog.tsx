@@ -16,15 +16,15 @@ export function AppChangelogDialog({ open, onClose }: { open: boolean; onClose: 
     const publishedNotes = appChangelogZh.filter((entry) => entry.version.localeCompare(version, undefined, { numeric: true }) <= 0);
     const notes = publishedNotes[0]?.version === version
         ? publishedNotes
-        : [{ version, changes: ["当前版本的更新内容将在发布后提供。"] }, ...publishedNotes];
+        : [{ version, changes: ["Updates to the current version will be provided upon release."] }, ...publishedNotes];
 
     return (
         <AppModal
             rootClassName="app-spatial-modal app-changelog-modal"
-            title={<div className="app-changelog-heading"><span>{showLicenses ? "第三方许可与源码" : "更新日志"}</span><span className="app-changelog-heading-version">{version}</span></div>}
+            title={<div className="app-changelog-heading"><span>{showLicenses ? "Third-party licenses and source code" : "Change log"}</span><span className="app-changelog-heading-version">{version}</span></div>}
             open={open}
             width={680}
-            footer={<button type="button" className="text-sm text-primary underline-offset-4 hover:underline focus-visible:underline" onClick={() => setShowLicenses(!showLicenses)}>{showLicenses ? "返回更新日志" : "第三方许可与源码"}</button>}
+            footer={<button type="button" className="text-sm text-primary underline-offset-4 hover:underline focus-visible:underline" onClick={() => setShowLicenses(!showLicenses)}>{showLicenses ? "Return to update log" : "Third-party licenses and source code"}</button>}
             centered
             onCancel={() => { setShowLicenses(false); onClose(); }}
             modalRender={(node) => (
@@ -33,11 +33,11 @@ export function AppChangelogDialog({ open, onClose }: { open: boolean; onClose: 
                 </motion.div>
             )}
         >
-            {showLicenses ? <iframe title="第三方许可与源码" src={resolveEmbeddedAssetUrl("/licenses/index.html")} className="block h-[min(60vh,560px)] w-full border-0" style={{ colorScheme: theme }} /> : <div className="app-changelog-scroll thin-scrollbar">
+            {showLicenses ? <iframe title="Third-party licenses and source code" src={resolveEmbeddedAssetUrl("/licenses/index.html")} className="block h-[min(60vh,560px)] w-full border-0" style={{ colorScheme: theme }} /> : <div className="app-changelog-scroll thin-scrollbar">
                 {notes.map((entry, index) => (
                     <details className="app-changelog-release" key={entry.version} open={index === 0 ? true : undefined}>
                         <summary className="app-changelog-release-summary">
-                            <span>{index === 0 ? "本次更新" : entry.version}</span>
+                            <span>{index === 0 ? "This update" : entry.version}</span>
                             <ChevronDown className="app-changelog-chevron" aria-hidden="true" />
                         </summary>
                         <ul className="app-changelog-list">

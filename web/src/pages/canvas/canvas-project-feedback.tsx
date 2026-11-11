@@ -65,7 +65,7 @@ export function CanvasUploadStatusToast({ status, theme }: { status: CanvasUploa
                     />
                 ))}
             </div>
-            <span className="sr-only">处理步骤 {status.step}/{status.total}</span>
+            <span className="sr-only">Processing steps{status.step}/{status.total}</span>
         </motion.div>
     );
 }
@@ -82,7 +82,7 @@ export function TaskDetailItem({ label, value }: { label: string; value: string 
 }
 
 export function CanvasMergeStatusToast({ progress, theme }: { progress: MergeVideoProgress; theme: CanvasTheme }) {
-    const detail = progress.phase === "loading" ? "加载视频工具" : progress.phase === "reading" ? "读取选中视频" : progress.phase === "saving" ? "编码已完成，正在保存视频" : progress.phase === "binding" ? "正在加入画布并保存项目" : progress.phase === "done" ? "成片已保存并加入画布" : "正在编码合并成片";
+    const detail = progress.phase === "loading" ? "Load video tool" : progress.phase === "reading" ? "Read selected video" : progress.phase === "saving" ? "Encoding completed, saving video" : progress.phase === "binding" ? "Joining canvas and saving project" : progress.phase === "done" ? "The finished piece has been saved and added to the canvas" : "Encoding and merging into films";
     const percent = Math.max(0, Math.min(100, Math.round(progress.progress)));
     const showPercent = progress.phase === "encoding" || progress.phase === "done";
     return (
@@ -97,13 +97,13 @@ export function CanvasMergeStatusToast({ progress, theme }: { progress: MergeVid
                     <LoaderCircle className="size-4 animate-spin" />
                 </span>
                 <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-semibold">合并成片</span>
+                    <span className="block truncate text-xs font-semibold">Merge into pieces</span>
                     <span className="mt-0.5 block truncate text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
                         {detail}
                     </span>
                 </span>
                 <span className="shrink-0 text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.faint }}>
-                    {showPercent ? percent + "%" : "处理中"}
+                    {showPercent ? percent + "%" : "Processing"}
                 </span>
             </div>
             <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: theme.toolbar.itemHover }}>
@@ -114,9 +114,9 @@ export function CanvasMergeStatusToast({ progress, theme }: { progress: MergeVid
 }
 
 export function taskStatusText(status: GenerationTask["status"]) {
-    if (status === "queued") return "排队中";
-    if (status === "running") return "生成中";
-    if (status === "succeeded") return "任务完成";
-    if (status === "failed") return "任务失败";
-    return "任务已取消";
+    if (status === "queued") return "Queuing";
+    if (status === "running") return "Generating";
+    if (status === "succeeded") return "Mission accomplished";
+    if (status === "failed") return "Task failed";
+    return "Task canceled";
 }

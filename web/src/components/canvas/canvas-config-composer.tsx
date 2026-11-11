@@ -177,8 +177,8 @@ export function CanvasConfigComposer({ value, inputs, skillReferences = [], gene
         >
             <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-baseline gap-2">
-                    <div className="shrink-0 text-xs font-semibold">{simpleMode ? "快速生成" : "组装提示词"}</div>
-                    <div className="truncate text-[var(--fs-label)] opacity-55">{simpleMode ? "已连接素材会自动带入" : "@ 引用已连接素材或已激活技能，发送前自动组装"}</div>
+                    <div className="shrink-0 text-xs font-semibold">{simpleMode ? "Quickly generate" : "Assembly prompt words"}</div>
+                    <div className="truncate text-[var(--fs-label)] opacity-55">{simpleMode ? "Connected materials will be automatically brought in" : "@ References connected materials or activated skills, automatically assembled before sending"}</div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                     <CanvasPromptFontControl />
@@ -194,7 +194,7 @@ export function CanvasConfigComposer({ value, inputs, skillReferences = [], gene
                                 references: inputs.map((input, index) => ({
                                     nodeId: input.nodeId,
                                     kind: input.type,
-                                    label: resourceLabel(input, inputs) || `素材${index + 1}`,
+                                    label: resourceLabel(input, inputs) || `Material${index + 1}`,
                                     title: input.title,
                                     active: true,
                                 })),
@@ -205,7 +205,7 @@ export function CanvasConfigComposer({ value, inputs, skillReferences = [], gene
                             })}
                             theme={theme}
                             onSelectMode={(nextMode) => {
-                                if (nextMode === "frames" && findPromptFirstFrameNodeId(value, inputs.map((input, index) => ({ nodeId: input.nodeId, kind: input.type, label: resourceLabel(input, inputs) || `素材${index + 1}`, active: true })))) {
+                                if (nextMode === "frames" && findPromptFirstFrameNodeId(value, inputs.map((input, index) => ({ nodeId: input.nodeId, kind: input.type, label: resourceLabel(input, inputs) || `Material${index + 1}`, active: true })))) {
                                     onChange(stripPromptFirstFrameClauses(value));
                                 }
                             }}
@@ -215,7 +215,7 @@ export function CanvasConfigComposer({ value, inputs, skillReferences = [], gene
                     <CanvasVideoPromptTools
                         metadata={metadata}
                         endFrameSupported={!isH3Style(model)}
-                        referenceLabel="参考生成"
+                        referenceLabel="Reference generation"
                         frameOptions={videoFrameOptions}
                         referenceMode={(!isH3MaxModel(model) && (isH3Model(model) ? h3VideoOperation(model, { imageCount: inputs.filter((input) => input.type === "image").length, characterCount: inputs.filter((input) => input.type === "character").length, videoCount: inputs.filter((input) => input.type === "video").length, audioCount: inputs.filter((input) => input.type === "audio").length }, metadata?.videoEditOperation) : resolveVideoOperation({ textCount: 0, imageCount: inputs.filter((input) => input.type === "image").length, characterCount: inputs.filter((input) => input.type === "character").length, videoCount: inputs.filter((input) => input.type === "video").length, audioCount: inputs.filter((input) => input.type === "audio").length }, metadata?.videoEditOperation)) === "reference_to_video") ? "all" : "frames"}
                         referenceSummary={{
@@ -229,7 +229,7 @@ export function CanvasConfigComposer({ value, inputs, skillReferences = [], gene
                 </div>
             ) : null}
             <div className="canvas-config-composer-editor relative rounded-lg" style={{ background: theme.node.fill }}>
-                {!value.trim() ? <div className="pointer-events-none absolute left-4 top-3 text-sm leading-7" style={{ color: theme.node.placeholder, ...promptTextStyle }}>输入提示词，按 @ 引用连接素材或技能</div> : null}
+                {!value.trim() ? <div className="pointer-events-none absolute left-4 top-3 text-sm leading-7" style={{ color: theme.node.placeholder, ...promptTextStyle }}>Enter the prompt word and press @ to quote the connection material or skill</div> : null}
                 <div
                     ref={editorRef}
                     contentEditable
@@ -282,7 +282,7 @@ export function CanvasConfigComposer({ value, inputs, skillReferences = [], gene
                 />
                 {mention && candidates.length ? <MentionMenu candidates={candidates} allInputs={inputs} activeIndex={Math.min(activeIndex, candidates.length - 1)} theme={theme} onSelect={insertCandidate} /> : null}
             </div>
-            {imagePreview ? <Image src={imagePreview} alt="引用图片预览" style={{ display: "none" }} preview={{ visible: true, src: imagePreview, onVisibleChange: (visible) => !visible && setImagePreview(null) }} /> : null}
+            {imagePreview ? <Image src={imagePreview} alt="Quote image preview" style={{ display: "none" }} preview={{ visible: true, src: imagePreview, onVisibleChange: (visible) => !visible && setImagePreview(null) }} /> : null}
         </div>
     );
 
@@ -372,7 +372,7 @@ function ResourcePreview({ candidate }: { candidate: ComposerCandidate }) {
 }
 
 function candidateSearchText(candidate: ComposerCandidate, inputs: NodeGenerationInput[]) {
-    if (candidate.kind === "skill") return `技能 ${candidate.reference.label} ${candidate.reference.title} ${candidate.reference.text || ""}`;
+    if (candidate.kind === "skill") return `Skills${candidate.reference.label} ${candidate.reference.title} ${candidate.reference.text || ""}`;
     return `${resourceLabel(candidate.input, inputs)} ${candidate.input.title} ${candidate.input.text || ""}`;
 }
 

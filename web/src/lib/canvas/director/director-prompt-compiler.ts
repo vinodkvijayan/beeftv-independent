@@ -2,25 +2,25 @@ import type { DirectorCamera, DirectorObject, DirectorScene, DirectorShot } from
 import { directorColorLabel, directorPoseLabel } from "@/lib/canvas/director/director-scene";
 
 const shotSizeLabels: Record<DirectorShot["shotSize"], string> = {
-    extreme_wide: "大远景",
-    wide: "远景",
-    full: "全身景",
-    medium: "中景",
-    close_up: "近景特写",
-    extreme_close_up: "大特写",
+    extreme_wide: "big vision",
+    wide: "Vision",
+    full: "full view",
+    medium: "medium shot",
+    close_up: "Close-up",
+    extreme_close_up: "close-up",
 };
 
 const cameraMoveLabels: Record<DirectorShot["cameraMove"], string> = {
-    static: "固定机位",
-    push_in: "镜头缓慢推进",
-    pull_out: "镜头缓慢拉远",
-    pan_left: "镜头向左横摇",
-    pan_right: "镜头向右横摇",
-    tilt_up: "镜头向上摇摄",
-    tilt_down: "镜头向下摇摄",
-    orbit_left: "镜头向左环绕主体",
-    orbit_right: "镜头向右环绕主体",
-    handheld: "克制的手持摄影运动",
+    static: "Fixed position",
+    push_in: "The camera advances slowly",
+    pull_out: "The camera slowly zooms out",
+    pan_left: "The camera pans to the left",
+    pan_right: "The camera pans to the right",
+    tilt_up: "The camera pans upward",
+    tilt_down: "The camera pans down",
+    orbit_left: "The camera wraps around the subject to the left",
+    orbit_right: "The camera wraps around the subject to the right",
+    handheld: "Restrained handheld camera movements",
 };
 
 export function compileDirectorPrompt(scene: DirectorScene, shot: DirectorShot) {
@@ -32,18 +32,18 @@ export function compileDirectorPrompt(scene: DirectorScene, shot: DirectorShot) 
             || key.transform.rotation.some((value, axis) => Math.abs(value - previous.rotation[axis]) > 1e-4);
     });
     const cameraMove = hasKeyframedMotion
-        ? `按 ${cameraKeys.length} 个关键帧执行机位轨迹，${formatNumber(cameraKeys[0].time)} 秒位于 ${formatPosition(cameraKeys[0].transform.position)}，${formatNumber(cameraKeys.at(-1)!.time)} 秒位于 ${formatPosition(cameraKeys.at(-1)!.transform.position)}`
+        ? `press${cameraKeys.length} Keyframes execute the camera trajectory,${formatNumber(cameraKeys[0].time)} seconds at${formatPosition(cameraKeys[0].transform.position)}，${formatNumber(cameraKeys.at(-1)!.time)} seconds at${formatPosition(cameraKeys.at(-1)!.transform.position)}`
         : cameraMoveLabels[shot.cameraMove];
     const visibleObjects = scene.objects.filter((item) => item.visible);
     const actors = visibleObjects.filter((item) => item.kind === "actor" || item.primitive === "character");
     return [
         shot.prompt.trim(),
-        `镜头设计：${shotSizeLabels[shot.shotSize]}，${cameraMove}，时长 ${formatNumber(shot.duration)} 秒。`,
+        `Lens design:${shotSizeLabels[shot.shotSize]}，${cameraMove}, duration${formatNumber(shot.duration)} seconds.`,
         camera ? cameraPrompt(camera) : "",
-        actors.length ? `角色颜色映射：${actors.map((actor) => `${directorColorLabel(actor.color)}人偶（${actor.color}）代表${actor.name}`).join("；")}。生成视频时严格按颜色识别角色，不交换人物身份。` : "",
-        visibleObjects.length ? `空间调度：${visibleObjects.map(objectPrompt).join("；")}。` : "",
-        `灯光：${scene.lights.map((light) => `${light.name}${formatNumber(light.intensity)}强度${light.color}`).join("，")}。`,
-        "保持角色、道具、空间方向、光线方向和镜头轴线连续，遵循真实摄影机透视与物理遮挡。",
+        actors.length ? `Character color mapping:${actors.map((actor) => `${directorColorLabel(actor.color)}Doll (${actor.color}) represents${actor.name}`).join("；")}. When generating videos, characters are strictly identified by color and the identities of the characters are not exchanged.` : "",
+        visibleObjects.length ? `Space scheduling:${visibleObjects.map(objectPrompt).join("；")}。` : "",
+        `Lighting:${scene.lights.map((light) => `${light.name}${formatNumber(light.intensity)}intensity${light.color}`).join("，")}。`,
+        "Keep the characters, props, spatial direction, light direction and lens axis continuous, and follow the real camera perspective and physical occlusion.",
     ]
         .filter(Boolean)
         .join("\n");
@@ -52,17 +52,17 @@ export function compileDirectorPrompt(scene: DirectorScene, shot: DirectorShot) 
 function cameraPrompt(camera: DirectorCamera) {
     const [x, y, z] = camera.transform.position;
     const [tx, ty, tz] = camera.target;
-    const height = y < ty - 0.4 ? "低机位" : y > ty + 1.2 ? "高机位" : "平视机位";
-    const side = x < tx - 0.8 ? "主体左前侧" : x > tx + 0.8 ? "主体右前侧" : "主体正面";
+    const height = y < ty - 0.4 ? "low position" : y > ty + 1.2 ? "High camera position" : "Head-up camera position";
+    const side = x < tx - 0.8 ? "Main left front side" : x > tx + 0.8 ? "Main right front side" : "Main body front";
     const distance = Math.hypot(x - tx, y - ty, z - tz);
-    return `摄影机：${formatNumber(camera.focalLength)}mm 焦段，f/${formatNumber(camera.aperture)} 光圈，焦点距离 ${formatNumber(camera.focusDistance)} 米，${height}，位于${side}，机位距离约 ${formatNumber(distance)} 米，焦点指向 (${formatNumber(tx)}, ${formatNumber(ty)}, ${formatNumber(tz)})，景深遵循真实镜头光学。`;
+    return `Camera:${formatNumber(camera.focalLength)}mm focal length, f/${formatNumber(camera.aperture)} aperture, focal distance${formatNumber(camera.focusDistance)} meters,${height}, located at${side}, the distance between the aircraft and the aircraft is approximately${formatNumber(distance)} m, focus points to (${formatNumber(tx)}, ${formatNumber(ty)}, ${formatNumber(tz)}), the depth of field follows real lens optics.`;
 }
 
 function objectPrompt(object: DirectorObject) {
     const [x, y, z] = object.transform.position;
-    const pose = object.pose ? `，姿势${directorPoseLabel(object.pose)}` : "";
-    const color = object.kind === "actor" || object.primitive === "character" ? `，${directorColorLabel(object.color)}参考人偶` : "";
-    return `${object.name}${color}位于 (${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})${pose}`;
+    const pose = object.pose ? `, posture${directorPoseLabel(object.pose)}` : "";
+    const color = object.kind === "actor" || object.primitive === "character" ? `，${directorColorLabel(object.color)}Reference puppet` : "";
+    return `${object.name}${color}Located at (${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})${pose}`;
 }
 
 function formatNumber(value: number) {

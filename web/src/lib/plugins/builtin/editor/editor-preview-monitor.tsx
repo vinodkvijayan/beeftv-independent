@@ -87,15 +87,15 @@ function clipSourceTimeMs(clip: TimelineClip, transportMs: number): number {
 function clipKindLabel(kind: TimelineClip["kind"]): string {
     switch (kind) {
         case "video":
-            return "视频";
+            return "video";
         case "image":
-            return "图片";
+            return "pictures";
         case "audio":
-            return "音频";
+            return "Audio";
         case "subtitle":
-            return "字幕";
+            return "subtitles";
         case "text":
-            return "文字";
+            return "text";
     }
 }
 
@@ -140,7 +140,7 @@ export function EditorPreviewMonitor() {
     };
     const videoSrc = isVideoClip ? videoPlayback.url : null;
     const imageSrc = activeClip?.kind === "image" ? activeMediaUrl : null;
-    const mediaErrorHint = videoPlayback.error || (videoPlayback.loading ? "正在准备视频预览…" : null);
+    const mediaErrorHint = videoPlayback.error || (videoPlayback.loading ? "Preparing video preview..." : null);
 
     const videoMuted = activeTrack?.muted === true;
 
@@ -346,7 +346,7 @@ export function EditorPreviewMonitor() {
                             )}
                         </>
                     ) : (
-                        <span className="truncate text-xs text-[var(--director-dock-fg)]/40">预览监视器</span>
+                        <span className="truncate text-xs text-[var(--director-dock-fg)]/40">Preview monitor</span>
                     )}
                 </div>
                 {mediaErrorHint && (
@@ -360,12 +360,12 @@ export function EditorPreviewMonitor() {
                             <AlertTriangle className="size-3 shrink-0" />
                         )}
                         <span className="truncate">{mediaErrorHint}</span>
-                        {videoPlayback.error && <button type="button" onClick={videoPlayback.retry}>重新加载</button>}
+                        {videoPlayback.error && <button type="button" onClick={videoPlayback.retry}>reload</button>}
                         {mediaResourceId && (
                             <a
                                 href={resourceFileUrl(mediaResourceId)}
                                 download
-                                title="下载原片，用本地播放器观看"
+                                title="Download the original film and watch it with a local player"
                                 className="grid size-4 shrink-0 place-items-center rounded hover:bg-[var(--director-danger)]/15"
                             >
                                 <Download className="size-3" />
@@ -384,9 +384,9 @@ export function EditorPreviewMonitor() {
                         <div className="max-w-xs text-xs leading-relaxed text-white/70">
                             {project && project.clips.length > 0
                                 ? activeClip
-                                    ? "当前时间点没有可显示画面（字幕或音频片段）"
-                                    : "播放头位于空白处"
-                                : "时间线暂无片段，导入素材后在此预览"}
+                                    ? "There is no displayable picture (subtitles or audio clips) at the current time point."
+                                    : "The playhead is in the empty space"
+                                : "There are no clips in the timeline yet. Preview them here after importing the material."}
                         </div>
                     </div>
                 ) : isVideoClip && videoSrc ? (
@@ -431,8 +431,8 @@ export function EditorPreviewMonitor() {
                 <div className="flex shrink-0 items-center gap-0.5">
                     <button
                         type="button"
-                        aria-label="回到开头"
-                        title="回到开头"
+                        aria-label="Back to the beginning"
+                        title="Back to the beginning"
                         onClick={() => syncPlayback(0)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--director-dock-fg)] hover:bg-[var(--director-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -441,8 +441,8 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label="后退 1 秒"
-                        title="后退 1 秒"
+                        aria-label="Go back 1 second"
+                        title="Go back 1 second"
                         onClick={() => stepBy(-1000)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--director-dock-fg)] hover:bg-[var(--director-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -451,7 +451,7 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label={playing ? "暂停" : "播放"}
+                        aria-label={playing ? "pause" : "play"}
                         onClick={toggle}
                         disabled={durationMs <= 0}
                         className={`grid size-7 place-items-center rounded-md transition-colors disabled:pointer-events-none disabled:opacity-40 ${
@@ -464,8 +464,8 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label="前进 1 秒"
-                        title="前进 1 秒"
+                        aria-label="Go forward 1 second"
+                        title="Go forward 1 second"
                         onClick={() => stepBy(1000)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--director-dock-fg)] hover:bg-[var(--director-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -474,8 +474,8 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label="跳到结尾"
-                        title="跳到结尾"
+                        aria-label="Skip to end"
+                        title="Skip to end"
                         onClick={() => syncPlayback(durationMs)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--director-dock-fg)] hover:bg-[var(--director-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -486,8 +486,8 @@ export function EditorPreviewMonitor() {
                 <div className="relative justify-self-end">
                     <button
                         type="button"
-                        aria-label="播放速度"
-                        title="播放速度"
+                        aria-label="play speed"
+                        title="play speed"
                         onClick={() => setSpeedMenuOpen((v) => !v)}
                         className="flex h-7 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium text-[var(--director-dock-fg)] hover:bg-[var(--director-control-hover)]"
                     >

@@ -58,11 +58,11 @@ export function replaceCanvasNodeReference(
         nextNodes = nodes.map((node) => (node.id === targetNodeId ? writeCanvasNodePrompt(node, updatedPrompt) : node));
     }
 
-    const previousLabel = oldReference.label || "参考图";
-    const nextLabel = sourceNode.title || "新图片";
+    const previousLabel = oldReference.label || "Reference picture";
+    const nextLabel = sourceNode.title || "new pictures";
     return {
         nodes: nextNodes,
         connections: nextConnections,
-        notice: `已将参考图「${previousLabel}」替换为「${nextLabel}」，提示词已同步更新`,
+        notice: `The reference picture has been${previousLabel}” replaced by “${nextLabel}”, the prompt word has been updated simultaneously`,
     };
 }

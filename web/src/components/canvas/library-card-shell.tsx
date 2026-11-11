@@ -43,7 +43,7 @@ export function LibraryCardShell({ ariaLabel, className, cover, title, updatedAt
 
 export function formatLibraryDate(value: string) {
     const timestamp = Date.parse(value);
-    if (!Number.isFinite(timestamp)) return "时间不可用";
+    if (!Number.isFinite(timestamp)) return "Time not available";
     const date = new Date(timestamp);
     return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
 }

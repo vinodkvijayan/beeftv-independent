@@ -147,9 +147,9 @@ function isDownloadableMediaNodeType(type: CanvasNodeTypeId): boolean {
 }
 
 function defaultBatchMediaLabel(type: CanvasNodeTypeId): string {
-    if (type === CanvasNodeType.Video) return "视频";
-    if (type === CanvasNodeType.Audio) return "音频";
-    return "图片";
+    if (type === CanvasNodeType.Video) return "video";
+    if (type === CanvasNodeType.Audio) return "Audio";
+    return "pictures";
 }
 
 function stripMatchingExtension(title: string, extension: string): string {

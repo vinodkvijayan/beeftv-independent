@@ -65,7 +65,7 @@ export function CanvasImageCropEditor({ imageUrl, imageDimensions, onCancel, onC
         <div
             ref={frameRef}
             data-image-crop-inline="true"
-            aria-label="图片裁切选区"
+            aria-label="Picture cropping selection"
             className="absolute inset-0 z-[calc(var(--node-z-overlay)+2)] overflow-visible rounded-[inherit] select-none"
             onMouseDown={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
@@ -97,14 +97,14 @@ export function CanvasImageCropEditor({ imageUrl, imageDimensions, onCancel, onC
                 </div>
             </div>
             <div data-canvas-live-scale data-canvas-no-zoom className="absolute left-1/2 flex h-11 items-center gap-2 rounded-2xl border border-white/12 bg-[#202020]/94 p-1.5 pl-2.5 text-white shadow-xl backdrop-blur-xl" style={{ top: "calc(100% + 12px * var(--canvas-live-inverse-scale, 1))", transform: `translateX(-50%) ${screenScale}`, transformOrigin: "center top" }}>
-                <button type="button" aria-label="取消裁切" title="取消裁切" onClick={onCancel} className="grid size-8 place-items-center rounded-xl text-white/72 transition hover:bg-white/10 hover:text-white">
+                <button type="button" aria-label="Cancel cropping" title="Cancel cropping" onClick={onCancel} className="grid size-8 place-items-center rounded-xl text-white/72 transition hover:bg-white/10 hover:text-white">
                     <X className="size-4" />
                 </button>
                 <span className="border-l border-white/12 pl-3 pr-1 text-xs font-medium tabular-nums text-white/88">{sizeLabel}</span>
                 <button
                     type="button"
-                    aria-label={isSubmitting ? "正在裁切" : "确认裁切"}
-                    title={isSubmitting ? "正在裁切" : "确认裁切"}
+                    aria-label={isSubmitting ? "Cutting" : "Confirm cutting"}
+                    title={isSubmitting ? "Cutting" : "Confirm cutting"}
                     disabled={isSubmitting}
                     onClick={() => void confirmCrop()}
                     className="grid size-8 place-items-center rounded-xl bg-white text-black transition hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait disabled:opacity-80"

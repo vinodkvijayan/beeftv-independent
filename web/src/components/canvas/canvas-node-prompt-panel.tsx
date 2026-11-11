@@ -98,7 +98,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
     const promptOptimizerEnabled = promptActionEntries.some((entry) => entry.pluginId === PROMPT_OPTIMIZER_PLUGIN_ID || entry.payload.id === "prompt-optimizer");
     const simpleMode = workspaceMode === "simple";
     const mode = defaultMode(node.type);
-    const autoLinkLabel = mode === "image" || mode === "video" || mode === "audio" ? "AutoLink" : "引用";
+    const autoLinkLabel = mode === "image" || mode === "video" || mode === "audio" ? "AutoLink" : "Quote";
     const hasTextContent = node.type === CanvasNodeType.Text && Boolean(node.metadata?.content?.trim());
     const hasImageContent = node.type === CanvasNodeType.Image && Boolean(node.metadata?.content);
     const savedPrompt = node.metadata?.composerContent ?? node.metadata?.prompt ?? "";
@@ -192,7 +192,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                     frameOptions={videoFrameOptions}
                     endFrameSupported
                     middleFrameSupported
-                    referenceLabel="参考生成"
+                    referenceLabel="Reference generation"
                     referenceMode="frames"
                     referenceSummary={requirements.input}
                     onMetadataChange={(patch) => onConfigChange(node.id, patch)}
@@ -322,7 +322,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
         <div
             className="canvas-node-composer-header cursor-grab select-none active:cursor-grabbing"
             data-canvas-node-drag-handle
-            title="拖动节点"
+            title="Drag node"
             onPointerDown={(event) => {
                 const target = event.target instanceof Element ? event.target : null;
                 if (!target?.closest("button, input, textarea, select, a, [contenteditable=\"true\"], [data-canvas-no-drag]")) onNodeMouseDown?.(event, node.id);
@@ -338,7 +338,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                     <span className="grid size-3.5 shrink-0 place-items-center" style={{ color: monochromeAccent }}>
                         <GenerationModeIcon mode={mode} />
                     </span>
-                    <span className="truncate text-[var(--fs-tiny)] font-medium">{modeDisplayName(mode)}生成</span>
+                    <span className="truncate text-[var(--fs-tiny)] font-medium">{modeDisplayName(mode)}generate</span>
                     {activeReferenceCount > 0 ? <span className="canvas-node-composer-reference-heading">{referenceShelfHeading(activeReferences)}</span> : null}
                     {expanded && videoModeState ? <VideoReferenceModeSwitch state={videoModeState} theme={theme} onSelectMode={handleSelectVideoReferenceMode} onChange={(patch) => onConfigChange(node.id, patch)} /> : null}
                 </div>
@@ -389,37 +389,37 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                         );
                     })}
             {canOptimizePrompt ? (
-                <Tooltip title="用 AI 润色提示词">
+                <Tooltip title="Use AI to polish prompt words">
                     <button
                         type="button"
                         className="canvas-node-composer-header-action inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5"
                         onClick={() => setPromptOptimizerOpen(true)}
-                        aria-label="润色提示词"
+                        aria-label="polishing tips"
                     >
                         <WandSparkles className="size-3" />
-                        <span className="text-[var(--fs-tiny)] font-medium">润色</span>
+                        <span className="text-[var(--fs-tiny)] font-medium">polish</span>
                     </button>
                 </Tooltip>
             ) : null}
                 {!expanded && canExpandPrompt ? (
-                    <Tooltip title="放大编辑">
+                    <Tooltip title="EnlargeEdit">
                         <button
                             type="button"
                             className="canvas-node-composer-header-action grid size-6 shrink-0 place-items-center rounded-md"
                             onClick={() => setExpandedPromptOpen(true)}
-                            aria-label="放大编辑提示词"
+                            aria-label="Enlarge editing prompt word"
                         >
                             <Maximize2 className="size-3" />
                         </button>
                     </Tooltip>
                 ) : null}
                 {!expanded && onClose ? (
-                    <Tooltip title="关闭">
+                    <Tooltip title="Close">
                         <button
                             type="button"
                             className="canvas-node-composer-header-action grid size-6 shrink-0 place-items-center rounded-md"
                             onClick={onClose}
-                            aria-label="关闭创作面板"
+                            aria-label="Close the authoring panel"
                         >
                             <X className="size-3" />
                         </button>
@@ -430,7 +430,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
     );
 
     const renderSubmitButton = (expanded: boolean) => {
-        const actionLabel = isRunning ? "生成中" : "生成";
+        const actionLabel = isRunning ? "Generating" : "generate";
         return (
             <Button
                 type="text"
@@ -458,7 +458,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
         simpleMode ? (
             <div className="canvas-node-composer-footer">
                 <span className="min-w-0 truncate px-2 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>
-                    {activeReferenceCount ? `已连接 ${activeReferenceCount} 个素材` : "将使用默认模型与参数"}
+                    {activeReferenceCount ? `Connected${activeReferenceCount} materials` : "Default model and parameters will be used"}
                 </span>
                 <ReferenceToolsPopover
                     canAutoMention={canAutoMention}
@@ -501,11 +501,11 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                         <button
                             type="button"
                             className="canvas-composer-model-picker flex !h-7 w-full min-w-0 items-center px-2 text-left !text-[var(--fs-tiny)] !font-normal"
-                            aria-label="暂无模型可用，连接内置算力"
-                            title="暂无模型可用，连接内置算力"
+                            aria-label="No model available yet, connect to the built-in computing power"
+                            title="No model available yet, connect to the built-in computing power"
                             onClick={() => navigateToSettings({ section: "channels", continueCreation: true })}
                         >
-                            <span className="truncate">暂无模型可用，连接内置算力</span>
+                            <span className="truncate">No model available yet, connect to the built-in computing power</span>
                         </button>
                     )}
                 </div>
@@ -522,14 +522,14 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                         label={autoLinkLabel}
                     />
                     {mode === "text" ? (
-                        <Tooltip title={`文本生成份数（默认 1，可在生成配置中调整）`}>
+                        <Tooltip title={`Number of text generation copies (default 1, adjustable in generation configuration)`}>
                             <InputNumber
                                 size="small"
                                 min={1}
                                 max={15}
                                 value={Math.max(1, Math.min(15, Math.floor(Math.abs(Number(node.metadata?.textCount) || 1))))}
                                 onChange={(value) => onConfigChange(node.id, { textCount: Math.max(1, Math.min(15, Math.floor(Math.abs(Number(value)) || 1))) })}
-                                aria-label="文本生成份数"
+                                aria-label="Text generation copies"
                                 className="!w-14 !h-7 [&_.ant-input-number-input]:!text-[var(--fs-tiny)]"
                             />
                         </Tooltip>
@@ -561,7 +561,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                                 onCameraControlChange={(cameraControl) => onConfigChange(node.id, { cameraControl })}
                                 theme={theme}
                                 compact={!expanded}
-                                label="运镜"
+                                label="Movement of the mirror"
                             />
                             <CanvasVideoSettingsPopover
                                 config={config}
@@ -579,12 +579,12 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                             >
                                 {h3Model ? <><CanvasH3Controls model={config.model} value={node.metadata?.videoH3Options} onChange={(videoH3Options) => onConfigChange(node.id, { videoH3Options })} /><CanvasH3UnsupportedFrames model={config.model} metadata={node.metadata} onChange={(patch) => onConfigChange(node.id, patch)} /></> : (requirements.input?.videoCount || 0) > 0 && (modelCapabilityConfigFor(config, config.model).video?.operations.includes("extend") || modelCapabilityConfigFor(config, config.model).video?.operations.includes("inpaint")) ? (
                                     <div className="space-y-1.5 border-t pt-2.5" style={{ borderColor: theme.toolbar.border }}>
-                                        <div className="text-[var(--fs-tiny)] font-semibold" style={{ color: theme.node.muted }}>参考视频模式</div>
+                                        <div className="text-[var(--fs-tiny)] font-semibold" style={{ color: theme.node.muted }}>Reference video mode</div>
                                         <div className="grid grid-cols-3 gap-1.5">
                                             {([
-                                                { value: undefined, label: "参考生成" },
-                                                { value: "extend", label: "视频续写" },
-                                                { value: "inpaint", label: "视频局部修改" },
+                                                { value: undefined, label: "Reference generation" },
+                                                { value: "extend", label: "Video continuation" },
+                                                { value: "inpaint", label: "Partial modification of video" },
                                             ] as const).map((item) => {
                                                 const active = (node.metadata?.videoEditOperation || undefined) === item.value;
                                                 return (
@@ -661,7 +661,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                             : "thin-scrollbar h-full w-full resize-none overflow-y-auto border-none bg-transparent px-2.5 py-1.5 text-[var(--fs-body)] leading-5 !outline-none !ring-0 !shadow-none focus:!outline-none focus:!ring-0 focus:!shadow-none placeholder:text-current placeholder:opacity-35"}
                         style={{ color: theme.node.text, outline: "none", boxShadow: "none", fontSize, lineHeight: `${Math.round(fontSize * 1.5)}px` }}
                         placeholder={promptPlaceholder(mode, hasImageContent, hasTextContent)}
-                        aria-label={`${modeDisplayName(mode)}提示词`}
+                        aria-label={`${modeDisplayName(mode)}prompt word`}
                     />
                 </div>
                 {!expanded && <PromptResizeHandle
@@ -679,15 +679,15 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                 />
                 {node.metadata?.generationPreflightError ? (
                     <p role="alert" className="mx-2.5 my-2 whitespace-pre-wrap break-words text-[var(--fs-tiny)]" style={{ color: theme.accent.danger }}>
-                        未开始生成：{node.metadata.generationPreflightError}
+                                                Generation not started:{node.metadata.generationPreflightError}
                     </p>
                 ) : null}
                 {needsRecoverySection && (onOpenGenerationHistory || onCreateGenerationReplacement) ? (
-                    <section aria-label="生成恢复" className="mx-2.5 my-2 text-[var(--fs-tiny)]">
-                        <p style={{ color: theme.node.muted }}>可以取回已有结果，或保留原节点、新建节点继续。</p>
+                    <section aria-label="Build recovery" className="mx-2.5 my-2 text-[var(--fs-tiny)]">
+                        <p style={{ color: theme.node.muted }}>You can retrieve existing results, or keep the original nodes and create new nodes to continue.</p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {onOpenGenerationHistory ? <Button className="min-h-10" onClick={onOpenGenerationHistory}>查看生成历史</Button> : null}
-                            {onCreateGenerationReplacement ? <Button className="min-h-10" onClick={() => onCreateGenerationReplacement(node.id)}>新建节点继续</Button> : null}
+                            {onOpenGenerationHistory ? <Button className="min-h-10" onClick={onOpenGenerationHistory}>View build history</Button> : null}
+                            {onCreateGenerationReplacement ? <Button className="min-h-10" onClick={() => onCreateGenerationReplacement(node.id)}>Create a new node to continue</Button> : null}
                         </div>
                     </section>
                 ) : null}
@@ -706,7 +706,7 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                         onAutoLinkEnabledChange={setAutoLinkEnabled}
                         accent={monochromeAccent}
                         compact={false}
-                        label="参考"
+                        label="Reference"
                     />
                 </div>
             );
@@ -747,21 +747,21 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                     </div>
                 ) : null}
                 <CanvasPresetPicker mode={mode} skillReferences={skillReferences} open={presetOpen} onOpenChange={setPresetOpen} onSelect={applyPreset} currentPrompt={prompt} appearance="quiet" dense />
-                <Tooltip title={pickConnectActive ? "正在点选连线引用（点击画布节点自动连线并插入 @引用，按 Esc 退出）" : "点选连线引用（或按住 Option/Alt 点击画布节点）"}>
+                <Tooltip title={pickConnectActive ? "Clicking on the connection reference (click the canvas node to automatically connect and insert @reference, press Esc to exit)" : "Click the wire reference (or Option/Alt-click the canvas node)"}>
                     <button
                         type="button"
                         aria-pressed={pickConnectActive}
-                        aria-label="点选连线引用"
+                        aria-label="Click on wired reference"
                         className="canvas-node-composer-header-action inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5"
                         style={pickConnectActive ? { background: monochromeAccent, color: theme.canvas.background } : undefined}
                         onClick={() => togglePickConnectTargetNodeId(node.id)}
                     >
                         <Link2 className="size-3" />
-                        <span className="text-[var(--fs-tiny)] font-medium">点选连线</span>
+                        <span className="text-[var(--fs-tiny)] font-medium">Click to connect</span>
                     </button>
                 </Tooltip>
                 <CanvasPromptFontControl />
-                {canExpandPrompt ? <button type="button" className="canvas-node-composer-header-action grid size-6 place-items-center rounded-md" onClick={() => setExpandedPromptOpen(true)} aria-label="放大编辑提示词" title="放大编辑提示词"><Maximize2 className="size-3" /></button> : null}
+                {canExpandPrompt ? <button type="button" className="canvas-node-composer-header-action grid size-6 place-items-center rounded-md" onClick={() => setExpandedPromptOpen(true)} aria-label="Enlarge editing prompt word" title="Enlarge editing prompt word"><Maximize2 className="size-3" /></button> : null}
             </div>
 
             {renderPromptEditor(false)}
@@ -775,10 +775,10 @@ export function CanvasNodePromptPanel({ projectId, node, isRunning, onPromptChan
                         style={{ color: theme.node.muted }}
                         onClick={() => setParamsExpanded(!paramsExpanded)}
                         aria-expanded={paramsExpanded}
-                        aria-label={paramsExpanded ? "收起参数" : "展开参数"}
+                        aria-label={paramsExpanded ? "Collapse parameters" : "Expand parameters"}
                     >
                         <SlidersHorizontal className="size-3" strokeWidth={1.8} />
-                        <span className="flex-1 text-left">参数</span>
+                        <span className="flex-1 text-left">parameters</span>
                         <ChevronDown className={`size-3 transition-transform duration-200 ${paramsExpanded ? "rotate-180" : ""}`} strokeWidth={1.8} />
                     </button>
                     {paramsExpanded ? (
@@ -840,10 +840,10 @@ function GenerationModeIcon({ mode }: { mode: CanvasNodeGenerationMode }) {
 }
 
 function modeDisplayName(mode: CanvasNodeGenerationMode) {
-    if (mode === "image") return "图片";
-    if (mode === "video") return "视频";
-    if (mode === "audio") return "音频";
-    return "文本";
+    if (mode === "image") return "pictures";
+    if (mode === "video") return "video";
+    if (mode === "audio") return "Audio";
+    return "text";
 }
 
 function defaultMode(type: CanvasNodeData["type"]): CanvasNodeGenerationMode {
@@ -853,10 +853,10 @@ function defaultMode(type: CanvasNodeData["type"]): CanvasNodeGenerationMode {
 export { buildNodeConfig };
 
 function promptPlaceholder(mode: CanvasNodeGenerationMode, hasImageContent: boolean, hasTextContent: boolean) {
-    if (mode === "video") return "描述你想要生成的画面内容，可用 @ 引用图片、视频、音频或角色";
-    if (mode === "audio") return "描述你想要的音频效果，可用 @ 引用音频";
-    if (mode === "image") return hasImageContent ? "输入新提示词，重新生成当前图片" : "描述要生成的图片内容";
-    return hasTextContent ? "请输入你想要将本段文本修改成什么" : "请输入你想要生成的文本内容";
+    if (mode === "video") return "Describe the screen content you want to generate. You can use @ to refer to images, videos, audios or characters.";
+    if (mode === "audio") return "Describe the audio effect you want, you can use @ to reference the audio";
+    if (mode === "image") return hasImageContent ? "Enter a new prompt word to regenerate the current picture" : "Describe the image content to be generated";
+    return hasTextContent ? "Please enter what you want to change this text to" : "Please enter the text content you want to generate";
 }
 
 function imagePreferencePatch(key: keyof AiConfig, value: string) {

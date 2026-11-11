@@ -30,32 +30,32 @@ export const minimaxAudioFormatOptions = audioFormatOptions.filter((item) => ite
 // BeefTV MiniMax speech: voice is a MiniMax system/cloned ID, not OpenAI alloy.
 // Documented example is male-qn-qingse; these are the T2A 系统音色.
 export const minimaxSpeechVoiceOptions = [
-    { value: "male-qn-qingse", label: "青涩青年" },
-    { value: "male-qn-jingying", label: "精英青年" },
-    { value: "male-qn-badao", label: "霸道青年" },
-    { value: "male-qn-daxuesheng", label: "青年大学生" },
-    { value: "female-shaonv", label: "少女" },
-    { value: "female-yujie", label: "御姐" },
-    { value: "female-chengshu", label: "成熟女性" },
-    { value: "female-tianmei", label: "甜美女性" },
-    { value: "presenter_male", label: "男主持人" },
-    { value: "presenter_female", label: "女主持人" },
-    { value: "audiobook_male_1", label: "男有声书 1" },
-    { value: "audiobook_male_2", label: "男有声书 2" },
-    { value: "audiobook_female_1", label: "女有声书 1" },
-    { value: "audiobook_female_2", label: "女有声书 2" },
+    { value: "male-qn-qingse", label: "Youthful youth" },
+    { value: "male-qn-jingying", label: "elite youth" },
+    { value: "male-qn-badao", label: "Domineering youth" },
+    { value: "male-qn-daxuesheng", label: "young college students" },
+    { value: "female-shaonv", label: "girl" },
+    { value: "female-yujie", label: "Royal sister" },
+    { value: "female-chengshu", label: "mature women" },
+    { value: "female-tianmei", label: "sweet women" },
+    { value: "presenter_male", label: "male host" },
+    { value: "presenter_female", label: "female host" },
+    { value: "audiobook_male_1", label: "Male Audiobook 1" },
+    { value: "audiobook_male_2", label: "Male Audiobook 2" },
+    { value: "audiobook_female_1", label: "Female Audiobook 1" },
+    { value: "audiobook_female_2", label: "Female Audiobook 2" },
 ];
 
 export const seedAudioVoiceOptions = [
-    { value: "auto", label: "自动（全能参考）" },
-    { value: "zh_female_cancan_uranus_bigtts", label: "灿灿女声" },
-    { value: "zh_female_vv_uranus_bigtts", label: "薇薇少女" },
-    { value: "zh_female_xiaohe_uranus_bigtts", label: "温柔小荷" },
-    { value: "zh_female_shuangkuaisisi_uranus_bigtts", label: "爽快思思" },
-    { value: "zh_male_m191_uranus_bigtts", label: "云舟男声" },
-    { value: "zh_male_taocheng_uranus_bigtts", label: "阳光小天" },
-    { value: "zh_male_dayi_uranus_bigtts", label: "磁性大壹" },
-    { value: "zh_male_liufei_uranus_bigtts", label: "儒雅刘飞" },
+    { value: "auto", label: "Automatic (all-purpose reference)" },
+    { value: "zh_female_cancan_uranus_bigtts", label: "Brilliant female voice" },
+    { value: "zh_female_vv_uranus_bigtts", label: "Weiwei girl" },
+    { value: "zh_female_xiaohe_uranus_bigtts", label: "gentle little lotus" },
+    { value: "zh_female_shuangkuaisisi_uranus_bigtts", label: "Happy thinking" },
+    { value: "zh_male_m191_uranus_bigtts", label: "Yunzhou male voice" },
+    { value: "zh_male_taocheng_uranus_bigtts", label: "sunny little day" },
+    { value: "zh_male_dayi_uranus_bigtts", label: "Magnetic Big One" },
+    { value: "zh_male_liufei_uranus_bigtts", label: "Elegant Liu Fei" },
 ];
 
 export type AudioSpeechKind = "openai" | "minimax-speech" | "minimax-music" | "seed-audio";
@@ -169,11 +169,11 @@ export function normalizeAudioVoiceValue(value: string, model?: string) {
     const trimmed = String(value || "").trim();
     if (profile.voices.some((item) => item.value === trimmed)) return trimmed;
     if (profile.kind === "seed-audio") {
-        if (!trimmed || OPENAI_SPEECH_VOICES.has(trimmed) || MINIMAX_SPEECH_VOICES.has(trimmed) || trimmed === "中文") return profile.defaultVoice;
+        if (!trimmed || OPENAI_SPEECH_VOICES.has(trimmed) || MINIMAX_SPEECH_VOICES.has(trimmed) || trimmed === "Chinese") return profile.defaultVoice;
         return trimmed;
     }
     if (profile.kind === "minimax-speech") {
-        if (!trimmed || trimmed === "auto" || trimmed.endsWith("_bigtts") || trimmed.startsWith("ICL_") || OPENAI_SPEECH_VOICES.has(trimmed) || trimmed === "中文") return profile.defaultVoice;
+        if (!trimmed || trimmed === "auto" || trimmed.endsWith("_bigtts") || trimmed.startsWith("ICL_") || OPENAI_SPEECH_VOICES.has(trimmed) || trimmed === "Chinese") return profile.defaultVoice;
         return trimmed;
     }
     return OPENAI_SPEECH_VOICES.has(trimmed) ? trimmed : profile.defaultVoice;
@@ -263,8 +263,8 @@ export function audioSettingsSummary(config: { model?: string; audioVoice?: stri
     parts.push(audioFormatLabel(config.audioFormat || "", model));
     if (profile.kind === "minimax-music") parts.push("256 kbps");
     if (profile.showSpeed) parts.push(audioSpeedLabel(config.audioSpeed || "", model));
-    if (profile.showPitch && Number(normalizeAudioPitchValue(config.audioPitch || "")) !== 0) parts.push(`音调${audioPitchLabel(config.audioPitch || "")}`);
-    if (profile.showVolume && Number(normalizeAudioVolumeValue(config.audioVolume || "")) !== 1) parts.push(`音量${audioVolumeLabel(config.audioVolume || "")}`);
+    if (profile.showPitch && Number(normalizeAudioPitchValue(config.audioPitch || "")) !== 0) parts.push(`pitch${audioPitchLabel(config.audioPitch || "")}`);
+    if (profile.showVolume && Number(normalizeAudioVolumeValue(config.audioVolume || "")) !== 1) parts.push(`Volume${audioVolumeLabel(config.audioVolume || "")}`);
     return parts.join(" · ");
 }
 

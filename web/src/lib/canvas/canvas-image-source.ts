@@ -17,13 +17,13 @@ export function createPortraitTextureNode(source: CanvasNodeData, id: string): C
     return {
         id,
         type: CanvasNodeType.Image,
-        title: `${source.title || "图片"} · 人物质感`,
+        title: `${source.title || "pictures"} · Character texture`,
         position: { x: source.position.x + source.width + 96, y: source.position.y },
         width: source.width,
         height: source.height,
         metadata: mediaGeneratorMetadata({
-            prompt: "@图片1",
-            composerContent: "@图片1",
+            prompt: "@Picture1",
+            composerContent: "@Picture1",
             generationType: "edit",
             portraitTexture: source.metadata?.portraitTexture,
         }),

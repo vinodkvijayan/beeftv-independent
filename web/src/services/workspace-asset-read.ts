@@ -21,8 +21,8 @@ type AssetStoreDraftWithSnapshot = AssetStoreDraftRecord & { asset?: Asset };
 
 export const WORKSPACE_ASSET_BATCH_LIMIT = 100;
 export const WORKSPACE_ASSET_RECENT_MS = 30 * 24 * 60 * 60 * 1000;
-export const WORKSPACE_ASSET_LINKED_PROJECT = "已关联项目";
-export const WORKSPACE_ASSET_UNLINKED_PROJECT = "未关联项目";
+export const WORKSPACE_ASSET_LINKED_PROJECT = "Linked projects";
+export const WORKSPACE_ASSET_UNLINKED_PROJECT = "No associated projects";
 
 /**
  * SQLite Library hard-deletes rows and GET /assets plus POST /assets/batch only
@@ -30,7 +30,7 @@ export const WORKSPACE_ASSET_UNLINKED_PROJECT = "未关联项目";
  * cache-only id cannot be distinguished from a server deletion.
  */
 export const WORKSPACE_ASSET_TOMBSTONE_SEAM =
-    "asset.Library 没有墓碑/导入清单：GET /assets 与 POST /assets/batch 只返回仍存在的所属记录。浏览器缓存里多出的 ID 无法区分「从未写入 SQLite」和「服务端已删除」。";
+    "asset.Library has no tombstone/import list: GET /assets and POST /assets/batch only return owned records that still exist. The extra IDs in the browser cache cannot distinguish between \"never written to SQLite\" and \"deleted on the server\".";
 
 const preservedDraftScopes = new Set<string>();
 
@@ -114,7 +114,7 @@ export async function loadWorkspaceAssetLibraryPage(options: WorkspaceAssetLibra
 
 export class WorkspaceAssetUnavailableError extends Error {
     constructor(public readonly assetIds: string[]) {
-        super("部分本地素材不存在，请重新选择素材");
+        super("Some local materials do not exist, please select materials again");
         this.name = "WorkspaceAssetUnavailableError";
     }
 }
@@ -331,7 +331,7 @@ function projectDraftSnapshots(assets: Asset[]) {
 }
 
 function parseWorkspaceAssetPage(remote: WorkspaceAssetPageResponse): WorkspaceAssetLibraryPage {
-    if (!remote || !Array.isArray(remote.assets)) throw new Error("素材列表无效");
+    if (!remote || !Array.isArray(remote.assets)) throw new Error("Invalid material list");
     return {
         assets: parseWorkspaceAssetPayloads(remote.assets),
         kindCounts: numberMap(remote.kindCounts),
@@ -353,14 +353,14 @@ function parseWorkspaceAssetPage(remote: WorkspaceAssetPageResponse): WorkspaceA
 
 function parseWorkspaceAssetPayloads(values: unknown): Asset[] {
     if (values == null) return [];
-    if (!Array.isArray(values)) throw new Error("素材列表无效");
+    if (!Array.isArray(values)) throw new Error("Invalid material list");
     const assets: Asset[] = [];
     values.forEach((item, index) => {
         try {
             assets.push(normalizeWorkspaceAssetPayload(item));
         } catch (error) {
             const id = isRecord(item) && typeof item.id === "string" && item.id.trim() ? item.id : `#${index}`;
-            console.warn("已隔离无法展示的素材记录", { id, error: error instanceof Error ? error.message : String(error) });
+            console.warn("Material records that have been isolated and cannot be displayed", { id, error: error instanceof Error ? error.message : String(error) });
         }
     });
     return assets;
@@ -543,7 +543,7 @@ function matchesExtraClientFilters(asset: Asset, options: WorkspaceAssetLibraryP
 
 export function isWorkspaceGeneratedHistoryAsset(asset: Pick<Asset, "kind" | "source" | "metadata">) {
     if (asset.kind !== "image" && asset.kind !== "video" && asset.kind !== "audio") return false;
-    return asset.source === "生成任务" || typeof asset.metadata?.generationEffectKey === "string";
+    return asset.source === "Generate tasks" || typeof asset.metadata?.generationEffectKey === "string";
 }
 
 export function isWorkspacePersonalLibraryAsset(asset: Pick<Asset, "kind" | "source" | "folderId" | "metadata">): boolean {
@@ -565,7 +565,7 @@ export function workspaceAssetProjectLabel(asset: Pick<Asset, "metadata">) {
 export function workspaceAssetProjectOptions(counts: Record<string, number>) {
     return Object.keys(counts)
         .filter((name) => name !== WORKSPACE_ASSET_UNLINKED_PROJECT && (counts[name] || 0) > 0)
-        .sort((left, right) => left.localeCompare(right, "zh-CN"));
+        .sort((left, right) => left.localeCompare(right, "en-US"));
 }
 
 export function workspaceAssetCountSum(counts: Record<string, number> | undefined) {

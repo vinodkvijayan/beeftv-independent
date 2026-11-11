@@ -111,7 +111,7 @@ export function Select<V extends string = string>({ value, onChange, options = [
                     <span
                         role="button"
                         tabIndex={-1}
-                        aria-label="清空选择"
+                        aria-label="Clear selection"
                         className="shrink-0 cursor-pointer rounded p-0.5 text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                         onPointerDown={(event) => event.stopPropagation()}
                         onClick={(event) => {
@@ -125,7 +125,7 @@ export function Select<V extends string = string>({ value, onChange, options = [
                 <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none", open && "rotate-180")} />
             </AriaButton>
             <AriaPopover ref={popoverRef} isNonModal placement="bottom" offset={4} style={popoverWidth ? { width: popoverWidth } : undefined} className={cn("z-50 rounded-lg border border-border bg-surface-strong p-1 shadow-lg", "ra-pop-in")}>
-                <AriaListBox aria-label={ariaLabel ?? placeholder ?? "选项"} className="max-h-60 overflow-auto outline-none">
+                <AriaListBox aria-label={ariaLabel ?? placeholder ?? "Options"} className="max-h-60 overflow-auto outline-none">
                     {options.map((option) => (
                         <AriaListBoxItem
                             key={option.value}

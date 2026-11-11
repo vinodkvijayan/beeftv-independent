@@ -21,7 +21,7 @@ export async function openH3Director(
         retry: { maxRetries: 0 },
         requestMiddleware: async (request) => {
             const target = new URL(request.url);
-            if (target.origin !== "https://wma.fal.run" || !["/ice", "/session", "/session/heartbeat"].includes(target.pathname) || request.method !== "POST") throw new Error("导演请求地址不受支持");
+            if (target.origin !== "https://wma.fal.run" || !["/ice", "/session", "/session/heartbeat"].includes(target.pathname) || request.method !== "POST") throw new Error("Director request address is not supported");
             const routed = channelRequest(config, proxy, { "Content-Type": "application/json", "x-fal-target-url": target.href });
             return { ...request, url: routed.url, headers: routed.headers };
         },
@@ -49,7 +49,7 @@ export async function openH3Director(
         },
         onError: (error) => {
             control.fail();
-            callbacks.onError?.(new Error(error instanceof Error ? error.message : "导演会话连接失败"));
+            callbacks.onError?.(new Error(error instanceof Error ? error.message : "Director session connection failed"));
         },
         onState: (state) => {
             if (state === "failed") control.fail();
@@ -75,9 +75,9 @@ export async function openH3Director(
 }
 
 export function recordH3Director(stream: MediaStream): { stop: () => Promise<Blob> } {
-    if (!stream.getVideoTracks().length || !stream.getAudioTracks().length) throw new Error("导演视频和音频尚未就绪");
+    if (!stream.getVideoTracks().length || !stream.getAudioTracks().length) throw new Error("Director video and audio are not ready yet");
     const mime = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp8,opus", "video/webm"].find((v) => MediaRecorder.isTypeSupported(v));
-    if (!mime) throw new Error("当前客户端不支持录制导演视频");
+    if (!mime) throw new Error("The current client does not support recording director videos");
     const recorder = new MediaRecorder(stream, { mimeType: mime }),
         parts: BlobPart[] = [];
     let bytes = 0;
@@ -87,7 +87,7 @@ export function recordH3Director(stream: MediaStream): { stop: () => Promise<Blo
             if (e.data.size) {
                 bytes += e.data.size;
                 if (bytes > 256 * 1024 * 1024) {
-                    error = new Error("录制视频超过 256 MB，请缩短会话");
+                    error = new Error("Recorded video exceeds 256 MB, please shorten the session");
                     recorder.stop();
                     return;
                 }
@@ -95,13 +95,13 @@ export function recordH3Director(stream: MediaStream): { stop: () => Promise<Blo
             }
         };
         recorder.onerror = () => {
-            error = new Error("导演视频录制失败");
+            error = new Error("Director video recording failed");
         };
         recorder.onstop = () => {
             if (error) reject(error);
             else {
                 const blob = new Blob(parts, { type: mime });
-                if (!blob.size) reject(new Error("导演录制没有收到视频数据"));
+                if (!blob.size) reject(new Error("Director recording does not receive video data"));
                 else resolve(blob);
             }
         };

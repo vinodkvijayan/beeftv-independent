@@ -5,7 +5,7 @@ import { attachMessageEffectKey } from "@/services/generation-task-materializer"
 
 export class ConversationBindProjectionAdoptionError extends Error {
     constructor() {
-        super("这次生成结果没能写进对话。请再试一次。");
+        super("This time the generated results were not included in the conversation. Please try again.");
         this.name = "ConversationBindProjectionAdoptionError";
     }
 }
@@ -37,7 +37,7 @@ export async function bindBackendConversationMessageResult(input: {
     signal?: AbortSignal;
     runtime?: BindBackendConversationMessageRuntime;
 }): Promise<BoundConversationMessage> {
-    if (input.task.status !== "succeeded") throw new Error("只有成功的任务才能绑定到消息");
+    if (input.task.status !== "succeeded") throw new Error("Only successful tasks can be bound to messages");
     const runtime = input.runtime ?? {};
     const outputIndex = input.outputIndex ?? 0;
     const attachMessage = runtime.attachMessage ?? attachConversationMessage;

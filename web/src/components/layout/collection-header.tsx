@@ -31,7 +31,7 @@ export function CollectionHeader<Value extends string>({ title, className, searc
                             {actions}
                         </div>
                         {primaryAction ?? <Dropdown trigger={["click"]} menu={{ items: createItems }}>
-                            <button type="button" className="collection-header-create"><Plus className="size-4" />新建</button>
+                            <button type="button" className="collection-header-create"><Plus className="size-4" />New</button>
                         </Dropdown>}
                     </div>
                 </div>

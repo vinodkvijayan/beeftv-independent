@@ -35,7 +35,7 @@ export function ExpandableSearch({ value, onChange, placeholder, className }: Ex
                 <button
                     type="button"
                     className={cn("workspace-expandable-search-button", value && "is-active")}
-                    aria-label={value ? `${placeholder}，当前关键词：${value}` : placeholder}
+                    aria-label={value ? `${placeholder}, current keywords:${value}` : placeholder}
                     title={placeholder}
                     onClick={() => setExpanded(true)}
                 >

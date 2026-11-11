@@ -2,7 +2,7 @@ import { canvasNodeMentionToken, type CanvasResourceReference } from "./canvas-r
 import { connectWorkflowDraft, workflowOperationId } from "./workflow-editor";
 import type { WorkflowDefinition, WorkflowOperation } from "@/services/api/canvas-workflows";
 
-const mediaNames = { image: "图片", video: "视频", audio: "音频", text: "文本" };
+const mediaNames = { image: "pictures", video: "video", audio: "Audio", text: "text" };
 const mediaPorts = { image: "referenceImages", video: "referenceVideos", audio: "referenceAudios", text: "prompt" };
 const nodeTokens = /@\[node:([^\]\s]+)\]/g;
 
@@ -20,7 +20,7 @@ export function workflowNodeMentionReferences(definition: WorkflowDefinition, ta
 
 export function connectWorkflowPromptReference(definition: WorkflowDefinition, targetId: string, sourceId: string, operations: WorkflowOperation[]) {
     const source = definition.nodes.find(node => node.id === sourceId);
-    if (!source) throw new Error("引用的节点已不存在");
+    if (!source) throw new Error("The referenced node no longer exists");
     const port = mediaPorts[source.mediaType];
     if (definition.edges.some(edge => edge.fromNodeId === sourceId && edge.toNodeId === targetId && edge.toPort === port)) return definition;
     return connectWorkflowDraft(definition, sourceId, targetId, port, operations);
@@ -41,7 +41,7 @@ export function normalizeWorkflowNodeMentions(definition: WorkflowDefinition): W
 }
 
 export function workflowPromptDisplayText(prompt: string, definition: WorkflowDefinition) {
-    return prompt.replace(nodeTokens, (_, id: string) => `@${definition.nodes.find(node => node.id === id)?.title || "已删除节点"}`);
+    return prompt.replace(nodeTokens, (_, id: string) => `@${definition.nodes.find(node => node.id === id)?.title || "Node deleted"}`);
 }
 
 export function remapWorkflowPromptMentions(prompt: string, ids: Map<string, string>) {
@@ -53,7 +53,7 @@ export function validateWorkflowPromptMentions(definition: WorkflowDefinition) {
         const prompt = node.config?.prompt;
         if (typeof prompt !== "string") continue;
         for (const [, id] of prompt.matchAll(nodeTokens)) {
-            if (!definition.nodes.some(source => source.id === id) || !definition.edges.some(edge => edge.fromNodeId === id && edge.toNodeId === node.id)) throw new Error(`「${node.title}」引用的节点已断开或删除，请重新选择`);
+            if (!definition.nodes.some(source => source.id === id) || !definition.edges.some(edge => edge.fromNodeId === id && edge.toNodeId === node.id)) throw new Error(`「${node.title}"The referenced node has been disconnected or deleted, please select again.`);
         }
     }
 }

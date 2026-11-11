@@ -66,16 +66,16 @@ export function CanvasProjectContextMenu({ menu, node, screenToCanvas, ...props 
     const downloadableSelectionCount = props.downloadableSelectionCount ?? downloadableNodes.length;
     const handleBatchDownloadSelection = props.onBatchDownloadSelection ?? (() => {
         if (!downloadableNodes.length) {
-            message.warning("所选节点中没有可下载的媒体素材");
+            message.warning("There are no downloadable media assets in the selected node");
             return;
         }
         void batchDownloadCanvasMediaNodes(downloadableNodes).then(({ downloaded, failed }) => {
             if (failed === 0) {
-                message.success(`已批量下载 ${downloaded} 个素材`);
+                message.success(`Downloaded in batches${downloaded} materials`);
             } else if (downloaded > 0) {
-                message.warning(`已下载 ${downloaded} 个素材，${failed} 个下载失败`);
+                message.warning(`Downloaded${downloaded} material,${failed} downloads failed`);
             } else {
-                message.warning("素材下载失败，请稍后重试");
+                message.warning("Material download failed, please try again later");
             }
         });
     });

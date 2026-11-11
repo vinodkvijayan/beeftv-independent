@@ -15,7 +15,7 @@ export function waitForCanvasPreparation<T>(read: () => Promise<T>, signal: Abor
         if (signal.aborted) return abort();
         signal.addEventListener("abort", abort, { once: true });
         timer = setTimeout(() => {
-            const error = new Error("准备生成素材超时，尚未提交生成任务。请检查参考素材后重试。");
+            const error = new Error("Preparing to generate material timed out and the generation task has not been submitted yet. Please check the reference material and try again.");
             error.name = "CanvasPreparationTimeoutError";
             finish(() => reject(error));
         }, timeoutMs);

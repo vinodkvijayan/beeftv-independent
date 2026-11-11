@@ -431,7 +431,7 @@ export async function runGenerationBeforeSubmitHooks(
                     usePluginStore.getState().installations.find((item) => item.manifest.id === entry.pluginId)?.manifest.name ||
                     entry.pluginId;
                 adjustedByPlugins.push({ pluginId: entry.pluginId, pluginName });
-                notifications.push(`提示词已由插件「${pluginName}」调整`);
+                notifications.push(`The prompt word has been changed by the plug-in "${pluginName}"Adjustment`);
             }
         } catch (err) {
             console.warn(`[slot-registry] generation.beforeSubmit hook error (${entry.pluginId}):`, err);

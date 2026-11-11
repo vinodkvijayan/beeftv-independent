@@ -22,16 +22,16 @@ export function WorkspaceSidebarStorageMeter({ collapsed }: { collapsed: boolean
     const user = useUserStore((state) => state.user);
     const localMode = isLocalWorkspaceMode() || storageMode === "local" || user?.username === "local";
     const meter = accountStorageMeter(query.data);
-    const usedText = query.data ? `${localMode ? "本地已用" : "已用"} ${meter.usedLabel}` : query.isError ? "容量暂不可用" : "正在统计容量";
-    const remainingText = query.data ? (meter.full ? "容量已满" : `剩余 ${meter.remainingLabel}`) : "";
-    const totalText = query.data ? `共 ${meter.totalLabel}` : "";
+    const usedText = query.data ? `${localMode ? "Used locally" : "Used"} ${meter.usedLabel}` : query.isError ? "Capacity is temporarily unavailable" : "Counting capacity";
+    const remainingText = query.data ? (meter.full ? "Capacity is full" : `Remaining${meter.remainingLabel}`) : "";
+    const totalText = query.data ? `total${meter.totalLabel}` : "";
     const summary = query.data ? `${usedText}，${remainingText}，${totalText}` : usedText;
 
     const track = (
         <span
             className="app-workspace-sidebar-storage-track"
             role="progressbar"
-            aria-label="账号文件容量使用进度"
+            aria-label="Account file capacity usage progress"
             aria-valuemin={0}
             aria-valuemax={query.data?.totalBytes ?? 0}
             aria-valuenow={query.data ? Math.min(query.data.usedBytes, query.data.totalBytes) : 0}
@@ -45,15 +45,15 @@ export function WorkspaceSidebarStorageMeter({ collapsed }: { collapsed: boolean
         return (
             <div className={cn("app-workspace-sidebar-storage is-error", collapsed && "is-collapsed")}>
                 {collapsed ? (
-                    <button type="button" title="容量统计暂时不可用，点击重试" aria-label="重试加载账号容量" onClick={() => void query.refetch()}>
+                    <button type="button" title="Capacity statistics are temporarily unavailable, click to try again." aria-label="Retry loading account capacity" onClick={() => void query.refetch()}>
                         <StorageGlyph />
                     </button>
                 ) : (
                     <>
                         <StorageGlyph />
-                        <span>容量暂不可用</span>
+                        <span>Capacity is temporarily unavailable</span>
                         <button type="button" onClick={() => void query.refetch()}>
-                            重试
+                                                        Try again
                         </button>
                     </>
                 )}
@@ -72,8 +72,8 @@ export function WorkspaceSidebarStorageMeter({ collapsed }: { collapsed: boolean
                 query.data?.usedBytes ? "has-usage" : null,
                 query.isPending && !query.data && "is-pending",
             )}
-            title={`${summary}。${localMode ? "统计浏览器本地素材" : "包含素材文件和创作会话附件"}`}
-            aria-label={`${localMode ? "本地存储" : "账号容量"}，${summary}`}
+            title={`${summary}。${localMode ? "Statistics browser local materials" : "Contains footage files and authoring session attachments"}`}
+            aria-label={`${localMode ? "local storage" : "Account capacity"}，${summary}`}
             aria-busy={query.isPending && !query.data}
             onFocus={() => preloadWorkspaceRoute("/assets")}
             onPointerEnter={() => preloadWorkspaceRoute("/assets")}

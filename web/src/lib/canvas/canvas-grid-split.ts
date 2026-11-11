@@ -4,10 +4,10 @@ export const CANVAS_GRID_SPLIT_MAX = 5;
 export const CANVAS_GRID_SPLIT_GAP = 96;
 
 export const CANVAS_GRID_SPLIT_PRESETS: Array<{ rows: number; columns: number; label: string }> = [
-    { rows: 2, columns: 2, label: "4宫格 (2×2)" },
-    { rows: 3, columns: 3, label: "9宫格 (3×3)" },
-    { rows: 4, columns: 4, label: "16宫格 (4×4)" },
-    { rows: 5, columns: 5, label: "25宫格 (5×5)" },
+    { rows: 2, columns: 2, label: "4 square grid (2×2)" },
+    { rows: 3, columns: 3, label: "9 square grid (3×3)" },
+    { rows: 4, columns: 4, label: "16 square grid (4×4)" },
+    { rows: 5, columns: 5, label: "25 square grid (5×5)" },
 ];
 
 export type GridSplitCellSize = {

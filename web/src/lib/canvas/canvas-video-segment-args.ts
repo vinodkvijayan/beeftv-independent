@@ -41,10 +41,10 @@ export function assertUsableSegmentOutput(output: Uint8Array | string, kind: "vi
     const bytes = asBytes(output);
     if (kind === "audio") {
         if (hasIsoBmffTrack(bytes, "soun") || isWaveAudio(bytes) || isMpegAudio(bytes)) return;
-        throw new Error("音频提取失败：输出没有可用的音轨");
+        throw new Error("Audio extraction failed: No audio tracks available for output");
     }
     if (!hasIsoBmffTrack(bytes, "vide")) {
-        throw new Error("无声视频生成失败：输出没有可用的视频轨道");
+        throw new Error("Silent video generation failed: No video track available for output");
     }
 }
 
@@ -159,10 +159,10 @@ function isMpegAudio(bytes: Uint8Array) {
 
 export function assertVideoAudioProbe(raw: string) {
     let payload: { streams?: Array<{ index?: number }>; format?: { duration?: string } };
-    try { payload = JSON.parse(raw); } catch { throw new Error("无法读取视频音轨信息，请检查素材是否完整"); }
+    try { payload = JSON.parse(raw); } catch { throw new Error("Unable to read video audio track information, please check whether the material is complete"); }
     const duration = Number(payload?.format?.duration);
     if (!Number.isFinite(duration) || duration <= 0 || !Array.isArray(payload?.streams) || payload.streams.some((stream) => !Number.isInteger(stream?.index))) {
-        throw new Error("无法读取视频音轨信息，请检查素材是否完整");
+        throw new Error("Unable to read video audio track information, please check whether the material is complete");
     }
-    if (!payload.streams.length) throw new Error("原视频没有音轨，无法分离音频。画面中的人物或动作不代表文件包含声音；请换用带声音的视频。");
+    if (!payload.streams.length) throw new Error("The original video has no audio track and the audio cannot be separated. The presence of people or actions in the frame does not mean that the file contains sound; please use a video with sound instead.");
 }

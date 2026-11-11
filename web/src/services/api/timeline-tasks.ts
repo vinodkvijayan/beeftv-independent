@@ -15,8 +15,8 @@ function transcriptionTransportError(error: unknown, submitting: boolean): unkno
     const cause = error instanceof ApiError ? error.cause : error;
     const timedOut = kind === "timeout";
     return new ApiError(submitting
-        ? (timedOut ? "转写提交等待超时，任务可能已创建。请先到任务中心确认状态。" : "转写提交连接中断，任务状态尚未确认。请先到任务中心查看。")
-        : (timedOut ? "读取转写模型超时，请检查 BeefTV 连接后重试。" : "无法连接转写模型服务，请检查 BeefTV 连接后重试。"),
+        ? (timedOut ? "The transfer submission wait timed out and the task may have been created. Please go to the mission center to confirm the status first." : "The transcription submission connection was interrupted and the task status has not yet been confirmed. Please check the mission center first.")
+        : (timedOut ? "Reading the transcription model timed out, please check the BeefTV connection and try again." : "Unable to connect to the transcription model service, please check the BeefTV connection and try again."),
         { cause, status: error instanceof ApiError ? error.status : undefined });
 }
 

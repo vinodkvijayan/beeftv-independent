@@ -23,347 +23,347 @@ import { isLocalWorkspaceMode } from "@/services/workspace-mode";
 export type { CanvasStylePreset } from "@/lib/canvas/canvas-style-system";
 
 // 分类按短剧制作语境组织：先看媒介，再看题材与视觉气质，避免用品牌名称代替画风。
-const PROJECT_STYLE_SCOPE = "【使用边界】本规范是全项目美术与影像风格基线，用于统一角色资产、服装材质、建筑世界观、色彩语言和成片质感；它不是某张图片或某个镜头的提示词。具体场景内容、构图、景别、机位、运镜、动作、光源位置、天气和单场情绪由剧情与分镜节点决定，不得从本规范机械复制。";
+const PROJECT_STYLE_SCOPE = "[Use Boundary] This specification is the baseline of the art and image style of the entire project, and is used to unify character assets, clothing materials, architectural worldview, color language and film texture; it is not a prompt word for a certain picture or shot. The specific scene content, composition, scenery, camera position, camera movement, action, light source position, weather and single scene mood are determined by the plot and storyboard nodes, and may not be mechanically copied from this specification.";
 
 const legacyCanvasStylePresets: CanvasStylePreset[] = [
     {
         id: "urban-live-action",
-        title: "都市真人短剧",
-        category: "真人实拍",
-        description: "中性城市色调、真实东亚演员与生活化服化道；统一自然光感、城市材质和克制表演，服务职场与情感题材。",
-        tags: ["职场", "情感", "现实生活"],
+        title: "Urban live-action short drama",
+        category: "Real shots",
+        description: "Neutral urban tones, real East Asian actors and life styles; unified natural light, urban materials and restrained performances to serve workplace and emotional themes.",
+        tags: ["workplace", "emotion", "real life"],
         prompt: [
-            "【项目定位】当代中国都市真人短剧的写实轻电影风格，视觉核心是真实人物、可信生活空间和克制的精致感；全片保持统一的自然肤色、真实材质与现代城市气质，不做影楼写真、广告大片或网红滤镜。",
-            "【项目色彩系统】全项目色板使用权重约为 60% 中性白、雾灰、浅木和水泥色，30% 低饱和藏蓝、灰绿和驼色，10% 琥珀、酒红或项目识别色。该比例用于控制角色服装、场景美术和资产库的整体频率，不要求每个画面机械满足；肤色始终保持自然暖中性。",
-            "【角色设计系统】统一采用真实东亚骨相与当代年龄感，五官、发型、体型、妆容和职业气质自然稳定；保留皮肤纹理与微表情，不使用统一网红脸、过度磨皮、夸张欧式深邃五官或跨集年龄漂移。",
-            "【服饰与材质系统】按职业、收入、季节和性格建立西装、衬衫、针织、风衣及休闲装的角色衣橱，主配色服从项目色板；羊毛、棉、皮革、玻璃、金属和塑料保持真实粗糙度，固定角色的标志服饰与配饰形成可复用资产。",
-            "【建筑世界观】统一使用可信的中国当代办公室、公寓、咖啡馆、商场、社区和城市公共空间，建筑尺度、家具系统、中文标识与生活设施符合本地语境；不同地点可有身份差异，但不得跳成欧美城市、空洞样板间或未来科幻空间。",
-            "【影像与动态基线】全片采用自然光感、可信实景光源、适中的对比度和写实表演节奏；动态气质克制、稳定、生活化，允许分镜按剧情选择静态观察或运动摄影，但不使用无叙事动机的炫技运动与滥用慢动作。",
-            "【资产一致性】为主要角色固定脸型、发型、体型、衣橱编号和常用道具，为主要地点固定空间布局、材质板和标识系统；跨集变化必须由剧情、时间或季节驱动并在角色资产或场景资产版本中留痕。",
-            "【全局禁用】禁止欧美人物默认脸、塑料皮肤、强烈青橙滤镜、过饱和霓虹、廉价棚拍、错误中文、建筑地域漂移、服饰随机换色和同一资产在不同节点中改变材质。",
+            "[Project Positioning] The realistic light film style of contemporary Chinese urban live-action short dramas. The visual core is real characters, believable living spaces and restrained sophistication; the entire film maintains a unified natural skin color, real materials and modern urban temperament, and does not use studio portraits, advertising blockbusters or Internet celebrity filters.",
+            "[Project Color System] The color palette used in the entire project is approximately 60% neutral white, matte gray, light wood and cement color, 30% low saturation navy blue, gray green and camel, and 10% amber, burgundy or project identification color. This ratio is used to control the overall frequency of character clothing, scene art, and asset libraries. It does not require each picture to be mechanically satisfied; skin color always remains natural, warm, and neutral.",
+            "[Character Design System] Uniformly adopts real East Asian skeletal features and contemporary age sense. The facial features, hairstyle, body shape, makeup and professional temperament are natural and stable; the skin texture and micro-expressions are retained, and no uniform Internet celebrity faces, excessive skin grinding, exaggerated European-style deep facial features or cross-set age drift are used.",
+            "[Clothing and material system] Create a character wardrobe of suits, shirts, knitwear, windbreakers and casual wear based on occupation, income, season and personality. The main color matching is subject to the project color palette; wool, cotton, leather, glass, metal and plastic maintain real roughness, and the iconic clothing and accessories of the fixed character form reusable assets.",
+            "[Architectural World View] The unified use of credible contemporary Chinese offices, apartments, cafes, shopping malls, communities and urban public spaces. The architectural scale, furniture system, Chinese logos and living facilities conform to the local context; different locations can have different identities, but they must not jump to European and American cities, empty model rooms or future science fiction spaces.",
+            "[Image and dynamic baseline] The entire film adopts natural light, credible real-life light sources, moderate contrast and realistic performance rhythm; the dynamic temperament is restrained, stable, and life-like, allowing the storyboard to choose static observation or sports photography according to the plot, but does not use dazzling movements without narrative motivation and abuse of slow motion.",
+            "[Asset Consistency] Fix the face shape, hairstyle, body shape, wardrobe number and common props for the main characters, and fix the space layout, material board and identification system for the main locations; cross-episode changes must be driven by the plot, time or season and leave traces in the character assets or scene asset versions.",
+            "[Global Disable] Prohibits default faces of European and American characters, plastic skin, strong green-orange filters, oversaturated neon, cheap studio shots, incorrect Chinese, building area drift, random clothing color changes, and the same asset changing materials in different nodes.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/urban-live-action.jpg",
     },
     {
         id: "period-live-action",
-        title: "古装 / 年代真人",
-        category: "真人实拍",
-        description: "先锁定单一历史时期，再统一人物妆发、服装制度、器物与建筑；用低饱和东方色和材质细节建立时代可信度。",
-        tags: ["古装", "民国", "历史"],
+        title: "Ancient costume/era real person",
+        category: "Real shots",
+        description: "First, focus on a single historical period, and then unify the character makeup, clothing system, utensils and architecture; use low-saturated oriental colors and material details to establish the credibility of the era.",
+        tags: ["Ancient costume", "Republic of China", "history"],
         prompt: [
-            "【项目定位】历史题材真人短剧的写实东方美学。项目启动时必须依据小说从古代王朝、民国或其他年代中锁定一个明确时代子类型，并形成唯一的时代考据基线；全项目人物制度、服化道、器物和建筑只遵循该基线。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 米白、黛灰、木褐和土黄，30% 靛青、竹青、暗红和月白，15% 朱砂、鎏金、翡翠或项目身份色。该比例控制服装阵营、建筑材质和道具资产的整体分布；阶层差异通过色彩纯度、织物等级和金属用量表达。",
-            "【角色设计系统】统一采用真实东亚骨相、符合时代的妆容与发式，并按年龄、身份、礼制和劳动状态建立差异；角色的冠发、发髻、胡须、伤痕、体态与身份标记固定，不使用现代偶像妆或与时代无关的审美模板。",
-            "【服饰与材质系统】古代子类型按襟形、袖型、腰带、冠帽、鞋履和纹样建立制度；民国子类型按旗袍、长衫、学生装、军装和西装建立阶层。丝、麻、纱、锦、皮革、木、玉和金属使用统一材质库，兵器、首饰与器物必须归属明确年代。",
-            "【建筑世界观】古代子类型使用中式木构、斗拱、瓦顶、院落、回廊、园林和城镇体系；民国子类型使用石库门、骑楼、公馆、车站、报馆和旧式街道体系。项目只启用所选时代的建筑库，统一木、砖、石、灰泥的年代质感与使用痕迹。",
-            "【影像与动态基线】全片保持自然天光、窗纸漫射、烛火与灯笼等时代可信的光感，表演与动作遵循身份礼制和服装重量；动态风格庄重、克制、有真实惯性，具体节奏与调度交由分镜决定。",
-            "【资产一致性】建立时代手册、角色衣橱、纹样库、器物库和建筑模块库；同一角色的发饰、衣层与身份纹样不可随机改变，场景修缮、服装污损和身份升级只能依据剧情版本更新。",
-            "【全局禁用】禁止朝代混搭、现代拉链与家具、廉价化纤反光、塑料饰品、日式鸟居、欧洲城堡、现代偶像妆、随机花瓣滤镜和未经过时代归属的武器器物。",
+            "[Project Positioning] Realistic oriental aesthetics of live-action short dramas with historical themes. When the project is started, a clear era sub-type must be identified from the ancient dynasty, the Republic of China or other eras based on the novel, and a unique era research baseline must be formed; the entire project's character system, service path, utensils and buildings only follow this baseline.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 55% off-white, dark gray, wood brown and earthy yellow, 30% indigo, bamboo green, dark red and moon white, and 15% cinnabar, gilt, jade or project identity color. This ratio controls the overall distribution of clothing factions, building materials, and prop assets; class differences are expressed through color purity, fabric grade, and metal usage.",
+            "[Character Design System] Uniformly adopts real East Asian skeletal profiles, makeup and hair styles that match the era, and establishes differences based on age, status, etiquette, and labor status; the characters' crowns, buns, beards, scars, body postures, and identity marks are fixed, and no modern idol makeup or aesthetic templates that have nothing to do with the times are used.",
+            "[Clothing and material system] The ancient subtype established a system based on lapel shape, sleeve type, belt, hat, shoes, and patterns; the Republic of China subtype established a hierarchy based on cheongsam, gown, student uniform, military uniform, and suit. Silk, linen, yarn, brocade, leather, wood, jade and metal use a unified material library, and weapons, jewelry and utensils must belong to a clear era.",
+            "[Architectural World View] The ancient subtype uses Chinese wooden structures, brackets, tile roofs, courtyards, cloisters, gardens and urban systems; the Republic of China subtype uses Shikumen, arcades, mansions, stations, newspapers and old street systems. The project only uses the architectural library of the selected era to unify the age texture and traces of use of wood, brick, stone, and mortar.",
+            "[Image and dynamic baseline] The entire film maintains the believable light sense of the era such as natural skylight, window paper diffusion, candlelight and lanterns. Performances and actions follow the status etiquette and clothing weight; the dynamic style is solemn, restrained, and has real inertia. The specific rhythm and scheduling are determined by the storyboard.",
+            "[Asset consistency] Establish an era manual, character wardrobe, pattern library, artifact library and building module library; the hair accessories, clothing layers and identity patterns of the same character cannot be changed randomly. Scene repairs, clothing stains and identity upgrades can only be updated according to the plot version.",
+            "[Global Ban] Dynasty mixing and matching, modern zippers and furniture, cheap chemical fiber reflective materials, plastic accessories, Japanese torii gates, European castles, modern idol makeup, random petal filters, and weapons and artifacts that have not been attributed to the era are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/period-live-action.jpg",
     },
     {
         id: "suspense-noir",
-        title: "悬疑犯罪夜景",
-        category: "真人实拍",
-        description: "蓝黑低照度基底配少量危险色，统一城市夜景材质、实景光感与心理压迫气质，服务线索和反转题材。",
-        tags: ["悬疑", "犯罪", "反转"],
+        title: "Suspense crime night scene",
+        category: "Real shots",
+        description: "The blue and black low-illumination base is combined with a small amount of dangerous colors to unify the city night scene material, real scene light and psychological oppression temperament, serving clues and reversing the theme.",
+        tags: ["Suspense", "crime", "reverse"],
         prompt: [
-            "【项目定位】现代中国悬疑犯罪真人短剧的写实暗调体系，以低照度、真实城市纹理和心理压迫作为全片视觉母题；风格服务于信息隐藏与揭示，但任何场景都必须保持人物、环境和关键叙事信息可读。",
-            "【项目色彩系统】全项目色板使用权重约为 65% 蓝黑、炭灰和冷水泥色，25% 青绿荧光、脏黄钠灯和冷白屏幕色，10% 暗红、洋红或项目危险色。强调色只承担危险、权力或关键线索的视觉职责，不扩散成全片霓虹效果。",
-            "【角色设计系统】统一采用真实东亚人物与自然年龄状态，允许疲惫、细纹、胡茬、伤痕和职业压力留下痕迹；角色脸型、发型、伤痕与精神状态有版本记录，反派通过行为和身份系统塑造，不使用夸张脸谱妆。",
-            "【服饰与材质系统】建立深色哑光外套、制服、便装和职业服饰库，通过剪裁、磨损和材质区分身份；证件、通讯设备、档案、监控设备和关键道具使用统一设计语言，避免高反光材质破坏暗调体系。",
-            "【建筑世界观】统一使用中国城市中的旧居民楼、楼梯间、地下空间、办公场所、仓储、便利店、街巷和城郊设施，形成潮湿墙面、玻璃、金属、水泥和旧涂层的材质库；不同地点共享同一城市地域与年代信息。",
-            "【影像与动态基线】全片保持低调但可读的明暗关系、可解释的城市实景光感与克制的心理张力；动态风格偏观察、跟随和压迫感，具体信息揭示方式由分镜设计，不把霓虹、烟雾或镜头晃动当作悬疑本身。",
-            "【资产一致性】为角色建立伤痕与服饰版本，为主要地点建立平面关系、材质板和照明基线，为关键道具建立唯一外观与状态记录；跨集变化必须对应明确剧情事件。",
-            "【全局禁用】禁止黑成不可读、赛博朋克灯海、无来源轮廓光、过量烟雾、反派脸谱化、血浆猎奇、错误警务与城市标识、同一地点地域漂移和关键资产随机变形。",
+            "[Project Positioning] A realistic dark tone system for modern Chinese suspense crime live-action short dramas, with low illumination, real urban textures and psychological oppression as the visual motif of the entire film; the style serves to hide and reveal information, but any scene must keep the characters, environment and key narrative information readable.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 65% blue-black, charcoal gray and cold cement colors, 25% cyan fluorescent, dirty yellow sodium lamp and cool white screen colors, and 10% dark red, magenta or project dangerous colors. Accent colors only bear the visual responsibility of danger, power, or key clues, and do not spread into the neon effect of the entire film.",
+            "[Character Design System] Uniformly adopts real East Asian characters and their natural age status, allowing traces of fatigue, fine lines, stubble, scars and occupational stress; the character's face shape, hairstyle, scars and mental state have version records, and the villain is shaped through the behavior and identity system, without the use of exaggerated facial makeup.",
+            "[Apparel and Material System] Establish a library of dark matte jackets, uniforms, casual clothes and professional clothing, and distinguish identities through tailoring, wear and materials; IDs, communication equipment, files, monitoring equipment and key props use a unified design language to avoid highly reflective materials from destroying the dark tone system.",
+            "[Architectural World View] The old residential buildings, stairwells, underground spaces, offices, warehouses, convenience stores, streets and suburban facilities in Chinese cities are uniformly used to form a material library of wet walls, glass, metal, cement and old coatings; different locations share the same urban area and age information.",
+            "[Image and dynamic baseline] The entire film maintains a low-key but readable relationship between light and dark, an interpretable sense of urban real-life light, and a restrained psychological tension; the dynamic style focuses on observation, following, and a sense of oppression. The specific information disclosure method is designed by storyboards, and neon, smoke, or camera shaking are not regarded as suspense itself.",
+            "[Asset Consistency] Establish versions of scars and clothing for characters, establish plane relationships, material panels, and lighting baselines for major locations, and establish unique appearance and status records for key props; cross-episode changes must correspond to clear plot events.",
+            "[Global Disable] It is forbidden to make the game unreadable, cyberpunk sea of lights, sourceless outline light, excessive smoke, villain facial makeup, plasma curiosity, wrong policing and city logos, regional drift in the same location and random deformation of key assets.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/suspense-noir.jpg",
     },
     {
         id: "chinese-2d",
-        title: "国漫 2D",
-        category: "二维动画",
-        description: "半写实国漫人物、矿物东方色与工笔式场景体系；以稳定线稿、清晰剪影和统一二维资产保障跨集一致性。",
-        tags: ["古风", "仙侠", "二维"],
+        title: "Chinese comics 2D",
+        category: "2D animation",
+        description: "Semi-realistic Chinese comic characters, mineral oriental colors and meticulous scene system; stable line drawings, clear silhouettes and unified two-dimensional assets to ensure cross-collection consistency.",
+        tags: ["ancient style", "Xianxia", "two-dimensional"],
         prompt: [
-            "【项目定位】东方古风与仙侠题材的半写实国漫 2D 动画体系，统一采用有粗细变化的手绘线稿、赛璐璐角色上色与工笔式环境绘制；全项目保持二维绘画语言，不混入塑料手办、三维渲染或日系萌系模板。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 月白、黛青、石青和烟灰，30% 朱砂、靛蓝、竹青和赭石，15% 金色、亮青或项目法术色。该比例用于统筹角色阵营、场景色板和特效资产；每个主要角色固定主色、辅色与识别色。",
-            "【角色设计系统】成年角色统一采用约 7 至 8 头身和东方骨相，眼睛比例、脸型、发际线、发束、眉眼与年龄感遵循同一角色设计规范；不同角色依靠剪影、身高差、发型和服饰结构区分，正侧背参考图必须属于同一二维设计。",
-            "【服饰与材质系统】汉服、劲装、甲胄、宗门服和法器按身份与阵营形成款式库，固定衣领、袖型、腰封、纹样和配色；丝绸、麻布、金属、玉石通过二维纹理、线条密度和高光形状区分，不使用三维写实材质贴图。",
-            "【建筑世界观】统一使用中式木构、斗拱、飞檐、瓦当、廊桥、山门、古城、竹林、云海与东方山水系统，建立可复用的建筑模块和场景色板；世界观内不出现欧洲城堡、日式鸟居或现代城市元素。",
-            "【影像与动态基线】全片保持清晰剪影、两至三阶角色明暗、工笔场景层次和适度水墨空气感；动画采用关键姿势明确、有限但准确的二维运动，口型、发丝、衣摆和特效遵循统一动画节奏，具体动作由分镜决定。",
-            "【资产一致性】建立角色线稿规范、标准色卡、表情表、服饰拆件、法术色板、建筑模块与特效元素库；任何新资产先匹配线条粗细、上色层级和纹理密度，再进入分镜生产。",
-            "【全局禁用】禁止 3D 塑料质感、手办摄影、欧美漫画肌肉模板、幼态大眼、角色随机换脸换发型、服饰纹样漂移、背景风格跳变、法术颜色失控和画面文字水印。",
+            "[Project Positioning] A semi-realistic 2D animation system for Chinese comics with themes of oriental antiquity and fairy tales, uniformly using hand-drawn line drawings with varying thicknesses, celluloid character coloring, and meticulous environment drawing; the entire project maintains a two-dimensional painting language and does not mix plastic figures, three-dimensional renderings, or Japanese cute templates.",
+            "[Project Color System] The weight of the entire project color palette is approximately 55% moon white, indigo, azurite and soot, 30% cinnabar, indigo, bamboo green and ocher, 15% gold, bright cyan or project magic color. This ratio is used to coordinate character camps, scene color palettes, and special effects assets; each main character has a fixed primary color, secondary color, and identification color.",
+            "[Character Design System] Adult characters uniformly adopt a head and body size of about 7 to 8 and an oriental bone profile. Eye proportions, face shape, hairline, hair bundles, eyebrows and age sense follow the same character design specifications; different characters are distinguished by silhouette, height difference, hairstyle and clothing structure, and the front, side and back reference pictures must belong to the same two-dimensional design.",
+            "[Clothing and material system] Hanfu, Jinzhuang, armor, sect clothes and magic weapons form a style library according to identity and camp, with fixed collars, sleeve types, waistbands, patterns and colors; silk, linen, metal, and jade are distinguished by two-dimensional textures, line density and highlight shapes, and three-dimensional realistic material maps are not used.",
+            "[Architectural World View] Uniformly use Chinese wooden structures, brackets, cornices, tiles, covered bridges, mountain gates, ancient cities, bamboo forests, sea of clouds and oriental landscape systems to establish reusable building modules and scene palettes; no European castles, Japanese torii gates or modern urban elements appear in the world view.",
+            "[Image and dynamic baseline] The entire film maintains clear silhouettes, two to three levels of character light and shade, meticulous scene layers, and a moderate sense of ink and air; the animation uses clear, limited but accurate two-dimensional movements of key postures, and mouth shapes, hair, clothes, and special effects follow a unified animation rhythm, and specific actions are determined by storyboards.",
+            "[Asset Consistency] Establish character line drawing specifications, standard color cards, expression tables, clothing disassembly parts, spell color plates, building modules and special effects element libraries; any new assets must first match line thickness, coloring level and texture density before entering storyboard production.",
+            "[Global Disabled] 3D plastic texture, figure photography, European and American comic muscle templates, juvenile big eyes, random face and hairstyle changes of characters, drifting clothing patterns, background style jumps, out-of-control spell colors, and screen text watermarks are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/chinese-2d.jpg",
     },
     {
         id: "ink-narrative",
-        title: "水墨叙事",
-        category: "风格化动画",
-        description: "宣纸留白占主导，以焦墨、淡墨和少量朱砂组织叙事；人物身份靠稳定轮廓、笔法与色点区分，而不是抽象成不可识别墨团。",
-        tags: ["水墨", "东方", "情绪"],
+        title: "Ink narrative",
+        category: "stylized animation",
+        description: "The white space on rice paper dominates, and burnt ink, light ink and a small amount of cinnabar are used to organize the narrative; the identity of the characters is distinguished by stable outlines, brushwork and color points, rather than being abstracted into unrecognizable ink balls.",
+        tags: ["ink", "Oriental", "emotions"],
         prompt: [
-            "【项目定位】以中国水墨画语言构建的叙事动画项目，统一使用宣纸纤维、干湿笔触、飞白、积墨、破墨与轻工笔勾线；全片保持诗意留白和角色可识别性之间的平衡，不把水墨理解成随机滤镜。",
-            "【项目色彩系统】全项目色板使用权重约为 70% 宣纸暖白与留白，20% 焦墨、浓墨、淡墨组成的五级灰，10% 朱砂、石青、赭石或项目点色。点色按角色、阵营和关键器物分配固定职责，不在不同资产间随机更换。",
-            "【角色设计系统】人物采用稳定头身、脸部勾线、发髻与外轮廓系统，不同角色拥有固定的笔触节奏、轮廓特征和点色；近实远简是统一的绘制层级，但任何简化都不得破坏角色身份。",
-            "【服饰与材质系统】长衫、袍服、斗笠、披风、兵器和文房器物通过墨线疏密、干湿变化与有限纹样区分；固定角色的领口、腰带、发饰和关键道具保持明确形状，衣物可融入笔势但不能失去结构。",
-            "【建筑世界观】统一建立山水、村落、亭台、院墙、廊桥、舟船和古道的水墨资产库，以中式结构、近实远虚和墨色层级保持世界一致；雾、水、云与纸白共享同一留白规则。",
-            "【影像与动态基线】全片通过墨色浓度、纸白、边缘虚实和点色明度表达光感；动态采用轮廓先行、笔势跟随、墨迹自然生长的统一原则，转场语言可来自墨滴、笔锋或留白，具体动作和调度由分镜决定。",
-            "【资产一致性】建立角色笔刷、标准墨阶、点色色卡、服饰勾线、建筑结构和自然元素的统一样本；新增资产必须先通过纸张纹理、笔触尺度、灰阶与点色职责检查。",
-            "【全局禁用】禁止西式水彩插画、随机泼墨、全屏脏灰、角色五官消失、每个资产笔触风格不同、建筑结构融化、彩色过多、廉价纸纹滤镜和随机生成文字印章。",
+            "[Project Positioning] A narrative animation project constructed in the language of Chinese ink painting, uniformly using rice paper fiber, wet and dry brushstrokes, fly white, accumulated ink, broken ink and light strokes; the entire film maintains a balance between poetic blank space and character recognisability, and does not interpret ink as a random filter.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 70% rice paper warm white and white space, 20% five-level gray composed of burnt ink, thick ink, and light ink, and 10% cinnabar, azurite, ocher or project point colors. Point color assigns fixed responsibilities according to roles, camps and key artifacts, and does not randomly change between different assets.",
+            "[Character Design System] Characters adopt a stable head and body, facial outline, bun and outer outline system. Different characters have fixed brush stroke rhythm, outline features and point colors; near reality and far simplicity are unified drawing levels, but any simplification must not destroy the identity of the character.",
+            "[Clothing and material system] Gowns, robes, hats, cloaks, weapons and study utensils are distinguished by the density of ink lines, dry and wet changes and limited patterns; the collars, belts, hair accessories and key props of fixed characters maintain clear shapes, and the clothing can be integrated into the gesture but cannot lose its structure.",
+            "[Architectural World View] Unifiedly establish an ink asset library of landscapes, villages, pavilions, courtyard walls, covered bridges, boats and ancient roads, with Chinese-style structures, near real and far virtual, and ink color levels to keep the world consistent; fog, water, clouds and white paper share the same white space rule.",
+            "[Image and dynamic baseline] The whole film expresses the sense of light through ink color density, paper whiteness, edge virtuality and point color brightness; dynamically adopts the unified principle of outline first, pen gesture following, and natural growth of ink. The transition language can come from ink droplets, brush strokes or blank space, and the specific actions and scheduling are determined by the storyboard.",
+            "[Asset Consistency] Create unified samples of character brushes, standard ink levels, point color cards, clothing outlines, architectural structures and natural elements; newly added assets must first pass the paper texture, stroke scale, grayscale and point color responsibility checks.",
+            "[Global Disable] Western-style watercolor illustrations, random splashes of ink, full-screen dirty gray, disappearing character facial features, different stroke styles for each asset, melted building structures, excessive colors, cheap paper grain filters, and randomly generated text seals are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/ink-narrative.jpg",
     },
     {
         id: "three-d-cartoon",
-        title: "3D 卡通短剧",
-        category: "三维动画",
-        description: "轮廓鲜明的风格化三维人物、柔和材质与明快配色；用可读表情、夸张节奏和稳定资产支撑喜剧、亲子与治愈内容。",
-        tags: ["3D", "喜剧", "治愈"],
+        title: "3D cartoon skit",
+        category: "3D animation",
+        description: "Stylized three-dimensional characters with sharp outlines, soft textures and bright colors; use readable expressions, exaggerated rhythm and stable assets to support comedy, parent-child and healing content.",
+        tags: ["3D", "Comedy", "cure"],
         prompt: [
-            "【项目定位】面向喜剧、亲子与治愈内容的风格化 3D 卡通短剧体系，统一采用简洁造型、清晰剪影、半哑光材质、柔和次表面散射和可读表情；保持动画片质感，不进入廉价塑料玩具或超写实恐怖谷。",
-            "【项目色彩系统】全项目色板使用权重约为 50% 暖白、浅木、柔灰和天空色，35% 高识别度角色主色，15% 黄色、珊瑚红、薄荷绿等项目点睛色。颜色按角色、地点和功能分配，始终保证角色资产与环境资产有稳定明度区分。",
-            "【角色设计系统】成人统一约 5 至 6 头身，儿童约 3.5 至 4.5 头身，头手可适度夸张但关节结构合理；通过眼鼻嘴比例、发型、体型和剪影建立差异，所有角色共用同一造型语言与表情夸张尺度。",
-            "【服饰与材质系统】服装款式与纹样简化为可复用大色块，棉布、针织、牛仔、皮革和金属通过统一粗糙度范围区分；道具采用适度圆润边缘和清晰功能造型，保持同一世界中的比例、材质与细节密度一致。",
-            "【建筑世界观】统一使用圆角、简化几何和清晰功能分区构建都市公寓、学校、店铺、办公室、公园或幻想小镇；背景资产细节层级低于角色但功能合理，所有地点遵循同一比例、材质和色彩系统。",
-            "【影像与动态基线】全片保持柔和光感、受控高光、干净轮廓和明快节奏；角色运动统一遵循预备动作、挤压拉伸、跟随、缓入缓出和清晰停顿，夸张幅度由项目表演手册约束，具体动作由分镜决定。",
-            "【资产一致性】建立标准角色比例、表情表、材质球、服饰色板、道具比例和建筑模块库；所有新资产必须匹配既有圆角半径、粗糙度、色彩纯度和细节等级。",
-            "【全局禁用】禁止塑料公仔反光、僵硬 T Pose、所有角色同脸、过大玻璃眼、毛孔级写实皮肤、随机改变头身、背景贴图模糊、穿模、漂浮道具和不属于同一美术体系的写实资产。",
+            "[Project Positioning] A stylized 3D cartoon short play system for comedy, parent-child and healing content, uniformly adopting simple shapes, clear silhouettes, semi-matte materials, soft sub-surface scattering and readable expressions; maintaining the texture of cartoons and not entering the cheap plastic toys or hyper-realistic uncanny valley.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 50% warm white, light wood, soft gray and sky colors, 35% high-recognition character main colors, and 15% project finishing colors such as yellow, coral red, mint green, etc. Colors are assigned according to role, location and function, always ensuring stable brightness differentiation between character assets and environmental assets.",
+            "[Character Design System] Adults have a unified head and body of about 5 to 6, and children have a head and body of about 3.5 to 4.5. The head and hands can be moderately exaggerated but the joint structure is reasonable; differences are established through the proportion of eyes, nose and mouth, hairstyle, body shape and silhouette. All characters share the same modeling language and expression exaggeration scale.",
+            "[Clothing and material system] Clothing styles and patterns are simplified into reusable large color blocks. Cotton, knitted, denim, leather and metal are distinguished by a unified roughness range; props adopt moderately rounded edges and clear functional shapes to maintain consistent proportions, materials and detail density in the same world.",
+            "[Architectural World View] Uniformly use rounded corners, simplified geometry and clear functional divisions to build urban apartments, schools, shops, offices, parks or fantasy towns; the background asset detail level is lower than that of the characters but has reasonable functions, and all locations follow the same proportions, materials and color systems.",
+            "[Image and Dynamic Baseline] The entire film maintains soft light, controlled highlights, clean outlines and bright rhythm; character movements uniformly follow preparatory movements, squeeze and stretch, follow, ease in and out, and clear pauses. The exaggeration range is restricted by the project performance manual, and the specific actions are determined by the storyboard.",
+            "[Asset Consistency] Establish standard character proportions, expression tables, material balls, clothing swatches, prop proportions and building module libraries; all new assets must match the existing corner radius, roughness, color purity and level of detail.",
+            "[Global Disable] Plastic dolls that are reflective, stiff T-Pose, all characters with the same face, oversized glass eyes, pore-level realistic skin, random head and body changes, blurred background textures, model wearing, floating props, and realistic assets that do not belong to the same art system are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/three-d-cartoon.jpg",
     },
     {
         id: "fantasy-3d",
-        title: "国风 3D 玄幻",
-        category: "三维动画",
-        description: "半写实东方人物、可信中式建筑与分层材质构成玄幻世界；法术色受阵营约束，体积光和特效只强化动作与叙事重点。",
-        tags: ["玄幻", "法术", "宏大场景"],
+        title: "Chinese style 3D fantasy",
+        category: "3D animation",
+        description: "Semi-realistic oriental characters, believable Chinese architecture and layered materials form a fantasy world; the color of spells is restricted by the camp, and volumetric lighting and special effects only enhance the focus of action and narrative.",
+        tags: ["fantasy", "spell", "grand scene"],
         prompt: [
-            "【项目定位】东方玄幻题材的半写实 3D 动画短剧体系，统一采用东方角色设计、电影级 PBR 材质、中式幻想建筑和分级法术视觉语言；项目奇观建立在中国美术与建筑逻辑上，不套用西方魔幻世界模板。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 黛青、墨黑、冷灰、古铜和云雾白，30% 朱红、靛蓝、青玉、暗金等阵营色，15% 单一高亮能量色。该比例用于宗门、角色、建筑和法术资产的整体规划；每个阵营与角色的能量色具有唯一职责。",
-            "【角色设计系统】成年角色统一采用约 7.5 至 8 头身、真实东方骨相与适度理想化五官，皮肤、发丝和眼神遵循同一半写实渲染标准；发冠、发束、身高、体型和身份符号固定，力量等级通过服饰层级与能量规则表达。",
-            "【服饰与材质系统】袍服、劲装、甲胄、披风、宗门纹样、发冠与法器构成阵营化资产库；丝绸、锦缎、皮革、金属、玉石和木材使用统一 PBR 标准与粗糙度范围，武器、吊坠和衣层具有稳定结构。",
-            "【建筑世界观】统一使用中式木构山门、殿宇、楼阁、城池、洞府、栈道、山水云海和东方祭坛，建立斗拱、屋脊、瓦面、岩石与云雾模块库；所有奇观必须从中式结构演化，不能混入欧洲尖塔、哥特教堂和随机异域拼贴。",
-            "【影像与动态基线】全片保持可信体积感、受控特效亮度、真实材质和有重量的动画表现；法术遵循统一的形状语法、粒子密度、能量色和力量分级，角色与环境的运动规律一致，具体战斗动作与调度由分镜决定。",
-            "【资产一致性】建立角色三视图、宗门色板、服饰拆件、材质球、武器法器、建筑模块、法术模板和力量等级表；任何升级、受损或换装都作为有因果的资产版本管理。",
-            "【全局禁用】禁止欧洲城堡、默认精灵脸、西式板甲混搭、塑料材质、彩虹粒子、全屏过曝特效、法术体系随机变化、角色无因换装换武器和建筑资产跨文化漂移。",
+            "[Project Positioning] A semi-realistic 3D animated short drama system with oriental fantasy themes, uniformly using oriental character design, movie-level PBR materials, Chinese fantasy architecture and hierarchical spell visual language; the project spectacle is based on the logic of Chinese art and architecture, and does not apply the Western fantasy world template.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 55% indigo, jet black, cool gray, bronze and mist white, 30% camp colors such as vermilion, indigo, sapphire, dark gold, etc., and 15% single highlight energy color. This ratio is used for the overall planning of clans, characters, buildings, and spell assets; each faction and character's energy color has a unique responsibility.",
+            "[Character Design System] Adult characters uniformly adopt a head and body of about 7.5 to 8, real oriental bone physiology and moderately idealized facial features. Skin, hair and eyes follow the same semi-realistic rendering standards; hair crowns, hair bundles, height, body shape and identity symbols are fixed, and power levels are expressed through clothing levels and energy rules.",
+            "[Clothes and Material System] Robes, costumes, armors, cloaks, sect patterns, hair crowns and magical instruments form a camp-based asset library; silk, brocade, leather, metal, jade and wood use unified PBR standards and roughness ranges, and weapons, pendants and clothing layers have stable structures.",
+            "[Architectural World View] Unify the use of Chinese-style wooden mountain gates, palaces, pavilions, cities, caves, plank roads, mountains, rivers, seas of clouds, and oriental altars, and establish a module library of brackets, roof ridges, tiles, rocks, and clouds; all wonders must evolve from Chinese structures and cannot be mixed with European spires, Gothic churches, and random exotic collages.",
+            "[Image and dynamic baseline] The entire film maintains a credible sense of volume, controlled special effects brightness, real materials, and weighty animation performance; spells follow a unified shape grammar, particle density, energy color, and power grading. The movement patterns of characters and the environment are consistent. Specific combat actions and scheduling are determined by storyboards.",
+            "[Asset Consistency] Establish three views of the character, sect color palette, clothing disassembly, material balls, weapons and instruments, building modules, spell templates and power level tables; any upgrades, damage or dress changes are managed as causal asset versions.",
+            "[Global Disable] European castles, default elf faces, Western-style plate armor mixes, plastic materials, rainbow particles, full-screen overexposure special effects, random changes in the spell system, unreasonable character changes and weapon changes, and cross-cultural drift of building assets are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/fantasy-3d.jpg",
     },
     {
         id: "future-tech",
-        title: "未来科技",
-        category: "科幻实拍",
-        description: "洁净白灰空间、精密工业结构与克制冷光构成可信近未来；科技来自功能与材质，不依赖满屏霓虹和悬浮界面。",
-        tags: ["科技", "近未来", "硬科幻"],
+        title: "future technology",
+        category: "Sci-fi real shot",
+        description: "A clean white space, sophisticated industrial structures, and cool light constitute a believable near future; technology comes from functions and materials, and does not rely on full-screen neon and floating interfaces.",
+        tags: ["Technology", "near future", "Hard science fiction"],
         prompt: [
-            "【项目定位】近未来中国科技题材的写实硬科幻短剧体系，以可推演的技术、清晰功能结构和克制先进感为核心；世界比当下领先约十至三十年，所有设备、服装和空间都必须能解释用途，不使用空泛的科幻装饰。",
-            "【项目色彩系统】全项目色板使用权重约为 65% 冷白、浅灰、钛金属和透明材质，25% 石墨黑、深海蓝和低饱和工业色，10% 青绿或电蓝状态指示色。高亮色只用于设备状态、权限和风险提示，不扩散为环境染色。",
-            "【角色设计系统】角色保持真实东亚骨相、自然年龄与职业可信度，通过精确剪裁、功能装备和身份识别细节区分科研、工程、医疗、安保与管理角色；义体或可穿戴设备必须符合人体结构并具有明确功能。",
-            "【服饰与材质系统】建立模块化工作服、防护服、通勤装和轻型外骨骼体系，统一使用哑光技术织物、钛合金、陶瓷、透明聚合物和精密玻璃；接缝、扣具、传感器与磨损位置必须符合使用逻辑。",
-            "【建筑世界观】统一使用可信的中国近未来实验室、数据中心、交通枢纽、智能住宅、先进制造与城市公共设施；空间强调结构、维护通道、导视和设备尺度，科技升级建立在现有城市之上而非凭空替换。",
-            "【影像与动态基线】全片保持清晰冷静、低噪点和高材质可读性，光源来自顶灯、工作灯、屏幕与自然天光；动态强调精密操作、机械反馈和空间秩序，具体机位与节奏由分镜决定。",
-            "【资产一致性】建立设备型号、接口协议、状态灯职责、角色权限色、服装模块和空间导视手册；同类设备共享结构语言，升级与损坏必须形成可追踪版本。",
-            "【全局禁用】禁止无功能全息屏、满屏蓝色 HUD、随机发光线、霓虹城市套壳、塑料太空服、错误机械结构、设备尺寸漂移、英文乱码和把未来科技等同于赛博朋克。",
+            "[Project Positioning] A realistic hard science fiction short play system on China's science and technology themes in the near future, with deducible technology, clear functional structure and restrained sense of advancement as the core; the world is about ten to thirty years ahead of the present, and all equipment, clothing and spaces must be able to explain their uses, without using empty science fiction decorations.",
+            "[Project Color System] The color palette used in the entire project is approximately 65% cool white, light gray, titanium and transparent materials, 25% graphite black, deep sea blue and low saturated industrial colors, and 10% turquoise or electric blue status indicator color. Highlight colors are only used for device status, permissions and risk reminders, and do not spread to color the environment.",
+            "[Character Design System] Characters maintain true East Asian bones, natural age and professional credibility, and distinguish scientific research, engineering, medical, security and management roles through precise tailoring, functional equipment and identification details; prosthetics or wearable devices must conform to the human body structure and have clear functions.",
+            "[Apparel and material system] Establish modular work clothes, protective clothing, commuter clothing and lightweight exoskeleton systems, uniformly using matte technical fabrics, titanium alloys, ceramics, transparent polymers and precision glass; seams, buckles, sensors and wear locations must comply with the use logic.",
+            "[Architectural World View] Unified use of credible China's near-future laboratories, data centers, transportation hubs, smart residences, advanced manufacturing and urban public facilities; the space emphasizes structure, maintenance channels, guidance and equipment scale, and technological upgrades are built on the existing city rather than replacing it out of thin air.",
+            "[Image and dynamic baseline] The entire film maintains clarity, calmness, low noise, and high material readability. The light sources come from overhead lights, work lights, screens, and natural skylight; dynamics emphasize precision operation, mechanical feedback, and spatial order. The specific camera position and rhythm are determined by the storyboard.",
+            "[Asset Consistency] Establish equipment models, interface protocols, status light responsibilities, role permission colors, clothing modules and space guidance manuals; similar devices share a structural language, and upgrades and damage must form a traceable version.",
+            "[Global Disable] Non-functioning holographic screens, full-screen blue HUD, random glowing lines, neon city shells, plastic space suits, incorrect mechanical structures, device size drift, garbled English characters, and equating future technology with cyberpunk are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/future-tech.jpg",
     },
     {
         id: "cyberpunk-neon",
-        title: "赛博霓虹",
-        category: "科幻实拍",
-        description: "高密度亚洲夜城、潮湿旧材质与受控霓虹形成技术失衡的近未来；人物身份由义体、阶层服装和企业色区分。",
-        tags: ["赛博朋克", "霓虹", "都市夜景"],
+        title: "cyberneon",
+        category: "Sci-fi real shot",
+        description: "The high-density Asian night city, damp old materials and controlled neon form a near future of technological imbalance; character identities are distinguished by prosthetics, class clothing and corporate colors.",
+        tags: ["cyberpunk", "neon", "city night scene"],
         prompt: [
-            "【项目定位】亚洲高密度都市中的赛博朋克短剧体系，视觉核心是先进技术与老旧城市并存、企业秩序与街头生活碰撞；霓虹只作为商业、交通与身份系统的一部分，世界必须保留真实生活痕迹。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 沥青黑、旧水泥、潮湿金属和烟灰，30% 冷青、脏黄与屏幕白，15% 洋红、警戒红或企业识别色。每种高亮色绑定阵营或功能，避免无差别彩虹霓虹。",
-            "【角色设计系统】角色采用真实东亚骨相和明确阶层差异，义眼、接口、义肢与皮下设备遵循统一技术代际；街头角色、企业雇员和执法人员通过剪影、改装程度、磨损与身份标记区分。",
-            "【服饰与材质系统】建立机能夹克、防水层、企业制服、旧式工装和改装配件库，统一使用磨损尼龙、橡胶、旧皮革、氧化金属、透明塑料和低亮度电子元件；服装必须可活动、可收纳并符合天气。",
-            "【建筑世界观】统一使用高密度亚洲街区、旧楼加建、地下交通、企业塔楼、维修铺、夜市与狭窄居住单元，中文标识与在地设施可信；新技术以加装、覆盖和侵入旧城市的方式出现。",
-            "【影像与动态基线】全片保持夜景可读、潮湿反射受控、实景光源有出处，动态兼具街头拥挤感与企业空间秩序；雨、烟和故障只在剧情需要时出现，不能遮盖人物表演与关键信息。",
-            "【资产一致性】建立企业标识、街区导视、义体代际、设备接口、角色改装和服装磨损版本；同一地点的招牌、线路与空间关系跨集保持稳定。",
-            "【全局禁用】禁止纯装饰霓虹、所有角色都装义体、无来源彩色轮廓光、日文城市替代中国语境、英文乱码、全屏雨雾、过曝招牌、随机机械纹身和未来设备无功能逻辑。",
+            "[Project Positioning] The cyberpunk short drama system in Asia's high-density cities. The visual core is the coexistence of advanced technology and old cities, the collision of corporate order and street life; neon is only a part of the business, transportation and identity system, and the world must retain traces of real life.",
+            "[Project Color System] The color palette used in the entire project is approximately 55% pitch black, old cement, wet metal and soot, 30% cool cyan, dirty yellow and screen white, and 15% magenta, alert red or corporate identity color. Each highlight color is bound to a camp or function to avoid indiscriminate rainbow neon.",
+            "[Character Design System] Characters adopt real East Asian bones and clear class differences. Prosthetic eyes, interfaces, prosthetic limbs and subcutaneous equipment follow unified technical generations; street characters, corporate employees and law enforcement officers are distinguished by silhouette, degree of modification, wear and tear and identity marks.",
+            "[Apparel and material system] Establish a library of functional jackets, waterproof layers, corporate uniforms, old workwear and modified accessories, and uniformly use worn nylon, rubber, old leather, oxidized metal, transparent plastic and low-brightness electronic components; clothing must be moveable, stowable and weather-proof.",
+            "[Architectural World View] The unified use of high-density Asian blocks, old building additions, underground transportation, corporate towers, maintenance shops, night markets and narrow residential units, Chinese signs and local facilities are credible; new technologies appear in the form of additions, coverings and intrusions into the old city.",
+            "[Image and Dynamic Baseline] The entire film maintains readable night scenes, controlled moisture reflections, well-sourced real-life light sources, and a dynamic sense of street congestion and corporate space order; rain, smoke, and glitches only appear when the plot requires them, and cannot obscure character performances and key information.",
+            "[Asset Consistency] Establish corporate logos, street guidance, prosthetic generation, equipment interfaces, character modifications and clothing wear versions; signboards, lines and spatial relationships in the same location remain stable across sets.",
+            "[Global Disable] Purely decorative neon, all characters equipped with prosthetics, sourceless color outline lights, Japanese cities replacing Chinese context, English garbled characters, full-screen rain and fog, overexposed signs, random mechanical tattoos and future equipment without functional logic are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/cyberpunk-neon.jpg",
     },
     {
         id: "retro-hong-kong",
-        title: "复古港风",
-        category: "年代实拍",
-        description: "八九十年代华语都市的胶片色、密集街区与生活化服饰；用钨丝暖光、青绿阴影和真实时代器物建立怀旧感。",
-        tags: ["港风", "胶片", "年代都市"],
+        title: "Retro Hong Kong style",
+        category: "Real shots of the era",
+        description: "The film colors, dense neighborhoods and lifestyle clothing of Chinese-speaking cities in the 1980s and 1990s; using tungsten warm light, green shadows and real era artifacts to create a sense of nostalgia.",
+        tags: ["Hong Kong style", "film", "Era City"],
         prompt: [
-            "【项目定位】八十至九十年代华语都市题材的复古港风短剧体系，以真实时代生活、紧凑街区和胶片摄影质感为核心；怀旧来自服化道、空间和人物状态，不靠泛黄滤镜或明星仿妆。",
-            "【项目色彩系统】全项目色板使用权重约为 50% 奶油白、旧墙灰、墨绿和木褐，35% 钨丝暖黄、青绿色阴影、牛仔蓝与暗红，15% 招牌红、出租车色或角色识别色。色彩保持胶片宽容度和自然肤色。",
-            "【角色设计系统】统一采用真实东亚骨相与明确时代发型、妆容和体态，按职业与阶层建立差异；角色通过眉形、卷发、短发、眼镜、手表与稳定服装剪影识别，不照搬具体明星面孔。",
-            "【服饰与材质系统】建立宽肩西装、衬衫、针织、牛仔、风衣、连衣裙和工装衣橱，使用真实棉、羊毛、皮革、涤纶和金属配件；版型、花纹、纽扣、鞋履与随身物件锁定明确年代。",
-            "【建筑世界观】统一使用骑楼、旧式住宅、茶餐厅、录像厅、办公室、街市、码头、巴士与密集招牌街道，保留窗机、瓷砖、铁闸、电话和时代交通工具；不得混入智能手机与当代城市家具。",
-            "【影像与动态基线】全片使用适度胶片颗粒、柔和高光、钨丝灯与窗外冷光的自然混合，动态保持手持观察和经典剧情片的稳健节奏；具体景别、变焦与运动由分镜决定。",
-            "【资产一致性】建立年代器物清单、角色衣橱、招牌字形、交通工具、室内材质和胶片色彩基线；时间推进通过服装、发型与城市更新版本体现。",
-            "【全局禁用】禁止一键泛黄滤镜、现代手机与车辆、错误年代品牌、过量霓虹、日系昭和混用、具体明星换脸、影楼旗袍写真、干净到失真的街景和随机繁体乱码。",
+            "[Project Positioning] A retro Hong Kong-style short drama system with Chinese urban themes from the 1980s to the 1990s, centered on real life in the era, compact neighborhoods and the texture of film photography; nostalgia comes from the way of service, space and character status, and does not rely on yellowing filters or star imitation makeup.",
+            "[Project Color System] The color palette used in the entire project is approximately 50% cream white, old wall gray, dark green and wood brown, 35% tungsten warm yellow, turquoise shadow, denim blue and dark red, 15% signature red, taxi color or character identification color. Color maintains film latitude and natural skin tones.",
+            "[Character Design System] Uniformly adopts real East Asian skeletal physiognomy and clear era hairstyle, makeup and body posture, and establishes differences according to occupation and class; characters are identified by eyebrow shape, curly hair, short hair, glasses, watches and stable clothing silhouettes, and do not copy specific celebrity faces.",
+            "[Apparel and Material System] Build a wardrobe of broad-shouldered suits, shirts, knits, denim, windbreakers, dresses and workwear, using real cotton, wool, leather, polyester and metal accessories; styles, patterns, buttons, shoes and accessories are locked to a clear era.",
+            "[Architectural World View] Use arcades, old-style residences, tea restaurants, video halls, offices, markets, docks, buses and streets with dense signboards in a unified manner, and retain window machines, ceramic tiles, iron gates, telephones and contemporary transportation; smartphones and contemporary urban furniture are not allowed to be mixed.",
+            "[Image and Dynamic Baseline] The entire film uses moderate film grain, soft highlights, and a natural mixture of tungsten lights and cold light from the window. The dynamics maintain the steady rhythm of handheld observation and classic feature films; specific scenes, zooms, and movements are determined by the storyboard.",
+            "[Asset Consistency] Establish era artifact lists, character wardrobes, signature glyphs, vehicles, interior materials, and film color baselines; time advancement is reflected through clothing, hairstyles, and urban update versions.",
+            "[Global Disable] One-click yellowing filters, modern mobile phones and vehicles, brands from the wrong era, excessive neon, mixed use of Japanese Showa styles, face-changing of specific celebrities, cheongsam photos in studios, street scenes that are so clean that they are distorted, and random Traditional Chinese garbled characters are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/retro-hong-kong.jpg",
     },
     {
         id: "clay-stop-motion",
-        title: "黏土定格",
-        category: "定格动画",
-        description: "保留手塑痕迹的黏土角色、微缩布景与逐帧动作；统一模型比例、材料颗粒和灯光尺度，形成温暖可触的手工世界。",
-        tags: ["黏土", "定格", "手工质感"],
+        title: "Clay freeze",
+        category: "stop motion animation",
+        description: "The clay characters, miniature scenery and frame-by-frame actions retain the traces of hand-sculpting; the model proportions, material particles and lighting scales are unified to form a warm and touchable handmade world.",
+        tags: ["clay", "freeze frame", "Handmade texture"],
         prompt: [
-            "【项目定位】以手工黏土角色和微缩布景制作的定格动画短剧体系，视觉核心是可触摸的材料、真实模型尺度与逐帧表演；全项目保留适度手塑痕迹，不伪装成光滑三维动画。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 陶土、米白、旧木和纸张原色，30% 角色主色与场景功能色，15% 珊瑚红、芥末黄、湖蓝或项目点睛色。颜色带有实体颜料的轻微不均匀感。",
-            "【角色设计系统】角色采用统一头身、眼球、嘴型替换与骨架关节规则，通过鼻形、发型、体型和服装剪影区分；指纹、接缝与替换口型可适度保留，但正侧背结构必须一致且可制作。",
-            "【服饰与材质系统】衣物使用薄黏土、布料、毛线、纸张与细金属件组合，木、石、玻璃和食物以微缩材料模拟；每种材质保持可辨的颗粒、厚度与手工边缘，避免统一塑料表面。",
-            "【建筑世界观】统一使用可搭建的微缩住宅、街道、店铺、自然景观与室内布景，结构受真实模型尺寸、灯具和摄影空间约束；背景与道具遵循同一缩尺和手工制作语言。",
-            "【影像与动态基线】全片保持棚内微缩摄影的真实景深、柔和体积光与轻微逐帧节奏，动作强调清晰关键姿势、重量和停顿；不得用运动模糊掩盖定格特征，具体表演由分镜决定。",
-            "【资产一致性】建立角色骨架、替换脸、手型、标准色泥、缩尺、布景模块与道具制作表；损坏、换装和表情组件必须按资产版本维护。",
-            "【全局禁用】禁止光滑 CGI、塑料玩具反光、真实人类皮肤、模型比例漂移、关节凭空变形、材质尺度错误、过度景深虚化、随机指纹污渍和布景看似无限真实空间。",
+            "[Project Positioning] A stop-motion animation short play system made of handmade clay characters and miniature sets. The visual core is touchable materials, real model scale and frame-by-frame performance; the entire project retains moderate hand-sculpted traces and does not pretend to be a smooth three-dimensional animation.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 55% clay, off-white, old wood and paper primary colors, 30% character main colors and scene functional colors, and 15% coral red, mustard yellow, lake blue or project finishing colors. The color has a slight unevenness to it from solid pigments.",
+            "[Character Design System] Characters adopt unified head and body, eyeball, mouth shape replacement and skeleton joint rules, and are distinguished by nose shape, hairstyle, body shape and clothing silhouette; fingerprints, seams and replacement mouth shapes can be appropriately retained, but the front, side and back structures must be consistent and can be produced.",
+            "[Clothing and material system] Clothes are made from a combination of thin clay, cloth, wool, paper and fine metal parts, and wood, stone, glass and food are simulated with miniature materials; each material maintains discernible particles, thickness and handmade edges to avoid a uniform plastic surface.",
+            "[Architectural World View] The buildable miniature houses, streets, shops, natural landscapes and indoor scenes are uniformly used. The structure is constrained by the size of the real model, lighting fixtures and photography space; the background and props follow the same scale and hand-made language.",
+            "[Image and Dynamic Baseline] The entire film maintains the true depth of field, soft volumetric light and slight frame-by-frame rhythm of studio miniature photography. The movements emphasize clear key postures, weights and pauses; motion blur is not allowed to cover up freeze-frame features, and the specific performance is determined by the storyboard.",
+            "[Asset Consistency] Establish character skeleton, replacement face, hand shape, standard color clay, scale, scenery module and prop production table; damage, dress-up and expression components must be maintained according to the asset version.",
+            "[Global Disable] Glossy CGI, plastic toy reflections, real human skin, model proportion drift, joint deformation out of thin air, material scale errors, excessive depth of field blur, random fingerprint stains, and seemingly infinite real space on the set are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/clay-stop-motion.jpg",
     },
     {
         id: "black-white-noir",
-        title: "黑白默片",
-        category: "风格化实拍",
-        description: "以黑白灰阶、硬朗光影和克制表演建立无对白也可读的戏剧性；时代质感来自构图、材质与表演，不靠复古滤镜。",
-        tags: ["黑白", "默片", "电影感"],
+        title: "black and white silent film",
+        category: "Stylized real shot",
+        description: "Black-and-white grayscale, tough light and shadow, and restrained performance create a drama that is readable without dialogue; the contemporary texture comes from composition, materials, and performance, without relying on retro filters.",
+        tags: ["black and white", "silent film", "Cinematic feel"],
         prompt: [
-            "【项目定位】以黑白电影和默片叙事为核心的风格化实拍短剧体系，强调轮廓、构图、肢体表演和视觉隐喻；可有少量时代道具，但不把项目固定为某一历史年代。",
-            "【项目色彩系统】全项目使用黑、白和五级中性灰作为主色，允许极少量单色强调作为叙事线索；明暗关系优先服务人物层次与信息可读性，禁止把画面压成一团黑或过度漂白。",
-            "【角色设计系统】角色保持真实东亚骨相与明确剪影，妆发和年龄感自然稳定；人物通过帽檐、领型、姿态、手势和光影落点区分，正侧背设定必须在灰阶中仍然清楚。",
-            "【服饰与材质系统】服装按角色身份建立黑白灰明度差、纹理密度和轮廓结构，使用羊毛、棉、皮革、金属与玻璃的真实反差；图案不依赖颜色，必须通过材质和明度可辨。",
-            "【建筑世界观】统一使用几何清晰、层次明确的城市街道、室内、车站、剧院和工业空间；墙面、玻璃、砖石、金属和雾气都以灰阶材质库控制，不添加无叙事的奇观背景。",
-            "【影像与动态基线】使用硬光、侧光、背光和局部高光塑造戏剧性，允许少量胶片颗粒与光晕；表演通过停顿、视线、走位和夸张但可信的肢体传达，具体节奏由分镜决定。",
-            "【资产一致性】建立灰阶色卡、角色轮廓、帽饰与道具明度表、光影基线和场景构图规则；同一角色的服装纹理和标志道具在不同曝光下仍需稳定。",
-            "【全局禁用】禁止随意套用棕色复古滤镜、画面全黑、现代彩色屏幕抢戏、过度烟雾、夸张舞台妆、无意义鱼眼变形、角色剪影混淆和字幕水印。",
+            "[Project Positioning] A stylized live-action short play system with black-and-white film and silent film narrative as the core, emphasizing outline, composition, physical performance and visual metaphor; there may be a small number of period props, but the project will not be fixed to a certain historical era.",
+            "[Project Color System] The entire project uses black, white and five levels of neutral gray as the main colors, allowing a very small amount of monochromatic emphasis as a narrative clue; the relationship between light and dark gives priority to the character hierarchy and the readability of information, and it is forbidden to suppress the picture into a ball of black or over-bleach.",
+            "[Character Design System] The characters maintain authentic East Asian bones and clear silhouettes, and the makeup, hair and age are natural and stable; the characters are distinguished by hat brim, collar type, posture, gestures and light and shadow placement, and the front, side and back settings must still be clear in grayscale.",
+            "[Clothing and material system] The clothing establishes black and white gray brightness difference, texture density and outline structure according to the character's identity, using the real contrast of wool, cotton, leather, metal and glass; the pattern does not rely on color and must be discernible through material and brightness.",
+            "[Architectural World View] Uniformly use geometrically clear and well-defined urban streets, interiors, stations, theaters and industrial spaces; walls, glass, masonry, metal and fog are all controlled by grayscale material libraries, without adding narrative spectacle backgrounds.",
+            "[Image and dynamic baseline] Use hard light, side light, backlight and local highlights to create drama, allowing a small amount of film grain and halo; the performance is conveyed through pauses, sightlines, movements and exaggerated but believable body movements, and the specific rhythm is determined by the storyboard.",
+            "[Asset Consistency] Establish grayscale color cards, character outlines, hats and props value tables, light and shadow baselines, and scene composition rules; the clothing textures and logo props of the same character still need to be stable under different exposures.",
+            "[Global Disable] It is forbidden to apply brown retro filters, completely black pictures, modern color screens to steal scenes, excessive smoke, exaggerated stage makeup, meaningless fish-eye deformation, confusion of character silhouettes and subtitle watermarks.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/black-white-noir.jpg",
     },
     {
         id: "space-opera",
-        title: "太空歌剧",
-        category: "科幻动画",
-        description: "宏大星际尺度与鲜明阵营服饰结合可信航天结构；用色彩、徽记和材质建立政治与冒险叙事，而不是堆砌宇宙奇观。",
-        tags: ["星际", "阵营", "史诗"],
+        title: "space opera",
+        category: "science fiction animation",
+        description: "The grand interstellar scale and distinctive camp costumes combine with believable aerospace structure; use colors, emblems and materials to build political and adventure narratives rather than stacking up cosmic wonders.",
+        tags: ["Interstellar", "camp", "epic"],
         prompt: [
-            "【项目定位】东方叙事语境下的太空歌剧项目，融合星际航行、阵营政治、家族关系与冒险成长；世界观允许宏大奇观，但人物动机、技术限制和空间尺度必须清楚可追踪。",
-            "【项目色彩系统】全项目色板使用权重约为 45% 深空黑、冷灰、银白和舱体白，35% 阵营主色与舰队识别色，20% 星云紫、能源蓝或警戒橙作为叙事强调；每个阵营只拥有稳定主色和辅助色。",
-            "【角色设计系统】角色采用真实东方骨相或统一动画化比例，通过军衔、阵营徽记、发型、体型和功能装备区分；太空服、驾驶服和礼服必须适配人体活动，角色脸部与身体比例跨视角稳定。",
-            "【服饰与材质系统】建立舱内工作服、战术航天服、舰队制服、外交礼服和维修装模块，统一使用复合纤维、陶瓷、金属、透明面罩和软质密封件；接口、扣件、徽记与生命保障装置具有功能逻辑。",
-            "【建筑世界观】统一使用环形空间站、舰桥、推进舱、殖民地、轨道电梯和低重力生活区，结构遵循压力舱、维护通道、重力与照明逻辑；奇观服务于文明尺度，不随机拼贴异星建筑。",
-            "【影像与动态基线】保持深空黑与舱内工作光的层次，使用克制体积光和可信屏幕反射；动作体现惯性、失重、穿戴装备和空间限制，具体战斗与运镜由分镜决定。",
-            "【资产一致性】建立舰船型号、阵营徽记、舱体材质、接口标准、武器尺寸、角色制服和能源颜色版本表；任何舰船升级、损坏与换装都要有剧情原因。",
-            "【全局禁用】禁止现实宇航服直接套用、星球大小失真、所有阵营同一颜色、无功能 HUD、魔法与科技规则混杂、舰船结构穿透、角色装备随机变化和版权品牌标识。",
+            "[Project Positioning] A space opera project in the context of Eastern narrative, integrating interstellar navigation, camp politics, family relationships and adventure growth; the world view allows for grand spectacle, but character motivations, technical limitations and spatial scale must be clear and traceable.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 45% space black, cool gray, silver white and cabin white, 35% camp main color and fleet identification color, and 20% nebula purple, energy blue or alert orange as narrative emphasis; each camp only has stable main colors and auxiliary colors.",
+            "[Character Design System] Characters adopt real oriental bones or unified animated proportions, and are distinguished by military rank, camp emblem, hairstyle, body shape, and functional equipment; space suits, driving suits, and dresses must adapt to human activities, and the proportions of the character's face and body are stable across viewing angles.",
+            "[Clothing and material system] Establish modules for cabin work clothes, tactical space suits, fleet uniforms, diplomatic dresses and maintenance suits, and uniformly use composite fibers, ceramics, metals, transparent masks and soft seals; interfaces, fasteners, emblems and life support devices have functional logic.",
+            "[Architectural World View] The circular space station, bridge, propulsion module, colony, orbital elevator and low-gravity living area are uniformly used. The structure follows the logic of pressure chamber, maintenance channel, gravity and lighting; the wonders serve the scale of civilization and do not randomly collage alien buildings.",
+            "[Image and Dynamic Baseline] Maintain the level of deep space black and working light in the cabin, and use restrained volumetric light and credible screen reflections; the movements reflect inertia, weightlessness, wearing equipment and space constraints, and the specific combat and movement are determined by the storyboard.",
+            "[Asset Consistency] Establish a version table of ship models, camp emblems, cabin materials, interface standards, weapon sizes, character uniforms, and energy colors; any ship upgrades, damage, and changes must have plot reasons.",
+            "[Global Ban] Prohibits the direct application of real space suits, planet size distortion, the same color for all camps, non-functional HUD, mixing of magic and technology rules, ship structure penetration, random changes in character equipment, and copyrighted brand logos.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/space-opera.jpg",
     },
     {
         id: "comic-pop",
-        title: "漫画分镜",
-        category: "风格化动画",
-        description: "高对比块面、网点纹理与漫画格律构成可读的动作喜剧视觉；夸张来自构图、拟声和姿态，角色资产仍保持连续性。",
-        tags: ["漫画", "动作", "高对比"],
+        title: "comic storyboard",
+        category: "stylized animation",
+        description: "High-contrast block surfaces, dot textures and comic rhythms form a readable action comedy vision; exaggeration comes from composition, onomatopoeia and gesture, while character assets still maintain continuity.",
+        tags: ["comics", "action", "high contrast"],
         prompt: [
-            "【项目定位】面向动作、喜剧与都市冒险的漫画分镜风格，统一使用清晰外轮廓、平涂块面、网点纹理和有节奏的画格感；画面可以夸张，但角色关系、动作方向与空间连续性必须可靠。",
-            "【项目色彩系统】全项目以米白、墨黑和中性灰为结构底色，30% 使用高饱和红、黄、蓝或项目主色，10% 使用单一冲击色承担危险、速度或情绪重点；颜色必须形成角色和阵营识别。",
-            "【角色设计系统】统一采用稳定头身比例、强轮廓、清晰发型和可重复的表情符号；角色通过剪影、服装块面、姿态和道具区分，夸张表情不得改变基本脸型与身份。",
-            "【服饰与材质系统】服饰细节简化成大色块、粗线纹样和少量高光，棉、皮革、金属、牛仔和玻璃通过线条密度与高光形状区分；战斗或动作服装必须兼顾可动性。",
-            "【建筑世界观】使用可快速识别的街区、商店、学校、办公室、车站和屋顶等都市空间，背景以几何块面、透视线和有限网点表达；场景不抢角色轮廓，也不使用现实品牌标识。",
-            "【影像与动态基线】动作使用速度线、冲击形状、停格姿势和清晰重心，切换节奏由分镜控制；镜头可以模拟画格切分，但不得牺牲表情、手势和动作方向的可读性。",
-            "【资产一致性】建立角色标准角度、表情表、线宽、网点密度、拟声字形和动作特效模板；不同镜头共享同一线条、色块与纹理规则。",
-            "【全局禁用】禁止写实照片与漫画角色混用、线条粗细随机、所有画面满屏速度线、复杂背景压住人物、拟声文字乱码、角色换脸、四肢结构错误和过度血腥猎奇。",
+            "[Project Positioning] A comic storyboard style oriented towards action, comedy and urban adventure, uniformly using clear outlines, flat painted surfaces, dot textures and rhythmic frames; the picture can be exaggerated, but the character relationship, action direction and spatial continuity must be reliable.",
+            "[Project Color System] The entire project uses off-white, jet black and neutral gray as the structural background color, 30% uses highly saturated red, yellow, blue or the main color of the project, and 10% uses a single impact color to focus on danger, speed or emotion; the color must form character and camp identification.",
+            "[Character Design System] Uniformly adopts stable head-to-body proportions, strong outlines, clear hairstyles and repeatable emoticons; characters are distinguished by silhouettes, clothing blocks, postures and props, and exaggerated expressions must not change the basic face shape and identity.",
+            "[Clothes and Material System] Clothing details are simplified into large color blocks, thick line patterns and a small amount of highlights. Cotton, leather, metal, denim and glass are distinguished by line density and highlight shapes; combat or action clothing must take into account mobility.",
+            "[Architectural World View] Use urban spaces such as blocks, shops, schools, offices, stations, and rooftops that can be quickly identified. The background is expressed with geometric blocks, perspective lines, and limited dots; the scene does not compete with character outlines, nor does it use realistic brand logos.",
+            "[Image and dynamic baseline] Actions use speed lines, impact shapes, stop poses and clear centers of gravity, and the switching rhythm is controlled by storyboards; the lens can simulate frame segmentation, but the readability of expressions, gestures and action directions must not be sacrificed.",
+            "[Asset Consistency] Establish character standard angles, expression tables, line widths, dot density, onomatopoeic glyphs and action special effects templates; different shots share the same lines, color blocks and texture rules.",
+            "[Global Ban] It is forbidden to mix realistic photos with comic characters, random line thickness, full-screen speed lines in all pictures, complex backgrounds suppressing characters, garbled onomatopoeic text, character face-changing, wrong limb structure, and excessive bloody curiosity.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/comic-pop.jpg",
     },
     {
         id: "storybook-fantasy",
-        title: "绘本童话",
-        category: "插画动画",
-        description: "纸张颗粒、柔和色块和手绘边缘构成温暖童话世界；角色表情与轮廓清楚，避免把绘本感做成泛化的柔焦滤镜。",
-        tags: ["绘本", "童话", "温暖"],
+        title: "picture book fairy tale",
+        category: "illustration animation",
+        description: "Paper particles, soft color blocks and hand-painted edges form a warm fairy tale world; the characters' expressions and outlines are clear, avoiding the generalized soft-focus filter that makes the picture book feel.",
+        tags: ["picture book", "fairy tale", "warm"],
         prompt: [
-            "【项目定位】面向成长、亲子与寓言叙事的绘本童话动画体系，统一使用手绘边缘、纸张颗粒、有限色块和可读角色表情；故事世界可以奇幻，但情绪和人物关系保持温暖、具体且可理解。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 纸张暖白、雾蓝、鼠尾草绿和浅木色，30% 角色与场景主色，15% 蜜糖黄、珊瑚红或星光金作为叙事点色；避免所有画面都成为粉彩渐变。",
-            "【角色设计系统】角色采用统一绘本头身、圆润但有差异的轮廓和清晰眼鼻嘴比例，通过帽子、发型、耳朵、体型与服装区分；正侧背视图必须保留同一手绘造型特征。",
-            "【服饰与材质系统】衣服使用布料、针织、皮革、木扣、纸张和毛线等可触摸材质，纹样简化为少量重复元素；角色标志物件和衣领、袖口、鞋履保持稳定。",
-            "【建筑世界观】统一使用村庄、森林、阁楼、车站、河岸、市场与小型城堡等可读场景，建筑结构偏手工搭建和绘本透视；奇幻元素从生活物件变形而来，不做无逻辑异域拼贴。",
-            "【影像与动态基线】保持柔和但有方向的光影、纸张纹理和有限动画节奏，动作强调呼吸、重心、眼神与衣摆跟随；具体动作与镜头调度交由分镜决定。",
-            "【资产一致性】建立标准色卡、纸张纹理、笔刷边缘、角色比例、表情表、场景模块和魔法点色规则；新资产必须匹配已有线条和颗粒尺度。",
-            "【全局禁用】禁止塑料 3D、泛滥柔焦、角色同脸、过度糖果色、阴影方向漂移、复杂文字水印、细节密度失控、随机改发型和把儿童角色做成恐怖谷。",
+            "[Project Positioning] A picture book fairy tale animation system oriented to growth, parent-child and fable narratives, uniformly using hand-painted edges, paper particles, limited color blocks and readable character expressions; the story world can be fantastic, but the emotions and character relationships remain warm, concrete and understandable.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 55% paper warm white, fog blue, sage green and light wood color, 30% character and scene main colors, and 15% honey yellow, coral red or starlight gold as narrative point colors; avoid all pictures becoming pastel gradients.",
+            "[Character Design System] Characters adopt a unified picture book head and body, rounded but different outlines, and clear proportions of eyes, nose, and mouth, and are distinguished by hats, hairstyles, ears, body types, and clothing; the front, side, and back views must retain the same hand-drawn styling features.",
+            "[Clothes and Material System] Clothes use touchable materials such as cloth, knitting, leather, wooden buttons, paper and wool, and the patterns are simplified to a small number of repeating elements; the character logo objects, collars, cuffs, and shoes remain stable.",
+            "[Architectural World View] Unified use of readable scenes such as villages, forests, attics, stations, riverbanks, markets, and small castles. The architectural structure is hand-built and picture book perspective; fantasy elements are deformed from daily objects, and there is no illogical exotic collage.",
+            "[Image and Dynamic Baseline] Maintain soft but directional light and shadow, paper texture and limited animation rhythm. The movements emphasize breathing, center of gravity, eyes and clothes. The specific movements and lens scheduling are determined by the storyboard.",
+            "[Asset Consistency] Establish standard color cards, paper textures, brush edges, character proportions, expression tables, scene modules and magic point color rules; new assets must match existing lines and grain scales.",
+            "[Global Ban] Plastic 3D, excessive soft focus, characters with the same face, excessive candy colors, shadow direction drift, complex text watermarks, out-of-control detail density, random hair changes, and making children's characters into the uncanny valley are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/storybook-fantasy.jpg",
     },
     {
         id: "surreal-dream",
-        title: "超现实梦境",
-        category: "风格化实拍",
-        description: "现实材质与不可能空间并置，以镜像、尺度错位和雾化光线表达梦境；所有超现实变化服务角色心理和叙事线索。",
-        tags: ["梦境", "超现实", "心理"],
+        title: "Surreal dream",
+        category: "Stylized real shot",
+        description: "Realistic materials are juxtaposed with impossible spaces, and dreams are expressed through mirroring, scale dislocation and foggy light; all surreal changes serve the character's psychology and narrative clues.",
+        tags: ["dream", "Surreal", "psychological"],
         prompt: [
-            "【项目定位】以现实人物进入不可能空间为核心的超现实梦境短剧体系，梦境不是随机奇观，而是由人物记忆、欲望、恐惧和选择构成的可追踪视觉系统；现实段落与梦境段落必须有明确差异和回返规则。",
-            "【项目色彩系统】现实段落使用自然中性灰与低饱和环境色，梦境段落使用 35% 雾白、浅金、冷青和暗紫，15% 固定象征色承载角色心理线索；同一象征色不能在不同角色间随意换义。",
-            "【角色设计系统】角色保持真实东亚骨相、年龄与身体比例，梦境只允许在发型、服装、尺度、影子或局部材质上做有规则的变形；正侧背结构必须仍能确认是同一角色。",
-            "【服饰与材质系统】现实服装遵循生活逻辑，梦境服装可以通过重复、倒置、透明、过大或过小表达心理，但面料、纽扣、鞋履和标志物件需要保持可追踪变体。",
-            "【建筑世界观】统一使用镜像房间、无尽楼梯、漂浮街道、倒置建筑、空旷大厅和雾中自然等空间语法；每种不可能空间绑定一个叙事规则，不把随机生成的城堡和星空堆在一起。",
-            "【影像与动态基线】现实使用可信光源和稳定镜头，梦境使用慢速漂浮、镜面反射、尺度变化与非连续转场；特效保持节制，具体梦境动作和节拍由分镜决定。",
-            "【资产一致性】建立象征色、梦境规则、角色标志物件、空间变形前后对照、镜面材质和转场语法表；每次变形都能对应剧情节点并可恢复。",
-            "【全局禁用】禁止无因由的随机变形、全屏烟雾、过度镜面、所有空间都漂浮、梦境与现实没有区别、角色五官融化、符号含义漂移和用噪点掩盖生成错误。",
+            "[Project Positioning] A surreal dream skit system with real characters entering impossible spaces as the core. Dreams are not random spectacles, but a traceable visual system composed of characters’ memories, desires, fears and choices; there must be clear differences and return rules between real and dream passages.",
+            "[Project Color System] Use natural neutral gray and low-saturated environmental colors for realistic passages, use 35% foggy white, light gold, cold cyan and dark purple for dream passages, and 15% fixed symbolic colors to carry the psychological clues of the characters; the same symbolic color cannot be changed at will between different characters.",
+            "[Character Design System] The character maintains the true East Asian bone structure, age and body proportions. The dream only allows regular deformation in hairstyle, clothing, scale, shadow or local materials; the front, side and back structure must still be able to confirm that it is the same character.",
+            "[Clothing and Material System] Realistic clothing follows the logic of life. Dream clothing can express psychology through repetition, inversion, transparency, too large or too small, but fabrics, buttons, shoes and logo objects need to maintain traceable variations.",
+            "[Architectural World View] Uniformly use space syntax such as mirrored rooms, endless stairs, floating streets, inverted buildings, empty halls, and nature in the fog; each impossible space is bound to a narrative rule, and randomly generated castles and starry skies are not piled together.",
+            "[Image and dynamic baseline] Reality uses credible light sources and stable lenses, and dreams use slow floating, specular reflection, scale changes, and discontinuous transitions; special effects remain controlled, and specific dream actions and rhythms are determined by the storyboard.",
+            "[Asset Consistency] Establish symbolic colors, dream rules, character mark objects, before and after space deformation comparisons, mirror materials and transition syntax tables; each deformation can correspond to plot nodes and can be restored.",
+            "[Global Disable] Unreasonable random deformation, full-screen smoke, excessive mirroring, all spaces floating, no difference between dreams and reality, character facial features melting, symbol meaning drifting, and noise to cover up generation errors are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/surreal-dream.jpg",
     },
     {
         id: "nature-healing",
-        title: "自然疗愈",
-        category: "真人实拍",
-        description: "真实自然光、植物与手作生活构成松弛的在地质感；以季节、声音和微小行动表达疗愈，不做广告式空镜。",
-        tags: ["疗愈", "自然", "慢生活"],
+        title: "natural healing",
+        category: "Real shots",
+        description: "Real natural light, plants and handmade life form a relaxed local texture; healing is expressed with seasons, sounds and small actions, without advertising-style empty shots.",
+        tags: ["Heal", "natural", "slow life"],
         prompt: [
-            "【项目定位】面向家庭关系、返乡、成长与情绪修复的自然疗愈真人短剧体系，核心是人物在具体自然环境中的生活行动和关系变化；自然不是装饰背景，而是参与叙事的真实空间。",
-            "【项目色彩系统】全项目色板使用权重约为 55% 叶绿、苔藓绿、土色和米白，30% 木材、石头、天空与季节环境色，15% 赭红、芥末黄或人物识别色；保持自然白平衡和季节连续性。",
-            "【角色设计系统】角色采用真实东亚面孔、自然年龄与生活状态，保留晒痕、发丝、体态和劳动痕迹；通过衣着层次、动作习惯、发型与随身物件建立差异，不使用商业广告式精致人物。",
-            "【服饰与材质系统】建立棉麻、针织、旧牛仔、雨具、工作服、帆布鞋与草帽衣橱，材质保留褶皱、泥土、汗水和使用痕迹；固定角色的外套、包和手作物件形成识别资产。",
-            "【建筑世界观】统一使用山村住宅、林间小屋、农场、茶室、河岸、菜园、集市和小城边缘空间，保留木、石、土、旧墙、工具与本地生活设施；建筑应有地域和季节证据。",
-            "【影像与动态基线】采用真实日光、阴天漫射、篝火与室内暖灯，允许风、雨、昆虫和环境声进入画面；动态观察人物的微小行动与关系停顿，避免只拍漂亮自然空镜。",
-            "【资产一致性】建立季节色卡、植物与农具库、住宅布局、角色衣橱、手作物件和天气连续性记录；季节变化应带来可见但渐进的资产版本。",
-            "【全局禁用】禁止商业民宿广告感、过度航拍、饱和滤镜、欧美乡村替代中国在地生活、干净无人的自然空间、人物永远精致、随机换季和把疗愈做成空洞慢镜头。",
+            "[Project Positioning] A natural healing live-action short drama system oriented towards family relationships, homecoming, growth and emotional repair. The core is the characters' life actions and relationship changes in a specific natural environment; nature is not a decorative background, but a real space that participates in the narrative.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 55% leaf green, moss green, earth color and off-white, 30% wood, stone, sky and seasonal environment colors, 15% ocher red, mustard yellow or character identification color; maintain natural white balance and seasonal continuity.",
+            "[Character Design System] Characters adopt real East Asian faces, natural age and living conditions, retaining sun marks, hair, body posture and traces of labor; differences are established through clothing layers, movement habits, hairstyles and personal belongings, and commercial advertisement-style refined characters are not used.",
+            "[Clothes and Materials System] Establish a wardrobe of cotton and linen, knitted, old denim, rain gear, work clothes, canvas shoes and straw hats. The materials retain wrinkles, dirt, sweat and traces of use; coats, bags and handmade items that fix the role form identification assets.",
+            "[Architectural World View] Use mountain village residences, forest huts, farms, teahouses, riverbanks, vegetable gardens, markets and small town edge spaces in a unified manner, and retain wood, stone, soil, old walls, tools and local living facilities; the architecture should have regional and seasonal evidence.",
+            "[Image and dynamic baseline] Use real daylight, cloudy sky diffusion, campfires and indoor warm lights to allow wind, rain, insects and environmental sounds to enter the picture; dynamically observe the characters' tiny actions and relationship pauses to avoid taking only beautiful natural empty shots.",
+            "[Asset Consistency] Establish seasonal color cards, plant and farm tool libraries, residential layouts, character wardrobes, handcrafted items, and weather continuity records; seasonal changes should bring visible but progressive asset versions.",
+            "[Global Disable] Commercial B&B advertising, excessive aerial photography, saturated filters, European and American countryside replacing Chinese local life, clean and uninhabited natural spaces, always exquisite characters, random seasonal changes, and empty slow motion of healing are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/nature-healing.jpg",
     },
     {
         id: "real-life-documentary",
-        title: "现实生活纪实",
-        category: "真人实拍",
-        description: "自然灰土色、真实东亚普通人与中国在地生活空间；保留环境痕迹和观察式影像气质，让家庭与社会议题更可信。",
-        tags: ["家庭", "成长", "纪实"],
+        title: "real life documentary",
+        category: "Real shots",
+        description: "Natural gray earth color, real East Asian ordinary people and local Chinese living space; retaining environmental traces and observational image quality, making family and social issues more credible.",
+        tags: ["family", "grow", "Documentary"],
         prompt: [
-            "【项目定位】家庭、成长与社会议题的现实生活纪实短剧体系，接近观察式剧情纪录片：真实东亚普通人、真实中国在地空间、自然曝光和适度不完美；全片追求生活证据与人物关系的可信度，不追求广告级精致。",
-            "【项目色彩系统】全项目色板使用权重约为 70% 自然灰、米白、旧木、土色和水泥色，20% 当地墙面、家具、植物与公共设施的环境色，10% 衣物、生活用品或项目识别色。色板允许随季节与地区变化，但始终保持低饱和、自然白平衡和在地真实感。",
-            "【角色设计系统】选择具有真实年龄、体型、家庭关系和职业痕迹的东亚人物，保留皱纹、晒痕、眼袋、发丝与生活状态；妆发接近日常，家人之间保持可信相似性，不使用网红脸、统一精致妆和不符合生活条件的造型。",
-            "【服饰与材质系统】按季节、职业和经济条件建立家居服、工装、校服、普通衬衫、羽绒服与布鞋等衣橱，保留褶皱、磨损和反复使用痕迹；生活用品采用真实品牌中性化设计与合理使用年限，不做崭新陈列品。",
-            "【建筑世界观】统一使用中国老小区、城中村、普通住宅、学校、医院、工厂、菜市场、公交站和县城街道，保留线缆、晾晒、污渍、拥挤家具与中文公共标识；项目地点共享明确地域、年代和经济环境。",
-            "【影像与动态基线】全片保持自然光感、现场混合色温、适度颗粒与观察式表演，允许真实环境中的停顿、重复和轻微不完美；动态风格朴素、贴近人物，不使用炫技摄影或消费苦难的煽情手法，具体调度由分镜决定。",
-            "【资产一致性】建立家庭成员外貌关系、角色衣橱、生活道具使用痕迹、住宅布局、社区设施和地域标识资产库；时间推进造成的磨损、成长和季节变化必须作为连续版本维护。",
-            "【全局禁用】禁止商业广告布光、过度磨皮、精致样板房、欧美都市替代中国在地空间、强烈电影滤镜、摆拍式苦难、统一网红脸、无生活痕迹的道具和把纪实误做成低清脏画面。",
+            "[Project Positioning] A system of real-life documentary short dramas on family, growth and social issues, close to observational drama documentaries: real ordinary people in East Asia, real Chinese local space, natural exposure and moderate imperfection; the whole film pursues the credibility of life evidence and character relationships, and does not pursue advertising-level sophistication.",
+            "[Project Color System] The weight of the color palette used in the entire project is approximately 70% natural gray, off-white, old wood, earth color and cement color, 20% environmental colors of local walls, furniture, plants and public facilities, and 10% clothing, daily necessities or project identification colors. The color palette allows for changes with seasons and regions, but always maintains low saturation, natural white balance and local authenticity.",
+            "[Character Design System] Select East Asian characters with real age, body shape, family relationships and career traces, retaining wrinkles, sun marks, eye bags, hair and living conditions; makeup and hair are close to daily life, and family members maintain credible similarities. Do not use internet celebrity faces, uniform exquisite makeup and styles that do not meet living conditions.",
+            "[Apparel and material system] Establish wardrobes such as home clothes, work clothes, school uniforms, ordinary shirts, down jackets and cloth shoes according to seasons, occupations and economic conditions, retaining wrinkles, wear and traces of repeated use; daily necessities adopt true brand neutral designs and reasonable service life, and do not create new display items.",
+            "[Architectural World View] Use Chinese old communities, urban villages, ordinary residences, schools, hospitals, factories, wet markets, bus stations and county streets in a unified manner, retaining cables, drying, stains, crowded furniture and Chinese public signs; the project location shares a clear region, age and economic environment.",
+            "[Image and dynamic baseline] The entire film maintains natural light, on-site mixed color temperature, moderate grain and observational performance, allowing pauses, repetitions and slight imperfections in the real environment; the dynamic style is simple and close to the characters, and does not use dazzling photography or sensational techniques of consumer suffering. The specific scheduling is determined by the storyboard.",
+            "[Asset Consistency] Establish an asset library for family member appearance relationships, character wardrobes, life prop usage traces, residential layout, community facilities, and regional identification assets; wear, growth, and seasonal changes caused by time must be maintained as continuous versions.",
+            "[Global Ban] Commercial advertising lighting, excessive skin polishing, exquisite model houses, European and American cities replacing Chinese local spaces, strong film filters, staged suffering, uniform Internet celebrity faces, props without traces of life, and mistaking documentaries into low-definition and dirty scenes are prohibited.",
             PROJECT_STYLE_SCOPE,
         ].join("\n"),
         imageUrl: "/short-drama-styles/real-life.jpg",
@@ -409,7 +409,7 @@ export function resolveProjectCanvasStyle(presetId?: string, profileJson?: strin
     return {
         id: profile.presetId,
         title: profile.title,
-        category: preset?.category || "项目风格包",
+        category: preset?.category || "Project style package",
         description: profile.description,
         tags: [...profile.tags],
         prompt: profile.prompt,
@@ -445,7 +445,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
     const [detailPreset, setDetailPreset] = useState<CanvasStylePreset | null>(null);
     const [tab, setTab] = useState<StyleCenterTab>("system");
     const [query, setQuery] = useState("");
-    const [category, setCategory] = useState("全部");
+    const [category, setCategory] = useState("All");
     const [systemFavoriteIds, setSystemFavoriteIds] = useState<string[]>([]);
     const [recentIds, setRecentIds] = useState<string[]>([]);
     const [editor, setEditor] = useState<StyleEditorState | null>(null);
@@ -457,7 +457,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
         if (!open) return;
         setTab("system");
         setQuery("");
-        setCategory("全部");
+        setCategory("All");
         setSystemFavoriteIds(readStyleIds(STYLE_FAVORITES_KEY));
         setRecentIds(readStyleIds(STYLE_RECENT_KEY));
         if (localMode) setLocalProfiles(readLocalStyleProfiles());
@@ -469,7 +469,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
         return preset ? [{ kind: "user" as const, preset, entity }] : [];
     }), [profileEntities]);
     const systemItems = useMemo<SystemStyleLibraryItem[]>(() => canvasStylePresets.map((preset) => ({ kind: "system", preset })), []);
-    const categories = useMemo(() => ["全部", ...Array.from(new Set(canvasStylePresets.map((preset) => preset.category)))], []);
+    const categories = useMemo(() => ["All", ...Array.from(new Set(canvasStylePresets.map((preset) => preset.category)))], []);
 
     useEffect(() => {
         if (!open || !startInEditor || !currentProfile || currentProfile.source !== "user" || editor || (!localMode && (profilesQuery.isFetching || profilesQuery.isError))) return;
@@ -484,12 +484,12 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
     }, [currentProfile, editor, localMode, open, profileEntities, profilesQuery.isError, profilesQuery.isFetched, profilesQuery.isFetching, startInEditor]);
 
     const visibleItems = useMemo(() => {
-        const keyword = query.trim().toLocaleLowerCase("zh-CN");
+        const keyword = query.trim().toLocaleLowerCase("en-US");
         let source: StyleLibraryItem[] = tab === "system" ? systemItems : tab === "mine" ? userItems : tab === "favorites"
             ? [...systemItems.filter((item) => systemFavoriteIds.includes(item.preset.id)), ...userItems.filter((item) => item.kind === "user" && item.entity.favorite)]
             : [...userItems.filter((item) => item.kind === "user" && item.entity.lastUsedAt).sort((a, b) => String(b.entity.lastUsedAt).localeCompare(String(a.entity.lastUsedAt))), ...recentIds.flatMap((id) => systemItems.filter((item) => item.preset.id === id))];
-        if (tab === "system" && category !== "全部") source = source.filter((item) => item.preset.category === category);
-        if (keyword) source = source.filter((item) => `${item.preset.title} ${item.preset.category} ${item.preset.description} ${item.preset.tags.join(" ")}`.toLocaleLowerCase("zh-CN").includes(keyword));
+        if (tab === "system" && category !== "All") source = source.filter((item) => item.preset.category === category);
+        if (keyword) source = source.filter((item) => `${item.preset.title} ${item.preset.category} ${item.preset.description} ${item.preset.tags.join(" ")}`.toLocaleLowerCase("en-US").includes(keyword));
         return source;
     }, [category, query, recentIds, systemFavoriteIds, systemItems, tab, userItems]);
 
@@ -502,7 +502,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
                 const entity: UserStyleProfile = {
                     id,
                     userId: "local",
-                    name: profile.title || "未命名风格",
+                    name: profile.title || "unnamed style",
                     description: profile.description || "",
                     coverUrl: profile.coverUrl || "",
                     tagsJson: JSON.stringify(profile.tags || []),
@@ -527,10 +527,10 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
             const preset = userStylePreset(profile);
             setEditor(null);
             setTab("mine");
-            message.success("风格已保存到“我的风格”");
+            message.success("Style saved to My Styles");
             if (apply && preset) selectItem({ kind: "user", preset, entity: profile });
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "风格保存失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : "Style saving failed"),
     });
     const favoriteMutation = useMutation({
         mutationFn: ({ id, favorite }: { id: string; favorite: boolean }) => {
@@ -543,7 +543,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
             return setStyleProfileFavorite(id, favorite);
         },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["style-profiles"] }),
-        onError: (error) => message.error(error instanceof Error ? error.message : "收藏状态更新失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : "Collection status update failed"),
     });
     const deleteMutation = useMutation({
         mutationFn: (id: string) => {
@@ -555,8 +555,8 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
             }
             return deleteStyleProfile(id);
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["style-profiles"] }); message.success("风格已删除"); },
-        onError: (error) => message.error(error instanceof Error ? error.message : "风格删除失败"),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["style-profiles"] }); message.success("style deleted"); },
+        onError: (error) => message.error(error instanceof Error ? error.message : "Style deletion failed"),
     });
 
     function selectItem(item: StyleLibraryItem) {
@@ -571,7 +571,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
                 setLocalProfiles(nextProfiles);
                 persistLocalStyleProfiles(nextProfiles);
             } else {
-                void touchStyleProfile(item.entity.id).then(() => queryClient.invalidateQueries({ queryKey: ["style-profiles"] })).catch((error) => message.warning(error instanceof Error ? error.message : "最近使用记录更新失败"));
+                void touchStyleProfile(item.entity.id).then(() => queryClient.invalidateQueries({ queryKey: ["style-profiles"] })).catch((error) => message.warning(error instanceof Error ? error.message : "Recent usage record update failed"));
             }
         }
         onSelect(preset);
@@ -585,10 +585,10 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
         setEditor({ profile: blankUserStyle() });
     }
     function copyPreset(preset: CanvasStylePreset) {
-        setEditor({ profile: editableCopy(preset.profile || createStyleProfileSnapshot(preset), undefined, `${preset.title} 副本`, preset.imageUrl) });
+        setEditor({ profile: editableCopy(preset.profile || createStyleProfileSnapshot(preset), undefined, `${preset.title} copy`, preset.imageUrl) });
     }
     function confirmDelete(entity: UserStyleProfile) {
-        modal.confirm({ title: `删除“${entity.name}”？`, content: "项目中已经保存的快照不会被删除，但该风格将从“我的风格”中移除。", okText: "删除", cancelText: "取消", okButtonProps: { danger: true }, onOk: () => deleteMutation.mutateAsync(entity.id) });
+        modal.confirm({ title: `Delete "${entity.name}”？`, content: "Snapshots already saved in the project will not be deleted, but the style will be removed from My Styles.", okText: "Delete", cancelText: "Cancel", okButtonProps: { danger: true }, onOk: () => deleteMutation.mutateAsync(entity.id) });
     }
 
     return (
@@ -597,26 +597,26 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
                 <div className="canvas-style-center-shell flex min-h-0 flex-col overflow-hidden" style={{ color: theme.node.text, background: theme.node.panel }}>
                     <header className="flex min-h-16 flex-col gap-3 border-b px-4 py-3 pr-12 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:pr-14" style={{ borderColor: theme.node.stroke }}>
                         <div className="min-w-0">
-                            <h2 className="text-base font-semibold">风格中心</h2>
-                            <p className="mt-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>系统规范 · 个人风格 · 项目快照</p>
+                            <h2 className="text-base font-semibold">style center</h2>
+                            <p className="mt-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>System Specifications · Personal Style · Project Snapshots</p>
                         </div>
                         <div className="flex min-w-0 gap-2 sm:items-center">
-                            <Input allowClear className="style-center-search min-w-0 flex-1" prefix={<Search className="size-3.5 text-foreground/35" />} value={query} placeholder="搜索风格、题材或媒介" onChange={(event) => setQuery(event.target.value)} />
-                            <Button type="primary" className="shrink-0" icon={<Plus className="size-3.5" />} onClick={createNewStyle}>新建风格</Button>
+                            <Input allowClear className="style-center-search min-w-0 flex-1" prefix={<Search className="size-3.5 text-foreground/35" />} value={query} placeholder="Search for a style, subject or medium" onChange={(event) => setQuery(event.target.value)} />
+                            <Button type="primary" className="shrink-0" icon={<Plus className="size-3.5" />} onClick={createNewStyle}>New style</Button>
                         </div>
                     </header>
                     <div className="style-center-workspace grid min-h-0 flex-1">
                         <aside className="style-center-sidebar thin-scrollbar min-h-0 overflow-auto border-b p-2 sm:p-3 lg:border-b-0 lg:border-r" style={{ borderColor: theme.node.stroke }}>
-                            <nav className="style-center-primary-nav flex gap-1 lg:flex-col" aria-label="风格中心视图">
-                                <StyleCenterNavItem active={tab === "system"} icon={<Palette className="size-3.5" />} label="系统风格" count={systemItems.length} onClick={() => setTab("system")} />
-                                <StyleCenterNavItem active={tab === "mine"} icon={<UserRound className="size-3.5" />} label="我的风格" count={userItems.length} onClick={() => setTab("mine")} />
-                                <StyleCenterNavItem active={tab === "favorites"} icon={<Star className="size-3.5" />} label="收藏" onClick={() => setTab("favorites")} />
-                                <StyleCenterNavItem active={tab === "recent"} icon={<Clock3 className="size-3.5" />} label="最近使用" onClick={() => setTab("recent")} />
+                            <nav className="style-center-primary-nav flex gap-1 lg:flex-col" aria-label="style center view">
+                                <StyleCenterNavItem active={tab === "system"} icon={<Palette className="size-3.5" />} label="system style" count={systemItems.length} onClick={() => setTab("system")} />
+                                <StyleCenterNavItem active={tab === "mine"} icon={<UserRound className="size-3.5" />} label="my style" count={userItems.length} onClick={() => setTab("mine")} />
+                                <StyleCenterNavItem active={tab === "favorites"} icon={<Star className="size-3.5" />} label="Collection" onClick={() => setTab("favorites")} />
+                                <StyleCenterNavItem active={tab === "recent"} icon={<Clock3 className="size-3.5" />} label="Recently used" onClick={() => setTab("recent")} />
                             </nav>
                             {tab === "system" ? (
                                 <div className="style-center-category-panel mt-2 border-t pt-2 lg:mt-4 lg:pt-3" style={{ borderColor: theme.node.stroke }}>
-                                    <div className="hidden px-2 pb-1.5 text-[var(--fs-tiny)] font-medium lg:block" style={{ color: theme.node.muted }}>分类</div>
-                                    <nav className="style-center-category-nav flex gap-1 lg:flex-col" aria-label="系统风格分类">
+                                    <div className="hidden px-2 pb-1.5 text-[var(--fs-tiny)] font-medium lg:block" style={{ color: theme.node.muted }}>Classification</div>
+                                    <nav className="style-center-category-nav flex gap-1 lg:flex-col" aria-label="System style classification">
                                         {categories.map((item) => <button key={item} type="button" aria-current={category === item ? "page" : undefined} className={`style-center-category-item h-9 shrink-0 rounded-md px-2.5 text-left text-xs outline-none transition-colors focus-visible:ring-2 ${category === item ? "is-active font-medium" : ""}`} onClick={() => setCategory(item)}>{item}</button>)}
                                     </nav>
                                 </div>
@@ -625,7 +625,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
                         <main className="flex min-h-0 min-w-0 flex-col">
                             <div className="flex h-11 shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-4" style={{ borderColor: theme.node.stroke }}>
                                 <div className="min-w-0 truncate text-xs font-medium">{styleCenterViewTitle(tab, category)}</div>
-                                <div className="shrink-0 text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.muted }}>{visibleItems.length} 个风格</div>
+                                <div className="shrink-0 text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.muted }}>{visibleItems.length}  style</div>
                             </div>
                             <div className="style-center-grid thin-scrollbar min-h-0 flex-1 content-start overflow-y-auto p-3 sm:p-4">
                             {visibleItems.map((item) => (
@@ -687,23 +687,23 @@ function StyleCenterCard({ item, active, applying, favorite, theme, onApply, onD
     return (
         <article className={`style-center-card group flex min-w-0 flex-col overflow-hidden rounded-md border ${active ? "is-active" : ""}`} style={{ background: theme.canvas.background, borderColor: active ? theme.node.activeStroke : theme.node.stroke, boxShadow: active ? `inset 0 0 0 1px ${theme.node.activeStroke}` : undefined }}>
             <div className="relative overflow-hidden border-b" style={{ borderColor: theme.node.stroke }}>
-                <button type="button" className="style-center-card-cover block w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset" style={{ "--tw-ring-color": theme.node.activeStroke } as CSSProperties} onClick={onDetail} aria-label={`查看${preset.title}规范`}>
-                    <img src={resolveEmbeddedAssetUrl(preset.imageUrl)} width="640" height="360" alt={`${preset.title}画风示意`} className="h-full w-full object-cover transition-transform" />
+                <button type="button" className="style-center-card-cover block w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset" style={{ "--tw-ring-color": theme.node.activeStroke } as CSSProperties} onClick={onDetail} aria-label={`View${preset.title}normative`}>
+                    <img src={resolveEmbeddedAssetUrl(preset.imageUrl)} width="640" height="360" alt={`${preset.title}Indicative of painting style`} className="h-full w-full object-cover transition-transform" />
                 </button>
-                <button type="button" className={`style-center-favorite-action absolute right-2 top-2 grid size-8 place-items-center rounded-md outline-none focus-visible:ring-2 ${favorite ? "is-active" : ""}`} onClick={onFavorite} aria-label={favorite ? "取消收藏" : "收藏"} title={favorite ? "取消收藏" : "收藏"}><Star className="size-3.5" fill={favorite ? "currentColor" : "none"} /></button>
+                <button type="button" className={`style-center-favorite-action absolute right-2 top-2 grid size-8 place-items-center rounded-md outline-none focus-visible:ring-2 ${favorite ? "is-active" : ""}`} onClick={onFavorite} aria-label={favorite ? "Cancel favorites" : "Collection"} title={favorite ? "Cancel favorites" : "Collection"}><Star className="size-3.5" fill={favorite ? "currentColor" : "none"} /></button>
             </div>
             <div className="flex min-h-0 flex-1 flex-col px-3 pt-3">
-                <div className="flex min-w-0 items-center gap-2 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}><span className="truncate">{item.kind === "user" ? "我的风格" : preset.category}</span>{active ? <span className="ml-auto flex shrink-0 items-center gap-1 font-medium" style={{ color: theme.node.activeStroke }}><Check className="size-3" />当前</span> : null}</div>
+                <div className="flex min-w-0 items-center gap-2 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}><span className="truncate">{item.kind === "user" ? "my style" : preset.category}</span>{active ? <span className="ml-auto flex shrink-0 items-center gap-1 font-medium" style={{ color: theme.node.activeStroke }}><Check className="size-3" />current</span> : null}</div>
                 <h3 className="mt-1.5 truncate text-sm font-semibold">{preset.title}</h3>
                 <p className="mt-1.5 line-clamp-2 text-xs leading-5" style={{ color: theme.node.muted }}>{preset.description}</p>
                 <div className="mt-2 flex min-h-6 flex-wrap gap-1">{preset.tags.slice(0, 3).map((tag) => <span key={tag} className="rounded bg-foreground/5 px-1.5 py-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{tag}</span>)}</div>
             </div>
             <footer className="mt-2 flex min-h-11 items-center gap-1 border-t px-2" style={{ borderColor: theme.node.stroke }}>
-                <IconAction label="查看规范" onClick={onDetail}><Eye className="size-3.5" /></IconAction>
-                <IconAction label="复制并编辑" onClick={onCopy}><Copy className="size-3.5" /></IconAction>
-                {onEdit ? <IconAction label="编辑风格" onClick={onEdit}><Pencil className="size-3.5" /></IconAction> : null}
-                {onDelete ? <IconAction label="删除风格" danger onClick={onDelete}><Trash2 className="size-3.5" /></IconAction> : null}
-                <Button type="default" size="small" className={`style-center-apply-button ml-auto ${active ? "is-current" : ""}`} disabled={active || applying} icon={active ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={onApply}>{active ? "当前" : "应用"}</Button>
+                <IconAction label="View specifications" onClick={onDetail}><Eye className="size-3.5" /></IconAction>
+                <IconAction label="Copy and edit" onClick={onCopy}><Copy className="size-3.5" /></IconAction>
+                {onEdit ? <IconAction label="Editing style" onClick={onEdit}><Pencil className="size-3.5" /></IconAction> : null}
+                {onDelete ? <IconAction label="Delete style" danger onClick={onDelete}><Trash2 className="size-3.5" /></IconAction> : null}
+                <Button type="default" size="small" className={`style-center-apply-button ml-auto ${active ? "is-current" : ""}`} disabled={active || applying} icon={active ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={onApply}>{active ? "current" : "Application"}</Button>
             </footer>
         </article>
     );
@@ -718,24 +718,24 @@ function StyleCenterNavItem({ active, icon, label, count, onClick }: { active: b
 }
 
 function styleCenterViewTitle(tab: StyleCenterTab, category: string) {
-    if (tab === "mine") return "我的风格";
-    if (tab === "favorites") return "收藏风格";
-    if (tab === "recent") return "最近使用";
-    return category === "全部" ? "全部系统风格" : category;
+    if (tab === "mine") return "my style";
+    if (tab === "favorites") return "collection style";
+    if (tab === "recent") return "Recently used";
+    return category === "All" ? "All system styles" : category;
 }
 
 function EmptyStyleCenter({ tab, loading, failed, color, onCreate, onBrowse }: { tab: StyleCenterTab; loading: boolean; failed: boolean; color: string; onCreate: () => void; onBrowse: () => void }) {
-    return <div className="col-span-full grid min-h-64 place-items-center text-center"><div><Search className="mx-auto size-5" style={{ color }} /><p className="mt-2 text-xs font-medium">{loading ? "正在加载风格库" : failed && tab !== "system" ? "我的风格加载失败，请检查登录状态或后端服务" : tab === "mine" ? "还没有自己的风格" : tab === "favorites" ? "还没有收藏风格" : tab === "recent" ? "还没有使用记录" : "没有匹配的系统风格"}</p><div className="mt-3 flex justify-center gap-2">{tab === "mine" && !failed ? <Button size="small" icon={<Plus className="size-3.5" />} onClick={onCreate}>新建风格</Button> : null}<Button size="small" onClick={onBrowse}>浏览系统风格</Button></div></div></div>;
+    return <div className="col-span-full grid min-h-64 place-items-center text-center"><div><Search className="mx-auto size-5" style={{ color }} /><p className="mt-2 text-xs font-medium">{loading ? "Loading style library" : failed && tab !== "system" ? "My style failed to load, please check the login status or backend service" : tab === "mine" ? "I don’t have my own style yet" : tab === "favorites" ? "There is no collection style yet" : tab === "recent" ? "No usage record yet" : "No matching system style"}</p><div className="mt-3 flex justify-center gap-2">{tab === "mine" && !failed ? <Button size="small" icon={<Plus className="size-3.5" />} onClick={onCreate}>New style</Button> : null}<Button size="small" onClick={onBrowse}>Browse system styles</Button></div></div></div>;
 }
 
 export function userStylePreset(entity: UserStyleProfile): CanvasStylePreset | null {
     const profile = parseStyleProfile(entity.profileJson);
     if (!profile) return null;
-    return { id: profile.presetId, title: profile.title, category: "我的风格", description: profile.description, tags: [...profile.tags], prompt: profile.prompt, imageUrl: profile.coverUrl || entity.coverUrl || "/short-drama-styles/real-life.jpg", profile };
+    return { id: profile.presetId, title: profile.title, category: "my style", description: profile.description, tags: [...profile.tags], prompt: profile.prompt, imageUrl: profile.coverUrl || entity.coverUrl || "/short-drama-styles/real-life.jpg", profile };
 }
 
 function blankUserStyle(): StyleProfileSnapshot {
-    return createStyleProfileSnapshot({ presetId: `draft-${nanoid()}`, title: "未命名风格", description: "", tags: [], prompt: "", assets: [], source: "user", revision: 1 });
+    return createStyleProfileSnapshot({ presetId: `draft-${nanoid()}`, title: "unnamed style", description: "", tags: [], prompt: "", assets: [], source: "user", revision: 1 });
 }
 
 function editableCopy(profile: StyleProfileSnapshot, entityId?: string, title?: string, coverUrl?: string): StyleProfileSnapshot {
@@ -749,24 +749,24 @@ export function CanvasStyleDetailModal({ open, preset, selected = false, onClose
         <AppModal rootClassName="canvas-style-detail-modal" open={open} title={null} footer={null} centered destroyOnHidden width="min(820px, calc(100vw - 24px))" onCancel={onClose} flush>
             {preset ? <div className="canvas-style-detail-shell flex flex-col overflow-hidden" style={{ color: theme.node.text, background: theme.node.panel }}>
                 <div className="flex h-44 shrink-0 items-center justify-center overflow-hidden border-b sm:h-52" style={{ borderColor: theme.node.stroke, background: theme.canvas.background }}>
-                    <img src={resolveEmbeddedAssetUrl(preset.imageUrl)} width="960" height="540" alt={`${preset.title}画风示意`} className="h-full w-full object-contain" style={preset.id === "black-white-noir" ? { filter: "grayscale(1) contrast(1.08)" } : undefined} />
+                    <img src={resolveEmbeddedAssetUrl(preset.imageUrl)} width="960" height="540" alt={`${preset.title}Indicative of painting style`} className="h-full w-full object-contain" style={preset.id === "black-white-noir" ? { filter: "grayscale(1) contrast(1.08)" } : undefined} />
                 </div>
                 <header className="border-b px-4 py-3 pr-12 sm:px-5 sm:pr-12" style={{ borderColor: theme.node.stroke }}>
-                    <div className="flex items-center gap-2 text-[var(--fs-tiny)] font-medium" style={{ color: theme.node.activeStroke }}><span>{preset.category}</span><span className="flex items-center gap-1" style={{ color: theme.node.muted }}><SlidersHorizontal className="size-3" />{preset.profile?.assets.length ? `${preset.profile.assets.length} 个执行资产` : "Prompt 通用"}</span></div>
+                    <div className="flex items-center gap-2 text-[var(--fs-tiny)] font-medium" style={{ color: theme.node.activeStroke }}><span>{preset.category}</span><span className="flex items-center gap-1" style={{ color: theme.node.muted }}><SlidersHorizontal className="size-3" />{preset.profile?.assets.length ? `${preset.profile.assets.length} execution assets` : "Prompt Universal"}</span></div>
                     <h2 className="mt-1 text-base font-semibold">{preset.title}</h2>
                     <p className="mt-1.5 text-xs leading-5" style={{ color: theme.node.muted }}>{preset.description}</p>
                 </header>
                 <div className="grid shrink-0 grid-cols-3 divide-x border-b text-[var(--fs-tiny)]" style={{ borderColor: theme.node.stroke }}>
-                    <StyleDetailMetric label="执行方式" value={preset.profile?.assets.length ? "组合资产" : "Prompt 通用"} muted={theme.node.muted} />
-                    <StyleDetailMetric label="执行策略" value={preset.profile?.executionPolicy === "strict-assets" ? "严格校验" : "兼容降级"} muted={theme.node.muted} />
-                    <StyleDetailMetric label="快照版本" value={`r${preset.profile?.revision || 1}`} muted={theme.node.muted} />
+                    <StyleDetailMetric label="Execution method" value={preset.profile?.assets.length ? "portfolio assets" : "Prompt Universal"} muted={theme.node.muted} />
+                    <StyleDetailMetric label="execution strategy" value={preset.profile?.executionPolicy === "strict-assets" ? "Strict verification" : "Compatibility downgrade"} muted={theme.node.muted} />
+                    <StyleDetailMetric label="snapshot version" value={`r${preset.profile?.revision || 1}`} muted={theme.node.muted} />
                 </div>
                 <div className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5">
-                    {preset.profile?.assets.length ? <section className="border-b py-3" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">执行资产</h3><div className="mt-2 divide-y" style={{ borderColor: theme.node.stroke }}>{preset.profile.assets.map((asset) => <div key={asset.id} className="flex items-center justify-between gap-3 py-2 text-xs"><span className="min-w-0"><span className="block truncate font-medium">{asset.title}</span><span className="mt-0.5 block text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{kindOptionsLabel(asset.kind)} · {asset.provider}</span></span><span className="shrink-0 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{asset.status === "validated" ? "已验证" : asset.status === "unavailable" ? "不可用" : "待验证"}</span></div>)}</div></section> : null}
+                    {preset.profile?.assets.length ? <section className="border-b py-3" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">execution assets</h3><div className="mt-2 divide-y" style={{ borderColor: theme.node.stroke }}>{preset.profile.assets.map((asset) => <div key={asset.id} className="flex items-center justify-between gap-3 py-2 text-xs"><span className="min-w-0"><span className="block truncate font-medium">{asset.title}</span><span className="mt-0.5 block text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{kindOptionsLabel(asset.kind)} · {asset.provider}</span></span><span className="shrink-0 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{asset.status === "validated" ? "Verified" : asset.status === "unavailable" ? "Not available" : "To be verified"}</span></div>)}</div></section> : null}
                     {sections.map((section) => <section key={section.title} className="border-b py-3 last:border-b-0" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">{section.title}</h3><p className="mt-1.5 text-xs leading-5" style={{ color: theme.node.muted }}>{section.content}</p></section>)}
-                    {preset.profile?.negativePrompt ? <section className="border-b py-3 last:border-b-0" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">全局负面 Prompt</h3><p className="mt-1.5 whitespace-pre-wrap text-xs leading-5" style={{ color: theme.node.muted }}>{preset.profile.negativePrompt}</p></section> : null}
+                    {preset.profile?.negativePrompt ? <section className="border-b py-3 last:border-b-0" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">Global Negative Prompt</h3><p className="mt-1.5 whitespace-pre-wrap text-xs leading-5" style={{ color: theme.node.muted }}>{preset.profile.negativePrompt}</p></section> : null}
                 </div>
-                <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-5" style={{ borderColor: theme.node.stroke }}><Button onClick={onClose}>关闭</Button>{onSelect ? <Button type="primary" disabled={selected} icon={selected ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={() => onSelect(preset)}>{selected ? "当前画风" : "选择该画风"}</Button> : null}</footer>
+                <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-5" style={{ borderColor: theme.node.stroke }}><Button onClick={onClose}>Close</Button>{onSelect ? <Button type="primary" disabled={selected} icon={selected ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={() => onSelect(preset)}>{selected ? "Current style" : "Choose this style"}</Button> : null}</footer>
             </div> : null}
         </AppModal>
     );
@@ -777,12 +777,12 @@ function StyleDetailMetric({ label, value, muted }: { label: string; value: stri
 }
 
 function kindOptionsLabel(kind: string) {
-    return kind === "lora" ? "LoRA" : kind === "template" ? "图片模板" : kind === "reference" ? "参考图组" : "提示词模块";
+    return kind === "lora" ? "LoRA" : kind === "template" ? "Picture template" : kind === "reference" ? "Reference picture group" : "prompt word module";
 }
 
 function parseStyleSections(prompt: string) {
     return prompt.split("\n").map((line) => {
         const match = line.match(/^【([^】]+)】(.*)$/);
-        return match ? { title: match[1], content: match[2] } : { title: "补充规范", content: line };
+        return match ? { title: match[1], content: match[2] } : { title: "Supplementary specifications", content: line };
     }).filter((section) => section.content);
 }

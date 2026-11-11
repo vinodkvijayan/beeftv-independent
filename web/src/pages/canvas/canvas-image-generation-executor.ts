@@ -94,12 +94,12 @@ export async function executeImageGeneration({
         outputNodeIds: targetIds.slice(index * submissionSize, (index + 1) * submissionSize),
     }));
     if (onSubmissionPlan) {
-        if (!clientOperationId) throw new Error("生成提交缺少确认标识");
+        if (!clientOperationId) throw new Error("Build commit missing confirmation id");
         await onSubmissionPlan({ sourceNodeId: nodeId, submissions: submissions.map(submission => ({ ...submission, operationId: submission.operationId! })) });
         controller.signal.throwIfAborted();
         canvasNodes = nodesRef?.current || canvasNodes;
         canvasConnections = useCanvasStore.getState().projects.find(project => project.id === projectId)?.connections || canvasConnections;
-        if (!canvasNodes.some(node => node.id === nodeId)) throw new Error("原节点已删除，未开始生成");
+        if (!canvasNodes.some(node => node.id === nodeId)) throw new Error("The original node has been deleted and generation has not started.");
     }
     const retired = reuseSourceNode && sourceNode ? retireImageBatchChildren(sourceNode, canvasNodes, canvasConnections) : { nodes: canvasNodes, connections: canvasConnections, removedIds: [] as string[] };
     const workingNodes = retired.nodes;
@@ -257,7 +257,7 @@ export async function executeImageGeneration({
                                 },
                             },
                         );
-                        if (!completed) throw new Error("生成任务缺少成功终态");
+                        if (!completed) throw new Error("Build task lacks successful final state");
                         return completed;
                     })());
                     const completed = await nativeTasks.get(batchIndex)!;
@@ -370,7 +370,7 @@ export async function executeImageGeneration({
                         ...node.metadata,
                         status: node.metadata?.content ? NODE_STATUS_SUCCESS : NODE_STATUS_ERROR,
                         taskOutcome: { phase: "retrievable" as const, regenerate: "blocked" as const, reason: "delivery_pending" },
-                        errorDetails: "已停止等待，任务已保留，请继续查询原任务",
+                        errorDetails: "Waiting has stopped, the task has been reserved, please continue to query the original task",
                     },
                 } : node);
                 if (projectId) useCanvasStore.getState().updateProject(projectId, { nodes: next });
@@ -386,7 +386,7 @@ export async function executeImageGeneration({
         return;
     }
     const representativeOutcome = readNodeTaskOutcome(representativeFailure);
-    if (hasFailure) showError(representativeOutcome?.phase === "retrievable" || representativeOutcome?.reason === "result_target_unavailable" ? representativeFailure?.errorDetails || "生成结果已保留，请点击「继续取回」" : saveFailureMessage || (hasSuccess ? "部分图片生成失败" : "全部图片生成失败"));
+    if (hasFailure) showError(representativeOutcome?.phase === "retrievable" || representativeOutcome?.reason === "result_target_unavailable" ? representativeFailure?.errorDetails || "The generated results have been retained, please click \"Continue to retrieve\"" : saveFailureMessage || (hasSuccess ? "Some images failed to generate" : "All images failed to be generated"));
     setNodes((current) => {
         const next = current.map((node) => {
             if (node.id === nodeId && isConfigNode) {
@@ -395,7 +395,7 @@ export async function executeImageGeneration({
                     metadata: {
                         ...node.metadata,
                         status: hasSuccess ? NODE_STATUS_SUCCESS : generationFailureNodeStatus(isExistingImageNode),
-                        ...(hasSuccess ? { errorDetails: undefined, generationErrorCode: undefined, generationErrorSummary: undefined, generationProviderCode: undefined, failedPromptFingerprint: undefined, failedInputFingerprint: undefined } : representativeFailure || { errorDetails: "全部图片生成失败" }),
+                        ...(hasSuccess ? { errorDetails: undefined, generationErrorCode: undefined, generationErrorSummary: undefined, generationProviderCode: undefined, failedPromptFingerprint: undefined, failedInputFingerprint: undefined } : representativeFailure || { errorDetails: "All images failed to be generated" }),
                     },
                 };
             }
@@ -406,7 +406,7 @@ export async function executeImageGeneration({
                         ...node.metadata,
                         status: hasSuccess ? NODE_STATUS_SUCCESS : NODE_STATUS_ERROR,
                         batchFailedCount: count > 1 ? failureCount : undefined,
-                        ...(hasSuccess ? { errorDetails: undefined, generationErrorCode: undefined, generationErrorSummary: undefined, generationProviderCode: undefined, failedPromptFingerprint: undefined, failedInputFingerprint: undefined } : representativeFailure || { errorDetails: "全部图片生成失败" }),
+                        ...(hasSuccess ? { errorDetails: undefined, generationErrorCode: undefined, generationErrorSummary: undefined, generationProviderCode: undefined, failedPromptFingerprint: undefined, failedInputFingerprint: undefined } : representativeFailure || { errorDetails: "All images failed to be generated" }),
                     },
                 };
             }

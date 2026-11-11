@@ -6,7 +6,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 765,
         "width": 62,
         "height": 35,
-        "text": "截图 00:07.355"
+        "text": "Screenshot 00:07.355"
     },
     {
         "type": "video",
@@ -14,7 +14,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 863,
         "width": 62,
         "height": 35,
-        "text": "高清"
+        "text": "HD"
     },
     {
         "type": "video",
@@ -22,7 +22,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 863,
         "width": 62,
         "height": 35,
-        "text": "视频节点 15 - 副本"
+        "text": "Video Node 15 - Copy"
     },
     {
         "type": "video",
@@ -30,7 +30,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 818,
         "width": 62,
         "height": 35,
-        "text": "视频节点 15"
+        "text": "Video node 15"
     },
     {
         "type": "audio",
@@ -46,7 +46,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 827,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月15日 14_41_28"
+        "text": "ChatGPT Image September 15, 2026 14_41_28"
     },
     {
         "type": "image",
@@ -54,7 +54,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 771,
         "width": 62,
         "height": 35,
-        "text": "尾帧"
+        "text": "last frame"
     },
     {
         "type": "video",
@@ -62,7 +62,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 813,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6 - 副本"
+        "text": "Video Node 6 - Copy"
     },
     {
         "type": "image",
@@ -78,7 +78,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 768,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6 - 副本"
+        "text": "Video Node 6 - Copy"
     },
     {
         "type": "video",
@@ -86,7 +86,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 723,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6"
+        "text": "Video node 6"
     },
     {
         "type": "audio",
@@ -102,7 +102,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 826,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月15日 04_54_49"
+        "text": "ChatGPT Image September 15, 2026 04_54_49"
     },
     {
         "type": "image",
@@ -110,7 +110,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 773,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月15日 04_19_40"
+        "text": "ChatGPT Image September 15, 2026 04_19_40"
     },
     {
         "type": "image",
@@ -118,7 +118,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 725,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月15日 04_16_07"
+        "text": "ChatGPT Image September 15, 2026 04_16_07"
     },
     {
         "type": "image",
@@ -126,7 +126,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 672,
         "width": 62,
         "height": 35,
-        "text": "尾帧 (2)"
+        "text": "Last frame (2)"
     },
     {
         "type": "image",
@@ -134,7 +134,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 532,
         "width": 62,
         "height": 35,
-        "text": "尾帧"
+        "text": "last frame"
     },
     {
         "type": "video",
@@ -142,7 +142,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 577,
         "width": 62,
         "height": 35,
-        "text": "视频节点 10 - 副本"
+        "text": "Video Node 10 - Copy"
     },
     {
         "type": "audio",
@@ -182,7 +182,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 302,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 22_40_17"
+        "text": "ChatGPT Image September 12, 2026 22_40_17"
     },
     {
         "type": "image",
@@ -190,7 +190,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 540,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月13日 20_14_31"
+        "text": "ChatGPT Image September 13, 2026 20_14_31"
     },
     {
         "type": "image",
@@ -198,7 +198,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 836,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月14日 23_25_49"
+        "text": "ChatGPT Image September 14, 2026 23_25_49"
     },
     {
         "type": "image",
@@ -206,7 +206,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 106,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月11日 18_01_15"
+        "text": "ChatGPT Image September 11, 2026 18_01_15"
     },
     {
         "type": "image",
@@ -214,7 +214,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 474,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 00_26_34"
+        "text": "ChatGPT Image September 12, 2026 00_26_34"
     },
     {
         "type": "image",
@@ -222,7 +222,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 830,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月15日 00_06_31"
+        "text": "ChatGPT Image September 15, 2026 00_06_31"
     },
     {
         "type": "image",
@@ -230,7 +230,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 521,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 00_26_45"
+        "text": "ChatGPT Image September 12, 2026 00_26_45"
     },
     {
         "type": "image",
@@ -238,7 +238,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 202,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月11日 18_01_07"
+        "text": "ChatGPT Image September 11, 2026 18_01_07"
     },
     {
         "type": "image",
@@ -246,7 +246,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 774,
         "width": 62,
         "height": 35,
-        "text": "截图 00_14.237"
+        "text": "Screenshot 00_14.237"
     },
     {
         "type": "image",
@@ -254,7 +254,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 609,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月13日 21_20_03 (1)"
+        "text": "ChatGPT Image September 13, 2026 21_20_03 (1)"
     },
     {
         "type": "image",
@@ -262,7 +262,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 742,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月14日 23_29_15"
+        "text": "ChatGPT Image September 14, 2026 23_29_15"
     },
     {
         "type": "image",
@@ -270,7 +270,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 341,
         "width": 62,
         "height": 35,
-        "text": "尾帧"
+        "text": "last frame"
     },
     {
         "type": "image",
@@ -278,7 +278,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 423,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月13日 17_05_33"
+        "text": "ChatGPT Image September 13, 2026 17_05_33"
     },
     {
         "type": "image",
@@ -286,7 +286,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 455,
         "width": 62,
         "height": 35,
-        "text": "尾帧"
+        "text": "last frame"
     },
     {
         "type": "image",
@@ -294,7 +294,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 63,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 00_47_52"
+        "text": "ChatGPT Image September 12, 2026 00_47_52"
     },
     {
         "type": "image",
@@ -302,7 +302,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 98,
         "width": 62,
         "height": 35,
-        "text": "尾帧"
+        "text": "last frame"
     },
     {
         "type": "image",
@@ -310,7 +310,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 248,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月11日 18_01_00"
+        "text": "ChatGPT Image September 11, 2026 18_01_00"
     },
     {
         "type": "image",
@@ -318,7 +318,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 338,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 00_55_14"
+        "text": "ChatGPT Image September 12, 2026 00_55_14"
     },
     {
         "type": "image",
@@ -326,7 +326,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 357,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 22_40_03"
+        "text": "ChatGPT Image September 12, 2026 22_40_03"
     },
     {
         "type": "image",
@@ -334,7 +334,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 546,
         "width": 62,
         "height": 35,
-        "text": "截图 00:05.252"
+        "text": "Screenshot 00:05.252"
     },
     {
         "type": "image",
@@ -342,7 +342,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 692,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月14日 23_29_23"
+        "text": "ChatGPT Image September 14, 2026 23_29_23"
     },
     {
         "type": "image",
@@ -350,7 +350,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 789,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月14日 23_28_45"
+        "text": "ChatGPT Image September 14, 2026 23_28_45"
     },
     {
         "type": "image",
@@ -358,7 +358,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 456,
         "width": 62,
         "height": 35,
-        "text": "截图 00:14.237"
+        "text": "Screenshot 00:14.237"
     },
     {
         "type": "image",
@@ -366,7 +366,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 351,
         "width": 62,
         "height": 35,
-        "text": "截图 00:08.608"
+        "text": "Screenshot 00:08.608"
     },
     {
         "type": "image",
@@ -374,7 +374,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 404,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月12日 17_49_02"
+        "text": "ChatGPT Image September 12, 2026 17_49_02"
     },
     {
         "type": "image",
@@ -382,7 +382,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 652,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月13日 21_20_04 (2)"
+        "text": "ChatGPT Image September 13, 2026 21_20_04 (2)"
     },
     {
         "type": "image",
@@ -390,7 +390,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 153,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月11日 18_01_11"
+        "text": "ChatGPT Image September 11, 2026 18_01_11"
     },
     {
         "type": "image",
@@ -398,7 +398,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 484,
         "width": 62,
         "height": 35,
-        "text": "ChatGPT Image 2026年9月13日 17_06_53"
+        "text": "ChatGPT Image September 13, 2026 17_06_53"
     },
     {
         "type": "image",
@@ -406,7 +406,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 234,
         "width": 62,
         "height": 35,
-        "text": "尾帧"
+        "text": "last frame"
     },
     {
         "type": "video",
@@ -414,7 +414,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 456,
         "width": 62,
         "height": 35,
-        "text": "视频节点 4"
+        "text": "Video node 4"
     },
     {
         "type": "video",
@@ -422,7 +422,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 34,
         "width": 62,
         "height": 35,
-        "text": "视频节点 4 - 副本"
+        "text": "Video Node 4 - Copy"
     },
     {
         "type": "video",
@@ -430,7 +430,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 153,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6 - 副本"
+        "text": "Video Node 6 - Copy"
     },
     {
         "type": "video",
@@ -438,7 +438,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 108,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6"
+        "text": "Video node 6"
     },
     {
         "type": "video",
@@ -446,7 +446,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 345,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6 - 副本"
+        "text": "Video Node 6 - Copy"
     },
     {
         "type": "video",
@@ -454,7 +454,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 300,
         "width": 62,
         "height": 35,
-        "text": "视频节点 6"
+        "text": "Video node 6"
     },
     {
         "type": "video",
@@ -462,7 +462,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 591,
         "width": 62,
         "height": 35,
-        "text": "视频节点 4 - 副本"
+        "text": "Video Node 4 - Copy"
     },
     {
         "type": "video",
@@ -470,7 +470,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 501,
         "width": 62,
         "height": 35,
-        "text": "视频节点 4 - 副本"
+        "text": "Video Node 4 - Copy"
     },
     {
         "type": "video",
@@ -478,7 +478,7 @@ export const libtvCurrentVisibleNodes = [
         "y": 546,
         "width": 62,
         "height": 35,
-        "text": "视频节点 4 - 副本"
+        "text": "Video Node 4 - Copy"
     },
     {
         "type": "video",
@@ -486,6 +486,6 @@ export const libtvCurrentVisibleNodes = [
         "y": 532,
         "width": 62,
         "height": 35,
-        "text": "视频节点 10"
+        "text": "Video node 10"
     }
 ] as const;

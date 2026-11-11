@@ -37,49 +37,48 @@ export function CanvasProjectStatusDialogs({ theme, task, taskLogs, taskLoading,
     const previewSource = useResolvedPreviewSource(previewNode);
     return (
         <>
-            <Modal title="任务详情" open={Boolean(task)} footer={null} width="min(920px, calc(100vw - 32px))" onCancel={onCloseTask}>
+            <Modal title="Mission details" open={Boolean(task)} footer={null} width="min(920px, calc(100vw - 32px))" onCancel={onCloseTask}>
                 {task ? (
                     <div className="space-y-4 text-sm">
-                        {taskError ? <p role="status">任务详情暂时无法刷新，正在重试。</p> : null}
+                        {taskError ? <p role="status">The task details cannot be refreshed at the moment, trying again.</p> : null}
                         <div className="grid grid-cols-2 gap-3 rounded-lg border p-3" style={{ borderColor: theme.node.stroke, background: theme.node.panel }}>
-                            <TaskDetailItem label="当前阶段" value={generationTaskStageLabel(task)} />
-                            {generationTaskShowsProgress(task) ? <TaskDetailItem label="进度" value={`${task.progress ?? 0}%`} /> : null}
-                            <TaskDetailItem label="模型" value={task.model ? modelDisplayName(config, task.model) : "默认模型"} />
-                            <TaskDetailItem label="任务 ID" value={task.id} />
-                            <TaskDetailItem label="创建时间" value={formatTaskTime(task.createdAt)} />
-                            <TaskDetailItem label="开始时间" value={formatTaskTime(task.startedAt)} />
-                            <TaskDetailItem label="完成时间" value={formatTaskTime(task.completedAt)} />
-                            <TaskDetailItem label="耗时" value={formatTaskDuration(task)} />
+                            <TaskDetailItem label="current stage" value={generationTaskStageLabel(task)} />
+                            {generationTaskShowsProgress(task) ? <TaskDetailItem label="Progress" value={`${task.progress ?? 0}%`} /> : null}
+                            <TaskDetailItem label="model" value={task.model ? modelDisplayName(config, task.model) : "Default model"} />
+                            <TaskDetailItem label="Task ID" value={task.id} />
+                            <TaskDetailItem label="creation time" value={formatTaskTime(task.createdAt)} />
+                            <TaskDetailItem label="start time" value={formatTaskTime(task.startedAt)} />
+                            <TaskDetailItem label="completion time" value={formatTaskTime(task.completedAt)} />
+                            <TaskDetailItem label="Time consuming" value={formatTaskDuration(task)} />
                         </div>
                         <div>
                             <div className="mb-2 text-xs font-semibold" style={{ color: theme.node.muted }}>
-                                提示词
-                            </div>
+                                                                prompt word</div>
                             <div className="h-32 overflow-y-auto whitespace-pre-wrap rounded-lg p-3 text-xs leading-5" style={{ background: theme.node.fill }}>
-                                {task.prompt || "未记录"}
+                                {task.prompt || "Not recorded"}
                             </div>
                         </div>
                         <TaskGenerationParameters inputJson={task.inputJson} theme={theme} />
                         {task.error ? <p role="status" className="whitespace-pre-wrap break-words">{task.error}</p> : null}
                         {onRetrieveTask && canRecoverTaskOutcome(readTaskOutcome(task)) ? (
                             <div className="flex flex-wrap items-center justify-between gap-3">
-                                <p>查询原任务并取回生成结果，不会重新生成。</p>
-                                <Button loading={retrievingTaskId === task.id} onClick={() => onRetrieveTask(task)}>取回结果</Button>
+                                <p>Query the original task and retrieve the generated results without regenerating it.</p>
+                                <Button loading={retrievingTaskId === task.id} onClick={() => onRetrieveTask(task)}>Retrieve results</Button>
                             </div>
                         ) : null}
                         {onCancelTask && (task.status === "queued" || task.status === "running") ? (
                             <div className="flex justify-end">
                                 <Button danger icon={<XCircle className="size-4" />} onClick={() => onCancelTask(task)}>
-                                    取消任务
+                                                                        Cancel task
                                 </Button>
                             </div>
                         ) : null}
                         <div>
                             <div className="mb-2 text-xs font-semibold" style={{ color: theme.node.muted }}>
-                                任务日志
+                                                                Mission log
                             </div>
                             <pre className="max-h-64 overflow-auto rounded-lg bg-neutral-950 p-3 text-[var(--fs-label)] leading-5 text-neutral-100">
-                                {taskLoading ? "加载中..." : taskLogs.length ? taskLogs.map((log) => `[${new Date(log.createdAt).toLocaleString()}] ${log.level.toUpperCase()} ${formatTaskLog(log)}`).join("\n") : "暂无日志"}
+                                {taskLoading ? "Loading..." : taskLogs.length ? taskLogs.map((log) => `[${new Date(log.createdAt).toLocaleString()}] ${log.level.toUpperCase()} ${formatTaskLog(log)}`).join("\n") : "No logs yet"}
                             </pre>
                         </div>
                     </div>
@@ -88,7 +87,7 @@ export function CanvasProjectStatusDialogs({ theme, task, taskLogs, taskLoading,
 
 
             <AppModal
-                title="视频预览"
+                title="Video preview"
                 open={Boolean(previewNode?.metadata?.content && previewNode.type === CanvasNodeType.Video)}
                 centered
                 onCancel={onClosePreview}
@@ -98,33 +97,33 @@ export function CanvasProjectStatusDialogs({ theme, task, taskLogs, taskLoading,
                 styles={{ body: { display: "flex", justifyContent: "center", alignItems: "center", maxHeight: "84vh", overflow: "hidden", background: "var(--workspace-canvas-deep)" } }}
             >
                 {previewSource && previewNode?.type === CanvasNodeType.Video ? (
-                    <VideoPlayer src={previewSource} mimeType={previewNode.metadata?.mimeType} title={previewNode.title || "视频预览"} hasAudio={typeof previewNode.metadata?.hasAudio === "boolean" ? previewNode.metadata.hasAudio : undefined} className="max-h-[84vh] max-w-full bg-black" />
+                    <VideoPlayer src={previewSource} mimeType={previewNode.metadata?.mimeType} title={previewNode.title || "Video preview"} hasAudio={typeof previewNode.metadata?.hasAudio === "boolean" ? previewNode.metadata.hasAudio : undefined} className="max-h-[84vh] max-w-full bg-black" />
                 ) : null}
             </AppModal>
 
             {previewSource && previewNode?.type === CanvasNodeType.Image ? (
                 <CanvasImagePreview
                     src={previewSource}
-                    alt={previewNode.title || "图片"}
+                    alt={previewNode.title || "pictures"}
                     onClose={onClosePreview}
                 />
             ) : null}
 
             <Modal
-                title="清空画布？"
+                title="Clear canvas?"
                 open={clearConfirmOpen}
                 centered
                 onCancel={onCancelClear}
                 footer={
                     <>
-                        <Button onClick={onCancelClear}>取消</Button>
+                        <Button onClick={onCancelClear}>Cancel</Button>
                         <Button danger type="primary" onClick={onConfirmClear}>
-                            清空
+                                                        Clear
                         </Button>
                     </>
                 }
             >
-                <p className="text-sm opacity-60">这会删除当前画布上的所有节点和连线。</p>
+                <p className="text-sm opacity-60">This will delete all nodes and connections on the current canvas.</p>
             </Modal>
         </>
     );
@@ -160,13 +159,13 @@ function TaskGenerationParameters({ inputJson, theme }: { inputJson?: string; th
     const fields = taskParameterRows(inputJson);
     return (
         <div>
-            <div className="mb-2 text-xs font-semibold" style={{ color: theme.node.muted }}>生成参数</div>
+            <div className="mb-2 text-xs font-semibold" style={{ color: theme.node.muted }}>Generate parameters</div>
             {fields.length ? (
                 <div className="grid grid-cols-2 gap-x-5 gap-y-1 rounded-lg border p-3 sm:grid-cols-3" style={{ borderColor: theme.node.stroke, background: theme.node.panel }}>
                     {fields.map((field) => <TaskDetailItem key={field.label} label={field.label} value={field.value} />)}
                 </div>
             ) : (
-                <div className="rounded-lg p-3 text-xs" style={{ background: theme.node.fill, color: theme.node.muted }}>暂无参数记录</div>
+                <div className="rounded-lg p-3 text-xs" style={{ background: theme.node.fill, color: theme.node.muted }}>No parameter record yet</div>
             )}
         </div>
     );
@@ -187,18 +186,18 @@ function taskParameterRows(inputJson?: string) {
         if (value === undefined || value === null || value === "") return;
         rows.push({ label, value: String(value) });
     };
-    add("尺寸 / 比例", config.size);
-    add("分辨率", config.vquality || config.quality);
-    add("秒数", config.videoSeconds === undefined ? undefined : `${config.videoSeconds} 秒`);
-    add("生成数量", config.count);
-    add("生成声音", booleanLabel(config.videoGenerateAudio));
-    add("水印", booleanLabel(config.videoWatermark));
-    add("音色", config.audioVoice);
-    add("音频格式", config.audioFormat);
-    add("音频速度", config.audioSpeed);
-    addReference("引用图片", input.referenceImages, "图片");
-    addReference("引用视频", input.referenceVideos, "视频");
-    addReference("引用音频", input.referenceAudios, "音频");
+    add("size/proportion", config.size);
+    add("resolution", config.vquality || config.quality);
+    add("seconds", config.videoSeconds === undefined ? undefined : `${config.videoSeconds} seconds`);
+    add("Generate quantity", config.count);
+    add("generate sound", booleanLabel(config.videoGenerateAudio));
+    add("watermark", booleanLabel(config.videoWatermark));
+    add("timbre", config.audioVoice);
+    add("audio format", config.audioFormat);
+    add("audio speed", config.audioSpeed);
+    addReference("Quote pictures", input.referenceImages, "pictures");
+    addReference("Quote video", input.referenceVideos, "video");
+    addReference("Quote audio", input.referenceAudios, "Audio");
     return rows;
 
     function addReference(label: string, value: unknown, kind: string) {
@@ -207,7 +206,7 @@ function taskParameterRows(inputJson?: string) {
             .map((item) => (typeof item === "object" && item !== null && "name" in item ? String((item as { name?: unknown }).name || "") : ""))
             .filter(Boolean);
         const suffix = names.length ? `（${names.slice(0, 3).join("、")}${names.length > 3 ? "…" : ""}）` : "";
-        rows.push({ label, value: `${value.length} 个${kind}${suffix}` });
+        rows.push({ label, value: `${value.length} a${kind}${suffix}` });
     }
 }
 
@@ -216,13 +215,13 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function booleanLabel(value: unknown) {
-    if (value === true || value === "true") return "开启";
-    if (value === false || value === "false") return "关闭";
+    if (value === true || value === "true") return "turn on";
+    if (value === false || value === "false") return "Close";
     return "";
 }
 
 function formatTaskTime(value?: string) {
-    if (!value) return "未记录";
+    if (!value) return "Not recorded";
     const timestamp = Date.parse(value);
     return Number.isFinite(timestamp) ? new Date(timestamp).toLocaleString() : value;
 }
@@ -230,10 +229,10 @@ function formatTaskTime(value?: string) {
 function formatTaskDuration(task: GenerationTask) {
     const start = Date.parse(task.startedAt || task.createdAt);
     const end = task.completedAt ? Date.parse(task.completedAt) : task.status === "queued" || task.status === "running" ? Date.now() : Number.NaN;
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return task.completedAt ? "未记录" : "未完成";
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return task.completedAt ? "Not recorded" : "Not completed";
     const milliseconds = Math.max(0, end - start);
     const totalSeconds = Math.round(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return minutes ? `${minutes}分 ${seconds}秒` : `${seconds}秒`;
+    return minutes ? `${minutes}points${seconds}sec` : `${seconds}sec`;
 }

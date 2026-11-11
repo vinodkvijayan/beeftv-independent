@@ -45,12 +45,12 @@ export function buildCanvasContext(snapshot: CanvasSnapshot, options: { stateHas
         canvas: { projectId: snapshot.projectId, domainProjectId: snapshot.domainProjectId, title: snapshot.title, viewport: snapshot.viewport, nodeCount: nodes.length, connectionCount: snapshot.connections.length, selectedNodeCount: selectedIds.size, nodeTypeCounts },
         selection: nodes.filter((node) => selectedIds.has(node.id)).map(compactNode),
         nodes: nodes.map(compactNode),
-        connections: snapshot.connections.map((connection) => ({ id: connection.id, fromNodeId: connection.fromNodeId, fromTitle: nodeById.get(connection.fromNodeId)?.title || "未知节点", toNodeId: connection.toNodeId, toTitle: nodeById.get(connection.toNodeId)?.title || "未知节点", fromHandleId: connection.fromHandleId, toHandleId: connection.toHandleId })),
+        connections: snapshot.connections.map((connection) => ({ id: connection.id, fromNodeId: connection.fromNodeId, fromTitle: nodeById.get(connection.fromNodeId)?.title || "unknown node", toNodeId: connection.toNodeId, toTitle: nodeById.get(connection.toNodeId)?.title || "unknown node", fromHandleId: connection.fromHandleId, toHandleId: connection.toHandleId })),
         resources,
         storyboardReadiness: inspectStoryboardReadiness(snapshot.nodes),
         warnings: [
-            ...(nodes.some((node) => node.metadata?.status === "error") ? ["画布中存在生成失败节点；重试前先检查错误信息。"] : []),
-            ...(resources.some((resource) => !resource.ready) ? ["存在未就绪或缺少持久化引用的媒体节点，不要把占位节点当作可用参考素材。"] : []),
+            ...(nodes.some((node) => node.metadata?.status === "error") ? ["There is a failed generation node in the canvas; check the error message before trying again."] : []),
+            ...(resources.some((resource) => !resource.ready) ? ["There are media nodes that are not ready or lack persistent references. Do not use placeholder nodes as available reference material."] : []),
         ],
     };
 }
@@ -109,7 +109,7 @@ export function getCanvasGenerationTasks(snapshot: CanvasSnapshot, input: { stat
         return [{
             taskId,
             nodeId: node.id,
-            nodeTitle: node.title || "未命名节点",
+            nodeTitle: node.title || "unnamed node",
             mode: stringValue(metadata.generationMode),
             nodeStatus: stringValue(metadata.status) || "idle",
             status,
@@ -149,54 +149,54 @@ export function validateCanvasOperations(snapshot: CanvasSnapshot, ops: CanvasOp
         if (![...liveConnections.values()].some((item) => item.key === connection.key)) connectionKeys.delete(connection.key);
     };
     const requireNode = (index: number, id: unknown, label: string) => {
-        if (typeof id !== "string" || !id) issues.push({ index, severity: "error", message: `${label} 缺少节点 id` });
-        else if (!liveNodeIds.has(id)) issues.push({ index, severity: "error", message: `${label}「${id}」不存在，请先重新读取画布上下文` });
+        if (typeof id !== "string" || !id) issues.push({ index, severity: "error", message: `${label} Missing node id` });
+        else if (!liveNodeIds.has(id)) issues.push({ index, severity: "error", message: `${label}「${id}” does not exist, please re-read the canvas context first.` });
     };
     ops.forEach((op, index) => {
         if (op.type === "add_node") {
             const definition = getNodeDefinition(op.nodeType || CanvasNodeType.Text);
-            if (!definition || (definition.plugin && !isPluginEffectivelyEnabled(definition.plugin.pluginId))) issues.push({ index, severity: "error", message: "节点未注册或插件不可用，请重新发现能力" });
+            if (!definition || (definition.plugin && !isPluginEffectivelyEnabled(definition.plugin.pluginId))) issues.push({ index, severity: "error", message: "The node is not registered or the plugin is not available, please rediscover the capability" });
             validateNodeNumbers(issues, index, op as unknown as Record<string, unknown>);
-            if (op.id && liveNodeIds.has(op.id)) issues.push({ index, severity: "error", message: `新增节点 id「${op.id}」重复` });
+            if (op.id && liveNodeIds.has(op.id)) issues.push({ index, severity: "error", message: `Add node id "${op.id}"Repeat` });
             if (op.id) liveNodeIds.add(op.id);
         } else if (op.type === "update_node") {
-            requireNode(index, op.id, "更新目标");
+            requireNode(index, op.id, "update target");
             const patch = op.patch as Record<string, unknown> | undefined;
-            if (patch && ("id" in patch || "type" in patch)) issues.push({ index, severity: "error", message: "不能通过 update_node 修改节点 id 或类型" });
+            if (patch && ("id" in patch || "type" in patch)) issues.push({ index, severity: "error", message: "Node id or type cannot be modified through update_node" });
             if (patch) validateNodeNumbers(issues, index, patch);
             const node = snapshot.nodes.find((item) => item.id === op.id);
             const metadata = op.metadata && typeof op.metadata === "object" && !Array.isArray(op.metadata) ? op.metadata as Record<string, unknown> : undefined;
             const patchMetadata = patch?.metadata && typeof patch.metadata === "object" && !Array.isArray(patch.metadata) ? patch.metadata as Record<string, unknown> : undefined;
-            if (isMediaNodeType(node?.type) && ((metadata && "status" in metadata) || (patchMetadata && "status" in patchMetadata))) issues.push({ index, severity: "error", message: "不能直接修改媒体节点 status；生成状态必须由任务结果回写" });
+            if (isMediaNodeType(node?.type) && ((metadata && "status" in metadata) || (patchMetadata && "status" in patchMetadata))) issues.push({ index, severity: "error", message: "Media node status cannot be modified directly; the generated status must be written back by the task results." });
         } else if (op.type === "run_generation") {
-            requireNode(index, op.nodeId, "生成目标");
+            requireNode(index, op.nodeId, "Build target");
             const node = snapshot.nodes.find((item) => item.id === op.nodeId);
-            if (node && op.mode && op.mode !== node.type && !(op.mode === "text" && node.type === CanvasNodeType.Script)) issues.push({ index, severity: "error", message: `生成模式「${op.mode}」与节点类型「${node.type}」不匹配` });
+            if (node && op.mode && op.mode !== node.type && !(op.mode === "text" && node.type === CanvasNodeType.Script)) issues.push({ index, severity: "error", message: `Generate mode "${op.mode}"With node type"${node.type}” does not match` });
         } else if (op.type === "delete_node") {
             const ids = op.ids || (op.id ? [op.id] : op.nodeType ? snapshot.nodes.filter((node) => node.type === op.nodeType).map((node) => node.id) : []);
-            if (!ids.length) issues.push({ index, severity: "error", message: "删除节点必须提供 id、ids 或 nodeType" });
-            if (new Set(ids).size !== ids.length) issues.push({ index, severity: "error", message: "删除节点 id 不能重复" });
-            ids.forEach((id) => requireNode(index, id, "删除目标"));
+            if (!ids.length) issues.push({ index, severity: "error", message: "Deleting a node must provide id, ids or nodeType" });
+            if (new Set(ids).size !== ids.length) issues.push({ index, severity: "error", message: "Delete node id cannot be repeated" });
+            ids.forEach((id) => requireNode(index, id, "Delete target"));
             ids.forEach((id) => liveNodeIds.delete(id));
             for (const [connectionId, connection] of liveConnections) if (ids.includes(connection.fromNodeId) || ids.includes(connection.toNodeId)) removeConnection(connectionId);
         } else if (op.type === "connect_nodes") {
-            requireNode(index, op.fromNodeId, "连接起点");
-            requireNode(index, op.toNodeId, "连接终点");
-            if (op.fromNodeId === op.toNodeId) issues.push({ index, severity: "error", message: "不能连接节点自身" });
-            if (op.id && liveConnections.has(op.id)) issues.push({ index, severity: "error", message: `连线 id「${op.id}」重复` });
+            requireNode(index, op.fromNodeId, "connect starting point");
+            requireNode(index, op.toNodeId, "connection end point");
+            if (op.fromNodeId === op.toNodeId) issues.push({ index, severity: "error", message: "Cannot connect to node itself" });
+            if (op.id && liveConnections.has(op.id)) issues.push({ index, severity: "error", message: `connection id"${op.id}"Repeat` });
             const key = connectionKey(op);
-            if (connectionKeys.has(key)) issues.push({ index, severity: "error", message: "相同端点和 handle 的连线已存在" });
+            if (connectionKeys.has(key)) issues.push({ index, severity: "error", message: "A connection to the same endpoint and handle already exists" });
             connectionKeys.add(key);
             liveConnections.set(op.id || `__anonymous_${index}`, { key, fromNodeId: op.fromNodeId, toNodeId: op.toNodeId });
         } else if (op.type === "select_nodes") {
-            if (new Set(op.ids).size !== op.ids.length) issues.push({ index, severity: "error", message: "选区节点 id 不能重复" });
-            op.ids.forEach((id) => requireNode(index, id, "选区节点"));
+            if (new Set(op.ids).size !== op.ids.length) issues.push({ index, severity: "error", message: "The selection node id cannot be repeated" });
+            op.ids.forEach((id) => requireNode(index, id, "selection node"));
         } else if (op.type === "delete_connections") {
-            if (op.all && (op.id || op.ids?.length)) issues.push({ index, severity: "error", message: "delete_connections 不能同时使用 all 和 id/ids" });
-            if (!op.all && !op.id && !op.ids?.length) issues.push({ index, severity: "error", message: "删除连线必须提供 id、ids 或 all=true" });
+            if (op.all && (op.id || op.ids?.length)) issues.push({ index, severity: "error", message: "delete_connections cannot use all and id/ids at the same time" });
+            if (!op.all && !op.id && !op.ids?.length) issues.push({ index, severity: "error", message: "Deleting a connection must provide id, ids or all=true" });
             const ids = op.ids || (op.id ? [op.id] : []);
-            if (new Set(ids).size !== ids.length) issues.push({ index, severity: "error", message: "删除连线 id 不能重复" });
-            ids.filter((id) => !liveConnections.has(id)).forEach((id) => issues.push({ index, severity: "error", message: `连线「${id}」不存在，请先读取画布上下文` }));
+            if (new Set(ids).size !== ids.length) issues.push({ index, severity: "error", message: "Delete connection id cannot be repeated" });
+            ids.filter((id) => !liveConnections.has(id)).forEach((id) => issues.push({ index, severity: "error", message: `Connect "${id}” does not exist, please read the canvas context first` }));
             if (op.all) [...liveConnections.keys()].forEach(removeConnection);
             else ids.forEach(removeConnection);
         } else if (op.type === "set_viewport") validateViewport(issues, index, op.viewport);
@@ -205,15 +205,15 @@ export function validateCanvasOperations(snapshot: CanvasSnapshot, ops: CanvasOp
 }
 
 function validateNodeNumbers(issues: Array<{ index: number; severity: "error" | "warning"; message: string }>, index: number, value: Record<string, unknown>) {
-    for (const key of ["x", "y"]) if (value[key] !== undefined && (typeof value[key] !== "number" || !Number.isFinite(value[key]))) issues.push({ index, severity: "error", message: `节点 ${key} 坐标必须是有限数字` });
-    if (value.position !== undefined && (!value.position || typeof value.position !== "object" || Array.isArray(value.position))) issues.push({ index, severity: "error", message: "节点 position 参数无效" });
+    for (const key of ["x", "y"]) if (value[key] !== undefined && (typeof value[key] !== "number" || !Number.isFinite(value[key]))) issues.push({ index, severity: "error", message: `node${key} Coordinates must be finite numbers` });
+    if (value.position !== undefined && (!value.position || typeof value.position !== "object" || Array.isArray(value.position))) issues.push({ index, severity: "error", message: "The node position parameter is invalid" });
     if (value.position && typeof value.position === "object" && !Array.isArray(value.position)) validateNodeNumbers(issues, index, value.position as Record<string, unknown>);
-    for (const key of ["width", "height"]) if (value[key] !== undefined && (typeof value[key] !== "number" || !Number.isFinite(value[key]) || value[key] <= 0)) issues.push({ index, severity: "error", message: `节点 ${key} 必须是正数` });
+    for (const key of ["width", "height"]) if (value[key] !== undefined && (typeof value[key] !== "number" || !Number.isFinite(value[key]) || value[key] <= 0)) issues.push({ index, severity: "error", message: `node${key} Must be a positive number` });
 }
 
 function validateViewport(issues: Array<{ index: number; severity: "error" | "warning"; message: string }>, index: number, viewport: Record<string, unknown>) {
-    for (const key of ["x", "y", "k"]) if (typeof viewport?.[key] !== "number" || !Number.isFinite(viewport[key])) issues.push({ index, severity: "error", message: `视口 ${key} 必须是有限数字` });
-    if (typeof viewport?.k === "number" && (viewport.k < 0.05 || viewport.k > 8)) issues.push({ index, severity: "error", message: "视口缩放 k 必须在 0.05 到 8 之间" });
+    for (const key of ["x", "y", "k"]) if (typeof viewport?.[key] !== "number" || !Number.isFinite(viewport[key])) issues.push({ index, severity: "error", message: `viewport${key} Must be a finite number` });
+    if (typeof viewport?.k === "number" && (viewport.k < 0.05 || viewport.k > 8)) issues.push({ index, severity: "error", message: "Viewport scale k must be between 0.05 and 8" });
 }
 
 function connectionKey(connection: { fromNodeId: string; toNodeId: string; fromHandleId?: string; toHandleId?: string }) {
@@ -224,9 +224,9 @@ function connectionSummary(connection: { id: string; fromNodeId: string; toNodeI
     return {
         id: connection.id,
         fromNodeId: connection.fromNodeId,
-        fromTitle: nodeById.get(connection.fromNodeId)?.title || "未知节点",
+        fromTitle: nodeById.get(connection.fromNodeId)?.title || "unknown node",
         toNodeId: connection.toNodeId,
-        toTitle: nodeById.get(connection.toNodeId)?.title || "未知节点",
+        toTitle: nodeById.get(connection.toNodeId)?.title || "unknown node",
         fromHandleId: connection.fromHandleId,
         toHandleId: connection.toHandleId,
     };
@@ -242,7 +242,7 @@ function compactNode(node: CanvasNodeData) {
     return {
         id: node.id,
         type: node.type,
-        title: node.title || "未命名节点",
+        title: node.title || "unnamed node",
         position: node.position,
         size: { width: node.width, height: node.height },
         parentId: node.parentId,
@@ -263,7 +263,7 @@ function resourceFromNode(node: CanvasNodeData): CanvasResourceInsight | null {
     const hasSignal = Boolean(storageKey || resourceId || metadata.assetId || metadata.primaryImageId || metadata.mimeType || ["image", "video", "audio"].includes(node.type));
     if (!hasSignal) return null;
     const status = String(metadata.status || "idle");
-    return { nodeId: node.id, nodeTitle: node.title || "未命名节点", nodeType: node.type, status, resourceId, storageKey, assetId: stringValue(metadata.assetId || metadata.characterAssetId), assetCategory: stringValue(metadata.assetCategory), mimeType: stringValue(metadata.mimeType), bytes: numberValue(metadata.bytes), width: numberValue(metadata.naturalWidth), height: numberValue(metadata.naturalHeight), durationMs: numberValue(metadata.durationMs), ready: status === "success" && Boolean(storageKey || resourceId || metadata.primaryImageId) };
+    return { nodeId: node.id, nodeTitle: node.title || "unnamed node", nodeType: node.type, status, resourceId, storageKey, assetId: stringValue(metadata.assetId || metadata.characterAssetId), assetCategory: stringValue(metadata.assetCategory), mimeType: stringValue(metadata.mimeType), bytes: numberValue(metadata.bytes), width: numberValue(metadata.naturalWidth), height: numberValue(metadata.naturalHeight), durationMs: numberValue(metadata.durationMs), ready: status === "success" && Boolean(storageKey || resourceId || metadata.primaryImageId) };
 }
 
 function preview(value: unknown, limit: number) {

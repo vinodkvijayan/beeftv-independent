@@ -11,11 +11,11 @@ import { modelCapabilityConfigFor, normalizeVideoValue, resolveVideoRatioValue, 
 import { modelOptionName, resolveModelChannel, resolveModelRequestConfig, type AiConfig } from "@/stores/use-config-store";
 
 const sizeOptions = [
-    { value: "1280x720", label: "横屏", width: 1280, height: 720 },
-    { value: "720x1280", label: "竖屏", width: 720, height: 1280 },
-    { value: "1024x1024", label: "方形", width: 1024, height: 1024 },
-    { value: "1792x1024", label: "宽屏", width: 1792, height: 1024 },
-    { value: "1024x1792", label: "长图", width: 1024, height: 1792 },
+    { value: "1280x720", label: "Horizontal screen", width: 1280, height: 720 },
+    { value: "720x1280", label: "Vertical screen", width: 720, height: 1280 },
+    { value: "1024x1024", label: "square", width: 1024, height: 1024 },
+    { value: "1792x1024", label: "widescreen", width: 1792, height: 1024 },
+    { value: "1024x1792", label: "Long picture", width: 1024, height: 1792 },
     { value: "auto", label: "auto", width: 0, height: 0 },
 ];
 
@@ -55,9 +55,9 @@ export function VideoSettingsPanel({ config, onConfigChange, theme, showTitle = 
     return (
         <ImageSettingsTheme theme={theme}>
             <div className={className} style={{ color: theme.node.text }} onMouseDown={(event) => event.stopPropagation()}>
-                {showTitle ? <div className="text-sm font-semibold">视频设置</div> : null}
+                {showTitle ? <div className="text-sm font-semibold">Video settings</div> : null}
                 {configuredResolutions.length ? (
-                    <SettingGroup title="分辨率" color={theme.node.muted}>
+                    <SettingGroup title="resolution" color={theme.node.muted}>
                         <div className="grid grid-cols-3 gap-1.5">
                             {configuredResolutions.map((item) => (
                                 <OptionPill key={item.value} selected={isVideoResolutionMatch(resolution, item.value)} theme={theme} onClick={() => {
@@ -71,7 +71,7 @@ export function VideoSettingsPanel({ config, onConfigChange, theme, showTitle = 
                     </SettingGroup>
                 ) : null}
                 {sizeSupported ? (
-                    <SettingGroup title={taskConstraints?.ratioLabel ? "比例" : "尺寸"} color={theme.node.muted}>
+                    <SettingGroup title={taskConstraints?.ratioLabel ? "Proportion" : "Size"} color={theme.node.muted}>
                         {taskConstraints?.ratioLabel ? (
                             <div className="rounded-md px-2.5 py-2" style={{ background: theme.toolbar.itemHover }}>
                                 <p className="text-[length:var(--fs-body)] font-medium">{taskConstraints.ratioLabel}</p>
@@ -104,19 +104,19 @@ export function VideoSettingsPanel({ config, onConfigChange, theme, showTitle = 
                         </>}
                     </SettingGroup>
                 ) : null}
-                {profile.durationSupported !== false ? <SettingGroup title="秒数" color={theme.node.muted}>
-                    {taskConstraints?.durationLocked ? <p className="text-sm">随原视频</p> : <VideoDurationControl profile={profile} value={Number(seconds)} theme={theme} onChange={(value) => onConfigChange("videoSeconds", String(value))} />}
+                {profile.durationSupported !== false ? <SettingGroup title="seconds" color={theme.node.muted}>
+                    {taskConstraints?.durationLocked ? <p className="text-sm">Suiyuan video</p> : <VideoDurationControl profile={profile} value={Number(seconds)} theme={theme} onChange={(value) => onConfigChange("videoSeconds", String(value))} />}
                 </SettingGroup> : null}
                 {profile.generateAudio.supported || profile.watermark.supported || draftSupported || returnLastFrameSupported ? (
-                    <SettingGroup title="输出" color={theme.node.muted}>
+                    <SettingGroup title="output" color={theme.node.muted}>
                         <div className="grid grid-cols-2 gap-3 rounded-md px-2" style={{ background: theme.toolbar.itemHover }}>
-                            {profile.generateAudio.supported ? <SwitchRow label="生成声音" checked={generateAudio} theme={theme} onChange={(checked) => onConfigChange("videoGenerateAudio", String(checked))} /> : null}
-                            {profile.watermark.supported ? <SwitchRow label="添加水印" checked={watermark} theme={theme} onChange={(checked) => onConfigChange("videoWatermark", String(checked))} /> : null}
-                            {draftSupported ? <SwitchRow label="样片预览 (480P)" checked={draft} theme={theme} onChange={(checked) => {
+                            {profile.generateAudio.supported ? <SwitchRow label="generate sound" checked={generateAudio} theme={theme} onChange={(checked) => onConfigChange("videoGenerateAudio", String(checked))} /> : null}
+                            {profile.watermark.supported ? <SwitchRow label="add watermark" checked={watermark} theme={theme} onChange={(checked) => onConfigChange("videoWatermark", String(checked))} /> : null}
+                            {draftSupported ? <SwitchRow label="Sample preview (480P)" checked={draft} theme={theme} onChange={(checked) => {
                                 onConfigChange("videoDraft", String(checked));
                                 if (checked && !isVideoResolutionMatch(resolution, "480p")) onConfigChange("vquality", "480p");
                             }} /> : null}
-                            {returnLastFrameSupported ? <SwitchRow label="返回无损尾帧" checked={returnLastFrame} theme={theme} onChange={(checked) => onConfigChange("videoReturnLastFrame", String(checked))} /> : null}
+                            {returnLastFrameSupported ? <SwitchRow label="Return lossless last frame" checked={returnLastFrame} theme={theme} onChange={(checked) => onConfigChange("videoReturnLastFrame", String(checked))} /> : null}
                         </div>
                     </SettingGroup>
                 ) : null}
@@ -130,8 +130,8 @@ function JiMengVideoSettingsPanel({ config, profile, onConfigChange, theme, show
     return (
         <ImageSettingsTheme theme={theme}>
             <div className={className} style={{ color: theme.node.text }} onMouseDown={(event) => event.stopPropagation()}>
-                {showTitle ? <div className="text-sm font-semibold">视频设置</div> : null}
-                <SettingGroup title="比例" color={theme.node.muted}>
+                {showTitle ? <div className="text-sm font-semibold">Video settings</div> : null}
+                <SettingGroup title="Proportion" color={theme.node.muted}>
                     <div className="grid grid-cols-3 gap-1.5">
                         {profile.ratios.map((value) => (
                             <OptionPill key={value} selected={config.size === value} theme={theme} onClick={() => onConfigChange("size", value)}>
@@ -140,7 +140,7 @@ function JiMengVideoSettingsPanel({ config, profile, onConfigChange, theme, show
                         ))}
                     </div>
                 </SettingGroup>
-                <SettingGroup title="秒数" color={theme.node.muted}>
+                <SettingGroup title="seconds" color={theme.node.muted}>
                     <VideoDurationControl profile={profile} value={Number(seconds)} theme={theme} onChange={(value) => onConfigChange("videoSeconds", String(value))} />
                 </SettingGroup>
             </div>
@@ -165,13 +165,13 @@ function SeedanceVideoSettingsPanel({ config, profile, onConfigChange, theme, sh
     return (
         <ImageSettingsTheme theme={theme}>
             <div className={className} style={{ color: theme.node.text }} onMouseDown={(event) => event.stopPropagation()}>
-                {showTitle ? <div className="text-sm font-semibold">视频设置</div> : null}
+                {showTitle ? <div className="text-sm font-semibold">Video settings</div> : null}
                 {videoSupportsTaskTypeConstraints(profile) ? (
                     <p className="text-xs leading-relaxed" style={{ color: theme.node.muted }}>
-                        首尾帧和延长模式的比例跟随素材；编辑模式还会跟随原视频时长。需要自由设置时，请选择参考生成。
+                                                The ratio of the first and last frames and the extension mode follow the material; the editing mode also follows the original video duration. When you need free settings, choose reference generation.
                     </p>
                 ) : null}
-                <SettingGroup title="分辨率" color={theme.node.muted}>
+                <SettingGroup title="resolution" color={theme.node.muted}>
                     <div className="grid grid-cols-3 gap-1.5">
                         {sortVideoResolutionOptions(profile.resolutions).map((value) => {
                             const item = { value, label: value.toUpperCase() };
@@ -186,7 +186,7 @@ function SeedanceVideoSettingsPanel({ config, profile, onConfigChange, theme, sh
                         })}
                     </div>
                 </SettingGroup>
-                <SettingGroup title="比例" color={theme.node.muted}>
+                <SettingGroup title="Proportion" color={theme.node.muted}>
                     <div className="grid grid-cols-4 gap-1.5">
                         {(taskConstraints?.ratioLabel ? ["adaptive"] : profile.ratios).map((value) => {
                             const item = { value, label: taskConstraints?.ratioLabel || value };
@@ -209,24 +209,24 @@ function SeedanceVideoSettingsPanel({ config, profile, onConfigChange, theme, sh
                         })}
                     </div>
                 </SettingGroup>
-                <SettingGroup title="时长" color={theme.node.muted}>
-                    {taskConstraints?.durationLocked ? <p className="text-sm">随原视频</p> : <VideoDurationControl profile={profile} value={duration} theme={theme} onChange={(value) => onConfigChange("videoSeconds", String(value))} />}
+                <SettingGroup title="duration" color={theme.node.muted}>
+                    {taskConstraints?.durationLocked ? <p className="text-sm">Suiyuan video</p> : <VideoDurationControl profile={profile} value={duration} theme={theme} onChange={(value) => onConfigChange("videoSeconds", String(value))} />}
                 </SettingGroup>
-                <SettingGroup title="输出" color={theme.node.muted}>
+                <SettingGroup title="output" color={theme.node.muted}>
                     <div className="grid grid-cols-2 gap-3 rounded-md px-2" style={{ background: theme.toolbar.itemHover }}>
-                        {profile.generateAudio.supported ? <SwitchRow label="生成声音" checked={generateAudio} theme={theme} onChange={(checked) => onConfigChange("videoGenerateAudio", String(checked))} /> : null}
-                        {profile.watermark.supported ? <SwitchRow label="添加水印" checked={watermark} theme={theme} onChange={(checked) => onConfigChange("videoWatermark", String(checked))} /> : null}
-                        {draftSupported ? <SwitchRow label="样片预览 (480P)" checked={draft} theme={theme} onChange={(checked) => {
+                        {profile.generateAudio.supported ? <SwitchRow label="generate sound" checked={generateAudio} theme={theme} onChange={(checked) => onConfigChange("videoGenerateAudio", String(checked))} /> : null}
+                        {profile.watermark.supported ? <SwitchRow label="add watermark" checked={watermark} theme={theme} onChange={(checked) => onConfigChange("videoWatermark", String(checked))} /> : null}
+                        {draftSupported ? <SwitchRow label="Sample preview (480P)" checked={draft} theme={theme} onChange={(checked) => {
                             onConfigChange("videoDraft", String(checked));
                             if (checked && !isVideoResolutionMatch(resolution, "480p")) onConfigChange("vquality", "480p");
                         }} /> : null}
-                        {returnLastFrameSupported ? <SwitchRow label="返回无损尾帧" checked={returnLastFrame} theme={theme} onChange={(checked) => onConfigChange("videoReturnLastFrame", String(checked))} /> : null}
+                        {returnLastFrameSupported ? <SwitchRow label="Return lossless last frame" checked={returnLastFrame} theme={theme} onChange={(checked) => onConfigChange("videoReturnLastFrame", String(checked))} /> : null}
                     </div>
                 </SettingGroup>
                 {isArkSeedance ? (
-                    <SettingGroup title="参考图" color={theme.node.muted}>
+                    <SettingGroup title="Reference picture" color={theme.node.muted}>
                         <div className="rounded-md px-2" style={{ background: theme.toolbar.itemHover }}>
-                            <SwitchRow label="自动同步可信素材（确认拥有使用权）" checked={useArkPrivateAssets} theme={theme} onChange={(checked) => onConfigChange("videoArkPrivateAssetUpload", String(checked))} />
+                            <SwitchRow label="Automatically synchronize trusted materials (confirm that you have the right to use them)" checked={useArkPrivateAssets} theme={theme} onChange={(checked) => onConfigChange("videoArkPrivateAssetUpload", String(checked))} />
                         </div>
                     </SettingGroup>
                 ) : null}
@@ -241,7 +241,7 @@ export function videoResolutionLabel(value: string) {
 
 export function videoSizeLabel(value: string) {
     const ratio = normalizeSeedanceRatio(value);
-    if (value === "adaptive" || value === "auto") return "自适应";
+    if (value === "adaptive" || value === "auto") return "Adaptive";
     // The compact summary must mirror the selected value (for example 16:9),
     // while the settings panel can still use semantic labels such as 横屏.
     if (ratio === value) return ratio;
@@ -251,7 +251,7 @@ export function videoSizeLabel(value: string) {
 
 export function videoSecondsLabel(value: string, profile?: VideoCapabilityConfig) {
     const normalized = profile ? normalizeVideoValue(profile, { seconds: value }).seconds : normalizeVideoDuration(value);
-    return normalized === "-1" ? "自动" : `${normalized}s`;
+    return normalized === "-1" ? "automatic" : `${normalized}s`;
 }
 
 export function normalizeVideoSizeValue(value: string) {
@@ -317,7 +317,7 @@ function DurationInput({ value, min, max, theme, onChange, continuous = false }:
                 min={min}
                 max={max}
                 defaultValue={value}
-                aria-label="视频时长（秒）"
+                aria-label="Video duration (seconds)"
                 className="min-w-0 flex-1 bg-transparent pl-2 text-right outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 onBlur={(event) => commit(event.currentTarget)}
                 onKeyDown={(event) => {
@@ -326,7 +326,7 @@ function DurationInput({ value, min, max, theme, onChange, continuous = false }:
                 onMouseDown={(event) => event.stopPropagation()}
             />
             <span className="shrink-0 px-1.5" style={{ color: theme.node.muted }}>
-                秒
+                                seconds
             </span>
         </label>
     );
@@ -360,7 +360,7 @@ function VideoDurationControl({ profile, value, theme, disabled, onChange }: { p
         <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 4)}, minmax(0, 1fr))` }}>
             {options.map((option) => (
                 <OptionPill key={option} selected={normalizedNumber(value) === option} disabled={disabled?.(option)} theme={theme} onClick={() => onChange(option)}>
-                    {option === -1 ? "自动" : `${option}s`}
+                    {option === -1 ? "automatic" : `${option}s`}
                 </OptionPill>
             ))}
         </div>
@@ -377,7 +377,7 @@ function DurationRangeControl({ value, min, max, step, theme, onChange, continuo
                     max={max}
                     step={step}
                     value={value}
-                    aria-label="视频时长（秒）"
+                    aria-label="Video duration (seconds)"
                     className="video-duration-range h-8 min-w-0 flex-1"
                     style={{ accentColor: theme.accent.primary }}
                     onChange={(event) => onChange(Number(event.target.value))}

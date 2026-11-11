@@ -28,7 +28,7 @@ export function AgentConnectPanel({ kind, onClose, onConfigured, verifiedClientI
             setRegistration(result);
             onConfigured();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "连接失败，请稍后重试");
+            message.error(error instanceof Error ? error.message : "Connection failed, please try again later");
         } finally {
             setSubmitting(false);
             onBusyChange(false);
@@ -39,27 +39,27 @@ export function AgentConnectPanel({ kind, onClose, onConfigured, verifiedClientI
     const verified = Boolean(registration && verifiedClientIds.includes(registration.client.id));
 
     return (
-        <div className="agent-connect-panel" aria-label={`连接 ${agentClientKindLabel(kind || "other")}`}>
+        <div className="agent-connect-panel" aria-label={`connect${agentClientKindLabel(kind || "other")}`}>
             {registration && setup ? (
                 <div className="flex flex-col gap-3 py-1">
-                    <p role="status" className="text-sm">{verified ? "已检测到该工具访问 BeefTV，连接验证成功。" : "等待工具连接。请运行下方命令或添加配置，再在工具中启用 BeefTV。"}</p>
+                    <p role="status" className="text-sm">{verified ? "The tool has been detected accessing BeefTV and the connection verification was successful." : "Wait for the tool to connect. Please run the command below or add configuration to enable BeefTV in the tool."}</p>
                     <p className="text-xs leading-5 text-foreground/60">{setup.instruction}</p>
                     <pre className="max-h-64 overflow-auto rounded-md bg-surface-active px-3.5 py-3 text-[12px] leading-5 font-mono whitespace-pre-wrap break-all text-foreground/85">{setup.text}</pre>
                     <div className="flex items-center justify-between gap-3">
-                        <p className="min-w-0 text-xs leading-5 text-foreground/50">这段内容只显示一次，关掉后需要重新连接。</p>
-                        <Button size="small" icon={<Copy className="size-3.5" />} onClick={() => copyText(setup.text)}>复制</Button>
+                        <p className="min-w-0 text-xs leading-5 text-foreground/50">This content is only displayed once and needs to be reconnected after closing.</p>
+                        <Button size="small" icon={<Copy className="size-3.5" />} onClick={() => copyText(setup.text)}>Copy</Button>
                     </div>
                 </div>
             ) : registration ? (
-                <p className="py-2 text-xs leading-5 text-foreground/60">没有拿到接入内容，请断开后重新连接。</p>
+                <p className="py-2 text-xs leading-5 text-foreground/60">The access content was not obtained, please disconnect and reconnect.</p>
             ) : (
                 <div className="flex flex-col gap-3 py-1">
-                    <p className="text-xs leading-5 text-foreground/60">连接后可使用 BeefTV 的全部创作工具。每次操作的审批由 {agentClientKindLabel(kind || "other")} 负责。</p>
+                    <p className="text-xs leading-5 text-foreground/60">Once connected, you’ll have access to all of BeefTV’s creative tools. Each operation is approved by{agentClientKindLabel(kind || "other")}  Be responsible.</p>
                 </div>
             )}
             <div className="mt-4 flex justify-end gap-2">
-                <Button disabled={submitting} onClick={onClose}>{registration ? "收起" : "取消"}</Button>
-                {!registration && <Button type="primary" loading={submitting} onClick={() => void connect()}>生成连接配置</Button>}
+                <Button disabled={submitting} onClick={onClose}>{registration ? "close" : "Cancel"}</Button>
+                {!registration && <Button type="primary" loading={submitting} onClick={() => void connect()}>Generate connection configuration</Button>}
             </div>
         </div>
     );

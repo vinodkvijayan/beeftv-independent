@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-const DEFAULT_UNAVAILABLE_LABEL = "预览不可用，素材可能已删除";
+const DEFAULT_UNAVAILABLE_LABEL = "Preview is not available, footage may have been deleted";
 
 export function MediaPreview({
     src,

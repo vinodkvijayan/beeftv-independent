@@ -5,13 +5,13 @@ export function createDemoConversation(): CreationConversation {
     const base = "2026-09-19T10:00:00.000Z";
     return {
         id: "demo-conversation",
-        title: "模拟视频创作流程",
+        title: "Simulate the video creation process",
         updatedAt: base,
         messages: [
             {
                 id: "demo-user-plan",
                 role: "user",
-                content: "我想做一段 6 秒的电影感视频：夜晚的香港街头，镜头缓慢推进，霓虹灯倒映在雨水中。",
+                content: "I want to make a 6-second cinematic video: the streets of Hong Kong at night, the camera slowly advances, and the neon lights are reflected in the rain.",
                 createdAt: base,
                 mode: "text",
                 status: "done",
@@ -19,7 +19,7 @@ export function createDemoConversation(): CreationConversation {
             {
                 id: "demo-assistant-plan",
                 role: "assistant",
-                content: "我会先把想法拆成一个可执行的镜头：雨夜街景建立氛围，镜头缓慢向前推进，最后落到霓虹倒影。接下来可以直接生成视频。",
+                content: "I would start by breaking down the idea into an executable shot: a street scene on a rainy night to establish the atmosphere, the camera slowly moving forward, and finally settling on a neon reflection. Next, you can directly generate the video.",
                 createdAt: "2026-09-19T10:00:05.000Z",
                 mode: "text",
                 status: "done",
@@ -27,7 +27,7 @@ export function createDemoConversation(): CreationConversation {
             {
                 id: "demo-user-generate",
                 role: "user",
-                content: "按这个方案生成视频，画幅 16:9，时长 6 秒。",
+                content: "According to this plan, a video is generated with a frame size of 16:9 and a duration of 6 seconds.",
                 createdAt: "2026-09-19T10:00:12.000Z",
                 mode: "video",
                 status: "done",

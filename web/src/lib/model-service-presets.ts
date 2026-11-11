@@ -9,15 +9,15 @@ import { DEFAULT_BASE_URL as LL2_DEFAULT_BASE_URL, LL2_CHANNEL_ID, LL2_CHANNEL_N
 import { DEFAULT_BASE_URL as YSDUI_DEFAULT_BASE_URL, YSDUI_CHANNEL_ID, YSDUI_CHANNEL_NAME } from "../../../plugin-packages/beeftv-plugin-ysdui/client/index.js";
 
 export const MODEL_SERVICE_PRESETS = [
-    { id: "compatible", name: "第三方模型服务", subtitle: "OpenAI 兼容 API · 中转服务", icon: "OpenAI", baseUrl: "", apiFormat: "openai" },
-    { id: LL2_CHANNEL_ID, name: LL2_CHANNEL_NAME, subtitle: "文本 · 多款主流视频 · 视频超分", icon: "OpenAI", baseUrl: LL2_DEFAULT_BASE_URL, apiFormat: "openai" },
-    { id: YSDUI_CHANNEL_ID, name: YSDUI_CHANNEL_NAME, subtitle: "文本 · 多款主流图片 · 多款主流视频", icon: "OpenAI", baseUrl: YSDUI_DEFAULT_BASE_URL, apiFormat: "openai" },
-    { id: "openai", name: "OpenAI", subtitle: "文本 · 图片（Sora 已停用）", icon: "OpenAI", baseUrl: "https://api.openai.com/v1", apiFormat: "openai" },
-    { id: "gemini", name: "Google Gemini", subtitle: "文本 · 图片（Veo 已停用）", icon: "Gemini", baseUrl: "https://generativelanguage.googleapis.com", apiFormat: "gemini" },
-    { id: "ark", name: "火山方舟", subtitle: "文本 · 即梦图片 · Seedance 视频", icon: "Volcengine", baseUrl: "https://ark.cn-beijing.volces.com/api/v3", apiFormat: "openai" },
+    { id: "compatible", name: "Third-party model service", subtitle: "OpenAI Compatible API · Transit Service", icon: "OpenAI", baseUrl: "", apiFormat: "openai" },
+    { id: LL2_CHANNEL_ID, name: LL2_CHANNEL_NAME, subtitle: "Text · Various mainstream videos · High-quality videos", icon: "OpenAI", baseUrl: LL2_DEFAULT_BASE_URL, apiFormat: "openai" },
+    { id: YSDUI_CHANNEL_ID, name: YSDUI_CHANNEL_NAME, subtitle: "Text · Various mainstream pictures · Various mainstream videos", icon: "OpenAI", baseUrl: YSDUI_DEFAULT_BASE_URL, apiFormat: "openai" },
+    { id: "openai", name: "OpenAI", subtitle: "Text · Image (Sora is disabled)", icon: "OpenAI", baseUrl: "https://api.openai.com/v1", apiFormat: "openai" },
+    { id: "gemini", name: "Google Gemini", subtitle: "Text · Image (Veo is disabled)", icon: "Gemini", baseUrl: "https://generativelanguage.googleapis.com", apiFormat: "gemini" },
+    { id: "ark", name: "Volcano Ark", subtitle: "Text · Dream Picture · Seedance Video", icon: "Volcengine", baseUrl: "https://ark.cn-beijing.volces.com/api/v3", apiFormat: "openai" },
 ] as const;
 export type ModelServicePresetId = typeof MODEL_SERVICE_PRESETS[number]["id"];
-export const CAPABILITY_LABELS: Record<ModelCapability, string> = { text: "文本", image: "图片", video: "视频", audio: "音频" };
+export const CAPABILITY_LABELS: Record<ModelCapability, string> = { text: "text", image: "pictures", video: "video", audio: "Audio" };
 
 /** 预设自带的模型数量；用于设置页说明文案，不再从渠道对象上读。 */
 export function presetModelCount(id: ModelServicePresetId): number {
@@ -169,7 +169,7 @@ export function serviceModelProfile(channel: ModelChannel, item: ChannelModelCat
                 : presetModel.capabilityConfig as NonNullable<ModelChannel["modelProfiles"]>[number]["capabilityConfig"],
         };
     }
-    const fullvideoFull = ["sd-native-full-2.0", "sd-native-full-2.5", "原生不卡人脸-全参2.0", "原生不卡人脸-全参2.5"].includes(item.id);
+    const fullvideoFull = ["sd-native-full-2.0", "sd-native-full-2.5", "Native face recognition-Full Reference 2.0", "Native face recognition without blocking - full reference 2.5"].includes(item.id);
     const capability = explicitCapability || existing?.capability || item.modelType || catalogEndpointCapability(item) || (fullvideoFull ? "video" : inferProtocolCapabilityFromModel(item.id));
     const baseCandidates: Partial<Record<ModelServicePresetId, Partial<Record<ModelCapability, string>>>> = {
         compatible: COMPATIBLE_CANDIDATES,
@@ -208,22 +208,22 @@ export function serviceConnectionError(channel: ModelChannel, options?: { protoc
     if (channel.referenceAssetOrigin?.trim()) {
         try {
             const origin = new URL(channel.referenceAssetOrigin.trim());
-            if (!["https:", "http:"].includes(origin.protocol) || origin.username || origin.password || origin.search || origin.hash || origin.pathname !== "/") return "素材服务地址只填写源站，不包含路径、账号或查询参数。公网请使用 HTTPS；本机、局域网或 CGNAT 可使用 HTTP 和端口";
-        } catch { return "请填写完整的素材服务地址"; }
+            if (!["https:", "http:"].includes(origin.protocol) || origin.username || origin.password || origin.search || origin.hash || origin.pathname !== "/") return "The material service address only fills in the source site and does not include path, account or query parameters. Please use HTTPS on the public network; HTTP and port can be used on this machine, LAN or CGNAT";
+        } catch { return "Please fill in the complete material service address"; }
     }
     try {
         const url = new URL(channel.baseUrl.trim());
-        if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) return "请填写不含账号、查询参数或片段的 HTTP(S) 服务地址";
-        if (/\/(chat\/completions|responses|images\/generations|models)\/?$/i.test(url.pathname)) return "请填写服务的基础地址，不要包含模型或生成接口路径";
-    } catch { return "请填写完整的服务地址，例如 https://api.example.com/v1"; }
+        if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) return "Please fill in the HTTP(S) service address without account number, query parameters or fragments";
+        if (/\/(chat\/completions|responses|images\/generations|models)\/?$/i.test(url.pathname)) return "Please fill in the base address of the service, do not include the model or generated interface path";
+    } catch { return "Please fill in the complete service address, such as https://api.example.com/v1"; }
     if (options?.requireCredential !== false) {
         const credential = serviceCredentialGuide(channel, options?.protocols);
         if (credential.conflict) return credential.conflict;
-        if (!channel.apiKey.trim() && !channel.hasApiKey && !channelAllowsEmptyAPIKey(channel, options?.protocols)) return `请填写 ${credential.apiKeyLabel}`;
+        if (!channel.apiKey.trim() && !channel.hasApiKey && !channelAllowsEmptyAPIKey(channel, options?.protocols)) return `Please fill in${credential.apiKeyLabel}`;
         // 空的 Secret Key 栏有两种意思：还没填，或者后端已经存着一份（回读时被清空）。后端会把
         // 「这份密钥到底存没存」作为 hasApiKey/hasSecretKey 返回，只认这个标记，不靠
         // 「连接已经存在」推断——改协议后旧的空密钥仍然是空，后端沿用不了任何东西。
-        if (credential.secretKeyRequired && !channel.secretKey?.trim() && channel.hasSecretKey !== true) return `请填写 ${credential.secretKeyLabel}：这个接口要两个密钥，缺一个会签名失败`;
+        if (credential.secretKeyRequired && !channel.secretKey?.trim() && channel.hasSecretKey !== true) return `Please fill in${credential.secretKeyLabel}: This interface requires two keys. If one is missing, the signature will fail.`;
     }
     return "";
 }

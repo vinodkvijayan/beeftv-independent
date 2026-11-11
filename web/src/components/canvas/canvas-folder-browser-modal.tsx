@@ -111,14 +111,14 @@ export function CanvasFolderBrowserModal({
     if (!folder || typeof document === "undefined") return null;
 
     const commitFolderTitle = () => {
-        const next = folderTitle.trim() || "未命名文件夹";
+        const next = folderTitle.trim() || "unnamed folder";
         setFolderTitle(next);
         setEditingFolderTitle(false);
         onRenameNode(folder.id, next);
     };
 
     const commitChildTitle = (node: CanvasNodeData) => {
-        const next = editingNodeTitle.trim() || node.title || "未命名节点";
+        const next = editingNodeTitle.trim() || node.title || "unnamed node";
         setEditingNodeId(null);
         onRenameNode(node.id, next);
     };
@@ -128,9 +128,9 @@ export function CanvasFolderBrowserModal({
         setDownloading(true);
         try {
             const { downloaded, failed } = await batchDownloadCanvasMediaNodes(downloadableNodes);
-            if (failed === 0) message.success(`已批量下载 ${downloaded} 个素材`);
-            else if (downloaded > 0) message.warning(`已下载 ${downloaded} 个素材，${failed} 个下载失败`);
-            else message.warning("素材下载失败，请稍后重试");
+            if (failed === 0) message.success(`Downloaded in batches${downloaded} materials`);
+            else if (downloaded > 0) message.warning(`Downloaded${downloaded} material,${failed} downloads failed`);
+            else message.warning("Material download failed, please try again later");
         } finally {
             setDownloading(false);
         }
@@ -148,7 +148,7 @@ export function CanvasFolderBrowserModal({
             tabIndex={-1}
             role="dialog"
             aria-modal="true"
-            aria-label={`${folder.title} 文件夹内容`}
+            aria-label={`${folder.title} Folder contents`}
             data-canvas-no-zoom
             data-canvas-folder-browser
             className="fixed inset-0 z-[var(--z-popover)] flex flex-col bg-black/82 outline-none backdrop-blur-md"
@@ -193,7 +193,7 @@ export function CanvasFolderBrowserModal({
                             <button
                                 type="button"
                                 className="group flex max-w-full items-center gap-1.5 rounded-lg px-1.5 py-0.5 text-left text-base font-semibold transition hover:bg-white/8"
-                                title={readOnly ? folder.title : `${folder.title} · 点击重命名`}
+                                title={readOnly ? folder.title : `${folder.title} · Click to rename`}
                                 onClick={() => {
                                     if (!readOnly) setEditingFolderTitle(true);
                                 }}
@@ -203,7 +203,7 @@ export function CanvasFolderBrowserModal({
                             </button>
                         )}
                         <div className="px-1.5 text-xs" style={{ color: theme.node.muted }}>
-                            共 {orderedChildren.length} 项内容 · 点击空白处或按 Esc 收回画布卡片
+                                                        total{orderedChildren.length}  Item content · Click in an empty space or press Esc to retract the canvas card
                         </div>
                     </div>
                 </div>
@@ -217,7 +217,7 @@ export function CanvasFolderBrowserModal({
                             <Search className="size-3.5 opacity-55" />
                             <input
                                 className="w-44 bg-transparent outline-none placeholder:opacity-50"
-                                placeholder="搜索文件夹内节点..."
+                                placeholder="Search for nodes in a folder..."
                                 value={query}
                                 onChange={(event) => setQuery(event.target.value)}
                             />
@@ -225,7 +225,7 @@ export function CanvasFolderBrowserModal({
                                 <button
                                     type="button"
                                     className="opacity-60 hover:opacity-100"
-                                    aria-label="清空搜索"
+                                    aria-label="Clear search"
                                     onClick={() => setQuery("")}
                                 >
                                     <X className="size-3.5" />
@@ -243,7 +243,7 @@ export function CanvasFolderBrowserModal({
                             onClick={() => void handleDownloadAll()}
                         >
                             <Download className="size-3.5" />
-                            <span>批量下载 ({downloadableNodes.length})</span>
+                            <span>Batch download ({downloadableNodes.length})</span>
                         </button>
                     ) : null}
 
@@ -252,11 +252,11 @@ export function CanvasFolderBrowserModal({
                             type="button"
                             className="flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition hover:bg-white/8"
                             style={{ background: theme.spatial.surface, borderColor: theme.toolbar.border }}
-                            title="将文件夹内所有节点按网格排回画布并移除文件夹外壳"
+                            title="Arrange all nodes in the folder back to the canvas according to the grid and remove the folder shell"
                             onClick={() => onUnpackFolder(folder.id)}
                         >
                             <Layers3 className="size-3.5" />
-                            <span>解散到画布</span>
+                            <span>Dismiss to canvas</span>
                         </button>
                     ) : null}
 
@@ -264,11 +264,11 @@ export function CanvasFolderBrowserModal({
                         type="button"
                         className="flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition hover:bg-white/8"
                         style={{ background: theme.spatial.surface, borderColor: theme.toolbar.border }}
-                        aria-label="收起文件夹"
+                        aria-label="Collapse folder"
                         onClick={onClose}
                     >
                         <X className="size-4" />
-                        <span>收起</span>
+                        <span>close</span>
                     </button>
                 </div>
             </header>
@@ -314,7 +314,7 @@ export function CanvasFolderBrowserModal({
                                                 <button
                                                     type="button"
                                                     className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-xs font-medium opacity-85 transition hover:opacity-100"
-                                                    title={readOnly ? node.title : `${node.title} · 点击重命名`}
+                                                    title={readOnly ? node.title : `${node.title} · Click to rename`}
                                                     onClick={() => {
                                                         if (readOnly) return;
                                                         setEditingNodeId(node.id);
@@ -332,8 +332,8 @@ export function CanvasFolderBrowserModal({
                                                     type="button"
                                                     className="grid size-6 place-items-center rounded-md border transition hover:bg-white/15"
                                                     style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border }}
-                                                    title="打开或预览节点"
-                                                    aria-label={`打开 ${node.title}`}
+                                                    title="Open or preview a node"
+                                                    aria-label={`open${node.title}`}
                                                     onClick={() => onOpenNode(node)}
                                                 >
                                                     <Maximize2 className="size-3" />
@@ -344,8 +344,8 @@ export function CanvasFolderBrowserModal({
                                                             type="button"
                                                             className="grid size-6 place-items-center rounded-md border transition hover:bg-white/15"
                                                             style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border }}
-                                                            title="移出文件夹到画布"
-                                                            aria-label={`将 ${node.title} 移出文件夹`}
+                                                            title="Move folder to canvas"
+                                                            aria-label={`will${node.title} Move out folder`}
                                                             onClick={() => onExtractNode(node.id)}
                                                         >
                                                             <CornerUpRight className="size-3" />
@@ -354,8 +354,8 @@ export function CanvasFolderBrowserModal({
                                                             type="button"
                                                             className="grid size-6 place-items-center rounded-md border transition hover:bg-red-500/20"
                                                             style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.accent.danger }}
-                                                            title="删除节点"
-                                                            aria-label={`删除 ${node.title}`}
+                                                            title="Delete node"
+                                                            aria-label={`Delete${node.title}`}
                                                             onClick={() => onDeleteNode(node.id)}
                                                         >
                                                             <Trash2 className="size-3" />
@@ -392,12 +392,12 @@ export function CanvasFolderBrowserModal({
                         >
                             <FolderOpen className="size-8 opacity-55" />
                             <div className="text-sm font-semibold">
-                                {query ? "没有匹配的节点" : "文件夹还是空的"}
+                                {query ? "No matching node" : "The folder is still empty"}
                             </div>
                             <div className="text-xs leading-relaxed" style={{ color: theme.node.muted }}>
                                 {query
-                                    ? "换个关键词试试，或清空搜索查看全部内容。"
-                                    : "回到画布后，把任意节点直接拖到这个文件夹卡片上松手，或框选多个节点点击「收纳到文件夹」即可收进来。"}
+                                    ? "Try changing keywords, or clear the search to view all content."
+                                    : "After returning to the canvas, drag any node directly to the folder card and release it, or select multiple nodes and click \"Add to Folder\" to add them in."}
                             </div>
                         </div>
                     )}
@@ -469,7 +469,7 @@ function FolderBrowserCardMedia({ node }: { node: CanvasNodeData }) {
                 {audioUrl ? (
                     <audio controls preload="none" src={audioUrl} className="h-8 w-full max-w-[240px]" />
                 ) : (
-                    <span className="text-xs opacity-50">暂无音频内容</span>
+                    <span className="text-xs opacity-50">No audio content yet</span>
                 )}
             </div>
         );
@@ -479,9 +479,9 @@ function FolderBrowserCardMedia({ node }: { node: CanvasNodeData }) {
         const shotCount = node.metadata?.storyboard?.rows.length || 0;
         return (
             <div className="flex h-full w-full flex-col justify-between p-3.5 text-left">
-                <span className="text-xs font-semibold opacity-80">分镜脚本 · {shotCount} 镜</span>
+                <span className="text-xs font-semibold opacity-80">Storyboard ·{shotCount}  mirror</span>
                 <p className="line-clamp-3 text-xs opacity-65">
-                    {node.metadata?.storyboard?.rows.map((row) => row.plotDescription || row.dialogue).filter(Boolean).slice(0, 2).join(" / ") || "点击打开分镜表"}
+                    {node.metadata?.storyboard?.rows.map((row) => row.plotDescription || row.dialogue).filter(Boolean).slice(0, 2).join(" / ") || "Click to open the storyboard"}
                 </p>
             </div>
         );

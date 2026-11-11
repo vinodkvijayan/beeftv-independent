@@ -13,5 +13,5 @@ export const PromptTemplateOperation = {
 export type PromptTemplateOperationId = (typeof PromptTemplateOperation)[keyof typeof PromptTemplateOperation];
 
 export function promptTemplateTaskPlaceholder(label: string) {
-    return `使用当前启用的${label}模板。`;
+    return `Use the currently enabled${label}template.`;
 }

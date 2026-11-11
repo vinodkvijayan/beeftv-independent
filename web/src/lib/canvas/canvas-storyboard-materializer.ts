@@ -37,7 +37,7 @@ export function storyboardComposerContent(prompt: string, referenceNodeIds: stri
         return node ? [node] : [];
     });
     const mentions = buildOrderedCanvasResourceReferences(referenceNodes).map(canvasResourceMentionToken);
-    return mentions.length ? [`参考资产：${mentions.join(" ")}`, prompt.trim()].filter(Boolean).join("\n") : prompt.trim();
+    return mentions.length ? [`Reference assets:${mentions.join(" ")}`, prompt.trim()].filter(Boolean).join("\n") : prompt.trim();
 }
 
 export function reconcileStoryboardTargetConnections(

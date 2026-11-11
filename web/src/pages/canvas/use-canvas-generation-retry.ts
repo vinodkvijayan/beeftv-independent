@@ -85,14 +85,14 @@ export function useCanvasGenerationRetry({
     return useCallback(
         async (node: CanvasNodeData) => {
             if (isDepthCaptureResultNode(node)) {
-                const reason = "深度动作捕捉节点必须使用本地深度任务重试";
+                const reason = "Depth motion capture nodes must retry using local depth tasks";
                 message?.warning?.(reason);
                 surfaceRetryFailure(node.id, reason, setNodes);
                 return;
             }
             const retryMode = retryModeForNode(node.type);
             if (!retryMode) {
-                const reason = "当前节点不能使用通用生成重试";
+                const reason = "The current node cannot use generic build retry";
                 message?.warning?.(reason);
                 surfaceRetryFailure(node.id, reason, setNodes);
                 return;
@@ -127,7 +127,7 @@ export function useCanvasGenerationRetry({
                         if (!taskUpdated) {
                             storedVideoFallbackError = error;
                         } else {
-                            const reason = error instanceof Error ? error.message : "原视频任务重试失败";
+                            const reason = error instanceof Error ? error.message : "Original video task retry failed";
                             const failure = canvasGenerationFailureMetadata(error, { mode: "video", prompt: node.metadata?.prompt || "" });
                             message?.error?.(reason);
                             setNodes((current) => current.map((item) => (item.id === node.id ? { ...item, metadata: { ...item.metadata, status: NODE_STATUS_ERROR, ...failure, generationErrorSummary: failure.generationErrorSummary || reason, generationFailure: undefined } } : item)));
@@ -170,7 +170,7 @@ export function useCanvasGenerationRetry({
                       }
                     : { ...sourceGenerationConfig, count: "1" };
             if (!isAiConfigReady(generationConfig, generationConfig.model)) {
-                surfaceRetryFailure(node.id, "当前模型尚未完成算力连接配置，请先在设置中完成连接后再重试", setNodes);
+                surfaceRetryFailure(node.id, "The current model has not completed the computing power connection configuration. Please complete the connection in the settings before trying again.", setNodes);
                 navigateToSettings({ continueCreation: true });
                 return;
             }
@@ -184,14 +184,14 @@ export function useCanvasGenerationRetry({
                 return;
             }
             if (multipleNativeBatches && !batchRoot) {
-                const reason = "请使用重试失败批次，或选择失败图片重试；已完成的批次将保留";
+                const reason = "Please use Retry failed batches, or select failed images to try again; completed batches will be retained";
                 message?.warning?.(reason);
                 surfaceRetryFailure(node.id, reason, setNodes);
                 return;
             }
             const nativeRetryTargets = multipleNativeBatches ? nodesRef.current.filter((item) => item.metadata?.batchRootId === batchRoot?.id && Boolean(node.metadata?.taskId) && item.metadata?.taskId === node.metadata?.taskId) : [];
             if (multipleNativeBatches && (nativeRetryTargets.length !== nativeOutputs || nativeRetryTargets.some((item) => item.metadata?.content || item.metadata?.storageKey))) {
-                const reason = "该批次已有结果或任务状态不完整，请先取回原任务，避免重复生成";
+                const reason = "This batch already has results or the task status is incomplete. Please retrieve the original task first to avoid repeated generation.";
                 message?.warning?.(reason);
                 surfaceRetryFailure(node.id, reason, setNodes);
                 return;
@@ -224,7 +224,7 @@ export function useCanvasGenerationRetry({
                     if (retryMode === "video") context = compileNodeGenerationReferences(context, generationConfig, buildVideoGenerationMetadata(node, context, generationConfig).videoEditOperation);
                     skillMetadata = skillExecution.metadata;
                 } catch (error) {
-                    const reason = error instanceof Error ? error.message : "技能上下文加载失败";
+                    const reason = error instanceof Error ? error.message : "Skill context loading failed";
                     message?.error?.(reason);
                     surfaceRetryFailure(node.id, reason, setNodes);
                     return;
@@ -232,7 +232,7 @@ export function useCanvasGenerationRetry({
             }
             const prompt = (context?.prompt || savedImageMetadata?.prompt || "").trim();
             if (!prompt) {
-                const reason = storedVideoFallbackError instanceof Error ? storedVideoFallbackError.message : "找不到提示词，无法重试";
+                const reason = storedVideoFallbackError instanceof Error ? storedVideoFallbackError.message : "Prompt word not found, cannot try again";
                 if (storedVideoFallbackError) message?.error?.(reason);
                 else message?.warning?.(reason);
                 surfaceRetryFailure(node.id, reason, setNodes);
@@ -248,7 +248,7 @@ export function useCanvasGenerationRetry({
                         styleMetadata = { styleProfileJson: runtime.profileJson, styleExecutionPlan: runtime.plan };
                     }
                 } catch (error) {
-                    const reason = error instanceof Error ? error.message : "项目画风与当前模型不兼容";
+                    const reason = error instanceof Error ? error.message : "The project style is incompatible with the current model";
                     message?.error?.(reason);
                     surfaceRetryFailure(node.id, reason, setNodes);
                     return;
@@ -256,7 +256,7 @@ export function useCanvasGenerationRetry({
             }
             if (retryMode === "audio" && context?.characterReferences.length) {
                 if (context.characterReferences.length !== 1) {
-                    const reason = "角色配音一次只能引用一个角色卡";
+                    const reason = "Character dubbing can only reference one character card at a time";
                     message?.error?.(reason);
                     surfaceRetryFailure(node.id, reason, setNodes);
                     return;
@@ -264,7 +264,7 @@ export function useCanvasGenerationRetry({
                 const voice = context.resolvedCharacterVoices[0];
                 const hasReferenceMedia = context.referenceImages.length > 0 || context.referenceAudios.length > 0;
                 if (!voice && !hasReferenceMedia) {
-                    const reason = "角色尚未绑定可用声音，无法重试角色配音任务";
+                    const reason = "The character has not been bound to a usable voice, and the character dubbing task cannot be retried.";
                     message?.error?.(reason);
                     surfaceRetryFailure(node.id, reason, setNodes);
                     return;
@@ -275,7 +275,7 @@ export function useCanvasGenerationRetry({
             }
             const isEmotionRetry = Boolean(node.metadata?.emotionEdit);
             if (isEmotionRetry && resolveModelRequestConfig(generationConfig, generationConfig.model).interfaceType !== "openai-image") {
-                const reason = "表情编辑需要支持蒙版的 OpenAI Images 渠道，当前渠道已拒绝整图重绘";
+                const reason = "Expression editing requires the OpenAI Images channel that supports masking. The current channel has refused to redraw the entire image.";
                 message?.error?.(reason);
                 surfaceRetryFailure(node.id, reason, setNodes);
                 return;
@@ -288,14 +288,14 @@ export function useCanvasGenerationRetry({
                     : context?.referenceImages || [];
             if (useReferenceImages && !retryReferenceImages) {
                 markMissingReferences(node.id, setNodes);
-                message?.error?.("参考图片已丢失，无法继续重试");
+                message?.error?.("The reference picture has been lost and cannot be retried.");
                 return;
             }
             const retryImages = retryReferenceImages || [];
             const storedVideoImages = node.type === CanvasNodeType.Video && !context?.referenceImages.length ? await resolveStoredReferenceImages(node.metadata?.references) : [];
             if (storedVideoImages === null) {
                 markMissingReferences(node.id, setNodes);
-                message?.error?.("参考图片已丢失，无法继续重试");
+                message?.error?.("The reference picture has been lost and cannot be retried.");
                 return;
             }
             const videoReferenceImages = context?.referenceImages.length ? context.referenceImages : storedVideoImages;
@@ -332,10 +332,10 @@ export function useCanvasGenerationRetry({
                     const confirmed = await confirmCanvasGeneration(
                         (callbacks) =>
                             modal.confirm({
-                                title: copy.confirmTitle || "确认重新生成？",
+                                title: copy.confirmTitle || "Confirm to regenerate?",
                                 content: copy.confirmContent || copy.message,
-                                okText: "确认重新生成",
-                                cancelText: "取消",
+                                okText: "Confirm regeneration",
+                                cancelText: "Cancel",
                                 centered: true,
                                 ...callbacks,
                             }),
@@ -454,15 +454,15 @@ export function useCanvasGenerationRetry({
                 const emotionEdit = node.metadata?.emotionEdit;
                 if (emotionEdit) {
                     const emotionSource = nodesRef.current.find((item) => item.id === emotionEdit.sourceNodeId);
-                    if (!emotionSource?.metadata?.content) throw new Error("情绪编辑源图片已删除，无法重试");
+                    if (!emotionSource?.metadata?.content) throw new Error("The source image for emotion editing has been deleted and cannot be tried again.");
                     const sourceDataUrl = await resolveImageUrl(emotionSource.metadata.storageKey, emotionSource.metadata.content, { cacheMiss: true });
-                    if (!sourceDataUrl) throw new Error("无法读取情绪编辑源图片");
+                    if (!sourceDataUrl) throw new Error("Unable to read emotion edit source image");
                     const artifacts = await buildEmotionImageArtifacts(sourceDataUrl, emotionEdit.faceBox, emotionSource.metadata.naturalWidth || 0, emotionSource.metadata.naturalHeight || 0);
                     const emotionConfig = { ...generationConfig, size: emotionGenerationSize(artifacts.editRegion), quality: !generationConfig.quality || generationConfig.quality === "auto" ? "high" : generationConfig.quality };
                     const imageProfile = modelCapabilityConfigFor(emotionConfig, emotionConfig.model).image!;
                     const editPlan = resolveEmotionEditPlan(imageProfile.references.maskSupported);
                     const sourceReference = sourceNodeReferenceImages(emotionSource)[0];
-                    if (!sourceReference) throw new Error("情绪编辑源图片不可用");
+                    if (!sourceReference) throw new Error("Mood editing source image is not available");
                     const editReference = { id: `${emotionSource.id}-${emotionEdit.presetId}-edit-region`, name: "emotion-edit-region.png", type: "image/png", dataUrl: artifacts.sourceDataUrl };
                     const characterReference = { id: `${emotionSource.id}-${emotionEdit.presetId}-character`, name: `${emotionEdit.characterName}-face.jpg`, type: "image/jpeg", dataUrl: artifacts.characterDataUrl };
                     const nextEmotionEdit = { ...emotionEdit, editRegion: artifacts.editRegion, sourceWidth: artifacts.imageWidth, sourceHeight: artifacts.imageHeight, providerSize: emotionConfig.size, editMode: editPlan.mode };
@@ -566,5 +566,5 @@ function surfaceRetryFailure(nodeId: string, reason: string, setNodes: Dispatch<
 }
 
 function markMissingReferences(nodeId: string, setNodes: Dispatch<SetStateAction<CanvasNodeData[]>>) {
-    surfaceRetryFailure(nodeId, "参考图片已丢失，无法继续重试", setNodes);
+    surfaceRetryFailure(nodeId, "The reference picture has been lost and cannot be retried.", setNodes);
 }

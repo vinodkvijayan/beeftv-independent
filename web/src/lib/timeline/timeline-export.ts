@@ -28,10 +28,10 @@ async function fetchSourceBlob(source: TimelineRenderSource, signal?: AbortSigna
     }
     if (source.url) {
         const response = await fetch(source.url, { signal });
-        if (!response.ok) throw new Error("视频资源请求失败（" + response.status + "）");
+        if (!response.ok) throw new Error("Video resource request failed (" + response.status + "）");
         return response.blob();
     }
-    throw new Error("找不到素材 " + source.nodeId + " 的媒体文件");
+    throw new Error("Material not found" + source.nodeId + " media files");
 }
 
 function createWasmEngine(ffmpeg: import("@ffmpeg/ffmpeg").FFmpeg): TimelineRenderEngine {
@@ -70,7 +70,7 @@ function toCompileSources(sources: TimelineRenderSource[]): CanonicalSourceMeta[
 export async function exportTimelineToMp4(timeline: TimelineProject, sources: TimelineRenderSource[], options: TimelineExportOptions = {}): Promise<Blob> {
     const { onProgress, context, signal } = options;
     signal?.throwIfAborted();
-    onProgress?.({ phase: "loading", percent: 0, detail: "生成渲染计划" });
+    onProgress?.({ phase: "loading", percent: 0, detail: "Generate rendering plan" });
     const canonical = await compileTimelineRenderPlan({
         timeline,
         sources: toCompileSources(sources),
@@ -85,10 +85,10 @@ export async function exportTimelineToMp4(timeline: TimelineProject, sources: Ti
     signal?.throwIfAborted();
     const sourceById = new Map(sources.map((item) => [item.nodeId, item]));
     for (const sourceId of canonicalSourceIds(canonical)) {
-        if (!sourceById.has(sourceId)) throw new Error("找不到素材：" + sourceId);
+        if (!sourceById.has(sourceId)) throw new Error("Material not found:" + sourceId);
     }
-    if (!__BEEFTV_HEAVY_MEDIA_ENABLED__) throw new Error("精简版未包含 FFmpeg 本地媒体工具，请安装完整媒体包");
-    onProgress?.({ phase: "loading", percent: 0, detail: "加载 FFmpeg" });
+    if (!__BEEFTV_HEAVY_MEDIA_ENABLED__) throw new Error("The lite version does not include FFmpeg local media tools, please install the full media package");
+    onProgress?.({ phase: "loading", percent: 0, detail: "Load FFmpeg" });
     const [{ FFmpeg }, { default: coreURL }, { default: wasmURL }, { fetchFile }] = await Promise.all([import("@ffmpeg/ffmpeg"), import("@ffmpeg/core?url"), import("@ffmpeg/core/wasm?url"), import("@ffmpeg/util")]);
     signal?.throwIfAborted();
     // Each export owns its worker: cancellation cannot interrupt video merge or another dialog.
@@ -107,7 +107,7 @@ export async function exportTimelineToMp4(timeline: TimelineProject, sources: Ti
         for (const sourceId of canonicalSourceIds(canonical)) {
             const source = sourceById.get(sourceId)!;
             signal?.throwIfAborted();
-            onProgress?.({ phase: "reading", percent: 5, detail: "读取素材 " + source.fileName });
+            onProgress?.({ phase: "reading", percent: 5, detail: "Read material" + source.fileName });
             const blob = await fetchSourceBlob(source, signal);
             signal?.throwIfAborted();
             writtenFiles.add(source.fileName);
@@ -116,7 +116,7 @@ export async function exportTimelineToMp4(timeline: TimelineProject, sources: Ti
             await ffmpeg.writeFile("probe.json", new Uint8Array());
             const probeCode = await ffmpeg.ffprobe(["-v", "error", "-show_entries", "stream=codec_type:format=duration", "-of", "json", source.fileName, "-o", "probe.json"]);
             // Shipped core 0.12.10 returns -1 after a successful ffprobe write. Require fresh valid metadata below.
-            if (probeCode !== 0 && probeCode !== -1) throw new Error("无法解析素材：" + source.nodeId);
+            if (probeCode !== 0 && probeCode !== -1) throw new Error("Unable to parse material:" + source.nodeId);
             const probe = JSON.parse(await ffmpeg.readFile("probe.json", "utf8") as string) as { streams?: { codec_type: string }[]; format?: { duration?: string } };
             const hasAudio = probe.streams?.some((stream) => stream.codec_type === "audio") ?? false;
             const hasVideo = probe.streams?.some((stream) => stream.codec_type === "video") ?? false;
@@ -139,7 +139,7 @@ export async function exportTimelineToMp4(timeline: TimelineProject, sources: Ti
             }
         }
         const plan = lowerCanonicalPlan(canonical, preparedSources, { outputName: context?.outputName, subtitleImages });
-        onProgress?.({ phase: "encoding", percent: 10, detail: "开始编码" });
+        onProgress?.({ phase: "encoding", percent: 10, detail: "Start coding" });
         const execution = await executeTimelineRenderPlan({
             plan,
             engine,
@@ -148,7 +148,7 @@ export async function exportTimelineToMp4(timeline: TimelineProject, sources: Ti
             onProgress: (progress) => onProgress?.({ phase: "encoding", percent: progress.percent, detail: progress.detail }),
         });
         signal?.throwIfAborted();
-        onProgress?.({ phase: "encoding", percent: 100, detail: "导出完成" });
+        onProgress?.({ phase: "encoding", percent: 100, detail: "Export completed" });
         return new Blob([execution.output as BlobPart], { type: "video/mp4" });
     } catch (error) {
         signal?.throwIfAborted();

@@ -15,13 +15,13 @@ export function PluginUpdateButton({ pluginId, packageSpec, check, loading, onUp
     onUpdate: () => void;
 }) {
     if (isLocalFolderSource(packageSpec)) {
-        return <Button className="plugin-settings-button" icon={<RefreshCw className="size-4" />} loading={loading} onClick={onUpdate}>重新加载</Button>;
+        return <Button className="plugin-settings-button" icon={<RefreshCw className="size-4" />} loading={loading} onClick={onUpdate}>reload</Button>;
     }
     const notice = check?.updates.find((item) => item.id === pluginId);
     if (!notice && check?.upToDate.includes(pluginId)) return null;
     return (
         <Button className="plugin-settings-button" type={notice ? "primary" : "default"} icon={<ArrowUpCircle className="size-4" />} loading={loading} onClick={onUpdate}>
-            {notice ? `更新到 v${notice.latest}` : "更新"}
+            {notice ? `Update to v${notice.latest}` : "update"}
         </Button>
     );
 }

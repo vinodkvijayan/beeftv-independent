@@ -70,7 +70,7 @@ export async function request<T>(promise: Promise<{ data: BackendEnvelope<T>; st
     try {
         const response = await promise;
         if (response.data.code !== 0) {
-            throw new ApiError(response.data.msg || "请求失败", {
+            throw new ApiError(response.data.msg || "Request failed", {
                 status: response.status,
                 code: response.data.code,
                 reason: response.data.reason,
@@ -91,7 +91,7 @@ function unwrapTransportError(error: unknown): never {
         throw error;
     }
     if (axios.isCancel(error) || (axios.isAxiosError(error) && error.code === axios.AxiosError.ERR_CANCELED)) {
-        throw new DOMException("请求已取消", "AbortError");
+        throw new DOMException("Request canceled", "AbortError");
     }
     if (axios.isAxiosError<BackendEnvelope<unknown>>(error)) {
         const status = error.response?.status;
@@ -120,13 +120,13 @@ function responseRequestId(headers: unknown): string | undefined {
 function transportFailureMessage(status?: number, fallback?: string) {
     switch (status) {
         case 502:
-            return "后端服务暂时不可用，请稍后重试";
+            return "The backend service is temporarily unavailable, please try again later.";
         case 503:
-            return "服务暂时不可用，请稍后重试";
+            return "The service is temporarily unavailable, please try again later";
         case 504:
-            return "服务响应超时，请稍后重试";
+            return "Service response timed out, please try again later";
         default:
-            return fallback || "请求失败";
+            return fallback || "Request failed";
     }
 }
 

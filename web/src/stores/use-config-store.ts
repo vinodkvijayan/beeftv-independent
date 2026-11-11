@@ -368,7 +368,7 @@ export const useConfigStore = create<ConfigStore>()(
                         createModelChannel({
                             ...channel,
                             id: channel.id || `system-${index + 1}`,
-                            name: channel.name || `系统渠道 ${index + 1}`,
+                            name: channel.name || `System channels${index + 1}`,
                             scope: "system",
                             apiKey: channel.apiKey || "system",
                         }),
@@ -639,7 +639,7 @@ export function createModelChannel(channel?: Partial<ModelChannel>): ModelChanne
     const providedBaseUrl = channel?.baseUrl?.trim();
     return {
         id: channel?.id?.trim() || nanoid(),
-        name: channel?.name?.trim() || "新渠道",
+        name: channel?.name?.trim() || "new channels",
         sortOrder: channel?.sortOrder ?? 0,
         baseUrl: providedBaseUrl || (interfaceType ? defaultBaseUrlForChannelInterface(interfaceType) : defaultBaseUrlForApiFormat(apiFormat)),
         referenceAssetOrigin: channel?.referenceAssetOrigin?.trim() || undefined,
@@ -693,7 +693,7 @@ export function modelDisplayName(config: AiConfig, value: string) {
     const channel = resolveModelChannel(config, value);
     const displayName = channelModelProfile(channel, model)?.displayName?.trim();
     if (displayName) return displayName;
-    return channel.scope === "system" ? "系统模型" : model;
+    return channel.scope === "system" ? "system model" : model;
 }
 
 export function modelIcon(config: AiConfig, value: string) {
@@ -749,7 +749,7 @@ export function resolveModelChannel(config: AiConfig, value: string) {
     const model = decoded?.model || value;
     const lookup = channelLookup(config.channels);
     const matched = decoded ? lookup.byId.get(decoded.channelId) : lookup.byModel.get(model);
-    return matched || config.channels[0] || createModelChannel({ id: "default", name: "默认渠道", baseUrl: config.baseUrl, apiKey: config.apiKey, apiFormat: config.apiFormat, models: config.models.map(modelOptionName) });
+    return matched || config.channels[0] || createModelChannel({ id: "default", name: "Default channel", baseUrl: config.baseUrl, apiKey: config.apiKey, apiFormat: config.apiFormat, models: config.models.map(modelOptionName) });
 }
 
 export function logicalModelIDForConfig(config: AiConfig) {
@@ -795,7 +795,7 @@ function normalizeChannels(config: AiConfig, ensureDefault = true) {
             createModelChannel({
                 ...channel,
                 id: channel.id || (index === 0 ? "default" : `channel-${index + 1}`),
-                name: channel.name || (index === 0 ? "默认渠道" : `渠道 ${index + 1}`),
+                name: channel.name || (index === 0 ? "Default channel" : `channel${index + 1}`),
                 models: uniqueRawModels(channel.models || []),
             }),
         )
@@ -804,7 +804,7 @@ function normalizeChannels(config: AiConfig, ensureDefault = true) {
         channels.push(
             createModelChannel({
                 id: "default",
-                name: "默认渠道",
+                name: "Default channel",
                 baseUrl: config.baseUrl || defaultConfig.baseUrl,
                 apiKey: config.apiKey || "",
                 apiFormat: config.apiFormat || defaultConfig.apiFormat,
@@ -817,7 +817,7 @@ function normalizeChannels(config: AiConfig, ensureDefault = true) {
 
 function isEmptyDefaultChannel(channel: ModelChannel) {
     if (channel.scope === "system") return false;
-    if (channel.id !== "default" || channel.name.trim() !== "默认渠道" || channel.apiKey.trim()) return false;
+    if (channel.id !== "default" || channel.name.trim() !== "Default channel" || channel.apiKey.trim()) return false;
     const baseUrl = channel.baseUrl.trim().replace(/\/+$/, "");
     const defaultBaseUrl = defaultConfig.baseUrl.trim().replace(/\/+$/, "");
     if (baseUrl && baseUrl !== defaultBaseUrl) return false;

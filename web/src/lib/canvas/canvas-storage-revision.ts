@@ -75,7 +75,7 @@ export function parseCanvasStorageDocument(value: string | null, fallback: Canva
         storageRevision?: unknown;
         tombstones?: unknown;
     };
-    if (!Array.isArray(parsed.state?.projects)) throw new Error("画布持久状态无效");
+    if (!Array.isArray(parsed.state?.projects)) throw new Error("Canvas persistent state is invalid");
     return {
         state: { projects: normalizeProjectAssetCategories(parsed.state.projects as CanvasProject[]) },
         version: typeof parsed.version === "number" ? parsed.version : 0,

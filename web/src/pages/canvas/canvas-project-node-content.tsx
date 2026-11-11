@@ -134,7 +134,7 @@ export function CanvasProjectNodeContent({ node: contentNode, projectId, readOnl
                         while (ids.length <= columnIndex) ids.push("");
                         ids[columnIndex] = insertedId;
                         updateBatchRow(contentNode.id, rowId, { inputNodeIds: ids });
-                    }).catch(error => { if (operation.isCurrent()) void message.error(error instanceof Error ? error.message : "参考素材上传失败"); });
+                    }).catch(error => { if (operation.isCurrent()) void message.error(error instanceof Error ? error.message : "Reference material upload failed"); });
                 }}
                 onConnectStart={(event, handleId) => handleConnectStart(event, contentNode.id, "target", handleId)}
                 onConnectDrop={(event, handleId) => handleConnectDrop(event, contentNode.id, handleId)}

@@ -42,7 +42,7 @@ export function buildVideoFrameNodes(source: CanvasNodeData, frames: UploadedVid
         return {
             id: nanoid(),
             type: CanvasNodeType.Image,
-            title: `截图 ${formatVideoFrameTime(timeMs)} · ${source.title || "视频"}`,
+            title: `screenshot${formatVideoFrameTime(timeMs)} · ${source.title || "video"}`,
             position: {
                 x: startX + column * (cellWidth + FRAME_NODE_GAP) + (cellWidth - size.width) / 2,
                 y: startY + row * (cellHeight + FRAME_NODE_GAP) + (cellHeight - size.height) / 2,

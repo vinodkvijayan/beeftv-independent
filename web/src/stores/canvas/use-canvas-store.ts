@@ -181,7 +181,7 @@ function runWithBrowserCanvasStorageLock<T>(scope: string, operation: () => Prom
     const lockName = `${CANVAS_STORAGE_LOCK_PREFIX}${scope}`;
     if (locks) return locks.request(lockName, operation);
     if (options.requireCrossRealmLock && typeof window !== "undefined" && typeof document !== "undefined") {
-        throw new Error("当前浏览器不支持跨标签存储锁，已停止画布生成持久化");
+        throw new Error("The current browser does not support cross-tab storage locks, and canvas generation persistence has been stopped.");
     }
     return operation();
 }
@@ -385,7 +385,7 @@ function applyCanvasExternalDecision(
     try {
         onApplied?.(applied, previous);
     } catch (error) {
-        console.error("画布刷新通知失败", { id: applied.id, error });
+        console.error("Canvas refresh notification failed", { id: applied.id, error });
     }
     return decision;
 }
@@ -709,7 +709,7 @@ const canvasStorage: PersistStorage<CanvasStore> = {
             if (canvasSaveTimers.get(scope) === timer) canvasSaveTimers.delete(scope);
             void writeQueuedCanvasPersist(scope, token).catch((error) => {
                 // 自动保存无法把异常返回给原始状态更新调用方，但失败队列仍会保留给下一次写入或显式 flush 重试。
-                console.error("画布本地持久化失败，已保留待写队列", { scope, error });
+                console.error("Canvas local persistence failed, the write queue has been reserved", { scope, error });
             });
         }, 400);
         canvasSaveTimers.set(scope, timer);
@@ -741,7 +741,7 @@ export const useCanvasStore = create<CanvasStore>()(
             hydrated: false,
             projects: [],
             folders: [],
-            createProject: (title = "未命名画布", projectId, workspaceProjectId) => {
+            createProject: (title = "Unnamed canvas", projectId, workspaceProjectId) => {
                 const now = new Date().toISOString();
                 const id = nanoid();
                 const appearanceDefault = readCanvasAppearanceDefault();
@@ -766,9 +766,9 @@ export const useCanvasStore = create<CanvasStore>()(
                 set((state) => ({ projects: [project, ...state.projects] }));
                 return id;
             },
-            createFolder: (name = "未命名文件夹") => {
+            createFolder: (name = "unnamed folder") => {
                 const now = new Date().toISOString();
-                const folder = { id: nanoid(), name: name.trim() || "未命名文件夹", createdAt: now, updatedAt: now };
+                const folder = { id: nanoid(), name: name.trim() || "unnamed folder", createdAt: now, updatedAt: now };
                 set((state) => {
                     const folders = [folder, ...state.folders];
                     writeCanvasFolders(folders);
@@ -807,7 +807,7 @@ export const useCanvasStore = create<CanvasStore>()(
                     workspaceProjectId: undefined,
                     projectId: source.projectId,
                     folderId: source.folderId,
-                    title: source.title || "导入画布",
+                    title: source.title || "Import canvas",
                     canvasTitle: source.canvasTitle,
                     createdAt: source.createdAt || now,
                     updatedAt: now,

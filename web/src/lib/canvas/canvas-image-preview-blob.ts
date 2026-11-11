@@ -29,7 +29,7 @@ export async function createCanvasImagePreviewBlob(original: Blob, maxSize: numb
         if (!context || context.getContextAttributes?.().colorSpace !== "display-p3") return original;
         await new Promise<void>((resolve, reject) => {
             image.onload = () => resolve();
-            image.onerror = () => reject(new Error("图片预览解码失败"));
+            image.onerror = () => reject(new Error("Image preview decoding failed"));
             image.src = source;
         });
         const ratio = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
@@ -39,7 +39,7 @@ export async function createCanvasImagePreviewBlob(original: Blob, maxSize: numb
         context.imageSmoothingEnabled = true;
         context.imageSmoothingQuality = "high";
         context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("图片预览编码失败")), "image/png"));
+        return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Image preview encoding failed")), "image/png"));
     } finally {
         image.onload = image.onerror = null;
         image.src = "";
