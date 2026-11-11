@@ -1,14 +1,13 @@
-# Independent copy — not an official BeefTV release
+# BeefTV English 1.0.0
 
-This repository is an independent copy of [glanderness/BeefTV](https://github.com/glanderness/BeefTV) at tag **v2.2.1** (`c01e37b2436d68cc0c28fbaabfad23c341bf15ea`), published by Vinod K Vijayan for private and non-commercial community use.
+Independent English edition of [glanderness/BeefTV](https://github.com/glanderness/BeefTV) **v2.2.1** (`c01e37b2436d68cc0c28fbaabfad23c341bf15ea`), published by Vinod K Vijayan for private and non-commercial community use.
 
-- It is **not** affiliated with, maintained by, or endorsed by BeefTV or @beefnoode.
-- The application UI in this tree is an **English machine translation** of the upstream Chinese interface. Ant Design now uses `en_US`, and user-visible strings in `web/src` were translated. Comments, model-protocol text, and most backend messages are still Chinese. A few strings could not be translated because they are schemas or character classes. This is not a reviewed localization.
-- Windows installers, when the Actions workflow succeeds, are attached to this repository's Releases and are unsigned. They are not the official downloads at `updates.beefapi.com`.
+- Not affiliated with, maintained by, or endorsed by BeefTV or @beefnoode.
+- The desktop UI is an English machine translation. Ant Design uses `en_US`. It is not a reviewed localization.
+- Backend messages, agent prompts, and skill text are still Chinese. The later work is described in [docs/BACKEND_I18N_PLAN.md](docs/BACKEND_I18N_PLAN.md) and has not been started.
+- Project guides in this repository are English: this file, the quick start, contributing, security, conduct, agent rules, and the docs index. Longer technical manuals under `docs/content/` are still the upstream Chinese text. Every Chinese document is also kept in [archive/zh/](archive/zh/).
+- Windows installer: [BeefTV English 1.0.0](https://github.com/vinodkvijayan/beeftv-independent/releases/tag/v1.0.0). It is unsigned and is not the official download at `updates.beefapi.com`.
 - Covered material stays under the [BeefTV Source Available License 1.0](LICENSE). Historical MIT portions remain MIT. See `NOTICE` and `THIRD_PARTY_NOTICES.md`.
-- Changes in this copy: this banner, an English machine translation of the desktop UI, and `.github/workflows/windows-independent-build.yml`, which builds `windows/amd64` on a Windows runner and uploads the installer here. The official updater, R2, and COS publish steps are not used.
-
-The upstream README follows.
 
 ---
 
@@ -19,189 +18,189 @@ The upstream README follows.
 <p align="center"><strong>High-performance · Lightweight · AI Native</strong></p>
 
 <p align="center">
-  面向 AI 时代的视频创作工作台。<br>
-  在一个自由画布中连接创意、模型与素材。
+  An AI-native workspace for video creation.<br>
+  Connect ideas, models, and media on one freeform canvas.
 </p>
 
 <p align="center">
-  与 BeefTV Agent 一起推进创作，用 Skills 扩展方法，用工作流复用过程。<br>
-  从分镜、素材到成片，让创作可以继续编辑、迭代和积累。
+  Create with BeefTV Agent, extend your methods with Skills, and reuse your process with Workflows.<br>
+  From storyboards and media to finished videos, keep your work editable and ready to build on.
 </p>
 
 <p align="center">
-  <a href="https://github.com/glanderness/BeefTV/stargazers"><img src="https://img.shields.io/github/stars/glanderness/BeefTV?style=flat-square&amp;logo=github&amp;label=Stars&amp;labelColor=303030&amp;color=E86C36" alt="BeefTV GitHub Stars"></a>
-  <a href="https://github.com/glanderness/BeefTV/releases/latest"><img src="https://img.shields.io/github/v/release/glanderness/BeefTV?style=flat-square&amp;label=Release&amp;labelColor=303030&amp;color=525252" alt="BeefTV 最新版本"></a>
-  <a href="QUICKSTART.md#下载与首次打开"><img src="https://img.shields.io/badge/Desktop-macOS%20%7C%20Windows-525252?style=flat-square&amp;labelColor=303030" alt="桌面版支持 macOS 和 Windows"></a>
-  <a href="QUICKSTART.md"><img src="https://img.shields.io/badge/Workspace-Local--first-525252?style=flat-square&amp;labelColor=303030" alt="本地优先工作区"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Source%20Available-525252?style=flat-square&amp;labelColor=303030" alt="源码可用，许可范围见 LICENSE"></a>
+  <a href="https://github.com/glanderness/BeefTV/stargazers"><img src="https://img.shields.io/github/stars/glanderness/BeefTV?style=flat-square&amp;logo=github&amp;label=Stars&amp;labelColor=303030&amp;color=E86C36" alt="BeefTV GitHub stars"></a>
+  <a href="https://github.com/glanderness/BeefTV/releases/latest"><img src="https://img.shields.io/github/v/release/glanderness/BeefTV?style=flat-square&amp;label=Release&amp;labelColor=303030&amp;color=525252" alt="Latest BeefTV release"></a>
+  <a href="QUICKSTART.md"><img src="https://img.shields.io/badge/Desktop-macOS%20%7C%20Windows-525252?style=flat-square&amp;labelColor=303030" alt="Desktop support for macOS and Windows"></a>
+  <a href="QUICKSTART.md"><img src="https://img.shields.io/badge/Workspace-Local--first-525252?style=flat-square&amp;labelColor=303030" alt="Local-first workspace"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Source%20Available-525252?style=flat-square&amp;labelColor=303030" alt="Source-available license; see LICENSE for terms"></a>
 </p>
 
 <p align="center">
-  <a href="https://beeftv.app/"><img src="assets/readme/button-website.svg" width="180" alt="访问 BeefTV 官网"></a>
-  <a href="https://github.com/glanderness/BeefTV/releases/latest"><img src="assets/readme/button-download.svg" width="175" alt="下载 BeefTV 桌面版"></a>
-  <a href="https://beeftv.app/assets/beeftv-wecom-qr.png"><img src="assets/readme/button-community.svg" width="185" alt="扫码加入 BeefTV 社群"></a>
-  <a href="https://x.com/beefnoode"><img src="assets/readme/button-x.svg" width="180" alt="在 X 关注 @beefnoode"></a>
+  <a href="https://beeftv.app/"><img src="assets/readme/button-website.svg" width="180" alt="Visit the BeefTV website"></a>
+  <a href="https://github.com/glanderness/BeefTV/releases/latest"><img src="assets/readme/button-download.svg" width="175" alt="Download BeefTV desktop app"></a>
+  <a href="https://beeftv.app/assets/beeftv-wecom-qr.png"><img src="assets/readme/button-community.svg" width="185" alt="Scan to join the BeefTV community"></a>
+  <a href="https://x.com/beefnoode"><img src="assets/readme/button-x.svg" width="180" alt="Follow @beefnoode on X"></a>
 </p>
 
 <p align="center">
-  <a href="README.en.md">English</a> ·
-  <a href="#最近更新">最近更新</a> ·
-  <a href="#产品演示">产品演示</a> ·
-  <a href="#工作流">工作流</a> ·
+  <a href="archive/zh/README.md">简体中文 archive</a> ·
+  <a href="#recent-updates">Recent updates</a> ·
+  <a href="#product-demo">Product demo</a> ·
+  <a href="#workflows">Workflows</a> ·
   <a href="#beeftv-agent">Agent</a> ·
   <a href="#skills">Skills</a> ·
-  <a href="docs/content/docs/overview/features.mdx">功能清单</a> ·
-  <a href="QUICKSTART.md">开始使用</a> ·
-  <a href="CONTRIBUTING.md">参与贡献</a>
+  <a href="docs/content/docs/overview/features.mdx">Feature list</a> ·
+  <a href="QUICKSTART.md">Get started</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
-## 最近更新
+## Recent updates
 
-- **[v2.1.5](https://github.com/glanderness/BeefTV/releases/tag/v2.1.5)** — 新增插件快捷入口与 LL2 模型服务一键连接。
-- **[v2.1.4](https://github.com/glanderness/BeefTV/releases/tag/v2.1.4)** — 上线随包插件市场与角色替换插件，新增生成费用预估并优化视频参考操作。
-- **[v2.1.3](https://github.com/glanderness/BeefTV/releases/tag/v2.1.3)** — 开放插件扩展生态，提升大画布保存性能，完善生成报错与代理兼容。
-- **[v2.1.2](https://github.com/glanderness/BeefTV/releases/tag/v2.1.2)** — 新增项目与画布备份导出，改善视频预览、分镜工作流与跨端同步。
-- **[v2.1.1](https://github.com/glanderness/BeefTV/releases/tag/v2.1.1)** — 新增 Seedance 2.5 样片转高清及视频编辑能力，优化助手缓存与外部 Agent 接入。
+- **[v2.1.5](https://github.com/glanderness/BeefTV/releases/tag/v2.1.5)** — Add quick access to plugins and one-click LL2 model service setup.
+- **[v2.1.4](https://github.com/glanderness/BeefTV/releases/tag/v2.1.4)** — Bundle the plugin marketplace and character replacement plugin; add generation cost estimates and improve video reference controls.
+- **[v2.1.3](https://github.com/glanderness/BeefTV/releases/tag/v2.1.3)** — Launch plugin extensions, improve large-canvas saving, and refine generation errors and proxy compatibility.
+- **[v2.1.2](https://github.com/glanderness/BeefTV/releases/tag/v2.1.2)** — Add project and canvas backup exports; improve video previews, storyboard workflows, and cross-client synchronization.
+- **[v2.1.1](https://github.com/glanderness/BeefTV/releases/tag/v2.1.1)** — Add Seedance 2.5 preview-to-HD generation and video editing; improve assistant caching and external Agent integration.
 
-[查看全部版本与详细说明](https://github.com/glanderness/BeefTV/releases)
+[All releases and detailed notes](https://github.com/glanderness/BeefTV/releases)
 
-## 特别鸣谢
+## Special thanks
 
-感谢支持 BeefTV 持续发展的合作伙伴、赞助商与客户。
+Thank you to the partners, sponsors, and customers supporting BeefTV's continued development.
 
 <table>
-  <tr><th width="26%" align="center">鸣谢对象</th><th align="center">介绍</th></tr>
+  <tr><th width="26%" align="center">Acknowledgements</th><th align="center">About</th></tr>
   <tr>
-    <td align="center" valign="middle"><img src="assets/readme/partner-tencent-cloud.png" width="32" height="32" alt="腾讯云图标"><br><strong>腾讯云</strong></td>
-    <td><a href="https://cloud.tencent.com/">腾讯云</a>提供云计算、人工智能与音视频服务，覆盖媒体存储、处理和分发等场景，服务开发者与企业的应用建设。感谢腾讯云为本项目提供的算力支持以及生态扶持。</td>
+    <td align="center" valign="middle"><img src="assets/readme/partner-tencent-cloud.png" width="32" height="32" alt="Tencent Cloud icon"><br><strong>Tencent Cloud</strong></td>
+    <td><a href="https://cloud.tencent.com/">Tencent Cloud</a> provides cloud computing, AI, and audio and video services, including media storage, processing, and delivery, for developers and enterprises. Special thanks to Tencent Cloud for its compute resources and ecosystem support for this project.</td>
   </tr>
   <tr>
-    <td align="center" valign="middle"><img src="assets/readme/partner-byteplus.png" width="32" height="32" alt="BytePlus 图标"><br><strong>BytePlus</strong></td>
-    <td><a href="https://www.byteplus.com/en">BytePlus</a> 源自字节跳动的企业技术服务品牌，面向全球企业提供生成式 AI、云基础设施与音视频解决方案。感谢 BytePlus 海外孵化器对本项目的算力支持与生态扶持。</td>
+    <td align="center" valign="middle"><img src="assets/readme/partner-byteplus.png" width="32" height="32" alt="BytePlus icon"><br><strong>BytePlus</strong></td>
+    <td><a href="https://www.byteplus.com/en">BytePlus</a> draws on ByteDance's technology to offer generative AI, cloud infrastructure, and audio and video solutions to enterprises worldwide. Special thanks to the BytePlus Overseas Incubator for its compute resources and ecosystem support for this project.</td>
   </tr>
   <tr>
-    <td align="center" valign="middle"><img src="assets/readme/partner-ll2.png" width="32" height="32" alt="ll2.cn 图标"><br><strong>ll2.cn</strong></td>
-    <td><a href="https://hub.ll2.cn?p=rw6t">ll2.cn</a>｜自营算力底座 · 官方直签批价。MiniMax-H3 0.05 元/秒（自部署 768P 满血）；deepseek-v4.1-flash 官方 4 折；Seedance 系列 7 折起；超分 0.018 元/秒；Vega系列 6折起。</td>
+    <td align="center" valign="middle"><img src="assets/readme/partner-ll2.png" width="32" height="32" alt="ll2.cn icon"><br><strong>ll2.cn</strong></td>
+    <td><a href="https://hub.ll2.cn?p=rw6t">ll2.cn</a> | Self-operated compute infrastructure · Direct official contracts at wholesale rates. MiniMax-H3 at CNY 0.05/second (self-hosted, full-capability 768P); deepseek-v4.1-flash at 40% of the official price; Seedance series from 30% off; super-resolution at CNY 0.018/second; Vega series from 40% off.</td>
   </tr>
   <tr>
-    <td align="center" valign="middle"><img src="assets/readme/partner-pccooler.png" width="120" alt="超频三标志"><br><strong>超频三</strong></td>
-    <td><a href="https://www.cpspccooler.cn/">超频三</a>是深耕高性能计算硬件与散热系统的上市公司，提供 AI 模组化整机、AI 工作站等产品。结合超频三的硬件研发能力与 BeefTV 的 AIGC 软件生态，双方将共同探索软硬件一体化的本地 AI 创作解决方案。</td>
+    <td align="center" valign="middle"><img src="assets/readme/partner-pccooler.png" width="120" alt="PCCOOLER logo"><br><strong>PCCOOLER</strong></td>
+    <td><a href="https://www.cpspccooler.cn/">PCCOOLER</a> is a publicly listed company specializing in high-performance computing hardware and cooling systems, with products including modular AI PCs and AI workstations. Combining PCCOOLER's hardware R&amp;D capabilities with BeefTV's AIGC software ecosystem, the two teams will explore integrated hardware and software solutions for local AI creation.</td>
   </tr>
 </table>
 
-## 产品演示
+## Product demo
 
 <div>
   <video src="https://github.com/user-attachments/assets/da4081e0-26bc-424e-b20c-124f92ce6538" controls preload="metadata" playsinline></video>
 </div>
 
-## 工作流
+## Workflows
 
-**把跑通的步骤，留给下一次创作。**
+**Save the steps that work for your next creation.**
 
-将素材、媒体处理与 AI 生成连接成一套可编辑流程。以**单人物替换工作流**为例：输入动作视频和人物参考图，先适配视频帧率，再交给 Seedance 2.0 Fast 生成替换结果。
+Connect media, local processing, and AI generation in an editable workflow. The **single-character replacement workflow** takes a motion video and a character reference image, adapts the video frame rate, then passes both references to Seedance 2.0 Fast.
 
-![单人物替换工作流真实编辑界面：可替换的视频与图片输入、帧率适配、视频生成节点及模型参数](assets/readme/beeftv-character-workflow-editor.png)
+![Actual single-character replacement workflow editor: replaceable video and image inputs, frame-rate adaptation, video generation, and model settings](assets/readme/beeftv-character-workflow-editor.png)
 
 <table>
-  <tr><th width="50%">原片</th><th width="50%">人物替换完整版</th></tr>
+  <tr><th width="50%">Source video</th><th width="50%">Finished character replacement</th></tr>
   <tr>
     <td><video src="https://github.com/user-attachments/assets/1d8e5c42-d6be-40f5-be55-504b7381bf90" controls preload="metadata" playsinline></video></td>
     <td><video src="https://github.com/user-attachments/assets/cadf1e3b-e1fa-4a45-83a0-c8cdacc4d1b1" controls preload="metadata" playsinline></video></td>
   </tr>
 </table>
 
-[制作记录](docs/content/docs/overview/examples.mdx#工作流单人物替换)
+[Production record](docs/content/docs/overview/examples.mdx#工作流单人物替换) (Chinese)
 
-- **把处理与生成串起来**：帧率适配在本地完成，视频与角色图分别作为生成参考。
-- **保留可编辑的配置**：调整节点、连线、模型、提示词和输出参数，保存为模板版本。
-- **换素材，复用编排**：重新绑定动作视频或人物图，沿用处理链路；根据新镜头调整约束与参数。
+- **Connect processing and generation:** Adapt frame rate locally; use the video and character image as separate generation references.
+- **Keep the configuration editable:** Adjust nodes, connections, models, prompts, and output settings, then save a template revision.
+- **Reuse the structure with new inputs:** Bind a different motion video or character image; adapt constraints and parameters to the new shots.
 
-本地 2.0.1 中的模板版本 13、14 已有成功运行记录。上方完整版还包含逐镜修正、拼接与原声回填，这些步骤尚未全部封装进模板；不代表任意素材一键完成或逐帧保真。模型生成按所用渠道计费。
+Template revisions 13 and 14 have successful runs in the local 2.0.1 app. The finished example also includes shot-level corrections, stitching, and restoration of the original audio. Those steps are not all encapsulated in the template; this does not demonstrate one-click completion for arbitrary media or frame-perfect preservation. Model generation is billed by your chosen provider.
 
 ## BeefTV Agent
 
-**通过聊天，把故事搭成可编辑的创作工程。**
+**Turn a conversation into an editable creative project.**
 
-> 「帮我做一个末日生存题材的爆款短剧。」
+> “Help me make a viral post-apocalyptic short drama.”
 
-在本地案例 **《最后一瓶水》** 中，用户说明创作顺序并确认生成方案，Agent 自行搭建了 **25 个节点、48 条连线**：从剧本架构、8 镜分镜表，到角色、场景、镜头首帧、视频与中文旁白，过程和素材都留在画布上。
+In the local example **The Last Bottle of Water**, the user specified the production order and confirmed generation plans. The Agent built **25 nodes and 48 connections**, covering the story outline, an eight-shot storyboard, characters, scenes, first frames, video, and Mandarin narration. The process and assets remain on the canvas.
 
 <table>
-  <tr><th width="25%">角色设定 · 沈默</th><th width="25%">场景设定 · 水塔配给点</th><th width="25%">生成镜头一</th><th width="25%">生成镜头二</th></tr>
+  <tr><th width="25%">Character design · Shenmo</th><th width="25%">Scene design · Water ration point</th><th width="25%">Generated shot 1</th><th width="25%">Generated shot 2</th></tr>
   <tr>
-    <td><img src="assets/readme/beeftv-agent-drama-role-shenmo.webp" alt="Agent 生成的主角沈默设定图"></td>
-    <td><img src="assets/readme/beeftv-agent-drama-scene-water-tower.webp" alt="Agent 生成的末日水塔配给点场景"></td>
+    <td><img src="assets/readme/beeftv-agent-drama-role-shenmo.webp" alt="Lead character design generated by the Agent"></td>
+    <td><img src="assets/readme/beeftv-agent-drama-scene-water-tower.webp" alt="Post-apocalyptic water ration point generated by the Agent"></td>
     <td><video src="https://github.com/user-attachments/assets/0c0e1174-479d-4394-a4b2-7c64a3367e0a" controls preload="metadata" playsinline></video></td>
     <td><video src="https://github.com/user-attachments/assets/b304bdd1-5a3f-4e96-929b-46a9cbff29bf" controls preload="metadata" playsinline></video></td>
   </tr>
 </table>
 
-![BeefTV Agent 实际使用画面：角色与场景节点通过连线关联分镜和视频，右侧显示制作步骤与执行进度](assets/readme/beeftv-agent-drama-canvas.png)
+![BeefTV Agent in use: character and scene nodes connect to storyboard and video nodes, with production steps and progress shown on the right](assets/readme/beeftv-agent-drama-canvas.png)
 
-- **先规划**：确定世界观、角色与分镜，写入镜头时长、画面、动作和声音要求。
-- **再执行**：创建节点与参考连线，确认后调用模型，生成角色图、场景图、镜头和旁白。
-- **可检查、可继续**：读取实际产物，核对设定图与分镜首帧，保留成功素材和失败状态，继续调整与编辑。
-- **支持外部 Agent / MCP 接入**：在侧栏「BeefTV MCP」页一键把 Claude Code、Codex 接入本地画布，并装好一份画布使用说明；Claude Desktop、Cursor 等客户端可生成连接配置接入。详见[外部 Agent 接入](docs/content/docs/backend/external-agents.mdx)。
+- **Plan:** Define the world, characters, and storyboard, including shot duration, visuals, motion, and sound.
+- **Execute:** Create nodes and reference connections, then generate characters, scenes, shots, and narration after confirmation.
+- **Inspect and continue:** Read actual outputs, check designs and first frames, preserve successful assets and failure states, and continue refining.
+- **Connect external Agents via MCP:** In the sidebar "BeefTV MCP" page, connect Claude Code or Codex to the local canvas in one click, including a canvas usage skill; Claude Desktop, Cursor, and other clients can still generate a connection config. See [External Agent Integration](docs/content/docs/backend/external-agents.mdx) (Chinese).
 
 ## Skills
 
-**把创作方法，变成随时可用的技能。**
+**Keep your creative methods ready to use.**
 
-为创作助手提供特定任务的方法、步骤与要求。浏览技能市场，查看使用条件与文件，再安装指定版本。
+Give the creative assistant methods, steps, and requirements for specific tasks. Browse the skill marketplace, review requirements and files, then install a specific version.
 
-![BeefTV 2.0.1 技能市场：浏览技能、用途和固定版本](assets/readme/beeftv-2.0.1-skills.webp)
+![BeefTV 2.0.1 skill marketplace: browse skills, purposes, and fixed versions](assets/readme/beeftv-2.0.1-skills.webp)
 
-| 官方技能 | 本次实际交付 |
+| Official skill | Actual deliverable in this session |
 | --- | --- |
-| 双镜头文字分镜 | 咖啡短片：两镜各 4 秒，列出画面、声音与待确认项。 |
-| 采访提纲 | 社区书店：三个开放问题、条件追问、补拍与授权清单。 |
-| 素材清单整理 | 咖啡视频＋清晨照片：用途分类、授权记录与时长、声音缺口。 |
+| Two-shot text storyboard | Coffee short: two 4-second shots, with visuals, sound, and items to confirm. |
+| Interview outline | Community bookstore: three open questions, follow-ups, supporting footage, and permissions. |
+| Media inventory | Coffee video + dawn photo: purposes, stated permissions, and duration and sound gaps. |
 
-- **按需使用**：启用或停用已安装技能，管理自己的技能库。
-- **保留版本**：查看更新，也可回退到已安装的历史版本。
-- **按习惯改写**：复制为私人版本；作者可准备投稿，分别确认上传与公开送审。
+- **Use what you need:** Enable or disable installed skills in your library.
+- **Manage versions:** Check for updates or return to a previously installed version.
+- **Make it yours:** Create a private adaptation. Authors can prepare submissions, with separate confirmations for upload and public review.
 
-文字技能无需配置多模态模型；涉及图片、视频或音频的技能，按其使用条件配置相应能力。
+Text-only skills do not require a multimodal model. Skills involving images, video, or audio require the capabilities listed in their requirements.
 
-## 一个画布，完整创作链路
+## One canvas, a complete creative workflow
 
-- **生成**：从提示词或参考素材生成文字、图片、视频与音频。
-- **组织**：用节点和连线建立素材关系、创作上下文与生成流程。
-- **加工**：继续裁切、标注、局部重绘、拆分、引用和组合结果。
-- **迭代**：保留过程、复用素材，让一次生成变成可持续演进的工作流。
+- **Generate:** Create text, images, video, and audio from prompts or reference media.
+- **Organize:** Connect nodes to build relationships between assets, creative context, and generation steps.
+- **Refine:** Crop, annotate, inpaint, split, reference, and combine results.
+- **Iterate:** Keep your process and reuse assets, turning a single generation into an evolving workflow.
 
-BeefTV 同时提供项目库、个人资产库、异步任务、模型渠道与创作工具。
+BeefTV also includes project and personal asset libraries, asynchronous tasks, model providers, and creative tools.
 
-## 为什么选择BeefTV
+## Why BeefTV
 
 | High Performance | Lightweight | AI Native |
 | --- | --- | --- |
-| 面向复杂画布优化渲染、媒体预览与任务处理。 | 本地优先，一个桌面工作区即可开始，能力按需加载。 | Agent 推进创作，Skills 提供方法，工作流复用步骤。 |
+| Rendering, media previews, and task handling optimized for complex canvases. | Local-first, with one desktop workspace to get started and capabilities loaded as needed. | An Agent to advance your work, Skills to guide it, and Workflows to reuse the steps. |
 
-## 源码可用，支持自定义与扩展
+## Source available, customizable and extensible
 
-- 可以自由配置文本、图片、视频与音频模型渠道，不绑定单一 Provider。
-- 项目、画布、素材与任务由统一工作区管理，数据可以本地保存和迁移。
-- 桌面端基于 React、Go 与 Wails，模型协议和工作台能力可继续自定义或者扩展。
+- Configure text, image, video, and audio model providers freely, without being tied to a single provider.
+- Manage projects, canvases, assets, and tasks in one workspace, with data that can be saved and migrated locally.
+- Built for desktop with React, Go, and Wails, with extensible model protocols and workspace capabilities.
 
-## 开始使用
+## Get started
 
-1. [下载桌面版](https://github.com/glanderness/BeefTV/releases/latest)，按[首次打开说明](QUICKSTART.md#下载与首次打开)进入本地工作区，无需注册。
-2. 在「模型配置」中连接 BeefTV 官方账号，或添加自己的模型渠道。
-3. 新建画布，添加参考素材，向创作助手描述目标；也可从节点开始自由创作。
+1. [Download the desktop app](https://github.com/glanderness/BeefTV/releases/latest) and follow the [first-launch instructions](QUICKSTART.md#下载与首次打开). Enter your local workspace without signing up.
+2. In model settings, connect your BeefTV account or add your own model provider.
+3. Create a canvas, add reference media, and describe your goal to the creative assistant. You can also start creating directly with nodes.
 
-模型配置与源码构建见 [快速开始](QUICKSTART.md)，打包要求见[桌面发布文档](docs/desktop-release.md)。
+See [Quick Start](QUICKSTART.md) for model setup and building from source, and the [desktop release guide](docs/desktop-release.md) for packaging requirements.
 
-## 贡献与许可
+## Contributing and license
 
-欢迎提交 Issue 和 Pull Request。开发流程与测试要求见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
+Issues and pull requests are welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow and testing requirements.
 
-仓库采用分范围许可：自首次引入新许可的提交起，符合授权条件的新增原创内容适用 [`BeefTV Source Available License 1.0`](LICENSE)；已按 MIT 发布的历史内容继续适用同文件保留的 MIT 条款，上游和第三方材料保留各自许可。
+The repository uses licenses with different scopes. Original content added under the new license, starting with the commit that first introduced it and subject to its terms, is covered by the [`BeefTV Source Available License 1.0`](LICENSE). Historical content released under MIT remains under the MIT terms retained in the same file. Upstream and third-party materials keep their respective licenses.
 
-新许可允许自部署、内部二开及使用 BeefTV 制作并销售作品；对其覆盖的软件进行商业转售、套壳销售、收费部署或定制交付，以及免费或收费向第三方提供托管功能，均需事先书面授权。独立教程、培训和一般技术咨询可收费，不能借此变相交付软件系统。授权联系：[lucas@bf-labs.cn](mailto:lucas@bf-labs.cn)。
+The new license permits self-hosting, internal customization, and creating and selling works with BeefTV. Written authorization is required for commercial resale, rebranding and resale, paid deployment or custom delivery of covered software, and providing hosted features to third parties, whether free or paid. Independent tutorials, training, and general technical consulting may be paid services, but must not be used to deliver the software system indirectly. Contact us about authorization at [lucas@bf-labs.cn](mailto:lucas@bf-labs.cn).
 
-新限制不追溯适用于历史 MIT 内容，也不覆盖第三方独立许可的材料。这是一份源码可用许可，不能将整个仓库视为标准 MIT 或 OSI 定义的开源项目。具体场景及覆盖边界见[许可说明](docs/content/docs/overview/licensing.mdx)，上游来源与第三方归属见 [`NOTICE`](NOTICE)。
+The new restrictions do not apply retroactively to historical MIT content or override independently licensed third-party materials. This is a source-available license; the entire repository should not be treated as standard MIT or as an open source project under the OSI definition. See the [license guide](docs/content/docs/overview/licensing.mdx) for covered scenarios and boundaries, and [`NOTICE`](NOTICE) for upstream sources and third-party attributions.
 
 ## ⭐ Star History
 
@@ -209,6 +208,6 @@ BeefTV 同时提供项目库、个人资产库、异步任务、模型渠道与�
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=glanderness/BeefTV&amp;type=date&amp;theme=dark&amp;legend=bottom-right" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=glanderness/BeefTV&amp;type=date&amp;legend=bottom-right" />
-    <img alt="BeefTV GitHub Star History" src="https://api.star-history.com/chart?repos=glanderness/BeefTV&amp;type=date&amp;legend=bottom-right" />
+    <img alt="BeefTV GitHub star history" src="https://api.star-history.com/chart?repos=glanderness/BeefTV&amp;type=date&amp;legend=bottom-right" />
   </picture>
 </a>

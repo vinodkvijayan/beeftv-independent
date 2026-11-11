@@ -94,17 +94,20 @@ jobs:
         run: |
           set -euo pipefail
           version="$(tr -d '[:space:]' < VERSION)"
-          tag="windows-${version}"
+          tag="v1.0.0"
+          setup="dist/BeefTV-English-1.0.0-windows-amd64-setup.exe"
+          portable="dist/BeefTV-English-1.0.0-windows-amd64-portable.zip"
+          cp "dist/BeefTV-${version}-windows-amd64-setup.exe" "$setup"
+          cp "dist/BeefTV-${version}-windows-amd64-portable.zip" "$portable"
+          export UPSTREAM_VERSION="$version"
           export RELEASE_NOTES_PATH="$RUNNER_TEMP/release-notes.md"
           python scripts/independent-release-notes.py
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" --clobber \
-              "dist/BeefTV-${version}-windows-amd64-setup.exe" \
-              "dist/BeefTV-${version}-windows-amd64-portable.zip"
+            gh release upload "$tag" --clobber "$setup" "$portable"
           else
             gh release create "$tag" \
-              --title "Independent Windows build ${version}" \
+              --title "BeefTV English 1.0.0" \
               --notes-file "$RELEASE_NOTES_PATH" \
-              "dist/BeefTV-${version}-windows-amd64-setup.exe" \
-              "dist/BeefTV-${version}-windows-amd64-portable.zip"
+              "$setup" \
+              "$portable"
           fi

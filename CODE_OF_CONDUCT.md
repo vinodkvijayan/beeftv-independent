@@ -1,9 +1,9 @@
-# 社区行为准则
+# Community code of conduct
 
-BeefTV 欢迎不同背景的创作者与开发者参与。我们希望每一次交流都让问题更清晰、协作更顺畅，也让参与者感到安全和受到尊重。
+BeefTV is open to creators and developers from different backgrounds. The aim of a conversation is to make the problem clearer, the work easier, and the people in it safe and respected.
 
-讨论功能、设计或代码时，请聚焦具体问题，说明依据，给出有帮助的反馈；即使意见不同，也请尊重对方。不要骚扰、歧视、威胁或人身攻击，不要未经同意公开他人的私人信息，也不要蓄意干扰项目或社区的正常协作。
+When you discuss a feature, a design, or code, stay on the concrete issue, give your reasons, and offer feedback that helps. Disagree without dismissing the person. Do not harass, discriminate, threaten, or attack someone personally. Do not publish another person's private information without consent. Do not deliberately disrupt the project or the community.
 
-如果遇到违反本准则的行为，请发送邮件至 `lucas@bf-labs.cn`，尽量附上事件经过和相关链接。维护者会审阅举报、尽量保护举报人的隐私，并视情况移除内容、限制参与权限或采取其他必要措施。
+If you see a violation, email `lucas@bf-labs.cn` and include what happened plus any relevant links. Maintainers review reports, protect the reporter's privacy as far as they can, and may remove content, limit participation, or take another step that is actually needed.
 
-本准则适用于仓库、Issue、Pull Request、讨论区，以及以 BeefTV 项目成员身份参与的其他公开交流。
+This applies to the repository, issues, pull requests, discussions, and other public spaces where someone is acting as a member of the BeefTV project.

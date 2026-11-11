@@ -1,29 +1,29 @@
-# 贡献指南
+# Contributing
 
-感谢参与 BeefTV。提交改动前，请先确认相关 Issue 或用简短说明描述问题、目标和外部行为变化。
+Thanks for working on this independent English edition of BeefTV. Before sending a change, point at the related issue or describe the problem, the goal, and any user-visible behavior that changes.
 
-## 开发环境
+## Setup
 
-- 前端：Bun、Vite、React、TypeScript。
-- 后端：Go、Gin、GORM、SQLite。
-- 本地全栈：`docker compose up -d --build`。
+- Frontend: Bun, Vite, React, TypeScript.
+- Backend: Go, Gin, GORM, SQLite.
+- Full local stack: `docker compose up -d --build`.
 
-不要提交 `.env`、数据库、数据目录、生成产物、编辑器配置或真实 API/OSS 密钥。新增配置项时只在 `.env.example` 中提供无敏感信息的说明。
+Do not commit `.env`, databases, data directories, build output, editor settings, or real API or object-storage keys. New settings belong in `.env.example` with no secrets.
 
-## 提交要求
+## Change rules
 
-- 保持改动聚焦，沿用现有目录职责、命名和错误处理风格。
-- 写路径必须明确失败；不可用默认值掩盖保存、权限、生成或删除错误。
-- 后端对象读取必须同时校验当前用户和资源归属。
-- 涉及上传、外部请求或模型调用时，必须说明大小、频率、费用和 SSRF 边界。
-- 用户可见文案使用中文；核心业务入口和安全边界使用简短中文注释说明原因。
+- Keep the change focused. Follow the existing directory roles, names, and error-handling style.
+- Writes must fail in the open. Do not hide a save, permission, generation, or delete error behind a default.
+- Backend reads must check both the current user and resource ownership.
+- Uploads, outbound requests, and model calls must state size, rate, cost, and SSRF limits.
+- User-visible copy in this edition is English. This is not an official BeefTV rule. Upstream still asks for Chinese copy.
 
-Pull Request 应包含改动摘要、风险、验证方式和必要截图。
+A pull request should include a summary, the risk, how you verified it, and screenshots when the UI changes.
 
-## 贡献许可
+## License of contributions
 
-自引入新许可的提交起，首次提交的新增原创内容默认按 [`LICENSE` 的 Part A（BeefTV Source Available License 1.0）](LICENSE)贡献。你应有权授予这些权限，保留已有署名和许可证通知，并标明第三方或历史 MIT 材料的来源与适用条款。不要将他人的代码、素材或雇主所有的成果作为无权授权的原创贡献提交。
+From the commit that introduced the current license, new original material is contributed under [Part A of `LICENSE` (BeefTV Source Available License 1.0)](LICENSE). You need the right to grant that permission. Keep existing attribution and license notices, and mark third-party or historical MIT material with its source and terms. Do not submit someone else's code, media, or an employer's work as if it were yours to license.
 
-按 Part A 有意提交的原创贡献，还依其第 8 条向官方 `glanderness/BeefTV` 仓库维护者授予复制、修改、分发，以及按社区许可或单独商业条款再许可该贡献的非独占、永久、不可撤销、全球、免版税著作权许可。贡献者保留版权；这不是版权转让，也不追溯适用于历史贡献或扩大至第三方材料。若不接受此项授权，应在接受贡献前明确提出，由维护者先确认处理方式。
+Original contributions intentionally submitted under Part A also grant the maintainers of the official `glanderness/BeefTV` repository the non-exclusive, perpetual, irrevocable, worldwide, royalty-free copyright license in section 8 of that part: to copy, modify, distribute, and relicense that contribution under the community license or under separate commercial terms. You keep the copyright. This is not an assignment, it does not reach back to older contributions, and it does not cover third-party material. If you do not accept that grant, say so before the contribution is accepted so a maintainer can decide what to do.
 
-已按 MIT 发布的贡献继续保留 MIT 权利；因 GPL 等条款需要使用兼容许可的内容不能强行套用 Part A，贡献中应明确标识并说明兼容性。场景和范围说明见[许可说明](docs/content/docs/overview/licensing.mdx)。
+Contributions already released under MIT stay MIT. Material that must use a compatible license because of the GPL or a similar term cannot be forced under Part A. Mark that material and explain the compatibility. See the [license notes](docs/content/docs/overview/licensing.mdx).

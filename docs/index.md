@@ -1,50 +1,46 @@
-# BeefTV 文档
+# BeefTV documentation
 
-BeefTV 是一个本地优先、轻量、AI Native 的视频工作台。本页只收录公开使用、开发和维护所需的文档。
+BeefTV is a local-first, lightweight, AI-native video workspace. This page lists the public documents for using, building, and maintaining it.
 
-## 开始使用
+The original Chinese copies of these documents are in [`archive/zh/`](../archive/zh/).
 
-- [项目首页与快速开始](../README.md)
-- [快速开始指南](../QUICKSTART.md)
-- [功能概览](content/docs/overview/features.mdx)
-- [Agent、Skills 与工作流实机案例](content/docs/overview/examples.mdx)
-- [桌面安装说明](desktop-install.md)
-- [Linux 安装说明](linux-install.md)
-- [桌面端更新与离线安装包](content/docs/backend/desktop-updater.mdx)
-- [本地优先架构](local-first-architecture.md)
-- [桌面端本地开发](desktop-local-development.md)
-- [桌面端发布](desktop-release.md)
+## Start
 
-## 配置与数据
+- [Project home](../README.md)
+- [Quick start](../QUICKSTART.md)
+- [Feature overview](content/docs/overview/features.mdx)
+- [Agent, skills, and workflow examples](content/docs/overview/examples.mdx)
+- [Desktop install](desktop-install.md)
+- [Linux install](linux-install.md)
+- [Desktop updates and offline packages](content/docs/backend/desktop-updater.mdx)
+- [Local-first architecture](local-first-architecture.md)
+- [Desktop local development](desktop-local-development.md)
+- [Desktop release](desktop-release.md)
 
-- [本地工作区数据源](local-workspace-data-sources.md)
-- [模型配置持久化](local-model-config-persistence.md)
-- [存储与导出设置](storage-settings.md)
-- [桌面账号与钱包](content/docs/backend/desktop-account.mdx)
-- [提示词长度由服务端校验](content/docs/backend/video-prompt-limits.mdx)
+## Configuration and data
 
-## 开发参考
+- [Local workspace data sources](local-workspace-data-sources.md)
+- [Model configuration persistence](local-model-config-persistence.md)
+- [Storage and export settings](storage-settings.md)
+- [Desktop account and wallet](content/docs/backend/desktop-account.mdx)
+- [Prompt length is checked on the server](content/docs/backend/video-prompt-limits.mdx)
 
-- [后端本地开发](content/docs/backend/local-development.mdx)
-- [外部 Agent 接入](content/docs/backend/external-agents.mdx)
-- [beeftv 命令行基础使用](content/docs/backend/beeftv-cli.mdx)
+## Development reference
+
+- [Backend local development](content/docs/backend/local-development.mdx)
+- [External agent access](content/docs/backend/external-agents.mdx)
+- [beeftv command line](content/docs/backend/beeftv-cli.mdx)
 - [HTTP API](content/docs/backend/http-api.mdx)
-- [代码地图](content/docs/backend/code-map.mdx)
-- [后端数据库](content/docs/backend/backend-database.mdx)
-- [任务运行时稳定性](content/docs/backend/task-runtime-stability.mdx)
-- [生成失败归类](content/docs/backend/generation-errors.mdx)
-- [开发一个插件](content/docs/plugins/plugin-development.mdx)
-- [插件参考](content/docs/plugins/plugin-reference.mdx)
-- [接入生成服务](content/docs/plugins/plugin-generation.mdx)
-- [写一个技能](content/docs/plugins/skills.mdx)
-- [插件系统怎么运转](content/docs/plugins/plugin-system.mdx)
-- [AI 审美批改插件](content/docs/plugins/ai-art-critique.mdx)
+- [Code map](content/docs/backend/code-map.mdx)
+- [Backend database](content/docs/backend/backend-database.mdx)
+- [Task runtime stability](content/docs/backend/task-runtime-stability.mdx)
+- [Generation error classes](content/docs/backend/generation-errors.mdx)
+- [Write a plugin](content/docs/plugins/plugin-development.mdx)
+- [Plugin reference](content/docs/plugins/plugin-reference.mdx)
+- [Connect a generation service](content/docs/plugins/plugin-generation.mdx)
+- [Write a skill](content/docs/plugins/skills.mdx)
+- [How the plugin system runs](content/docs/plugins/plugin-system.mdx)
 
-## 项目治理
+## Backend translation
 
-- [贡献指南](../CONTRIBUTING.md)
-- [安全策略](../SECURITY.md)
-- [项目许可](../LICENSE)
-- [许可范围与使用场景](content/docs/overview/licensing.mdx)
-- [第三方声明](../THIRD_PARTY_NOTICES.md)
-- [媒体组件的许可与源码交付](media-source-distribution.md)
+Backend messages are still Chinese. The plan, which is not started, is [BACKEND_I18N_PLAN.md](BACKEND_I18N_PLAN.md).
